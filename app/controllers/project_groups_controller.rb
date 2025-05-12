@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,9 +16,19 @@ class ProjectGroupsController < ApplicationController
     @pagy, @project_groups = pagy(@project_groups)
   end
 
+  private def any_invisible_projects?
+    # Alert if there are projects in the project group that the user can't access, for now, let them proceed,
+    # but note that there will be data loss
+    previously_selected_project_ids = @project_group.projects.pluck(:id)
+    viewable_project_ids = GrdaWarehouse::Hud::Project.viewable_by(current_user).pluck(:id)
+
+    (previously_selected_project_ids - viewable_project_ids).any?
+  end
+  helper_method :any_invisible_projects?
+
   def new
     @project_group = project_group_source.new
-    set_access
+    set_group_access
   end
 
   def create
@@ -49,7 +59,7 @@ class ProjectGroupsController < ApplicationController
       render action: :new
       return
     end
-    respond_with(@project_group, location: edit_project_group_path)
+    respond_with(@project_group, location: edit_project_group_path(@project_group.id))
   end
 
   def edit
@@ -156,6 +166,10 @@ class ProjectGroupsController < ApplicationController
 
   def set_access
     @editor_ids = @project_group.editable_access_control.user_ids
+    set_group_access
+  end
+
+  def set_group_access
     # TODO: START_ACL remove when ACL transition complete
     @groups = @project_group.access_groups
     @group_ids = @project_group.access_group_ids

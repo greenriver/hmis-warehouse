@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,8 +14,8 @@ module Admin
 
     def destroy
       user = User.find(params[:id])
-      user.unique_session_id = nil
-      user.save
+      user.force_logout!
+
       redirect_to({ action: :index }, notice: "Session ended for #{user.name}")
     end
   end

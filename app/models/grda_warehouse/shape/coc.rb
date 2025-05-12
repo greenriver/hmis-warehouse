@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,8 +9,8 @@ module GrdaWarehouse
     class Coc < GrdaWarehouseBase
       include SharedBehaviors
 
-      scope :my_state, -> { where(st: ENV['RELEVANT_COC_STATE']) }
-      scope :not_my_state, -> { where.not(st: ENV['RELEVANT_COC_STATE']) }
+      scope :my_states, -> { where(st: GrdaWarehouse::Config.relevant_state_codes) }
+      scope :not_my_states, -> { where.not(st: GrdaWarehouse::Config.relevant_state_codes) }
 
       def candidate_block_groups
         BlockGroup.joins(Arel.sql(<<~SQL))

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,32 +44,21 @@ class Menu::Menu
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
-    menu.add_child(warehouse_reports_menu)
     menu.add_child(hud_reports_menu)
+    menu.add_child(warehouse_reports_menu)
+    menu.add_child(op_analytics_menu)
+    menu.add_child(favorites_menu)
     menu
   end
 
   def hud_reports_menu
-    reports = Rails.application.config.hud_reports.values.map { |report| [report[:title], context.public_send(report[:helper])] }.uniq
-    menu = Menu::Item.new(
+    Menu::Item.new(
       user: user,
-      path: reports.first.last,
+      path: hud_reports_path,
       visible: ->(user) { user.can_view_hud_reports? },
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
-    reports.each do |report_name, path|
-      item = Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_hud_reports? },
-        path: path,
-        title: Translation.translate(report_name),
-        id: "hud-reports-#{report_name.downcase.gsub(' ', '-')}",
-      )
-      menu.add_child(item)
-    end
-
-    menu
   end
 
   def warehouse_reports_menu
@@ -80,6 +69,40 @@ class Menu::Menu
       title: Translation.translate('Warehouse Reports'),
       id: 'warehouse-reports',
     )
+  end
+
+  def op_analytics_menu
+    Menu::Item.new(
+      user: user,
+      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available? && GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
+      path: Superset.warehouse_login_url,
+      title: Translation.translate('OP Analytics'),
+      id: 'superset',
+      target: :_blank,
+      trailing_icon: 'icon-link-ext',
+    )
+  end
+
+  def favorites_menu
+    menu = Menu::Item.new(
+      user: user,
+      visible: ->(user) { user.can_view_any_reports? && user.favorite_reports.any? },
+      path: warehouse_reports_path,
+      title: Translation.translate('Favorite Reports'),
+      id: 'warehouse-reports',
+    )
+
+    user.favorite_reports.each do |report|
+      item = Menu::Item.new(
+        user: user,
+        visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: report.url).exists? },
+        path: "/#{report.url}",
+        title: report.name,
+      )
+      menu.add_child(item)
+    end
+
+    menu
   end
 
   def clients_menu
@@ -471,6 +494,16 @@ class Menu::Menu
         title: 'Imports',
       ),
     )
+    if RailsDrivers.loaded.include?(:ma_reports) && MaReports::CsgEngage::Credential.active.present?
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(user) { user.can_view_imports? },
+          path: ma_reports_csg_engage_reports_path,
+          title: 'CSG Engage',
+        ),
+      )
+    end
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -585,13 +618,14 @@ class Menu::Menu
   end
 
   def hmis_menu
-    # NOTE: eventually we should use the data source name here, maybe concatenated with HMIS, but currently that would be HMIS HMIS
-    GrdaWarehouse::DataSource.hmis.distinct.map do |hmis_ds|
+    hmis_data_sources = GrdaWarehouse::DataSource.hmis
+    hmis_data_sources.map do |hmis_ds|
+      default_link_text = hmis_data_sources.size == 1 ? 'Open HMIS' : "Open #{hmis_ds.short_name}"
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.any_hmis_access? },
+        visible: ->(user) { user.can_access_hmis_data_source?(hmis_ds.id) },
         path: "//#{hmis_ds.hmis}",
-        title: Translation.translate('Open HMIS'),
+        title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',
         target: :_blank,
       )

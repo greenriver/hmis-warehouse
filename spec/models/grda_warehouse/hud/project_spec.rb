@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 model = GrdaWarehouse::Hud::Project
@@ -35,12 +43,12 @@ RSpec.describe model, type: :model do
   let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
   let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
 
-  let!(:pc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'foo' }
-  let!(:pc2) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'foo' }
-  let!(:pc3) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'foo' }
-  let!(:pc4) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'foo' }
-  let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'bar' }
-  let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, CoCCode: 'bar' }
+  let!(:pc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc2) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p2.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc3) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p4.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc4) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'XX-500' }
+  let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'XX-501' }
+  let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, CoCCode: 'XX-501' }
 
   let!(:pg1) { create :project_access_group, projects: [p1] }
 
@@ -58,6 +66,22 @@ RSpec.describe model, type: :model do
   p = ->(*projects) { projects.map(&:id).sort }
 
   describe 'scopes' do
+    it 'handles RRH Sub Type correctly' do
+      p1.update(project_type: 13, rrh_sub_type: 1) # services only
+      p2.update(project_type: 13, rrh_sub_type: 2) # housing
+      p3.update(project_type: 2) # TH
+      p4.update(project_type: 10) # PH
+      p5.update(project_type: 7) # other
+      p6.update(project_type: 0) # ES Entry/Exit
+      p7.update(project_type: 11) # Day Shelter
+      p8.update(project_type: 12) # Prevention
+      aggregate_failures do
+        expect(GrdaWarehouse::Hud::Project.hud_residential.to_a.sort).to eq([p2, p3, p4, p6].sort)
+        expect(GrdaWarehouse::Hud::Project.hud_non_residential.to_a.sort).to eq([p1, p5, p7, p8].sort)
+        expect(GrdaWarehouse::Hud::Project.hud_residential_non_homeless.to_a.sort).to eq([p2, p3, p4].sort)
+      end
+    end
+
     describe 'viewability' do
       describe 'ordinary user' do
         it 'sees nothing' do
@@ -108,9 +132,9 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user assigned to coc foo' do
+      describe 'user assigned to coc XX-500' do
         before do
-          no_data_source_collection.update(coc_codes: ['foo'])
+          no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
           setup_access_control(user, can_view_projects_role, no_data_source_collection)
         end
         after do
@@ -121,9 +145,9 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user assigned to coc bar' do
+      describe 'user assigned to coc XX-501' do
         before do
-          no_data_source_collection.update(coc_codes: ['bar'])
+          no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-501']).pluck(:id) })
           setup_access_control(user, can_view_projects_role, no_data_source_collection)
         end
         after do
@@ -151,8 +175,8 @@ RSpec.describe model, type: :model do
 
     describe 'confidentiality' do
       before(:each) do
-        p1.update(confidential: true) # project in CoC 'foo'
-        p8.update(confidential: true) # project in CoC 'bar'
+        p1.update(confidential: true) # project in CoC 'XX-500'
+        p8.update(confidential: true) # project in CoC 'XX-501'
         o2.update(confidential: true)
       end
 
@@ -225,9 +249,9 @@ RSpec.describe model, type: :model do
           end
         end
 
-        describe 'assigned to coc foo' do
+        describe 'assigned to coc XX-500' do
           before do
-            no_data_source_collection.update(coc_codes: ['foo'])
+            no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
             setup_access_control(user, can_view_projects_role, no_data_source_collection)
           end
           after do
@@ -287,9 +311,9 @@ RSpec.describe model, type: :model do
           end
         end
 
-        describe 'assigned to coc foo' do
+        describe 'assigned to coc XX-500' do
           before do
-            no_data_source_collection.update(coc_codes: ['foo'])
+            no_data_source_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
             setup_access_control(user, can_view_confidential_projects, no_data_source_collection)
           end
           after do

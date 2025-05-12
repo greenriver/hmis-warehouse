@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -118,9 +118,9 @@ module SystemPathways::WarehouseReports
         else
           'Served by Homeless System'
         end
-        @clients = @clients.preload(:client)
         @details_title = "#{@source_title} → #{@target}"
       end
+      @clients = @clients.preload(:client)
     end
 
     private def filtering_show?
@@ -189,7 +189,7 @@ module SystemPathways::WarehouseReports
     end
 
     def filter_params
-      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter.coc_code_options_for_select(user: current_user).first]
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [filter_class.new(user_id: current_user.id).coc_code_options_for_select(user: current_user).first]
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,
@@ -204,7 +204,7 @@ module SystemPathways::WarehouseReports
     helper_method :filter_params
 
     def sub_category_params
-      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter.coc_code_options_for_select(user: current_user).first]
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [filter_class.new(user_id: current_user.id).coc_code_options_for_select(user: current_user).first]
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,

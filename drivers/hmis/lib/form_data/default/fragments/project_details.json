@@ -6,7 +6,7 @@
     {
       "type": "CHOICE",
       "required": true,
-      "link_id": "2.02.6",
+      "link_id": "q_2_02_6",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
       "mapping": {
@@ -15,12 +15,12 @@
     },
     {
       "type": "GROUP",
-      "link_id": "2.02.6-conditionals",
+      "link_id": "q_2_02_6_conditionals",
       "item": [
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "2.02.A",
+          "link_id": "q_2_02_A",
           "text": "RRH Sub Type",
           "pick_list_reference": "RRHSubType",
           "mapping": {
@@ -29,7 +29,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "2.02.6",
+              "question": "q_2_02_6",
               "operator": "EQUAL",
               "answer_code": "PH_RRH"
             }
@@ -38,7 +38,7 @@
         {
           "type": "CHOICE",
           "required": true,
-          "link_id": "2.02.B",
+          "link_id": "q_2_02_B",
           "text": "Affiliated with a residential project?",
           "pick_list_reference": "NoYes",
           "mapping": {
@@ -47,12 +47,12 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "2.02.6",
+              "question": "q_2_02_6",
               "operator": "EQUAL",
               "answer_code": "SSO"
             },
             {
-              "question": "2.02.A",
+              "question": "q_2_02_A",
               "operator": "EQUAL",
               "answer_code": "RRH_SERVICES_ONLY"
             }
@@ -63,7 +63,7 @@
           "required": false,
           "warn_if_empty": true,
           "repeats": true,
-          "link_id": "2.02.B.affiliations",
+          "link_id": "q_2_02_B_affiliations",
           "text": "Affiliated Projects",
           "pick_list_reference": "RESIDENTIAL_PROJECTS",
           "mapping": {
@@ -72,7 +72,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "2.02.B",
+              "question": "q_2_02_B",
               "operator": "EQUAL",
               "answer_code": "YES"
             }
@@ -83,7 +83,7 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "2.02.D",
+      "link_id": "q_2_02_D",
       "text": "Housing Type",
       "pick_list_reference": "HousingType",
       "mapping": {
@@ -93,42 +93,42 @@
       "_comment": "Dependent to Field 6 responses 0, 1, 2, 3, 8, 9, 10, 13 (If 13, Dependent A = 2)",
       "enable_when": [
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "ES_NBN"
         },
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "ES_ENTRY_EXIT"
         },
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "TH"
         },
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "PH_PSH"
         },
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "PH_PH"
         },
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "PH_OPH"
         },
         {
-          "question": "2.02.6",
+          "question": "q_2_02_6",
           "operator": "EQUAL",
           "answer_code": "SH"
         },
         {
-          "question": "2.02.A",
+          "question": "q_2_02_A",
           "operator": "EQUAL",
           "answer_code": "RRH_HOUSING_WITH_OR_WITHOUT_SERVICES"
         }
@@ -137,7 +137,7 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "2.02.7",
+      "link_id": "q_2_02_7",
       "text": "Target Population",
       "pick_list_reference": "TargetPopulation",
       "mapping": {
@@ -147,7 +147,7 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "2.02.8",
+      "link_id": "q_2_02_8",
       "text": "HOPWA Assisted Living Facility",
       "pick_list_reference": "HOPWAMedAssistedLivingFac",
       "mapping": {
@@ -157,7 +157,7 @@
     {
       "type": "CHOICE",
       "required": true,
-      "link_id": "2.02.5",
+      "link_id": "q_2_02_5",
       "text": "Continuum Project",
       "pick_list_reference": "NoYes",
       "mapping": {

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class Meta < Base
@@ -32,7 +34,7 @@ module CohortColumns
 
     def comments
       comments = ''
-      comments += "No homeless service in #{@cohort.days_of_inactivity} days\r\n" if inactive
+      comments += "No homeless service or intentional contacts in #{@cohort.days_of_inactivity} days\r\n" if inactive
       comments += "Client ineligible\r\n" if cohort_client.ineligible?
       comments
     end
@@ -49,7 +51,13 @@ module CohortColumns
     end
 
     def last_activity
-      cohort_client.client.processed_service_history&.last_homeless_date
+      last_intentional_contact = nil
+      last_intentional_contacts = cohort_client.client.processed_service_history&.last_intentional_contacts
+      last_intentional_contact = Oj.load(last_intentional_contacts).map { |contact| contact.dig('date').to_date }.max if last_intentional_contacts.present?
+      [
+        cohort_client.client.processed_service_history&.last_homeless_date,
+        last_intentional_contact,
+      ].compact.max
     end
 
     def inactive

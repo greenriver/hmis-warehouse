@@ -1,9 +1,16 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# ChEnrolment persist the HUD calculation for chronic homelessness at the enrollment level
+#
+# Details:
+# - Rows are calculated on a schedule via GrdaWarehouse::ChEnrollment.maintain!
+# - Each ChEnrollment represents the status of it's associated enrollment based on self-reported data
+# - The status is calculated as-of the current date when the ch_enrollment is generated
+# - The data that is stored will represent CH at Project Start for non-homeless projects (which is actually the same thing as CH at a Point In Time since you don't acquire homeless time being in a non-homeless project. BUT, in homeless projects, you do acquire days for every day you are there. So joining ChEnrollment is the equivalent of CH at a Point In Time for each enrollment.
 module GrdaWarehouse
   class ChEnrollment < GrdaWarehouseBase
     include ArelHelper
@@ -52,7 +59,8 @@ module GrdaWarehouse
               chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: date),
             }
           end
-          import(batch)
+          result = import(batch)
+          raise "failed to import ChEnrollments: #{result.inspect}" if result.failed_instances.present?
         end
     end
 
@@ -71,13 +79,14 @@ module GrdaWarehouse
             chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: date),
           }
         end
-        import!(
+        result = import!(
           batch,
           on_duplicate_key_update: {
             conflict_target: [:id],
             columns: [:processed_as, :chronically_homeless_at_entry],
           },
         )
+        raise "failed to import ChEnrollments: #{result.inspect}" if result.failed_instances.present?
       end
     end
 
@@ -298,7 +307,7 @@ module GrdaWarehouse
 
       return { result: dk_or_r_or_missing(value), display_value: value } if dk_or_r_or_missing(value)
 
-      { result: :continue, display_value: value - 100 }
+      { result: :no, display_value: value - 100 }
     end
 
     def self.homeless_duration_sufficient(enrollment, date: enrollment.EntryDate)
@@ -369,7 +378,7 @@ module GrdaWarehouse
       },
       6 => {
         title: 'Total months homeless',
-        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
+        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1 to 11 months, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       9 => {
         title: 'Prior Living Situation (3.917B Homeless Situation)',
@@ -385,7 +394,7 @@ module GrdaWarehouse
       },
       12 => {
         title: 'Total months homeless',
-        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
+        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1 to 11 months, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       14 => {
         title: 'Prior Living Situation (3.917B Institutional Situation)',
@@ -409,7 +418,7 @@ module GrdaWarehouse
       },
       19 => {
         title: 'Total months homeless',
-        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
+        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1 to 11 months, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       21 => {
         title: 'Prior Living Situation (3.917B Temporary, Permanent, and Other Situations:)',

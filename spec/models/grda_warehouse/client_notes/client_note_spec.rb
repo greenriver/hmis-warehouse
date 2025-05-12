@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'rails_helper'
 
 # Included Base before ChronicJustification and WindowNote to fix circular dependency issue
@@ -40,23 +42,54 @@ RSpec.describe GrdaWarehouse::ClientNotes::Base, type: :model do
   end
 
   describe 'associations' do
-    it { should belong_to(:user).optional }
-    it { should belong_to(:client).optional }
+    it { expect(subject).to belong_to(:user).optional }
+    it { expect(subject).to belong_to(:client).optional }
   end
 
   describe 'scopes' do
-    let(:chronic_justification1) { create :grda_warehouse_client_notes_chronic_justification }
-    let(:chronic_justification2) { create :grda_warehouse_client_notes_chronic_justification }
-    let(:window_note1) { create :grda_warehouse_client_notes_window_note }
+    let!(:chronic_justification1) { create :grda_warehouse_client_notes_chronic_justification }
+    let!(:chronic_justification2) { create :grda_warehouse_client_notes_chronic_justification }
+    let!(:window_note1) { create :grda_warehouse_client_notes_window_note }
+    let!(:expired_alert) { create :grda_warehouse_client_notes_expired_alert }
+    let!(:active_alert) { create :grda_warehouse_client_notes_active_alert }
+    let!(:no_expiration_alert) { create :grda_warehouse_client_notes_no_expiration }
+    let!(:expire_today_alert) { create :grda_warehouse_client_notes_expiration_today }
 
     it 'returns all Chronic Justifications' do
       expect(GrdaWarehouse::ClientNotes::Base.chronic_justifications).to include(chronic_justification1, chronic_justification2)
-      expect(GrdaWarehouse::ClientNotes::Base.chronic_justifications).to_not include(window_note1)
+      expect(GrdaWarehouse::ClientNotes::Base.chronic_justifications).to_not include(window_note1, expired_alert, active_alert, no_expiration_alert, expire_today_alert)
     end
 
     it 'returns all Window Notes' do
-      expect(GrdaWarehouse::ClientNotes::Base.window_notes).to_not include(chronic_justification1, chronic_justification2)
+      expect(GrdaWarehouse::ClientNotes::Base.window_notes).to_not include(chronic_justification1, chronic_justification2, expired_alert, active_alert, no_expiration_alert, expire_today_alert)
       expect(GrdaWarehouse::ClientNotes::Base.window_notes).to include(window_note1)
+    end
+
+    it 'returns all Alerts' do
+      expect(GrdaWarehouse::ClientNotes::Base.alerts).to include(expired_alert, active_alert, no_expiration_alert, expire_today_alert)
+      expect(GrdaWarehouse::ClientNotes::Base.alerts).to_not include(window_note1, chronic_justification1, chronic_justification2)
+    end
+
+    it 'returns all Active Notes' do
+      expect(GrdaWarehouse::ClientNotes::Base.active).to include(window_note1, chronic_justification1, chronic_justification2, active_alert, no_expiration_alert)
+      expect(GrdaWarehouse::ClientNotes::Base.active).to_not include(expired_alert, expire_today_alert)
+    end
+
+    it 'returns all Expired Notes' do
+      expect(GrdaWarehouse::ClientNotes::Base.expired).to include(expired_alert, expire_today_alert)
+      expect(GrdaWarehouse::ClientNotes::Base.expired).to_not include(window_note1, chronic_justification1, chronic_justification2, active_alert, no_expiration_alert)
+    end
+
+    it 'expired notes are expired' do
+      GrdaWarehouse::ClientNotes::Base.expired.each do |note|
+        expect(note.expired?).to eq true
+      end
+    end
+
+    it 'active notes are active' do
+      GrdaWarehouse::ClientNotes::Base.active.each do |note|
+        expect(note.active?).to eq true
+      end
     end
   end
 

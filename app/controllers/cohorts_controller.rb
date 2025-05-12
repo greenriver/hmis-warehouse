@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class CohortsController < ApplicationController
   include AjaxModalRails::Controller
@@ -33,7 +35,7 @@ class CohortsController < ApplicationController
 
     @search = search_setup(columns: [:name], scope: :cohort_search)
     # Enforce visibility on searches
-    @search = @search.where(id: cohort_scope.select(:id))
+    @search = @search.where(id: scope.select(:id))
     @cohorts = @search.active_user.reorder(sort_string)
     @inactive_cohorts = @search.inactive.reorder(sort_string)
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
@@ -52,6 +54,9 @@ class CohortsController < ApplicationController
   end
 
   def show
+    @per_page_js = [
+      'cohorts',
+    ]
     @modal_size = :xl
     params[:population] ||= 'Active Clients'
     load_cohort_names
@@ -142,6 +147,7 @@ class CohortsController < ApplicationController
 
       # If the user doesn't have All Cohorts access, grant them access to the cohort
       @cohort.replace_access(current_user, scope: :editor)
+      @cohort.replace_access(current_user, scope: :viewer)
       # Always add the cohort to the system group
       AccessGroup.maintain_system_groups(group: :cohorts)
       # Add default tabs
@@ -150,7 +156,7 @@ class CohortsController < ApplicationController
       end
     end
     # Search the list so you can see the newly created cohort
-    redirect_to cohorts_path('q[name_cont]' => @cohort.name)
+    redirect_to cohorts_path('search_form[q]' => @cohort.name)
   rescue Exception => e
     flash[:error] = e.message
     redirect_to cohorts_path
@@ -162,6 +168,11 @@ class CohortsController < ApplicationController
     cohort_options = cohort_params.except(:user_ids, :participant_ids, :viewer_ids)
     # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
+
+    # checks to see if user can see the project group OR if the project group is on the cohort pre-save.
+    user_can_view_new_project_group = cohort_options[:project_group_id].blank? || GrdaWarehouse::ProjectGroup.viewable_by(current_user).exists?(cohort_options[:project_group_id])
+    project_group_on_cohort_pre_save = @cohort.project_group_id == cohort_options[:project_group_id].to_i
+    cohort_options = cohort_options.except(:project_group_id) unless user_can_view_new_project_group || project_group_on_cohort_pre_save
 
     @cohort.update(cohort_options)
 
@@ -192,6 +203,7 @@ class CohortsController < ApplicationController
       :active_cohort,
       :static_column_count,
       :show_on_client_dashboard,
+      :expose_inactive_on_client_dashboard,
       :visible_in_cas,
       :assessment_trigger,
       :tag_id,

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,8 +13,8 @@ module HmisCsvTwentyTwentyFour::Exporter
         hmis_class.new(
           ExportID: export.export_id,
           SourceType: 3, # data warehouse
-          SourceID: Translation.translate('Boston DND Warehouse')[0..31], # potentially more than one CoC
-          SourceName: Translation.translate('Boston DND Warehouse'),
+          SourceID: Translation.translate('Open Path HMIS Warehouse')[0..31], # potentially more than one CoC
+          SourceName: Translation.translate('Open Path HMIS Warehouse'),
           SourceContactFirst: export&.user&.first_name || 'Automated',
           SourceContactLast: export&.user&.last_name || 'Export',
           SourceContactPhone: nil,

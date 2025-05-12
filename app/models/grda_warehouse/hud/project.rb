@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 # these are also sometimes called programs
 module GrdaWarehouse::Hud
@@ -12,7 +14,6 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HmisStructure::Project
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
@@ -30,7 +31,7 @@ module GrdaWarehouse::Hud
 
     has_and_belongs_to_many :project_groups, class_name: 'GrdaWarehouse::ProjectGroup', join_table: :project_project_groups
 
-    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
+    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], query_constraints: [:data_source_id, :project_id, :organization_id]
     has_many :service_history_services, through: :service_history_enrollments
 
     has_many :project_cocs, **hud_assoc(:ProjectID, 'ProjectCoc'), inverse_of: :project
@@ -49,7 +50,7 @@ module GrdaWarehouse::Hud
 
     has_many :affiliations, **hud_assoc(:ProjectID, 'Affiliation'), inverse_of: :project
     # NOTE: you can't use hud_assoc for residential project, the keys don't match
-    has_many :residential_affiliations, class_name: 'GrdaWarehouse::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
+    has_many :residential_affiliations, class_name: 'GrdaWarehouse::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], query_constraints: ['ResProjectID', :data_source_id]
 
     has_many :affiliated_projects, through: :residential_affiliations, source: :project
     has_many :residential_projects, through: :affiliations
@@ -67,48 +68,108 @@ module GrdaWarehouse::Hud
     has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id
     has_many :organization_contacts, through: :organization, source: :contacts
 
+    # can't use a direct join table to collections due to db boundary
+    has_many :project_collection_members
+
+    # can't use a direct join table to collections due to db boundary
+    has_many :project_access_group_members
+
     # Setup an association to project_cocs that allows us to pull the records even if the
     # project_coc has been deleted
-    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
+    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], query_constraints: [:ProjectID, :data_source_id], optional: true
+
+    # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
+    include RailsDrivers::Extensions
+
+    # A scope to return any projects that are residential (provide housing or indicate where someone was living).
+    # Generally, and completely before the FY2024 data standards, this is based on project type.  In FY2024
+    # Project Type 13 (RRH) was given an RRHSubType column to indicate if it was a services only
+    # project or if it included housing.
+    # This handles the RRH Sub Type given a set of project IDs so as to return residential projects
+    # Note that Street Outreach is included in this set even though no one is "providing housing" in
+    # that situation.  This is included as valid SO enrollments require at least one night (and one CLS)
+    # and are an indication of where someone was residing.
+    scope :_residential_for_project_type_ids, ->(project_type_ids) do
+      project_type_ids = Array.wrap(project_type_ids)
+      return where(project_type: project_type_ids) unless project_type_ids.include?(13)
+
+      # Special case RRH with new SSO only RRHSubType
+      where(
+        arel_table[:ProjectType].in(project_type_ids - [13]).
+        or(
+          arel_table[:ProjectType].eq(13).
+          # NOTE: officially, only RRHSubType 2 count as residential, but old data won't always have
+          # the RRHSubType, assume those are residential as well
+          and(arel_table[:RRHSubType].eq(2).or(arel_table[:RRHSubType].eq(nil))),
+        ),
+      )
+    end
+
+    # A scope to return any projects that is not residential (doesn't provide housing).
+    # Generally, and completely before the FY2024 data standards, this is based on project type.
+    # In FY2024 Project Type 13 (RRH) was given an RRHSubType column to indicate if it was a
+    # services only project or if it included housing.
+    # This handles the RRH Sub Type given a set of project IDs so as to return non-residential
+    # projects
+    scope :_non_residential_for_project_type_ids, ->(project_type_ids) do
+      project_type_ids = Array.wrap(project_type_ids)
+      return where(project_type: project_type_ids) unless project_type_ids.include?(13)
+
+      # Special case RRH with new SSO only RRHSubType
+      where(
+        arel_table[:ProjectType].in(project_type_ids - [13]).
+        or(arel_table[:ProjectType].eq(13).and(arel_table[:RRHSubType].eq(1))),
+      )
+    end
 
     scope :residential, -> do
-      where(ProjectType: HudUtility2024.residential_project_type_ids)
+      hud_residential
     end
+
     scope :hud_residential, -> do
-      where(project_type: HudUtility2024.residential_project_type_ids)
+      _residential_for_project_type_ids(HudUtility2024.residential_project_type_ids)
     end
+
     scope :non_residential, -> do
-      where.not(ProjectType: HudUtility2024.residential_project_type_ids)
+      hud_non_residential
     end
+
     scope :hud_non_residential, -> do
-      where.not(project_type: HudUtility2024.residential_project_type_ids)
+      # all non-residential project types, but re-add 13 for RRH SSO
+      _non_residential_for_project_type_ids(HudUtility2024.all_project_types - HudUtility2024.residential_project_type_ids + [13])
     end
 
     scope :chronic, -> do
       where(project_type: HudUtility2024.chronic_project_types)
     end
+
     scope :hud_chronic, -> do
       where(project_type: HudUtility2024.chronic_project_types)
     end
+
     scope :homeless, -> do
       where(project_type: HudUtility2024.homeless_project_types)
     end
+
     scope :hud_homeless, -> do
       where(project_type: HudUtility2024.chronic_project_types)
     end
+
     scope :homeless_sheltered, -> do
       where(project_type: HudUtility2024.homeless_sheltered_project_types)
     end
+
     scope :homeless_unsheltered, -> do
       where(project_type: HudUtility2024.homeless_unsheltered_project_types)
     end
+
     scope :residential_non_homeless, -> do
-      r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
-      where(ProjectType: r_non_homeless)
+      hud_residential_non_homeless
     end
+
     scope :hud_residential_non_homeless, -> do
       r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
-      where(project_type: r_non_homeless)
+      _residential_for_project_type_ids(r_non_homeless)
     end
 
     scope :with_hud_project_type, ->(project_types) do
@@ -140,12 +201,6 @@ module GrdaWarehouse::Hud
       es_nbn?
     end
 
-    # DEPRECATED_FY2024 - remove this once the transition 2024 is complete
-    # Make some tests work
-    def es_nbn_pre_2024?
-      tracking_method_to_use == 3 && project_type_to_use == 1
-    end
-
     scope :confidential, -> do
       joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end
@@ -174,7 +229,12 @@ module GrdaWarehouse::Hud
       active_during(date..date)
     end
 
+    # active_during maintained for backwards compatibility. Scope has been renamed to within_range to match other classes
     scope :active_during, ->(range) do
+      within_range(range)
+    end
+
+    scope :within_range, ->(range) do
       start_date = p_t[:OperatingStartDate]
       end_date = p_t[:OperatingEndDate]
       where(
@@ -183,10 +243,13 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def coc_funded?
-      return self.ContinuumProject == 1 if hud_continuum_funded.nil?
+    scope :ce_participating, ->(range) do
+      joins(:ce_participations).
+        merge(GrdaWarehouse::Hud::CeParticipation.ce_participating.within_range(range))
+    end
 
-      hud_continuum_funded
+    def coc_funded?
+      self.ContinuumProject == 1
     end
 
     # NOTE: Careful, this returns duplicates as it joins inventories.
@@ -282,7 +345,8 @@ module GrdaWarehouse::Hud
     #   within the context of reporting confidential_scope_limiter is almost always non_confidential
     #   within the client dashboard context, confidential_scope_limiter is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
-    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable
+    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable.
+    #   Caution, this permission is NOT checked if the user is using legacy permissions (not on ACLs).
     scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential, permission: :can_view_projects) do
       query = viewable_by_entity(user, permission: permission)
       # If a user can't report on confidential projects, exclude them entirely
@@ -332,29 +396,6 @@ module GrdaWarehouse::Hud
       else
         viewable_by(user)
       end
-    end
-
-    scope :overridden, -> do
-      scope = where(Arel.sql('1=0'))
-      override_columns.each_key do |col|
-        scope = scope.or(where.not(col => nil))
-      end
-      scope
-    end
-
-    # TODO: This should be removed when all overrides have been removed
-    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
-    # If any of these are not blank, we'll consider it overridden
-    def self.override_columns
-      {
-        act_as_project_type: :ProjectType,
-        hud_continuum_funded: :ContinuumProject,
-        housing_type_override: :HousingType,
-        operating_start_date_override: :OperatingStartDate,
-        operating_end_date_override: :OperatingEndDate,
-        hmis_participating_project_override: :HMISParticipatingProject,
-        target_population_override: :TargetPopulation,
-      }
     end
 
     def self.can_see_all_projects?(user)
@@ -557,14 +598,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.project_ids_from_coc_codes(user, permission)
-      return [] unless user.present?
-      return [] unless user.send("#{permission}?")
-
-      collection_ids = user.collections_for_permission(permission)
-      return [] if collection_ids.empty?
-
-      coc_codes = Collection.where(id: collection_ids).pluck(:coc_codes).reject(&:blank?).flatten
-      GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).joins(:project).pluck(p_t[:id])
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::Lookups::CocCode)
     end
 
     def self.project_ids_from_entity_type(user, permission, entity_class)
@@ -602,8 +636,24 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::ProjectPolicy
+    end
+
     def rrh?
       project_type_to_use.in?(HudUtility2024.performance_reporting[:rrh])
+    end
+
+    def rrh_sso_only?
+      rrh? && self.RRHSubType == rrh_sso_sub_type_code
+    end
+
+    def rrh_with_housing?
+      rrh? && self.RRHSubType != rrh_sso_sub_type_code
+    end
+
+    def rrh_sso_sub_type_code
+      HudUtility2024.rrh_sub_type('RRH: Services Only', true)
     end
 
     def psh?
@@ -662,12 +712,12 @@ module GrdaWarehouse::Hud
     # @param include_project_type [Boolean] include the HUD project type in the name?
     # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
     def name(user = nil, include_project_type: false, ignore_confidential_status: false)
-      project_name = if ignore_confidential_status || (user&.can_view_confidential_project_names? && user&.can_access_project?(self))
+      project_name = if ignore_confidential_status || user&.policy_for(self)&.can_view_name?
         self.ProjectName
       else
         safe_project_name
       end
-      project_name += " (#{HudUtility2024.project_type_brief(project_type)})" if include_project_type && project_type.present?
+      project_name += " (#{HudUtility2024.brief_project_type_with_sub_type(project_type, rrh_sub_type)})" if include_project_type && project_type.present?
 
       project_name
     end
@@ -855,9 +905,11 @@ module GrdaWarehouse::Hud
       end.present?
     end
 
-    # DEPRECATED_FY2024 no longer used in FY2024
-    def tracking_method_to_use
-      tracking_method_override.presence || self.TrackingMethod
+    # NOTE: preload funders before calling this
+    def pay_for_success?
+      return false unless HudUtility2024.performance_reporting[:other].include?(project_type)
+
+      funders.map(&:pay_for_success?).any?
     end
 
     def human_readable_project_type

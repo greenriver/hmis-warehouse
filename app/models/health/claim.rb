@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -70,6 +70,19 @@ module Health
       attach_quailifying_activities_to_report
       qualifying_activities.each(&:calculate_payability!)
       update(precalculated_at: Time.now)
+    end
+
+    def attach_associated_factories!
+      # Cache the qa -> factory map so we don't have to do individual finds
+      factories = HealthQaFactory::Factory.
+        where(careplan_completed_qa_id: qualifying_activities.select(:id)).
+        pluck(:careplan_completed_qa_id, :id).
+        to_h
+      qualifying_activities.each do |qa|
+        next unless qa.activity&.to_sym == :pctp_signed # Only associate careplan completed QAs
+
+        qa.update(claim_metadata_type: HealthQaFactory::Factory.name, claim_metadata_id: factories[qa.id])
+      end
     end
 
     def run!

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -83,8 +83,8 @@ module HudApr::Generators::Shared::Fy2024
           age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
-          household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
+          hoh_enrollment = hoh_enrollments[hh_id]
+          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
             hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
@@ -113,7 +113,7 @@ module HudApr::Generators::Shared::Fy2024
           last_service_history_enrollment = enrollments.last
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
+          hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -189,10 +189,14 @@ module HudApr::Generators::Shared::Fy2024
           #   household_types[hh_id]
           # end
           hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          # Households with required assessments are calculated earlier for performance reasons.
+          # An APR is being submitted to verify assessment requirements for non-HoH adults entering the HH at a different date than the HoH.
+          # e.g. If an adult enters 1 day prior HoH assessment date, is their assessment required on the HoH date (1 day later) or on the following year (1 year + 1 day later)
+          #      If an adult enters 1 day after the HoH assessment date is their assessment due on the HoH date (1 year - 1 day later) or on the following year (2 years - 1 day)
           annual_assessment_expected = if age.present? && age >= 18
-            household_assessment_required[hh_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
+            household_assessment_required[last_service_history_enrollment.client_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
           else
-            household_assessment_required[hh_id]
+            household_assessment_required[last_service_history_enrollment.client_id]
           end
 
           household_calculation_date = if needs_ce_assessments?
@@ -202,7 +206,8 @@ module HudApr::Generators::Shared::Fy2024
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
-          move_in_date = calculate_move_in_date(hh_id, last_service_history_enrollment)
+          adjusted_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
+          hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
@@ -303,7 +308,9 @@ module HudApr::Generators::Shared::Fy2024
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
-            move_in_date: move_in_date,
+            move_in_date: last_service_history_enrollment.move_in_date,
+            hoh_move_in_date: hoh_move_in_date,
+            adjusted_move_in_date: adjusted_move_in_date,
             name_quality: source_client.NameDataQuality,
             non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
@@ -335,6 +342,9 @@ module HudApr::Generators::Shared::Fy2024
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
             project_type: last_service_history_enrollment.project_type,
             race_multi: source_client.race_multi.sort.join(','),
+            # For data quality checks, we want all data instead of filtering out RaceNone responses when additional race data is included.
+            # HMIS Reporting Glossary Reference: Data Quality - Q2: include records with an 8 or 9 indicated even if there is also a value of 1, 2, 3, 4, 5, 6, or 7 in the same field
+            race_multi_include_race_none: source_client.race_multi_include_race_none.sort,
             relationship_to_hoh: enrollment.RelationshipToHoH,
             sexual_orientation: enrollment.sexual_orientation,
             ssn_quality: source_client.SSNDataQuality,
@@ -350,6 +360,7 @@ module HudApr::Generators::Shared::Fy2024
             preferred_language: enrollment.PreferredLanguage,
             preferred_language_different: enrollment.PreferredLanguageDifferent,
             veteran_status: source_client.VeteranStatus,
+            pay_for_success: enrollment.project.pay_for_success?,
           }
           if needs_ce_assessments?
             ce_hash = {
@@ -522,7 +533,6 @@ module HudApr::Generators::Shared::Fy2024
         enrollment: [
           :disabilities,
           :current_living_situations,
-          :project,
           :services,
           :income_benefits,
           :income_benefits_at_exit,
@@ -532,6 +542,9 @@ module HudApr::Generators::Shared::Fy2024
           :exit,
           :assessments,
           :youth_education_statuses,
+          project: [
+            :funders,
+          ],
           client: [
             assessments: [
               enrollment: :project,
@@ -541,7 +554,7 @@ module HudApr::Generators::Shared::Fy2024
             ],
           ],
         ],
-        client: [:source_events],
+        client: [:source_events, :source_assessments],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end
@@ -569,14 +582,15 @@ module HudApr::Generators::Shared::Fy2024
           # hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
-          enrolled = case enrollment.project_type
-          when 3, 13 # PSH/RRH
+          enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
+            # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
+            move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
-              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
-              enrollment.move_in_date <= pit_date &&
-              enrollment.move_in_date >= enrollment.first_date_in_program
-          when 0, 1, 2, 8, 9, 10 # Other residential
+              move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
+              move_in_date <= pit_date &&
+              move_in_date >= enrollment.first_date_in_program
+          elsif enrollment.project_type.in?([0, 1, 2, 8, 9, 10]) # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
           else # Other project types (4, 6, 7, 11, 12, 14)
@@ -593,7 +607,8 @@ module HudApr::Generators::Shared::Fy2024
             last_date_in_program: enrollment.last_date_in_program,
             project_type: enrollment.project_type,
             project_tracking_method: enrollment.project_tracking_method,
-            move_in_date: enrollment.move_in_date,
+            move_in_date: calculate_hh_move_in_date(enrollment.household_id, enrollment),
+            relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
           }
         end
         [pit_date, enrollments_for_date]
@@ -676,22 +691,32 @@ module HudApr::Generators::Shared::Fy2024
     # where the assessment occurred within the report range
     # NOTE: there _should_ always be one of these based on the enrollment_scope and client_scope
     private def latest_ce_assessment(she_enrollment, hoh_enrollment)
-      enrollment = if she_enrollment.enrollment.assessments.present?
-        she_enrollment
-      else
-        hoh_enrollment
-      end
-      return unless enrollment&.enrollment&.assessments.present?
-
-      enrollment.enrollment.assessments.
-        select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.start_date, @report.end_date) }.
-        max_by(&:AssessmentDate)
+      range = @report.start_date .. @report.end_date
+      assessments = valid_ce_assessment(she_enrollment, range).presence || valid_ce_assessment(hoh_enrollment, range)
+      assessments.max_by(&:AssessmentDate)
     end
 
+    private def valid_ce_assessment(she, range)
+      she.enrollment.assessments.select do |a|
+        in_report_range = a.AssessmentDate.present? && a.AssessmentDate.between?(range.first, range.last)
+        in_ce_participation_range = a.enrollment.project.participating_in_ce_on?(a.AssessmentDate)
+        in_report_range && in_ce_participation_range
+      end
+    end
+
+    # TODO: might want to implement something like this for latest_ce_event
+    # private def valid_ce_event(she, range)
+    #   she.client.source_events.select do |e|
+    #     in_report_range = e.EventDate.present? && e.EventDate.between?(range.first, range.last)
+    #     in_ce_participation_range = e.enrollment.project.participating_in_ce_on?(e.EventDate)
+    #     in_report_range && in_ce_participation_range
+    #   end
+    # end
+
     private def first_ce_assessment_within_90_days_after_report_range(she_enrollment)
-      she_enrollment.enrollment.assessments.
-        select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.end_date, @report.end_date + 90.days) }.
-        min_by(&:AssessmentDate)
+      range = @report.start_date .. @report.end_date + 90.days
+      assessments = valid_ce_assessment(she_enrollment, range)
+      assessments.min_by(&:AssessmentDate)
     end
 
     # Returns the appropriate CE Event for the client
@@ -705,35 +730,47 @@ module HudApr::Generators::Shared::Fy2024
     # client in the table above.
     # 5. If, for a given client, none of the records found belong to the same [project id] as the CE assessment from step 1, use the latest of those to report the client in the table above.
     # 6. The intention of the criteria is to locate the most recent logically relevant record pertaining to the CE assessment record reported in Q9a and Q9b by giving preference to data entered by the same project.
-    private def latest_ce_event(she_enrollment, hoh_enrollment, ce_latest_assessment)
-      # need first assessment after report end if it occurred within 90 days of report end
-      # exclude events after that assessment if it exists
-      enrollment = if she_enrollment.client.source_events.present?
-        she_enrollment
+    private def latest_ce_event(latest_she_for_client, latest_enrollment_for_hoh, latest_ce_assessment)
+      # If the client doesn't have any CE events, use the HoH to look for events
+      client = if latest_she_for_client.client.source_events.present?
+        latest_she_for_client.client
       else
-        hoh_enrollment
+        latest_enrollment_for_hoh.client
       end
-      return unless enrollment.present?
+      return unless client.present?
 
-      potential_events = enrollment.client.source_events.select do |e|
-        next_assessment = first_ce_assessment_within_90_days_after_report_range(she_enrollment)
-        if ce_latest_assessment
-          start_date_check = ce_latest_assessment.AssessmentDate
-          end_date_check = [@report.end_date + 90.days, next_assessment&.AssessmentDate].compact.min
-        else
-          start_date_check = @report.start_date
-          end_date_check = @report.end_date
-        end
-        e.EventDate.present? && e.EventDate.between?(
-          start_date_check,
-          end_date_check,
-        ) && e.enrollment.project.participating_in_ce_on?(e.EventDate)
+      # 1. Determine the [date of assessment] (4.19.1) from the latest [Coordinated Entry Assessment] (4.19) for each household in the report universe as described in the report universe instructions and the determining latest assessment instructions.
+      # already determined using `latest_ce_assessment`
+
+      max_assessment_date_post_report_end_date = client.source_assessments.map(&:AssessmentDate).select do |d|
+        d.present? && d.between?(@report.end_date, @report.end_date + 90.days)
+      end.max
+
+      # 2. For all source event for the client
+      potential_events = client.source_events.select do |event|
+        # because we are using a preload, we don't filter earlier events in the SQL, make sure they all occur
+        # on or after the report start
+        next false if event.EventDate <= @report.start_date
+        # Everyone _should_ have a CE Assessment, but occassionally we get someone who doesn't have one
+        next false if latest_ce_assessment.blank? || latest_ce_assessment.AssessmentDate.blank?
+
+        # 2.a [Date of event] >= [date of assessment] from step 1
+        after_assessment = event.EventDate >= latest_ce_assessment.AssessmentDate
+        # 2.b Date of event] <= ([report end date] + 90 days)
+        within_90_days_of_report_end = event.EventDate <= (@report.end_date + 90.days)
+        # 2.c [Date of event] < Any [dates of assessment] which are between [report end date] and ([report end date] + 90 days)
+        before_next_assessment = max_assessment_date_post_report_end_date.blank? || event.EventDate < max_assessment_date_post_report_end_date
+        project_ce_participating = event.enrollment.project.participating_in_ce_on?(event.EventDate)
+
+        after_assessment && within_90_days_of_report_end && before_next_assessment && project_ce_participating
       end
-      events_from_project = potential_events.select do |e|
-        e.enrollment.project.id == she_enrollment.project.id
+      # 3. For each client, if any of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the client in the table above.
+      events_from_project = potential_events.select do |event|
+        event.enrollment.project.id == latest_ce_assessment.enrollment.project.id
       end
       return events_from_project.max_by(&:EventDate) if events_from_project.present?
 
+      # 4. If, for a given client, none of the records found belong to the same [project id] (2.02.1) as the CE assessment from step 1, use the latest of those to report the client in the table above.
       potential_events.max_by(&:EventDate)
     end
 

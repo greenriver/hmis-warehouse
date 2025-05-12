@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,10 +35,31 @@ module GrdaWarehouse
   class Theme < GrdaWarehouseBase
     belongs_to :remote_credential, class_name: 'GrdaWarehouse::RemoteCredentials::S3', optional: true
 
+    # Max 1 theme per HMIS origin
+    validates_uniqueness_of :hmis_origin,
+                            scope: :client,
+                            if: :hmis_theme?, # only run validation if this is an HMIS theme
+                            conditions: -> { where.not(hmis_value: [nil, '']) } # only validate uniqueness against other HMIS themes
+
     def set_theme_defaults
       # Fetch files from S3 if available or use defaults
       self.css_file_contents ||= css_file_contents_remote.presence || css_file_contents_default
       self.scss_file_contents ||= scss_file_contents_remote.presence || scss_file_contents_default
+    end
+
+    def hmis_theme?
+      hmis_value.present?
+    end
+
+    def self.hmis_theme_for_origin(origin)
+      hmis_themes = GrdaWarehouse::Theme.where(client: ENV['CLIENT']&.to_sym).filter(&:hmis_theme?)
+
+      # Look for theme that matches this HMIS origin. The origin is the value of field `hmis` on the DataSource
+      theme = hmis_themes.find { |t| t.hmis_origin == origin }
+      return theme if theme
+
+      # Use 'default' theme if there is one (default=no origin specified)
+      hmis_themes.find { |t| !t.hmis_origin.present? }
     end
 
     private def s3

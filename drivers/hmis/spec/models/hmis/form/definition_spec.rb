@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   before(:all) do
     cleanup_test_environment
+    Hmis::Form::Definition.delete_all
+    Hmis::Form::Instance.delete_all
   end
   after(:all) do
     cleanup_test_environment
@@ -19,86 +21,106 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
-  let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 7 }
 
-  it 'should return the right definition if a project has a specific assessment' do
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+  describe 'finding the definition for a HUD Assessment' do
+    let(:role) { :INTAKE }
+    # Intake for p1
+    let!(:p1_intake_published) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 3, status: :published }
+    let!(:p1_intake_retired) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 2, status: :retired } # cruft: old version
+    let!(:p1_intake_rule) { create :hmis_form_instance, definition_identifier: 'p1-intake', entity: p1, active: true }
 
-  it 'should return the right definition if a project\'s org has a specific assessment' do
-    fi1.entity = o1
-    fi1.save!
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+    # Intake for all projects
+    let!(:default_intake_published) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 4, status: :published }
+    let!(:default_intake_retired) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 3, status: :draft } # cruft: old version
+    let!(:default_intake_rule) { create :hmis_form_instance, definition_identifier: 'default-intake', entity: nil, active: true }
 
-  it 'should return the right definition if a project\'s type has a specific assessment' do
-    fi1.update(entity: nil, project_type: p1.project_type)
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+    # cruft: form has active rules but only has a draft version
+    let!(:draft_only_intake) { create :hmis_form_definition, identifier: 'draft-only-intake', role: role, version: 6, status: :draft }
+    let!(:draft_only_intake_rule) { create :hmis_form_instance, definition_identifier: 'draft-only-intake', entity: p1, active: true }
 
-  it 'should return the right definition if there\'s only a default assessment' do
-    fi1.entity = nil
-    fi1.save!
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+    # cruft: form only has inactive rules
+    let!(:inactive_intake) { create :hmis_form_definition, identifier: 'inactive-intake', role: role, version: 7, status: :published }
+    let!(:inactive_intake_rule) { create :hmis_form_instance, definition_identifier: 'inactive-intake', entity: p1, active: false }
 
-  describe 'with multiple definitions' do
-    let!(:fd2) { create :hmis_form_definition, role: 'UPDATE' }
-    let!(:fi2) { create :hmis_form_instance, definition: fd2, entity: p1 }
+    def expect_definition(expected_fd, project: nil)
+      selected = Hmis::Form::Definition.find_definition_for_role(role, project: project)
 
-    it 'should return a definition with the correct role' do
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd2.role, project: p1)).to eq(fd2)
+      # compare on a subset of attributes to make debugging easier
+      comparison_attrs = [:id, :identifier, :version, :status]
+      expect(selected.slice(*comparison_attrs)).to match(expected_fd.slice(*comparison_attrs))
     end
 
-    it 'should return the most specific definition with the correct role' do
-      fi2.update(entity: nil, project_type: p1.project_type)
-      fd2.update(role: fd1.role)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
+    it 'should use the definition with the most applicable rule' do
+      expect_definition(p1_intake_published, project: p1) # uses p1_intake_rule
+      expect_definition(default_intake_published, project: p2) # uses default_intake_rule
     end
 
-    it 'should return the most recent version of a definition when no version provided' do
-      fd2.update(role: fd1.role, version: 1)
-      fd1.update(version: 2)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
+    it 'should only return default-rule-definitions if project is not passed' do
+      expect_definition(default_intake_published)
     end
 
-    it 'should return the most recent version of a definition when a version is provided' do
-      fd2.update(role: fd1.role, version: 1)
-      fd1.update(version: 2)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1, version: 1)).to eq(fd2)
+    it 'should ignore inactive rules, even if they are more specific' do
+      create(:hmis_form_instance, definition_identifier: 'p1-intake', entity: p2, active: false)
+      # chooses default-intake based on default rule, even though p1-intake has a more specific rule that is inactive
+      expect_definition(default_intake_published, project: p2)
+    end
+
+    it 'should use the definition with the most applicable rule (org rule)' do
+      p1_intake_rule.update!(entity: o1)
+      expect_definition(p1_intake_published, project: p1) # p1 belongs to o1
+      expect_definition(p1_intake_published, project: p2) # p1 belongs to o2
+    end
+
+    it 'should use the definition with the most applicable rule (project type rule)' do
+      p1_intake_rule.update!(entity: nil, project_type: p1.project_type)
+      expect_definition(p1_intake_published, project: p1) # p1 intake matches project type
+      expect_definition(default_intake_published, project: p2) # p1 intake does not match project type, fall back to default
+    end
+
+    it 'should prefer non-system rule over system rule when choosing a default instance' do
+      default_intake_rule.update!(system: true)
+
+      other_default_intake = create(:hmis_form_definition, identifier: 'custom-default-intake', role: role, version: 4, status: :published)
+      other_default_rule = create(:hmis_form_instance, definition: other_default_intake, entity: nil, active: true, system: false)
+      expect_definition(other_default_intake, project: p2) # chooses definition referenced by non-system rule
+      expect_definition(other_default_intake) # same if project is not passed
+
+      # test the other direction
+      default_intake_rule.update!(system: false)
+      other_default_rule.update!(system: true)
+      expect_definition(default_intake_published, project: p2) # chooses definition referenced by non-system rule
+      expect_definition(default_intake_published) # same if project is not passed
     end
   end
 
-  describe 'with funder and project type instances' do
-    let(:role) { :ENROLLMENT }
+  describe 'finding the definition for an Enrollment form, with funder and project type instances' do
     it 'applies correct specificity (project > org > funder&ptype > funder > ptype)' do
-      base_fd = Hmis::Form::Definition.find_definition_for_role(role) # created by hmis base setup
-
       p1 = create(:hmis_hud_project, project_type: 1)
       p2 = create(:hmis_hud_project, project_type: 1, funders: [43])
       p3 = create(:hmis_hud_project, project_type: 2, funders: [43])
-      p4 = create(:hmis_hud_project, project_type: 2)
+      p4 = create(:hmis_hud_project, project_type: 2) # matches default rule
       p5 = create(:hmis_hud_project, project_type: 1, funders: [43])
       p6 = create(:hmis_hud_project, project_type: 1, funders: [43])
 
+      role = :CURRENT_LIVING_SITUATION
       fi1 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: nil)
       fi2 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43)
       fi3 = create(:hmis_form_instance, role: role, entity: nil, project_type: nil, funder: 43)
       fi4 = create(:hmis_form_instance, role: role, entity: p5)
       fi5 = create(:hmis_form_instance, role: role, entity: p6.organization)
+      fi6 = create(:hmis_form_instance, role: role, entity: nil) # default rule
 
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p1)).to eq(fi1.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p2)).to eq(fi2.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p3)).to eq(fi3.definition)
-      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p4)).to eq(base_fd)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p4)).to eq(fi6.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p5)).to eq(fi4.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p6)).to eq(fi5.definition)
     end
   end
 
-  describe 'different form versions' do
+  describe 'the latest_versions scope' do
     # id1 has 2 retired, 1 published, and 1 draft version
     let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired' }
     let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired' }
@@ -185,46 +207,22 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'deletion' do
-    it 'should error if form has active instance' do
-      expect(fd1.instances).to contain_exactly(fi1)
+    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: :INTAKE, version: 3, status: :draft }
+    let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1, active: true }
 
-      # not allowed because this form might be actively in use
-      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-    end
-
-    it 'should error if form has inactive instance' do
-      fi1.update(active: false)
-      expect(fd1.instances).to contain_exactly(fi1)
-
-      # not allowed because historical data may use this form
-      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-    end
-
-    # Note: Maybe in the future we want to support deleting old versions of FormDefinitions.
-    # For now we restrict deleting the FormDefinition if there is ANY Form Instance referencing it via `identifier.`
-    it 'should error if form has instances, even if there are newer versions of this form' do
-      new_fd_version = fd1.dup
-      new_fd_version.version = fd1.version + 1
-      fd1.status = Hmis::Form::Definition::RETIRED
-      fd1.save!
-      new_fd_version.save!
-
-      # the form instance points to both form definitions, by identifier
-      expect(fi1.definition_identifier).to eq(fd1.identifier)
-      expect(fi1.definition_identifier).to eq(new_fd_version.identifier)
-
-      # cant delete either form because the newer one is in use
-      expect { new_fd_version.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
-    end
-
-    it 'should succeed if form has no instances' do
-      fi1.delete
-      expect(fd1.instances).to be_empty
-
+    it 'should succeed if form is a draft' do
       fd1.destroy!
-
       expect(fd1.deleted_at).to be_present
+    end
+
+    it 'should error if form is published' do
+      fd1.update!(status: :published)
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed)
+    end
+
+    it 'should error if form is retired' do
+      fd1.update!(status: :retired)
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed)
     end
 
     it 'should error if there are form processors linked to this form' do
@@ -232,6 +230,46 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(fd1.form_processors).to contain_exactly(assessment.form_processor)
 
       expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+  end
+
+  describe 'supports_save_in_progress' do
+    it 'returns false for non-assessments' do
+      fd = create :hmis_form_definition, role: :SERVICE
+      expect(fd.supports_save_in_progress?).to be false
+    end
+
+    it 'returns false if it contains an item type of FILE' do
+      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, append_items: [
+        {
+          'type': 'FILE',
+          'link_id': 'file_blob_id',
+          'text': 'Attachment',
+          'mapping': {
+            'field_name': 'fileBlobId',
+          },
+        },
+      ]
+      expect(fd.supports_save_in_progress?).to be false
+    end
+
+    it 'returns false if it contains an item type of IMAGE' do
+      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT, append_items: [
+        {
+          'type': 'IMAGE',
+          'link_id': 'photo',
+          'text': 'Photo',
+          'mapping': {
+            'field_name': 'photo',
+          },
+        },
+      ]
+      expect(fd.supports_save_in_progress?).to be false
+    end
+
+    it 'returns true for assessments that do not have any FILE or IMAGE items' do
+      fd = create :hmis_form_definition, role: :CUSTOM_ASSESSMENT
+      expect(fd.supports_save_in_progress?).to be true
     end
   end
 end

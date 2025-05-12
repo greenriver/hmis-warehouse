@@ -1,4 +1,6 @@
 # Developer Setup
+The following document provides a brief overview of how to setup the Open Path Warehouse for local development.  Once you have the application running, you may find the [developer data guide](developer_data.md) and [developer FAQ](developer_faq.md) useful in gaining more familiarity with the application.
+
 The warehouse application consists of three main parts:
 1. The Rails Application Code
 2. The Rails Application Database
@@ -17,6 +19,7 @@ git clone git@github.com:greenriver/hmis-warehouse.git
 brew install lima colima docker docker-compose direnv
 colima template
 ```
+
 Adjust the following settings:
 ```
 cpu: 8
@@ -25,6 +28,13 @@ vmType: vz
 rosetta: true
 mountType: virtiofs
 ```
+
+Setup docker so that `docker compose` will work even if docker desktop isn't installed.  (Note you may need to adjust the location of `docker-compose` (`which docker-compose` should give you the path.)
+```
+mkdir -p ~/.docker/cli-plugins
+ln -sfn /opt/homebrew/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+```
+
 Setup colima to start on boot
 ```
 colima stop
@@ -56,5 +66,14 @@ If everything worked as designed your site should now be available at [https://h
 ## Loading Data
 At this point, you'll probably want to [load some sample HMIS data](developer_data.md).
 
+
 ## Running E2E Tests
 See [spec/support/E2E_README.md](../spec/support/E2E_README.md).
+
+## Additional Notes
+
+Depending on how your development environment's root permission are set, you may run into some issues with the web app-user not having required permissions on some sub-folders. The following command may clean up any folder permissions that are needed for the web user to work with these folders.
+
+`docker compose run -u 0 --entrypoint='' web chown -R app-user:app-user /node_modules /bundle /app /log /tmp`
+
+You may need to replace or add to the `/node_modules /bundle /app /log /tmp` section to include the directory needing a permission reset.

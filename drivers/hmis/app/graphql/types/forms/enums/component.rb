@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,7 +21,7 @@ module Types
     value 'CHECKBOX', 'Render a boolean input item as a checkbox'
     value 'RADIO_BUTTONS', 'Render a choice input item as radio buttons'
     value 'DROPDOWN', 'Render a choice input item as a dropdown'
-    value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as vertical radio buttons'
+    value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as vertical radio buttons', deprecation_reason: 'All radio buttons are now vertical'
     value 'SSN', 'SSN input component'
     value 'MINUTES_DURATION', 'Duration component with hours and minutes, value stored as minutes'
 

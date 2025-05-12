@@ -23,7 +23,11 @@
         %th Short Name
         %th Client Records
         %th Project Count
-        %th Visible in Window
+        - if hmis_enabled?
+          %th
+            HMIS
+        %th
+          Visible in Window
         %th Authoritative?
         %th Last Import Run
         %th
@@ -34,16 +38,24 @@
         %td
           .destination-sqr Warehouse
         %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
-        %td{colspan: 6}
+        - span = 6
+        - span = 7 if hmis_enabled?
+        %td{colspan: span}
       - @data_sources.each do |data_source|
-        - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime&.to_fs
+        - most_recently_completed = data_source.last_imported_at
         %tr
           %td= link_to data_source.name, data_source_path(data_source)
           %td
             .ds{class: "ds-color-#{data_source.id}"}= data_source.short_name
           %td= number_with_delimiter(@client_counts[data_source.id])
           %td= number_with_delimiter(@project_counts[data_source.id])
-          %td.text-center= checkmark(data_source.visible_in_window)
+          - if hmis_enabled?
+            %td.text-center
+              - if data_source.hmis?
+                = link_to "https://#{data_source.hmis}" do
+                  %i.icon-link-ext
+          %td.text-center
+            = checkmark(data_source.visible_in_window)
           %td.text-center= checkmark(data_source.authoritative)
           %td
             = most_recently_completed
@@ -54,7 +66,7 @@
           %td
             -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
             - if most_recently_completed.present?
-              - stall_date = data_source.stalled_since?(most_recently_completed)
+              - stall_date = data_source.stalled_date
               - if stall_date
                 .label.label-warning
                   same file since: #{stall_date}

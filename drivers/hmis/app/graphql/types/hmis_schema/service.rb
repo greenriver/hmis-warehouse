@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,7 @@ module Types
       Hmis::Hud::Service.hmis_configuration(version: '2024')
     end
 
+    # NOTE: there may be class load-order dependent issues in development/test
     available_filter_options do
       arg :service_category, [ID]
       arg :service_type, [ID]
@@ -28,7 +29,7 @@ module Types
     field :id, ID, null: false
     field :enrollment, Types::HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
-    field :service_type, HmisSchema::ServiceType, null: false
+    field :service_type, HmisSchema::ServiceType, null: true
     field :date_provided, GraphQL::Types::ISO8601Date, null: true
     field :fa_amount, Float, null: true
     field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
@@ -44,6 +45,7 @@ module Types
 
     field :record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
+    field :form_definition_id, ID, null: true, description: 'Form Definition that was most recently used to create/update this record'
 
     def type_provided
       [object.record_type, object.type_provided].join(':')
@@ -56,7 +58,16 @@ module Types
     end
 
     def service_type
-      load_ar_association(object, :custom_service_type)
+      custom_service_types_scope = Hmis::Hud::CustomServiceType.where(data_source_id: object.data_source_id)
+      case object.owner_type
+      when 'Hmis::Hud::Service'
+        dataloader.with(Sources::CustomServiceTypeByHudTypeSource).
+          load([object.RecordType, object.TypeProvided])
+      when 'Hmis::Hud::CustomService'
+        load_ar_scope(scope: custom_service_types_scope, id: object.custom_service_type_id)
+      else
+        raise
+      end
     end
 
     def enrollment
@@ -68,8 +79,16 @@ module Types
     end
 
     def custom_data_elements
-      owner_service = load_ar_association(object, :owner)
       resolve_custom_data_elements(owner_service)
+    end
+
+    def form_definition_id
+      load_ar_association(owner_service, :form_processor)&.definition_id
+    end
+
+    # Hmis::Hud::Service or Hmis::Hud::CustomService
+    private def owner_service
+      load_ar_association(object, :owner)
     end
   end
 end

@@ -1,8 +1,13 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
+
+# HMIS uses similar but separate permissions system from the warehouse
+# See drivers/hmis/doc/PERMISSIONS.md
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
@@ -101,6 +106,11 @@ class Hmis::Role < ::ApplicationRecord
     end
   end
 
+  # List permissions that are granted by this role
+  def granted_permissions
+    self.class.permissions_with_descriptions.keys.select { |perm| send(perm) }
+  end
+
   # Pick a background color that is unique to the name, but not terribly vibrant
   def bg_color
     @bg_color ||= begin
@@ -145,7 +155,14 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Project Access',
         sub_category: 'Management',
       },
-      can_manage_inventory: { # TODO: should be renamed to "can manage units"
+      can_view_units: {
+        description: 'Ability to view bed and unit capacity in the project',
+        administrative: false,
+        access: [:viewable],
+        category: 'Project Access',
+        sub_category: 'Management',
+      },
+      can_manage_units: {
         description: 'Ability to manage bed and unit capacity in the project',
         administrative: false,
         access: [:editable],
@@ -394,6 +411,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Administration',
         sub_category: 'Admin Tools',
       },
+      can_administrate_config: {
+        description: 'Ability to use the JSON form editor and administer all form types [GR Staff Only]',
+        administrative: true,
+        access: [:editable],
+        category: 'Administration',
+        sub_category: 'Admin Tools',
+      },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',
         administrative: true,
@@ -419,7 +443,14 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants the ability to manage public form submissions',
         administrative: false,
         access: [:editable],
-        category: 'Projects',
+        category: 'Project Access',
+        sub_category: 'Public Forms',
+      },
+      can_view_enrollment_location_map: {
+        description: 'Access to view a Location Map, which shows the locations where the client was contacted during the Enrollment.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Enrollment Access',
         sub_category: 'Access',
       },
     }

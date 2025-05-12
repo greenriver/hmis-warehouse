@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -113,8 +113,11 @@ module AllNeighborsSystemDashboard
           exit_date = exit_date(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
 
-          placed_date = if diversion_enrollment && exit_type == 'Permanent'
-            exit_date
+          # Diversion is prioritized over RRH & PH (some diversion projects may be RRH projects)
+          # But we only want diversion enrollments where the client exited to a permanent destination
+          # All others should be thrown out
+          placed_date = if diversion_enrollment
+            exit_date if exit_type == 'Permanent'
           elsif enrollment.project.ph?
             move_in_date
           end
@@ -199,7 +202,8 @@ module AllNeighborsSystemDashboard
     # 3. PH without services move-in (Project Type 9)
     # 4. RRH move-in (Project Type 13)
     # 5. Diversion
-    # 6. Latest entry date
+    # 6. Latest exit date
+    # 7. Latest entry date
     def deduplicate_universe!
       # NOTE: we aren't using the simple report universe anywhere else, using enrollments is way easier.
       cols = [
@@ -238,9 +242,16 @@ module AllNeighborsSystemDashboard
           keep[client_id] ||= row
           next if row[:id] == keep[client_id][:id]
 
-          # if we have the same project type, pick the later entry date
           if row[:project_type] == keep[client_id][:project_type]
+            # if we have the same project type, pick the later entry date
             keep[client_id] = row if row[:entry_date] > keep[client_id][:entry_date]
+
+            # if we have the same project type, pick the later exit date, prefer an open enrolment
+            if row[:exit_date].blank? && keep[client_id][:exit_date].present?
+              keep[client_id] = row
+            elsif row[:exit_date].present? && keep[client_id][:exit_date].present? && row[:exit_date] > keep[client_id][:exit_date]
+              keep[client_id] = row
+            end
           else
             # Sort by project type priority, set any diversion to 100 (max PH will be 3)
             row_project_type_index = priority_project_type_order.index(row[:project_type]) || 100
@@ -269,6 +280,18 @@ module AllNeighborsSystemDashboard
               id: filter.effective_project_ids + filter.secondary_project_ids,
             ),
         )
+    end
+
+    # for debugging
+    def enrollments_as_csv
+      return [] unless enrollments.any?
+
+      CSV.generate do |csv|
+        csv << enrollments.first.attributes.keys
+        enrollments.find_each do |enrollment|
+          csv << enrollment.attributes.values
+        end
+      end
     end
 
     def event_scope
@@ -365,6 +388,7 @@ module AllNeighborsSystemDashboard
       "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
+    # This should probably use something like what we do in AssetHelper.inline_js_for_es_build
     private def per_page_js_asset_path(asset)
       return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
 

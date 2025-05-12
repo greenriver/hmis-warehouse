@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Builds and populates the nightly_census_by_projects table.
+# Processes service and inventory data in date range batches.
+# Entry point: GrdaWarehouse::Tasks::CensusImport#run!
 module GrdaWarehouse::Census
   class CensusBuilder
     def create_census(start_date, end_date)

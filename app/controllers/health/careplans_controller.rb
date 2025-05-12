@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 module Health
   class CareplansController < IndividualPatientController
@@ -31,34 +33,12 @@ module Health
       @careplan = @careplans&.first&.instrument
       @disable_goal_actions = true
       @goals = @careplan&.current_goals_list
-
-      # Callbacks don't work in development, so we have to do something like this
-      return unless Rails.env.development?
-
-      # @careplans&.each do |cp|
-      #   [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
-      #     begin
-      #       # This is trying to ensure we run the same thing here as we do for the callback from HS
-      #       json = { signature_request: doc.fetch_signature_request }.to_json
-      #       response = HelloSignController::CallbackResponse.new(json)
-      #     rescue HelloSign::Error::NotFound
-      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
-      #     end
-      #     begin
-      #       response.process!
-      #     rescue ActiveRecord::RecordNotFound
-      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
-      #     rescue Exception
-      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
-      #     end
-      #   end
-      # end
     end
 
     def show
       pdf = careplan_combine_pdf_object
       file_name = "care_plan_#{@careplan.updated_at.to_fs(:db)}"
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def edit
@@ -119,7 +99,7 @@ module Health
     def coversheet
       pdf = careplan_pdf_coversheet
       file_name = "care_plan_coversheet_#{@careplan.updated_at.to_fs(:db)}"
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def pctp
@@ -127,7 +107,7 @@ module Health
       pdf = careplan_pdf_coversheet
       pdf << careplan_pdf_pctp
       file_name = "care_plan_pctp_#{@careplan.updated_at.to_fs(:db)}"
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def form_url

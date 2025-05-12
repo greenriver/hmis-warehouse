@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -98,6 +98,12 @@ module HmisCsvImporter::Loader
 
     def importer_log
       @importer&.importer_log
+    end
+
+    def self.expiring_models
+      loadable_files.values.filter do |model|
+        !model.name.demodulize.in?(['Export', 'Project'])
+      end
     end
 
     private def load_export_file

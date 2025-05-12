@@ -1,14 +1,21 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Fy2023
-  class SpmEnrollment < GrdaWarehouseBase
+  class SpmEnrollment < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
     include Detail
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :age
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -117,6 +124,10 @@ module HudSpmReport::Fy2023
                 and(arel_table[:prior_living_situation].between(300..499)).
                 and(arel_table[:los_under_threshold].eq(true)))))),
       )
+    end
+
+    def project_id
+      enrollment.project.id
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
@@ -234,7 +245,7 @@ module HudSpmReport::Fy2023
         funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
           # Unroll open_between to allow preload
           (funder.end_date.nil? || funder.end_date >= start_date) &&
-          funder.start_date <= end_date
+          (funder.start_date.nil? || funder.start_date <= end_date)
       end
     end
 

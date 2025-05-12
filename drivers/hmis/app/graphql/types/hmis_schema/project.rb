@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,7 @@ module Types
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCurrentLivingSituations
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -30,6 +31,8 @@ module Types
 
     # check for the most minimal permission needed to resolve this object
     def self.authorized?(object, ctx)
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       permission = :can_view_project
       super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
@@ -64,6 +67,7 @@ module Types
     ce_participations_field
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
+    current_living_situations_field
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -78,6 +82,7 @@ module Types
     field :residential_affiliation_projects, [HmisSchema::Project], null: false
     field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
+    field :staff_assignments_enabled, Boolean, null: false
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -94,11 +99,13 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
-      can :manage_inventory
+      can :manage_units
+      can :view_units
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
       can :manage_external_form_submissions
+      can :split_households
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
@@ -106,6 +113,13 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
+
+    field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
+      filters_argument Types::HmisSchema::CeOpportunity, omit: [:project, :project_type], type_name: 'ProjectCeOpportunity'
+    end
+    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
+      filters_argument Types::HmisSchema::CeReferral, omit: [:project, :project_type], type_name: 'ProjectCeReferral'
+    end
 
     def hud_id
       object.project_id
@@ -121,6 +135,12 @@ module Types
       check_enrollment_details_access
 
       resolve_assessments(object.custom_assessments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def current_living_situations(**args)
+      check_enrollment_details_access
+
+      resolve_current_living_situations(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -151,6 +171,8 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
+      return [] unless current_permission?(entity: object, permission: :can_view_units)
+
       project_units = object.units
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
@@ -167,6 +189,8 @@ module Types
 
     # TODO use dataloader
     def units(**args)
+      return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
+
       resolve_units(**args)
     end
 
@@ -186,39 +210,69 @@ module Types
       scoped_referral_requests(object.external_referral_requests, **args)
     end
 
-    # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+      access_denied! unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
 
-      # Only show Active postings on the incoming referral table
-      scoped_referral_postings(object.external_referral_postings.active, sort_order: :oldest_to_newest, **args)
+      statuses = HmisExternalApis::AcHmis::ReferralPosting::ACTIVE_STATUSES + [:accepted_status]
+
+      scoped_referral_postings(
+        object.external_referral_postings.where(status: statuses),
+        sort_order: :oldest_to_newest,
+        dangerous_skip_permission_check: true, # safe because its checked above
+        **args,
+      )
+    end
+
+    def staff_assignments_enabled
+      # Should not be used in batch since it doesn't use the data loader
+      object.staff_assignments_enabled?
     end
 
     def arel
       Hmis::ArelHelper.instance
     end
 
-    # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
+      access_denied! unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
       # Show all postings on the outgoing referral table
       scope = HmisExternalApis::AcHmis::ReferralPosting.
-        joins(referral: :enrollment).
+        joins(referral: :enrollment). # Find the "source" project from posting.referral.enrollment.project
         where(arel.e_t[:ProjectID].eq(object.ProjectID))
 
-      scoped_referral_postings(scope, sort_order: :relevent_status, **args)
+      scoped_referral_postings(scope, sort_order: :relevent_status, dangerous_skip_permission_check: true, **args)
     end
 
     def external_form_submissions(**args)
-      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
+      # Find form instances for this project. Only include active instances. (Unlike other form types, we do not support
+      # viewing "legacy" form submissions from inactive instances, to simplify implementation.)
+      # Use for_project instead of for_project_through_entities because external forms are limited to project-level instances.
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(object).active
+      identifiers = instances.select(:definition_identifier)
+
       scope = HmisExternalApis::ExternalForms::FormSubmission.
         joins(:definition).
-        where(definition: { identifier: instances.select(:definition_identifier) })
+        where(definition: { identifier: identifiers })
 
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
       resolve_external_form_submissions(scope, **args)
+    end
+
+    def ce_opportunities(filters: nil) # not for batch
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_opportunities
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+      scope.order(created_at: :desc)
+    end
+
+    def ce_referrals(filters: nil) # not for batch
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_referrals
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+      scope.order(created_at: :desc)
     end
 
     private def check_enrollment_details_access

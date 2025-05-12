@@ -1,16 +1,18 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module GrdaWarehouse::Youth
   class Base < GrdaWarehouseBase
+    self.abstract_class = true
     include ArelHelper
     include YouthExport
     has_paper_trail
     acts_as_paranoid
-    self.abstract_class = true
 
     scope :visible_by?, ->(user) do
       # users at your agency, plus your own user in case you have no agency.

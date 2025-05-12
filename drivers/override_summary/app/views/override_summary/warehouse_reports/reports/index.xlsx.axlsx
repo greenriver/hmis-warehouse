@@ -1,6 +1,5 @@
 wb = xlsx_package.workbook
 wb_styles = wb.styles
-header_style = wb_styles.add_style({ sz: 14 })
 th_style = wb_styles.add_style(
   {
     bg_color: 'f2f2f2',
@@ -14,36 +13,63 @@ wb_styles.add_style(
   },
 )
 wb.add_worksheet(name: @report.title) do |sheet|
-  sheet.add_row(['Organization', 'Project', 'Item', 'Replaces', 'With', 'When', 'URL'], style: th_style)
-  @report.data.each do |organization_name, projects|
-    projects.each do |project_name, data|
-      data[:projects].each do |object|
-        object.import_overrides.each do |override|
-          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
-        end
-      end
+  sheet.add_row(
+    [
+      'File',
+      'Replaces',
+      'With',
+      'When',
+      'Why',
+      'Created On',
+      'Created By',
+      'Last Used On',
+      'Data Source',
+      'Data Source URL',
+      'Projects',
+      'Project URLs',
+    ],
+    style: th_style,
+  )
+  @data.each do |_, records|
+    records.each do |_, group|
+      group.values.each do |data|
+        data[:overrides].each do |override|
+          projects = data[:projects].compact_blank
+          project_names = if projects.blank?
+            override.incorrect_warning
+          elsif projects == ['Any']
+            'Any'
+          else
+            projects.map do |project|
+              project.name(current_user)
+            end.join(' ')
+          end
+          project_urls = if projects.blank?
+            # nothing
+          elsif projects == ['Any']
+            data_source_url(override.data_source)
+          else
+            projects.map do |project|
+              project_url(project)
+            end.join(' ')
+          end
 
-      data[:inventories].each do |object|
-        object.import_overrides.each do |override|
-          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
-        end
-      end
-
-      data[:project_cocs].each do |object|
-        object.import_overrides.each do |override|
-          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
-        end
-      end
-
-      data[:funders].each do |object|
-        object.import_overrides.each do |override|
-          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
-        end
-      end
-
-      data[:affiliations].each do |object|
-        object.import_overrides.each do |override|
-          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
+          sheet.add_row(
+            [
+              override.file_name,
+              override.replaces_column,
+              override.describe_with,
+              override.describe_when,
+              override.description,
+              override.created_at,
+              override.creator&.name_with_email,
+              override.last_used_on,
+              override.data_source.name,
+              data_source_url(override.data_source),
+              project_names,
+              project_urls,
+            ],
+          )
         end
       end
     end

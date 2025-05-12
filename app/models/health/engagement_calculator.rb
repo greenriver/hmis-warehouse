@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -68,7 +68,9 @@ module Health
       return [:valid, 'PCTP Approved', careplan.show_path, false, nil] if careplan.active?
 
       if careplan.editable?
-        return [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Patient signed on #{careplan.patient_signed_on.to_date}"] if careplan.completed?
+        # for V2 and forward we always expect a value in patient_signed_on when the careplan is complete
+        # in V1 under cp2 only a careplan_sent_on is required for it to be considered complete
+        return [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Patient signed on #{careplan.patient_signed_on&.to_date || '(unsigned)'}"] if careplan.completed?
 
         [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Started on #{careplan.created_at.to_date}"]
       else

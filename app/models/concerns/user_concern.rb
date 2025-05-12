@@ -1,11 +1,15 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module UserConcern
   extend ActiveSupport::Concern
+  include HasPiiAttributes
+
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
@@ -13,6 +17,12 @@ module UserConcern
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
+
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :email
+    pii_attr :unconfirmed_email, as: :email
+    pii_attr :phone
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
@@ -35,6 +45,7 @@ module UserConcern
            :two_factor_backupable,
            password_length: 10..128,
            otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
            otp_number_of_backup_codes: 10
 
     include OmniauthSupport
@@ -43,15 +54,20 @@ module UserConcern
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
     has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
 
-    # Connect users to login attempts
+    # Connect users to login attempts.
+    # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
     has_many :login_activities, as: :user
+
+    # All login activities for user, including both HMIS and Warehouse login activity
+    has_many :all_login_activities, class_name: 'LoginActivity', foreign_key: 'user_id'
 
     # TODO: START_ACL remove when ACL transition complete
     # Ensure that users have a user-specific access group
     after_save :create_access_group
     # END_ACL
 
-    validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }, on: :update
+    # No longer validating MX record, just validate email format (MX check requires a network connection)
+    validates :email, presence: true, uniqueness: true, email_format: { check_mx: false }, length: { maximum: 250 }
     validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }
@@ -126,9 +142,18 @@ module UserConcern
       active.not_system.where(exclude_from_directory: false)
     end
 
+    # users that have currently active sessions (either in the warehouse or in HMIS)
     scope :has_recent_activity, -> do
       where(last_activity_at: timeout_in.ago..Time.current).
-        where.not(unique_session_id: nil)
+        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
+    end
+
+    scope :using_acls, -> do
+      where(permission_context: 'acls')
+    end
+
+    scope :using_role_based, -> do
+      where(permission_context: [nil, 'role_based'])
     end
 
     def using_acls?
@@ -144,11 +169,15 @@ module UserConcern
     end
 
     def self.anyone_using_acls?
-      active.not_system.where(permission_context: 'acls').exists?
+      Rails.cache.fetch('user/anyone_using_acls', expires_in: 1.minutes) do
+        active.not_system.using_acls.exists?
+      end
     end
 
     def self.all_using_acls?
-      ! active.not_system.where(permission_context: [nil, 'role_based']).exists?
+      Rails.cache.fetch('user/all_using_acls', expires_in: 1.minutes) do
+        ! active.not_system.using_role_based.exists?
+      end
     end
 
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -200,14 +229,40 @@ module UserConcern
       user != self
     end
 
-    def training_status
-      return 'Not Started' unless Talentlms::Login.find_by(user: self)
+    def training_status(course)
+      login = Talentlms::Login.find_by(user: self, config: course.config)
+      return 'Not Started' unless login
 
-      if last_training_completed
-        "Completed #{last_training_completed}"
+      completion_date = Talentlms::CompletedTraining.find_by(course: course, login: login)&.completion_date
+
+      if completion_date
+        "Completed #{completion_date}"
       else
         'In Progress'
       end
+    end
+
+    def training_renewal_date(course)
+      return 'Never' unless course.months_to_expiration.present?
+
+      login = Talentlms::Login.find_by(user: self, config: course.config)
+      return nil unless login
+
+      completion_date = Talentlms::CompletedTraining.find_by(course: course, login: login)&.completion_date
+      return nil unless completion_date
+
+      if Talentlms::Facade.expiration_duration_period == :days
+        completion_date + course.months_to_expiration.days
+      else
+        completion_date + course.months_to_expiration.months
+      end
+    end
+
+    def required_training_courses(date = Date.current)
+      return Talentlms::Course.active_on_date(date).where(id: training_courses&.compact_blank) if training_courses&.compact_blank&.present?
+      return Talentlms::Course.active_on_date(date).default if training_required?
+
+      []
     end
 
     # def role_keys
@@ -253,11 +308,23 @@ module UserConcern
     end
 
     def two_factor_label
-      Translation.translate('Boston DND HMIS Warehouse')
+      label = Translation.translate('Open Path HMIS Warehouse')
+      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
     end
 
     def two_factor_issuer
       "#{two_factor_label} #{email}"
+    end
+
+    # clears all otp secrets
+    def reset_two_factor_model_attrs
+      self.encrypted_otp_secret = nil
+      self.encrypted_otp_secret_iv = nil
+      self.encrypted_otp_secret_salt = nil
+      self.otp_backup_codes = nil
+      self.otp_secret = nil
+      self.confirmed_2fa = 0
+      self.otp_required_for_login = false
     end
 
     def my_root_path
@@ -321,6 +388,54 @@ module UserConcern
       end
     end
 
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      base_salt = super
+      return base_salt if custom_session_invalidator.blank?
+
+      # Poison the salt to force the user to re-login by changing custom_session_invalidator
+      # Make sure the salt isn't changing length
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
+    end
+
+    # Prevent sending confirmation emails if the user has an open invitation
+    def send_reset_password_instructions
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # Prevent confirming accounts if the user has an open invitation
+    def pending_any_confirmation
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
     # @return [Array] an array of text that describes the status of the account
     def overall_status(current_user)
       return ['Active'] if active_for_authentication?
@@ -355,15 +470,41 @@ module UserConcern
       "Account deactivated by #{name} on #{version.created_at}"
     end
 
-    def self.text_search(text)
-      return none unless text.present?
+    # Search for users by name or email using prefix matching
+    #
+    # @param text [String] the search query
+    # @param sort_by_best_match [Boolean] whether to order results by similarity to query
+    #
+    # @return [ActiveRecord::Relation] matching users
+    #
+    # @example Find users matching 'john'
+    #   User.text_search('john')
+    def self.text_search(text, sort_by_best_match: false)
+      text = text.strip
+      return none if text.length < 3 # require at least 3 characters for meaningful search
 
-      query = "%#{text}%"
-      where(
-        arel_table[:last_name].matches(query).
-        or(arel_table[:first_name].matches(query)).
-        or(arel_table[:email].matches(query)),
-      )
+      terms = text.split(/[\s,]+/).map(&:strip).reject(&:blank?)
+      return none if terms.empty?
+
+      scope = terms.map do |term|
+        prefix_condition = arel_table[:first_name].matches("#{term}%").
+          or(arel_table[:last_name].matches("#{term}%")).
+          or(arel_table[:email].matches("#{term}%"))
+
+        User.where(prefix_condition)
+      end.inject(&:or)
+
+      if sort_by_best_match
+        sql = <<-SQL.squish
+          similarity(
+            CONCAT_WS(' ', first_name, last_name, email),
+            ?
+          ) DESC
+        SQL
+        scope.order(Arel.sql(sanitize_sql_array([sql, text])))
+      else
+        scope
+      end
     end
 
     def self.setup_system_user
@@ -514,7 +655,7 @@ module UserConcern
         merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
         pluck(:user_id)
 
-      User.where(id: team_member_ids)
+      User.where(id: team_member_ids).active
     end
 
     # patients with CC or NCM relationship to this user
@@ -556,11 +697,11 @@ module UserConcern
 
     def coc_codes(force_calculation: false)
       key = [self.class.name, __method__, id]
-      Rails.cache.delete(key) if force_calculation
+      Rails.cache.delete(key) if force_calculation || Rails.env.test?
       Rails.cache.fetch(key, expires_in: 1.minutes) do
         # TODO: START_ACL cleanup after ACL migration is complete
         if using_acls?
-          collections.flat_map(&:coc_codes).reject(&:blank?).uniq
+          collections.flat_map(&:coc_codes).map(&:coc_code).reject(&:blank?).uniq
         else
           (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).reject(&:blank?).uniq
         end
@@ -606,6 +747,7 @@ module UserConcern
         :organization_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :project_group_ids,
         :projects,
         :organizations,
@@ -664,28 +806,8 @@ module UserConcern
       true
     end
 
-    def self.describe_changes(_version, changes)
-      changes.slice(*whitelist_for_changes_display).map do |name, values|
-        "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
-      end
-    end
-
-    def self.humanize_attribute_name(name)
-      name.humanize.titleize
-    end
-
-    def self.whitelist_for_changes_display
-      [
-        'first_name',
-        'last_name',
-        'email',
-        'phone',
-        'agency',
-        'receive_file_upload_notifications',
-        'notify_of_vispdat_completed',
-        'notify_on_anomaly_identified',
-        'receive_account_request_notifications',
-      ].freeze
+    def self.describe_changes(...)
+      UserEditHistory::UserVersionChangeSummary.new.perform(...)
     end
 
     private def viewable(model)

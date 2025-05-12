@@ -1,0 +1,13 @@
+= content_for :crumbs do
+  = link_to project_path(id: @project.id) do
+    = "« " + @project.name
+- content_for :title, 'Manage Synthetic CE Assessment Creation'
+%h1= content_for :title
+%p This form allows you to specify that a Coordinated Entry Assessment be created for every enrollment at the project #{@project.name}.  If the configuration is active, a synthetic assessment will be created for every enrollment in the project with the selected values.  These assessments will be created once daily, and there will be a delay between data arriving in the warehouse and the assessments being created.  If you change the values in the configuration, the changes will be applied to any existing synthetic assessments as well as future assessments.
+
+= simple_form_for @project_config, url: synthetic_ce_assessments_project_config_path(project_id: @project.id) do |f|
+  = f.input :active, as: :pretty_boolean, label: 'Configuration Active?'
+  = f.input :assessment_type, as: :select_two, collection: HudUtility2024.assessment_types.invert, include_blank: false
+  = f.input :assessment_level, as: :select_two, collection: HudUtility2024.assessment_levels.invert, include_blank: false
+  = f.input :prioritization_status, as: :select_two, collection: HudUtility2024.prioritization_statuses.invert, include_blank: false
+  = f.submit 'Save Configuration'

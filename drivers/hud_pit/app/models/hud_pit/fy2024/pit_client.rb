@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # This is a wrapper around PIT Clients to associate version-specific logic with a name space,
 # it does not use STI as there is no per-instance behavior associated with these models

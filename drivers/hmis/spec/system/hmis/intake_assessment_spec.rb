@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
-RSpec.feature 'Enrollment/household management', type: :system do
+RSpec.feature 'Intake assessment', type: :system do
   include_context 'hmis base setup'
   # could parse CAPYBARA_APP_HOST
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
@@ -21,8 +27,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
     before(:each) do
       make_household(enrollment_factory: :hmis_hud_wip_enrollment)
       sign_in(hmis_user)
-      disable_transitions
-      # click_link 'Open Path HMIS'
+
       click_link 'Projects'
       click_link p1.project_name
       click_link 'Enrollments'
@@ -60,6 +65,14 @@ RSpec.feature 'Enrollment/household management', type: :system do
 
     context 'with wip household' do
       it 'can submit an intake assessment' do
+        # Confirm setup:
+        expect(c1.enrollments.in_progress.count).to eq(1)
+        expect(c2.enrollments.in_progress.count).to eq(1)
+        e1 = c1.enrollments.in_progress.first
+        e2 = c1.enrollments.in_progress.first
+        expect(e1.intake_assessment).to be_nil
+        expect(e2.intake_assessment).to be_nil
+
         fill_in 'Search Clients', with: c1.last_name
         click_link c1.brief_name
         click_link 'Assessments'
@@ -71,14 +84,21 @@ RSpec.feature 'Enrollment/household management', type: :system do
         assert_text(c1.brief_name)
 
         # first assessment
+        mui_expect_selected_tab('#tab-1')
         complete_individual_assessment
         click_button 'Next'
 
         # second assessment
+        mui_expect_selected_tab('#tab-2')
         complete_individual_assessment
         click_button 'Next'
 
+        mui_expect_selected_tab('#tab-summary')
         assert_text "Complete Entry to #{p1.project_name}"
+
+        # Intakes are created as WIP
+        expect(e1.reload.intake_assessment.wip).to eq(true)
+        expect(e2.reload.intake_assessment.wip).to eq(true)
 
         with_hidden { check('select all') }
 
@@ -90,15 +110,20 @@ RSpec.feature 'Enrollment/household management', type: :system do
         end
         click_button 'Submit (2) Intake Assessments'
 
-        expect do
-          click_button 'Confirm'
-          row_numbers.each do |row|
-            within(:xpath, "//table/tbody/tr[#{row}]") do
-              assert_text('Submitted')
-            end
+        click_button 'Confirm'
+        row_numbers.each do |row|
+          within(:xpath, "//table/tbody/tr[#{row}]") do
+            assert_text('Submitted')
           end
-        end.to change(c1.enrollments.not_in_progress, :count).by(1).
-          and change(c2.enrollments.not_in_progress, :count).by(1)
+        end
+
+        # Enrollments are created as non-WIP
+        expect(e1.reload.in_progress?).to eq(false)
+        expect(e2.reload.in_progress?).to eq(false)
+
+        # Intakes are non-WIP
+        expect(e1.intake_assessment.wip).to eq(false)
+        expect(e2.intake_assessment.wip).to eq(false)
       end
     end
   end

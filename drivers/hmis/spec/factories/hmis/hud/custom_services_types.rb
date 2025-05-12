@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,7 @@ FactoryBot.define do
   end
 
   factory :hmis_custom_service_type_for_hud_service, parent: :hmis_custom_service_type do
+    name { 'Bed Night' }
     hud_record_type { 200 }
     hud_type_provided { 200 }
   end

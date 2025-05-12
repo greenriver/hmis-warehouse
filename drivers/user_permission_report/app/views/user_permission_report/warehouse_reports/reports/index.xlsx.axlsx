@@ -7,6 +7,7 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
   sheet.add_row([
     'Name',
     'Email',
+    'ID',
     'Status',
     'Agency',
     'Last Login',
@@ -19,6 +20,7 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
     row = [
       user.name,
       user.email,
+      user.id,
       user.overall_status(current_user).join('; '),
       user.agency_name,
       user.last_sign_in_at&.to_time&.to_fs(:db),
@@ -27,5 +29,21 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
       *@group_associations.keys.map { |ga| associated_items(user, ga)[:names].join(', ') }
     ]
     sheet.add_row(row, style: data_cell)
+  end
+end
+
+if @hmis_data
+  wb.add_worksheet(name: 'HMIS User Permissions') do |sheet|
+    title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+    data_cell = sheet.styles.add_style(alignment: { horizontal: :left, vertical: :top, wrap_text: true })
+
+    rows = @hmis_data
+
+    headers = rows.first.keys.map { |k| k.to_s.titleize(keep_id_suffix: true) }
+    sheet.add_row(headers, style: title)
+
+    rows.each do |row_hash|
+      sheet.add_row(row_hash.values, style: data_cell)
+    end
   end
 end

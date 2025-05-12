@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,12 @@
 module TextMessage
   class TopicSubscriber < GrdaWarehouseBase
     acts_as_paranoid
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :phone_number, as: :phone
+
     belongs_to :topic
     has_many :messages, foreign_key: :subscriber_id
 

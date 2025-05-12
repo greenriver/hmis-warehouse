@@ -1,11 +1,13 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
-  class FirstDateHomeless < ReadOnly
+  class FirstDateHomeless < ReadOnlyDate
     attribute :column, String, lazy: true, default: :first_date_homeless
     attribute :translation_key, String, lazy: true, default: 'First Date Homeless'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
@@ -18,14 +20,6 @@ module CohortColumns
 
     def arel_col
       wcp_t[:first_date_homeless]
-    end
-
-    def date_format
-      'll'
-    end
-
-    def renderer
-      'date'
     end
 
     def value(cohort_client) # OK

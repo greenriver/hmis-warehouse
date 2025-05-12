@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -99,6 +99,7 @@ class DocumentExportsControllerBase < ApplicationController
       'BostonReports::DocumentExports::StreetToHomePdfExport',
       'BostonReports::DocumentExports::CommunityOfOriginPdfExport',
       'HmisDataQualityTool::DocumentExports::ReportExport',
+      'HmisDataQualityTool::DocumentExports::ReportChartPdfExport',
       'HmisDataQualityTool::DocumentExports::ReportExcelExport',
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
       'SystemPathways::DocumentExports::ReportExport',
@@ -114,6 +115,7 @@ class DocumentExportsControllerBase < ApplicationController
       'UserDirectoryReport::DocumentExports::CasUserDirectoryExcelExport',
       'UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport',
       'TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport',
+      'HopwaCaper::DocumentExports::HopwaCaperExport',
     ]
   end
 end

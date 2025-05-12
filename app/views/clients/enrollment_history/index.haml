@@ -1,6 +1,6 @@
-- title = "Historical Enrollment Data for #{@client.name} on #{@date}"
+- title = "Historical Enrollment Data"
 - content_for :title, title
-%h1= title
+= render_display_title "Historical Enrollment Data for #{@client.pii_provider(user: current_user).full_name} on #{@date}"
 = render 'clients/anomalies/breadcrumbs'
 
 = simple_form_for :history, method: :get do |f|

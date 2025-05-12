@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +24,7 @@ module HudApr::Generators::Apr::Fy2024
     end
 
     def self.default_project_type_codes
-      HudUtility2024.residential_project_type_numbers_by_code.keys
+      HudUtility2024.performance_reporting.keys
     end
 
     def url

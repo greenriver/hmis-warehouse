@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,6 +24,9 @@ module HealthComprehensiveAssessment
     has_many :medications, dependent: :destroy
     has_many :sud_treatments, dependent: :destroy
 
+    scope :newest_first, -> do
+      order(arel_table[:completed_on].desc.nulls_first)
+    end
     scope :in_progress, -> { where(completed_on: nil) }
     scope :completed_within, ->(range) { where(completed_at: range) }
     scope :allowed_for_engagement, -> do
@@ -47,6 +50,16 @@ module HealthComprehensiveAssessment
 
     def completed?
       completed_on.present?
+    end
+
+    # A QualifyingActivity that is the same or newer than the date created of this CA
+    def ca_completed_qa?
+      return false unless completed_on.present?
+
+      qa = patient.current_qa_factory&.ca_completed_qa
+      return false unless qa.present? && qa.date_of_activity.present?
+
+      qa.date_of_activity >= completed_on
     end
 
     def active?

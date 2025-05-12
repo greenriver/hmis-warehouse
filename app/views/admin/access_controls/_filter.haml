@@ -10,7 +10,7 @@
     = simple_form_for :filter, method: :get do |f|
       .o-filtration__option.row
         .col-12
-          = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
+          = f.input :user_id, as: :select_two, collection: User.active.using_acls.not_system.order(:first_name, :last_name, :id), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
         .col-12
           = f.input :user_group_id, as: :select_two, collection: UserGroup.where(id: AccessControl.select(:user_group_id)).order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
         .col-12

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HudSpmReport
   class CellsController < HudSpmReport::BaseController
@@ -22,10 +24,11 @@ module HudSpmReport
 
       @headers = generator.column_headings(@question)
 
-      @clients = generator.client_class(@question).
+      @clients = generator.client_scope(@question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+        merge(::HudReports::ReportInstance.where(id: @report.id)).
+        distinct
 
       respond_to do |format|
         format.html {}
@@ -35,24 +38,5 @@ module HudSpmReport
         end
       end
     end
-
-    def formatted_cell(cell, key)
-      return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
-      return view_context.yes_no(cell) if cell.in?([true, false])
-
-      case key.to_s
-      when /project_type$/
-        HudUtility2024.project_type_brief(cell)
-      when /prior_living_situation$/
-        HudUtility2024.living_situation(cell)
-      when /.*destination$/
-        HudUtility2024.destination(cell)
-      when /_days_/
-        number_with_delimiter(cell)
-      else
-        cell
-      end
-    end
-    helper_method :formatted_cell
   end
 end

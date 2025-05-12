@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'visibility test context', shared_context: :metadata do
   # data
   let!(:warehouse_data_source) { create :grda_warehouse_data_source, source_type: nil }
@@ -5,6 +7,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:window_visible_data_source) { create :visible_data_source }
   let!(:window_organization) { create :grda_warehouse_hud_organization, data_source_id: window_visible_data_source.id, OrganizationName: 'Visible Org' }
   let!(:window_project) { create :grda_warehouse_hud_project, data_source_id: window_visible_data_source.id, ProjectName: 'Visible Project' }
+
   let!(:window_project_coc) { create :grda_warehouse_hud_project_coc, data_source_id: window_visible_data_source.id, ProjectID: window_project.ProjectID, CoCCode: 'AA-000' }
   let!(:window_source_client) do
     create(
@@ -170,7 +173,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   end
 
   # roles
-  let!(:can_view_clients) { create :role, can_view_clients: true }
+  let!(:can_view_clients) { create :role, can_view_clients: true, can_view_client_name: true }
   let!(:can_create_clients) { create :role, can_create_clients: true }
   let!(:can_search_window) { create :role, can_search_window: true } # START_ACL remove after ACL migration
   let!(:can_use_strict_search) { create :role, can_use_strict_search: true }
@@ -179,9 +182,9 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_edit_users) { create :role, can_edit_users: true }
   let!(:can_manage_config) { create :role, can_manage_config: true }
   let!(:can_edit_data_sources) { create :role, can_edit_data_sources: true, can_view_projects: true }
-  let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
-  let!(:can_search_clients_with_roi) { create :role, can_search_clients_with_roi: true }
-  let!(:can_view_client_enrollments_with_roi) { create :role, can_view_client_enrollments_with_roi: true }
+  let!(:can_search_own_clients) { create :role, can_search_own_clients: true, can_view_client_name: true }
+  let!(:can_search_clients_with_roi) { create :role, can_search_clients_with_roi: true, can_view_client_name: true }
+  let!(:can_view_client_enrollments_with_roi) { create :role, can_view_client_enrollments_with_roi: true, can_view_client_name: true }
   let!(:can_edit_clients) { create :can_edit_clients }
   let!(:no_permission_role) { create :role }
 
@@ -190,22 +193,24 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:window_data_source_viewable_collection) { create :collection }
   let!(:window_organization_viewable_collection) { create :collection }
   let!(:window_project_viewable_collection) { create :collection }
-  let!(:window_coc_code_viewable_collection) { create :collection, coc_codes: ['AA-000'] }
+  let!(:window_coc_code_viewable_collection) { create :collection }
   let!(:coc_code_viewable_collection) { create :collection }
   before(:each) do
     window_data_source_viewable.add_viewable(window_visible_data_source)
     window_organization_viewable.add_viewable(window_organization)
     window_project_viewable.add_viewable(window_project)
+    window_coc_code_viewable_collection.add_viewable(GrdaWarehouse::Lookups::CocCode.find_by(coc_code: 'AA-000'))
   end
 
   let!(:non_window_data_source_viewable_collection) { create :collection }
   let!(:non_window_organization_viewable_collection) { create :collection }
   let!(:non_window_project_viewable_collection) { create :collection }
-  let!(:non_window_coc_code_viewable_collection) { create :collection, coc_codes: ['ZZ-000'] }
+  let!(:non_window_coc_code_viewable_collection) { create :collection }
   before(:each) do
     non_window_data_source_viewable_collection.add_viewable(non_window_visible_data_source)
     non_window_organization_viewable_collection.add_viewable(non_window_organization)
     non_window_project_viewable_collection.add_viewable(non_window_project)
+    non_window_coc_code_viewable_collection.add_viewable(GrdaWarehouse::Lookups::CocCode.find_by(coc_code: 'ZZ-000'))
   end
 
   # START_ACL remove after ACL migration

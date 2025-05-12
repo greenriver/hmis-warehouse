@@ -159,8 +159,8 @@ class ScheduledTask
 
     resource_adjustments =
       if command.any? { |token| token == 'jobs:arbitrate_workoff' }
-        print ' (Modifying RAM for arbitrate workoff: 800/400) '
-        { 'memory' => 800, 'memoryReservation' => 400 }
+        print ' (Modifying RAM for arbitrate workoff: 1_500/1_500) '
+        { 'memory' => 1_500, 'memoryReservation' => 1_500 }
       else
         {}
       end

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
@@ -587,7 +589,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       describe 'and the user is assigned a CoC' do
         before do
           user.user_group_members.destroy_all
-          coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+          coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['ZZ-999']).pluck(:id) })
           # Add back the ability to see clients with an ROI
           setup_access_control(user, can_view_client_enrollments_with_roi, Collection.system_collection(:window_data_sources))
           setup_access_control(user, can_search_clients_with_roi, Collection.system_collection(:window_data_sources))
@@ -620,7 +622,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         end
         describe 'when the client has a valid consent in the user\'s coc' do
           before do
-            coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+            coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['ZZ-999']).pluck(:id) })
             setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable_collection)
             past_date = 5.days.ago
             future_date = Date.current + 1.years
@@ -642,7 +644,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         end
         describe 'when the client has a valid consent in the user\'s coc and another coc' do
           before do
-            coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+            coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['ZZ-999']).pluck(:id) })
             setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable_collection)
             past_date = 5.days.ago
             future_date = Date.current + 1.years
@@ -664,7 +666,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         end
         describe 'when the client has a valid consent in another coc' do
           before do
-            coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+            coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['ZZ-999']).pluck(:id) })
             setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable_collection)
             past_date = 5.days.ago
             future_date = Date.current + 1.years
@@ -717,7 +719,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see any clients' do
         get client_path(non_window_destination_client)
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Bob Ross')
+        expect(doc.text).to include('Bob Moss')
         expect(response).to have_http_status(200)
       end
     end
@@ -817,7 +819,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       end
       describe 'and the user is assigned a CoC' do
         before do
-          coc_code_viewable_collection.update(coc_codes: ['ZZ-999'])
+          coc_code_viewable_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['ZZ-999']).pluck(:id) })
           setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable_collection)
         end
         it 'user cannot see client details' do

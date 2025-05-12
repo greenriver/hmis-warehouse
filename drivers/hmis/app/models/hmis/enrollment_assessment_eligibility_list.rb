@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,7 +54,7 @@ class Hmis::EnrollmentAssessmentEligibilityList
 
   def filtered_definitions(roles)
     fi_t = Hmis::Form::Instance.arel_table
-    definitions_by_role = Hmis::Form::Definition.
+    definitions_by_role = Hmis::Form::Definition.published.
       # skip definition for performance
       exclude_definition_from_select.
       # preload active instances

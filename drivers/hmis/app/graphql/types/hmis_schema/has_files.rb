@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,18 +22,15 @@ module Types
         end
       end
 
-      def resolve_files_with_loader(association_name = :files, **args)
-        load_ar_association(object, association_name, scope: scoped_files(Hmis::File, **args))
-      end
-
       def resolve_files(scope = object.files, **args)
         scoped_files(scope, **args)
       end
 
       private
 
-      def scoped_files(scope, sort_order: :date_created)
-        scope = scope.viewable_by(current_user)
+      def scoped_files(scope, sort_order: :date_created, client_ids: nil)
+        # Passing client IDs to the viewable_by scope improves performance
+        scope = scope.viewable_by(current_user, client_ids: client_ids)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

@@ -5,6 +5,10 @@
 = render 'clients/aliases'
 = render 'clients/tab_navigation', current: client_notes_path(@client)
 
+- notes = @notes.group_by(&:active?)
+- active_notes = notes[true] || []
+- expired_notes = notes[false] || []
+
 .row
   .col-sm-8
     %h1= content_for :title
@@ -13,14 +17,22 @@
     - unless can_edit_client_notes? || can_view_all_window_notes?
       %p.alert.alert-info
         - if can_edit_window_client_notes? && @client.release_valid?
-          = Translation.translate("#{@client.name} has a consent form on file, you can see any notes about this client.")
+          = Translation.translate("#{@client.pii_provider(user: current_user).full_name} has a consent form on file, you can see any notes about this client.")
         - elsif can_edit_window_client_notes?
-          = Translation.translate("#{@client.name} does not have a consent form on file, you can only see notes you add.")
+          = Translation.translate("#{@client.pii_provider(user: current_user).full_name} does not have a consent form on file, you can only see notes you add.")
         - else
           = Translation.translate("You can only see notes you add.")
-    - if @notes.any?
-      - @notes.order(created_at: :desc).each do |note|
-        = render 'note', note: note
+    - if notes.any?
+      - if active_notes.any?
+        - active_notes.sort_by(&:created_at).reverse.each do |note|
+          = render 'note', note: note
+      - else
+        %p No Active Notes on file
+      - if expired_notes.any?
+        - content_for :panel_collapse_content, flush: true do
+          - expired_notes.sort_by(&:created_at).reverse.each do |note|
+            = render 'note', note: note
+        = render 'common/panel_collapse', title: 'Expired Notes'
     - else
       No notes on file
 

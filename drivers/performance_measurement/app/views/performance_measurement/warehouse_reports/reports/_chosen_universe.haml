@@ -14,12 +14,14 @@
             .j-toggle-text.ml-2.hide Hide Details
       .minimal-collapse
         = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
-    - if !@include_in_published_version && @report.show_spm_link? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
+    - if !@include_in_published_version && @report.show_spm_link? && (@report.reporting_spm_id.present? || @report.comparison_spm_id.present?)
       .col-2
         %h3.mb-4 SPMs
-        .mb-2
-          = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
-            Report Year
-        .mb-2
-          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
-            Comparison Year
+        - if @report.reporting_spm_id
+          .mb-2
+            = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
+              Report Year
+        - if @report.comparison_spm_id
+          .mb-2
+            = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
+              Comparison Year

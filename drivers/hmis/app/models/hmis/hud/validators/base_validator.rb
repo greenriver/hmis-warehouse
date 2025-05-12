@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,8 +44,20 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     "cannot be before entry date (#{entry_date.strftime('%m/%d/%Y')})"
   end
 
+  def self.on_entry_message(entry_date)
+    "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})"
+  end
+
   def self.after_exit_message(exit_date)
     "cannot be after exit date (#{exit_date.strftime('%m/%d/%Y')})"
+  end
+
+  def self.before_project_start_message(start_date)
+    "cannot be before project operation start date (#{start_date.strftime('%m/%d/%Y')})"
+  end
+
+  def self.after_project_end_message(end_date)
+    "cannot be after project operation end date (#{end_date.strftime('%m/%d/%Y')})"
   end
 
   def self.future_message

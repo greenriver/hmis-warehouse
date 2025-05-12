@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,8 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
         start_date: 1.week.ago.to_date,
         end_date: Date.current,
         projects: @involved_project_ids,
-        coc_codes: 'XX-501',
+        coc_codes: ['XX-501'],
+        options: { 'coc_codes' => ['XX-501'] },
         period_type: 3,
         directive: 3,
         user_id: @user.id,

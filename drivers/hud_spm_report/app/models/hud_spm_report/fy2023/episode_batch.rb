@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,7 @@ module HudSpmReport::Fy2023
       # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
       # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
       batch_services = GrdaWarehouse::Hud::Service.bed_night.
-        between(start_date: @filter.start, end_date: @filter.end).
+        between(start_date: nil, end_date: @filter.end). # We don't need anything after the report end date, but may need services before the start date
         where(PersonalID: batch_personal_ids). # impose some basic limit so we don't load the entire set of services
         pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).
         group_by { |r| r.shift(3) }.

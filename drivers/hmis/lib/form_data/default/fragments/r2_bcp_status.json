@@ -3,16 +3,10 @@
   "link_id": "R2",
   "text": "RHY-BCP Status",
   "data_collected_about": "ALL_CLIENTS",
-  "rule": {
-    "_comment": "HHS: RHY – Collection required for BCP only",
-    "variable": "projectFunders",
-    "operator": "INCLUDE",
-    "value": 22
-  },
   "item": [
     {
       "type": "DATE",
-      "link_id": "R2.1",
+      "link_id": "R2_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Date of Status Determination",
@@ -23,7 +17,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R2.2",
+      "link_id": "R2_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Youth Eligible for RHY Services",
@@ -35,7 +29,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R2.A",
+      "link_id": "R2_A",
       "required": false,
       "warn_if_empty": true,
       "text": "Reason why services are not funded by BCP grant",
@@ -47,7 +41,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "R2.2",
+          "question": "R2_2",
           "operator": "EQUAL",
           "answer_code": "NO"
         }
@@ -55,7 +49,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R2.B",
+      "link_id": "R2_B",
       "required": false,
       "warn_if_empty": true,
       "text": "Runaway Youth",
@@ -67,7 +61,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "R2.2",
+          "question": "R2_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }

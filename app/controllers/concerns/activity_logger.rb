@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,7 +58,7 @@ module ActivityLogger
 
     # override as necessary in the controller
     protected def title_for_show
-      return @client.name if @client.present?
+      return @client.pii_provider(user: current_user).full_name if @client.present?
       return @user.name if @user.present?
     end
 

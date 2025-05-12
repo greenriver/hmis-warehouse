@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +21,8 @@
 # 100.times { |i| @notifier.ping("new test message #{i}")}
 #
 
+require 'singleton'
+
 # Sends progress messages to Slack, possibly queuing and batching
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
@@ -29,12 +33,21 @@ class ApplicationNotifier < Slack::Notifier
     !!@insert_log_url # coerce bool
   end
 
+  class NullRedis
+    include Singleton
+    def with(*) = nil
+  end
+
   # use the same redis instance we use for caching
-  def self.redis
-    Redis.new Rails.application.config_for(:cache_store).merge(
-      timeout: 1,
-      ssl: (ENV.fetch('CACHE_SSL') { 'false' }) == 'true',
-    )
+  def self.redis_pool
+    case Rails.cache
+    when ActiveSupport::Cache::NullStore
+      NullRedis.instance
+    when ActiveSupport::Cache::RedisCacheStore
+      Rails.cache.redis
+    else
+      raise "Rails.cache type #{Rails.cache.class.name} not supported"
+    end
   end
 
   # prefix all keys with a CLIENT specific key
@@ -47,13 +60,15 @@ class ApplicationNotifier < Slack::Notifier
   # is anything to do.
   def self.flush_queues(prefix: nil)
     # use the same redis instance we use for caching
-    redis.keys(namespace_prefix + '/*').each do |key|
-      next unless key.ends_with?('/queue') # there should be a single key ending in queue... for each  user, channel, username
+    redis_pool.with do |redis|
+      redis.keys(namespace_prefix + '/*').each do |key|
+        next unless key.ends_with?('/queue') # there should be a single key ending in queue... for each  user, channel, username
 
-      url, channel, username = * decode_key(key)
-      next unless url.present?
+        url, channel, username = * decode_key(key)
+        next unless url.present?
 
-      new(url, channel: channel, username: username).flush_queue(prefix: prefix, single_message: false)
+        new(url, channel: channel, username: username).flush_queue(prefix: prefix, single_message: false, redis: redis)
+      end
     end
   end
 
@@ -62,16 +77,18 @@ class ApplicationNotifier < Slack::Notifier
       # If Redis is available we will use it to rate limit connections to Slack.
       # It needs to be very responsive to be useful however so
       # skip it if we cant get a connection fast
-      redis = self.class.redis
       if url.blank?
         super
         return
       end
 
-      if redis&.ping
-        @redis = redis
-        @namespace = self.class.encode_key(url, channel, username)
-        Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{@redis.inspect} #{@namespace}"
+      @redis_pinged = false
+      redis_pool.with do |redis|
+        if redis.ping
+          @namespace = self.class.encode_key(url, channel, username)
+          Rails.logger.debug "ApplicationNotifier#ping queuing enabled at #{redis.inspect} #{@namespace}"
+          @redis_pinged = true
+        end
       end
     rescue Redis::BaseError => e
       Rails.logger.warn "ApplicationNotifier#ping queuing disabled. #{e.inspect}"
@@ -94,7 +111,7 @@ class ApplicationNotifier < Slack::Notifier
         message,
         options[:info].presence || {},
       )
-    elsif @redis.nil? || message.is_a?(Hash) || options.present?
+    elsif !@redis_pinged || message.is_a?(Hash) || options.present?
       # fallback on hard cases or if Redis is not available
       super
     else
@@ -127,14 +144,16 @@ class ApplicationNotifier < Slack::Notifier
   # a sequence of posts. If this the queue is too big, say bigger than
   # 40KB, we will get a Slack rate limit error
   # and raise if Redis has become unavailable
-  def flush_queue(prefix: nil, single_message: true)
+  # Send any rate_limit'd messages.
+  def flush_queue(prefix: nil, single_message: true, redis:)
+    # Get a connection once and use it for all operations in this method
     message = ''
     messages = []
     chunk_size = 4_000
     # TODO: If we upgrade to Redis 6.2+ we can use lop n to
     # batch fetches
     # Store messages in chunks in an array for processing
-    while (batch = @redis.lpop("#{@namespace}/queue"))
+    while (batch = redis.lpop("#{@namespace}/queue"))
       message = prefix.to_s if message.blank?
       if (message + batch).bytesize > chunk_size
         messages << message if message.present?
@@ -158,16 +177,18 @@ class ApplicationNotifier < Slack::Notifier
         # specifically for sending these that can tolerate the delay.
         sleep(0.7)
       end
-      @redis.set "#{@namespace}/last_post", Time.now.to_f
+      redis.set("#{@namespace}/last_post", Time.now.to_f)
     rescue Exception # rubocop:disable Lint/SuppressedException
     end
   end
 
   private def rate_limit(message)
     # Slack wants no more then one webhook per client per second
-    last_post = @redis.get "#{@namespace}/last_post"
-    @redis.rpush "#{@namespace}/queue", "#{message}\n"
-    flush_queue unless last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
+    redis_pool.with do |redis|
+      last_post = redis.get("#{@namespace}/last_post")
+      redis.rpush("#{@namespace}/queue", "#{message}\n")
+      flush_queue(redis: redis) unless last_post && (Time.now - Time.at(last_post.to_f)) < 1.second
+    end
   rescue Redis::BaseError => e
     # If Redis has gone down, just try to get this message out
     Rails.logger.error('ApplicationNotifier#rate_limit: ' + e.message)
@@ -200,5 +221,9 @@ class ApplicationNotifier < Slack::Notifier
     end
 
     [url, channel, username]
+  end
+
+  protected def redis_pool
+    self.class.redis_pool
   end
 end

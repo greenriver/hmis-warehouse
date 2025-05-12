@@ -1,18 +1,20 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
+  self.table_name = :Enrollment
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
-
-  self.table_name = :Enrollment
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   has_paper_trail(
     meta: {
@@ -82,6 +84,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
+  has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
+
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
+
+  # Cached chronically homeless at entry
+  has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
 
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
@@ -90,6 +98,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return unless project_id
 
     self.project_id = project.project_id
+  end
+
+  before_save :set_default_disabling_condition
+  private def set_default_disabling_condition
+    self.disabling_condition ||= 99
   end
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
@@ -148,11 +161,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     search_term.strip!
 
     alpha_numeric = /[[[:alnum:]]-]+/.match(search_term).try(:[], 0) == search_term
-    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
 
-    # If numeric, check if it's an Enrollment primary key
-    if numeric
-      matching_enrollments = where(id: search_term)
+    # If it's a possible PK, check if it's an Enrollment primary key
+    if possibly_pk?(search_term)
+      matching_enrollments = where(id: search_term.to_i)
       return matching_enrollments if matching_enrollments.exists?
     end
 
@@ -194,7 +206,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.age_group(start_age: start_age, end_age: end_age))
   end
 
-  scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
+  scope :exited, -> { joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
+  scope :auto_exited, -> { joins(:exit).merge(Hmis::Hud::Exit.auto_exited.where.not(exit_date: nil)) }
   scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
@@ -281,17 +294,106 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
+  def self.contact_date_for_entity(entity)
+    case entity
+    when Hmis::Hud::Service, Hmis::Hud::CustomService
+      entity.date_provided
+    when Hmis::Hud::CurrentLivingSituation
+      entity.information_date
+    when Hmis::Hud::CustomAssessment
+      entity.assessment_date
+    when Hmis::Hud::Enrollment
+      entity.entry_date
+    when Hmis::Hud::CustomCaseNote
+      entity.information_date
+    else
+      raise "Unknown entity '#{entity.class}'"
+    end
+  end
+
+  # Data Collection Features that are enabled for this enrollment, thru its project (e.g. Current Living Situation)
+  #
+  # Is it enabled?
+  #   If ANY data exists for it in this enrollment, even if no active instances exist, then yes.
+  #   This allows users to see data in the following "legacy" scenarios:
+  #   (1) data was previously collected in HMIS, but the rule (Instance) has since been deactivated
+  #   (2) data was previously collected for this Enrollment, but is no longer collected because of some change in context (e.g. they are no longer HoH, or the project funder/attributes changed)
+  #   (3) data was migrated-in, but has no rule (Instance) to enable it
+  #   Data in these categories is considered "legacy" because it's not collected going forward.
+  #
+  # Who is data collected about?
+  #   Choose the "best" instance – IE the one that would actually be selected
+  #   when creating a new record – and return the data_collected_about on it.
+  #
+  # Returns an OpenStruct that is resolved by the DataCollectionFeature GQL type.
+  def data_collection_features
+    # Create OpenStruct for each enabled feature
+    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.
+      excluding(:REFERRAL, :REFERRAL_REQUEST, :EXTERNAL_FORM). # These are only relevant to projects, not enrollments
+      map do |role|
+      instance_scope = Hmis::Form::Instance.with_role(role).active.published
+      # Service instances must specify a service type or category.
+      instance_scope = instance_scope.for_services if role == :SERVICE
+
+      # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
+      # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
+      best_instance = instance_scope.detect_best_instance_for_enrollment(enrollment: self)
+
+      has_any_data = case role
+      when :CURRENT_LIVING_SITUATION
+        current_living_situations.exists?
+      when :SERVICE
+        custom_services.exists? || services.exists?
+      when :CE_EVENT
+        events.exists?
+      when :CE_ASSESSMENT
+        assessments.exists?
+      when :CASE_NOTE
+        custom_case_notes.exists?
+      else
+        raise "Unexpected data collection feature role: #{role}"
+      end
+
+      next unless best_instance || has_any_data
+
+      OpenStruct.new(
+        role: role.to_s,
+        id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
+        legacy: has_any_data && !best_instance,
+        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
+        instance: best_instance, # just for testing, not resolved
+      )
+    end.compact
+  end
+
+  # Occurrence Point Forms that are enabled for this Enrollment.
+  # Returns array of OpenStructs, which are resolved by the HmisSchema::OccurrencePointForm GQL type.
+  def occurrence_point_forms
+    Hmis::Form::OccurrencePointFormCollection.new.for_enrollment(self)
+  end
+
   def save_new_enrollment!
     raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 
-    if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
-      # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
-      save_not_in_progress!
-      build_synthetic_intake_assessment.save!
+    if should_auto_enter?
+      save_and_auto_enter!
     else
-      # Otherwise, save as WIP
       save_in_progress!
     end
+  end
+
+  def should_auto_enter?
+    project.should_auto_enter?
+  end
+
+  def save_and_auto_enter!
+    # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
+    # In general, use save_new_enrollment! above to guard against duplicating synthetic assessments for an enrollment
+    # that is already persisted. This is a special case used by the external form submission mutations; since the
+    # Location table is related to both Client and Enrollment, by the time Client is saved, the Enrollment has also
+    # already been persisted, but it's still guaranteed to be a new enrollment.
+    save_not_in_progress!
+    build_synthetic_intake_assessment.save!
   end
 
   def save_in_progress!
@@ -301,7 +403,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = nil
     save!(validate: false)
   end
-  alias save_in_progress save_in_progress!
+  alias_method :save_in_progress, :save_in_progress!
 
   def save_not_in_progress!
     # If this enrollment is being moved from WIP=>non-WIP, then set the DateCreated to now. This is to get the desired time for timeliness reports.
@@ -310,7 +412,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = project.project_id
     save!
   end
-  alias save_not_in_progress save_not_in_progress!
+  alias_method :save_not_in_progress, :save_not_in_progress!
 
   def in_progress?
     self.ProjectID.nil?
@@ -417,7 +519,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
-    (saved_changes.keys & ['EntryDate', 'ProjectID', 'DateDeleted']).any?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::ServiceHistory rebuild_service_history
+    (saved_changes.keys & [
+      'EntryDate',
+      'ProjectID', # If Enrollment was moved from WIP=>non-WIP, or moved to a different Project
+      'HouseholdID', # If Enrollment was moved to a different Household
+      'RelationshipToHoH',
+      'MoveInDate',
+      'LivingSituation',
+      'DateDeleted',
+    ]).any?
   end
 
   include RailsDrivers::Extensions

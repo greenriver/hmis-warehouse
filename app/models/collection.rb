@@ -1,14 +1,33 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# Part of the "new" permissions system
+#
+# A Collection is a set of entities that are the target of an AccessControl. It is analogous to the "AccessGroup" in the
+# legacy permissions system
+#
+# Rules for project-related records are inclusive (a project is included if it's in collection.projects OR if its
+# organization is included in collection.organizations)
+#
+# Collections which are flagged as "system" are maintained automatically. For example when a project record is created
+# it is automatically added to the "All Projects" Collection
+#
 class Collection < ApplicationRecord
   include UserPermissionCache
 
   acts_as_paranoid
   has_paper_trail
+
+  # Remove this column well after this code gets to production (just add a migration remove_column(:collections, :coc_codes))
+  TodoOrDie('Remove coc_codes column from the collections table well after release 157 goes to production', by: '2025-06-01')
+  self.ignored_columns = [
+    :coc_codes,
+  ]
 
   after_save :invalidate_user_permission_cache
 
@@ -16,17 +35,30 @@ class Collection < ApplicationRecord
   has_many :users, through: :access_controls
 
   has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity'
+  # grants access to projects within these data sources
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
+  # grants access to projects within these organizations
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Organization'
+  # grants access to projects
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Project'
   has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
+  has_many :coc_codes, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Lookups::CocCode'
+  # grants access to reports (report data is constrained by above project-filters)
   has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
+  has_many :supplemental_data_sets, through: :group_viewable_entities, source: :entity, source_type: 'HmisSupplemental::DataSet'
 
   belongs_to :user, optional: true
 
+  # Collections may be "owned" by a single "source" entity.
+  # These eponymous collections are created through side-effects (see the EntityAccess concern) and
+  # are hidden from the administrative view.  They back the access given to users on the entity edit pages.
+  # Currently, these are used for ProjectGroups and Cohorts.
+  belongs_to :source, optional: true, polymorphic: true
+
   validates_presence_of :name, unless: :user_id
+  validates_presence_of :collection_type, on: :create
 
   scope :general, -> do
     not_hidden.where(user_id: nil)
@@ -68,6 +100,27 @@ class Collection < ApplicationRecord
     )
   end
 
+  # all collections that include any coc_codes
+  # This requires a cross-db join, so we'll pluck a few item
+  scope :for_coc_codes, ->(coc_codes) do
+    entity_class = GrdaWarehouse::Lookups::CocCode
+    coc_lookup_ids = entity_class.where(coc_code: coc_codes).pluck(:id)
+    where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        entity_type: entity_class.sti_name,
+        entity_id: coc_lookup_ids,
+      ).pluck(:collection_id),
+    )
+  end
+
+  scope :with_source_entity, -> do
+    where.not(source_id: nil)
+  end
+
+  scope :without_source_entity, -> do
+    where(source_id: nil)
+  end
+
   def self.text_search(text)
     return none unless text.present?
 
@@ -106,6 +159,7 @@ class Collection < ApplicationRecord
       'Project Groups',
       'Reports',
       'Cohorts',
+      'Supplemental Data Sets',
     ].freeze
   end
 
@@ -130,6 +184,7 @@ class Collection < ApplicationRecord
       projects: 'Projects',
       reports: 'Reports',
       cohorts: 'Cohorts',
+      supplemental_data_sets: 'Supplemental Data Sets',
       project_groups: 'Project Groups', # access to project groups
     }.freeze
   end
@@ -158,8 +213,28 @@ class Collection < ApplicationRecord
       [
         :cohorts,
       ]
+    when 'Supplemental Data Sets'
+      [
+        :supplemental_data_sets,
+      ]
     end
+
     entity_types.slice(*relevant_types)
+  end
+
+  def self.collection_type_from(relation)
+    case relation
+    when :data_sources, :organizations, :project_access_groups, :coc_codes, :projects
+      'Projects'
+    when :project_groups
+      'Project Groups'
+    when :reports
+      'Reports'
+    when :cohorts
+      'Cohorts'
+    when :supplemental_data_sets
+      'Supplemental Data Sets'
+    end
   end
 
   def overall_project_count
@@ -174,9 +249,7 @@ class Collection < ApplicationRecord
       project_access_groups.each do |pa|
         ids.merge pa.projects.pluck(:id)
       end
-      coc_codes.each do |code|
-        ids.merge GrdaWarehouse::Hud::Project.in_coc(coc_code: code).pluck(:id)
-      end
+      ids.merge GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes.map(&:coc_code)).pluck(:id)
     end.count
   end
 
@@ -193,28 +266,28 @@ class Collection < ApplicationRecord
 
   private def project_overlap
     @project_overlap ||= {}.tap do |po|
-      data_sources.each do |entity|
-        entity.projects.pluck(:id).each do |p_id|
+      data_sources.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
           po[p_id][:data_sources] << entity.name
         end
       end
-      organizations.each do |entity|
-        entity.projects.pluck(:id).each do |p_id|
+      organizations.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
           po[p_id][:organizations] << entity.name
         end
       end
-      project_groups.each do |entity|
-        entity.projects.pluck(:id).each do |p_id|
+      project_groups.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
           po[p_id][:organizations] << entity.name
         end
       end
-      coc_codes.each do |code|
-        GrdaWarehouse::Hud::Project.in_coc(coc_code: code).pluck(:id).each do |p_id|
+      coc_codes.preload(:projects).each do |entity|
+        entity.projects.map(&:id).each do |p_id|
           po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
-          po[p_id][:coc_codes] << code
+          po[p_id][:coc_codes] << entity.name
         end
       end
       projects.each do |entity|
@@ -227,12 +300,10 @@ class Collection < ApplicationRecord
 
   def project_count_from(type)
     case type.to_sym
-    when :data_sources, :organizations, :project_access_groups
+    when :data_sources, :organizations, :project_access_groups, :coc_codes
       public_send(type).map { |entity_type| entity_type.projects.size }.sum
     when :projects
       projects.count
-    when :coc_codes
-      GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes).distinct.count
     else
       0
     end
@@ -260,13 +331,38 @@ class Collection < ApplicationRecord
 
   def self.system_collections
     {
-      hmis_reports: Collection.where(name: 'All HMIS Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      data_sources: Collection.where(name: 'All Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      system_user: Collection.where(name: 'Hidden System Group', must_exist: true).first_or_create { |g| g.system = ['Entities', 'Hidden'] },
-      window_data_sources: Collection.where(name: 'Window Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
+      hmis_reports: Collection.where(name: 'All HMIS Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
+      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
+      cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Cohorts'
+      end,
+      supplemental_data_sets: Collection.where(name: 'All Supplemental Data Sets', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Supplemental Data Sets'
+      end,
+      project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Project Groups'
+      end,
+      data_sources: Collection.where(name: 'All Data Sources', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Projects'
+      end,
+      system_user: Collection.where(name: 'Hidden System Group', must_exist: true).first_or_create do |g|
+        g.system = ['Entities', 'Hidden']
+        g.collection_type = 'Projects'
+      end,
+      window_data_sources: Collection.where(name: 'Window Data Sources', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Projects'
+      end,
     }
   end
 
@@ -315,6 +411,14 @@ class Collection < ApplicationRecord
       system_user_access_group.set_viewables({ cohorts: ids })
     end
 
+    if group.blank? || group == :supplemental_data_sets
+      # Supplemental Data Sets
+      all_data_sets = system_collection(:supplemental_data_sets)
+      ids = HmisSupplemental::DataSet.pluck(:id)
+      all_data_sets.set_viewables({ supplemental_data_sets: ids })
+      system_user_access_group.set_viewables({ supplemental_data_sets: ids })
+    end
+
     if group.blank? || group == :project_groups
       # Project Groups
       all_project_groups = system_collection(:project_groups)
@@ -348,10 +452,12 @@ class Collection < ApplicationRecord
       [
         :data_sources,
         :organizations,
+        :coc_codes,
         :projects,
         :project_access_groups,
         :reports,
         :cohorts,
+        :supplemental_data_sets,
         :project_groups,
       ].each do |type|
         ids = (viewables[type] || []).map(&:to_i)
@@ -407,10 +513,10 @@ class Collection < ApplicationRecord
     associations.flat_map do |association|
       case association
       when :coc_code
-        coc_codes.map do |code|
+        coc_codes.preload(:projects).map do |coc|
           [
-            code,
-            GrdaWarehouse::Hud::Project.project_names_for_coc(code),
+            coc.coc_code,
+            coc.projects.map(&:ProjectName),
           ]
         end
       when :organization
@@ -442,17 +548,13 @@ class Collection < ApplicationRecord
 
   def all_associated_entities
     {
-      'CoC Codes' => coc_codes.flat_map do |code|
-        [code] +
-          GrdaWarehouse::Hud::Project.project_names_for_coc(code).map do |name|
-            " – #{name} (in #{code})"
-          end
-      end,
+      'CoC Codes' => coc_codes.map(&:coc_code),
       'Project Groups' => project_access_groups.preload(:projects).map(&:name),
       'Data Sources' => data_sources.map(&:name),
       'Organizations' => organizations.map(&:OrganizationName),
       'Projects' => projects.map(&:ProjectName),
       'Cohorts' => cohorts.map(&:name),
+      'Supplemental Data Sets' => supplemental_data_sets.map(&:name),
       'Reports' => reports.map(&:name),
     }
   end
@@ -461,15 +563,45 @@ class Collection < ApplicationRecord
     @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
   end
 
+  def class_name_for_viewable_type(type)
+    viewable_types[type]
+  end
+
   private def viewable_types
     @viewable_types ||= {
       data_sources: 'GrdaWarehouse::DataSource',
       organizations: 'GrdaWarehouse::Hud::Organization',
+      coc_codes: 'GrdaWarehouse::Lookups::CocCode',
       projects: 'GrdaWarehouse::Hud::Project',
       project_access_groups: 'GrdaWarehouse::ProjectAccessGroup',
       reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
       project_groups: 'GrdaWarehouse::ProjectGroup',
       cohorts: 'GrdaWarehouse::Cohort',
+      supplemental_data_sets: 'HmisSupplemental::DataSet',
     }.freeze
+  end
+
+  # This method should be removed after all installations have been migrated.
+  # This can't be done in a migration as it touches multiple databases
+  def self.migrate_from_local_coc_codes
+    TodoOrDie('Remove migrate_from_local_coc_codes, it is only needed during the transition period', by: '2025-06-01')
+    lookups = GrdaWarehouse::Lookups::CocCode.all.index_by(&:coc_code)
+    batch = []
+    Collection.all.pluck(:id, :coc_codes).each do |id, coc_codes|
+      next if coc_codes.blank?
+
+      coc_codes.each do |coc|
+        entity_id = lookups[coc]&.id
+        next unless entity_id
+
+        batch << GrdaWarehouse::GroupViewableEntity.new(
+          collection_id: id,
+          access_group_id: 0,
+          entity_type: 'GrdaWarehouse::Lookups::CocCode',
+          entity_id: entity_id,
+        )
+      end
+    end
+    GrdaWarehouse::GroupViewableEntity.import!(batch)
   end
 end

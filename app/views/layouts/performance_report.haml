@@ -21,6 +21,9 @@
     = yield
 
     = svg 'symbol-defs'
+    = inline_javascript_include_tag 'application_esbuild', 'data-turbo-track': 'reload', defer: false
+    - if @per_page_js.present?
+      = AssetHelper.inline_js_for_es_build(@per_page_js)
     = yield :page_js
     :css
       p {

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -43,8 +45,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before do
     # Mock RELEVANT_COC_STATE response
-    allow(ENV).to receive(:[]).and_call_original
-    allow(ENV).to receive(:[]).with('RELEVANT_COC_STATE').and_return('VT')
+    allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+    allow(GrdaWarehouse::Config).to receive(:get).with(:relevant_state_codes).and_return('VT')
   end
 
   it 'returns CoC pick list' do
@@ -149,6 +151,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq('509001')
+    expected_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-VT.json')).size
+    expect(options.size).to eq(expected_size)
+  end
+
+  context 'when there are multiple relevant states' do
+    before do
+      GrdaWarehouse::Config.instance_variable_set(:@relevant_state_codes, nil) # reset the cached instance variable
+      allow(GrdaWarehouse::Config).to receive(:get).with(:relevant_state_codes).and_return('VT,MA')
+    end
+
+    it 'returns geocodes grouped by state' do
+      response, result = post_graphql(pick_list_type: 'GEOCODE') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      vt_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-VT.json')).size
+      ma_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-MA.json')).size
+      expect(options.size).to eq(vt_size + ma_size)
+      expect(options.first['groupLabel']).to eq('VT')
+      expect(options.last['groupLabel']).to eq('MA')
+    end
   end
 
   it 'returns grouped service type pick list' do
@@ -179,6 +201,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'label' => opt[:label],
       ),
     )
+  end
+
+  describe 'when there are both HUD and custom service categories' do
+    let!(:hud_category) { create :hmis_custom_service_category, data_source: ds1, name: 'HUD category' }
+    let!(:custom_category) { create :hmis_custom_service_category, data_source: ds1, name: 'Custom category' }
+    let!(:hud_type) { create :hmis_custom_service_type, custom_service_category: hud_category, data_source: ds1, name: 'HUD type', hud_record_type: 141, hud_type_provided: 1 }
+    let!(:custom_type) { create :hmis_custom_service_type, custom_service_category: custom_category, data_source: ds1, name: 'Custom type' }
+
+    it 'returns custom-only service category pick list' do
+      response, result = post_graphql(pick_list_type: 'CUSTOM_SERVICE_CATEGORIES') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.non_hud.count)
+      expect(options.pluck('code')).to include(custom_category.id.to_s)
+      expect(options.pluck('code')).not_to include(hud_category.id.to_s)
+    end
   end
 
   describe 'Resolving available Service Types for a Project' do
@@ -292,36 +330,100 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
+  describe 'unit picklists' do
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let!(:un1) { create :hmis_unit, project: p1 }
-    let!(:un2) { create :hmis_unit, project: p1 }
-    let!(:un3) { create :hmis_unit } # in another project
+    let!(:br1) { create :hmis_unit_type, description: '1 BR' }
+    let!(:br2) { create :hmis_unit_type, description: '2 BR' }
+
+    let!(:un1) { create :hmis_unit, project: p1, unit_type: br1 }
+    let!(:un2) { create :hmis_unit, project: p1, unit_type: br1 }
+    let!(:un3) { create :hmis_unit, project: p1, unit_type: br2 }
+
+    # cruft: units in other projects
+    let!(:un4) { create :hmis_unit, unit_type: br1 }
+    let!(:un5) { create :hmis_unit, unit_type: br2 }
+    let!(:un6) { create :hmis_unit }
 
     # assign e1 to un1
     let!(:uo1) { create :hmis_unit_occupancy, unit: un1, enrollment: e1, start_date: 1.week.ago }
 
-    def picklist_option_codes(project, household_id = nil)
+    def picklist_option_codes(project, picklist: 'AVAILABLE_UNITS_FOR_ENROLLMENT', household_id: nil)
       Types::Forms::PickListOption.options_for_type(
-        'AVAILABLE_UNITS_FOR_ENROLLMENT',
+        picklist,
         user: hmis_user,
         project_id: project.id,
         household_id: household_id,
       ).map { |opt| opt[:code] }
     end
 
-    it 'resolves available units for project' do
-      expect(picklist_option_codes(p1)).to contain_exactly(un2.id)
+    context 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
+      it 'resolves available units for project' do
+        expect(picklist_option_codes(p1)).to contain_exactly(un2.id, un3.id)
+      end
+
+      it 'includes units that are currently occupied by the household, plus other units of the same type' do
+        result = picklist_option_codes(p1, household_id: e1.household_id)
+        expect(result).to contain_exactly(un1.id, un2.id)
+      end
+
+      it 'if household unit doesn\'t have a type, includes all available units' do
+        un1.update!(unit_type: nil)
+        expect(picklist_option_codes(p1, household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
+      end
     end
 
-    it 'includes units that are currently occupied by the household' do
-      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id, un2.id)
-    end
+    context 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT' do
+      it 'resolves available units for project' do
+        expect(picklist_option_codes(p1)).to contain_exactly(un2.id, un3.id)
+      end
 
-    it 'if household is occupied by a unit that has a type, excludes other unit typoes from list' do
-      un1.unit_type = create(:hmis_unit_type)
-      un1.save!
-      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id)
+      it 'includes units with differing unit types' do
+        expect(picklist_option_codes(p1, picklist: 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT', household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
+      end
+    end
+  end
+
+  describe 'EXTERNAL_FORM_TYPES_FOR_PROJECT' do
+    let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM }
+
+    context 'when form rule applies to a project' do
+      let!(:rule) { create :hmis_form_instance, definition_identifier: 'test-external', entity: p1, active: true }
+
+      it 'should return the external form for the project' do
+        response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.length).to eq(1)
+        expect(options.first.dig('code')).to eq('test-external')
+      end
+
+      context 'but form is in draft' do
+        let!(:external_form) { create :hmis_form_definition, identifier: 'test-external', role: :EXTERNAL_FORM, status: :draft }
+
+        it 'should not return the draft form' do
+          response, result = post_graphql(pick_list_type: 'EXTERNAL_FORM_TYPES_FOR_PROJECT', projectId: p1.id) { query }
+          expect(response.status).to eq 200
+          options = result.dig('data', 'pickList')
+          expect(options.length).to eq(0)
+        end
+      end
+    end
+  end
+
+  describe 'PROJECTS_RECEIVING_REFERRALS' do
+    let!(:referral_dest_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+    let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: referral_dest_project }
+
+    let!(:non_dest_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+    let!(:draft_referral_form) { create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft) }
+    let!(:draft_referral_instance) { create :hmis_form_instance, role: :REFERRAL, definition_identifier: 'bad-referral-form', entity: non_dest_project }
+
+    it 'should only return the project that has an active, non-draft instance' do
+      response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_REFERRALS') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.size).to eq(1)
+      expect(options.first['code']).to eq(referral_dest_project.id.to_s)
     end
   end
 end

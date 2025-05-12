@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class Age < ReadOnly
@@ -29,6 +31,10 @@ module CohortColumns
 
     def value(cohort_client) # OK
       cohort_client.client.age_on(effective_date)
+    end
+
+    def analytics_data_type
+      'integer'
     end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,7 +61,7 @@ module HmisDataQualityTool
     end
 
     def available_cocs
-      ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
+      ::HudUtility2024.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).map do |code, name|
         [
           "#{name} (#{code})",
           code,

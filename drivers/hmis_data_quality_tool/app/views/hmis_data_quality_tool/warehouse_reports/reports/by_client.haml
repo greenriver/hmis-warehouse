@@ -6,6 +6,8 @@
   %li.nav-item
     %a.nav-link.active{href: '#by_client', role: "presentation", data: {toggle: :tab}, aria: {controls:"by-client", selected:"true"}}
       By Client
+  %li.nav-item
+    = link_to 'By Chart', by_chart_hmis_data_quality_tool_warehouse_reports_report_path(@report), class: 'nav-link'
 
 .tab-content.mt-4
   .tab-pane.show.active.fade#by_category{role: 'tabpanel', aria: {labelledby: 'by-client'}}

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,6 +55,20 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
         expect(response).to have_http_status(200)
         expect(destination.client_files.count).to eq(1)
       end
+    end
+  end
+
+  describe 'logged in' do
+    let!(:user) { create(:acl_user) }
+    before do
+      sign_in user
+    end
+
+    it 'redirects to merged client' do
+      merged_id = destination.id + 1
+      allow_any_instance_of(::GrdaWarehouse::ClientMergeHistory).to receive(:current_destination).and_return(merged_id)
+      get client_history_path(destination.id)
+      expect(response).to redirect_to(controller: 'history', action: 'show', client_id: merged_id)
     end
   end
 end

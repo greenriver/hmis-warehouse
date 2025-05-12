@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse
   module Shape
@@ -43,7 +45,7 @@ module GrdaWarehouse
 
         return unless ZipCode.missing_assigned_county.any?
 
-        Rails.logger.info 'Associating zip codes with counties in YOUR state only'
+        Rails.logger.info 'Associating zip codes with counties in YOUR states only'
         GrdaWarehouse::Shape::ZipCode.calculate_counties
       end
 
@@ -64,10 +66,10 @@ module GrdaWarehouse
             next
           end
 
-          next unless klass.not_my_state.count.positive? && (klass.not_my_state.count + klass.my_state.count == klass.count)
+          next unless klass.not_my_states.count.positive? && (klass.not_my_states.count + klass.my_states.count == klass.count)
 
           Rails.logger.warn "Deleting #{klass} that are out of state"
-          klass.not_my_state.delete_all
+          klass.not_my_states.delete_all
           klass.connection.exec_query("VACUUM ANALYZE #{klass.table_name}")
         end
       end
@@ -84,7 +86,7 @@ module GrdaWarehouse
 
         # command-line arg is only important for block groups and CoC, but
         # easier to just pass it along for all
-        system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
+        system("./shape_files/#{conf.dir}/make.inserts #{GrdaWarehouse::Config.get(:relevant_state_codes)}")
 
         if ::File.exist?("shape_files/#{conf.dir}/inserts.sql")
           Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,7 +37,7 @@ module HudLsa::Generators::Fy2023::ViewRelatedConcern
       { 'LSA' => self }
     end
 
-    def allowed_options
+    def allowed_options(_)
       [
         :project_ids,
         :project_group_ids,

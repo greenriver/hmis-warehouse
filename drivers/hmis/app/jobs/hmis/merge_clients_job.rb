@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Hmis
   class MergeClientsJob < BaseJob
@@ -17,7 +19,7 @@ module Hmis
 
       self.actor = User.find(actor_id)
       self.clients = Hmis::Hud::Client.
-        preload(:names, :contact_points, :addresses).
+        preload(:names, :contact_points, :addresses, :custom_data_elements).
         find(client_ids).
         map do |client|
           # set some defaults
@@ -25,7 +27,7 @@ module Hmis
           client.DateUpdated ||= 10.years.ago.to_date
           client
         end.
-        sort_by { |client| client.DateCreated.to_datetime }
+        sort_by { |client| [client.DateCreated.to_datetime, client.id] }
 
       self.client_to_retain = clients[0]
       self.clients_needing_reference_updates = clients[1..]
@@ -34,7 +36,7 @@ module Hmis
           raise 'We should only have one data source!' unless data_sources.length == 1
         end.first
 
-      Rails.logger.info "Merging #{clients.length} clients by #{actor.name}"
+      Rails.logger.info "Merging #{clients.length} clients by #{actor.name}. (Client IDs: #{client_ids.join(', ')})"
 
       Hmis::Hud::Client.transaction do
         save_audit_trail
@@ -45,7 +47,9 @@ module Hmis
         delete_warehouse_clients
         update_personal_id_foreign_keys
         merge_mci_ids
+        merge_mci_unique_ids
         merge_scan_cards
+        merge_client_locations
 
         client_to_retain.reload
         dedup(client_to_retain.names, keepers: dedup(client_to_retain.names.where(primary: true)))
@@ -120,11 +124,12 @@ module Hmis
       name_scope.sort_by(&:id).each do |name|
         client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
         custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
+        # consider this name "primary" it matches the name on the client_to_retain's Client record
         primary = (client_val == custom_client_name_val) && !primary_found
 
         name.client = client_to_retain
         name.primary = primary ? true : false
-        name.save!(validate: false) # if primary, this save will update the Client name attributes (FirstName, LastName, etc)
+        name.save!(validate: false)
 
         primary_found = true if name.primary
       end
@@ -218,14 +223,45 @@ module Hmis
         where.not(value: current_ids_for_retained_client).
         order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
-      mci_ids.where(id: records_by_value.values.map(&:id)).
-        update_all(source_id: client_to_retain.id)
+      mci_ids.where(id: records_by_value.values.map(&:id)).each do |external_id|
+        # save individually to trigger paper trail version creation
+        external_id.update!(source_id: client_to_retain.id)
+      end
+    end
+
+    # Note: WarehouseChangesJob process kicks off MergeClientsJob for clients that
+    # share the same MCI Unique ID, so that is the most likely scenario. However,
+    # it's also possible to perform a manual merge in HMIS for two clients that
+    # may or may not share MCI Unique ID values.
+    def merge_mci_unique_ids
+      # If retained client has an MCI Unique ID, no action is needed.
+      # Max 1 MCI Unique ID is permitted per client, so if any of
+      # the merged clients have differing MCI Unique IDs, they will be destroyed.
+      # (This could happen in the case of a manual merge).
+      return if client_to_retain.ac_hmis_mci_unique_id.present?
+
+      # If retained client does not have an MCI Unique ID, try to find one to keep from the merged clients
+      mci_unique_id_to_keep = HmisExternalApis::ExternalId.mci_unique_ids.
+        where(source: clients_needing_reference_updates).
+        max_by(&:updated_at)
+      return unless mci_unique_id_to_keep
+
+      # Re-assign this MCI Unique ID to the retained client
+      mci_unique_id_to_keep.update!(source: client_to_retain)
     end
 
     def merge_scan_cards
       # Update all Scan Cards for deleted clients to point to the retained client, including deactivated scan cards
       client_ids = clients_needing_reference_updates.map(&:id)
       Hmis::ScanCardCode.with_deleted.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
+    end
+
+    def merge_client_locations
+      # Update all Client Locations for deleted clients to point to the retained client
+      # Note: for locations collected in HMIS these are probably also tied to an Enrollment via `source_id`, but the client_id
+      # reference is necessary to maintain for the warehouse reports
+      client_ids = clients_needing_reference_updates.map(&:id)
+      ::ClientLocationHistory::Location.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients
@@ -266,16 +302,29 @@ module Hmis
 
         t = candidate.arel_table
 
-        candidate.
+        candidate_scope = candidate.
           where(t['PersonalID'].in(personal_ids)).
-          where(t['data_source_id'].eq(data_source_id)).
-          update_all(PersonalID: client_to_retain.personal_id)
+          where(t['data_source_id'].eq(data_source_id))
+
+        # Special logging for Enrollment, so we know which Enrollments came from which client in the case of un-merging. TODO(#7444) store this in the audit trail somewhere.
+        if candidate == Hmis::Hud::Enrollment && candidate_scope.exists?
+          pre_merge_enrollments = candidate_scope.pluck(:id, :PersonalID)
+          Rails.logger.info "Updating #{candidate_scope.size} Enrollments to point to Client #{client_to_retain.id} (PersonalID: #{client_to_retain.personal_id}). Pre-merge enrollments [pk, PersonalID]: #{pre_merge_enrollments.inspect}"
+        end
+
+        candidate_scope.update_all(PersonalID: client_to_retain.personal_id)
       end
     end
 
     def destroy_merged_clients
       Rails.logger.info 'soft-deleting merged clients'
-      clients_needing_reference_updates.map(&:reload).map(&:destroy!)
+      ids = clients_needing_reference_updates.map(&:id)
+      scope = Hmis::Hud::Client.where(id: ids)
+      # preload associations to reduce n+1 when destroying a batch
+      preloads = Hmis::Hud::Client.reflect_on_all_associations.
+        filter { |a| a.options[:dependent] == :destroy }.
+        map(&:name)
+      scope.preload(*preloads).each(&:destroy!)
     end
   end
 end

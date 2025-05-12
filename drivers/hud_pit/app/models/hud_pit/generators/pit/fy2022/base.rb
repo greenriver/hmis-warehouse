@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,7 +34,7 @@ module HudPit::Generators::Pit::Fy2022
       so: 4,
     }.freeze
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :on,
         :coc_codes,

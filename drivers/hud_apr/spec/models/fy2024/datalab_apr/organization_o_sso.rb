@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata do
   describe 'Datalab 2024 APR - Organization O - SSO' do
@@ -17,9 +19,6 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q4a',
-        skip: [
-          'L2', # Is the generator name, so not expected to match
-        ],
       )
     end
 
@@ -30,18 +29,17 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       )
     end
 
+    # Pending TestKit inquiry submitted 2025-03-13
     it 'Q6a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
-        # TODO
         skip: [
-          'B5',
-          'C5',
-          'E5',
-          'F5',
-          'E7',
-          'F7',
+          'C5', # expected '2.0000' (2), got '0.0000' (0)
+          'E5', # expected '3.0000' (3), got '1.0000' (1)
+          'F5', # expected '0.0800' (0.0750), got '0.0300' (0.0250)
+          'E7', # expected '12.0000' (12), got '11.0000' (11)
+          'F7', # expected '0.3000' (0.3000), got '0.2800' (0.2750)
         ],
       )
     end
@@ -50,11 +48,6 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6b',
-        # TODO
-        skip: [
-          'F2',
-          'F6',
-        ],
       )
     end
 
@@ -62,9 +55,6 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
-        skip: [
-          'F4', # TODO
-        ],
       )
     end
 
@@ -72,15 +62,18 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6d',
-        # TODO
+        # Test kit results data has rows 5 and 6 swapped. With that corrected, the data passes.
         skip: [
-          'B5',
-          'D5',
-          'F5',
-          'G5',
-          'H5',
-          'B7',
-          'H7',
+          'B5', # expected '37.0000' (37), got '0.0000' (0)
+          'D5', # expected '2.0000' (2), got '0.0000' (0)
+          'F5', # expected '1.0000' (1), got '0.0000' (0)
+          'G5', # expected '1.0000' (1), got '0.0000' (0)
+          'H5', # expected '0.0800' (0.0811), got '0.0000' (0.0000)
+          'B6', # expected '0.0000' (0), got '37.0000' (37)
+          'D6', # expected '0.0000' (0), got '2.0000' (2)
+          'F6', # expected '0.0000' (0), got '1.0000' (1)
+          'G6', # expected '0.0000' (0), got '1.0000' (1)
+          'H6', # expected '0.0000' (0.0000), got '0.0800' (0.0811)
         ],
       )
     end
@@ -106,8 +99,8 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
-    xit 'Q7b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
+    it 'Q7b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q7b',
@@ -121,8 +114,8 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
-    xit 'Q8b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
+    it 'Q8b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
@@ -259,9 +252,6 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
-        skip: [
-          'F7', # rounding difference, not significant
-        ],
       )
     end
 
@@ -419,24 +409,16 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       )
     end
 
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
     it 'Q26a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26a',
-        # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
-        skip: [
-          'B3',
-          'C3', # new
-          'D3',
-          'B5',
-          'C5', # new
-          'D5',
-        ],
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recTCOE44QtrUKsfZ
-    xit 'Q26b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recTCOE44QtrUKsfZ
+    it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
@@ -538,11 +520,6 @@ RSpec.shared_context 'datalab organization o sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27j',
-        # We round, it's unclear what the expectation is
-        skip: [
-          'B2',
-          'C2',
-        ],
       )
     end
 

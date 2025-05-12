@@ -5,6 +5,7 @@
 .card.squared.mb-6.p-6.page-break-avoid
   %h4 Project Comparison #{@report.filter.date_range_words}
   .c-chart--vertical-bar.mb-6{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar(current_user).to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
+= render 'performance_measurement/warehouse_reports/reports/static_spm_warning'
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
   .well.no-break

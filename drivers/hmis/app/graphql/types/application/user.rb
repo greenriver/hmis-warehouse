@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,10 +32,16 @@ module Types
       argument(:filters, Types::Application::EnrollmentAccessSummary.filter_options_type, required: false)
     end
 
+    # History of HMIS login activity
+    field :login_activities, Types::Application::LoginActivity.page_type, null: true
+
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    field :manage_account_url, String, null: false
+
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
 
     # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
@@ -98,6 +104,27 @@ module Types
           search_term: filters&.search_term,
           project_ids: filters&.project,
         )
+    end
+
+    def staff_assignments
+      # n+1, not performant for queries on collections
+      object.staff_assignments.
+        viewable_by(current_user).
+        open_on_date. # This will include households that exited today
+        order(created_at: :desc, id: :desc)
+    end
+
+    def manage_account_url
+      "https://#{ENV['FQDN']}/admin/users/#{object.id}/edit"
+    end
+
+    def login_activities
+      access_denied! unless current_user.can_audit_users?
+
+      object.login_activities.hmis_logins.
+        successful.
+        where.not(created_at: nil).
+        order(created_at: :desc)
     end
   end
 end

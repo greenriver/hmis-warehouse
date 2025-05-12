@@ -1,43 +1,62 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class BaseJob < ApplicationJob
-  STARTING_PATH = File.realpath(FileUtils.pwd)
   include NotifierConfig
 
-  if ENV['ECS'] != 'true'
+  attr_accessor :start_time
+
+  if ENV['EKS'] == 'true'
+    # I can't get this to work correctly from the delayed_job initializer
+    Rails.logger.info 'Registering prometheus metrics for delayed jobs'
+    DjMetrics.instance.register_metrics_for_delayed_job_worker!
+
+    rescue_from StandardError do |err|
+      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: queue_name, priority: priority, status: 'failure', job_name: self.class.name })
+      raise err
+    end
+
     # When called through Active::Job, uses this hook
     before_perform do |job|
-      unless running_in_correct_path?
-
-        msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory. Active::Job"
-        notify_on_restart(msg)
-
-        unlock_job!(job.job_id) if job.respond_to? :job_id
-
-        # Exit, ignoring signal handlers which would prevent the process from dying
-        exit!(0)
-      end
+      before_handler(job)
     end
-  end
 
-  if ENV['ECS'] != 'true'
+    after_perform do |job|
+      after_handler(job)
+    end
+
     # When called through Delayed::Job, uses this hook
     def before(job)
-      return if running_in_correct_path?
+      before_handler(job)
+    end
 
-      job = self unless job.respond_to? :locked_by
+    def after(job)
+      after_handler(job)
+    end
 
-      msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory. Delayed::Job"
-      notify_on_restart(msg)
+    def before_handler(job)
+      self.start_time = Time.current
+      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'started', job_name: job.class.name })
+    end
 
-      unlock_job!(job.id)
+    def after_handler(job)
+      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'success', job_name: job.class.name })
+      DjMetrics.instance.dj_job_run_length_seconds_metric.observe(Time.current - start_time, labels: { job_name: job.class.name })
+      # This causes an exception related to string encoding that I couldn't figure out
+      # DjMetrics.instance.refresh_queue_sizes!
+    end
 
-      # Exit, ignoring signal handlers which would prevent the process from dying
-      exit!(0)
+    # Normalize the queue name so calling the job through .perform_later and Delayed::Job.enqueue
+    # are both able to determine the appropriate queue
+    private def job_queue_name(job)
+      return job.queue_name if job.respond_to?(:queue_name)
+
+      job.queue
     end
   end
 
@@ -53,38 +72,32 @@ class BaseJob < ApplicationJob
     end
   end
 
-  private
-
-  def running_in_correct_path?
-    return true unless File.exist?('config/exception_notifier.yml')
-
-    expected_path == STARTING_PATH
+  # attempts to requeue this job for a later time
+  # This is somewhat brittle at this time and expects to be operating on
+  # an ActiveJob instance (something like an instance of Importing::HudZip::HmisAutoMigrateJob).
+  # Additionally, this expects the rails job backend to be Delayed::Job
+  def requeue_at(timestamp, message)
+    Rails.logger.info(message) if message.present?
+    new_job = delayed_job.dup
+    new_job.update(
+      locked_at: nil,
+      locked_by: nil,
+      run_at: timestamp,
+      attempts: calculated_attempts,
+    )
   end
 
-  def notify_on_restart(msg)
-    Rails.logger.info msg
-    return unless File.exist?('config/exception_notifier.yml')
+  # Attempt to find the associated delayed job so we can use it
+  def delayed_job
+    job = Delayed::Job.jobs_for_class(job_id).first
+    # NOTE: job_id will probably be a UUID in the handler of the row
+    raise "Unable to find a related delayed job (ID: #{job_id})" unless job.present?
 
-    setup_notifier('DelayedJobRestarter')
-    @notifier.ping(msg) if @send_notifications
+    job
   end
 
-  def expected_path
-    Rails.cache.fetch('deploy-dir') do
-      # A default for the first deployment and local development
-      # This should be set on deployment.
-      Delayed::Worker::Deployment.deployed_to
-    end
-  end
-
-  def unlock_job!(job_id)
-    a_t = Delayed::Job.arel_table
-    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
-    return unless job_object
-
-    msg = "Restarting stale delayed job: #{job_object.locked_by}"
-    notify_on_restart(msg)
-
-    job_object.update(locked_by: nil, locked_at: nil)
+  # Override as necessary to limit the number of times a job is tried
+  def calculated_attempts
+    0
   end
 end

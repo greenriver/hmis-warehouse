@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,8 +11,6 @@ module Mutations
     argument :submissions, [Types::HmisSchema::VersionedRecordInput], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
-    # TODO: this should accept a Form Definition ID, to ensure that forms are validated against the
-    # form that is currently being used
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
@@ -86,8 +84,11 @@ module Mutations
 
       # Run form processor on each assessment to create/update related records
       assessments.each do |assessment|
-        assessment.assign_attributes(user_id: hmis_user.user_id)
-        assessment.form_processor.run!(owner: assessment, user: current_user)
+        assessment.assign_attributes(
+          user_id: hud_user.user_id,
+          updated_by_hud_user: hud_user, # see comments on CustomAssessment
+        )
+        assessment.form_processor.run!(user: current_user)
       end
 
       # Collect validations (hmis_validate and AR validation)

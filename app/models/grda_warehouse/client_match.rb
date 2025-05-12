@@ -1,15 +1,19 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse
   class ClientMatch < GrdaWarehouseBase
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :updated_by, class_name: 'User', optional: true
-    serialize :score_details, Hash
+    serialize :score_details, type: Hash
     validates :status, inclusion: { in: ['candidate', 'accepted', 'rejected', 'processed_sources'] }
 
     # To keep track so we don't re-run create_candidates for a given destination client
@@ -58,7 +62,9 @@ module GrdaWarehouse
     # In addition, if either the source or destination client no longer
     # exists, we'll delete the match
     def self.accept_exact_matches!
-      candidate.
+      return unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
+
+      candidate.preload(:source_client, :destination_client).
         find_each do |match|
           sc = match.source_client
           dc = match.destination_client

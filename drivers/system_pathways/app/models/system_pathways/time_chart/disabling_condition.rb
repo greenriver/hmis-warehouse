@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::DisablingCondition
       chart: 'disabling_condition',
       config: {
         size: {
-          height: 2000,
+          height: project_type_node_names.count * disabling_conditions.count * 30,
         },
       },
       data: disabling_condition_data,

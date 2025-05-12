@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,7 +39,7 @@ module Types
         # Ensure we are using DATA_NOT_COLLECTED key for 99s
         member_values[:key] = 'DATA_NOT_COLLECTED' if member_values[:value]&.to_s == '99'
 
-        value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
+        value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value], deprecation_reason: member_values[:deprecation_reason]
       end
     end
 
@@ -59,22 +59,6 @@ module Types
 
     def self.invalid_value
       value 'INVALID', 'Invalid Value', value: INVALID_VALUE
-    end
-
-    def self.hud_enum(hash)
-      # If ANY values are strings, then all enum values should all be stringified. Needed for VAMC station number.
-      stringify_values = hash.keys.any? { |k| k.is_a?(String) }
-
-      values = hash.map do |key, desc|
-        {
-          key: desc,
-          value: stringify_values ? key.to_s : key,
-          desc: desc,
-        }
-      end
-
-      with_enum_map(Hmis::FieldMap.new(values))
-      invalid_value # Always define invalid value on HUD enums
     end
 
     def self.value_for(key)

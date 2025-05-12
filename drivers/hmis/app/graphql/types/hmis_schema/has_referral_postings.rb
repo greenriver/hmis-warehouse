@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,19 +16,25 @@ module Types
           default_field_options = { type: type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
+            filters_argument Types::HmisSchema::ReferralPosting
             instance_eval(&block) if block_given?
           end
         end
       end
 
       # TODO(#186102846) support filtering
-      def scoped_referral_postings(scope, sort_order: nil)
-        scope = scope.viewable_by(current_user).
-          preload(referral: { household_members: :client }).
+      def scoped_referral_postings(scope, sort_order: nil, dangerous_skip_permission_check: false, filters: nil)
+        # note: viewability is based on the project that is receiving the referral
+        scope = scope.viewable_by(current_user) unless dangerous_skip_permission_check
+        # filter by status
+        scope = scope.where(status: filters.status) if filters&.status.present?
+
+        scope = scope.preload(referral: { household_members: :client }).
           preload(:unit_type).
           preload(:status_note_updated_by).
           preload(:status_updated_by).
           preload(:project)
+
         sort_order.present? ? scope.sort_by_option(sort_order) : scope
       end
     end

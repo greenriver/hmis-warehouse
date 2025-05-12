@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,7 +22,7 @@ module BostonProjectScorecard
 
       def secondary_reviewer_options
         all_data_sources = AccessGroup.find_by(name: 'All Data Sources')
-        all_data_sources.users
+        all_data_sources.users.active.not_system
       end
     end
   end

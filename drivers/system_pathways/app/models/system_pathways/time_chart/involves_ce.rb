@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::InvolvesCe
       chart: 'involves_ce',
       config: {
         size: {
-          height: 900,
+          height: project_type_node_names.count * involves_ces.count * 30,
         },
       },
       data: involves_ce_data,

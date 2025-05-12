@@ -1,62 +1,7 @@
 {
   "data_collected_about": "HOH",
-  "link_id": "C4-group",
+  "link_id": "C4_group",
   "type": "GROUP",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "_comment": "HUD: CoC – Collection required for all components",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: CoC"
-      },
-      {
-        "_comment": "HUD: ESG – Collection required for all components ",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: ESG"
-      },
-      {
-        "operator": "ALL",
-        "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: ESG RUSH"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 0
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 1
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      },
-      {
-        "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components",
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: Unsheltered Special NOFO"
-      },
-      {
-        "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 55
-      }
-    ]
-  },
   "item": [
     {
       "link_id": "C4",
@@ -71,11 +16,11 @@
       }
     },
     {
-      "link_id": "C4.dependents",
+      "link_id": "C4_dependents",
       "type": "GROUP",
       "item": [
         {
-          "link_id": "C4.A",
+          "link_id": "C4_A",
           "type": "CHOICE",
           "text": "Preferred Language",
           "required": false,
@@ -95,7 +40,7 @@
           ]
         },
         {
-          "link_id": "C4.B",
+          "link_id": "C4_B",
           "type": "STRING",
           "text": "Different Preferred Language",
           "required": false,
@@ -107,7 +52,7 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "C4.A",
+              "question": "C4_A",
               "operator": "EQUAL",
               "answer_code": "DIFFERENT_PREFERRED_LANGUAGE"
             }

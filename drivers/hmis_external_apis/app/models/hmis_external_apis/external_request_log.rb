@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HmisExternalApis
   class ExternalRequestLog < GrdaWarehouseBase
@@ -19,6 +21,10 @@ module HmisExternalApis
 
     scope :failed, -> do
       where(arel_table[:http_status].eq(nil).or(arel_table[:http_status].gt(300)))
+    end
+
+    scope :successful, -> do
+      where(arel_table[:http_status].lt(300))
     end
 
     scope :url_like, ->(str) { where('lower(url) LIKE ?', "%#{str.downcase}%") }

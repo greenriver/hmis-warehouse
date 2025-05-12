@@ -1,9 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Part of the "legacy" permissions system
 class UserRole < ApplicationRecord
   has_paper_trail(
     meta: {
@@ -32,9 +33,9 @@ class UserRole < ApplicationRecord
 
   def self.describe_changes(version, _changes)
     if version.event == 'create'
-      ["Added role #{version.referenced_entity_name}"]
+      ["Added role \"#{version.referenced_entity_name}\""]
     else
-      ["Removed role #{version.referenced_entity_name}"]
+      ["Removed role \"#{version.referenced_entity_name}\""]
     end
   end
 end

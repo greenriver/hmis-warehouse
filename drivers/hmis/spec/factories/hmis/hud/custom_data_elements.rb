@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,9 +32,37 @@ FactoryBot.define do
       repeats { false }
     end
 
+    trait :housing_preference do
+      owner_type { 'Hmis::Hud::CustomAssessment' }
+      field_type { :string }
+      key { 'housing_preference' }
+      label { 'Housing preference, can pick only one' }
+      repeats { false }
+    end
+
+    trait :hud_service_note do
+      owner_type { 'Hmis::Hud::Service' }
+      field_type { :string }
+      key { 'hud_service_note' }
+      label { 'Custom Note (HUD)' }
+    end
+
+    trait :custom_service_note do
+      owner_type { 'Hmis::Hud::CustomService' }
+      field_type { :string }
+      key { 'custom_service_note' }
+      label { 'Custom Note (Custom)' }
+    end
+
     factory :hmis_custom_data_element_definition_for_primary_language, traits: [:primary_language]
 
     factory :hmis_custom_data_element_definition_for_color, traits: [:color]
+
+    factory :hmis_custom_data_element_definition_for_housing_preference, traits: [:housing_preference]
+
+    factory :hmis_custom_data_element_definition_for_hud_service_note, traits: [:hud_service_note]
+
+    factory :hmis_custom_data_element_definition_for_custom_service_note, traits: [:custom_service_note]
   end
 
   factory :hmis_custom_data_element, class: 'Hmis::Hud::CustomDataElement' do

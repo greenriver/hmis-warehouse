@@ -1,4 +1,5 @@
 - path = polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id)
+- pii = @client.pii_provider(user: current_user)
 
 = simple_form_for @file, url: polymorphic_path(([:upload_file] + vispdat_path_generator), client_id: @client.id, id: @vispdat.id), method: :put do |f|
   .modal.fade#upload-file
@@ -26,12 +27,11 @@
     .row
       .col-sm-4
         %label.control-label SSN #
-        %p.form-control-static= ssn @client.SSN
+        %p.form-control-static= pii.ssn
       .col-sm-4
         %label.control-label Date of Birth
         %p.form-control-static
-          = @client.DOB
-          = "(#{@client.age})"
+          = pii.dob_and_age
       .col-sm-4
         = f.input :contact_method, collection: @vispdat.class.contact_options, as: :select_two
     .row

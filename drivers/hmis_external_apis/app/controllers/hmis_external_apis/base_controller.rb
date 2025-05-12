@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+# frozen_string_literal: true
 
 module HmisExternalApis
   class BaseController < ApplicationController
@@ -14,32 +15,32 @@ module HmisExternalApis
 
     prepend_before_action :skip_timeout
 
-    NotAuthorized = Class.new(StandardError)
-
-    rescue_from 'NotAuthorized' do |exception|
-      json = {
-        message: exception.message,
-      }
-      render(status: :unauthorized, json: json)
-    end
-
     private
 
     def internal_system
       raise 'Set in subclass'
     end
 
-    def authorize_request
-      raise(NotAuthorized, 'No API key provided') unless request.headers['Authorization']
+    def handle_unauthorized_error(error)
+      json = {
+        message: error.message,
+      }
+      render(status: :unauthorized, json: json)
+    end
 
-      request.headers['Authorization'].match(/\A *bearer +(.+) *\z/i) do |match|
+    # Authorizes API requests by validating the Bearer token in the Authorization header.
+    # Ensures the request includes a valid API key from a properly formatted header.
+    def authorize_request
+      not_authorized!('No API key provided') unless request.headers['Authorization']
+
+      request.headers['Authorization'].match(/\A *bearer +([a-z0-9\-_\.]+) *\z/i) do |match|
         api_key = match[1]
 
-        raise(NotAuthorized, 'Authorization header not formatted correctly') unless api_key
+        not_authorized!('Authorization header not formatted correctly') unless api_key
 
         valid = InboundApiConfiguration.validate(api_key: api_key, internal_system: internal_system)
 
-        raise(NotAuthorized, 'Invalid key or mismatched usage') unless valid
+        not_authorized!('Invalid key or mismatched usage') unless valid
       end
     end
 

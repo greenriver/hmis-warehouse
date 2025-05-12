@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,6 @@ module BuiltForZeroReport
     alias_attribute :community_id, :bucket
     attr_accessor :bearer_token
     attr_accessor :bearer_token_expires_at
-    acts_as_paranoid
 
     private def login
       query = 'auth/v1/token?grant_type=password'
@@ -79,6 +78,7 @@ module BuiltForZeroReport
       # puts body.inspect
 
       result = Curl.post(url.to_s, body) do |h|
+        h.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         h.headers = headers
       end
       raise 'Failed to post' unless result.status.starts_with?('2')

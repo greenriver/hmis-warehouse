@@ -4,11 +4,12 @@
       %th
       %th CoC
       %th CoC Name
+      %th Project Count
   %tbody
-    - @entities[:collection].each do |coc_name, coc|
-      - id = ['collection', entity_type, coc].join('_')
-      - name = "collection[#{entity_type}][#{coc}]"
-      - checked = @entities[:selected].include?(coc)
+    - @entities[:collection].each do |entity|
+      - id = ['collection', entity_type, entity.id].join('_')
+      - name = "collection[#{entity_type}][#{entity.id}]"
+      - checked = @entities[:selected].include?(entity.id)
       %tr.jClickRow
         %td
           .form-check
@@ -16,5 +17,6 @@
               .c-checkbox.d-flex
                 %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
                 %label{for: id}
-        %td= coc
-        %td= coc_name
+        %td= entity.coc_code
+        %td= entity.official_name
+        %td= number_with_delimiter(entity.projects.count)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,9 @@ module Types
     value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
     value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
+    value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
+    value 'OTHER_FUNDERS', 'OtherFunder values for all Funders across the installation'
     value 'ASSESSMENT_NAMES', 'Assessment names, including custom assessments and assessments that are inactive. If a project is specified, the list is limited to assessments that exist in the project (both active and inactive).'
     value 'GEOCODE'
     value 'STATE'
@@ -25,9 +27,11 @@ module Types
     value 'ALL_UNIT_TYPES', 'All unit types.'
     value 'POSSIBLE_UNIT_TYPES_FOR_PROJECT', 'Unit types that are eligible to be added to project'
     value 'AVAILABLE_UNIT_TYPES', 'Unit types that have unoccupied units in the specified project'
-    value 'AVAILABLE_UNITS_FOR_ENROLLMENT', 'Units available for the given household at the given project'
+    value 'AVAILABLE_UNITS_FOR_ENROLLMENT', 'Units available for the given Enrollment at the given project. List is limited to units with the same unit type currently occupied by the household, if any.'
+    value 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT', 'Units available for the given Enrollment at the given project. Includes all available units at project even if they have a different type from what the household is currently occupying.'
     value 'ALL_SERVICE_TYPES'
     value 'ALL_SERVICE_CATEGORIES'
+    value 'CUSTOM_SERVICE_CATEGORIES'
     value 'AVAILABLE_SERVICE_TYPES'
     value 'AVAILABLE_BULK_SERVICE_TYPES'
     value 'SUB_TYPE_PROVIDED_3'
@@ -41,6 +45,12 @@ module Types
     value 'CE_EVENTS', 'Grouped HUD CE Event types'
     value 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
     value 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
-    value 'USERS', 'User Accounts'
+    value 'FORM_TYPES', 'Form Types'
+    value 'STAFF_ASSIGNMENT_RELATIONSHIPS', 'Staff Assignment Relationships'
+    value 'USERS', 'User accounts. Deprecated in favor of AUDITABLE_USERS'
+    value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Current users who are eligible for staff assignment'
+    value 'AUDITABLE_USERS', 'Current and historical user accounts'
+    value 'CONTINUUM_PROJECTS', 'Continuum Projects'
+    value 'WORKFLOW_DEFINITION_TEMPLATES', 'Templates for CE workflow definitions'
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -141,7 +141,7 @@ module AllNeighborsSystemDashboard
         '25 to 39',
         '40 to 49',
         '50 to 62',
-        'Over 63',
+        'Over 62',
         'Unknown Age',
       ]
     end
@@ -269,15 +269,23 @@ module AllNeighborsSystemDashboard
       # Diversion is a special case, limited to the secondary project ids.
       # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
-        scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+        scope.where(project_id: @report.filter.secondary_project_ids)
       when 'Permanent Supportive Housing' # NOTE: these project types are specified and do not match HUD
-        scope.where(project_type: [3, 10], project_id: @report.filter.effective_project_ids)
+        scope.where(project_type: [3, 10], project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when 'Rapid Rehousing' # NOTE: these project types are specified and do not match HUD
-        scope.where(project_type: [9, 13], project_id: @report.filter.effective_project_ids)
+        scope.where(project_type: [9, 13], project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when 'Unsheltered', 'Unhoused Population'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
+          # Prioritize counting clients in diversion over by project type
+          where.not(project_id: @report.filter.secondary_project_ids)
       when *household_types
         scope.where(household_type: type)
       when 'Under 18'
@@ -290,7 +298,7 @@ module AllNeighborsSystemDashboard
         scope.where(age: 40..49)
       when '50 to 62'
         scope.where(age: 50..62)
-      when 'Over 63'
+      when 'Over 62'
         scope.where(age: 63..)
       when 'Unknown Age'
         scope.where(age: nil).or(scope.where(age: ...0))
@@ -299,7 +307,7 @@ module AllNeighborsSystemDashboard
       when 'Unknown Gender'
         scope.where.not(gender: HudUtility2024.gender_known_values)
       when *HudUtility2024.races(multi_racial: false).values
-        scope.where(Enrollment.arel_table[:race_list].matches("%#{type}"))
+        scope.where(Enrollment.arel_table[:race_list].matches("%#{type}%"))
       else
         raise "Unknown type: #{type}"
       end

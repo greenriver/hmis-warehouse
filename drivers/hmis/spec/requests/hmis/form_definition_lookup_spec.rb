@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,9 +11,12 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
     cleanup_test_environment
+    HmisUtil::JsonForms.seed_all
   end
   after(:all) do
     cleanup_test_environment
+    Hmis::Form::Definition.delete_all
+    Hmis::Form::Instance.delete_all
   end
 
   include_context 'hmis base setup'
@@ -132,6 +135,106 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
+      end
+    end
+
+    it 'should return the default HUD service definition for a HUD service, even if there is no instance' do
+      hud_service = Hmis::Hud::CustomServiceType.where.not(hud_record_type: nil).first
+      expect(Hmis::Form::Definition.find_definition_for_service_type(hud_service, project: p1)).to be_nil
+
+      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: hud_service.id.to_s }) { service_query }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        form_definition = result.dig('data', 'serviceFormDefinition')
+        expect(form_definition['id']).to eq(service_form_definition.id.to_s)
+      end
+    end
+  end
+
+  describe 'Form definition project matches' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetFormProjectMatches($id: ID!, $limit: Int = 25, $offset: Int = 0) {
+           formDefinition(id: $id) {
+            id
+            cacheKey
+            projectMatches(limit: $limit, offset: $offset) {
+              nodes {
+                id
+                projectName
+                organizationName
+                dataCollectedAbout
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
+    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+
+    let!(:form) { create :hmis_form_definition, identifier: 'form-def' }
+
+    context 'when a project matches more than one rule' do
+      # tests Project and Organization cases
+      let!(:all_clients) { create :hmis_form_instance, definition: form, entity: o1, active: true, data_collected_about: 'ALL_CLIENTS' }
+      let!(:hoh_and_adults) { create :hmis_form_instance, definition: form, entity: p1, active: true, data_collected_about: 'HOH_AND_ADULTS' }
+
+      it 'should return the most specific match per project' do
+        response, result = post_graphql(id: form.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        matches = result.dig('data', 'formDefinition', 'projectMatches', 'nodes')
+        expect(matches.size).to eq(2)
+        expect(matches).to contain_exactly(
+          a_hash_including('projectName' => p1.name, 'dataCollectedAbout' => 'HOH_AND_ADULTS'),
+          a_hash_including('projectName' => p2.name, 'dataCollectedAbout' => 'ALL_CLIENTS'),
+        )
+      end
+
+      it 'should query the db for a limited scope of projects' do
+        expect do
+          post_graphql(id: form.id) { query }
+        end.to make_database_queries(
+          matching: /SELECT "Project"\.\* FROM "Project".*"Project"."id" IN \(#{p1.id}\).*"Organization"."id" IN \(#{o1.id}\).*/,
+        )
+        expect do
+          post_graphql(id: form.id) { query }
+        end.to make_database_queries(count: 5..15) # should make 10, allow some leeway
+      end
+    end
+
+    context 'when a rule specifies funder' do
+      let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o1, funders: [43] }
+      let!(:form2) { create :hmis_form_definition, identifier: 'form-2' }
+      let!(:funder_instance) { create(:hmis_form_instance, definition: form2, entity: nil, funder: 43) }
+
+      it 'should return the project with this funder' do
+        response, result = post_graphql(id: form2.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        matches = result.dig('data', 'formDefinition', 'projectMatches', 'nodes')
+        expect(matches.size).to eq(1)
+        expect(matches).to contain_exactly(
+          a_hash_including('projectName' => p3.name),
+        )
+      end
+    end
+
+    context 'when a rule specifies project type' do
+      let!(:p4) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 2 }
+      let!(:form3) { create :hmis_form_definition, identifier: 'form-3' }
+      let!(:project_type_instance) { create(:hmis_form_instance, definition: form3, entity: nil, project_type: 2) }
+
+      it 'should return the project with this funder' do
+        response, result = post_graphql(id: form3.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        matches = result.dig('data', 'formDefinition', 'projectMatches', 'nodes')
+        expect(matches.size).to eq(1)
+        expect(matches).to contain_exactly(
+          a_hash_including('projectName' => p4.name),
+        )
       end
     end
   end

@@ -1,4 +1,10 @@
 ###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
@@ -15,7 +21,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_service_id(row)
-      "eto-#{service_type_name}-#{row_response_id(row)}".downcase.gsub(/[^a-z0-9]/, '-')
+      "sys-#{service_type_name}-#{row_response_id(row)}".downcase.gsub(/[^a-z0-9]/, '-')
     end
 
     def row_response_id(_row)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,8 @@ module Health
     phi_attr :sent_at, Phi::Date
     phi_attr :duplicate_id, Phi::OtherIdentifier
     phi_attr :epic_source_id, Phi::OtherIdentifier
+
+    validate :patient_eligible_for_qa_on_date
 
     MODE_OF_CONTACT_OTHER = 'other'.freeze
     REACHED_CLIENT_OTHER = 'collateral'.freeze
@@ -173,6 +175,7 @@ module Health
     belongs_to :epic_source, polymorphic: true, optional: true
     belongs_to :user, optional: true
     belongs_to :patient, optional: true
+    belongs_to :claim_metadata, polymorphic: true, optional: true
 
     def modes_of_contact
       qa_version.modes_of_contact
@@ -188,6 +191,7 @@ module Health
 
     def contact_required?
       return false unless activity
+      return false if from_epic?
 
       !activity.to_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
     end
@@ -205,7 +209,7 @@ module Health
     end
 
     def face_to_face?
-      mode_of_contact.to_sym.in?(face_to_face_modes)
+      mode_of_contact&.to_sym.in?(face_to_face_modes)
     end
 
     # Return the string and the key so we can check either
@@ -217,9 +221,9 @@ module Health
     end
 
     # These validations must come after the above methods
-    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true
-    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true
-    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true
+    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
+    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
+    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true, unless: :from_epic?
     validates_presence_of(
       :user,
       :user_full_name,
@@ -228,6 +232,7 @@ module Health
       :patient_id,
       :activity,
       :follow_up,
+      unless: :from_epic?,
     )
     validates_presence_of :mode_of_contact, if: :contact_required?
     validates_presence_of :reached_client, if: :contact_required?
@@ -272,7 +277,13 @@ module Health
       client_reached[key&.to_sym].try(:[], :title) || key
     end
 
+    def from_epic?
+      source_type == 'Health::EpicQualifyingActivity'
+    end
+
     def mode_of_contact_is_other?
+      return false if from_epic?
+
       mode_of_contact == MODE_OF_CONTACT_OTHER
     end
 
@@ -281,6 +292,8 @@ module Health
     end
 
     def reached_client_is_collateral_contact?
+      return false if from_epic?
+
       reached_client == REACHED_CLIENT_OTHER
     end
 
@@ -479,6 +492,8 @@ module Health
       calculate_payability!
       maintain_procedure_valid
       maintain_valid_unpayable
+
+      self
     end
 
     def maintain_valid_unpayable
@@ -644,12 +659,10 @@ module Health
       contributing_care_plans = pcp_signed_plans.select do |cp|
         # Not sure on this... dont penalize the patient if the provider was late signing it
         cp_date = [cp.provider_signed_on, cp.patient_signed_on].compact.min
-        (
-          # 8/3/2021 -- JS asked that careplan expiration dates be ignored when deciding if it was missing.
-          # (cp.expires_on.nil? || date_of_activity <= cp.expires_on) &&
-          (cp_date >= first_enrollment_date) &&
-          (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
-        )
+
+        # 8/3/2021 -- JS asked that careplan expiration dates be ignored when deciding if it was missing.
+        # (cp.expires_on.nil? || date_of_activity <= cp.expires_on) &&
+        (cp_date >= first_enrollment_date) && (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
       end
       return false if contributing_care_plans.any? && !activity.in?(['care_planning', 'pctp_signed'])
 
@@ -686,6 +699,17 @@ module Health
 
     def place_of_service
       qa_version.place_of_service.to_s
+    end
+
+    private def patient_eligible_for_qa_on_date
+      # Don't check QAs without a date
+      return unless date_of_activity.present?
+      # Patient has an active referral on or within 90 days of the the QA date
+      return if Health::Patient.active_between(date_of_activity - 90.days, date_of_activity).where(id: patient_id).exists?
+
+      message = 'Patient was not enrolled on or within 90 days prior to the QA'
+      errors.add(:date_of_activity, :invalid, message: message)
+      Rails.logger.error("Health::QualifyingActivity for #{patient_id}: " + message + " #{activity} on #{date_of_activity}")
     end
   end
 end

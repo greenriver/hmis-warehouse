@@ -8,7 +8,7 @@
     and
     = "#{@filter.end}."
     %br
-    This report was built to provide supporting details to the "Enterers" section of the Population Dashboards.
+    This report provides supporting details to the "Enterers" section of the Population Dashboards, in addition to being a stand-alone report.
   .ml-auto.mb-2
     - if  current_user.can_view_clients?
       = link_to(warehouse_reports_client_details_entries_path({format: :xlsx}.merge({ filter: @filter.to_h })),{class: 'btn btn-secondary'}) do

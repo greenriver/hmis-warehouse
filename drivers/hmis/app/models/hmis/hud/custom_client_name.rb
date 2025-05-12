@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,12 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   self.ignored_columns += [:search_name_full, :search_name_last]
   has_paper_trail(meta: { client_id: ->(r) { r.client&.id } })
 
+  include HasPiiAttributes
+  pii_attr :first, as: :first_name
+  pii_attr :middle, as: :middle_name
+  pii_attr :last, as: :last_name
+  pii_attr :notes, as: :free_text, level: 2
+
   USE_VALUES = [
     :usual,
     :official,
@@ -21,10 +27,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     :old,
     :maiden,
   ].freeze
-
-  after_save do
-    update_client_name if primary?
-  end
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
@@ -49,16 +51,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
 
   def full_name
     [first, middle, last, suffix].compact.join(' ')
-  end
-
-  def update_client_name
-    client.update(
-      first_name: first,
-      last_name: last,
-      middle_name: middle,
-      name_suffix: suffix,
-      name_data_quality: name_data_quality || 99,
-    )
   end
 
   def self.hud_key

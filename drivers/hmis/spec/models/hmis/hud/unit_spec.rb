@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
@@ -103,6 +105,64 @@ RSpec.describe Hmis::Unit, type: :model do
     it 'works' do
       expect(uo1.hmis_service).to eq(hmis_service)
       expect(Hmis::UnitOccupancy.for_service_type(hmis_service.custom_service_type_id)).to contain_exactly(uo1)
+    end
+  end
+
+  describe 'opportunity uniqueness validator' do
+    let!(:unit) { create(:hmis_unit, project: project) }
+
+    context 'when there is an existing open opportunity' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+
+      it 'disallows saving a new opportunity' do
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        expect(new_opportunity).not_to be_valid
+        expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
+      end
+    end
+
+    context 'when there is an existing locked opportunity' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+
+      it 'disallows saving a new opportunity' do
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        expect(new_opportunity).not_to be_valid
+        expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
+      end
+    end
+
+    context 'when there is an existing closed opportunity' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
+
+      it 'allows saving a new opportunity' do
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        expect(new_opportunity).to be_valid
+      end
+    end
+  end
+
+  describe 'latest_opportunity and active_referral scopes' do
+    let!(:unit) { create(:hmis_unit, project: project) }
+    let!(:today) { Date.current }
+    let!(:yesterday) { today - 1.day }
+
+    context 'when there are many opportunities' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked, created_at: today - 3.days) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress, created_at: today - 2.days) }
+
+      before do
+        3.times do
+          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed, created_at: yesterday)
+          create(:hmis_ce_referral, opportunity: opportunity, status: :rejected, created_at: yesterday)
+        end
+      end
+
+      it 'returns the latest opportunity and active referral, prioritizing open/locked over closed' do
+        expect(unit.latest_opportunity).to eq(opportunity)
+        expect(unit.active_referral).to eq(referral)
+      end
     end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,13 +12,17 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_one :clh_location, through: :form_processor
 
-  after_commit :warehouse_trigger_processing
+  # Trigger warehouse processing after create/update if certain fields changed.
+  # This is called even if the transaction that created/updated the record is rolled back, so it could queue some unnecessary processing.
+  # Not using the after_commit hook because it doesn't reliably pick up the saved_changes from a transaction.
+  after_save :warehouse_trigger_processing
 
   private def warehouse_trigger_processing
     return unless enrollment && warehouse_columns_changed?
@@ -30,6 +34,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   end
 
   private def warehouse_columns_changed?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::ServiceHistory rebuild_service_history
     (saved_changes.keys & ['InformationDate', 'DateDeleted']).any?
   end
 end

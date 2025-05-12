@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
@@ -60,7 +62,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def invalidate_source_data!
-      update(processed_as: nil)
+      # Invalidate all enrollments for this household if this enrollment is being invalidated
+      if self.HouseholdID.present?
+        self.class.where(data_source_id: data_source_id, HouseholdID: self.HouseholdID).update_all(processed_as: nil)
+      else
+        update(processed_as: nil)
+      end
     end
 
     def service_history_valid?
@@ -469,7 +476,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def homeless?(date)
       return true if HudUtility2024.homeless_project_types.include?(project.project_type)
       return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
-        (self.MoveInDate.present? && date > self.MoveInDate)
+        self.MoveInDate.present? && date > self.MoveInDate
 
       nil
     end
@@ -480,7 +487,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def literally_homeless? date
       return true if HudUtility2024.chronic_project_types.include?(project.project_type)
       return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
-        (self.MoveInDate.present? && date > self.MoveInDate)
+        self.MoveInDate.present? && date > self.MoveInDate
       return false if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(project.project_type)
 
       nil
@@ -613,7 +620,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_type_from_project_type(project_type)
       # ProjectType
-      # 1 Emergency Shelter
+      # 0 Emergency Shelter - Entry Exit
+      # 1 Emergency Shelter - Night-by-Night
       # 2 Transitional Housing
       # 3 PH - Permanent Supportive Housing
       # 4 Street Outreach
@@ -640,7 +648,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # 200 Bed night   (none)
 
       # We will infer a bed night if the project type is housing related, everything else is nil for now
-      housing_related = [1, 2, 3, 4, 8, 9, 10, 13]
+      housing_related = [0, 1, 2, 3, 4, 8, 9, 10, 13]
       return 200 if housing_related.include?(project_type)
 
       nil
@@ -690,7 +698,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      @head_of_household ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
+      @head_of_household ||= self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
     end
 
     def nbn_tracking?
@@ -720,7 +728,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def build_for_dates
       @build_for_dates ||= if entry_exit_tracking?
-        (self.EntryDate..build_until).map do |date|
+        (build_from .. build_until).map do |date|
           [date, service_type_from_project_type(project.project_type)]
         end.to_h
       else
@@ -736,6 +744,17 @@ module GrdaWarehouse::Tasks::ServiceHistory
           service_records.merge!(living_situations)
         end
         service_records
+      end
+    end
+
+    def build_from
+      # For entry exit projects limit the start to a reasonable date:
+      # 1. Don't build time before the client was born
+      # 2. Don't build before 2000 (HMIS data collection really started in 2014)
+      @build_from ||= if entry_exit_tracking?
+        [self.EntryDate, client.dob, '2000-01-01'.to_date].compact.max
+      else # for NbN projects, always build all dates
+        self.EntryDate
       end
     end
 

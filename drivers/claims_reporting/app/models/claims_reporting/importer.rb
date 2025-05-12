@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ module ClaimsReporting
     attr_reader :import
 
     def default_credentials
-      @default_credentials ||= ::Health::ImportConfig.find_by(kind: :claims_reporting) || {}
+      @default_credentials ||= ::Health::ImportConfig.active.find_by(kind: :claims_reporting) || {}
     end
 
     def default_path

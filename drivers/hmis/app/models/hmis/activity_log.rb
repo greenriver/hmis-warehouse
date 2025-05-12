@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,5 +33,27 @@ class Hmis::ActivityLog < ApplicationRecord
 
   def response_time
     resolved_at - created_at if resolved_at
+  end
+
+  # increment can be: minute, hour, day, week, month, year
+  def self.for_chart(increment: 'hour', range: 1.weeks.ago..Time.current)
+    return [] unless valid_increments.include?(increment)
+
+    data = {}
+    where(created_at: range).
+      group(:created_at_trunc, :user_id).
+      pluck(Arel.sql("date_trunc('#{increment}', created_at) as created_at_trunc"), :user_id).
+      each do |time, _user_id|
+        data[time.strftime('%Y-%m-%d %H:%M')] ||= 0
+        data[time.strftime('%Y-%m-%d %H:%M')] += 1
+      end
+    [
+      ['x'] + data.keys,
+      ['Active Users'] + data.values,
+    ]
+  end
+
+  def self.valid_increments
+    ['minute', 'hour', 'day', 'week', 'month', 'year']
   end
 end

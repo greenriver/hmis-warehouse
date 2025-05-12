@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +25,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
     has_one :client, through: :enrollment, inverse_of: :assessments
     has_many :assessment_questions, **hud_assoc(:AssessmentID, 'AssessmentQuestion')
     has_many :assessment_results, **hud_assoc(:AssessmentID, 'AssessmentResult')
@@ -63,6 +65,10 @@ module GrdaWarehouse::Hud
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.transfer.select(:AssessmentID))
     end
 
+    scope :family_pathways, -> do
+      where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.family_pathways.select(:AssessmentID))
+    end
+
     def answer(question)
       assessment_questions.find_by(assessment_question: question.to_s)&.assessment_answer
     end
@@ -75,11 +81,11 @@ module GrdaWarehouse::Hud
       return nil if matching_question.blank?
       return matching_question unless answer.present?
 
-      assessment_answer = matching_question.AssessmentAnswer.to_s
-      assessment_answer.downcase! unless case_sensitive
+      assessment_answer = matching_question.AssessmentAnswer&.to_s
+      assessment_answer&.downcase! unless case_sensitive
       answer&.downcase! unless case_sensitive
 
-      assessment_answer == answer
+      (assessment_answer || '') == answer
     end
 
     def results_matching_requirement(question, answer = nil)
@@ -104,6 +110,10 @@ module GrdaWarehouse::Hud
 
     def pathways?
       assessment_questions.any?(&:pathways?)
+    end
+
+    def family_pathways_2024?
+      name == 'Family Pathways 2024'
     end
   end
 end

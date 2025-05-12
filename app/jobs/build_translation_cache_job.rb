@@ -1,4 +1,10 @@
 ###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
@@ -6,6 +12,7 @@
 
 # warm cache from db translations
 class BuildTranslationCacheJob < BaseJob
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   LOCK_NAME = 'build_translation_cache'.freeze
 
   def perform

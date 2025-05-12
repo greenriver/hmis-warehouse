@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 class IdProtector
   def initialize(app)
     @app = app
@@ -14,10 +15,16 @@ class IdProtector
     Rails.application.routes.router.recognize(request) do |route, params|
       decoded_key = false
       params.each do |key, value|
-        if key == :id || key.to_s.ends_with?('_id')
+        next unless key == :id || key.to_s.ends_with?('_id')
+
+        begin
           params[key] = ProtectedId::Encoder.decode(value)
-          decoded_key = true if value != params[key]
+        rescue OpenSSL::Cipher::CipherError => e
+          # Suppress Cipher Errors so the response is handled by the controller as an unfound id.
+          # Still capture the error in Sentry.
+          Sentry.capture_exception(e)
         end
+        decoded_key = true if value != params[key]
       end
       if decoded_key
         env['PATH_INFO'] = route.format(params)
@@ -27,5 +34,13 @@ class IdProtector
       end
     end
     @app.call(env)
+  end
+end
+
+require 'rack/attack'
+class IdProtectorRailtie < ::Rails::Railtie
+  initializer 'id-protector.middleware' do |app|
+    # put id protector behind rack attack
+    app.middleware.insert_after(Rack::Attack, IdProtector)
   end
 end

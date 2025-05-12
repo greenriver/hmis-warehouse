@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../login_and_permissions'
@@ -18,11 +20,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
-  TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
-
+  let(:today) { Date.current }
+  let(:yesterday) { today - 1.day }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago, date_updated: Time.current - 6.hours }
 
   before(:each) do
     hmis_login(user)
@@ -111,7 +113,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
       it "#{role}: sets and updates assessment date and entry/exit dates as appropriate" do
         definition = Hmis::Form::Definition.find_by(role: role)
-        e1.update(entry_date: 2.weeks.ago)
         enrollment_date_updated = e1.date_updated
 
         # Create the initial assessment (submit)
@@ -133,30 +134,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_exit_date: role == :EXIT ? initial_assessment_date : nil,
         )
         # DateUpdate on the Enrollment should have changed
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+        expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
         enrollment_date_updated = assessment.enrollment.date_updated
 
         # Update the assessment (submit)
-        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        new_assessment_date = yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
           enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
-        _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
-        errors = result.dig('data', 'submitAssessment', 'errors')
-        expect(errors).to be_empty
 
-        assessment.reload
-        expect_assessment_dates(
-          assessment,
-          expected_assessment_date: new_assessment_date,
-          expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
-          expected_exit_date: role == :EXIT ? new_assessment_date : nil,
-        )
-        # DateUpdate on the Enrollment should have changed
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+        # Jump ahead to make sure DateUpdated changes
+        travel_to(Time.current + 5.minutes) do
+          _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+          errors = result.dig('data', 'submitAssessment', 'errors')
+          expect(errors).to be_empty
+
+          assessment.reload
+          expect_assessment_dates(
+            assessment,
+            expected_assessment_date: new_assessment_date,
+            expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
+            expected_exit_date: role == :EXIT ? new_assessment_date : nil,
+          )
+          # DateUpdated on the Enrollment should have changed
+          expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
+        end
       end
     end
   end
@@ -165,7 +170,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
       it "#{role}: sets and updates assessment date and entry/exit dates as appropriate" do
         definition = Hmis::Form::Definition.find_by(role: role)
-        e1.update(entry_date: 2.weeks.ago)
         enrollment_date_updated = e1.date_updated
 
         # Create the initial assessment (save as WIP)
@@ -186,10 +190,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_entry_date: e1.entry_date,
           expected_exit_date: nil,
         )
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).to eq(enrollment_date_updated.strftime(TIME_FMT))
+        expect(assessment.enrollment.date_updated.to_fs(:db)).to eq(enrollment_date_updated.to_fs(:db))
 
         # Update the assessment (submit)
-        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        new_assessment_date = yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
           enrollment_id: assessment.enrollment.id,
@@ -207,28 +211,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
           expected_exit_date: role == :EXIT ? new_assessment_date : nil,
         )
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+        expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
 
         # Update the assessment again (submit)
-        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        new_assessment_date = yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
           enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
-        _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
-        errors = result.dig('data', 'submitAssessment', 'errors')
-        expect(errors).to be_empty
+        # Jump ahead to make sure DateUpdated changes
+        travel_to(Time.current + 5.minutes) do
+          _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+          errors = result.dig('data', 'submitAssessment', 'errors')
+          expect(errors).to be_empty
 
-        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
-        expect_assessment_dates(
-          assessment,
-          expected_assessment_date: new_assessment_date,
-          expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
-          expected_exit_date: role == :EXIT ? new_assessment_date : nil,
-        )
-        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+          assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
+          expect_assessment_dates(
+            assessment,
+            expected_assessment_date: new_assessment_date,
+            expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
+            expected_exit_date: role == :EXIT ? new_assessment_date : nil,
+          )
+          expect(assessment.enrollment.date_updated.to_fs(:db)).not_to eq(enrollment_date_updated.to_fs(:db))
+        end
       end
     end
   end
@@ -239,7 +246,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'Can update the Exit Date when submitting a NEW Exit assessment on an Enrollment that has already been exited (edge case)' do
     definition = Hmis::Form::Definition.find_by(role: :EXIT)
-    new_exit_date = Date.yesterday.strftime('%Y-%m-%d')
+    new_exit_date = yesterday.strftime('%Y-%m-%d')
     input = {
       enrollment_id: exited_enrollment.id,
       form_definition_id: definition.id,
@@ -266,7 +273,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
     expect do
       definition = Hmis::Form::Definition.find_by(role: :EXIT)
-      new_exit_date = Date.yesterday.strftime('%Y-%m-%d')
+      new_exit_date = yesterday.strftime('%Y-%m-%d')
       input = {
         enrollment_id: exited_enrollment.id,
         form_definition_id: definition.id,
@@ -281,8 +288,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:c4) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
-    let!(:open_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
-    let!(:open_enrollment2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let!(:open_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 5 }
+    let!(:open_enrollment2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 5 }
     let(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
 
     it 'fails if exiting HoH member' do
@@ -319,9 +326,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Submitting an Intake assessment in a WIP household' do
-    let!(:hoh_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
-    let!(:other_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
-    let(:assessment_date) { '2005-03-02' }
+    let!(:hoh_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: today - 1.day }
+    let!(:other_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 5 }
+    let(:assessment_date) { today.to_fs(:db) }
     let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
 
     it 'fails if entering non-HoH member' do
@@ -406,12 +413,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'Resolves errors from IncomeBenefit ActiveRecord validation' do
     definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+    insurance_item = definition.link_id_item_hash.values.find { |item| item.mapping&.field_name == 'insuranceFromAnySource' }
     input = {
       enrollment_id: e1.id,
       form_definition_id: definition.id,
       **build_minimum_values(
         definition,
-        values: { '4.04.2': 'YES' },
+        values: { insurance_item.link_id => 'YES' },
         hud_values: { 'IncomeBenefit.insuranceFromAnySource': 'YES' },
       ),
       confirmed: false,
@@ -429,6 +437,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     _resp, result = post_graphql(input: { input: input.merge(validate_only: true) }) { submit_assessment_mutation }
     errors = result.dig('data', 'submitAssessment', 'errors')
     expect(errors).to contain_exactly(a_hash_including(expected_error))
+  end
+
+  it 'prevents saving IncomeBenefit with invalid strings' do
+    definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+    unemployment_item = definition.link_id_item_hash.values.find { |item| item.mapping&.field_name == 'unemploymentAmount' }
+    input = {
+      enrollment_id: e1.id,
+      form_definition_id: definition.id,
+      **build_minimum_values(
+        definition,
+        values: { unemployment_item.link_id => 'bad string' },
+        hud_values: { 'IncomeBenefit.insuranceFromAnySource': 'YES' },
+      ),
+      confirmed: false,
+    }
+    _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+    errors = result.dig('data', 'submitAssessment', 'errors')
+    expected_error = {
+      'severity' => 'error',
+      'attribute' => 'unemploymentAmount',
+      'fullMessage' => /Unemployment Insurance not a valid currency amount/,
+    }
+    expect(errors).to include(a_hash_including(expected_error))
   end
 end
 

@@ -33,6 +33,7 @@ docker-compose.override.yml
 !/.env.test
 !/.eslintrc.js
 !/.rspec.sample
+!/.trivyignore
 
 # Ignore operational files
 package.box
@@ -67,7 +68,6 @@ untracked
 .vscode
 docker-compose.dev.yml
 yarn-error.log
-/dev/minio/*
 
 # docker deployment
 docker/deploy/REVISION
@@ -83,6 +83,7 @@ docker/deploy/.version
 # TODO Comment out these rules if you are OK with secrets being uploaded to the repo
 config/initializers/secret_token.rb
 config/secrets.yml
+config/master.key
 
 # if using bower-rails ignore default bower_components path bower.json files
 /vendor/assets/bower_components
@@ -154,7 +155,7 @@ drivers/datalab_testkit/spec/fixtures/results/*
 !/app/assets/builds/.keep
 
 /drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
-drivers/hud_lsa/spec/fixtures/files/lsa/fy2023/sample_hmis_export/*.csv
+drivers/hud_lsa/spec/fixtures/files/lsa/*/*/*.csv
 
 # Superset storage
 docker/superset/op/superset.db
@@ -167,8 +168,8 @@ docker/superset/op/.did.db.init
 lib/data/*.xlsx
 
 # Development ENV
-/dev/minio/**
-/dev/db_data/**
+/dev**
+/storage/**
 /app/assets/builds/**
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_app_test.sql
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_test.sql
@@ -176,3 +177,6 @@ lib/data/*.xlsx
 /drivers/hud_spm_report/spec/fixpoints/return_universe/warehouse_test.sql
 
 assets.tar
+prometheus-metrics/**
+etc-localtime
+

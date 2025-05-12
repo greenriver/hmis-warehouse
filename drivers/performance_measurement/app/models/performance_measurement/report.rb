@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,6 +55,10 @@ module PerformanceMeasurement
       @comparison_spm_id ||= clients.detect { |c| c.comparison_spm_id.present? }&.comparison_spm_id
     end
 
+    def using_static_spm_for_comparison?
+      existing_static_comparison_spm.present?
+    end
+
     def self.default_project_type_codes
       HudUtility2024.spm_project_type_codes
     end
@@ -102,7 +108,7 @@ module PerformanceMeasurement
     end
 
     def comparison_patterns
-      filter.comparison_patterns.except('None', 'Same period, prior year')
+      filter.comparison_patterns.except('None', 'Prior Period').transform_keys { |k| if k == 'Same period, prior year' then 'Prior year' else k end }
     end
 
     def filter=(filter_object)
@@ -160,6 +166,15 @@ module PerformanceMeasurement
       update(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(filter.coc_code)&.id)
     end
 
+    private def existing_static_comparison_spm
+      @existing_static_comparison_spm ||= goal_config.static_spms.
+        order(id: :desc).
+        find_by(
+          report_start: filter.comparison_range.first,
+          report_end: filter.comparison_range.end,
+        )
+    end
+
     private def reset_filter
       @filter = nil
       filter
@@ -181,7 +196,7 @@ module PerformanceMeasurement
     def title
       Translation.translate('CoC Performance Measurement Dashboard')
     end
-    alias instance_title title
+    alias_method :instance_title, :title
 
     private def public_s3_directory
       'performance_measurement'
@@ -255,18 +270,20 @@ module PerformanceMeasurement
               field: :BedInventory,
             )
           end.sum
-          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity)
+          # If we have an average of less than 1, count it as 1, anything else is rounded
+          average_capacity = 1 if average_capacity.positive? && average_capacity < 1
+          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity.round)
         end
       end
     end
 
     private def spm_enrollments_from_answer_member(member)
       case member
-      when HudSpmReport::Fy2023::SpmEnrollment
+      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment
         [member]
-      when HudSpmReport::Fy2023::Episode
+      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode
         member.enrollments
-      when HudSpmReport::Fy2023::Return
+      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return
         [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"
@@ -282,6 +299,9 @@ module PerformanceMeasurement
         spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
+            next if spec[:static_spm_available]
+
+            # members could be enrollments, episodes, or returns
             members = cell_members(spec[:report], *cell)
             # Force household calculation for cell members
             calculate_households_for_spm(members)
@@ -299,6 +319,7 @@ module PerformanceMeasurement
               hud_project_ids = spm_enrollments.map { |e| e.enrollment.project.id }.uniq
               involved_projects += hud_project_ids
               parts[:questions].each do |question|
+                # read the cell value from the SPM report
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
                   pc_data = {
@@ -918,7 +939,7 @@ module PerformanceMeasurement
     end
 
     PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
-    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
+    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [nil]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
       HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
@@ -978,6 +999,8 @@ module PerformanceMeasurement
       # else
       generator = HudSpmReport.current_generator
       variants.each do |_, spec|
+        next if spec[:static_spm_available]
+
         processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
         processed_filter.update(options.deep_merge(spec[:options]))
         processed_filter.comparison_pattern = :no_comparison_period
@@ -1006,6 +1029,7 @@ module PerformanceMeasurement
             start: filter.comparison_range.first,
             end: filter.comparison_range.end,
           },
+          static_spm_available: existing_static_comparison_spm.present?,
         },
       }
     end
@@ -1044,12 +1068,33 @@ module PerformanceMeasurement
       end
     end
 
+    # The spm_fields method defines mappings between SPM (System Performance Measures) report data
+    # and Performance Measurement client fields. This configuration determines which SPM data
+    # to extract and how to transform it for the dashboard.
+    #
+    # Each entry in the array contains:
+    #   - cells: SPM table and cell identifiers to extract (e.g., ['1a', 'D2'])
+    #   - title: Description of the data
+    #   - measure: Associated SPM measure
+    #   - questions: Client field mappings with:
+    #     - name: Client field to populate
+    #     - value_calculation: Function to extract/transform SPM data
+    #   - client_project_rows: Optional lambdas that generate ClientProject records by:
+    #     - Taking an SPM entity (enrollment, episode, return) as input
+    #     - Returning either nil (no record created) or a hash with:
+    #       - project_id: The associated project ID
+    #       - for_question: Symbol identifying what the record represents
+    #       - (Additional attributes may be included as needed)
+    #
+    # The structure links SPM report cells directly to dashboard metrics while
+    # maintaining the relationships between projects and clients.
+    #
     def spm_fields
-      default_calculation = ->(spm_enrollment) { spm_enrollment.present? }
-      days_homeless_calculation = ->(spm_episode) { spm_episode.days_homeless }
-      destination_calculation = ->(spm_enrollment) { spm_enrollment.destination }
-      days_to_return_calculation = ->(spm_return) { spm_return.days_to_return }
-      exit_destination_calculation = ->(spm_return) { spm_return.exit_destination }
+      default_calculation = lambda(&:present?)
+      days_homeless_calculation = lambda(&:days_homeless)
+      destination_calculation = lambda(&:destination)
+      days_to_return_calculation = lambda(&:days_to_return)
+      exit_destination_calculation = lambda(&:exit_destination)
       increased_non_employment_income_calculation = ->(spm_enrollment) {
         spm_enrollment.current_non_employment_income.to_f > spm_enrollment.previous_non_employment_income.to_f
       }
@@ -1086,7 +1131,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'B2']],
+          cells: [['1a', 'D2']],
           title: 'Length of Time Homeless in ES, SH, TH',
           measure: :m1,
           history_source: :m1_history,
@@ -1098,7 +1143,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'B2']],
+          cells: [['1b', 'D2']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           measure: :m1,
           history_source: :m1_history,
@@ -1178,13 +1223,16 @@ module PerformanceMeasurement
           history_source: :m7b_history,
           questions: [
             {
-              name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
-              value_calculation: destination_calculation,
+              name: :moved_in_destination,
+              value_calculation: default_calculation,
             },
           ],
           client_project_rows: [
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment)
+              # we know this the cell universe is PH here
+              is_stayer = spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+              has_any_destination = destination_calculation.call(spm_enrollment)
+              return unless is_stayer || has_any_destination
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -1192,7 +1240,15 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_DESTINATIONS_OR_STAYER)
+              # Two ways to qualify as positive outcome:
+              # 1. Stayer: exit_date is nil or after report end date
+              is_stayer = spm_enrollment.exit_date.nil? || spm_enrollment.exit_date > filter.end
+
+              # 2. Leaver with permanent destination
+              has_permanent_destination = PERMANENT_DESTINATIONS.include?(spm_enrollment.destination)
+
+              # Only create the record if either condition is met
+              return unless is_stayer || has_permanent_destination
 
               {
                 project_id: spm_enrollment.enrollment.project.id,

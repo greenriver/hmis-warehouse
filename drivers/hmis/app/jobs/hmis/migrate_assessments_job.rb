@@ -1,5 +1,7 @@
+# frozen_string_literal: false
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,7 +45,18 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
+    #
+    # Parameters:
+    #
+    # @param data_source_id [Integer] The ID of the HMIS data source.
+    # @param project_ids [Array<Integer>] (optional) An array of project IDs to limit the enrollment scope
+    # @param enrollments [ActiveRecord::Relation] (optional) An ActiveRecord relation of enrollments to process
+    # @param clobber [Boolean] (optional) Whether to delete existing HUD CustomAssessment and FormProcessor records before generating.
+    # @param delete_dangling_records [Boolean] (optional) Whether to delete dangling records that are not tied to any assessment.
+    # @param preferred_source_hash [String] (optional) The preferred source hash to use when choosing between duplicate records.
+    # @param generate_empty_intakes [Boolean] (optional) Whether to generate empty intake assessments for enrollments missing an intake.
+    # @raise [ArgumentError] If the data source is not an HMIS data source or if both project_ids and enrollments are provided.
+    def perform(data_source_id:, project_ids: nil, enrollments: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
@@ -52,7 +65,13 @@ module Hmis
       self.delete_dangling_records = delete_dangling_records
       self.preferred_source_hash = preferred_source_hash
       self.generate_empty_intakes = generate_empty_intakes
-      raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+      raise ArgumentError, 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+      raise ArgumentError, 'Can pass project_ids or enrollments, but not both' if project_ids.present? && enrollments.present?
+
+      if enrollments
+        @full_enrollment_scope = enrollments.not_in_progress
+        raise 'invalid enrollment scope' if enrollments.where.not(data_source_id: data_source_id).exists?
+      end
 
       debug_log "MigrateAssessmentsJob starting at #{Time.current.to_fs(:db)}"
 
@@ -212,6 +231,7 @@ module Hmis
 
         # Build CustomAssessment with appropriate metadata
         metadata_attributes = value.extract!(:user_id, :date_created, :date_updated, :assessment_date)
+        metadata_attributes[:assessment_date] = value.delete :exit_date if value.key?(:exit_date)
         assessment = Hmis::Hud::CustomAssessment.new(
           **uniq_attributes.merge(metadata_attributes),
           user: hud_users_by_id[metadata_attributes[:user_id]] || system_user,
@@ -341,11 +361,11 @@ module Hmis
 
     def merge_metadata(old_hash, values)
       metadata = old_hash&.slice(:user_id, :date_created, :date_updated, :assessment_date) || {}
-      # Rename information_date and exit_date to assessment_date, these will be used to set assmt date (for Entry and Exit only)
+      # Rename information_date to assessment_date, these will be used to set assmt date (for Entry and Exit only).
+      # Don't rename exit date here; keep it separate, so we can prioritize it over information date.
       values[:assessment_date] = values.delete :information_date
-      values[:assessment_date] = values.delete :exit_date if values.key?(:exit_date)
 
-      new_metadata = values.slice(:user_id, :date_created, :date_updated, :assessment_date).compact.transform_values(&:first)
+      new_metadata = values.slice(:user_id, :date_created, :date_updated, :assessment_date, :exit_date).compact.transform_values(&:first)
 
       # User that most recently updated
       user_latest_updated = [metadata, new_metadata].reject { |v| v[:date_updated].nil? || v[:user_id].nil? }.
@@ -360,6 +380,8 @@ module Hmis
           [oldval, newval].compact.map(&:to_datetime).max
         when :assessment_date
           [oldval, newval].compact.map(&:to_datetime).min
+        when :exit_date
+          [oldval, newval].compact.map(&:to_datetime).max
         when :user_id
           user_latest_updated
         else

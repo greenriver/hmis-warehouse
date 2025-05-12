@@ -1,25 +1,28 @@
+# frozen_string_literal: false
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Client < Hmis::Hud::Base
+  self.table_name = :Client
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+  self.ignored_columns += [:preferred_name]
+
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::HudConcerns::Client
-  include ::HudChronicDefinition
   include ClientSearch
 
   has_paper_trail(meta: { client_id: :id })
 
   attr_accessor :gender, :race
-
-  self.table_name = :Client
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -49,7 +52,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :youth_education_statuses, through: :enrollments
   has_many :employment_educations, through: :enrollments
   has_many :households, through: :enrollments
-  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
+  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id, inverse_of: :client
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
@@ -64,6 +67,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
   # Merge Audits for merges from this client into another client
   has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
+
+  has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :client_id, dependent: :destroy
+  has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :client_id, dependent: :destroy
 
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
@@ -81,29 +87,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
-  attr_accessor :image_blob_id
+  # Order is: before_save => save => after_create|after_update > after_save
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
-  after_save :save_image_blob_as_client_headshot!
-
-  # The client creation form sets image_blob_id
-  # This is also called directly by UpdateClientImage operation
-  def save_image_blob_as_client_headshot!
-    current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
-    self.image_blob_id = nil
-    return unless current_image_blob
-
-    file = GrdaWarehouse::ClientFile.new(
-      client_id: id,
-      user_id: user.id,
-      name: 'Client Headshot',
-      visible_in_window: false,
-    )
-    file.tag_list.add('Client Headshot')
-    file.client_file.attach(current_image_blob)
-    file.save!
-  end
 
   # Includes clients where..
   #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
@@ -225,10 +212,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return Hmis::Hud::Client.none unless source_id.present?
 
     searchable_to(user).where(id: source_id)
-  end
-
-  def ssn_serial
-    self.SSN&.[](-4..-1)
   end
 
   def warehouse_id
@@ -369,6 +352,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     [first_name, middle_name, last_name, name_suffix].compact.join(' ')
   end
 
+  def build_client_headshot_file(image_blob_id, current_user)
+    current_image_blob = ActiveStorage::Blob.find_signed(image_blob_id)
+
+    return unless current_image_blob
+
+    # Note: this builds a GrdaWarehouse::ClientFile where the associated client is a Hmis::Hud::Client,
+    # (not a GrdaWarehouse::Hud::Client), which may lead to unexpected behavior. Skip callbacks to avoid issues.
+    file = client_files.build(
+      user_id: current_user.id,
+      name: GrdaWarehouse::ClientFile.headshot_tag_name,
+      visible_in_window: false,
+    )
+    file.callbacks_skipped = true
+    file.tag_list.add(GrdaWarehouse::ClientFile.headshot_tag_name)
+    file.client_file.attach(current_image_blob)
+    file
+  end
+
   # Run if we changed name/DOB/SSN
   private def warehouse_match_existing_clients
     return unless warehouse_columns_changed?
@@ -377,14 +378,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
   end
 
-  # Run when we add a new client to the system
-  private def warehouse_identify_duplicate_clients
+  def self.warehouse_identify_duplicate_clients
     return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').exists?
 
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
   end
 
+  # Run when we add a new client to the system
+  private def warehouse_identify_duplicate_clients
+    self.class.warehouse_identify_duplicate_clients
+  end
+
   private def warehouse_columns_changed?
+    # Re-process when there are changes to any fields used in GrdaWarehouse::Tasks::IdentifyDuplicates.match_existing
     (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
@@ -415,5 +421,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
         on_duplicate_key_update: { conflict_target: [:id], columns: [:source_hash] },
       )
     end
+  end
+
+  # Assign the HUD Client name fields (FirstName, LastName) from the primary CustomClientName record
+  # Note: for clients created/updated via form submissions, the ClientProcessor handles updating th Client name fields based on the Primary name submitted
+  def assign_primary_name_fields
+    return unless primary_name
+
+    assign_attributes(
+      first_name: primary_name.first,
+      last_name: primary_name.last,
+      middle_name: primary_name.middle,
+      name_suffix: primary_name.suffix,
+      name_data_quality: primary_name.name_data_quality || 99,
+    )
   end
 end

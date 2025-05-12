@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module Types
       Types::HmisSchema::Service,
       Types::HmisSchema::File,
       Types::HmisSchema::ReferralRequest,
+      Types::HmisSchema::ReferralPosting,
       Types::HmisSchema::Enrollment,
       Types::HmisSchema::CurrentLivingSituation,
       Types::HmisSchema::CeAssessment,
@@ -48,6 +49,8 @@ module Types
         Types::HmisSchema::File
       when HmisExternalApis::AcHmis::ReferralRequest
         Types::HmisSchema::ReferralRequest
+      when HmisExternalApis::AcHmis::ReferralPosting
+        Types::HmisSchema::ReferralPosting
       when Hmis::Hud::Enrollment
         Types::HmisSchema::Enrollment
       when Hmis::Hud::CurrentLivingSituation

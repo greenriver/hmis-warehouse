@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 include ActiveJob::TestHelper
 
@@ -35,11 +43,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     let!(:client) { create :grda_warehouse_hud_client }
 
     before(:all) do
-      @paper_trail_was = PaperTrail.enabled?
       PaperTrail.enabled = true
+      PaperTrail.request.enabled = true
     end
     after(:all) do
-      PaperTrail.enabled = @paper_trail_was
+      PaperTrail.enabled = false
+      PaperTrail.request.enabled = false
     end
 
     it 'tracks versions for committed changes to the correct table' do
@@ -57,6 +66,81 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           raise ActiveRecord::Rollback
         end
       end.to not_change(client.versions, :count)
+    end
+  end
+
+  describe 'searching' do
+    let!(:client_no_whitespace) { create :authoritative_hud_client, first_name: 'HasNo', last_name: 'Whitespace', ssn: '123456789', dob: '2000-01-01'.to_date }
+    let!(:client_trailing_whitespace) { create :authoritative_hud_client, first_name: 'Trailing ', last_name: 'Whitespace ', ssn: '234567891', dob: '2000-01-02'.to_date }
+    let!(:client_leading_whitespace) { create :authoritative_hud_client, first_name: ' Leading', last_name: ' Whitespace', ssn: '345678912', dob: '2000-01-03'.to_date }
+
+    let!(:warehouse_client_no_whitespace) { create :warehouse_client, source: client_no_whitespace, destination: client_no_whitespace }
+    let!(:warehouse_client_trailing_whitespace) { create :warehouse_client, source: client_trailing_whitespace, destination: client_trailing_whitespace }
+    let!(:warehouse_client_leading_whitespace) { create :warehouse_client, source: client_leading_whitespace, destination: client_leading_whitespace }
+
+    describe 'text_search' do
+      def whitespace_text_search_expects(search_string, expected_clients)
+        expect(GrdaWarehouse::Hud::Client.text_search(search_string).to_a).to include(*expected_clients)
+        expect(GrdaWarehouse::Hud::Client.text_search("#{search_string} ").to_a).to include(*expected_clients)
+        expect(GrdaWarehouse::Hud::Client.text_search(" #{search_string} ").to_a).to include(*expected_clients)
+        expect(GrdaWarehouse::Hud::Client.text_search(" #{search_string} ").to_a).to include(*expected_clients)
+        expect(GrdaWarehouse::Hud::Client.text_search(search_string.gsub(' ', '   ')).to_a).to include(*expected_clients)
+      end
+
+      it 'searching last name returns clients regardless of included leading/trailing whitespace' do
+        whitespace_text_search_expects('Whitespace', [
+                                         client_no_whitespace,
+                                         client_trailing_whitespace,
+                                         client_leading_whitespace,
+                                       ])
+      end
+
+      it 'searching first name returns clients regardless of included leading/trailing whitespace' do
+        whitespace_text_search_expects('HasNo', client_no_whitespace)
+        whitespace_text_search_expects('Trailing', client_trailing_whitespace)
+        whitespace_text_search_expects('Leading', client_leading_whitespace)
+      end
+
+      it 'searching full name returns clients regardless of included leading/trailing whitespace' do
+        whitespace_text_search_expects('HasNo Whitespace', client_no_whitespace)
+        whitespace_text_search_expects('Trailing Whitespace', client_trailing_whitespace)
+        whitespace_text_search_expects('Leading Whitespace', client_leading_whitespace)
+      end
+    end
+
+    describe 'strict_search' do
+      def whitespace_strict_search_expects(client)
+        scope = GrdaWarehouse::Hud::Client
+        # Setup search criteria.
+        # Remove leading/trailing whitespaces to normalize the names before running through the tests
+        # We are not including dob as matching 3 will get a result, so don't want to match more than 3 criteria for these tests
+        criteria = {
+          first_name: client.first_name.strip,
+          last_name: client.last_name.strip,
+          ssn: client.ssn,
+          dob: nil,
+        }
+        search_criteria = criteria.dup
+        expect(GrdaWarehouse::Hud::Client.strict_search(search_criteria, client_scope: scope).to_a).to include(client)
+        search_criteria[:first_name] = "#{criteria[:first_name]} "
+        search_criteria[:last_name] = "#{criteria[:last_name]} "
+        expect(GrdaWarehouse::Hud::Client.strict_search(search_criteria, client_scope: scope).to_a).to include(client)
+        search_criteria[:first_name] = " #{criteria[:first_name]}"
+        search_criteria[:last_name] = " #{criteria[:last_name]}"
+        expect(GrdaWarehouse::Hud::Client.strict_search(search_criteria, client_scope: scope).to_a).to include(client)
+        search_criteria[:first_name] = " #{criteria[:first_name]} "
+        search_criteria[:last_name] = " #{criteria[:last_name]} "
+        expect(GrdaWarehouse::Hud::Client.strict_search(search_criteria, client_scope: scope).to_a).to include(client)
+        search_criteria[:first_name] = criteria[:first_name].gsub(' ', '   ')
+        search_criteria[:last_name] = criteria[:last_name].gsub(' ', '   ')
+        expect(GrdaWarehouse::Hud::Client.strict_search(search_criteria, client_scope: scope).to_a).to include(client)
+      end
+
+      it 'searching returns client regardless of leading/trailing whitespace in first/last name' do
+        whitespace_strict_search_expects(client_no_whitespace)
+        whitespace_strict_search_expects(client_trailing_whitespace)
+        whitespace_strict_search_expects(client_leading_whitespace)
+      end
     end
   end
 
@@ -310,6 +394,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         enrollments.each do |en|
           GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id).rebuild_service_history!
         end
+
         aggregate_failures 'checking' do
           expect(enrollments.map(&:new_episode?).count(true)).to eq(3)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(3)

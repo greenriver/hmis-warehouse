@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,7 @@ module Types
     field :draft_version, Types::Forms::FormDefinition, null: true
     field :all_versions, Types::Forms::FormDefinition.page_type, null: false
     field :display_version, Types::Forms::FormDefinition, null: false, description: 'Form version to use for display in the configuration tool interface. The form itself may be draft, status, or retired.'
+    field :managed_in_version_control, Boolean, null: false, description: 'Whether this form is managed in version control. If true, it should not be edited in the configuration tool.'
 
     def id
       # Cache by identifier, not underlying object id, because ids change over time with new versions
@@ -42,7 +43,7 @@ module Types
     end
 
     def all_versions
-      load_ar_association(object, :all_versions)
+      object.all_versions.order(version: :desc)
     end
 
     def display_version

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'pty'
 require 'expect'
@@ -43,7 +45,7 @@ module GrdaWarehouse
     end
 
     def store(report)
-      content = encrypt_zip(report.content)
+      content = encrypt_zip(report.hmis_zip.download)
       aws_s3.store(content: content, name: object_name(report)) if s3_valid?
     end
 
@@ -220,7 +222,10 @@ module GrdaWarehouse
 
     def filter_hash
       hash = options
+      hash[:reporting_range] = reporting_range
+      hash[:reporting_range_days] = reporting_range_days
       hash[:recurring_hmis_export_id] = id
+      hash[:version] ||= '2024'
       hash[:user_id] = user_id
       return hash
     end

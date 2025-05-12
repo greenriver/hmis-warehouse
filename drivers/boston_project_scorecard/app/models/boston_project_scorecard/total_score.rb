@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +23,6 @@ module BostonProjectScorecard
       def project_performance_available
         max = 57
         max -= 24 unless rrh? || psh?
-        max -= 3 if no_concern_score.nil?
 
         max
       end

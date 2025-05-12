@@ -16,7 +16,7 @@
   ],
   "properties": {
     "referral_id": { "type": ["integer", "string"] },
-    "score": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
+    "score": { "type": ["integer", "null"], "minimum": 0, "maximum": 10 },
     "needs_wheelchair_accessible_unit": { "type": ["boolean", "null"] },
     "referral_notes": { "type": ["string", "null"] },
     "resource_coordinator_notes": { "type": ["string", "null"] },
@@ -34,7 +34,7 @@
           "state": { "type": ["string", "null"] },
           "zip": { "type": ["string", "null"] },
           "county": { "type": ["string", "null"] },
-          "use": { "enum": ["home", "work", "mail", null] }
+          "use": { "type": ["string", "null"] }
         }
       }
     },

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
@@ -102,11 +104,11 @@ module Health
       where(signable_documents: { primary: true })
     end, class_name: 'Health::SignableDocument', as: :signable
 
-    serialize :service_archive, Array
-    serialize :equipment_archive, Array
-    serialize :team_members_archive, Array
-    serialize :goals_archive, Array
-    serialize :backup_plan_archive, Array
+    serialize :service_archive, type: Array
+    serialize :equipment_archive, type: Array
+    serialize :team_members_archive, type: Array
+    serialize :goals_archive, type: Array
+    serialize :backup_plan_archive, type: Array
 
     # validates_presence_of :provider_id, if: -> { provider_signed_on.present? }
     # We are not collecting patient signature mode yet, so don't enforce this
@@ -251,12 +253,6 @@ module Health
     # If we have the patient signature, and they just signed, it was just finished
     def just_finished?
       patient_signed_on.present? && patient_signed_on_changed?
-    end
-
-    # We need both signatures, and one of must have just been done
-    # FIXME: Left until HelloSign is removed
-    def just_signed?
-      (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
 
     def ncm_just_approved?

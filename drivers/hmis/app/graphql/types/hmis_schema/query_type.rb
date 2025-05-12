@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,6 +39,12 @@ module Types
     end
 
     def client_search(input:, **args)
+      # ensure that client search has sufficient search criteria, so as not to allow exposing all clients at once.
+      # caller must use some search criteria, OR a service filter by project to limit results (used in Bulk Services)
+      has_search_term = input.to_h.excluding(:projects, :organizations).values.compact_blank.any?
+      has_service_filter = args[:filters]&.service_in_range&.project_id.present?
+      raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
+
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
       search_scope = Hmis::Hud::Client.client_search(
@@ -173,13 +179,25 @@ module Types
 
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
-      argument :project_id, ID, required: false, description: 'Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def record_form_definition(role:, project_id: nil)
+    def record_form_definition(role:, project_id: nil, id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
+      raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = if id
+        Hmis::Form::Definition.find(id)
+      else
+        Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      end
+
+      # If the frontend is making this query, it's trying to display some data using a form definition,
+      # so we try to avoid returning nil. Even if we didn't find a good match (e.g., because the instance is inactive),
+      # we return some default "best guess", enabling the application to display the data somehow instead of erroring.
+      record ||= Hmis::Form::Definition.published.where(role: role, managed_in_version_control: true).first
+
       record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
     end
@@ -193,6 +211,7 @@ module Types
     end
     def assessment_form_definition(project_id:, id: nil, role: nil, assessment_date: nil)
       raise 'id or role required' if id.nil? && role.nil?
+      raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
       # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
@@ -213,15 +232,28 @@ module Types
     field :service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
       argument :service_type_id, ID, required: true
       argument :project_id, ID, required: true
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
     end
-    def service_form_definition(service_type_id:, project_id:)
+    def service_form_definition(service_type_id:, project_id:, id: nil)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
       service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
-      Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      definition = if id
+        # If ID is specified, fetch form directly. ID is only provided when editing existing services.
+        # Note: It may be a retired form, or a form that is no longer enabled in the project.
+        Hmis::Form::Definition.with_role(:SERVICE).find(id)
+      else
+        # If ID is not specified, determine which form is specified for collecting this Service Type in this Project.
+        Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+      end
+
+      # Similar to record_form_definition above, we always want to return a definition if we possibly can, so use the
+      # default HUD Service form for HUD service types. For Custom service types, return empty because we can't determine which form to use.
+      definition ||= Hmis::Form::Definition.with_role(:SERVICE).where(managed_in_version_control: true).first if service_type.hud_service?
+      definition
     end
 
     field :static_form_definition, Types::Forms::FormDefinition, null: false do
@@ -238,14 +270,10 @@ module Types
     end
     def parsed_form_definition(input:)
       json = JSON.parse(input)
-      errors = []
-      ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(json) { |err| errors << err }
-      end
+      errors = Hmis::Form::DefinitionValidator.perform(json, skip_cded_validation: true)
+      return { errors: errors.map(&:full_message) } if errors.any?
 
-      return { errors: errors, definition: nil } if errors.present?
-
-      return { errors: [], definition: json }
+      { definition: json, errors: [] }
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
@@ -265,10 +293,17 @@ module Types
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
+      field :can_view_my_dashboard, Boolean, null: false
+      field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+      field :can_view_coordinated_entry, Boolean, null: false
     end
 
     def access
-      {}
+      {
+        can_view_my_dashboard: current_user.can_view_my_dashboard?,
+        can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
+      }
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
@@ -288,7 +323,7 @@ module Types
     def denied_pending_referral_postings(**args)
       raise 'Access denied' unless current_user.can_manage_denied_referrals?
 
-      postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
+      postings = HmisExternalApis::AcHmis::ReferralPosting.where(status: [:denied_pending_status, :denied_status])
 
       scoped_referral_postings(postings, **args)
     end
@@ -391,36 +426,25 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       Hmis::Form::Definition.find(id)
     end
 
-    field :external_form_definition, Types::Forms::FormDefinition, null: true do
-      argument :identifier, String, required: true
+    field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
+      argument :id, ID, required: true
     end
-    def external_form_definition(identifier:)
+    def external_form_submission(id:)
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
 
-      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
-    end
-
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false, deprecation_reason: 'replaced by FormIdentifiers query' do
-      filters_argument Forms::FormDefinition
-    end
-    def form_definitions(filters:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Form::Definition.non_static
-      scope = scope.apply_filters(filters) if filters
-      scope.order(updated_at: :desc)
+      HmisExternalApis::ExternalForms::FormSubmission.find(id)
     end
 
     field :form_identifier, Types::Forms::FormIdentifier, null: true do
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
     end
@@ -429,25 +453,30 @@ module Types
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.non_static.latest_versions
+      scope = Hmis::Form::Definition.non_static.valid.latest_versions
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
       scope = scope.apply_filters(filters) if filters
-      scope.order(updated_at: :desc)
+      # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
+      scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
     end
 
     form_rules_field
     def form_rules(**args)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      resolve_form_rules(Hmis::Form::Instance.all, **args)
+      scope = Hmis::Form::Instance.all
+      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+
+      resolve_form_rules(scope, **args)
     end
 
     field :form_rule, Types::Admin::FormRule, null: true do
       argument :id, ID, required: true
     end
     def form_rule(id:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       Hmis::Form::Instance.find_by(id: id)
     end
@@ -456,13 +485,74 @@ module Types
     def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.all
+      Hmis::ProjectConfig.viewable_by(current_user)
+    end
+
+    field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
+      argument :destination_project_id, ID, required: true
+      argument :source_enrollment_id, ID, required: true
+    end
+    def project_can_accept_referral(destination_project_id:, source_enrollment_id:)
+      source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
+      raise 'access denied' unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+
+      # This doesn't check viewable_by! Users are able to ask whether the project receiving referrals can accept
+      # this client, even if they don't otherwise have permission to view the project or its enrollments.
+      # This is an acceptable permission leak because:
+      # - it is only available for projects that receive referrals
+      # - it is only available to users who can manage outgoing referrals
+      # - it doesn't expose any info about the actual enrollment(s), just a yes/no
+      project = Hmis::Hud::Project.find_by(id: destination_project_id)
+      raise 'access denied' unless project.receives_referrals?
+
+      # Can't accept the referral if any client in the household has an existing open enrollment in the project.
+      personal_ids = source_enrollment.household_members.pluck(:PersonalID)
+
+      # This doesn't check viewable_by either, see comment above
+      !project.enrollments.open_including_wip.where(personal_id: personal_ids).exists?
     end
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
     def client_detail_forms
-      # No authorization required, this just resolving application configuration
-      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).sort_by_option(:form_title)
+      # No authorization required, this just resolves application configuration
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL).published.sort_by_option(:form_title).
+        includes(:definition).
+        map do |instance|
+        OpenStruct.new(
+          legacy: false,
+          definition: instance.definition,
+          data_collected_about: instance.data_collected_about || 'ALL_CLIENTS',
+        )
+      end
+    end
+
+    field :ce_referral, Types::HmisSchema::CeReferral, null: true do
+      argument :id, ID, required: true
+    end
+
+    def ce_referral(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: true do
+      argument :id, ID, required: true
+    end
+
+    def ce_opportunity(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Opportunity.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
+      argument :id, ID, required: true
+    end
+    def ce_referral_step(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
     end
   end
 end

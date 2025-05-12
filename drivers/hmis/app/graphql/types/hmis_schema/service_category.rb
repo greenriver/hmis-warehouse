@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module Types
     graphql_name 'ServiceCategory'
     field :id, ID, null: false
     field :name, String, null: false
-    field :hud, Boolean, null: false
+    field :hud, Boolean, null: false, deprecation_reason: 'No longer used'
     field :service_types, HmisSchema::ServiceType.page_type, null: false
     form_rules_field
 
@@ -24,7 +24,7 @@ module Types
       load_ar_association(object, :service_types)
     end
 
-    def hud
+    def hud # TODO(#5737) - Remove
       service_types.all?(&:hud_service?)
     end
 

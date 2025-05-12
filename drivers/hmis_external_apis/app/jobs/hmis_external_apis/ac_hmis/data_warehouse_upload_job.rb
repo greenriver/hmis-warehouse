@@ -1,44 +1,77 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # job = HmisExternalApis::AcHmis::DataWarehouseUploadJob.new
 module HmisExternalApis::AcHmis
   class DataWarehouseUploadJob < BaseJob
-    include NotifierConfig
-
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     attr_accessor :state
 
-    def perform(mode = 'clients_with_mci_ids_and_address')
-      setup_notifier("AC Data Warehouse upload (mode: #{mode})")
+    def perform(methods)
       if Exporters::DataWarehouseUploader.can_run?
-        Rails.logger.info "Running #{mode} upload clients job"
-        case mode
-        when 'clients_with_mci_ids_and_address' then clients_with_mci_ids_and_address
-        when 'hmis_csv_export' then hmis_csv_export
-        when 'project_crosswalk' then project_crosswalk
-        when 'move_in_addresses' then move_in_address_export
-        when 'postings' then posting_export
-        when 'custom_fields' then custom_fields_export
-        when 'pathways' then pathways_export
-        else
-          raise "invalid item to upload: #{mode}"
+        Rails.logger.info "Running #{methods} DW upload job"
+
+        Array.wrap(methods).each do |method|
+          if method == 'daily_uploads'
+            daily_uploads.each { |m| send(m) } # run all exports in the daily_uploads group
+          elsif method == 'quarterly_uploads'
+            hmis_csv_export_full_refresh
+          elsif known?(method)
+            # run one export individually. only used for testing purposes or manual runs.
+            send(method)
+          else
+            raise "unknown method: #{method}" unless known?(method)
+          end
         end
         self.state = :success
       else
         self.state = :not_run
-        Rails.logger.info "Not running #{mode} due to lack of credentials"
+        Rails.logger.info "Not running #{methods} due to lack of credentials"
       end
     rescue StandardError => e
       puts e.message
       self.state = :failed
-      @notifier.ping('Failure in Data Warehouse uploader job', { exception: e })
+      log('Failure in Data Warehouse uploader job', exception: e)
       Rails.logger.fatal e.message
     end
 
     private
+
+    def log(message, exception: nil)
+      if exception
+        Sentry.capture_exception(exception)
+        Rails.logger.error("#{message} #{exception.message}")
+      else
+        Rails.logger.info(message)
+      end
+    end
+
+    def known?(method)
+      known_methods.include?(method)
+    end
+
+    def known_methods
+      [
+        'clients_with_mci_ids_and_address',
+        'hmis_csv_export',
+        'hmis_csv_export_full_refresh', # runs quarterly
+        'project_crosswalk',
+        'move_in_address_export',
+        'posting_export',
+        'custom_fields_export',
+        'pathways_export',
+        'case_note_export',
+      ].freeze
+    end
+
+    def daily_uploads
+      known_methods - ['hmis_csv_export_full_refresh']
+    end
 
     def clients_with_mci_ids_and_address
       export = Exporters::ClientExport.new
@@ -65,6 +98,20 @@ module HmisExternalApis::AcHmis
 
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: "%Y-%m-%d-HMIS-#{hash}-hudcsv.zip",
+        pre_zipped_data: export.content,
+      )
+
+      uploader.run!
+    end
+
+    def hmis_csv_export_full_refresh
+      export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
+      export.run!(start_date: 10.years.ago.to_date)
+
+      hash = Digest::MD5.hexdigest(export.content)
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: "%Y-%m-%d-HMIS-full-refresh-#{hash}-hudcsv.zip",
         pre_zipped_data: export.content,
       )
 
@@ -159,6 +206,23 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'Pathways.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def case_note_export
+      export = HmisExternalApis::AcHmis::Exporters::CaseNoteExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-case-notes.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CaseNotes.csv',
             io: export.output,
           ),
         ],

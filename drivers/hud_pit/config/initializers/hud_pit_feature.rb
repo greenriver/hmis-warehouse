@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # The core app (or other drivers) can check the presence of the
 # HudPit driver with the following code snippet
@@ -23,6 +25,11 @@ Rails.application.config.hud_reports['HudPit::Generators::Pit::Fy2023::Generator
 }
 
 Rails.application.config.hud_reports['HudPit::Generators::Pit::Fy2024::Generator'] = {
+  title: 'Point in Time Count',
+  helper: 'hud_reports_pits_path',
+}
+
+Rails.application.config.hud_reports['HudPit::Generators::Pit::Fy2025::Generator'] = {
   title: 'Point in Time Count',
   helper: 'hud_reports_pits_path',
 }

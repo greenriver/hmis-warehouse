@@ -1,5 +1,9 @@
+# frozen_string_literal: false
+
+require 'active_support/core_ext/object/blank'
 require_relative 'aws_sdk_helpers'
 require 'dotenv'
+require 'shellwords'
 
 class AssetCompiler
   include AwsSdkHelpers::Helpers

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module
   CoreDemographicsReport::ChronicCalculations
@@ -131,7 +133,7 @@ module
           available_coc_codes.each do |coc_code|
             initialize_chronic_client_counts(clients, coc_code.to_sym)
 
-            report_scope.distinct.in_coc(coc_code: coc_code).
+            report_scope.distinct.in_enrollment_coc(coc_code: coc_code).
               joins(enrollment: :ch_enrollment).
               merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
               order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc

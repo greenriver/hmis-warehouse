@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +15,7 @@ module GrdaWarehouse::Hmis
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
 
-    has_many :hmis_forms, class_name: 'GrdaWarehouse::HmisForm', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
+    has_many :hmis_forms, class_name: 'GrdaWarehouse::HmisForm', primary_key: [:assessment_id, :site_id, :data_source_id], query_constraints: [:assessment_id, :site_id, :data_source_id]
 
     scope :confidential, -> do
       where(confidential: true)

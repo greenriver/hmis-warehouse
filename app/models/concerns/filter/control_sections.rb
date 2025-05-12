@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -124,33 +124,37 @@ module
             id: 'coc_codes',
             label: 'CoC Codes',
             short_label: 'CoC',
-            value: @filter.chosen_coc_codes,
+            value: -> {  @filter.chosen_coc_codes },
           )
         end
         section.add_control(
           id: 'funding_sources',
-          value: @filter.funder_names,
+          value: -> { @filter.funder_names },
+        )
+        section.add_control(
+          id: 'funding_other_sources',
+          value: -> { @filter.funder_others },
         )
         section.add_control(
           id: 'data_sources',
-          value: @filter.data_source_names,
+          value: -> { @filter.data_source_names },
         )
         section.add_control(
           id: 'organizations',
-          value: @filter.organization_names,
+          value: -> { @filter.organization_names },
         )
         section.add_control(
           id: 'projects',
-          value: @filter.project_names,
+          value: -> { @filter.project_names },
         )
         section.add_control(
           id: 'project_groups',
-          value: @filter.project_groups,
+          value: -> { @filter.project_groups },
         )
         if GrdaWarehouse::Cohort.viewable_by(@filter.user).exists?
           section.add_control(
             id: 'cohorts',
-            value: @filter.cohorts,
+            value: -> { @filter.cohorts },
           )
         end
       end
@@ -161,6 +165,10 @@ module
         section.add_control(
           id: 'funding_sources',
           value: @filter.funder_names,
+        )
+        section.add_control(
+          id: 'funding_other_sources',
+          value: @filter.funder_others,
         )
       end
     end
@@ -288,6 +296,16 @@ module
           id: 'secondary_cohorts',
           value: @filter.secondary_cohorts,
           label: 'Cohort Inclusion',
+        )
+      end
+    end
+
+    protected def build_days_since_contact_control_section
+      ::Filters::UiControlSection.new(id: 'days_since_contact', title: 'Contact').tap do |section|
+        section.add_control(
+          id: 'days_since_contact',
+          value: @filter.days_since_contact_words,
+          label: 'Days Since Contact',
         )
       end
     end

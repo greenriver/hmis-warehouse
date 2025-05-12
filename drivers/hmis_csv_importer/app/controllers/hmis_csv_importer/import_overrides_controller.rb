@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,18 +9,28 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
   before_action :set_data_source
 
   def index
-    @overrides = import_override_scope.sorted
+    available_files = HmisCsvImporter::ImportOverride.available_files_for(@data_source.id)
+    @selected_filename = available_files.detect { |f| f == params[:filename] } || available_files.first
+    @overrides = import_override_scope.sorted.where(file_name: @selected_filename)
+    @pagy, @overrides = pagy(@overrides, items: 25)
   end
 
   def create
-    @override = import_override_source.create!(permitted_params.merge(data_source_id: @data_source.id))
+    @override = import_override_source.create(permitted_params.merge(data_source_id: @data_source.id, created_by: current_user.id))
+    flash[:alert] = @override.errors.full_messages.join(', ') unless @override.valid?
     respond_with(@override, location: hmis_csv_importer_data_source_import_overrides_path(@data_source))
   end
 
   def destroy
     @override = import_override_source.find(params[:id].to_i)
     @override.destroy
-    respond_with(@override, location: hmis_csv_importer_data_source_import_overrides_path(@data_source))
+    # handle deletions from the Override Summary report
+    location = if params[:redirect_to_report].present? && RailsDrivers.loaded.include?(:override_summary)
+      "/#{OverrideSummary::Report.url}"
+    else
+      hmis_csv_importer_data_source_import_overrides_path(@data_source)
+    end
+    respond_with(@override, location: location)
   end
 
   def apply

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 module Health
   class EdIpVisitImporter
     def sftp_credentials
-      @sftp_credentials ||= ::Health::ImportConfig.find_by(kind: :ed_ip_visits) || {}
+      @sftp_credentials ||= ::Health::ImportConfig.active.find_by(kind: :ed_ip_visits) || {}
     end
 
     def polling_enabled?
@@ -20,7 +20,7 @@ module Health
       import_all_from_health_sftp
     end
 
-    FILE_PATTERN = /(?<filename>.+\.csv)\Z/i.freeze
+    FILE_PATTERN = /(?<filename>.+\.csv)\Z/i
 
     private def import_all_from_health_sftp
       new_files.each do |filename|

@@ -9,4 +9,4 @@
       - values.each do |value|
         %li.list-inline-item.chip-v2-prs1
           %span.chip-v2-label-prs1= control.short_label
-          %span.chip-v2-value-prs1= value
+          %span.chip-v2-value-prs1= @report.display_value(value)

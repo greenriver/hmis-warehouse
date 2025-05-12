@@ -1,5 +1,7 @@
 - show_second_column = can_track_anomalies? || @client.alert_notes.exists?
-- aliases = @client.client_names(user: current_user, health: true).uniq
+-# show aliases for searchable as well as viewable clients
+- aliases = current_user.client_view_accessor.searchable_client_names(@client)
+- aliases += current_user.client_view_accessor.viewable_client_names(@client)
 - alias_class = if show_second_column then 'col-sm-9' else 'col' end
 .row.flex-grow-1
   %div{class: alias_class}
@@ -10,18 +12,16 @@
     - if aliases.any?
       %ul.client__aliases.d-flex.list-unstyled.mb-0
         - if GrdaWarehouse::Config.get(:multi_coc_installation)
-          - aliases.map { |name| name[:name] }.uniq.each do |name|
+          - aliases.map(&:value).uniq.each do |name|
             %li.client__client-name.mr-6
-              %span.client__client-name-title= name
+              %span.client__client-name-title= name.to_s
         - else
           - aliases.each do |name|
-            - sn = name[:ds]
-            - full_name = name[:name]
             %li.client__client-name
-              %span{class: "ds-color-#{name[:ds_id]}"}
-                = sn
+              %span{class: "ds-color-#{name.ds_id}"}
+                = name.ds_name
               %span.client__client-name-title
-                = full_name
+                = name
     %p.w-100
       %em.text-muted
         Client ID:

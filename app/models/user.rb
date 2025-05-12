@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,8 +8,11 @@
 
 require 'memery'
 class User < ApplicationRecord
+  include Memery
   include UserConcern
   include RailsDrivers::Extensions
+
+  validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
   USER_PERMISSION_PREFIX = 'user_permissions'
   USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
@@ -34,7 +37,7 @@ class User < ApplicationRecord
   # to a boolean true if the user has the permission through one
   # of their roles
   def load_effective_permissions
-    {}.tap do |h|
+    @load_effective_permissions ||= {}.tap do |h|
       role_source = if using_acls? then roles else legacy_roles end
       role_source.each do |role|
         Role.permissions(exclude_health: true).each do |permission|
@@ -46,7 +49,7 @@ class User < ApplicationRecord
 
   # Health related permissions are tied to roles through user_roles
   def load_health_effective_permissions
-    {}.tap do |h|
+    @load_health_effective_permissions ||= {}.tap do |h|
       health_roles.each do |role|
         Role.health_permissions.each do |permission|
           h[permission] ||= role.send(permission)
@@ -60,7 +63,7 @@ class User < ApplicationRecord
   Role.permissions.each do |permission|
     define_method(permission) do
       @permissions ||= load_effective_permissions.merge(load_health_effective_permissions)
-      @permissions[permission]
+      @permissions[permission] || false
     end
 
     # Methods for determining if a user has permission
@@ -69,23 +72,13 @@ class User < ApplicationRecord
       send(permission)
     end
 
-    define_method("#{permission}_for?") do |entity|
-      return false unless send("#{permission}?")
-
-      access_group_ids = GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
-
-      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
-
-      role_ids = roles.where(permission => true).pluck(:id)
-
-      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
-    end
-
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
-      joins(:legacy_roles).
-        merge(Role.where(permission => true))
+      roles = Role.where(permission => true)
+      legacy = User.joins(:legacy_roles).merge(roles)
+      acl = User.joins(:roles).merge(roles)
+      where(id: legacy.select(:id)).or(where(id: acl.select(:id)))
     end
   end
 
@@ -94,11 +87,12 @@ class User < ApplicationRecord
   end
 
   def collections_for_permission(permission)
-    scope = collections.joins(access_controls: :role).merge(Role.where(permission => true))
-    return scope.pluck(:id) if Rails.env.test?
+    scope = access_controls.joins(:collection, :role).merge(Role.where(permission => true))
+    column = Collection.arel_table[:id]
+    return scope.pluck(column) if Rails.env.test?
 
     Rails.cache.fetch("#{user_permission_prefix}_entity_groups_#{permission}", expires_in: EXPIRY_MINUTES.minutes) do
-      scope.pluck(:id)
+      scope.pluck(column)
     end
   end
 
@@ -108,10 +102,18 @@ class User < ApplicationRecord
 
   def populate_external_reporting_permissions!
     # Projects
-    permission = :can_view_assigned_reports
-    ids = GrdaWarehouse::Hud::Project.viewable_by(self, permission: permission).pluck(:id)
-    batch = ids.uniq.map do |item_id|
-      GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, email: email, project_id: item_id, permission: permission)
+    permissions = [
+      :can_view_assigned_reports,
+      :can_view_full_ssn,
+      :can_view_full_dob,
+      :can_view_client_name,
+    ]
+    batch = []
+    permissions.each do |permission|
+      ids = GrdaWarehouse::Hud::Project.viewable_by(self, permission: permission).pluck(:id)
+      batch += ids.uniq.map do |item_id|
+        GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, email: email, project_id: item_id, permission: permission)
+      end
     end
     GrdaWarehouse::ExternalReportingProjectPermission.transaction do
       GrdaWarehouse::ExternalReportingProjectPermission.where(user_id: id).delete_all
@@ -129,7 +131,7 @@ class User < ApplicationRecord
     end
   end
 
-  def viewable_project_ids(context)
+  memoize def viewable_project_ids(context)
     return GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context) if Rails.env.test?
 
     Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: EXPIRY_MINUTES.minutes) do
@@ -173,16 +175,21 @@ class User < ApplicationRecord
   #   FIXME, this isn't quite right yet
   #   Controls.where(id: acs.pluck(:access_group_id), entity_type: entity_type)
   # end
-  def related_hmis_user(data_source)
-    return unless HmisEnforcement.hmis_enabled?
 
-    Hmis::User.find(id)&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
+  def related_hmis_user(data_source)
+    as_hmis_user&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
   end
 
-  def any_hmis_access?
-    return false unless HmisEnforcement.hmis_enabled?
+  def as_hmis_user
+    return unless HmisEnforcement.hmis_enabled?
 
-    Hmis::UserGroupMember.where(user_id: id).exists? # belongs to any HMIS user groups
+    # memoize so we can make use of memoizations on Hmis::User (@ids_for_relations)
+    @hmis_user ||= Hmis::User.find(id)
+    @hmis_user
+  end
+
+  def can_access_hmis_data_source?(data_source_id)
+    as_hmis_user&.can_access_hmis_data_source?(data_source_id)
   end
 
   # list any cohort this user has some level of access to
@@ -208,7 +215,7 @@ class User < ApplicationRecord
   # memoize some id lookups to prevent N+1s
   private def ids_for_relations(relation)
     @ids_for_relations ||= {}
-    return @ids_for_relations[relation] if @ids_for_relations[relation].present?
+    return @ids_for_relations[relation] if @ids_for_relations.key?(relation)
 
     # START_ACL cleanup after ACL migration is complete
     @ids_for_relations[relation] = if using_acls?
@@ -224,5 +231,61 @@ class User < ApplicationRecord
     return legacy_roles.map(&:name).uniq unless using_acls?
 
     roles.map(&:name).uniq
+  end
+
+  # Retrieve the user's PII Policy for a specific project. To account for reports where the project record
+  # does not exist or did not at the time the report was run, a blank project_id will return the AllowPiiPolicy.
+  # This is to remain consistent with the how reports were responding prior to the PII policies being implemented.
+  #
+  # Note: if multiple projects will need retrieving, preloading the policies may be helpful
+  # preloaded projects example:
+  #   current_user.client_view_accessor.preload_project_dependencies(project_ids)
+  #   project_ids.each do |project_id|
+  #     pii_policy = current_user.reporting_policy_for_project(project_id)
+  #   end
+  def reporting_policy_for_project(project_id:, mode: :browse)
+    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if project_id.nil?
+
+    allowed = false
+    case mode.to_sym
+    when :download
+      allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    when :browse
+      allowed = true
+    else
+      raise ArgumentError, "Bad mode #{mode}"
+    end
+
+    policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
+    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+  end
+
+  memoize def policy_for(resource, policy_class: nil)
+    if policy_class
+      policy_class.new(resource: resource, context: policy_context)
+    else
+      raise ArgumentError, "expected #{resource.class.name} to implement policy_class" unless resource.respond_to?(:policy_class)
+
+      resource.policy_class.new(resource: resource, context: policy_context)
+    end
+  end
+
+  memoize def policy_context
+    if using_acls?
+      GrdaWarehouse::AuthPolicies::UserAclContext.new(self)
+    else
+      GrdaWarehouse::AuthPolicies::UserLegacyContext.new(self)
+    end
+  end
+
+  # View helper for performant access to client details
+  # preloaded clients example:
+  #   current_user.client_view_accessor.preload_searchable_clients(dest_clients)
+  #   dest_clients.each do |client|
+  #     puts current_user.client_view_accessor.searchable_clients(client).first
+  #   end
+  #
+  def client_view_accessor
+    @client_view_accessor ||= GrdaWarehouse::SourceClientViewAccessor.new(user: self)
   end
 end

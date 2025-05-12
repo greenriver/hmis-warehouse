@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'application_responder'
 
@@ -11,13 +13,18 @@ class ApplicationController < ActionController::Base
   respond_to :html, :js, :json, :csv
   impersonates :user
 
-  # Don't start in development if you have pending migrations
-  # moved to top for dockerization
-  prepend_before_action :check_all_db_migrations
-
-  include ControllerAuthorization
   include ActivityLogger
+  include LogRagePayloadBehavior
   include Pagy::Backend
+
+  # conditional includes support the migration away from deprecated authorization methods.
+  # New controllers should inherit from ApplicationControllerV2 which replaces older auth
+  # methods with authorize_with()
+  def self.inherited(subclass)
+    super
+    subclass.include(LegacyControllerAuthorization) unless ApplicationControllerV2.in?(subclass.ancestors)
+  end
+
   protect_from_forgery with: :exception
 
   before_action :authenticate_user!
@@ -39,6 +46,18 @@ class ApplicationController < ActionController::Base
   before_action :prepare_exception_notifier
 
   prepend_before_action :skip_timeout
+
+  # raise NotAuthorizedError which we can rescue from. This stops flow on a failed authorization check
+  protected def not_authorized!(message = nil)
+    raise NotAuthorizedError, message
+  end
+
+  # override the handler in the subclass, such as to return JSON in API requests
+  rescue_from 'NotAuthorizedError', with: :handle_unauthorized_error
+  protected def handle_unauthorized_error(error)
+    location = current_user&.my_root_path || root_path
+    redirect_to(location, alert: error.message)
+  end
 
   private def resource_name
     :user
@@ -108,20 +127,13 @@ class ApplicationController < ActionController::Base
 
   def append_info_to_payload(payload)
     super
-    payload[:server_protocol] = request.env['SERVER_PROTOCOL']
-    payload[:remote_ip] = request.remote_ip
-    payload[:ip] = request.ip
-    payload[:session_id] = request.env['rack.session.record'].try(:session_id)
     payload[:user_id] = current_user&.id
-    payload[:pid] = Process.pid
-    payload[:request_id] = request.uuid
-    payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
   end
 
   def info_for_paper_trail
     {
       user_id: warden&.user&.id,
-      session_id: request.env['rack.session.record']&.session_id,
+      session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
@@ -219,20 +231,10 @@ class ApplicationController < ActionController::Base
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
-    lms = Talentlms::Facade.new
-    return unless lms.training_required?(current_user)
+    lms = Talentlms::Facade.new(current_user)
+    return unless lms.any_training_required?
 
     redirect_to user_training_path
-  end
-
-  # NOTE: if this gets merged, this may not be necessary
-  # https://github.com/rails/rails/pull/39750/files
-  def check_all_db_migrations
-    return true unless Rails.env.development?
-    raise ActiveRecord::MigrationError, "App Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:primary RAILS_ENV=#{::Rails.env}" if ApplicationRecord.needs_migration?
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:warehouse RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:health RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:reporting RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
   end
 
   def health_emergency?

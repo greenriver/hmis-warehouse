@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,9 +13,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include RailsDrivers::Extensions
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
-  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id], optional: true
-  serialize :api_response, Hash
-  serialize :answers, Hash
+  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], query_constraints: [:assessment_id, :site_id, :data_source_id], optional: true
+  serialize :api_response, type: Hash
+  serialize :answers, type: Hash
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
 
@@ -174,7 +176,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.vispdat_times_homeless = hmis_form.vispdat_homeless_times
         hmis_form.vispdat_score_updated_at = Time.now
 
-        if hmis_form&.changed? && hmis_form&.destination_client
+        if hmis_form&.changed? && hmis_form.destination_client
           hmis_form.save
           hmis_form.destination_client.update(vispdat_prioritization_days_homeless: hmis_form.vispdat_days_homeless)
         end

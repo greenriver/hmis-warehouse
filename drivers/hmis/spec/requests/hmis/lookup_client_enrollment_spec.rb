@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -311,6 +311,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollment['currentUnit']['id']).to eq(unit1.id.to_s)
       expect(enrollment['numUnitsAssignedToHousehold']).to eq(2)
     end
+    # add: resolve nil relationship to hoh
+    # add: resolve 99 relationship to hoh
   end
 end
 

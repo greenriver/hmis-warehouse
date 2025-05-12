@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,6 +25,7 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :CurrentLivingSituation, default_value: 99)
+      row.VerifiedBy = row.VerifiedBy[0...200] if row.VerifiedBy
 
       row
     end

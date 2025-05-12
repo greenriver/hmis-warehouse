@@ -5,14 +5,14 @@
 - if RailsDrivers.loaded.include?(:eccovia_data)
   - eccovia_assessments = @client.source_eccovia_assessments
 - if @client.source_assessments.exists?
-  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a
+  - ce_assessments = @client.source_assessments.order(assessment_date: :desc).preload(:assessment_questions).to_a
 - custom_hmis_assessments = []
 - if HmisEnforcement.hmis_enabled?
   - custom_hmis_assessments = @client.hmis_source_custom_assessments.order(assessment_date: :desc).preload(:user, enrollment: [:data_source, { project: :warehouse_project }], form_processor: :definition).to_a
   -# remove any CE assessments for which we have a matching HMIS custom assessment.  The custom assessment will give better fidelity
   -# we'll add back the ce assessment details on the show page
   - custom_hmis_assessments.each do |assessment|
-    - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor.ce_assessment_id }
+    - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor&.ce_assessment_id }
   - custom_hmis_assessments = custom_hmis_assessments.group_by(&:title)
 
 - ce_assessments = ce_assessments.group_by(&:name)

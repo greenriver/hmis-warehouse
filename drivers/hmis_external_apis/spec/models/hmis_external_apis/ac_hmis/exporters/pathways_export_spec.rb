@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,12 +43,12 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model
   it 'collects clients with pathways' do
     create(:hmis_custom_data_element, owner: client, data_element_definition: pathway_definitions['client_pathway_1'])
     subject.run!
-    expect(subject.send(:clients_with_pathways)).to contain_exactly(client)
+    expect(subject.send(:pathway_client_warehouse_id_to_client_ids)).to contain_exactly([client.warehouse_id, [client.id]])
   end
 
   it 'doesnt fail if no clients have pathways' do
     subject.run!
-    expect(subject.send(:clients_with_pathways).length).to eq(0)
+    expect(subject.send(:pathway_client_warehouse_id_to_client_ids).length).to eq(0)
   end
 
   it 'makes a csv' do
@@ -73,5 +73,52 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::PathwaysExport, type: :model
     expect(result.first['Pathway3_Date']).to be_nil
     expect(result.first['Pathway3_Narrative']).to be_nil
     expect(result.first['Pathway3_DateUpdated']).to be_nil
+  end
+
+  context 'when source client does not have a destination client yet' do
+    let!(:client) { create(:hmis_hud_client, data_source: ds) }
+    let!(:pathway1) { create(:hmis_custom_data_element, value_string: 'value', owner: client, data_element_definition: pathway_definitions['client_pathway_1']) }
+
+    it 'does not export the client' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+      expect(result.length).to eq(0)
+    end
+  end
+
+  context 'when there are multiple pathway clients with the same destination id' do
+    # Two Pathway 1 CDEs, with different source clients but same dest client
+    let!(:pathway1) { create(:hmis_custom_data_element, value_string: 'retained', owner: client, data_element_definition: pathway_definitions['client_pathway_1']) }
+    let!(:pathway1_dup) { create(:hmis_custom_data_element, value_string: 'dropped', date_updated: 1.week.ago, owner: client2, data_element_definition: pathway_definitions['client_pathway_1']) }
+    # One Pathway 2, dropped because it will only export `client`
+    let!(:pathway2) { create(:hmis_custom_data_element, value_string: 'dropped', owner: client2, data_element_definition: pathway_definitions['client_pathway_2']) }
+    # Two Pathway 3 CDEs, with different source clients but same dest client
+    let!(:pathway3) { create(:hmis_custom_data_element, value_string: 'retained', owner: client, data_element_definition: pathway_definitions['client_pathway_3']) }
+    let!(:pathway3_dup) { create(:hmis_custom_data_element, value_string: 'dropped', owner: client3, date_updated: 1.week.ago, data_element_definition: pathway_definitions['client_pathway_3']) }
+
+    before(:each) do
+      warehouse_id = client.warehouse_id
+      client2.warehouse_client_source.update!(destination_id: warehouse_id)
+      client3.warehouse_client_source.update!(destination_id: warehouse_id)
+    end
+
+    it 'maps pathway_client_warehouse_id_to_client_ids correctly' do
+      expect(subject.send(:pathway_client_warehouse_id_to_client_ids)).to contain_exactly(
+        [client.warehouse_id, containing_exactly(client.id, client2.id, client3.id)],
+      )
+    end
+
+    it 'only exports one row for all destination client pathways, choosing recently updated value when there are multiples' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+
+      expect(result.length).to eq(1)
+      expect(result.first['PersonalID']).to eq(client.warehouse_id.to_s)
+      expect(result.first['Pathway1']).to eq(pathway1.value_string)
+      expect(result.first['Pathway1_DateUpdated']).to eq(pathway1.date_updated.strftime('%Y-%m-%d %H:%M:%S'))
+      expect(result.first['Pathway2']).to eq(nil) # pathway2 not included because it's tied to client2
+      expect(result.first['Pathway3']).to eq(pathway3.value_string)
+      expect(result.first['Pathway3_DateUpdated']).to eq(pathway3.date_updated.strftime('%Y-%m-%d %H:%M:%S'))
+    end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -85,8 +85,9 @@ module Mutations
         hud_values: input.hud_values,
       )
       assessment.assign_attributes(
-        user_id: hmis_user.user_id,
+        user_id: hud_user.user_id,
         assessment_date: assessment.form_processor.find_assessment_date_from_values,
+        updated_by_hud_user: hud_user, # see comments on CustomAssessment
       )
 
       # Validate form values based on FormDefinition
@@ -94,7 +95,7 @@ module Mutations
       errors.push(*form_validations)
 
       # Run processor to create/update related records
-      assessment.form_processor.run!(owner: assessment, user: current_user)
+      assessment.form_processor.run!(user: current_user)
 
       # Run validations
       is_valid = assessment.valid?(:form_submission)

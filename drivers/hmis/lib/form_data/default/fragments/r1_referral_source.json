@@ -2,37 +2,10 @@
   "type": "GROUP",
   "link_id": "R1",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "_comment": "All YHDP",
-        "value": 43
-      },
-      {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R1.1",
+      "link_id": "R1_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Referral Source",
@@ -44,11 +17,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R1.1-dependents",
+      "link_id": "R1_1_dependents",
       "item": [
         {
           "type": "INTEGER",
-          "link_id": "R1.A",
+          "link_id": "R1_A",
           "required": false,
           "text": "Number of times approached by outreach prior to entering project",
           "mapping": {
@@ -58,7 +31,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R1.1",
+              "question": "R1_1",
               "operator": "EQUAL",
               "answer_code": "OUTREACH_PROJECT"
             }

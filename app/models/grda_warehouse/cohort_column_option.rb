@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse
   class CohortColumnOption < GrdaWarehouseBase
@@ -17,7 +19,7 @@ module GrdaWarehouse
     end
 
     def cohort_columns
-      @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select do |m|
+      @cohort_columns ||= GrdaWarehouse::Cohort.active_columns.select do |m|
         m.is_a? CohortColumns::Select
       end
     end

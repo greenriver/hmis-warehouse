@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,6 +33,7 @@ module Hmis::Hud::Processors
         @processor.send(factory_name, create: false)&.assign_attributes(
           user: @processor.hud_user,
           data_source_id: @processor.hud_user.data_source_id,
+          client: @processor.client_factory(create: false),
         )
       end
     end

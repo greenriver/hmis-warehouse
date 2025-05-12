@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,15 +42,19 @@ module HudReports
     def queue
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
-      @report.save
+      @report.save!
       Reporting::Hud::RunReportJob.perform_later(self.class.name, @report.id)
+    end
+
+    def prepare_report
+      @report.start_report
     end
 
     def run!(email: true, manual: true)
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
       @report.manual = manual
-      @report.save
+      @report.save!
       Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id, email: email)
     end
 
@@ -121,7 +125,7 @@ module HudReports
       ['first_name', 'last_name', 'dob', 'ssn']
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :start,
         :end,

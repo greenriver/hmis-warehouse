@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +12,7 @@ module GrdaWarehouse
 
     belongs_to :shape_zip_code, class_name: 'GrdaWarehouse::Shape::ZipCode', primary_key: 'zcta5ce10', foreign_key: 'zipcode', optional: true
     belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'name', foreign_key: 'state', optional: true
-    belongs_to :cls, class_name: 'ClientLocationHistory::Location', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
+    belongs_to :cls, class_name: 'ClientLocationHistory::Location', primary_key: [:lat, :lon], query_constraints: [:lat, :lon], optional: true
 
     scope :with_shape_cocs, -> do
       joins('inner join shape_cocs on ST_Within(ST_SetSRID(ST_Point(places.lon, places.lat), 4326), shape_cocs.geom)')

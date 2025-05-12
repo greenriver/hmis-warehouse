@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -46,7 +46,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   private def default_project_id
-    available_projects.values.flatten(1).first.last
+    available_projects.values.flatten(1).first&.last
   end
 
   def project_name

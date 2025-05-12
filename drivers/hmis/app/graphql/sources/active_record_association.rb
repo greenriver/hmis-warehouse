@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,13 +17,10 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
   end
 
   def fetch(records)
-    TodoOrDie('test behavior after rails upgrade, see #6019', if: Rails.version !~ /\A7\.0/)
-    # in rails 7.0, calling preloader more than once can cause unscoped queries, particularly with has-many-through.
-    # Resetting association before preload seems to address this
-    records.each { |record| record.association(@association_name).reset }
-
     ::ActiveRecord::Associations::Preloader.new(records: records, associations: [@association_name], scope: @scope).call
-    records.map { |record| record.public_send(@association_name) }
+    results = records.map { |record| record.public_send(@association_name) }
+    # Rails.logger.info("preloading complete #{records.first.class.name}.#{@association_name}") if records.any?
+    results
   end
 
   def self.batch_key_for(*batch_args, **batch_kwargs)

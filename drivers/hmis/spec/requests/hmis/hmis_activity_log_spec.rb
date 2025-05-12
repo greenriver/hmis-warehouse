@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -136,6 +138,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(log.header_project_id).to eq(headers['X-Hmis-Project-Id'])
     expect(log.response_time).to be > 0
     expect(log.response_time).to be < 2
+    expect(log.session_hash).to be_present
+    expect(log.request_id).to be_present
   end
 
   def check_project_fields(log, project_id:, client_id:)

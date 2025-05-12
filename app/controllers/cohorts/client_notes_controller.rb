@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,7 +34,7 @@ module Cohorts
       @cohort_client.touch
       # send notifications
       if note_params[:send_notification].present? && note_params[:recipients].present?
-        token = Token.tokenize(client_notes_path(client_id: @cohort_client.client_id))
+        token = Token.tokenize(cohort_cohort_client_client_notes_path(@cohort, @cohort_client))
         note_params[:recipients].reject(&:blank?).map(&:to_i).each do |id|
           user = User.find(id)
           TokenMailer.note_added(user, token).deliver_later if user.present?
@@ -83,7 +83,7 @@ module Cohorts
     end
 
     def flash_interpolation_options
-      { resource_name: "Note for #{@note.client.name}" }
+      { resource_name: "Note for #{@note.client.pii_provider(user: current_user).full_name}" }
     end
   end
 end

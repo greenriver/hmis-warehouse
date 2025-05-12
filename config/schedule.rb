@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'dotenv'
 require 'active_support/core_ext/object/blank'
 Dotenv.load('.env', '.env.local')
@@ -25,16 +33,15 @@ Dotenv.load('.env', '.env.local')
 # setup
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
-glacier_import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
+
 export_schedule = if ENV['DAILY_EXPORT_SCHEDULE'].nil? || ENV['DAILY_EXPORT_SCHEDULE'].empty? then (Time.parse(daily_schedule) - 2.hours).strftime('%I:%M %P') else ENV['DAILY_EXPORT_SCHEDULE'] end
 file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%M %P')
 import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
-census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
-# database_backup_time = Time.parse(import_schedule) - 3.hours
+monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
+import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
 health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-backup_glacier_trigger = ENV['GLACIER_NEEDS_BACKUP'] == 'true'
-# glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
+
 tasks = [
   # temporary task to move files to S3 and ActiveStorage
   {
@@ -129,9 +136,9 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'us_census_api:all',
+    task: 'grda_warehouse:monthly',
     frequency: 1.month,
-    at: census_schedule,
+    at: monthly_schedule,
     interruptable: false,
   },
   {
@@ -147,12 +154,6 @@ tasks = [
     at: '6:01 am',
     trigger: health_trigger,
     interruptable: false,
-  },
-  {
-    task: 'health:hourly',
-    frequency: 1.hour,
-    trigger: health_trigger,
-    interruptable: true,
   },
   {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
@@ -173,23 +174,16 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
-  # {
-  #   task: 'glacier:backup:database',
-  #   frequency: 1.month,
-  #   at: database_backup_time,
-  #   trigger: backup_glacier_trigger,
-  #   interruptable: false,
-  # },
-  # {
-  #   task: 'glacier:backup:files',
-  #   frequency: 1.month,
-  #   at: database_backup_time - 1.hours,
-  #   trigger: glacier_files_backup_trigger,
-  #   interruptable: false,
-  # },
+  {
+    task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
+    frequency: 1.day,
+    at: import_cleanup_time,
+    interruptable: false,
+  },
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'
+job_type :rake_eks, 'bundle exec rake :task --silent ##interruptable=:interruptable##'
 
 tasks.each do |task|
   next if task.key?(:trigger) && ! task[:trigger]
@@ -197,7 +191,9 @@ tasks.each do |task|
   options = {}
   options[:at] = task[:at] if task[:at].present?
   every task[:frequency], options do
-    if ENV['ECS'] == 'true' && task[:interruptable]
+    if ENV['EKS'] == 'true'
+      rake_eks task[:task], interruptable: task[:interruptable].to_s
+    elsif ENV['ECS'] == 'true' && task[:interruptable]
       rake_short task[:task]
     else
       # For the time being, move all cron tasks to the "short-term" capacity provider

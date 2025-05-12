@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,12 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
     include ArelHelper
 
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :ssn
+
     belongs_to :batch, class_name: 'GrdaWarehouse::HealthEmergency::TestBatch', inverse_of: :uploaded_tests, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :test, optional: true
@@ -16,7 +22,7 @@ module GrdaWarehouse::HealthEmergency
 
     scope :test_addition_pending, -> do
       where.not(client_id: nil).
-      where(test_id: nil)
+        where(test_id: nil)
     end
   end
 end

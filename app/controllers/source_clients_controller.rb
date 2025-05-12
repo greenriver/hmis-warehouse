@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -60,9 +60,9 @@ class SourceClientsController < ApplicationController
     end
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
-    image = @client.image_for_source_client(max_age)
+    image = @client.pii_provider(user: current_user).image
     # NOTE: The test environment is really unhappy when there's no image
-    if image && ! Rails.env.test?
+    if !image.empty? && !Rails.env.test?
       send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)

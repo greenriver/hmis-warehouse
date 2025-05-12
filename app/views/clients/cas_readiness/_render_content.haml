@@ -1,0 +1,16 @@
+- check_wrapper_class = {class: 'form-group--tight'}
+= simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id) do |f|
+  -# include token to handle background rendering of this form
+  = hidden_field_tag :authenticity_token, @token if @token
+  - if GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Boston'
+    = render 'boston', check_wrapper_class: check_wrapper_class, f: f
+  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHat'
+    = render 'tc_hat', check_wrapper_class: check_wrapper_class, f: f
+  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHmisHat'
+    = render 'tc_hat', check_wrapper_class: check_wrapper_class, f: f
+  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Mdha'
+    = render 'mdha', check_wrapper_class: check_wrapper_class, f: f
+  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Springfield'
+    = render 'springfield', check_wrapper_class: check_wrapper_class, f: f
+  - else
+    = render GrdaWarehouse::Config.get(:cas_flag_method).to_s, check_wrapper_class: check_wrapper_class, f: f

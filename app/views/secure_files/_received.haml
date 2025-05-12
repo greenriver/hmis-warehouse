@@ -1,0 +1,33 @@
+%h2 Received
+- if secure_files.present?
+  .card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th
+            File name
+          %th
+            Uploaded By
+          %th
+            Destined For
+          %th
+            Uploaded On
+          %th
+            Removal Date
+          %th
+            Remove
+      %tbody
+        - secure_files.each do |file|
+          %tr
+            %td
+              = link_to secure_file_path(file) do
+                = file.name
+            %td= file.sender&.name
+            %td= file.recipient&.name
+            %td= file.created_at.to_date
+            %td= file.created_at.to_date + 1.month
+            %td
+              = link_to secure_file_path(file), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
+                %i.icon-cross
+- else
+  .none-found You have not received any secure files in the past month.

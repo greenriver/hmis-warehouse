@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 # You'll need `docker-compose up -d sftp` before this will work
 RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
@@ -35,7 +41,7 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
 
   describe 'with submittable data' do
     let!(:client) { create(:fixed_destination_client) }
-    let!(:enrollment) { create :grda_warehouse_hud_enrollment, EntryDate: Date.current - 1.day, data_source_id: client.data_source_id }
+    let!(:enrollment) { create :grda_warehouse_hud_enrollment, EntryDate: Date.current - 1.day, data_source_id: client.data_source_id, PersonalID: client.PersonalID }
     let!(:service_history_enrollment) do
       create(
         :grda_warehouse_service_history,

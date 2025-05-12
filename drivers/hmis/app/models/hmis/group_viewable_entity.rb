@@ -1,12 +1,16 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# HMIS uses similar but separate permissions system from the warehouse
+# See drivers/hmis/doc/PERMISSIONS.md
+
 module Hmis
   class GroupViewableEntity < GrdaWarehouseBase
     acts_as_paranoid
+    has_paper_trail
 
     # TODO: rename AccessGroup class to `Collection`, update all references
     belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities
@@ -22,7 +26,7 @@ module Hmis
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
 
     scope :includes_project, ->(project) do
-      joins(:projects).where(project: project)
+      joins(:projects).where(p_t[:id].eq(project.id))
     end
 
     scope :includes_organization, ->(organization) do
@@ -39,7 +43,7 @@ module Hmis
         includes_project(entity)
       when Hmis::Hud::Organization.name
         includes_organization(entity)
-      when GrdaWarehouse::DataSource.name
+      when ::GrdaWarehouse::DataSource.name
         includes_data_source(entity)
       else
         none
@@ -48,6 +52,15 @@ module Hmis
 
     scope :includes_entities, ->(entities) do
       where(id: Array(entities).flat_map { |entity| includes_entity(entity).pluck(:id) })
+    end
+
+    scope :includes_any_entity_in_data_source, ->(data_source) do
+      project_ids = data_source.projects.select(:id)
+      organization_ids = data_source.organizations.select(:id)
+
+      where(entity: data_source).
+        or(where(entity_type: Hmis::Hud::Project.sti_name, entity_id: project_ids)).
+        or(where(entity_type: Hmis::Hud::Organization.sti_name, entity_id: organization_ids))
     end
   end
 end

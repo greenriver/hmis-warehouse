@@ -1,37 +1,40 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # = GrdaWarehouse::ServiceHistoryEnrollment
 #
 # ServiceHistoryEnrollments flatten Hud Enrollments and related records to serve reporting needs. These records are
 # generated automatically. There is a 1:1 correspondence with Hud Enrollment records
+#   created by GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
+  include ClientRaceAndEthnicityMixin
   include ArelHelper
 
   alias_attribute :entry_date, :first_date_in_program
   alias_attribute :exit_date, :last_date_in_program
 
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :service_history_enrollments, autosave: false, optional: true
-  belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false, optional: true
-  belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false, optional: true
-  belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false, optional: true
+  belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', query_constraints: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false, optional: true
+  belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', query_constraints: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false, optional: true
+  belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false, optional: true
   has_one :source_client, through: :enrollment, source: :client, autosave: false
-  has_one :enrollment_coc_at_entry, through: :enrollment, autosave: false
-  has_one :client_head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], autosave: false
+  has_one :client_head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], query_constraints: [:PersonalID, :data_source_id], autosave: false
   belongs_to :data_source, autosave: false, optional: true
   belongs_to :processed_client, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed', foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false, optional: true
-  has_many :service_history_services, inverse_of: :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id]
-  has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
+  has_many :service_history_services, inverse_of: :service_history_enrollment, primary_key: [:id, :client_id], query_constraints: [:service_history_enrollment_id, :client_id]
+  has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], query_constraints: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
   # Find the SHE for the head of household associated with this enrollment's household, if this is for th HoH, it returns itself
-  has_one :service_history_enrollment_for_head_of_household, -> { where(head_of_household: true) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:head_of_household_id, :project_id, :data_source_id], foreign_key: [:head_of_household_id, :project_id, :data_source_id], autosave: false
+  has_one :service_history_enrollment_for_head_of_household, -> { where(head_of_household: true) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:head_of_household_id, :project_id, :data_source_id], query_constraints: [:head_of_household_id, :project_id, :data_source_id], autosave: false
   # Find the non HoH SHEs associated with this enrollment's household, if this is not for the HoH, it will contain this enrollment
-  has_many :other_household_service_history_enrollments, -> { where(head_of_household: false) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :project_id, :household_id], autosave: false
-  has_many :household_enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :ProjectID, :HouseholdID], autosave: false
+  has_many :other_household_service_history_enrollments, -> { where(head_of_household: false) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :household_id], query_constraints: [:data_source_id, :project_id, :household_id], autosave: false
+  has_many :household_enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:data_source_id, :project_id, :household_id], query_constraints: [:data_source_id, :ProjectID, :HouseholdID], autosave: false
 
   # make a scope for every project type and a type? method for instances
   HudUtility2024.performance_reporting.each do |k, v|
@@ -56,24 +59,27 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
   end
   scope :residential, -> {
-    in_project_type(HudUtility2024.residential_project_type_ids)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.residential)
   }
 
   scope :hud_residential, -> do
-    hud_project_type(HudUtility2024.residential_project_type_ids)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.hud_residential)
   end
 
   scope :hud_non_residential, -> do
+    # Need to join project to use RRHSubType
     joins(:project).merge(GrdaWarehouse::Hud::Project.hud_non_residential)
   end
 
   scope :residential_non_homeless, -> do
-    r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
-    in_project_type(r_non_homeless)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.residential_non_homeless)
   end
   scope :hud_residential_non_homeless, -> do
-    r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
-    hud_project_type(r_non_homeless)
+    # Need to join project to use RRHSubType
+    joins(:project).merge(GrdaWarehouse::Hud::Project.hud_residential_non_homeless)
   end
   scope :permanent_housing, -> do
     project_types = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten
@@ -191,11 +197,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   }
 
   scope :enrollment_open_in_prior_years, ->(years: 3) do
-    t = DateTime.current - years.years
-    at = arel_table
-    where(
-      at[:last_date_in_program].eq(nil).or(at[:first_date_in_program].gt(t)).or(at[:last_date_in_program].gt(t)),
-    )
+    lookback_date = DateTime.current - years.years
+    open_between(start_date: lookback_date, end_date: Date.current)
   end
 
   scope :started_between, ->(start_date:, end_date:) do
@@ -214,6 +217,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   scope :in_coc, ->(coc_code:) do
     joins(project: :project_cocs).
       merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
+  end
+
+  scope :in_enrollment_coc, ->(coc_code:) do
+    joins(:enrollment).
+      where(e_t[:enrollment_coc].eq(coc_code))
   end
 
   scope :coc_funded_in, ->(coc_code:) do

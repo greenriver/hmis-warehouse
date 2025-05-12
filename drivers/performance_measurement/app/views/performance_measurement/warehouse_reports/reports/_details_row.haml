@@ -2,6 +2,7 @@
 - numerator_label = @report.detail_numerator_label_for(key)
 - pit_count_types = @report.detail_pit_types(key)
 - project_id = if defined?(project_id) then project_id else nil end
+- data = if project_id.present? then result.data_for_individual_project_bar else result.data_for_system_level_bar end
 %h3.mb-6= @report.detail_title_for(key)
 .row
   .col-6
@@ -46,17 +47,19 @@
 
   .col-6
     %div
-      .ml-auto.c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+      .ml-auto.c-chart--vertical-bar{ class: class_name, data: { chart: data.to_json }}
     - if denominator_label.present? && show_label_detail
       .card.p-3.mt-4
-        .mb-0.d-flex
-          .mr-2 #{result.comparison_year}:
-          .mb-0
-            %strong= result.comparison_numerator
-            = numerator_label
-            of
-            %strong= result.comparison_denominator
-            = denominator_label
+        -# Hide comparisons at the project level if using static SPM
+        - unless @report.using_static_spm_for_comparison?
+          .mb-0.d-flex
+            .mr-2 #{result.comparison_year}:
+            .mb-0
+              %strong= result.comparison_numerator
+              = numerator_label
+              of
+              %strong= result.comparison_denominator
+              = denominator_label
         .mb-0.d-flex
           .mr-2 #{result.report_year}:
           .mb-0

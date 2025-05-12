@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
-RSpec.feature 'Accounts', type: :feature do
+RSpec.describe 'Accounts', type: :feature do
   let(:user) { create(:user) }
 
   before(:each) do
@@ -45,7 +47,7 @@ RSpec.feature 'Accounts', type: :feature do
           fill_in 'Password', with: 'password'
           click_button 'Sign In'
         end
-        Timecop.travel(Time.now + Devise.unlock_in - 1.minute) do
+        travel_to(Time.now + Devise.unlock_in - 1.minute) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Sign In'
@@ -61,12 +63,67 @@ RSpec.feature 'Accounts', type: :feature do
           fill_in 'Password', with: 'password'
           click_button 'Sign In'
         end
-        Timecop.travel(Time.now + Devise.unlock_in) do
+        travel_to(Time.now + Devise.unlock_in) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Sign In'
           expect(page).to have_content 'Sign Out'
         end
+      end
+    end
+
+    feature 'Devise expireable password' do
+      scenario 'after expiring password with password expiration disabled' do
+        Rails.configuration.devise.expire_password_after = false
+        user.force_password_reset!
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Sign Out'
+      end
+
+      scenario 'without expiring password with password expiration enabled manual' do
+        Rails.configuration.devise.expire_password_after = true
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Sign Out'
+      end
+
+      scenario 'after expiring password with password expiration enabled manual' do
+        Rails.configuration.devise.expire_password_after = true
+        user.force_password_reset!
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Password Expired'
+      end
+
+      scenario 'without expiring password with password expiration enabled time-based' do
+        Rails.configuration.devise.expire_password_after = 1.weeks
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Sign Out'
+      end
+
+      scenario 'time-expiring password with password expiration enabled time-based' do
+        Rails.configuration.devise.expire_password_after = 1.weeks
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        travel_to Time.current + 2.weeks do
+          click_button 'Sign In'
+          expect(page).to have_content 'Password Expired'
+        end
+      end
+
+      scenario 'after expiring password with password expiration enabled time-based' do
+        Rails.configuration.devise.expire_password_after = 1.weeks
+        user.force_password_reset!
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+        expect(page).to have_content 'Password Expired'
       end
     end
   end

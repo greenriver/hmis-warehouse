@@ -1,10 +1,14 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class SystemStatusController < ActionController::Base
+  include LogRagePayloadBehavior
+
   def exception
     raise 'A forced exception for testing purposes.'
   end
@@ -120,6 +124,7 @@ class SystemStatusController < ActionController::Base
         reporting: reporting,
         health: health,
       },
+      eks: ENV.fetch('EKS', false),
     }
 
     render json: payload, status: status

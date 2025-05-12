@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,6 +35,8 @@ module Types
     def self.authorized?(object, ctx)
       return false unless super
 
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       return true if GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_limited_enrollment_details, entity: object)
 
       return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
@@ -75,6 +77,7 @@ module Types
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :household_tasks, [HmisSchema::Enums::EnrollmentFilterOptionHouseholdTask]
       arg :search_term, String
+      arg :assigned_staff, ID
     end
 
     description 'HUD Enrollment'
@@ -93,6 +96,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :last_contact, HmisSchema::LastContact, null: true
     summary_field :auto_exited, Boolean, null: false
 
     field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
@@ -106,6 +110,7 @@ module Types
       can :delete_enrollments
       can :split_households
       can :audit_enrollments
+      can :view_enrollment_location_map
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.
@@ -115,6 +120,8 @@ module Types
     field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
+    field :staff_assignments, [Types::HmisSchema::StaffAssignment], null: true
+
     # Associated records. These automatically require the "can_view_enrollment_details" permission
     # because they use the overridden 'field' class method.
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForEnrollment' }
@@ -216,6 +223,14 @@ module Types
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
+    field :source_referral_posting, HmisSchema::ReferralPosting, null: true, description: 'Present if this household was enrolled as the result of a referral from another project.'
+    field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Data collection features that are enabled for this Enrollment (e.g. Current Living Situations, Events)'
+
+    # should not be queried in batch
+    field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Forms for individual data elements that are collected at occurrence for this Enrollment (e.g. Move-In Date)'
+
+    field :geolocations, [Types::HmisSchema::Geolocation], null: false, description: 'Client Locations that have been collected during this Enrollment'
+
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
@@ -241,6 +256,21 @@ module Types
         changes
       end,
     )
+
+    def source_referral_posting
+      return unless current_permission?(permission: :can_manage_incoming_referrals, entity: project)
+
+      # there should never be more than 1 referral posting for a given enrollment
+      load_ar_association(object, :source_postings).min_by(&:id)
+    end
+
+    # N+1, not performant for queries on collections
+    def geolocations
+      return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
+
+      # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
+      object.as_warehouse.enrollment_location_histories.valid
+    end
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.
@@ -275,9 +305,18 @@ module Types
     end
 
     def last_service_date(service_type_id:)
-      load_ar_association(object, :hmis_services).
-        filter { |s| s.custom_service_type_id&.to_s == service_type_id }.
-        max_by(&:DateProvided)&.DateProvided
+      custom_service_types_scope = Hmis::Hud::CustomServiceType.where(data_source_id: object.data_source_id)
+      custom_service_type = load_ar_scope(scope: custom_service_types_scope, id: service_type_id)
+      raise 'invalid custom service type' unless custom_service_type
+
+      services_of_type = if custom_service_type.hud_service?
+        load_ar_association(object, :services).
+          filter { |s| s.matches_custom_service_type?(custom_service_type) }
+      else
+        load_ar_association(object, :custom_services).
+          filter { |s| s.custom_service_type_id&.to_s == service_type_id }
+      end
+      services_of_type.max_by(&:DateProvided)&.DateProvided
     end
 
     def last_bed_night_date
@@ -404,6 +443,66 @@ module Types
 
     def move_in_addresses
       load_ar_association(object, :move_in_addresses)
+    end
+
+    def intake_assessment
+      load_ar_association(object, :intake_assessment)
+    end
+
+    def exit_assessment
+      load_ar_association(object, :exit_assessment)
+    end
+
+    def last_contact
+      last_contact_entity = [
+        load_ar_association(
+          object,
+          :services,
+          scope: Hmis::Hud::Service.where.not(date_provided: nil).order(date_provided: :asc),
+        ).last,
+        # CustomService DateProvided is guaranteed non-null by DB
+        load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
+        # CLS InformationDate is guaranteed non-null by DB
+        load_ar_association(object, :current_living_situations, scope: Hmis::Hud::CurrentLivingSituation.order(:information_date)).last,
+        # AssessmentDate is guaranteed non-null by DB
+        load_ar_association(object, :custom_assessments, scope: Hmis::Hud::CustomAssessment.order(:assessment_date)).last,
+        # CustomCaseNote's information_date can be null in DB
+        load_ar_association(
+          object,
+          :custom_case_notes,
+          scope: Hmis::Hud::CustomCaseNote.where.not(information_date: nil).order(information_date: :asc),
+        ).last,
+      ].compact.
+        max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
+
+      return nil unless last_contact_entity
+
+      contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(last_contact_entity)
+
+      contact_type = case last_contact_entity
+      when Hmis::Hud::Service
+        last_contact_entity.record_type == 200 ? 'BED_NIGHT' : 'SERVICE'
+      when Hmis::Hud::CustomService
+        'SERVICE'
+      when Hmis::Hud::CurrentLivingSituation
+        'CURRENT_LIVING_SITUATION'
+      when Hmis::Hud::CustomAssessment
+        assessment_name = HudUtility2024.assessment_name_by_data_collection_stage[last_contact_entity.data_collection_stage]
+        assessment_name.present? ? Types::BaseEnum.to_enum_key(assessment_name) : 'ASSESSMENT'
+      when Hmis::Hud::CustomCaseNote
+        'CASE_NOTE'
+      else
+        raise
+      end
+
+      {
+        contact_date: contact_date,
+        contact_type: contact_type,
+      }
+    end
+
+    def staff_assignments
+      load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
     end
   end
 end

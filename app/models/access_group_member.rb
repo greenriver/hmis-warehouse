@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,9 +26,9 @@ class AccessGroupMember < ApplicationRecord
 
   def self.describe_changes(version, _changes)
     if version.event == 'create'
-      ["Added group #{version.referenced_entity_name}"]
+      ["Added group \"#{version.referenced_entity_name}\""]
     else
-      ["Removed group #{version.referenced_entity_name}"]
+      ["Removed group \"#{version.referenced_entity_name}\""]
     end
   end
 end

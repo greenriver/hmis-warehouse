@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'memery'
 
@@ -15,10 +17,12 @@ module GrdaWarehouse
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid
+    has_paper_trail
+
     validates_presence_of :name
     validates :days_of_inactivity, numericality: { only_integer: true, allow_nil: true }
     validates :static_column_count, numericality: { only_integer: true }
-    serialize :column_state, Array
+    serialize :column_state, type: Array
 
     after_create :maintain_system_group
 
@@ -76,9 +80,9 @@ module GrdaWarehouse
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
-        return none unless viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+        return none unless GrdaWarehouse::Cohort.viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
 
-        ids = viewable_permissions.flat_map do |perm|
+        ids = GrdaWarehouse::Cohort.viewable_permissions.flat_map do |perm|
           group_ids = user.collections_for_permission(perm)
           next [] if group_ids.empty?
 
@@ -159,7 +163,7 @@ module GrdaWarehouse
       cohort_tabs.find_by(name: 'Active Clients')
     end
 
-    private def clients_for_tab(user, population, tab = nil)
+    def clients_for_tab(user, population, tab = nil)
       active_tab = tab || active_tab(user, population)
       cohort_clients.joins(:client).
         send(active_tab.base_scope).
@@ -174,13 +178,20 @@ module GrdaWarehouse
         @client_search_scope
       end
 
-      @client_search_result = scope.preload(
+      @client_search_result = scope.preload(*preloads)
+    end
+
+    def preloads
+      [
         :cohort_client_changes,
         {
           cohort_client_notes: :user,
           client: [
-            :source_clients,
+            :cohort_notes,
             :processed_service_history,
+            :client_file_consent_forms_signed,
+            :client_file_consent_forms_signed_confirmed,
+            :source_exits,
             {
               cohort_clients: [
                 :cohort,
@@ -191,12 +202,12 @@ module GrdaWarehouse
                 :most_recent_pathways_or_rrh_assessment,
                 :most_recent_2023_pathways_assessment,
                 :most_recent_2023_transfer_assessment,
-                most_recent_ce_assessment: { assessment_questions: :lookup },
+                most_recent_ce_assessment: [:user, { assessment_questions: :lookup }],
               ],
             },
           ],
         },
-      )
+      ]
     end
 
     def sanitized_name
@@ -236,12 +247,30 @@ module GrdaWarehouse
     end
     memoize :user_can_edit_cohort_clients
 
+    # Used in cohort columns, cached here so we don't have to re-fetch
+    def window_project_ids
+      @window_project_ids ||= GrdaWarehouse::Hud::Project.joins(:data_source).
+        merge(GrdaWarehouse::DataSource.visible_in_window).
+        pluck(:id)
+    end
+
     def inactive?
       !active?
     end
 
     def active?
-      active_cohort?
+      active_cohort
+    end
+
+    # Never show the cohort on the client dashboard if we haven't explicitly
+    # indicated it should be shown
+    # If the cohort is active and we have indicated it should be shown, show it
+    # If the cohort is inactive, only show it if we indicated it should be shown even when inactive
+    def should_show_on_client_dashboard?
+      return false unless show_on_client_dashboard?
+      return true if active?
+
+      expose_inactive_on_client_dashboard?
     end
 
     def cas_tag_name
@@ -253,10 +282,13 @@ module GrdaWarehouse
     def visible_columns(user:)
       return self.class.default_visible_columns unless column_state.present?
 
-      columns = column_state&.select(&:visible)&.presence || self.class.available_columns
-      columns.each do |column|
+      active_columns.each do |column|
         column.current_user = user
       end
+    end
+
+    def active_columns
+      column_state&.select(&:visible)&.presence || self.class.default_visible_columns
     end
 
     def self.default_visible_columns
@@ -280,275 +312,28 @@ module GrdaWarehouse
       )
     end
 
-    def self.available_columns # rubocop:disable Metrics/AbcSize
-      [
-        ::CohortColumns::LastName.new,
-        ::CohortColumns::FirstName.new,
-        ::CohortColumns::Rank.new,
-        ::CohortColumns::Age.new,
-        ::CohortColumns::Dob.new,
-        ::CohortColumns::Gender.new,
-        ::CohortColumns::Ssn.new,
-        ::CohortColumns::ClientId.new,
-        ::CohortColumns::CalculatedDaysHomeless.new,
-        ::CohortColumns::AdjustedDaysHomeless.new,
-        ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new,
-        ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new,
-        ::CohortColumns::DaysHomelessPlusOverrides.new,
-        ::CohortColumns::FirstDateHomeless.new,
-        ::CohortColumns::Chronic.new,
-        ::CohortColumns::Agency.new,
-        ::CohortColumns::CaseManager.new,
-        ::CohortColumns::HousingManager.new,
-        ::CohortColumns::HousingSearchAgency.new,
-        ::CohortColumns::HousingOpportunity.new,
-        ::CohortColumns::LegalBarriers.new,
-        ::CohortColumns::CriminalRecordStatus.new,
-        ::CohortColumns::DocumentReady.new,
-        ::CohortColumns::SifEligible.new,
-        ::CohortColumns::SensoryImpaired.new,
-        ::CohortColumns::HousedDate.new,
-        ::CohortColumns::Destination.new,
-        ::CohortColumns::SubPopulation.new,
-        ::CohortColumns::IndividualInMostRecentEnrollment.new,
-        ::CohortColumns::StFrancisHouse.new,
-        ::CohortColumns::LastGroupReviewDate.new,
-        ::CohortColumns::LastDateApproached.new,
-        ::CohortColumns::PreContemplativeLastDateApproached.new,
-        ::CohortColumns::HousingTrackSuggested.new,
-        ::CohortColumns::PrimaryHousingTrackSuggested.new,
-        ::CohortColumns::HousingTrackEnrolled.new,
-        ::CohortColumns::VaEligible.new,
-        ::CohortColumns::VashEligible.new,
-        ::CohortColumns::Chapter115.new,
-        ::CohortColumns::Veteran.new,
-        ::CohortColumns::ClientNotes.new,
-        ::CohortColumns::Notes.new,
-        ::CohortColumns::VispdatScore.new,
-        ::CohortColumns::VispdatPriorityScore.new,
-        ::CohortColumns::HousingNavigator.new,
-        ::CohortColumns::LocationType.new,
-        ::CohortColumns::Location.new,
-        ::CohortColumns::LastContactLocation.new,
-        ::CohortColumns::Status.new,
-        ::CohortColumns::SsvfEligible.new,
-        ::CohortColumns::VetSquaresConfirmed.new,
-        ::CohortColumns::MissingDocuments.new,
-        ::CohortColumns::Provider.new,
-        ::CohortColumns::NextStep.new,
-        ::CohortColumns::HousingPlan.new,
-        ::CohortColumns::DateDocumentReady.new,
-        ::CohortColumns::DaysHomelessLastThreeYears.new,
-        ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new,
-        ::CohortColumns::ShelteredDaysHomelessLastThreeYears.new,
-        ::CohortColumns::UnshelteredDaysHomelessLastThreeYears.new,
-        ::CohortColumns::EnrolledHomelessShelter.new,
-        ::CohortColumns::EnrolledHomelessUnsheltered.new,
-        ::CohortColumns::EnrolledPermanentHousing.new,
-        ::CohortColumns::RelatedUsers.new,
-        ::CohortColumns::Active.new,
-        ::CohortColumns::LastHomelessVisit.new,
-        ::CohortColumns::OngoingEs.new,
-        ::CohortColumns::OngoingSo.new,
-        ::CohortColumns::OngoingSh.new,
-        ::CohortColumns::OngoingTh.new,
-        ::CohortColumns::OngoingRrh.new,
-        ::CohortColumns::OngoingPsh.new,
-        ::CohortColumns::NewLeaseReferral.new,
-        ::CohortColumns::VulnerabilityRank.new,
-        ::CohortColumns::ActiveCohorts.new,
-        ::CohortColumns::DestinationFromHomelessness.new,
-        ::CohortColumns::HmisDestination.new,
-        ::CohortColumns::OpenEnrollments.new,
-        ::CohortColumns::Ineligible.new,
-        ::CohortColumns::ConsentConfirmed.new,
-        ::CohortColumns::DisabilityVerificationDate.new,
-        ::CohortColumns::AvailableForMatchingInCas.new,
-        ::CohortColumns::DaysSinceCasMatch.new,
-        ::CohortColumns::Sober.new,
-        ::CohortColumns::OriginalChronic.new,
-        ::CohortColumns::NotAVet.new,
-        ::CohortColumns::EtoCoordinatedEntryAssessmentScore.new,
-        ::CohortColumns::HouseholdMembers.new,
-        ::CohortColumns::MinimumBedroomSize.new,
-        ::CohortColumns::SpecialNeeds.new,
-        ::CohortColumns::RrhDesired.new,
-        ::CohortColumns::YouthRrhDesired.new,
-        ::CohortColumns::RrhAssessmentContactInfo.new,
-        ::CohortColumns::RrhSsvfEligible.new,
-        ::CohortColumns::Reported.new,
-        ::CohortColumns::Race.new,
-        ::CohortColumns::Ethnicity.new,
-        ::CohortColumns::Lgbtq.new,
-        ::CohortColumns::LgbtqFromHmis.new,
-        ::CohortColumns::SleepingLocation.new,
-        ::CohortColumns::ExitDestination.new,
-        ::CohortColumns::ActiveInCasMatch.new,
-        ::CohortColumns::SchoolDistrict.new,
-        ::CohortColumns::AssessmentScore.new,
-        ::CohortColumns::PathwaysV3AssessmentDate.new,
-        ::CohortColumns::TransferV3AssessmentDate.new,
-        ::CohortColumns::VispdatScoreManual.new,
-        ::CohortColumns::DaysOnCohort.new,
-        ::CohortColumns::CasVashEligible.new,
-        ::CohortColumns::DateAddedToCohort.new,
-        ::CohortColumns::PreviousRemovalReason.new,
-        ::CohortColumns::HealthPrioritized.new,
-        ::CohortColumns::MostRecentDateToStreet.new,
-        ::CohortColumns::DaysHomelessPathways.new,
-        ::CohortColumns::MostRecentClsSheltered.new,
-        ::CohortColumns::CeAssessmentDate.new,
-        ::CohortColumns::CeAssessmentName.new,
-        ::CohortColumns::UserString1.new,
-        ::CohortColumns::UserString2.new,
-        ::CohortColumns::UserString3.new,
-        ::CohortColumns::UserString4.new,
-        ::CohortColumns::UserString5.new,
-        ::CohortColumns::UserString6.new,
-        ::CohortColumns::UserString7.new,
-        ::CohortColumns::UserString8.new,
-        ::CohortColumns::UserString9.new,
-        ::CohortColumns::UserString10.new,
-        ::CohortColumns::UserString11.new,
-        ::CohortColumns::UserString12.new,
-        ::CohortColumns::UserString13.new,
-        ::CohortColumns::UserString14.new,
-        ::CohortColumns::UserString15.new,
-        ::CohortColumns::UserString16.new,
-        ::CohortColumns::UserString17.new,
-        ::CohortColumns::UserString18.new,
-        ::CohortColumns::UserString19.new,
-        ::CohortColumns::UserString20.new,
-        ::CohortColumns::UserString21.new,
-        ::CohortColumns::UserString22.new,
-        ::CohortColumns::UserString23.new,
-        ::CohortColumns::UserString24.new,
-        ::CohortColumns::UserString25.new,
-        ::CohortColumns::UserString26.new,
-        ::CohortColumns::UserString27.new,
-        ::CohortColumns::UserString28.new,
-        ::CohortColumns::UserString28.new,
-        ::CohortColumns::UserString30.new,
-        ::CohortColumns::UserBoolean1.new,
-        ::CohortColumns::UserBoolean2.new,
-        ::CohortColumns::UserBoolean3.new,
-        ::CohortColumns::UserBoolean4.new,
-        ::CohortColumns::UserBoolean5.new,
-        ::CohortColumns::UserBoolean6.new,
-        ::CohortColumns::UserBoolean7.new,
-        ::CohortColumns::UserBoolean8.new,
-        ::CohortColumns::UserBoolean9.new,
-        ::CohortColumns::UserBoolean10.new,
-        ::CohortColumns::UserBoolean11.new,
-        ::CohortColumns::UserBoolean12.new,
-        ::CohortColumns::UserBoolean13.new,
-        ::CohortColumns::UserBoolean14.new,
-        ::CohortColumns::UserBoolean15.new,
-        ::CohortColumns::UserBoolean16.new,
-        ::CohortColumns::UserBoolean17.new,
-        ::CohortColumns::UserBoolean18.new,
-        ::CohortColumns::UserBoolean19.new,
-        ::CohortColumns::UserBoolean20.new,
-        ::CohortColumns::UserBoolean21.new,
-        ::CohortColumns::UserBoolean22.new,
-        ::CohortColumns::UserBoolean23.new,
-        ::CohortColumns::UserBoolean24.new,
-        ::CohortColumns::UserBoolean25.new,
-        ::CohortColumns::UserBoolean26.new,
-        ::CohortColumns::UserBoolean27.new,
-        ::CohortColumns::UserBoolean28.new,
-        ::CohortColumns::UserBoolean29.new,
-        ::CohortColumns::UserBoolean30.new,
-        ::CohortColumns::UserBoolean31.new,
-        ::CohortColumns::UserBoolean32.new,
-        ::CohortColumns::UserBoolean33.new,
-        ::CohortColumns::UserBoolean34.new,
-        ::CohortColumns::UserBoolean35.new,
-        ::CohortColumns::UserBoolean36.new,
-        ::CohortColumns::UserBoolean37.new,
-        ::CohortColumns::UserBoolean38.new,
-        ::CohortColumns::UserBoolean39.new,
-        ::CohortColumns::UserBoolean40.new,
-        ::CohortColumns::UserBoolean41.new,
-        ::CohortColumns::UserBoolean42.new,
-        ::CohortColumns::UserBoolean43.new,
-        ::CohortColumns::UserBoolean44.new,
-        ::CohortColumns::UserBoolean45.new,
-        ::CohortColumns::UserBoolean46.new,
-        ::CohortColumns::UserBoolean47.new,
-        ::CohortColumns::UserBoolean48.new,
-        ::CohortColumns::UserBoolean49.new,
-        ::CohortColumns::UserSelect1.new,
-        ::CohortColumns::UserSelect2.new,
-        ::CohortColumns::UserSelect3.new,
-        ::CohortColumns::UserSelect4.new,
-        ::CohortColumns::UserSelect5.new,
-        ::CohortColumns::UserSelect6.new,
-        ::CohortColumns::UserSelect7.new,
-        ::CohortColumns::UserSelect8.new,
-        ::CohortColumns::UserSelect9.new,
-        ::CohortColumns::UserSelect10.new,
-        ::CohortColumns::UserSelect11.new,
-        ::CohortColumns::UserSelect12.new,
-        ::CohortColumns::UserSelect13.new,
-        ::CohortColumns::UserSelect14.new,
-        ::CohortColumns::UserSelect15.new,
-        ::CohortColumns::UserSelect16.new,
-        ::CohortColumns::UserSelect17.new,
-        ::CohortColumns::UserSelect18.new,
-        ::CohortColumns::UserSelect19.new,
-        ::CohortColumns::UserSelect20.new,
-        ::CohortColumns::UserSelect21.new,
-        ::CohortColumns::UserSelect22.new,
-        ::CohortColumns::UserSelect23.new,
-        ::CohortColumns::UserSelect24.new,
-        ::CohortColumns::UserSelect25.new,
-        ::CohortColumns::UserSelect26.new,
-        ::CohortColumns::UserSelect27.new,
-        ::CohortColumns::UserSelect28.new,
-        ::CohortColumns::UserSelect28.new,
-        ::CohortColumns::UserSelect30.new,
-        ::CohortColumns::UserDate1.new,
-        ::CohortColumns::UserDate2.new,
-        ::CohortColumns::UserDate3.new,
-        ::CohortColumns::UserDate4.new,
-        ::CohortColumns::UserDate5.new,
-        ::CohortColumns::UserDate6.new,
-        ::CohortColumns::UserDate7.new,
-        ::CohortColumns::UserDate8.new,
-        ::CohortColumns::UserDate9.new,
-        ::CohortColumns::UserDate10.new,
-        ::CohortColumns::UserDate11.new,
-        ::CohortColumns::UserDate12.new,
-        ::CohortColumns::UserDate13.new,
-        ::CohortColumns::UserDate14.new,
-        ::CohortColumns::UserDate15.new,
-        ::CohortColumns::UserDate16.new,
-        ::CohortColumns::UserDate17.new,
-        ::CohortColumns::UserDate18.new,
-        ::CohortColumns::UserDate19.new,
-        ::CohortColumns::UserDate20.new,
-        ::CohortColumns::UserDate21.new,
-        ::CohortColumns::UserDate22.new,
-        ::CohortColumns::UserDate23.new,
-        ::CohortColumns::UserDate24.new,
-        ::CohortColumns::UserDate25.new,
-        ::CohortColumns::UserDate26.new,
-        ::CohortColumns::UserDate27.new,
-        ::CohortColumns::UserDate28.new,
-        ::CohortColumns::UserDate29.new,
-        ::CohortColumns::UserDate30.new,
-        ::CohortColumns::UserNumeric1.new,
-        ::CohortColumns::UserNumeric2.new,
-        ::CohortColumns::UserNumeric3.new,
-        ::CohortColumns::UserNumeric4.new,
-        ::CohortColumns::UserNumeric5.new,
-        ::CohortColumns::UserNumeric6.new,
-        ::CohortColumns::UserNumeric7.new,
-        ::CohortColumns::UserNumeric8.new,
-        ::CohortColumns::UserNumeric9.new,
-        ::CohortColumns::UserNumeric10.new,
-      ]
+    def self.excluded_from_analytics
+      Set.new(
+        [
+          ::CohortColumns::LastName,
+          ::CohortColumns::FirstName,
+          ::CohortColumns::Dob,
+          ::CohortColumns::Ssn,
+          ::CohortColumns::Delete,
+        ],
+      )
+    end
+
+    def self.active_columns
+      GrdaWarehouse::Cohorts::CohortColumn.active.map do |column|
+        column.class_name.constantize.new
+      end
+    end
+
+    def self.available_columns
+      GrdaWarehouse::Cohorts::CohortColumn.all.map do |column|
+        column.class_name.constantize.new
+      end
     end
 
     # Attr Accessors
@@ -592,43 +377,41 @@ module GrdaWarehouse
       scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
         rows = []
         batch.each do |cc|
-          cc.assign_attributes(
-            calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
-            days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
-            days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
-            destination_from_homelessness: destination_from_homelessness(cc.client),
-            related_users: related_users(cc.client),
-            disability_verification_date: disability_verification_date(cc.client),
-            missing_documents: missing_documents(cc.client),
-            days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
-            individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
-            most_recent_date_to_street: most_recent_date_to_street(cc.client),
-            sheltered_days_homeless_last_three_years: sheltered_days_homeless_last_three_years(cc.client),
-            unsheltered_days_homeless_last_three_years: unsheltered_days_homeless_last_three_years(cc.client),
-          )
+          time_dependent_methods.each do |column, meth|
+            cc[column] = send(meth, cc.client)
+          end
           rows << cc
         end
         GrdaWarehouse::CohortClient.import(
           rows,
           on_duplicate_key_update: {
             conflict_target: [:id],
-            columns: [
-              :calculated_days_homeless_on_effective_date,
-              :days_homeless_last_three_years_on_effective_date,
-              :days_literally_homeless_last_three_years_on_effective_date,
-              :destination_from_homelessness,
-              :related_users,
-              :disability_verification_date,
-              :missing_documents,
-              :days_homeless_plus_overrides,
-              :individual_in_most_recent_homeless_enrollment,
-              :most_recent_date_to_street,
-              :sheltered_days_homeless_last_three_years,
-              :unsheltered_days_homeless_last_three_years,
-            ],
+            columns: time_dependent_methods.keys,
           },
         )
       end
+    end
+
+    private def time_dependent_methods
+      {
+        calculated_days_homeless_on_effective_date: :calculated_days_homeless,
+        days_homeless_last_three_years_on_effective_date: :days_homeless_last_three_years,
+        days_literally_homeless_last_three_years_on_effective_date: :days_literally_homeless_last_three_years,
+        destination_from_homelessness: :destination_from_homelessness,
+        related_users: :related_users,
+        disability_verification_date: :disability_verification_date,
+        missing_documents: :missing_documents,
+        days_homeless_plus_overrides: :days_homeless_plus_overrides,
+        individual_in_most_recent_homeless_enrollment: :individual_in_most_recent_homeless_enrollment,
+        most_recent_date_to_street: :most_recent_date_to_street,
+        sheltered_days_homeless_last_three_years: :sheltered_days_homeless_last_three_years,
+        unsheltered_days_homeless_last_three_years: :unsheltered_days_homeless_last_three_years,
+        most_recent_cls: :calculated_most_recent_cls,
+        most_recent_prior_living_situation: :calculated_most_recent_prior_living_situation,
+        most_recent_household_type: :calculated_most_recent_household_type,
+        most_recent_self_report_months_homeless: :calculated_most_recent_self_report_months_homeless,
+        most_recent_disabling_condition: :calculated_most_recent_disabling_condition,
+      }
     end
 
     private def inactive_date
@@ -677,9 +460,19 @@ module GrdaWarehouse
       most_recent_enrollment&.presented_as_individual
     end
 
+    # Returns the most recent value for 3.917.3 DateToStreetESSH based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
     private def most_recent_date_to_street(client)
-      most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
-      most_recent_enrollment&.enrollment&.DateToStreetESSH
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope.homeless, client)
+      end
+      return unless item
+
+      item.DateToStreetESSH
     end
 
     private def related_users(client)
@@ -705,8 +498,99 @@ module GrdaWarehouse
       client.processed_service_history&.days_homeless_plus_overrides
     end
 
+    private def most_recent_automaintained_data_item(scope, client)
+      scope.merge(GrdaWarehouse::WarehouseClient.where(destination_id: client.id)).
+        merge(GrdaWarehouse::Hud::Project.joins(:project_groups).merge(GrdaWarehouse::ProjectGroup.where(id: project_group_id))).
+        first
+    end
+
+    private def most_recent_un_automaintained_data_item(scope, client)
+      scope.merge(GrdaWarehouse::WarehouseClient.where(destination_id: client.id)).
+        first
+    end
+
+    # Most recent CLS based on InformationDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to CLS at projects in the project group
+    private def calculated_most_recent_cls(client)
+      scope = GrdaWarehouse::Hud::CurrentLivingSituation.order(information_date: :desc, date_updated: :desc).
+        joins(enrollment: [:project, client: :warehouse_client_source])
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item
+
+      "#{item.situation_label} on #{item.information_date} at #{item.enrollment.project.name}"
+    end
+
+    # Most recent prior LivingSituation based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_prior_living_situation(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item
+
+      "#{item.prior_living_situation_label} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Household type form the most recent enrollment based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_household_type(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item
+
+      # NOTE: we may want to figure out how to batch preload household members in the future
+      # at the moment, we use the default which loads clients for each enrollment
+      "#{item.household_type} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Returns the most recent value for 3.917.5 MonthsHomelessPastThreeYears based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_self_report_months_homeless(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item&.months_homeless_past_three_years
+      # Ignore any unknown values
+      return unless item.months_homeless_past_three_years > 100
+
+      "#{HudUtility2024.months_homeless_past_three_years(item.months_homeless_past_three_years)} on #{item.entry_date} at #{item.project.name}"
+    end
+
+    # Returns the most recent value for DisablingCondition based on EntryDate desc, DateUpdated desc
+    # If the cohort is auto maintained, limit to Enrollments at projects in the project group
+    private def calculated_most_recent_disabling_condition(client)
+      scope = GrdaWarehouse::Hud::Enrollment.order(entry_date: :desc, date_updated: :desc).
+        joins(:project, client: :warehouse_client_source)
+      item = if auto_maintained?
+        most_recent_automaintained_data_item(scope, client)
+      else
+        most_recent_un_automaintained_data_item(scope, client)
+      end
+      return unless item&.disabling_condition
+
+      "#{HudUtility2024.no_yes_reasons_for_missing_data(item.disabling_condition)} on #{item.entry_date} at #{item.project.name}"
+    end
+
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :cohorts)
+      Collection.delayed_system_group_maintenance(group: :cohorts)
     end
 
     def self.maintain_auto_maintained!
@@ -715,6 +599,23 @@ module GrdaWarehouse
 
     def auto_maintained?
       project_group.present?
+    end
+
+    def selected_project_group_viewable_by(user)
+      return true if project_group.blank?
+
+      GrdaWarehouse::ProjectGroup.viewable_by(user).exists?(project_group.id)
+    end
+
+    def project_group_options_for_select(user)
+      options = GrdaWarehouse::ProjectGroup.options_for_select(user: user)
+      # Add the current selected option to the selectable list so it doesn't get overwritten
+      # if the user has the ability to edit the cohort but can't view the selected project group
+      if project_group.present? && !selected_project_group_viewable_by(user)
+        current_selected_data = [[project_group.name, project_group.id]]
+        options |= current_selected_data
+      end
+      options.sort
     end
 
     def maintain
@@ -833,6 +734,10 @@ module GrdaWarehouse
 
     def entity_relation_type
       :cohorts
+    end
+
+    def collection_type
+      'Cohorts'
     end
   end
 end

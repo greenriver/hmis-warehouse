@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Enrolled::Gender
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_gender
-    @enrolled_by_gender ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @enrolled_by_gender ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = gender_buckets.map { |b| [b, []] }.to_h
       counted = {}
       enrolled.

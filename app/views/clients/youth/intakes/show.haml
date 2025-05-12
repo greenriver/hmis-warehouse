@@ -1,8 +1,8 @@
 = render 'breadcrumbs'
-- content_for :title, "Youth Intake for #{@client.full_name}"
+- content_for :title, "Youth Intake"
 
 .d-flex
-  %h1.page-title= content_for :title
+  = render_display_title "Youth Intake for #{@client.pii_provider(user: current_user).full_name}"
   .ml-auto
     - if current_user.can_edit_youth_intake? || current_user.can_edit_own_agency_youth_intake?
       = link_to polymorphic_path([:edit] + youth_intake_path_generator, id: @intake.id), class: 'btn btn-primary' do

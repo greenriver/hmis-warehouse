@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -71,54 +71,45 @@ module HudApr::Generators::Shared::Fy2024
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       q25_populations.values.each_with_index do |population_clause, col_index|
-        households = Set.new # only count each household once
+        # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recT9z9YkbQtWwAmm
+        # "Report each household by type as described in Determining Each Client’s Household Type and Counting Distinct Households,"
+        # which section in turn refers the user to "Unduplicated Household Counts by Individual Attribute" in the HMIS Reporting Glossary.
+        # The instructions in that section of the Reporting Glossary read "Unduplicated household counts should be determined by
+        # performing a distinct count of [personal IDs] of all heads of households (people who have [relationship to head of household] = Self)
+        # in the report range." All household counts in the APR rely on counts of heads of household rather than counts of Household ID.
         q25b_responses.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
+          # limit members only to heads of households. If there is a data issue where ther are more than one HoH for the household,
+          # we want both heads of the household to be included.
           members = universe.members.where(hoh_clause.and(a_t[:household_type].not_eq('children_only'))).
             where.not(a_t[:age].eq(nil).and(a_t[:household_type].eq('unknown'))). # Special case from Datalab test?
             where(population_clause)
 
           ids = Set.new
           if response_clause.is_a?(Symbol)
-            # Count any households where any adult or HoH in the household
             members.preload(:universe_membership).find_each do |member|
               apr_client = member.universe_membership
               case response_clause
               when :chronic
-                if ! households.include?(apr_client.household_id) && household_veterans_chronically_homeless?(apr_client)
-                  ids << member.id
-                  households << apr_client.household_id
-                end
+                # Chronically Homeless Veteran (row 2): Any household with at least one veteran who is chronically homeless.
+                ids << member.id if household_veterans_chronically_homeless?(apr_client)
               when :not_chronic
-                if ! households.include?(apr_client.household_id) && household_veterans_non_chronically_homeless?(apr_client)
-                  ids << member.id
-                  households << apr_client.household_id
-                end
+                # Non-Chronically Homeless Veteran (row 3): Any household not reported above with at least one non-chronically homeless veteran
+                # Households may contain veterans who are CH and other veterans who are not CH. Those HHs should be captured in the :chronic case.
+                ids << member.id if household_veterans_non_chronically_homeless?(apr_client) && !household_veterans_chronically_homeless?(apr_client)
               when :veteran # NOTE: actually not-a-veteran
-                if ! households.include?(apr_client.household_id) && all_household_adults_non_veterans?(apr_client)
-                  ids << member.id
-                  households << apr_client.household_id
-                end
+                ids << member.id if all_household_adults_non_veterans?(apr_client)
               when :refused
-                if ! households.include?(apr_client.household_id) && household_adults_refused_veterans(apr_client).any?
-                  ids << member.id
-                  households << apr_client.household_id
-                end
+                ids << member.id if household_adults_refused_veterans(apr_client).any?
               when :not_collected
-                if ! households.include?(apr_client.household_id) && household_adults_missing_veterans(apr_client).any?
-                  ids << member.id
-                  households << apr_client.household_id
-                end
+                ids << member.id if household_adults_missing_veterans(apr_client).any?
               end
             end
             members = members.where(id: ids)
-          else
-            members = members.where(a_t[:household_id].in(households.to_a))
           end
-
           value = members.count
 
           answer.add_members(members)
@@ -168,7 +159,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25i_destination
-      sub_populations_by_destination_question(question: 'Q25i', members: universe.members.where(veteran_clause))
+      sub_populations_by_destination_question(question: 'Q25i', members: universe.members.where(leavers_clause).where(veteran_clause))
     end
 
     def q25j_exit_destination_subsidy

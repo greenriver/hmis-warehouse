@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,8 +35,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def youth_filter
-      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)).
-        and(a_t[:dob_quality].in([1, 2]))
+      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
     end
 
     private def q27a_youth_age
@@ -455,12 +454,12 @@ module HudApr::Generators::Shared::Fy2024
           value = 0
           case method
           when :average
-            value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
           when :median
             if stay_lengths.any?
               sorted = stay_lengths.sort
               length = stay_lengths.count
-              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round
+              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round(2)
             end
           end
 
@@ -492,7 +491,8 @@ module HudApr::Generators::Shared::Fy2024
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      relevant_members = universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]))
+      # 0 (ES-EE); 1 (EE-NbN); 2 (TH); 3 (PSH); 7 (Other) with 2.06 Funding Source of HUD: Pay for Success (35); 8 (SH); 9 (PH); 13 (RRH)
+      relevant_members = universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]).or(a_t[:pay_for_success].eq(true)))
       q27l_populations.values.each_with_index do |population_clause, col_index|
         q27l_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -594,9 +594,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q27l_lengths
+      # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
       move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
-      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
-        or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
+      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).and(a_t[:pay_for_success].eq(false)).
+        or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(a_t[:adjusted_move_in_date].lteq(@report.end_date)))
       {
         '7 days or less' => a_t[:approximate_time_to_move_in].between(0..7).
           and(move_in_for_psh),
@@ -621,18 +623,18 @@ module HudApr::Generators::Shared::Fy2024
         'Total (persons moved into housing)' => a_t[:approximate_time_to_move_in].not_eq(nil).
           and(a_t[:project_type].not_in(move_in_projects).
             or(a_t[:project_type].in(move_in_projects).
-              and(a_t[:move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:move_in_date]))))),
+              and(a_t[:adjusted_move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:adjusted_move_in_date]))))),
         'Not yet moved into housing' => a_t[:project_type].not_in(move_in_projects).
           and(a_t[:date_to_street].not_eq(nil).
             and(a_t[:date_to_street].lteq(a_t[:first_date_in_program])).
             and(a_t[:approximate_time_to_move_in].eq(nil))).
           or(a_t[:project_type].in(move_in_projects).
-            and(a_t[:move_in_date].eq(nil).or(a_t[:move_in_date].gt(@report.end_date)))),
+            and(a_t[:adjusted_move_in_date].eq(nil).or(a_t[:adjusted_move_in_date].gt(@report.end_date)))),
         'Data not collected' => a_t[:project_type].not_in(move_in_projects).
           and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:first_date_in_program]))).
           or(a_t[:project_type].in(move_in_projects).
-            and(a_t[:move_in_date].lteq(@report.end_date).
-              and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),
+            and(a_t[:adjusted_move_in_date].lteq(@report.end_date).
+              and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:adjusted_move_in_date]))))),
         'Total persons' => youth_filter,
       }.freeze
     end

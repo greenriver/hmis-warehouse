@@ -1,4 +1,10 @@
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 #
@@ -9,5 +15,6 @@ module Types
 
     value 'AUTO_EXIT', description: 'Auto Exit'
     value 'AUTO_ENTER', description: 'Auto Enter'
+    value 'STAFF_ASSIGNMENT', description: 'Staff Assignment'
   end
 end

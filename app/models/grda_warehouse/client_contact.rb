@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,20 @@ module GrdaWarehouse
   class ClientContact < GrdaWarehouseBase
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :source, polymorphic: true
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :full_name
+    pii_attr :phone
+    pii_attr :phone_alternate, as: :phone
+    pii_attr :email
+    pii_attr :address, as: :geo_street
+    pii_attr :address2, as: :geo_street
+    pii_attr :city, as: :geo_locality
+    pii_attr :state, as: :geo_admin_1
+    pii_attr :zip, as: :geo_postal_code
+    pii_attr :note, as: :free_text
 
     scope :shelter_agency_contacts, -> do
       where(

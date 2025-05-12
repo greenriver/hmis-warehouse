@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,12 +19,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  let(:household_size) { 5 }
   let!(:enrollment) do
     client = create :hmis_hud_client_complete, data_source: ds1, user: u1
     hoh = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, relationship_to_hoh: 1
-    3.times do
+    # Create N enrollments. Each will be missing an intake, so should have 1 reminder.
+    (household_size - 1).times do
       member = create :hmis_hud_client_complete, data_source: ds1, user: u1
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: member, user: u1, relationship_to_hoh: 99
+      create(:hmis_hud_enrollment, household_id: hoh.household_id, data_source: ds1, project: p1, client: member, relationship_to_hoh: 6)
     end
     hoh
   end
@@ -42,6 +44,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               overdue
               enrollment {
                 id
+                intakeAssessment {
+                  id
+                }
+                exitAssessment {
+                  id
+                }
               }
               client {
                 id
@@ -60,14 +68,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'minimizes n+1 queries' do
       expect do
         _, result = post_graphql(**variables) { query }
-        expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
-      end.to make_database_queries(count: 10..30)
+        expect(result.dig('data', 'enrollment', 'reminders').size).to eq(household_size)
+      end.to make_database_queries(count: 10..35)
     end
 
     it 'is responsive' do
       expect do
         _, result = post_graphql(**variables) { query }
-        expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
+        expect(result.dig('data', 'enrollment', 'reminders').size).to eq(household_size)
       end.to perform_under(300).ms
     end
   end

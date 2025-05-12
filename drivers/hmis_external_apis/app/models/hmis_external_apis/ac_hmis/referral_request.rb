@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,7 @@ module HmisExternalApis::AcHmis
     self.table_name = 'hmis_external_referral_requests'
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated
+    include ::Hmis::Hud::Concerns::FormSubmittable
 
     # needed for duck-typing in submit form mutation
     attr_accessor :data_source_id

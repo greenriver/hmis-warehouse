@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,13 +22,27 @@ module HmisCsvTwentyTwentyFour::Importer
     end
 
     scope :residential, -> do
-      where(ProjectType: HudUtility2024.residential_project_type_ids)
+      where(
+        arel_table[:ProjectType].in(HudUtility2024.residential_project_type_ids - [13]).
+        or(
+          arel_table[:ProjectType].eq(13).
+          # NOTE: officially, only RRHSubType 2 count as residential, but old data won't always have
+          # the RRHSubType, assume those are residential as well
+          and(arel_table[:RRHSubType].eq(2).or(arel_table[:RRHSubType].eq(nil))),
+        ),
+      )
     end
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
       warehouse_class.importable.where(data_source_id: data_source_id, ProjectID: project_ids)
+    end
+
+    # Projects are inherantly not being deleted due to how the import is filtering to only use projects included in the import file.
+    # This override is added as a redundancy and also to make it easier to identify import file types disallowing deletions.
+    def self.prevent_import_deletions?
+      true
     end
 
     def self.warehouse_class

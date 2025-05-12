@@ -9,13 +9,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -3724,7 +3717,9 @@ CREATE TABLE public.import_configs (
     encrypted_passphrase character varying,
     encrypted_passphrase_iv character varying,
     encrypted_secret_key character varying,
-    encrypted_secret_key_iv character varying
+    encrypted_secret_key_iv character varying,
+    type character varying,
+    active boolean DEFAULT false
 );
 
 
@@ -4709,7 +4704,9 @@ CREATE TABLE public.qualifying_activities (
     procedure_valid boolean DEFAULT false NOT NULL,
     ignored boolean DEFAULT false,
     valid_unpayable_reasons character varying[],
-    deleted_at date
+    deleted_at date,
+    claim_metadata_type character varying,
+    claim_metadata_id bigint
 );
 
 
@@ -8490,6 +8487,13 @@ CREATE INDEX index_patient_referrals_on_deleted_at ON public.patient_referrals U
 
 
 --
+-- Name: index_patient_referrals_on_patient_id_and_current; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_patient_referrals_on_patient_id_and_current ON public.patient_referrals USING btree (patient_id, current);
+
+
+--
 -- Name: index_patients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8557,6 +8561,13 @@ CREATE INDEX index_premium_payments_on_deleted_at ON public.premium_payments USI
 --
 
 CREATE INDEX index_qualifying_activities_on_claim_id ON public.qualifying_activities USING btree (claim_id);
+
+
+--
+-- Name: index_qualifying_activities_on_claim_metadata; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_qualifying_activities_on_claim_metadata ON public.qualifying_activities USING btree (claim_metadata_type, claim_metadata_id);
 
 
 --
@@ -9292,6 +9303,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240126184731'),
 ('20240318191704'),
 ('20240327144840'),
-('20240402142808');
+('20240402142808'),
+('20240515205603'),
+('20240710141900'),
+('20240726191502'),
+('20240726193601'),
+('20240807182354'),
+('20240807183449'),
+('20240807185011');
 
 

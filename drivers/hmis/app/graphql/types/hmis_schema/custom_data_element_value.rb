@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,5 +18,6 @@ module Types
     field :value_text, String, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
     field :value_json, Types::JsonObject, null: true
+    field :value_file, HmisSchema::File, null: true
   end
 end

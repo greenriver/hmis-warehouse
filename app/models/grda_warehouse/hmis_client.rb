@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,12 +9,18 @@
 class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   include NotifierConfig
 
+  include HasPiiAttributes
+  pii_attr :assigned_staff_name, as: :full_name
+  pii_attr :case_manager_name, as: :full_name
+  pii_attr :counselor_name, as: :full_name
+  pii_attr :outreach_counselor_name, as: :full_name
+
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
-  serialize :case_manager_attributes, Hash
-  serialize :assigned_staff_attributes, Hash
-  serialize :counselor_attributes, Hash
-  serialize :outreach_counselor_attributes, Hash
+  serialize :case_manager_attributes, type: Hash
+  serialize :assigned_staff_attributes, type: Hash
+  serialize :counselor_attributes, type: Hash
+  serialize :outreach_counselor_attributes, type: Hash
   attr_accessor :phone, :email, :language_1, :language_2, :youth_current_zip
 
   scope :consent_active, -> do

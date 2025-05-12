@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,7 +30,7 @@ module HealthComprehensiveAssessment
     def update
       prior_completion = @assessment.completed_on
       @assessment.update(ca_params)
-      # Generate a completed QA if the asessment is newly completed, or the completion date was changed
+      # Generate a completed QA if the assessment is newly completed, or the completion date was changed
       @patient.qa_factory_factory.complete_ca(@assessment) if @assessment.completed_on.present? && @assessment.completed_on != prior_completion
       respond_with @assessment, location: client_health_careplans_path(@client)
     end

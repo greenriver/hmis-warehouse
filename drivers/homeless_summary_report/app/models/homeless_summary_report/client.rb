@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,10 @@
 module HomelessSummaryReport
   class Client < GrdaWarehouseBase
     acts_as_paranoid
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
@@ -22,15 +26,7 @@ module HomelessSummaryReport
     ].freeze
     DEMOGRAPHIC_VARIANTS = [
       :all,
-      :mid_east_n_african,
-      :hispanic_latinaeo,
-      :black_african_american,
-      :asian,
-      :american_indian_alaskan_native,
-      :native_hawaiian_other_pacific_islander,
-      :white,
-      :multi_racial,
-      :race_none,
+      *HudUtility2024.race_ethnicity_combinations.keys,
       :fleeing_dv,
       :veteran,
       :has_disability,
@@ -40,11 +36,28 @@ module HomelessSummaryReport
       :returned_to_homelessness_from_permanent_destination,
     ].freeze
 
+    # Some field names are too long for postgres, so this provides some shortening rules
+    def self.adjust_attribute_name(name)
+      name = name.to_s
+      return name.to_sym if name.length <= 63
+
+      {
+        without_children_and_fifty_five_plus: :nc_55,
+        adults_with_children_where_parenting_adult_18_to_24: :wc_18_to_24,
+        returned_to_homelessness_from_permanent_destination: :returned,
+      }.each do |raw, abbrev|
+        name.gsub!(raw.to_s, abbrev.to_s)
+        return name.to_sym if name.length <= 63
+      end
+
+      raise "Couldn't truncate attribute name #{name}"
+    end
+
     HOUSEHOLD_VARIANTS.each do |variant_slug|
       DEMOGRAPHIC_VARIANTS.each do |sub_variant_slug|
         variant = "spm_#{variant_slug}__#{sub_variant_slug}".to_sym
-        scope variant, -> { where(arel_table[variant[0..62]].gt(0)) }
-        alias_attribute(variant, variant[0..62]) # Some fields are too long for postgres
+        scope variant, -> { where(arel_table[adjust_attribute_name(variant)].gt(0)) }
+        alias_attribute(variant, adjust_attribute_name(variant))
       end
     end
 
@@ -53,8 +66,8 @@ module HomelessSummaryReport
     scope :spm_m1b_es_sh_ph_days, -> { where(arel_table[:spm_m1b_es_sh_ph_days].gt(0)) }
     scope :spm_m1b_es_sh_th_ph_days, -> { where(arel_table[:spm_m1b_es_sh_th_ph_days].gt(0)) }
 
-    scope :spm_m2_reentry_days, -> { where(arel_table[:spm_m2_reentry_days].gteq(0)) }
-    scope :spm_m2_reentry_0_to_180_days, -> { where(arel_table[:spm_m2_reentry_days].between(1..180)) }
+    scope :spm_m2_reentry_days, -> { where(arel_table[:spm_m2_reentry_days].gteq(-1)) }
+    scope :spm_m2_reentry_0_to_180_days, -> { where(arel_table[:spm_m2_reentry_days].between(0..180)) }
     scope :spm_m2_reentry_181_to_365_days, -> { where(arel_table[:spm_m2_reentry_days].between(181..365)) }
     scope :spm_m2_reentry_366_to_730_days, -> { where(arel_table[:spm_m2_reentry_days].between(366..730)) }
 
@@ -76,10 +89,18 @@ module HomelessSummaryReport
       new.tap do |defaulted|
         HOUSEHOLD_VARIANTS.each do |household_category|
           DEMOGRAPHIC_VARIANTS.each do |demographic_category|
-            defaulted["spm_#{household_category}__#{demographic_category}"[0..62]] = 0
+            defaulted[adjust_attribute_name("spm_#{household_category}__#{demographic_category}")] = 0
           end
         end
       end
+    end
+
+    def show_cell?(name, value)
+      case name.to_sym
+      when :m2_reentry_days
+        return false if value.negative?
+      end
+      return true
     end
   end
 end

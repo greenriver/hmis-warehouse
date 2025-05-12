@@ -1,0 +1,12 @@
+- content_for :title, 'Upload Access Control Data'
+%h1= content_for :title
+.d-flex
+  %p
+    The following form can be used to upload an appropriately formatted set of data to back Access Controls.  This should be an Excel file with 3 tabs defining Roles, Users, and Collections.
+    = link_to 'A sample file is available for download.', sample_admin_acl_imports_path
+  .well.ml-4
+    = simple_form_for :access_controls, url: admin_acl_imports_path do |f|
+      = f.input :file, as: :file
+      = f.button :submit, value: 'Upload'
+
+= render 'table'

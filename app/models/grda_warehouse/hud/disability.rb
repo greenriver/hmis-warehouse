@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +25,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
 
     has_one :client, through: :enrollment, inverse_of: :disabilities
     has_one :project, through: :enrollment
@@ -144,6 +146,17 @@ module GrdaWarehouse::Hud
         ::HudUtility2024.disability_response(self.DisabilityResponse)
       else
         ::HudUtility2024.no_yes_reasons_for_missing_data(self.DisabilityResponse)
+      end
+    end
+
+    def measured_viral_load
+      return nil unless hiv?
+
+      case viral_load_available
+      when 1
+        viral_load
+      when 2 # undetectable
+        0
       end
     end
 

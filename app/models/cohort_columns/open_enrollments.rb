@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class OpenEnrollments < ReadOnly
@@ -55,6 +57,10 @@ module CohortColumns
           end
         end
       end.join(' ').html_safe
+    end
+
+    def analytics_value
+      text_value(cohort_client)
     end
   end
 end

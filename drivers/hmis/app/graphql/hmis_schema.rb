@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@ class HmisSchema < GraphQL::Schema
   query(Types::HmisSchema::QueryType)
 
   trace_with(GraphqlTraceBehavior)
+  trace_with(GraphQL::Tracing::SentryTrace) if Sentry.configuration&.traces_sample_rate&.positive?
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   # - after upgrade to Rails 7.1 we could replace Dataloader with AsyncDataloader for performance
@@ -45,5 +46,17 @@ class HmisSchema < GraphQL::Schema
   def self.object_from_id(global_id, _query_ctx)
     # For example, use Rails' GlobalID library (https://github.com/rails/globalid):
     GlobalID.find(global_id)
+  end
+
+  # Raise exception when `authorized?` returns false for an object (Default behavior is to return nil)
+  # This is an unexpected error because we should always be doing permission checks
+  # (e.g. applying viewable_by scope) before trying to resolve something.
+  def self.unauthorized_object(error)
+    raise GraphQL::UnauthorizedError, "#{error.type.graphql_name}##{error.object&.id} failed authorization check"
+  end
+
+  # Return nil for unauthorized fields. This is expeced in some cases, for example non-summary fields on Enrollment.
+  def self.unauthorized_field(_error)
+    nil
   end
 end

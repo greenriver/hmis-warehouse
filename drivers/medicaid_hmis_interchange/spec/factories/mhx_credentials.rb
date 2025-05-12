@@ -1,5 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
-  factory :mhx_sftp_credentials, class: 'Health::ImportConfig' do
+  factory :mhx_sftp_credentials, class: 'Health::ImportConfigPassword' do
     host { 'sftp' }
     path { '/sftp' }
     username { 'user' }

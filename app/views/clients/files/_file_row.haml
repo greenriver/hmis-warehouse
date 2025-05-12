@@ -31,7 +31,7 @@
           .label.label-info.mb-2 Confidential
         - if file.visible_in_window
           .font-italic.mb-2 This file is visible in the window
-        - if file.client_file.variable?
+        - if ! file.client_file.variable?
           .mb-2
             = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
               %span.icon-eye
@@ -78,6 +78,8 @@
                   = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }, label: Translation.translate('Consent form confirmed')
             = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
               = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
+            - if file.revoked?
+              %dd Revoked or Refused By: #{file.consent_revoked_by_user&.name}
             - if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
               = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
                 = f.input :expiration_date, as: :date_picker, label: 'Expiration Date', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
@@ -86,6 +88,7 @@
               %dl
                 - if file.revoked?
                   %dt Consent revoked on #{file.consent_revoked_at.to_date}
+                  %dd Consent revoked by #{file.consent_revoked_by_user.name}
                 - else
                   %dt
                     = checkmark file.consent_form_confirmed

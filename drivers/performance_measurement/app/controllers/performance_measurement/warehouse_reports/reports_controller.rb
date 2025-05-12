@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module PerformanceMeasurement::WarehouseReports
   class ReportsController < ApplicationController
@@ -15,7 +17,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :require_can_access_some_version_of_clients!, only: [:clients]
     before_action :require_my_project!, only: [:clients]
     before_action :require_can_publish_reports!, only: [:raw, :update]
-    before_action :set_report, except: [:index, :create, :details]
+    before_action :set_report, except: [:index, :create, :details, :clients]
     before_action :set_pdf_export, only: [:show]
 
     @include_in_published_version = false
@@ -163,7 +165,11 @@ module PerformanceMeasurement::WarehouseReports
       @pdf_export = PerformanceMeasurement::DocumentExports::ReportExport.new
     end
 
-    def formatted_cell(cell, key)
+    def formatted_cell(cell, key, project_id: nil)
+      if project_id.present? && key.to_s.include?('bed_details') && cell.is_a?(Array)
+        value = cell.detect { |m| m.key?(project_id.to_s) }.try(:[], project_id.to_s)
+        return value if value.present?
+      end
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
       return view_context.yes_no(cell) if cell.in?([true, false])
 

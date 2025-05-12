@@ -4,60 +4,9 @@
   "text": "VAMC Station Number",
   "data_collected_about": "HOH",
   "prefill": true,
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: HUD-VASH"
-      },
-      {
-        "operator": "ALL",
-        "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "VA: SSVF"
-          },
-          {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 13
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "VA: GPD"
-      },
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "VA: Community Contract Safe Haven"
-      },
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "VA: CRS Contract Residential Services"
-      }
-    ]
-  },
   "item": [
     {
-      "link_id": "V6.1",
+      "link_id": "V6_1",
       "type": "CHOICE",
       "required": false,
       "warn_if_empty": true,

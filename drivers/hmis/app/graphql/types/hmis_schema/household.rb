@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,15 @@ module Types
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
 
+    field :current_staff_assignments, [HmisSchema::StaffAssignment], null: false
+    # historical paginated staff assignments. no longer used to fetch "current" staff assignments because of performance reasons, the currentStaffAssignments field is used instead.
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true do
+      argument :is_currently_assigned, Boolean, required: false
+    end
+    field :any_in_progress, Boolean, null: false
+    field :earliest_entry_date, GraphQL::Types::ISO8601Date, null: false
+    field :latest_exit_date, GraphQL::Types::ISO8601Date, null: true
+
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
     # object is a Hmis::Hud::Household
@@ -24,6 +33,7 @@ module Types
       arg :open_on_date, GraphQL::Types::ISO8601Date
       arg :hoh_age_range, HmisSchema::Enums::AgeRange
       arg :search_term, String
+      arg :assigned_staff, ID
     end
 
     def household_clients
@@ -45,6 +55,33 @@ module Types
 
     def assessments(**args)
       resolve_assessments(**args)
+    end
+
+    def current_staff_assignments
+      load_ar_association(object, :staff_assignments, scope: Hmis::StaffAssignment.order(created_at: :desc, id: :desc))
+    end
+
+    # This field results in N+1 because it is paginated.
+    # It is only used for displaying the staff assignment history for a particular household,
+    # so 'is_currently_assigned: false' is always passed from the frontend.
+    # When loading staff assignments on a *batch* of households, use the 'current_staff_assignments' field instead.
+    def staff_assignments(is_currently_assigned: true)
+      scope = object.staff_assignments.order(created_at: :desc, id: :desc)
+      return scope if is_currently_assigned
+
+      scope.only_deleted.order(created_at: :desc, deleted_at: :desc, id: :desc)
+    end
+
+    def any_in_progress
+      object.any_wip?
+    end
+
+    def earliest_entry_date
+      object.earliest_entry
+    end
+
+    def latest_exit_date
+      object.latest_exit
     end
   end
 end

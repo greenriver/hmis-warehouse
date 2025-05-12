@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -82,7 +82,7 @@ module MedicaidHmisInterchange
     end
 
     def self.sftp_credentials
-      ::Health::ImportConfig.find_by(kind: :medicaid_hmis_exchange)
+      ::Health::ImportConfig.active.find_by(kind: :medicaid_hmis_exchange)
     end
 
     private def sftp_credentials

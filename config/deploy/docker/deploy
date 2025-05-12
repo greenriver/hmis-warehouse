@@ -5,14 +5,16 @@ require_relative 'lib/deployer'
 
 args = CommandArgs.new
 
+# Keep track of first deployed revision (git hash), so we can deploy the same revision to all target groups
+revision = nil
+
 args.deployments.each_with_index do |deployment, idx|
-  puts "Deploying #{deployment[:target_group_name]} #{idx}..."
+  deployment[:revision] = revision if idx.positive? && revision.present?
+  deployer = Deployer.new(**deployment)
+  revision ||= deployer.revision # Set revision for next deployments
 
-  # If this is not the first deployment in a group, skip the git check, so that it doesn't fail
-  # mid-group if a new commit is pushed.
-  deployment[:skip_remote_git_check] = true unless idx.zero?
-
-  Deployer.new(**deployment).run!
+  puts "Deploying #{deployer.version} to #{deployer.target_group_name} (#{idx + 1}/#{args.deployments.count})..."
+  deployer.run!
 
   # poll between deployments to prevent scaling out too much while we have
   # double the web containers.

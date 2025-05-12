@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,6 +31,8 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
+    field :accepting_ce_referrals, Boolean, null: false
 
     def user
       user = load_ar_association(object, :user)
@@ -56,6 +58,20 @@ module Types
 
     def name
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
+    end
+
+    def latest_opportunity
+      load_ar_association(object, :latest_opportunity)
+    end
+
+    def accepting_ce_referrals
+      # First check for an existing opportunity. If there is none, or it's already closed, then this unit isn't accepting referrals
+      latest_opportunity = load_ar_association(object, :latest_opportunity)
+      return false if latest_opportunity.nil? || latest_opportunity.closed?
+
+      # Otherwise, the unit is only accepting referrals if the opportunity doesn't already have an active referral.
+      # (The opportunity is open, so it shouldn't have an accepted referral. Possible referral statuses are either active or rejected.)
+      load_ar_association(object, :active_referral).nil?
     end
   end
 end

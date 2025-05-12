@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,12 @@ class PerformanceDashboards::Base
   include ActionView::Helpers::NumberHelper
   include Filter::ControlSections
   include Filter::FilterScopes
+
+  EXPIRATION_LENGTH = if Rails.env.development?
+    10.seconds
+  else
+    5.minutes
+  end
 
   # Initialize dashboard model.
   #
@@ -175,6 +181,13 @@ class PerformanceDashboards::Base
 
   def open_enrollments
     report_scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date)
+  end
+
+  def display_value(value)
+    return 'Yes' if value == true
+    return 'No' if value == false
+
+    value
   end
 
   private def period_exists_sql(period)

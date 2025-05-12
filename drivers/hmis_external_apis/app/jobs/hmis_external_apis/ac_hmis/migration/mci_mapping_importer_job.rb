@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisExternalApis::AcHmis::Migration
   class MciMappingImporterJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     attr_accessor :aws
 
     def initialize

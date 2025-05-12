@@ -1,17 +1,14 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ReportingBase < ApplicationRecord
-  include ArelHelper
+# frozen_string_literal: false
+
+class ReportingBase < ActiveRecord::Base
+  include CustomApplicationRecord
 
   self.abstract_class = true
-
   connects_to database: { writing: :reporting, reading: :reporting }
-
-  def self.needs_migration?
-    ActiveRecord::MigrationContext.new('db/reporting/migrate', Reporting::SchemaMigration).needs_migration?
-  end
 end

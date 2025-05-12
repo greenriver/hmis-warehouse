@@ -1,26 +1,22 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
 
-    CACHE_VERSION = '1aa'.freeze
+    CACHE_VERSION = '1aa'
     CACHE_LIFETIME = 30.minutes.freeze
-
-    RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
-      GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(1).pluck(:st)
-    rescue StandardError
-      'UNKNOWN'
-    end
 
     private def state_coc_shapes
       GrdaWarehouse::Shape::Coc.where(
-        st: RELEVANT_COC_STATE,
+        st: GrdaWarehouse::Config.relevant_state_codes,
       )
     end
 

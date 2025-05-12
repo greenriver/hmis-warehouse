@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # The export is generated elsewhere. This just orchestrates running the job and
 # returning the result.
@@ -13,9 +15,11 @@ module HmisExternalApis::AcHmis::Exporters
 
     attr_accessor :export
 
-    delegate :content, to: :export
+    def content
+      export.hmis_zip.download
+    end
 
-    def run!
+    def run!(start_date: 3.years.ago.to_date)
       data_source = HmisExternalApis::AcHmis.data_source
       user = User.system_user
       version = '2024'
@@ -24,7 +28,7 @@ module HmisExternalApis::AcHmis::Exporters
         data_source_ids: [data_source.id],
         version: version,
         user_id: user.id,
-        start_date: 3.years.ago.to_date,
+        start_date: start_date,
       )
 
       Rails.logger.info 'Generating HMIS CSV Export'

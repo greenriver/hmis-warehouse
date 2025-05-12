@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisExternalApis::ExternalFormsController < ActionController::Base
   include ::HmisExternalApis::ExternalFormsHelper
+  include LogRagePayloadBehavior
 
   before_action do
     # Only allow calling the controller directly in development. See PublishExternalFormsJob for production usage
@@ -25,15 +26,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   def show
     # to refresh form content
     object_key = params[:object_key]
-    definition = Hmis::Form::Definition.where(external_form_object_key: object_key).first!
-
-    if params[:freshen_from_file]
-      file_path = Rails.root.join("drivers/hmis/lib/form_data/tarrant_county/external_forms/#{File.basename(object_key)}.json")
-      definition.definition = JSON.parse(File.read(file_path))
-      Hmis::Form::Definition.validate_json(definition.definition) { |msg| raise msg }
-      definition.title = definition.definition['name']
-      definition.save!
-    end
+    definition = Hmis::Form::Definition.published.where(external_form_object_key: object_key).first!
 
     HmisExternalApis::PublishExternalFormsJob.new.perform(definition.id)
     definition.reload

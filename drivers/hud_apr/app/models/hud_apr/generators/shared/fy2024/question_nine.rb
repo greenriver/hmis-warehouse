@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -107,11 +107,11 @@ module HudApr::Generators::Shared::Fy2024
         },
         {
           column: 'C',
-          situations: HudUtility2024.living_situations.keys - [16, 1, 18, 37, 8, 9, 99],
+          situations: HudUtility2024.living_situations.keys - [116, 101, 118, 37, 8, 9, 99],
         },
         {
           column: 'D',
-          situations: [16, 1, 18],
+          situations: [116, 101, 118],
         },
         {
           column: 'E',

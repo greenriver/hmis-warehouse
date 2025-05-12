@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,5 +42,13 @@ module GrdaWarehouse::Hud
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
     belongs_to :data_source
+
+    def name
+      "#{user_first_name} #{user_last_name}"
+    end
+
+    def name_and_email
+      "#{name} (#{user_email})"
+    end
   end
 end

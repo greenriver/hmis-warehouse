@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +12,6 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
     include ApplicationHelper
-    include Filter::FilterScopes
     include ActionView::Helpers::TagHelper
     include ActionView::Context
 
@@ -44,6 +45,7 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
+    attribute :funder_others, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :secondary_cohort_ids, Array, default: []
     attribute :cohort_column, String, default: nil
@@ -76,16 +78,19 @@ module Filters
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :days_since_contact_min, Integer, default: nil
+    attribute :days_since_contact_max, Integer, default: nil
+    # destination_client_ids_for_days_since_contact_calculations is used to increase performance
+    # of the CTEs used to filter for days since contact.  Set this directly if necessary
+    attribute :destination_client_ids_for_days_since_contact_calculations, Array, default: []
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
     attribute :mask_small_populations, Boolean, default: false
     attribute :secondary_project_ids, Array, default: []
     attribute :secondary_project_group_ids, Array, default: []
-
-    # NOTE: this is needed to support old reports with existing options hashes containing ethnicities
-    # we won't actually do anything with it
     attribute :ethnicities, Array, default: []
+    attribute :race_ethnicity_combinations, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -100,9 +105,9 @@ module Filters
 
       filters = filters.to_h.with_indifferent_access
 
-      self.on = filters.dig(:on)&.to_date || on
-      self.start = filters.dig(:start)&.to_date || start
-      self.end = filters.dig(:end)&.to_date || self.end
+      self.on = parse_strict_date(filters.dig(:on)) || on
+      self.start = parse_strict_date(filters.dig(:start)) || start
+      self.end = parse_strict_date(filters.dig(:end)) || self.end
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
@@ -133,6 +138,7 @@ module Filters
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i).presence || organization_ids
       self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_ids
       self.funder_ids = filters.dig(:funder_ids)&.reject(&:blank?)&.map(&:to_i).presence || funder_ids
+      self.funder_others = filters.dig(:funder_others)&.reject(&:blank?)&.presence || funder_others
       self.veteran_statuses = filters.dig(:veteran_statuses)&.reject(&:blank?)&.map(&:to_i).presence || veteran_statuses
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map(&:to_sym).presence || age_ranges
       self.genders = filters.dig(:genders)&.reject(&:blank?)&.map(&:to_i).presence || genders
@@ -171,17 +177,32 @@ module Filters
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
       self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.days_since_contact_min = filters.dig(:days_since_contact_min).to_i unless filters.dig(:days_since_contact_min).blank?
+      self.days_since_contact_max = filters.dig(:days_since_contact_max).to_i unless filters.dig(:days_since_contact_max).blank?
       self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
       self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
       self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
       self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
       self.secondary_project_ids = filters.dig(:secondary_project_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_ids
       self.secondary_project_group_ids = filters.dig(:secondary_project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_group_ids
+      self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2024.ethnicities.keys.include?(ethnicity.to_s.to_sym) }.presence&.map(&:to_sym) || ethnicities
+      self.race_ethnicity_combinations = filters.dig(:race_ethnicity_combinations)&.select { |value| HudUtility2024.race_ethnicity_combinations.keys.include?(value.to_sym) }.presence&.map(&:to_sym) || race_ethnicity_combinations
 
       ensure_dates_work if valid?
       self
     end
-    alias set_from_params update
+    alias_method :set_from_params, :update
+
+    private def safe_to_date(val)
+      case val.presence
+      when Date, nil
+        return val
+      when String
+        return Date.strptime(val, '%b %d, %Y') if val.match?(/\A\w{3} +\d{1,2}, +\d{4}\z/)
+        return Date.strptime(val, '%Y-%m-%d') if val.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      end
+      raise ArgumentError, "Invalid date format: #{val.inspect}"
+    end
 
     def for_params
       {
@@ -200,11 +221,13 @@ module Filters
           organization_ids: organization_ids,
           project_ids: project_ids,
           funder_ids: funder_ids,
+          funder_others: funder_others,
           veteran_statuses: veteran_statuses,
           age_ranges: age_ranges,
           genders: genders,
           sub_population: sub_population,
           races: races,
+          ethnicities: ethnicities,
           project_group_ids: project_group_ids,
           cohort_ids: cohort_ids,
           secondary_cohort_ids: secondary_cohort_ids,
@@ -244,6 +267,9 @@ module Filters
           mask_small_populations: mask_small_populations,
           secondary_project_ids: secondary_project_ids,
           secondary_project_group_ids: secondary_project_group_ids,
+          race_ethnicity_combinations: race_ethnicity_combinations,
+          days_since_contact_min: days_since_contact_min,
+          days_since_contact_max: days_since_contact_max,
         },
       }
     end
@@ -251,7 +277,7 @@ module Filters
     def to_h
       for_params[:filters]
     end
-    alias inspect to_h
+    alias_method :inspect, :to_h
 
     def known_params
       [
@@ -285,6 +311,8 @@ module Filters
         :cohort_column_housed_date,
         :cohort_column_matched_date,
         :dates_to_compare,
+        :days_since_contact_min,
+        :days_since_contact_max,
         :active_roi,
         :mask_small_populations,
         coc_codes: [],
@@ -300,6 +328,7 @@ module Filters
         organization_ids: [],
         project_ids: [],
         funder_ids: [],
+        funder_others: [],
         project_group_ids: [],
         cohort_ids: [],
         secondary_cohort_ids: [],
@@ -316,6 +345,8 @@ module Filters
         optional_files: [],
         secondary_project_ids: [],
         secondary_project_group_ids: [],
+        ethnicities: [],
+        race_ethnicity_combinations: [],
       ]
     end
 
@@ -338,12 +369,14 @@ module Filters
       projects: 'Projects',
       project_groups: 'Project Groups',
       funders: 'Funders',
+      funder_others: 'Other or Local Funders',
       hoh_only: 'Heads of Household only?',
       coordinated_assessment_living_situation_homeless: 'Including CE homeless at entry',
       ce_cls_as_homeless: 'Including CE Current Living Situation Homeless',
       household_type: 'Household Type',
       age_ranges: 'Age Ranges',
       races: 'Races',
+      ethnicities: 'Ethnicity',
       genders: 'Genders',
       veteran_statuses: 'Veteran Statuses',
       length_of_time: 'Length of Time',
@@ -364,6 +397,8 @@ module Filters
       times_homeless_in_last_three_years: 'Times Homeless in Past 3 Years',
       require_service: 'Require Service During Range',
       dates_to_compare: 'Dates to Compare',
+      days_since_contact_min: 'Days Since Contact Min',
+      days_since_contact_max: 'Days Since Contact Max',
       required_files: 'Required Files',
       optional_files: 'Optional Files',
       active_roi: 'With Active ROI',
@@ -371,6 +406,7 @@ module Filters
       mask_small_populations: 'Mask Small Populations',
       secondary_projects: 'Secondary Projects',
       secondary_project_groups: 'Secondary Project Groups',
+      race_ethnicity_combinations: 'Race & Ethnicity',
     }.freeze
 
     private def label(key, labels)
@@ -394,12 +430,14 @@ module Filters
         opts[label(:projects, labels)] = project_names(project_ids) if project_ids.any?
         opts[label(:project_groups, labels)] = project_groups if project_group_ids.any?
         opts[label(:funders, labels)] = funder_names if funder_ids.any?
+        opts[label(:funder_others, labels)] = funder_others if funder_others.any?
         opts[label(:hoh_only, labels)] = 'Yes' if hoh_only
         opts[label(:coordinated_assessment_living_situation_homeless, labels)] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts[label(:ce_cls_as_homeless, labels)] = 'Yes' if ce_cls_as_homeless
         opts[label(:household_type, labels)] = chosen_household_type if household_type
         opts[label(:age_ranges, labels)] = chosen_age_ranges if age_ranges.any?
         opts[label(:races, labels)] = chosen_races if races.any?
+        opts[label(:ethnicities, labels)] = chosen_ethnicities if ethnicities.any?
         opts[label(:genders, labels)] = chosen_genders if genders.any?
         opts[label(:veteran_statuses, labels)] = chosen_veteran_statuses if veteran_statuses.any?
         opts[label(:length_of_time, labels)] = length_of_times if length_of_times.any?
@@ -425,6 +463,7 @@ module Filters
         opts[label(:mask_small_populations, labels)] = 'Yes' if mask_small_populations
         opts[label(:secondary_projects, labels)] = project_names(secondary_project_ids) if secondary_project_ids.any?
         opts[label(:secondary_project_groups, labels)] = project_names(secondary_project_group_ids) if secondary_project_group_ids.any?
+        opts[label(:race_ethnicity_combinations, labels)] = chosen_race_ethnicity_combinations if race_ethnicity_combinations.any?
       end
     end
 
@@ -501,6 +540,14 @@ module Filters
       "#{s.to_fs} - #{e.to_fs}"
     end
 
+    def days_since_contact_words
+      return 'Any' if days_since_contact_min.blank? && days_since_contact_max.blank?
+      return "#{days_since_contact_min} or more days" if days_since_contact_max.blank? || days_since_contact_max.zero?
+      return "#{days_since_contact_max} or fewer days" if days_since_contact_min.blank? || days_since_contact_min.zero?
+
+      "Between and #{days_since_contact_min} and #{days_since_contact_max} days"
+    end
+
     def length
       (self.end - start).to_i
     rescue StandardError
@@ -511,96 +558,79 @@ module Filters
       all_project_scope.where(id: effective_project_ids)
     end
 
+    # This filter supports project-level reports (as opposed to enrollment-level);
+    # it's also used in non-reporting context by project group
     def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids += effective_project_ids_from_coc_codes
+      @effective_project_ids ||= begin
+        project_ids = effective_project_ids_from_projects
+        project_ids += effective_project_ids_from_project_groups
+        project_ids += effective_project_ids_from_organizations
+        project_ids += effective_project_ids_from_data_sources
+        project_ids += effective_project_ids_from_coc_codes
 
-      # Add an invalid id if there are none
-      @effective_project_ids = [0] if @effective_project_ids.empty?
+        # Add an invalid id if there are none
+        project_ids = [0] if project_ids.empty?
 
-      @effective_project_ids.uniq.reject(&:blank?)
+        project_ids.uniq.reject(&:blank?)
+      end
     end
 
     def any_effective_project_ids?
       effective_project_ids.reject { |m| m&.zero? }.present?
     end
 
+    # This filter supports project-level reports (as opposed to enrollment-level)
     def anded_effective_project_ids
-      ids = []
-      ids << effective_project_ids_from_projects
-      ids << effective_project_ids_from_project_groups
-      ids << effective_project_ids_from_organizations
-      ids << effective_project_ids_from_data_sources
-      ids << effective_project_ids_from_coc_codes
-      ids << effective_project_ids_from_project_types
-      ids.reject(&:empty?).reduce(&:&)
+      @anded_effective_project_ids ||= begin
+        ids = []
+        ids << effective_project_ids_from_projects
+        ids << effective_project_ids_from_project_groups
+        ids << effective_project_ids_from_organizations
+        ids << effective_project_ids_from_data_sources
+        ids << effective_project_ids_from_coc_codes
+        ids << effective_project_ids_from_project_types
+
+        ids.reject(&:empty?).reduce(&:&)
+      end
+    end
+
+    def apply_criteria(scope, tags:, except: [], **opts)
+      except = Array.wrap(except)
+      # default configuration options.
+      defaults = {
+        project_types: @project_types,
+        all_project_types: nil,
+        include_date_range: true,
+        chronic_at_entry: true,
+        report_scope_source: nil,
+        join_clients_method: :client,
+      }
+      config = ::Filters::Criteria::Configuration.new(**defaults.merge(opts))
+
+      # instantiate criteria
+      criteria = ::Filters::Criteria.classes_for_tags(tags).map do |criteria_class|
+        criteria_class.new(input: self, config: config)
+      end
+
+      # remove any explicitly excluded criteria.
+      criteria.reject! { |c| except.include?(c.id) } if except.any?
+
+      # apply only criteria that are applicable.
+      criteria.filter(&:applies?).reduce(scope) do |result, criterion|
+        criterion.apply(result)
+      end
     end
 
     # Apply all known scopes
-    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
-      @report_scope_source = report_scope_source
-      @filter = self
-
-      scope = apply_project_level_restrictions(scope, all_project_types: all_project_types, multi_coc_code_filter: multi_coc_code_filter, include_date_range: include_date_range)
-      scope = apply_client_level_restrictions(scope, chronic_at_entry: chronic_at_entry)
-      scope
-    end
-
-    def apply_client_level_restrictions(scope, chronic_at_entry: true)
-      @filter = self
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_destination(scope)
-      scope = filter_for_disabilities(scope)
-      scope = filter_for_indefinite_disabilities(scope)
-      scope = filter_for_dv_status(scope)
-      scope = filter_for_dv_currently_fleeing(scope)
-      scope = if chronic_at_entry
-        filter_for_chronic_at_entry(scope)
-      else
-        filter_for_chronic_status(scope)
-      end
-      scope = filter_for_rrh_move_in(scope)
-      scope = filter_for_psh_move_in(scope)
-      scope = filter_for_first_time_homeless_in_past_two_years(scope)
-      scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope = filter_for_active_roi(scope)
-      scope = filter_for_times_homeless(scope)
-      scope
-    end
-
-    def apply_project_level_restrictions(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
-      @filter = self
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) if include_date_range
-      scope = if multi_coc_code_filter
-        filter_for_cocs(scope)
-      else
-        filter_for_coc(scope)
-      end
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope
-    end
-
-    def report_scope_source
-      @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment.entry
+    def apply(scope, report_scope_source, all_project_types: nil, include_date_range: true, chronic_at_entry: true)
+      apply_criteria(
+        scope,
+        tags: [:warehouse],
+        report_scope_source: report_scope_source,
+        all_project_types: all_project_types,
+        include_date_range: include_date_range,
+        chronic_at_entry: chronic_at_entry,
+      )
     end
 
     def all_projects?
@@ -637,6 +667,10 @@ module Filters
 
     def funder_ids
       @funder_ids.reject(&:blank?)
+    end
+
+    def funder_others
+      @funder_others.reject(&:blank?)
     end
 
     def cohort_ids
@@ -770,8 +804,12 @@ module Filters
       all_funders_scope.options_for_select(user: user)
     end
 
-    def coc_code_options_for_select(user:)
-      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
+    def funder_other_options_for_select(user:)
+      all_funders_scope.options_for_select_other(user: user)
+    end
+
+    def coc_code_options_for_select(user:, permission: :can_view_assigned_reports)
+      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user, permission: permission)
     end
 
     def project_groups_options_for_select(user:)
@@ -786,7 +824,7 @@ module Filters
     # This should give us a reasonable list of options to choose from
     def cohort_columns_for_select
       initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
-      GrdaWarehouse::Cohort.available_columns.select do |column|
+      GrdaWarehouse::Cohort.active_columns.select do |column|
         column.column.in?(initialized_columns) && ! column.title.match?(/^User Select \d+$/)
       end.map do |column|
         [
@@ -797,7 +835,7 @@ module Filters
     end
 
     def cohort_columns_for_dates
-      GrdaWarehouse::Cohort.available_columns.select do |column|
+      GrdaWarehouse::Cohort.active_columns.select do |column|
         # Ignore non-dates and untranslated custom dates
         column.class.ancestors.include?(CohortColumns::CohortDate) && ! column.title.match?(/^User Date \d+$/)
       end.map do |column|
@@ -917,6 +955,13 @@ module Filters
       }.invert.freeze
     end
 
+    def self.age_range(key)
+      age_ranges = ::Filters::Criteria::FilterForAge::AGE_RANGES
+      return age_ranges.fetch(key) if age_ranges.key?(key)
+
+      raise ArgumentError, "Unknown age range key: #{key}"
+    end
+
     def self.available_census_age_ranges
       {
         zero_to_four: '0 - 4',
@@ -936,67 +981,6 @@ module Filters
 
     def available_age_ranges
       self.class.available_age_ranges
-    end
-
-    def self.age_range(description)
-      case description
-      when :zero_to_four
-        0..4
-      when :five_to_nine
-        5..9
-      when :five_to_ten
-        5..10
-      when :ten_to_fourteen
-        10..14
-      when :eleven_to_fourteen
-        11..14
-      when :fifteen_to_seventeen
-        15..17
-      when :under_eighteen
-        0..17
-      when :eighteen_to_twenty_four
-        18..24
-      when :twenty_five_to_twenty_nine
-        25..29
-      when :twenty_five_to_thirty_four
-        25..34
-      when :thirty_to_thirty_four
-        30..34
-      when :thirty_five_to_thirty_nine
-        35..39
-      when :thirty_five_to_forty_four
-        35..44
-      when :thirty_to_thirty_nine
-        30..39
-      when :forty_to_forty_four
-        40..44
-      when :forty_five_to_forty_nine
-        45..49
-      when :forty_five_to_fifty_four
-        45..54
-      when :forty_to_forty_nine
-        40..49
-      when :fifty_to_fifty_four
-        50..54
-      when :fifty_five_to_fifty_nine
-        55..59
-      when :fifty_five_to_sixty_four
-        55..64
-      when :sixty_to_sixty_one
-        60..61
-      when :sixty_two_to_sixty_four
-        62..64
-      when :over_sixty_one
-        62..110
-      when :over_sixty_four
-        65..110
-      when :sixty_five_to_seventy_four
-        65..74
-      when :seventy_five_to_eighty_four
-        75..84
-      when :eighty_five_plus
-        85..110
-      end
     end
 
     def available_inactivity_days
@@ -1124,6 +1108,8 @@ module Filters
         label(:project_groups, labels)
       when :funder_ids
         label(:funders, labels)
+      when :funder_others
+        label(:funder_others, labels)
       when :project_type_codes, :project_type_ids, :project_type_numbers
         label(:project_types, labels)
       when :heads_of_household, :hoh_only
@@ -1180,6 +1166,10 @@ module Filters
         chosen_age_ranges
       when :races
         chosen_races
+      when :ethnicities
+        chosen_ethnicities
+      when :race_ethnicity_combinations
+        chosen_race_ethnicity_combinations
       when :genders
         chosen_genders
       when :coc_codes
@@ -1196,6 +1186,8 @@ module Filters
         chosen_project_groups
       when :funder_ids
         chosen_funding_sources
+      when :funder_others
+        chosen_funding_other_sources
       when :veteran_statuses
         chosen_veteran_statuses
       when :household_type
@@ -1284,6 +1276,18 @@ module Filters
       end
     end
 
+    def chosen_race_ethnicity_combinations
+      race_ethnicity_combinations.map do |combination|
+        HudUtility2024.race_ethnicity_combination(combination)
+      end
+    end
+
+    def chosen_ethnicities
+      ethnicities.map do |ethnicity|
+        HudUtility2024.ethnicity(ethnicity)
+      end
+    end
+
     def chosen_genders
       genders.map do |gender|
         HudUtility2024.gender(gender)
@@ -1342,6 +1346,12 @@ module Filters
       return nil unless funder_ids.reject(&:blank?).present?
 
       funder_ids.map { |code| "#{HudUtility2024.funding_source(code&.to_i)} (#{code})" }
+    end
+
+    def chosen_funding_other_sources
+      return nil unless funder_others.reject(&:blank?).present?
+
+      funder_others.select(&:present?)
     end
 
     def chosen_veteran_statuses
@@ -1424,6 +1434,8 @@ module Filters
         'System-Wide'
       when 2
         'Project-Focused'
+      when 3
+        'HIC'
       else
         'Auto Select'
       end
@@ -1446,6 +1458,8 @@ module Filters
     end
 
     def project_names(ids = project_ids)
+      return [] if ids.blank?
+
       project_options_for_select(user: user).
         values.
         flatten(1).
@@ -1614,6 +1628,26 @@ module Filters
       else
         [start_date, end_date]
       end
+    end
+
+    # Strict date parser for filter params.
+    # Accepts:
+    #   - Date objects (returns as-is)
+    #   - nil (returns nil)
+    #   - Strings in 'Mon dd, yyyy' (e.g. 'Apr 27, 2025')
+    #   - Strings in 'YYYY-mm-dd' (e.g. '2025-04-27')
+    # Raises ArgumentError for anything else.
+    private def parse_strict_date(val)
+      case val.presence
+      when Date, nil
+        return val
+      when DateTime, Time, ActiveSupport::TimeWithZone
+        return val.to_date
+      when String
+        return Date.strptime(val, '%b %d, %Y') if val.match?(/\A\w{3} +\d{1,2}, +\d{4}\z/)
+        return Date.strptime(val, '%Y-%m-%d') if val.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+      end
+      raise ArgumentError, "Invalid date format: #{val.inspect}"
     end
   end
 end

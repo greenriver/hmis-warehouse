@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,7 @@ module Admin
     before_action :set_job, only: [:update, :destroy]
 
     def index
-      @jobs = job_scope.all.order(priority: :asc, run_at: :asc, queue: :asc)
+      @pagy, @jobs = pagy(job_scope.order(priority: :asc, run_at: :asc, queue: :asc))
     end
 
     def update

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module Types
     field :assessment_level, HmisSchema::Enums::Hud::AssessmentLevel, null: true
     field :prioritization_status, HmisSchema::Enums::Hud::PrioritizationStatus, null: true
     field :client, HmisSchema::Client, null: false
+    field :form_definition_id, ID, null: true, description: 'Form Definition that was most recently used to create/update this record'
 
     def enrollment
       load_ar_association(object, :enrollment)
@@ -26,6 +27,10 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def form_definition_id
+      load_ar_association(object, :form_processor)&.definition_id
     end
   end
 end

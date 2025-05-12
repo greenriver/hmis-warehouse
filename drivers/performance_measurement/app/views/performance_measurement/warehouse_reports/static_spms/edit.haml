@@ -1,0 +1,6 @@
+- title = Translation.translate('Edit Static SPM for Comparison Calculations')
+- content_for :modal_title, title
+= simple_form_for @spm, as: :spm, url: performance_measurement_warehouse_reports_goal_config_static_spm_path(@goal, @spm)  do |f|
+  = render 'form', f: f
+
+  = f.button :submit, 'Update Static SPM'

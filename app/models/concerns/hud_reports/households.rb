@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -108,25 +108,46 @@ module HudReports::Households
       # and the HoH enrollment for children if HoH status is unknown
       return hoh if hoh[:chronic_detail].in?([:dk_or_r, :missing])
 
+      # if we have an indeterminate response for the child, use the hoh
+      return hoh if current_member[:chronic_detail].in?([:dk_or_r, :missing])
+
       current_member
     end
 
-    private def calculate_move_in_date(hh_id, she)
-      return nil unless she.move_in_date.present?
-
-      move_in_date = she.move_in_date
-      # If the move-in-date is valid, just use it
-      return move_in_date if move_in_date >= she.first_date_in_program
-
-      # If the client moved in before the entry date, and the HoH was present on the move-in date, use the
-      # entry date as the move-in date.
+    private def calculate_hh_move_in_date(hh_id, she)
+      # Get HoH for further calculations
       household_members = households[hh_id]
-      hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
-      return nil unless hoh.present?
-      return she.first_date_in_program if hoh[:entry_date] <= move_in_date
+      hoh = household_members&.detect { |hm| hm[:relationship_to_hoh] == 1 }
+
+      # HoH does not exist or does not have a move-in date - cannot do further calculations
+      return nil unless hoh.present? && hoh[:move_in_date].present?
+
+      # [Handling Housing Move-In Dates] - https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
+
+      # Heads of household with [housing move-in dates] prior to their [project start dates] should have the [housing move-in dates] disregarded entirely.
+      return nil unless hoh[:entry_date] <= hoh[:move_in_date]
+
+      # When a household member was already in the household when they became housed (individual’s [project
+      # start date] <= head of household’s [housing move-in date]), the head of household’s [housing move-in date]
+      # should be used as the individual’s [housing move-in date]. If the household member exited before the
+      # household moved into housing, they do not inherit this [housing move-in date].
+      return hoh[:move_in_date] if (she.entry_date..she.exit_date).cover?(hoh[:move_in_date])
+
+      # When a household member joins the household after they are already housed (individual’s [project start
+      # date] > head of household’s [housing move-in date]), the individual’s [project start date] should be used as
+      # the individual’s [housing move-in date].
+      return she.entry_date if she.entry_date > hoh[:move_in_date]
 
       # Otherwise this move-in is completely invalid
       nil
+    end
+
+    private def calculate_move_in_date(hh_id, she)
+      move_in_date = she.move_in_date
+      # If the move-in-date is valid, just use it
+      return move_in_date if move_in_date.present? && move_in_date >= she.entry_date
+
+      calculate_hh_move_in_date(hh_id, she)
     end
 
     private def calculate_households
@@ -142,7 +163,7 @@ module HudReports::Households
         )
         enrollments_by_client_id.each do |_, enrollments|
           enrollments.each do |enrollment|
-            @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
+            @hoh_enrollments[enrollment.household_id] = enrollment if enrollment.head_of_household?
             next unless enrollment&.enrollment&.client.present?
 
             date = [enrollment.first_date_in_program, @report.start_date].max
@@ -160,6 +181,7 @@ module HudReports::Households
               # Include dates for determining if someone was present at assessment date
               entry_date: enrollment.first_date_in_program,
               exit_date: enrollment.last_date_in_program,
+              move_in_date: enrollment.move_in_date,
             }.with_indifferent_access
           end
         end

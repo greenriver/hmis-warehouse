@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class AvailableForMatchingInCas < ReadOnly
@@ -20,12 +22,22 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client) # OK
+    def value(cohort_client)
       checkmark_or_x text_value(cohort_client)
     end
 
+    # NOTE: depending on how availability is calculated, calling
+    # active_in_cas? may cause N+1 queries
     def text_value(cohort_client)
       cohort_client.client.active_in_cas?
+    end
+
+    def analytics_value
+      text_value(cohort_client)
+    end
+
+    def analytics_data_type
+      'boolean'
     end
   end
 end

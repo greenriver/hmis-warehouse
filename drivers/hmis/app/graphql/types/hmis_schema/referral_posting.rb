@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,13 +8,19 @@ module Types
   class HmisSchema::ReferralPosting < Types::BaseObject
     description 'A referral for a household of one or more clients'
 
+    include Types::HmisSchema::HasCustomDataElements
+
+    available_filter_options do
+      arg :status, [HmisSchema::Enums::ReferralPostingStatus]
+    end
+
     field :id, ID, null: false
 
     # Fields that come from Referral
     field :referral_identifier, ID
-    field :referral_date, GraphQL::Types::ISO8601DateTime, null: false
+    field :referral_date, GraphQL::Types::ISO8601Date, null: false
     field :referred_by, String, null: false
-    field :referral_notes, String
+    field :referral_notes, String, description: 'Note associated with the Referral that came from an External API'
     field :chronic, Boolean
     field :hud_chronic, Boolean
     field :score, Integer
@@ -28,23 +34,25 @@ module Types
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
     # Fields that come from Posting
-    field :resource_coordinator_notes, String
+    field :resource_coordinator_notes, String, description: 'Note associated with the Referral Posting that either came from the External API, or was entered when creating a referral within HMIS'
     field :posting_identifier, ID, method: :identifier
     field :assigned_date, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :referral_request, HmisSchema::ReferralRequest
     field :status, HmisSchema::Enums::ReferralPostingStatus, null: false
     field :status_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_updated_by, String
-    field :status_note, String
+    field :status_note, String, description: 'Note associated with the status (E.g. why it was accepted pending / denied pending)'
     field :status_note_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_note_updated_by, String
     field :denial_reason, HmisSchema::Enums::ReferralPostingDenialReasonType
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
-    field :denial_note, String
+    field :denial_note, String, description: 'Admin Note associated with the denial (entered from the Denial Screen)'
     field :referred_from, String, null: false, description: 'Name of project or external source that the referral originated from'
-    field :unit_type, HmisSchema::UnitTypeObject, null: false
-    field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to'
+    field :referred_to, String, null: true, description: 'Name of the Project that household is being referred to'
+    field :unit_type, HmisSchema::UnitTypeObject, null: true
+    field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to, if user can access it'
     field :organization, HmisSchema::Organization, null: true
+    custom_data_elements_field
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
@@ -98,11 +106,15 @@ module Types
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: project)
 
       # client.hud_chronic causes n+1 queries, only use when resolving 1 posting
-      !!referred_hoh_client.hud_chronic?(scope: referred_hoh_client.enrollments)
+      !!referred_hoh_client.destination_client&.as_warehouse&.hud_chronic?(scope: referred_hoh_client.enrollments)
     end
 
     def referred_from
       enrollment_project&.project_name || 'Coordinated Entry'
+    end
+
+    def referred_to
+      load_ar_association(object, :project)&.project_name
     end
 
     def organization
@@ -129,6 +141,10 @@ module Types
       referral.service_coordinator
     end
 
+    def unit_type
+      load_ar_association(object, :unit_type)
+    end
+
     [:referral_date, :referral_notes, :chronic, :score, :needs_wheelchair_accessible_unit].each do |name|
       define_method(name) do
         referral.send(name)
@@ -136,7 +152,10 @@ module Types
     end
 
     def project
-      load_ar_association(object, :project)
+      receiving_project = load_ar_association(object, :project)
+      return unless current_permission?(permission: :can_view_project, entity: receiving_project)
+
+      receiving_project
     end
 
     def referral

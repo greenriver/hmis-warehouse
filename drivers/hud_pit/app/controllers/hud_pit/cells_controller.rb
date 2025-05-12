@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HudPit
   class CellsController < ::HudReports::BaseController
@@ -33,12 +35,5 @@ module HudPit
         end
       end
     end
-
-    def formatted_cell(cell)
-      return cell.to_json if cell.is_a?(Array) || cell.is_a?(Hash)
-
-      cell
-    end
-    helper_method :formatted_cell
   end
 end

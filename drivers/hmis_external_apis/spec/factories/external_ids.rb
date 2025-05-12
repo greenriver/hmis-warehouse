@@ -1,7 +1,13 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :external_id, class: 'HmisExternalApis::ExternalId' do
     sequence(:value) do |n|
-      n + 123_450
+      (n + 123_450).to_s
     end
 
     trait :mci do

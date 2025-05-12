@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 require 'csv'
 
@@ -86,6 +88,72 @@ module HmisDataCleanup
 
         Rails.logger.info "Set HoH in #{rows_affected} single-member households"
       end
+    end
+
+    # Change any RelationshipToHoH values that are 99 (Data not collected) to 5 (Unrelated household member)
+    # 99 is not a valid option for RelationshipToHoH, and causes flags in the LSA. Reference issue #7127.
+    def self.fix_relationship_to_hoh_99s!
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(relationship_to_hoh: 99).
+          update_all(relationship_to_hoh: 5) # skips callbacks
+
+        Rails.logger.info "Set RelationshipToHoH 99=>5 on #{rows_affected} Enrollments"
+      end
+    end
+
+    # Change any DisablingCondition values on the Enrollment that are nil to 99
+    def self.fix_disabling_condition_nils!
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(disabling_condition: nil).
+          update_all(disabling_condition: 99) # skips callbacks
+
+        Rails.logger.info "Set DisablingCondition nil=>99 on #{rows_affected} Enrollments"
+      end
+    end
+
+    # Race and Gender values should always be 0 or 1
+    def self.fix_race_gender_99s!
+      without_papertrail_or_timestamps do
+        clients = Hmis::Hud::Client.hmis
+
+        fix_99s_for_category!(
+          clients,
+          category: 'Race',
+          none_field: 'RaceNone',
+          fields: HudUtility2024.races.keys.excluding('RaceNone'),
+        )
+
+        fix_99s_for_category!(
+          clients,
+          category: 'Gender',
+          none_field: 'GenderNone',
+          fields: HudUtility2024.gender_fields.excluding(:GenderNone),
+        )
+      end
+    end
+
+    def self.fix_99s_for_category!(clients, category:, none_field:, fields:)
+      # Build a scope that matches clients where ANY of the <Race|Gender> fields equals 99
+      clients_with_bad_99s = fields.
+        map { |field| clients.where(field => 99) }.
+        reduce { |memo, scope| memo.or(scope) }
+
+      # Construct SQL to update fields: set to 0 if it's 99, otherwise leave it unchanged
+      update_sql = fields.map do |field|
+        quoted_field = "\"#{field}\""
+        "#{quoted_field} = CASE WHEN #{quoted_field} = 99 THEN 0 ELSE #{quoted_field} END"
+      end.join(', ')
+
+      rows_affected = clients_with_bad_99s.update_all(update_sql)
+      Rails.logger.info "Set #{category} fields 99=>0 on #{rows_affected} Clients"
+
+      # Build a scope that matches clients where ALL of the <Race|Gender> fields are 0
+      clients_with_all_fields_empty = clients.where(**fields.to_h { |f| [f, 0] })
+
+      # IF ALL <Race|Gender> fields are 0 but the <Race|Gender>None field is nil, it should be set to 99 Data Not Collected
+      clients_with_bad_nonefield = clients_with_all_fields_empty.where(none_field => nil)
+      rows_affected = clients_with_bad_nonefield.update_all(none_field => 99)
+      Rails.logger.info "Set #{none_field} fields nil=>99 on #{rows_affected} Clients"
     end
 
     # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
@@ -610,6 +678,71 @@ module HmisDataCleanup
       #   clobber: false,
       #   delete_dangling_records: false,
       # )
+    end
+
+    # This method removes Move-in Dates for non-HoH Enrollments. (Except in cases where the household has no HoH).
+    # ***This is a destructive operation.***
+    # It is recommended to first generate and download a report from OP Analytics that contains all the Move-in Dates
+    # where (move_in_date IS NOT NULL) AND (is_head_of_household = FALSE) and provide it to the client so they
+    # have the historical record of Move-in Dates on household members.
+    #
+    # Per HUD standards, Move-in Date is only collected for HoH. This is for cleaning up migrated-in data so we don't
+    # have incorrect Move-in Dates floating around for non-HoH members, which affects reporting (specifically APR timeliness).
+    # Non-HoH Member Move-in Dates are also visible in the Warehouse Enrollment dashboard.
+    # Note: Even if all HHMs have the same MoveInDate, we still clear it out here because the
+    # HMIS system does NOT propagate Move-in Date changes to other members when the MID value is changed on the HoH.
+    def self.clear_household_move_in_dates!(data_source_id = GrdaWarehouse::DataSource.hmis.sole.id)
+      # Non-HoH Enrollments that have a Move-in Date
+      Hmis::Hud::Enrollment.where(data_source_id: data_source_id).
+        where.not(RelationshipToHoH: 1).where.not(MoveInDate: nil).
+        in_batches do |enrollments|
+        # Find the HoH Move-in Dates for the households we are cleaning up
+        # Array<[HouseholdID, HoH's MoveInDate]>
+        hohs = Hmis::Hud::Enrollment.where(data_source_id: data_source_id).
+          heads_of_households.
+          where(household_id: enrollments.pluck(:HouseholdID)).
+          pluck(:household_id, :move_in_date).to_h
+
+        enrollments_to_update = []
+        hoh_mid_missing = 0
+        hoh_mid_differs = 0
+        hoh_mid_same = 0
+
+        enrollments.each do |enrollment|
+          # This household doesn't have a HoH designated, so we should skip it because we don't know what the "real" Move-in Date is
+          next unless hohs.key?(enrollment.household_id)
+
+          old_move_in_date = enrollment.move_in_date
+          # Move-in Date should be cleared on this Enrollment, because they are not a HoH.
+          enrollment.move_in_date = nil
+          enrollments_to_update << enrollment
+
+          # Just for logging purposes:
+          hoh_mid = hohs[enrollment.household_id]
+          if !hoh_mid.present?
+            hoh_mid_missing += 1 # HoH doesn't have a Move-in Date
+          elsif hoh_mid != old_move_in_date
+            hoh_mid_differs += 1 # HoH and Member have different Move-in Dates
+          else
+            hoh_mid_same += 1 # HoH and Member have same Move-in Dates
+          end
+        end
+
+        msgs = [
+          "HoH has no Move-in Date: #{hoh_mid_missing}",
+          "HoH has different Move-in Date: #{hoh_mid_differs}",
+          "HoH has same Move-in Date: #{hoh_mid_same}",
+        ]
+        Rails.logger.info "Clearing #{enrollments_to_update.count} Move-in Dates. #{msgs.join(', ')}"
+
+        result = Hmis::Hud::Enrollment.import(
+          enrollments_to_update,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:MoveInDate] },
+          validate: false,
+          timestamps: false,
+        )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+      end
     end
   end
 end

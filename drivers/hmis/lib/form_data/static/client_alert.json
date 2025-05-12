@@ -23,7 +23,7 @@
     },
     {
       "type": "DATE",
-      "required": false,
+      "required": true,
       "link_id": "expirationDate",
       "text": "Alert Duration / Expiration",
       "mapping": {
@@ -33,9 +33,16 @@
         {
           "id": "min-expiration",
           "type": "MIN",
-          "_comment": "entry date cannot be in the past",
+          "_comment": "expiry date must be tomorrow or later",
           "value_local_constant": "$today",
           "offset": 1
+        },
+        {
+          "id": "max-expiration",
+          "type": "MAX",
+          "_comment": "expiry date cannot be more than 10 years in the future",
+          "value_local_constant": "$today",
+          "offset": 3650
         }
       ]
     }

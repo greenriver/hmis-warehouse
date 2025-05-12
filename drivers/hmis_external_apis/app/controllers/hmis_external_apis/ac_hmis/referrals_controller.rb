@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,10 +24,10 @@ module HmisExternalApis::AcHmis
       errors = validate_request(unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      (referral, errors) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
+      (referral, errors, message) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      json = { message: 'Referral Created', id: referral.identifier }
+      json = { message: message, id: referral.identifier }
       request_log.update!(response: json, http_status: 200)
       render json: json
     rescue JSON::ParserError => e

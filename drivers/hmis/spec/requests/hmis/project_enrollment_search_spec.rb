@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -84,6 +86,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         households = result.dig('data', 'project', 'households', 'nodes')
         expect(households.map { |r| r.fetch('id') }).to eq expected
       end
+    end
+
+    it 'does not crash if term contains a hyphen' do
+      filters = { searchTerm: '000-0' }
+      response, result = post_graphql(id: p1.id, filters: filters) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'project', 'households', 'nodes')).to eq([])
     end
   end
 

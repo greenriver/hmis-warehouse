@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,15 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
       project_id: ->(r) { r.enrollment&.project&.id },
     },
   )
+
+  include HasPiiAttributes
+  pii_attr :line1, as: :geo_street
+  pii_attr :line2, as: :geo_street
+  pii_attr :city, as: :geo_locality
+  pii_attr :state, as: :geo_admin_1
+  pii_attr :district, as: :geo_admin_2
+  pii_attr :postal_code, as: :geo_postal_code
+  pii_attr :notes, as: :free_text, level: 2
 
   USE_VALUES = [
     :home,

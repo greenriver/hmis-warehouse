@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,6 +48,7 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
   before do
     allow(s3_client_double).to receive(:list_objects).and_return([s3_object_double])
     allow(s3_client_double).to receive(:delete).with(key: anything).and_return(true)
+    allow(s3_client_double).to receive(:count).and_return(1)
     allow(s3_client_double).to receive(:get_as_io).with(key: anything).and_return(StringIO.new(submission_document))
   end
 

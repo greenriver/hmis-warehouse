@@ -1,8 +1,13 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
+
+# HMIS uses similar but separate permissions system from the warehouse
+# See drivers/hmis/doc/PERMISSIONS.md
 
 class Hmis::AccessGroup < ApplicationRecord
   self.table_name = :hmis_access_groups
@@ -43,6 +48,13 @@ class Hmis::AccessGroup < ApplicationRecord
     )
   end
 
+  scope :contains_with_inherited, ->(entity) do
+    collection_ids = Hmis::GroupViewableEntity.
+      includes_entity(entity).
+      pluck(:collection_id)
+    where(id: collection_ids)
+  end
+
   def self.text_search(text)
     return none unless text.present?
 
@@ -76,10 +88,8 @@ class Hmis::AccessGroup < ApplicationRecord
         scope.where.not(entity_id: ids).destroy_all
         # Allow re-use of previous assignments
         (ids - scope.pluck(:entity_id)).each do |id|
-          scope.with_deleted.
-            where(entity_id: id).
-            first_or_create.
-            restore
+          gve = scope.with_deleted.where(entity_id: id).first_or_create!
+          gve.restore if gve.deleted?
         end
       end
     end
@@ -179,6 +189,13 @@ class Hmis::AccessGroup < ApplicationRecord
     end.compact.join('<br />')
   end
 
+  def entity_names
+    {
+      data_sources: data_sources.map(&:name),
+      organizations: organizations.map(&:OrganizationName),
+      projects: projects.map(&:ProjectName),
+    }
+  end
   private def project_overlap
     @project_overlap ||= {}.tap do |po|
       data_sources.each do |entity|

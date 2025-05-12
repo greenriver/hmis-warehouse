@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,13 +11,13 @@ module PerformanceDashboard::Overview::Enrolled::Coc
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_coc
-    @enrolled_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @enrolled_by_coc ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: PerformanceDashboards::Overview::EXPIRATION_LENGTH) do
       buckets = coc_buckets.map { |b| [b, []] }.to_h
       counted = {}
-      enrolled.joins(:enrollment_coc_at_entry).
+      enrolled.joins(:enrollment).
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, ec_t[:CoCCode], :first_date_in_program).each do |id, coc, _|
+        pluck(:client_id, e_t[:enrollment_coc], :first_date_in_program).each do |id, coc, _|
           counted[coc_bucket(coc)] ||= Set.new
           buckets[coc_bucket(coc)] ||= []
           buckets[coc_bucket(coc)] << id unless counted[coc_bucket(coc)].include?(id)
@@ -48,7 +50,7 @@ module PerformanceDashboard::Overview::Enrolled::Coc
     else
       enrolled_by_coc.values.flatten
     end
-    details = enrolled.joins(:client, enrollment: :enrollment_coc_at_entry).
+    details = enrolled.joins(:client, :enrollment).
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(coc_query(sub_key)) if sub_key

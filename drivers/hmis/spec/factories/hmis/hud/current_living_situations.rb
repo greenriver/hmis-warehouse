@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 FactoryBot.define do
   factory :hmis_current_living_situation, class: 'Hmis::Hud::CurrentLivingSituation', parent: :hmis_base_factory do
@@ -13,5 +15,8 @@ FactoryBot.define do
     current_living_situation { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
+    after(:create) do |cls|
+      cls.update(VerifiedBy: Hmis::Hud::Project.find(cls.verified_by_project_id).name) if cls.verified_by_project_id
+    end
   end
 end

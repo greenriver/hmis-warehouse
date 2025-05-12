@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,8 @@ module Mutations
         Hmis::ProjectAutoEnterConfig
       when 'AUTO_EXIT'
         Hmis::ProjectAutoExitConfig
+      when 'STAFF_ASSIGNMENT'
+        Hmis::ProjectStaffAssignmentConfig
       else raise "Unsupported type: #{input.config_type}"
       end
 

@@ -6,16 +6,11 @@ namespace :export do
     next unless HmisEnforcement.hmis_enabled?
     next unless GrdaWarehouse::DataSource.hmis.exists?
 
-    [
-      'clients_with_mci_ids_and_address',
-      'hmis_csv_export',
-      'project_crosswalk',
-      'move_in_addresses',
-      'postings',
-      'custom_fields',
-      'pathways',
-    ].each do |export_mode|
-      HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later(export_mode)
-    end
+    # Daily uploads to AC Data Warehouse
+    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('daily_uploads')
+
+    # Quarterly upload to AC Data Warehouse (10-year lookback HMIS CSV)
+    today = Date.current
+    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('quarterly_uploads') if today == today.beginning_of_quarter
   end
 end

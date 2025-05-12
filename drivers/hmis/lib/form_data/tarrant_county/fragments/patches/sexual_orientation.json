@@ -7,6 +7,7 @@
         "link_id": "sexual_orientation",
         "text": "Sexual Orientation",
         "mapping": {
+          "record_type": "CLIENT",
           "custom_field_key": "sexual_orientation"
         },
         "component": "DROPDOWN",

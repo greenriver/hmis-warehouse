@@ -1,9 +1,11 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Snapshot client enrollment histories for auditing
+# * note this job seems to stop and re-queue itself frequently, probably to free worker processes
 module Confidence
   class AddEnrollmentChangeHistoryJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)

@@ -1,12 +1,19 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisUtil
   class JsonForms
+    JsonFormException = Class.new(StandardError)
+    private_constant :JsonFormException
+
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
+
+    def initialize(env_key: nil)
+      @env_key = env_key if env_key.presence # allow override for testing
+    end
 
     def self.seed_all
       new.seed_all
@@ -151,6 +158,9 @@ module HmisUtil
 
         applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
+
+        # if patch replaces references with options, remove the reference to avoid schema violation
+        node.delete('pick_list_reference') if patch_to_apply.key?('pick_list_options')
         # Could also be deep merge. This is probably more intuitive though
         node.merge!(patch_to_apply).compact!
 
@@ -237,20 +247,37 @@ module HmisUtil
 
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
+
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
-      # Validate final definition
-      validate_definition(form_definition, role)
 
-      # Create or update definition
+      # Find or initialize the definition record
       record = Hmis::Form::Definition.where(
         identifier: identifier,
         role: role,
         version: 0,
-        status: Hmis::Form::Definition::DRAFT,
-      ).first_or_create!(title: title || role.to_s.humanize)
+      ).first_or_initialize(title: title || role.to_s.humanize)
+      record.managed_in_version_control = true
       record.definition = form_definition
       record.title = title if title.present?
+      record.status = Hmis::Form::Definition::PUBLISHED
+
+      # Ensure HUD rules are set
+      record.set_hud_requirements
+
+      # could create CDEDs here but we plan to do it manually
+      # record.introspect_custom_data_element_definitions.each(&:save!)
+
+      # Validate definition
+      # puts "Validating FormDefinition: \"#{record.identifier}\" ##{record.id}"
+      errors = Hmis::Form::DefinitionValidator.perform(
+        form_definition,
+        role,
+        # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
+        skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
+      )
+      raise(JsonFormException, errors.first.full_message) if errors.any?
+
       record.save!
     end
 
@@ -366,7 +393,7 @@ module HmisUtil
 
         # Make this form the default instance for this role
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
-        default_instance.update(system: true, active: true)
+        default_instance.update!(system: true, active: true)
         default_instance.touch
       end
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
@@ -410,41 +437,6 @@ module HmisUtil
           role: role,
           title: role.to_s.titlecase,
         )
-      end
-    end
-
-    # on_error allows customization of error handling incase we want to collect them instead of raising
-    public def validate_definition(json, role = nil)
-      on_error = ->(err) { block_given? ? yield(err) : raise(err) }
-      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists, &on_error)
-      schema_errors = Hmis::Form::Definition.validate_schema(json)
-      return unless schema_errors.present?
-
-      schema_errors.each { |err| on_error.call(err) }
-      pp schema_errors
-      if role
-        on_error.call("schema invalid for role: #{role}")
-      else
-        on_error.call('schema invalid')
-      end
-    end
-
-    def valid_pick_lists
-      @valid_pick_lists ||= begin
-        enums = []
-        collect_enums = ->(parent) {
-          parent.constants.each do |name|
-            child = parent.const_get(name)
-            if child.is_a? Class
-              enums << child.graphql_name if child < Types::BaseEnum
-            elsif child.is_a? Module
-              collect_enums.call(child)
-            end
-          end
-        }
-        collect_enums.call(Types::HmisSchema::Enums)
-        collect_enums.call(Types::Forms::Enums)
-        enums + Types::Forms::Enums::PickListType.values.keys
       end
     end
   end

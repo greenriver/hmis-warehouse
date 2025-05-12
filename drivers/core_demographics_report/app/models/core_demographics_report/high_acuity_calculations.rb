@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module
   CoreDemographicsReport::HighAcuityCalculations
@@ -22,7 +24,7 @@ module
     end
 
     def high_acuity_count(type, coc = base_count_sym)
-      mask_small_population(high_acuity_clients[type][coc]&.count&.presence || 0)
+      mask_small_population(high_acuity_client_ids(type, coc)&.count&.presence || 0)
     end
 
     def high_acuity_percentage(type, coc_code = base_count_sym)
@@ -125,7 +127,7 @@ module
             initialize_high_acuity_client_counts(clients, coc_code.to_sym)
 
             scope = report_scope.distinct
-            scope = scope.in_coc(coc_code: coc_code) unless coc_code == base_count_sym
+            scope = scope.in_enrollment_coc(coc_code: coc_code) unless coc_code == base_count_sym
             scope.
               joins(:client, enrollment: :disabilities).
               pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], e_t[:DisablingCondition], d_t[:DisabilityType], d_t[:DisabilityResponse], d_t[:IndefiniteAndImpairs]).

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
+  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: GrdaWarehouse::ClientFile.headshot_tag_name }
   let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -42,7 +42,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ssn
           dob
           age
+          hudChronic
           user {
+            id
+            name
+          }
+          createdBy {
             id
             name
           }
@@ -75,7 +80,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               name
               confidential
               redacted
-              fileBlobId
               tags
               updatedBy {
                 id
@@ -120,9 +124,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  describe 'without version history' do
+    it 'should have nil users' do
+      _response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'createdBy', 'id')).to be_nil
+      expect(result.dig('data', 'client', 'user', 'id')).to be_nil
+    end
+  end
+
   context 'with version history' do
+    let(:c1) do
+      PaperTrail.request(whodunnit: user.id) { super() }
+    end
     let(:user2) do
-      create(:user).related_hmis_user(ds1)
+      create(:user, first_name: 'someone', last_name: 'else').related_hmis_user(ds1)
     end
 
     before(:each) do
@@ -131,9 +147,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       PaperTrail.request(whodunnit: user2.id) { c1.update!(first_name: 'test2') }
     end
 
-    it 'should return the most recent user' do
+    it 'should return the last users to create and update' do
       _response, result = post_graphql(id: c1.id) { query }
       expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'createdBy', 'id')).to eq user.id.to_s
+      expect(result.dig('data', 'client', 'createdBy', 'name')).to eq [user.first_name, user.last_name].join(' ')
       expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s
       expect(result.dig('data', 'client', 'user', 'name')).to eq [user2.first_name, user2.last_name].join(' ')
     end
@@ -155,6 +173,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
     )
     expect(result.dig('data', 'client', 'image')).not_to be_nil
+    expect(result.dig('data', 'client', 'hudChronic')).to eq(false)
   end
 
   it 'should return client if can view clients and client is unenrolled' do
@@ -242,7 +261,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'redacted' => true,
             'name' => 'Confidential File',
             'confidential' => true,
-            'fileBlobId' => nil,
             'tags' => [],
             'updatedBy' => nil,
             'uploadedBy' => nil,

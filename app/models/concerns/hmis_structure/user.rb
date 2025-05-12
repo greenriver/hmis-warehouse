@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,7 @@
 module HmisStructure::User
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
+  include HasPiiAttributes
 
   included do
     self.hud_key = :UserID
@@ -15,6 +16,11 @@ module HmisStructure::User
     def name
       "#{user_first_name} #{user_last_name}"
     end
+
+    pii_attr :UserFirstName, as: :first_name
+    pii_attr :UserLastName, as: :last_name
+    pii_attr :UserPhone, as: :phone
+    pii_attr :UserEmail, as: :email
   end
 
   module ClassMethods

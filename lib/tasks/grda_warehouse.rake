@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 namespace :grda_warehouse do
   desc 'Setup a sample GRDA warehouse database'
   task setup: [:migrate, :seed_data_sources]
@@ -284,6 +286,17 @@ namespace :grda_warehouse do
     Importing::RunDailyImportsJob.new.perform
   end
 
+  desc 'Monthly tasks'
+  task monthly: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::CensusImport.new.run!
+
+    # Force a cleanup of all destination clients so we don't miss splits or merges
+    # where the source clients don't have any open enrollments
+    GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
+      GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
+    end
+  end
+
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     begin
@@ -312,14 +325,41 @@ namespace :grda_warehouse do
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
+    # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
-      Hmis::AutoExitJob.perform_now
+      begin
+        Hmis::AutoExitJob.perform_now
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
     end
+
+    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
+      # Generate CE candidate pools and run the match engine daily in the early morning
+      Hmis::MatchCandidatesJob.perform_later
+    end
+
+    # Purge old soft-deleted records. Enable on production when we have confidence job is correct
+    begin
+      PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
+
+    # Run CSG Engage export if ready
+    MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
 
     if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
       # Run AC Data Warehouse exports to SFTP server at 8pm
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
+
+    if DateTime.current.hour == 4 && RailsDrivers.loaded.include?(:hmis_supplemental)
+      HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
+        HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
+      end
     end
 
     begin
@@ -329,10 +369,40 @@ namespace :grda_warehouse do
       Rails.logger.error(e.message)
     end
 
+    if DateTime.current.hour == 20
+      begin
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
+    end
+
+    # This should be very fast, no need to background
+    HmisCsvImporter::ImportOverride.remove_expired! if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
+    # Queue the cohort analytics generation job if it's not already queued
+    if DateTime.current.hour == 3 && ! Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
+      GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
+        delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
+        maintain_cohort_intermediate_data
+    end
+
+    begin
+      GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
+
     BuildTranslationCacheJob.perform_later
+
+    # Disabled pg-hero status job for now. This doesn't have the required permissions
+    # to run in RDS. Note, pg-hero still works without it
+    # PgheroCollectStatsJob.perform_later(clean: DateTime.current.hour == 5) if !Rails.env.production? && PgHero.query_stats_enabled?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
@@ -359,6 +429,10 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
+    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all! unless Delayed::Job.queued?('IdentifyExternalClientsJob')
+
+    # Store S3 paths for files that don't have them so OP analytics can use them
+    GrdaWarehouse::ClientFile.delay.maintain_urls
   end
 
   desc 'Save Service History Snapshots'
@@ -373,7 +447,8 @@ namespace :grda_warehouse do
 
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts
+    # Queue the cohort analytics generation job if it's not already queued
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'

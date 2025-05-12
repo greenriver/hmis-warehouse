@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ BostonHmis::Application.routes.draw do
       end
       resources :goal_configs, except: [:show] do
         resources :pit_counts, only: [:new, :create, :destroy]
+        resources :static_spms, except: [:show]
         post :duplicate, on: :member
       end
     end

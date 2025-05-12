@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
@@ -22,6 +24,10 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
     ]
   end
 
+  def project_id_header
+    "Warehouse #{Translation.translate('Stabilization Project')} ID"
+  end
+
   def default_support_columns
     {
       service_project: Translation.translate('Housing Search'),
@@ -30,7 +36,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       residential_project: Translation.translate('Stabilization Project'),
       housed_date: Translation.translate('Date Housed'),
       housing_exit: Translation.translate('Housing Exit'),
-      project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }
@@ -54,7 +60,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       residential_project: Translation.translate('Stabilization Project'),
       housed_date: Translation.translate('Date Housed'),
       housing_exit: Translation.translate('Housing Exit'),
-      project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }
@@ -76,7 +82,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       destination: Translation.translate('Destination'),
       housed_date: Translation.translate('Date Housed'),
       housing_exit: Translation.translate('Housing Exit'),
-      project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }
@@ -88,7 +94,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       destination: Translation.translate('Destination'),
       housed_date: Translation.translate('Date Housed'),
       housing_exit: Translation.translate('Housing Exit'),
-      project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }

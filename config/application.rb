@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require_relative 'boot'
 
 require 'rails/all'
@@ -12,16 +20,46 @@ ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 Bundler.require(*Rails.groups)
 
 require_relative '../lib/util/id_protector'
+require_relative '../lib/util/rails_trusted_proxies_config'
 
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
+
+    # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
+    # encrypted credentials, it's not appropriate for an open-source project
+    if File.exist?(Rails.root.join('config', 'secrets.yml'))
+      config.secrets = config_for(:secrets) # loads from config/secrets.yml
+      config.secret_key_base = config.secrets[:secret_key_base]
+
+      def secrets
+        config.secrets
+      end
+    end
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    # config.autoload_lib(ignore: ['assets', 'tasks'])
+
+    config.add_autoload_paths_to_load_path = false
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
     config.action_cable.mount_path = '/cable'
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
+
+    ENV['TRUSTED_PROXIES'].presence&.then do |trusted_proxies|
+      parsed = RailsTrustedProxiesConfig.parse_csv(trusted_proxies)
+      # if we are adding custom trusted proxies, we need to include the default addrs
+      config.action_dispatch.trusted_proxies = (ActionDispatch::RemoteIp::TRUSTED_PROXIES + parsed) if parsed
+    end
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
     # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
@@ -51,6 +89,9 @@ module BostonHmis
     config.active_job.queue_adapter = :delayed_job
     config.action_mailer.deliver_later_queue_name = :mailers
 
+    config.active_storage.variant_processor = :mini_magick
+    config.active_storage.variable_content_types = ['image/png', 'image/gif', 'image/jpeg', 'image/tiff', 'image/bmp', 'image/webp', 'image/avif', 'image/heic', 'image/heif']
+
     # GraphQL config
     config.graphql.parser_cache = true
 
@@ -60,9 +101,12 @@ module BostonHmis
       generate.test_framework :rspec
     end
 
-    require_relative('setup_logging')
-    setup_logging = SetupLogging.new(config)
-    setup_logging.run!
+    if ENV['RAILS_DISABLE_CUSTOM_LOGGING'].blank?
+      require_relative('setup_logging')
+      setup_logging = SetupLogging.new(config)
+      setup_logging.run!
+    end
+    config.colorize_logging = false if ENV['RAILS_DISABLE_COLORIZE_LOGGING'].present?
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false
@@ -74,9 +118,6 @@ module BostonHmis
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = routes
-
-    config.middleware.use Rack::Attack # needed pre rails 5.1
-    config.middleware.use IdProtector
 
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
@@ -118,6 +159,18 @@ module BostonHmis
         where(chronically_homeless_at_entry: true).
         update_all(processed_as: nil)
       GrdaWarehouse::ChEnrollment.maintain!
+    end
+
+    # Force a one time rebuild of destination clients to incorporate changes to ClientCleanup
+    config.queued_tasks[:client_cleanup_veteran_details] = -> do
+      GrdaWarehouse::Hud::Client.destination.pluck_in_batches(:id, batch_size: 10_000) do |batch|
+        GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: batch).run!
+      end
+    end
+
+    # Migrate from collections.coc_codes JSON column to using GrdaWarehouse::Lookups::CocCode
+    config.queued_tasks[:migrate_collection_coc_codes] = -> do
+      ::Collection.migrate_from_local_coc_codes
     end
   end
 end

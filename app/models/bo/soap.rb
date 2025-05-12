@@ -1,10 +1,11 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'curb'
+require 'rexml'
 
 module Bo
   class Soap
@@ -67,6 +68,7 @@ module Bo
     def request(url, xml)
       url += '&authType=secEnterprise&locale=en_US&timeout=60&ConvertAnyType=false'
       Curl.post(url, xml) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['User-Agent'] = 'OpenPath API Consumer'
         curl.headers['Content-type'] = 'text/xml'
         curl.headers['charset'] = 'UTF-8'

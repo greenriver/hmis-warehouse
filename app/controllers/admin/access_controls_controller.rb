@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,6 @@ class Admin::AccessControlsController < ApplicationController
 
   def index
     @access_controls = access_control_scope.
-      joins(:role, :collection).
       order(r_t[:name].asc, collection_t[:name].asc).
       filtered(params[:filter])
     @pagy, @access_controls = pagy(@access_controls)
@@ -53,7 +52,7 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   private def access_control_scope
-    AccessControl.all
+    AccessControl.user_managed
   end
 
   private def filter_params

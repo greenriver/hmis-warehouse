@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # require 'get_process_mem'
 module HudPathReport::Generators::Fy2024
@@ -216,6 +218,7 @@ module HudPathReport::Generators::Fy2024
             date_of_determination: enrollment.DateOfPATHStatus,
             reason_not_enrolled: enrollment.ReasonNotEnrolled,
             project_type: enrollment.project.ProjectType,
+            project_id: enrollment.project.id,
             first_date_in_program: enrollment.EntryDate,
             last_date_in_program: enrollment.exit&.ExitDate,
             contacts: path_contact_dates(client),

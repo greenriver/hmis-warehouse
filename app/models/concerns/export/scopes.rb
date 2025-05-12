@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -57,6 +57,16 @@ module Export::Scopes
     def project_scope
       @project_scope ||= begin
         p_scope = project_source.where(id: @projects)
+        # Limit projects if CoC codes are chosen to only those that operate in the
+        # chosen CoC.
+        # This is necessary because a project that only operates in a single non-selected CoC will
+        # trigger the enrollment cleanup and place those enrollments into the other CoC
+        if @coc_codes.present?
+          p_scope = p_scope.where(
+            id: GrdaWarehouse::Hud::Project.joins(:project_cocs).
+              merge(GrdaWarehouse::Hud::ProjectCoc.where(CoCCode: @coc_codes)),
+          )
+        end
         p_scope = p_scope.with_deleted if @export&.include_deleted
         p_scope.preload(:organization)
       end
@@ -73,6 +83,12 @@ module Export::Scopes
         e_scope = e_scope.open_during_range(@range)
       when 1
         # no-op
+      end
+      # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
+      if @coc_codes.present?
+        e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
+          or(e_scope.where(EnrollmentCoC: nil)).
+          or(e_scope.where.not(EnrollmentCoC: HudUtility2024.cocs.keys))
       end
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).

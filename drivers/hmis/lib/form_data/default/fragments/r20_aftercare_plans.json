@@ -3,26 +3,10 @@
   "link_id": "R20",
   "data_collected_about": "HOH_AND_ADULTS",
   "text": "Aftercare",
-  "rule": {
-    "operator": "ALL",
-    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-    "parts": [
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HHS: RHY"
-      },
-      {
-        "variable": "projectType",
-        "operator": "NOT_EQUAL",
-        "value": 4
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R20.2",
+      "link_id": "R20_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Aftercare was provided",
@@ -34,7 +18,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R20.1.methods",
+      "link_id": "R20_1_methods",
       "required": false,
       "warn_if_empty": true,
       "repeats": true,
@@ -48,7 +32,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "R20.2",
+          "question": "R20_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }

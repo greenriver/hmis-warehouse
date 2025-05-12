@@ -1,23 +1,22 @@
-version: '3.8'
-
 x-app: &app
-  image: hmis-warehouse:4.0
+  image: hmis-warehouse:4.4
   build:
     context: .
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.1.4
-      BUNDLER_VERSION: '2.4.13'
+      RUBY_VERSION: 3.3.7
+      BUNDLER_VERSION: '2.6.3'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.1.4-alpine3.18
+      BUILD_TAG: 3.3.7-alpine3.20
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     AWS_SECURITY_TOKEN: ${AWS_SECURITY_TOKEN:-}
     AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    EAGER_LOAD: ${EAGER_LOAD:-false}
     NODE_ENV: ${NODE_ENV:-development}
     BOOTSNAP_CACHE_DIR: /bundle/bootsnap
     WEBPACKER_DEV_SERVER_HOST: webpacker
@@ -28,6 +27,8 @@ x-app: &app
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
     CHROME_URL: http://chrome:3333
+    KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
+    K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
 
   env_file:
     - .env.development.local
@@ -102,6 +103,31 @@ services:
       minio:
         condition: service_started
 
+  # once we're fully on EKS, we can refactor this into the main dj service.
+  dj-eks:
+    <<: *backend
+    profiles:
+      - eks
+    entrypoint: '/usr/bin/entrypoint.dj-eks-test.sh'
+    command: "delayed_job run --pool=*:1"
+    ports:
+      # visit localhost:34533/metrics
+      - "${DJ_METRICS_PORT:-34533}:9292"
+    expose:
+      - "9292"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9292/metrics"]
+      interval: 60s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+
   yarn:
     <<: *backend
     container_name: hmis-warehouse-yarn
@@ -152,11 +178,12 @@ services:
       yarn:
         condition: service_started
 
-  # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
+  # To transition from a previous major version to pg16, run ./docker/pg16/upgrade.sh
   db_previous:
     build:
-      context: docker/pg12
+      context: docker/pg13
     container_name: db_previous
+    image: warehousepg:13
     profiles:
       - manual
     environment:
@@ -171,42 +198,45 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg13}:/var/lib/postgresql/data
     ports:
       - 5432
     expose:
       - 5432
 
-  # This should no longer need to be overridden for ARM
-  # processors
+  # This should no longer need to be overridden for ARM processors
   db:
     build:
-      context: docker/pg13
+      context: docker/pg16
+      shm_size: 1g
     container_name: hmis-warehouse-db
+    image: warehousepg:16
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
-      # You may want to store your db data locally rather than in a docker volume
-      # to do that, set:
-      # DB_DATA_VOLUME=./dev/db_data
-      DB_DATA_VOLUME: ${DB_DATA_VOLUME:-dbdata_pg13}
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
       interval: 10s
       timeout: 3s
       retries: 3
     volumes:
-      # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
-      - ${DB_DATA_VOLUME:-dbdata_pg13}:/var/lib/postgresql/data
+      # Name each new postgres major version explicitly (dbdata_pg17 when we get to that)
+      # You may want to store your db data locally rather than in a docker volume
+      # to do that, set DB_DATA_VOLUME in your env or use a docker override file
+      # For example:
+      #   DB_DATA_VOLUME=./dev/db_data
+      - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
+      - ./db:/mnt
     ports:
       - 5432
     expose:
       - 5432
     stop_grace_period: 30s
+    shm_size: 1g # used during vacuum operations
 
   redis:
     container_name: hmis-warehouse-redis
@@ -217,7 +247,7 @@ services:
       - 6379
 
   chrome:
-    image: browserless/chrome:1-chrome-stable
+    image: browserless/chrome:latest
     profiles: ["test"]
     ports:
       - "3333:3333"
@@ -251,17 +281,22 @@ services:
       - ./dev/minio/certs:/certs
     hostname: s3.dev.test
     environment:
-      MINIO_ACCESS_KEY: local_access_key
-      MINIO_SECRET_KEY: local_secret_key
       MINIO_ROOT_USER: local_access_key
       MINIO_ROOT_PASSWORD: local_secret_key
-    expose:
-      - '9000'
-      - '9001'
     ports:
       - 9000:9000
       - 9001:9001 # enable for UI access
-    command: server --certs-dir /certs /data
+    command: server --certs-dir /certs /data --console-address ":9001"
+    labels:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.minio.entrypoints=web
+      - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
+      - traefik.http.services.minio_https.loadbalancer.server.port=9000
+      - traefik.http.routers.minio_https.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
+      - traefik.http.routers.minio_https.tls=true
+      - traefik.http.routers.minio_https.entrypoints=web-secure
+      - traefik.http.middlewares.minio_https.redirectscheme.scheme=https
+      - traefik.http.routers.minio.middlewares=op_https
 
 volumes:
   bundle_alpine:
@@ -269,6 +304,7 @@ volumes:
   rails_cache_alpine:
   dbdata:
   dbdata_pg13:
+  dbdata_pg16:
   redis:
   ngrok:
 

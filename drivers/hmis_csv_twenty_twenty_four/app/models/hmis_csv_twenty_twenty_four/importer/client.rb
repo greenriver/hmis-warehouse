@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,6 +29,9 @@ module HmisCsvTwentyTwentyFour::Importer
 
     def self.hmis_validations
       {
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
         NameDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,

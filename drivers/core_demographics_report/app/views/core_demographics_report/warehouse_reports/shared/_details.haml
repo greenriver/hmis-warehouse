@@ -17,24 +17,25 @@
 - unless scope.exists?
   .none-found No records found.
 - else
-  - headers = @report.header_for(@key)
+  - columns = @report.column_objects_for(@key)
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
         %thead.thead-dark
           %tr
-            - headers.each do |header|
-              %th= header
+            - columns.each do |column|
+              %th= column.label
         %tbody
           - scope.pluck(*@report.columns_for(@key)).each do |row|
             %tr
-              - row.each_with_index do |col, i|
+              - columns.each do |column|
+                - value = column.value(row)
                 %td
-                  - if i == 0
-                    = link_to col, appropriate_client_path(id: col)
+                  - if column.index == 0
+                    = link_to(value, appropriate_client_path(id: value))
                   - else
-                    = @report.detail_column_display(header: headers[i], column: col)
+                    = value
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({

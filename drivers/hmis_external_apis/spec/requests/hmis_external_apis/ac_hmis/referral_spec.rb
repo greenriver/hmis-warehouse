@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require 'faker'
@@ -83,7 +85,16 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             state: 'VT',
             county: '',
             zip: '05301',
-            use: 'work',
+            use: 'home',
+          },
+          {
+            line1: '456 Main st',
+            line2: '',
+            city: 'Brattleboro',
+            state: 'VT',
+            county: '',
+            zip: '05301',
+            use: 'Mailing',
           },
         ],
         phone_numbers: [
@@ -95,9 +106,10 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       }
     end
 
-    def check_response_okay
+    def check_response_okay(message = 'Referral Created')
       parsed_body = JSON.parse(response.body)
       expect(parsed_body['errors']).to be_nil
+      expect(parsed_body['message']).to eq(message)
       expect(response.status).to eq 200
     end
 
@@ -176,6 +188,52 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
         parsed_body = JSON.parse(response.body)
         expect(parsed_body['errors']).to eq(['Household must have exactly one HoH'])
+      end
+
+      context 'posting already exists' do
+        let(:existing_posting) { create(:hmis_external_api_ac_hmis_referral_posting, project: project) }
+
+        it 'returns success if referral posting already exists' do
+          # Endpoint is idempotent on the posting ID
+          params = referral_params(household).merge(
+            {
+              "posting_id": existing_posting.identifier,
+              "program_id": existing_posting.project.ProjectID,
+              "referral_id": existing_posting.referral.identifier,
+              "email_address": ['123@xyz.abc'], # Even when other extraneous params have been changed
+            },
+          )
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+
+          check_response_okay('Referral Found')
+        end
+
+        it 'fails if referral posting exists with a different project' do
+          other_project = create(:hmis_hud_project, data_source: ds1)
+
+          params = referral_params(household).merge(
+            {
+              "posting_id": existing_posting.identifier,
+              "program_id": other_project.ProjectID,
+              "referral_id": existing_posting.referral.identifier,
+            },
+          )
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          parsed_body = JSON.parse(response.body)
+          expect(parsed_body['errors']).to eq(['Posting already exists with a different project'])
+        end
+
+        it 'fails if referral posting exists with a different referral' do
+          params = referral_params(household).merge(
+            {
+              "posting_id": existing_posting.identifier,
+              "program_id": existing_posting.project.ProjectID,
+            },
+          )
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          parsed_body = JSON.parse(response.body)
+          expect(parsed_body['errors']).to eq(['Posting already exists with a different Referral ID'])
+        end
       end
 
       context 'posting to existing closed referral' do
@@ -262,7 +320,9 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(referral.household_members.size).to(eq(household.size))
       client = mci.find_client_by_mci(mci_id)
       expect(client).to(be_present)
-      expect(client.addresses.size).to(eq(1))
+      expect(client.addresses.size).to(eq(2))
+      expect(client.addresses.where(use: 'mail').count).to eq(1)
+      expect(client.addresses.where(use: 'home').count).to eq(1)
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
 
@@ -311,7 +371,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         end
       end
       expect(client.names.size).to(eq(2))
-      expect(client.addresses.size).to(eq(1))
+      expect(client.addresses.size).to(eq(2))
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
     end

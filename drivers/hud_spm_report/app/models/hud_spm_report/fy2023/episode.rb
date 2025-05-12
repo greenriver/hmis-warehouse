@@ -1,11 +1,13 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::Fy2023
-  class Episode < GrdaWarehouseBase
+  class Episode < HudReports::ReportClientBase
     self.table_name = 'hud_report_spm_episodes'
     include Detail
 
@@ -19,6 +21,10 @@ module HudSpmReport::Fy2023
 
     attr_accessor :report # FIXME?
     attr_writer :filter, :services
+
+    def project_id
+      enrollment.project_id
+    end
 
     def self.detail_headers
       client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']
@@ -140,8 +146,11 @@ module HudSpmReport::Fy2023
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
           next unless enrollment.enrollment.present? # Skip if the enrollment has disappeared (e.g., a concurrent import deleted it)
 
-          # NbN only gets service nights in the report range and within the enrollment period
-          first_night = [report_start_date, enrollment.entry_date].max
+          # https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications-September-2023.pdf - p11
+          # For ES-NbN, "bed night” means the separate bed night records dated between the client’s [project start date] and the
+          # lesser of the ([project exit date] – 1) or [report end date]. Bed night records dated on the client’s exit date
+          # represent an error in data entry.
+          first_night = enrollment.entry_date
           last_night = if enrollment.exit_date.present?
             [enrollment.exit_date - 1.day, report_end_date].min # Cannot have an bed night on the exit date
           else
@@ -280,7 +289,7 @@ module HudSpmReport::Fy2023
       # Include contiguous dates before the calculated client start date:
       # First, find as close to the start date as possible in the array
       index = 0
-      index += 1 while calculated_bed_nights[index].last < client_start_date
+      index += 1 while calculated_bed_nights[index].last <= client_start_date
 
       # Then walk back until there is a break
       index -= 1 while index.positive? && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day

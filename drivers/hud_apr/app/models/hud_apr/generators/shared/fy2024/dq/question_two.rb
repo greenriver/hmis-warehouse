@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HudApr::Generators::Shared::Fy2024::Dq::QuestionTwo
   extend ActiveSupport::Concern
@@ -185,18 +187,29 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionTwo
 
     private def race_and_ethnicity_quality(table_name:, universe_members:)
       # in 2024, race and ethnicity are the same column
-      race_col = a_t[:race_multi]
+
+      dkr_member_ids = []
+      m_member_ids = []
+      universe_members.find_each do |u_member|
+        member = u_member.universe_membership
+        race_array = member.race_multi_include_race_none
+        # For [race and ethnicity], include records with an 8 or 9 indicated even if
+        # there is also a value of 1, 2, 3, 4, 5, 6, or 7 in the same field.
+        dkr_member_ids << u_member.id if (race_array & [8, 9]).present?
+        # count of clients where [race and ethnicity] is missing.
+        m_member_ids << u_member.id if member.race_multi == '99'
+      end
 
       # Race DK/R / compute missing
       answer = @report.answer(question: table_name, cell: 'B5')
 
-      dkr_members = universe_members.where(race_col.in(['8', '9']))
+      dkr_members = universe_members.where(id: dkr_member_ids)
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # Race missing
       answer = @report.answer(question: table_name, cell: 'C5')
-      m_members = universe_members.where(race_col.eq('99'))
+      m_members = universe_members.where(id: m_member_ids)
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 

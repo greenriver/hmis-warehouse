@@ -1,11 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
-###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -252,7 +246,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a1' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B2').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B2').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -260,7 +254,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b1' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C2').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C2').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -271,7 +265,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
       end
 
       it 'The number of persons with those with an active, enrolled PATH status during this reporting period receiving mental health referrals in Q18b1 is greater than 0. Please correct this response.' do
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C2').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C2').summary
         expect(persons_attaining_referral).to eq(0)
       end
     end
@@ -279,7 +273,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a2' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B3').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B3').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -287,7 +281,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b2' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C3').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C3').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -301,7 +295,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a3' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B4').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B4').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -309,7 +303,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b3' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C4').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C4').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -323,7 +317,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a4' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B5').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B5').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -331,7 +325,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b4' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C5').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C5').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -345,7 +339,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a5' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B6').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B6').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -353,7 +347,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b5' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C6').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C6').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -367,7 +361,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a6' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B7').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B7').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -375,7 +369,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b6' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C7').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C7').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -389,7 +383,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a7' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B8').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B8').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -397,7 +391,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b7' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C8').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C8').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -411,7 +405,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a8' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B9').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B9').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -419,7 +413,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b8' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C9').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C9').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -433,7 +427,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a9' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B10').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B10').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -441,7 +435,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b9' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C10').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C10').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -455,7 +449,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a10' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B10').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B10').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -463,7 +457,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b10' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C11').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C11').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 
@@ -477,7 +471,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18a11' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_receiving_referral =  report_result.answer(question: 'Q18', cell: 'B12').summary
+        persons_receiving_referral = report_result.answer(question: 'Q18', cell: 'B12').summary
         expect(persons_receiving_referral).to be <= currently_enrolled_in_path
       end
     end
@@ -485,7 +479,7 @@ RSpec.describe HudPathReport::Generators::Fy2021::Generator, type: :model do
     describe 'Q18b11' do
       it 'The number of persons receiving a referral cannot be greater than the total number of people with active, enrolled PATH status at any point during the reporting period.' do
         currently_enrolled_in_path = report_result.answer(question: 'Q8-Q16', cell: 'B11').summary
-        persons_attaining_referral =  report_result.answer(question: 'Q18', cell: 'C12').summary
+        persons_attaining_referral = report_result.answer(question: 'Q18', cell: 'C12').summary
         expect(persons_attaining_referral).to be <= currently_enrolled_in_path
       end
 

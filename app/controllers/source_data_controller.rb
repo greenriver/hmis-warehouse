@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,7 +29,10 @@ class SourceDataController < ApplicationController
     @data_source = @item.data_source
     return unless RailsDrivers.loaded.include?(:hmis_csv_importer)
 
-    @importers = HmisCsvImporter::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first(10)
+    @importers = HmisCsvImporter::Importer::ImporterLog.without_phase_metrics.
+      where(data_source_id: @item.data_source_id).
+      order(created_at: :desc).
+      first(10)
     return unless @importers.present?
 
     @importer = @importers.max_by do |importer|

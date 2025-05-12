@@ -1,12 +1,11 @@
 {
   "type": "GROUP",
-  "required": false,
   "link_id": "image",
   "text": "Image",
   "enable_behavior": "ANY",
   "enable_when": [
     {
-      "question": "client-id",
+      "question": "client_id",
       "operator": "EXISTS",
       "answer_boolean": false
     }

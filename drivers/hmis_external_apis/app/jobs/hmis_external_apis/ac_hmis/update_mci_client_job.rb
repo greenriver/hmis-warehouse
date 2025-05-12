@@ -1,14 +1,16 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Update MCI Client from an Hmis::Hud::Client
 
 module HmisExternalApis::AcHmis
   class UpdateMciClientJob < BaseJob
-    include NotifierConfig
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
     MCI_CLIENT_COLS = [
       'FirstName',
@@ -25,15 +27,14 @@ module HmisExternalApis::AcHmis
     def perform(client_id:)
       return unless HmisExternalApis::AcHmis::Mci.enabled?
 
-      setup_notifier('UpdateMciClientJob')
-
       client = Hmis::Hud::Client.find(client_id)
 
       mci = HmisExternalApis::AcHmis::Mci.new
       begin
         mci.update_client(client)
       rescue StandardError => e
-        @notifier.ping('Failure in MCI Update Client job', { exception: e })
+        Sentry.capture_exception(e)
+        Rails.logger.error("#{e.message} #{e.backtrace.join("\n")}")
       end
     end
   end

@@ -1,19 +1,43 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
-  class CreateReferralJob < ApplicationJob
+  class CreateReferralJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
     attr_accessor :params, :errors
 
     # @param params [Hash] api payload
-    def perform(params:)
-      self.params = params.deep_symbolize_keys
+    def perform(...)
+      with_lock do
+        perform_in_tx(...)
+      end
+    end
 
+    protected
+
+    def with_lock(timeout_seconds: 5)
+      lock_name = self.class.name.demodulize
+      HmisExternalApis::AcHmis::Referral.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds) do
+        yield
+      end
+    end
+
+    def perform_in_tx(params:)
+      self.params = params.deep_symbolize_keys
       self.errors = []
+
+      # Idempotent - Check for existing posting and return early if it exists
+      posting = existing_posting
+      return [posting.referral, errors, 'Referral Found'] if posting
+      # Return early in case of errors too, so we don't proceed with trying to create the referral
+      return [nil, errors] unless errors.empty?
+
       # transact assumes we are only mutating records in the warehouse db
       record = nil
       HmisExternalApis::AcHmis::Referral.transaction do
@@ -28,10 +52,22 @@ module HmisExternalApis::AcHmis
 
         record = referral
       end
-      [record, errors]
+      [record, errors, 'Referral Created']
     end
 
-    protected
+    def existing_posting
+      existing = HmisExternalApis::AcHmis::ReferralPosting.find_by(identifier: params.fetch(:posting_id))
+
+      if existing.present?
+        return error_out('Posting already exists with a different Referral ID') unless existing.referral.identifier == params.fetch(:referral_id).to_s
+
+        project = mper.find_project_by_mper(params.fetch(:program_id))
+        return error_out('Project not found') unless project
+        return error_out('Posting already exists with a different project') unless existing.project == project
+      end
+
+      existing
+    end
 
     def find_or_create_referral
       referral = HmisExternalApis::AcHmis::Referral.
@@ -54,8 +90,6 @@ module HmisExternalApis::AcHmis
     def create_referral_posting(referral)
       (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
       raise unless posting_id && program_id && unit_type_id # required fields, should be caught in validation
-
-      return error_out('Posting ID already exists') if HmisExternalApis::AcHmis::ReferralPosting.where(identifier: posting_id).exists?
 
       posting = referral.postings.new(identifier: posting_id)
       posting.attributes = params.slice(:resource_coordinator_notes)
@@ -82,7 +116,7 @@ module HmisExternalApis::AcHmis
     end
 
     def update_client(client, attrs)
-      setup_client_name(client, attrs)
+      setup_client_name(client, attrs) # reconcile CustomClientNames and assign Client name attributes
       client.attributes = attrs.slice(:dob, :ssn, :veteran_status, :different_identity_text, :additional_race_ethnicity)
 
       client.name_data_quality = 1 # Full name always present for MCI clients
@@ -146,10 +180,9 @@ module HmisExternalApis::AcHmis
       new_ccn.save!
 
       # ensure the ccn is the only primary
-      client.names.where.not(id: new_ccn.id).each do |ccn|
-        # update on each record for lifecycle hooks
-        ccn.update!(primary: false)
-      end
+      client.names.where.not(id: new_ccn.id).update_all(primary: false)
+      # propagate the primary name to the client record
+      client.assign_primary_name_fields
     end
 
     # Add/update addresses
@@ -157,15 +190,16 @@ module HmisExternalApis::AcHmis
       old_addresses = client.addresses
       new_addresses = []
       params[:addresses].to_a.each do |values|
+        address_use = normalize_address_use(values[:use])
         address = Hmis::Hud::CustomClientAddress.new(
           postal_code: values[:zip],
           district: values[:county],
+          use: address_use,
           **values.slice(
             :line1,
             :line2,
             :city,
             :state,
-            :use,
           ),
           **common_client_attrs(client),
         )
@@ -251,22 +285,35 @@ module HmisExternalApis::AcHmis
       return false
     end
 
-    # Accepts a list of 2024 integer values for gender from Data Dictionary
+    # Accepts a list of 2024 integer values for gender from Data Dictionary [0,1,2,3,4,5,6,8,9,99]
     def gender_attributes_from_codes(codes)
-      attributes = HudUtility2024.gender_id_to_field_name.invert.map do |k, v|
+      attributes = HudUtility2024.gender_id_to_field_name.invert.excluding(:GenderNone).map do |k, v|
         [k, codes.include?(v) ? 1 : 0]
       end.to_h
-      attributes[:GenderNone] = attributes.values.sum.zero? ? 99 : nil
+      attributes[:GenderNone] = (codes & [8, 9, 99]).first || 99 if attributes.values.sum.zero?
       attributes
     end
 
-    # Accepts a list of 2024 integer values for race from Data Dictionary
+    # Accepts a list of 2024 integer values for race from Data Dictionary # [1,2,3,4,5,6,7,8,9,99]
     def race_attributes_from_codes(codes)
-      attributes = HudUtility2024.race_id_to_field_name.invert.map do |k, v|
+      attributes = HudUtility2024.race_id_to_field_name.invert.excluding(:RaceNone).map do |k, v|
         [k, codes.include?(v) ? 1 : 0]
       end.to_h
-      attributes[:RaceNone] = attributes.values.sum.zero? ? 99 : nil
+      attributes[:RaceNone] = (codes & [8, 9, 99]).first || 99 if attributes.values.sum.zero?
       attributes
+    end
+
+    private def normalize_address_use(use_str)
+      return unless use_str
+
+      value = use_str.downcase
+      expected_values = Hmis::Hud::CustomClientAddress::USE_VALUES.map(&:to_s)
+      if expected_values.include?(value)
+        value
+      elsif value == 'mailing'
+        'mail'
+      end
+      # ignore unknown values
     end
   end
 end

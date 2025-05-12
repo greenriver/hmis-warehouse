@@ -1,9 +1,19 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# AccessGroup is part of the "legacy" permissions model
+#
+# Entities in an AccessGroup are the target for user role-permissions. The permission applied to an AccessGroup are
+# those that are directly associated with a user via user_roles
+#
+# Rules for project data are inclusive (project is included if it's in the access_group.projects OR the project
+# organization is included in access_group.organizations)
+#
 # TODO: START_ACL remove when ACL transition complete
 class AccessGroup < ApplicationRecord
   acts_as_paranoid
@@ -13,10 +23,14 @@ class AccessGroup < ApplicationRecord
   has_many :users, through: :access_group_members
 
   has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity'
+  # grants access to projects within these data sources
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
+  # grants access to projects within these organizations
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Organization'
+  # grants access to projects
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Project'
   has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
+  # grants access to reports (report data is constrained by above project-filters)
   has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
@@ -55,6 +69,12 @@ class AccessGroup < ApplicationRecord
         entity_id: entity.id,
       ).pluck(:access_group_id),
     )
+  end
+
+  # all access groups that include any coc_codes
+  scope :for_coc_codes, ->(coc_codes) do
+    quoted = SqlHelper.quote_sql_array(coc_codes, type: :varchar)
+    where("#{quoted_table_name}.coc_codes @> #{quoted}")
   end
 
   def name
@@ -183,10 +203,10 @@ class AccessGroup < ApplicationRecord
         scope.where.not(entity_id: ids).destroy_all
         # Allow re-use of previous assignments
         (ids - scope.pluck(:entity_id)).each do |id|
-          scope.with_deleted.
+          entity = scope.with_deleted.
             where(entity_id: id).
-            first_or_create.
-            restore
+            first_or_create
+          entity.restore if entity.deleted?
         end
       end
     end

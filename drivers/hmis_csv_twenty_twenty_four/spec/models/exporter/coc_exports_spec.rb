@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'export_helper'
@@ -28,15 +30,41 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
     # Move two unrelated project CoCs out of the range
     p_cocs = @project_cocs.reject { |pc| pc.ProjectID.in?([en_1.ProjectID, en_1.ProjectID]) }.first(2)
-    p_cocs.first.update(CoCCode: nil)
-    p_cocs.last.update(CoCCode: 'XX-501')
+    p_cocs.first.update!(CoCCode: nil)
+    p_cocs.last.update!(CoCCode: 'XX-501')
 
-    @involved_project_ids = @projects.map(&:id)
+    # Ensure we have a project that operates in 2 CoCs with enrollments in each
+    @multi_coc_project = create :hud_project, data_source_id: @data_source.id
+    create_list :hud_project_coc, 2, data_source_id: @data_source.id, CoCCode: 'XX-501', ProjectID: @multi_coc_project.ProjectID
+    create_list :hud_enrollment, 3, data_source_id: @data_source.id, EntryDate: 2.weeks.ago, PreferredLanguageDifferent: 'a' * 10, EnrollmentCoC: 'XX-555', ProjectID: @multi_coc_project.ProjectID
+    @multi_coc_project.project_cocs.first.update!(CoCCode: 'XX-500')
+    @multi_coc_project.enrollments.first.update!(EnrollmentCoC: 'XX-500')
+    @multi_coc_project.enrollments.last.update!(EnrollmentCoC: 'XX-501')
+
+    # Ensure we have a project that operates in one CoC that isn't being included that has an enrollment missing EnrollmentCoC and bad
+    @project_with_bad_enrollment_coc = create :hud_project, data_source_id: @data_source.id
+    create :hud_project_coc, data_source_id: @data_source.id, CoCCode: 'XX-501', ProjectID: @project_with_bad_enrollment_coc.ProjectID
+    create_list :hud_enrollment, 2, data_source_id: @data_source.id, EntryDate: 2.weeks.ago, PreferredLanguageDifferent: 'a' * 10, EnrollmentCoC: nil, ProjectID: @project_with_bad_enrollment_coc.ProjectID
+    @project_with_bad_enrollment_coc.enrollments.first.update(EnrollmentCoC: 'BADCOC')
+
+    # Ensure the new enrollments have clients
+    create_list(
+      :hud_client,
+      4,
+      data_source_id: @data_source.id,
+      FirstName: 'abcde' * 12,
+      LastName: 'xyz' * 50,
+      MiddleName: 'M',
+      SSN: Faker::Number.number(digits: 9),
+    )
+
+    @involved_project_ids = @projects.map(&:id) + [@multi_coc_project.id, @project_with_bad_enrollment_coc.id]
     @exporter = HmisCsvTwentyTwentyFour::Exporter::Base.new(
       start_date: 3.week.ago.to_date,
       end_date: 1.weeks.ago.to_date,
       projects: @involved_project_ids,
       coc_codes: [@coc_code], # Limit to one coc
+      options: { 'coc_codes' => [@coc_code] }, # fake the filter setup
       period_type: 3,
       directive: 3,
       user_id: @user.id,
@@ -62,34 +90,45 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
   end
 
   describe 'Exporting for one CoC' do
-    it 'enrollment scope should find two enrollments' do
-      expect(@exporter.enrollment_scope.count).to eq 2
+    it 'enrollment scope should find enrollments in the chosen CoC and where they are at projects operating in the CoC but the EnrollmentCoC is invalid' do
+      expect(@exporter.enrollment_scope.count).to eq 4
+      expect(@exporter.enrollment_scope.pluck(:EnrollmentCoC)).to eq(['XX-500', 'XX-555', nil])
     end
     it 'creates one CSV file' do
       expect(File.exist?(csv_file_path(@enrollment_class))).to be true
     end
-    it 'adds two rows to the enrollment CSV file' do
+    it 'adds expected rows to the enrollment CSV file' do
       csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
-      expect(csv.count).to eq 2
+      expect(csv.count).to eq 4
     end
-    it 'EnrollmentIDs from CSV file match the ids of the two enrollments in the CoC or are blank' do
+    it 'EnrollmentIDs from CSV file match the ids of the enrollments in the CoC, are invalid, or are blank' do
       csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
       csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
-      source_ids = involved_enrollments.select { |en| (en.EnrollmentCoC == @coc_code || en.EnrollmentCoC.blank?) && en.project.project_cocs.pluck(:CoCCode).include?(@coc_code) }.map(&:id).sort.map(&:to_s)
+      source_ids = involved_enrollments.select do |en|
+        (en.EnrollmentCoC == @coc_code || en.EnrollmentCoC.blank? || ! HudUtility2024.valid_coc?(en.EnrollmentCoC)) && en.project.project_cocs.pluck(:CoCCode).include?(@coc_code)
+      end.map(&:id).sort.map(&:to_s)
       expect(csv_ids).to eq source_ids
     end
 
-    it 'project_coc scope should find three enrollments' do
-      expect(@exporter.project_scope.joins(:project_cocs).count).to eq 3
+    it 'project scope should find expected records' do
+      expect(@exporter.project_scope.joins(:project_cocs).distinct.count).to eq 4
     end
+
+    it 'adds expected rows to the project CSV file' do
+      csv = CSV.read(csv_file_path(@project_class), headers: true)
+      expect(csv.count).to eq 4
+    end
+
     it 'creates one CSV file' do
       expect(File.exist?(csv_file_path(@project_coc_class))).to be true
     end
-    it 'adds three rows to the project_coc CSV file' do
+
+    it 'adds expected rows to the project_coc CSV file' do
       csv = CSV.read(csv_file_path(@project_coc_class), headers: true)
-      expect(csv.count).to eq 3
+      expect(csv.count).to eq 4
     end
-    it 'ProjectCoC from CSV file match the ids of the three project CoCs in the CoC' do
+
+    it 'ProjectCoC from CSV file match the ids of the project CoCs in the CoC' do
       csv = CSV.read(csv_file_path(@project_coc_class), headers: true)
       csv_ids = csv.map { |m| m['ProjectCoCID'] }.sort
       source_ids = involved_project_cocs.select { |en| en.CoCCode == @coc_code }.map(&:id).sort.map(&:to_s)

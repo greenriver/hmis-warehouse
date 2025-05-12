@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'faker'
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
-  serialize :map, JSON
-  serialize :client_ids, JSON
+  serialize :map, coder: JSON
+  serialize :client_ids, coder: JSON
 
   # Fetch the appropriate faked value for a given field.
   # Return an existing match if one exists or create a new one,
@@ -54,7 +56,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       PersonalID: ->(value) { Digest::MD5.hexdigest(value&.to_s) },
       UserID: ->(_value) { Faker::Internet.user_name(specifier: 5..8) },
       CoCCode: ->(_value) do
-        rc = ENV['RELEVANT_COC_STATE']
+        rc = GrdaWarehouse::Config.relevant_state_codes.first
         if rc
           HudUtility2024.cocs.keys.select { |c| c.starts_with?(rc) }.sample
         else

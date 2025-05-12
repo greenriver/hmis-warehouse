@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,11 +10,11 @@ module Talentlms
   class Config < GrdaWarehouseBase
     self.table_name = :talentlms_configs
 
-    has_many :completed_trainings, class_name: 'Talentlms::CompletedTraining'
+    has_many :logins, class_name: 'Talentlms::Login'
+    has_many :courses, class_name: 'Talentlms::Course', dependent: :destroy
 
     validates :subdomain, presence: true
     validates :api_key, presence: true
-    validates :courseid, presence: true
     validate :check_configuration_is_valid
 
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY'][0..31]
@@ -29,6 +29,7 @@ module Talentlms
       url = generate_url(action, args)
 
       result = Curl.get(url) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['Authorization'] = "Basic #{key}"
       end
 
@@ -49,6 +50,7 @@ module Talentlms
       key = Base64.strict_encode64("#{api_key}:")
       url = generate_url(action, args)
       result = Curl.post(url, data) do |curl|
+        curl.cacert = '/etc/ssl/certs/ca-certificates.crt' # Fix for https://github.com/taf2/curb/issues/452
         curl.headers['Authorization'] = "Basic #{key}"
       end
 
@@ -67,7 +69,10 @@ module Talentlms
       error = ": #{error}"
       errors.add(:subdomain, error) if error.include?('server')
       errors.add(:api_key, error) if error.include?('API Key')
-      errors.add(:courseid, error) if error.include?('course')
+    end
+
+    def domain
+      "#{subdomain}.talentlms.com"
     end
 
     # Get configuration error messages from TalentLMS
@@ -75,10 +80,10 @@ module Talentlms
     # @param course_id [Integer] the id of the course
     # @return [String] validation error if the configuration is invalid
     private def configuration_error_message
-      get('courses', { id: courseid })
+      get('courses')
       nil
     rescue JSON::ParserError
-      "Cannot contact server #{subdomain}.talentlms.com"
+      "Cannot contact server #{domain}"
     rescue RuntimeError => e
       e.message
     end
@@ -91,12 +96,25 @@ module Talentlms
     # @param args [Hash<String, String>] arguments to be added to the end of the URL
     # @return [String] the URL
     private def generate_url(action, args)
-      url = "https://#{subdomain}.talentlms.com/api/v1/#{action}"
+      url = "https://#{domain}/api/v1/#{action}"
       if args.present?
         arguments = args.map { |k, v| "#{k}:#{v}" }.join(',')
         url = "#{url}/#{arguments}"
       end
       url
+    end
+
+    def self.collection_for_form
+      Talentlms::Config.all.order(:subdomain, :id).map { |c| [c.unique_name, c.id] }
+    end
+
+    def unique_name
+      @unique_name ||= begin
+        configs = Config.where(subdomain: subdomain).order(:id)
+        return subdomain if configs.count == 1
+
+        "#{subdomain} (#{configs.find_index(self) + 1})"
+      end
     end
   end
 end

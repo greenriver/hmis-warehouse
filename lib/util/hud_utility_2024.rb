@@ -1,14 +1,18 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HudUtility2024
   include ::Concerns::HudValidationUtil
   include ::Concerns::HudLists2024
 
   module_function
+
+  SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
 
   def races(multi_racial: false)
     return race_field_name_to_description unless multi_racial
@@ -18,6 +22,56 @@ module HudUtility2024
 
   def race(field, reverse = false, multi_racial: false)
     map = races(multi_racial: multi_racial)
+    _translate map, field, reverse
+  end
+
+  # HUD race columns have state-codes in all uppercase, and do not 'camelize' correctly
+  def race_column_name(snakecase)
+    snakecase.
+      camelize.
+      gsub('Ak', 'AK').
+      gsub('HiPac', 'HIPac'). # Don't substitute 'Hi' in 'Hispanic'
+      to_sym
+  end
+
+  def ethnicities
+    {
+      hispanic_latinaeo: 'Hispanic/Latina/e/o',
+      non_hispanic_latinaeo: 'Non-Hispanic/Latina/e/o',
+      unknown: 'Unknown (Missing, Prefers not to answer, Unknown)',
+    }.freeze
+  end
+
+  def ethnicity(field, reverse = false)
+    map = ethnicities
+
+    _translate map, field, reverse
+  end
+
+  def race_ethnicity_combinations
+    {
+      am_ind_ak_native: 'American Indian, Alaska Native, or Indigenous (only)',
+      am_ind_ak_native_hispanic_latinaeo: 'American Indian, Alaska Native, or Indigenous & Hispanic/Latina/e/o',
+      asian: 'Asian or Asian American (only)',
+      asian_hispanic_latinaeo: 'Asian or Asian American & Hispanic/Latina/e/o',
+      black_af_american: 'Black, African American, or African (only)',
+      black_af_american_hispanic_latinaeo: 'Black, African American, or African & Hispanic/Latina/e/o',
+      hispanic_latinaeo: 'Hispanic/Latina/e/o (only)',
+      mid_east_n_african: 'Middle Eastern or North African (only)',
+      mid_east_n_african_hispanic_latinaeo: 'Middle Eastern or North African & Hispanic/Latina/e/o',
+      native_hi_pacific: 'Native Hawaiian or Pacific Islander (only)',
+      native_hi_pacific_hispanic_latinaeo: 'Native Hawaiian or Pacific Islander & Hispanic/Latina/e/o',
+      white: 'White (only)',
+      white_hispanic_latinaeo: 'White & Hispanic/Latina/e/o',
+      multi_racial: 'Multi-racial (all other)',
+      multi_racial_hispanic_latinaeo: 'Multi-racial & Hispanic/Latina/e/o',
+      race_none: 'Unknown (Missing, Prefers not to answer, Unknown)',
+    }.freeze
+  end
+
+  def race_ethnicity_combination(field, reverse = false)
+    map = race_ethnicity_combinations
+
     _translate map, field, reverse
   end
 
@@ -34,10 +88,39 @@ module HudUtility2024
     no_yes_reasons_for_missing_data(*args)
   end
 
+  def rrh_sub_type_sso_only
+    1
+  end
+
+  def project_type_with_sub_type(type, sub_type = nil)
+    [
+      project_type(type),
+      rrh_sub_type(sub_type),
+    ].compact_blank.join(' — ')
+  end
+
+  def brief_project_type_with_sub_type(type, sub_type = nil)
+    [
+      project_type_brief(type),
+      rrh_sub_type_brief(sub_type),
+    ].compact_blank.join(' — ')
+  end
+
+  def rrh_sub_types_brief
+    {
+      1 => 'SSO',
+      2 => 'Housing',
+    }.freeze
+  end
+
+  def rrh_sub_type_brief(id, reverse = false, raise_on_missing: false)
+    _translate(rrh_sub_types_brief, id, reverse, raise_on_missing: raise_on_missing)
+  end
+
   def project_type_number(type)
     # attempt to lookup full name
     number = project_type(type, true) # reversed
-    return number if number.present?
+    return number if number.present? && number.is_a?(Integer)
 
     # perform an acronym lookup
     project_type_brief(type, true) # reversed
@@ -524,20 +607,33 @@ module HudUtility2024
     codes = coc_codes_options
     return codes.freeze if Rails.env.production?
 
-    codes.merge(
-      {
-        'XX-500' => 'Test CoC',
-        'XX-501' => '2nd Test CoC',
-        'XX-502' => '3rd Test CoC', # testkit
-        'XX-518' => '4th Test CoC', # testkit
-      },
-    ).freeze
+    test_codes = {
+      'XX-500' => 'Test CoC',
+      'XX-501' => '2nd Test CoC',
+      'XX-502' => '3rd Test CoC', # testkit
+      'XX-518' => '4th Test CoC', # testkit
+    }
+    # Some legacy test CoCs
+    if Rails.env.test?
+      test_codes['AA-000'] = 'Test CoC AA-000'
+      test_codes['ZZ-000'] = 'Test CoC ZZ-000'
+      test_codes['ZZ-100'] = 'Test CoC ZZ-100'
+      test_codes['ZZ-999'] = 'Test CoC ZZ-999'
+      (0..100).to_a.each do |n|
+        test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
+      end
+    end
+    invalid_codes = ENV['INVALID_COC_CODES'].to_s.split(',')
+    test_codes.delete_if { |k, _| invalid_codes&.include?(k) }
+
+    codes.merge(test_codes).freeze
   end
 
-  def cocs_in_state(state)
-    return cocs if state.blank?
+  def cocs_in_state(states)
+    states = Array.wrap(states).reject(&:blank?).map(&:upcase)
+    return cocs if states.empty?
 
-    cocs.select { |code, _| code.starts_with?(state) }
+    cocs.select { |code, _| code.first(2).upcase.in?(states) }
   end
 
   # tranform up hud list for use as an enum
@@ -555,6 +651,10 @@ module HudUtility2024
 
   def path_funders
     [21]
+  end
+
+  def local_or_other_funding_source
+    46
   end
 
   # SPM definition of CoC funded projects
@@ -579,7 +679,8 @@ module HudUtility2024
       'HUD: Unsheltered Special NOFO' => [54],
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
-      'HUD: PFS' => [35], # Pay for Success
+      'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
+      'HUD: HOME' => [50, 51],
     }
   end
 
@@ -703,5 +804,24 @@ module HudUtility2024
       5 => 'Annual Assessment',
       6 => 'Post-Exit Assessment',
     }.freeze
+  end
+
+  # Utility for defining age range logic in one place.
+  # These can overlap, not all are used in every form dropdown/filter
+  def age_range
+    {
+      'Under 5' => 0..4,
+      '5-12' => 5..12,
+      '13-17' => 13..17,
+      'Under 18' => 0..18,
+      '18-24' => 18..24,
+      '25-34' => 25..34,
+      '35-44' => 35..44,
+      '45-54' => 45..54,
+      '55-61' => 55..61,
+      '55-64' => 55..64,
+      '62+' => 62..Float::INFINITY,
+      '65+' => 65..Float::INFINITY,
+    }
   end
 end

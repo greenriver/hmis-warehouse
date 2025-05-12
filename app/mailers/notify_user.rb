@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class NotifyUser < DatabaseMailer
   def vispdat_completed(vispdat_id)
@@ -203,13 +205,14 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'Your HUD Report has finished')
   end
 
-  def driver_hud_report_finished(generator)
+  def driver_hud_report_finished(generator, report_name: nil, report_url: nil)
     @user = generator.report.user
     return unless @user.active?
 
     @generator = generator
-    @report_url = @generator.url
-    mail(to: @user.email, subject: "Your #{@generator.class.short_name} has finished")
+    @report_url = report_url || @generator.url
+    @report_name = report_name || @generator.class.short_name
+    mail(to: @user.email, subject: "Your #{@report_name} has finished")
   end
 
   def health_premium_payments_finished(user_id)
@@ -233,5 +236,23 @@ class NotifyUser < DatabaseMailer
     @notify.each do |user|
       mail(to: user.email, subject: 'Account Created')
     end
+  end
+
+  def import_processing
+    @user = params[:user]
+    @import = params[:import_log_id]
+    @data_source = params[:data_source]
+    @error = params[:error]
+    @count = params[:count]
+    @paused = params[:paused]
+    subject = 'HMIS Import Status Update'
+    mail(to: @user.email, subject: subject)
+  end
+
+  def secure_file_received(user_id)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    mail(to: @user.email, subject: 'You have received a Secure File')
   end
 end

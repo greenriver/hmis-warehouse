@@ -1,12 +1,15 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::Details
   extend ActiveSupport::Concern
+  include ::PiiDisplay
   included do
     def detail_link_base
       "#{section_subpath}details"
@@ -25,6 +28,8 @@ module
         merge(gender_detail_hash).
         merge(disability_detail_hash).
         merge(race_detail_hash).
+        merge(ethnicity_detail_hash).
+        merge(race_ethnicity_detail_hash).
         merge(household_detail_hash).
         merge(dv_detail_hash).
         merge(relationship_detail_hash).
@@ -70,6 +75,21 @@ module
       detail[:columns]
     end
 
+    def column_objects_for(key)
+      raw = detail_hash.dig(key, :headers) || []
+      project_id_index = raw.index('_project_id')
+      raw.map.with_index do |label, index|
+        next if index == project_id_index # we don't show project id, it's just for permissions
+
+        CoreDemographicsReport::DetailsColumn.new(
+          label: label,
+          index: index,
+          user: filter.user,
+          project_id_index: project_id_index,
+        )
+      end.compact
+    end
+
     def detail_columns_for_export(key)
       return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
@@ -88,7 +108,7 @@ module
       end
     end
 
-    def detail_column_display(header:, column:)
+    def detail_column_display(header:, column:, project_id:)
       case header
       when 'Project Type'
         HudUtility2024.project_type(column)
@@ -101,7 +121,8 @@ module
       when 'Destination'
         HudUtility2024.destination(column)
       else
-        column
+        pii_policy = filter.user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+        pii_value(col: header, raw_value: column, pii_policy: pii_policy)
       end
     end
 
@@ -118,6 +139,7 @@ module
         'Entry Date',
         'Exit Date',
         'Destination',
+        '_project_id',
       ]
     end
 
@@ -150,6 +172,7 @@ module
         e_t[:EntryDate],
         she_t[:exit_date],
         she_t[:destination],
+        p_t[:id],
       ]
     end
   end

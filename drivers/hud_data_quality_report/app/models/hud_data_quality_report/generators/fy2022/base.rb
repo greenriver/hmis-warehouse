@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # require 'get_process_mem'
 module HudDataQualityReport::Generators::Fy2022
@@ -42,8 +44,8 @@ module HudDataQualityReport::Generators::Fy2022
           age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
-          household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
+          hoh_enrollment = hoh_enrollments[hh_id]
+          household_assessment_required[hh_id] = annual_assessment_expected?(enrollment: hoh_enrollment, report_end_date: @report.end_date)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -75,7 +77,7 @@ module HudDataQualityReport::Generators::Fy2022
 
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
-          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
+          hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
 
           income_at_start = enrollment.income_benefits_at_entry
           income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
@@ -213,6 +215,7 @@ module HudDataQualityReport::Generators::Fy2022
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
             project_type: last_service_history_enrollment.project_type,
+            project_id: last_service_history_enrollment.project.id,
             race: calculate_race(source_client),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             ssn_quality: source_client.SSNDataQuality,

@@ -1,13 +1,15 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Cohorts
   class ColumnsController < ApplicationController
     include AjaxModalRails::Controller
-    before_action :require_can_configure_cohorts!
+    before_action :require_can_edit_cohort_columns!
     before_action :set_cohort
 
     def edit
@@ -16,7 +18,7 @@ module Cohorts
     end
 
     def update
-      columns = cohort_source.available_columns.deep_dup
+      columns = cohort_source.active_columns.deep_dup
       if params.include? :order
         order = params[:order].split(',')
         columns = columns.sort_by { |col| order.index(col.column.to_s) || 500 }

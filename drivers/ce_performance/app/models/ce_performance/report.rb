@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,6 +61,9 @@ module CePerformance
         :project_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
+        :hoh_only,
       ]
       filter.describe_filter_as_html(keys, inline: inline)
     end
@@ -76,6 +79,7 @@ module CePerformance
         :project_group_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :hoh_only,
       ]
     end

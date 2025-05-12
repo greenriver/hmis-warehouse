@@ -1,9 +1,23 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# Participates in both the "new" and "legacy" permissions systems
+#
+# Roles define what actions a user can perform within the system. Not all permissions grant abilities, some are
+# subtractive. The permissions are applied to a set of entities such as projects or organizations.
+#
+# Roles that are related to an AccessControl are part of the "new" system; roles that are related to a
+# user through user_roles are part of the legacy system.
+#
+#
+# Adding a role: first define it in the "permissions_with_descriptions" config below. Then, within a migration call:
+#   Role.ensure_permissions_exist
+#
 class Role < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
@@ -29,7 +43,7 @@ class Role < ApplicationRecord
   end
 
   replace_scope :system, -> do
-    not_system.where(system: true)
+    where(system: true)
   end
 
   scope :not_system, -> do
@@ -62,14 +76,6 @@ class Role < ApplicationRecord
     where(where_clause)
   end
 
-  scope :with_editable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:editable))
-  end
-
-  scope :with_viewable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:viewable))
-  end
-
   def self.system_user_role
     where(
       system: true,
@@ -85,6 +91,10 @@ class Role < ApplicationRecord
 
   def health?
     health_role
+  end
+
+  def editable?
+    system == false && health_role == false
   end
 
   def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
@@ -137,10 +147,6 @@ class Role < ApplicationRecord
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
   end
 
-  def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
-  end
-
   def self.permissions_by_group
     {}.tap do |perms|
       permissions_with_descriptions.each do |key, role|
@@ -168,6 +174,30 @@ class Role < ApplicationRecord
 
   def fg_color
     @fg_color ||= GrdaWarehouse::SystemColor.new.calculated_foreground_color(bg_color)
+  end
+
+  def self.permission_from_title(title)
+    return unless title.present?
+
+    # Attempt to find by explicit title, or by a snake cased version of the title
+    # NOTE: this hasn't actually been implemented in the permissions_with_descriptions yet,
+    # but it allows us to use more descriptive titles in the future
+    column_from_title = title.parameterize.underscore.to_sym
+    column, perm = permissions_with_descriptions.detect { |col, perm| perm[:title] == title || col == column_from_title }
+    { column: column, perm: perm }
+  end
+
+  def self.title_for_column(column)
+    perm = permissions_with_descriptions[column.to_sym]
+    return perm[:title] if perm[:title].present?
+
+    column.to_s.humanize
+  end
+
+  def granted_permissions
+    self.class.permissions_with_descriptions.keys.filter do |permission|
+      self[permission]
+    end
   end
 
   def self.permissions_with_descriptions
@@ -339,14 +369,14 @@ class Role < ApplicationRecord
       # TODO: START_ACL remove after ACL migration is complete
       # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_all_clients: {
-        description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
+        description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data. (Note: for Access Controls, this is superseded by "Can Search Own Clients")',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
       },
       # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_window: {
-        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
+        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access. (Note: for Access Controls, this is superseded by "Can Search Own Clients")',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
@@ -359,13 +389,13 @@ class Role < ApplicationRecord
         sub_category: 'Client Search',
       },
       can_search_own_clients: {
-        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards (NOTE: used in ACLs)',
+        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards (NOTE: used in Access Controls)',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
       },
       can_search_clients_with_roi: {
-        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results (NOTE: used in ACLs)',
+        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results (NOTE: used in Access Controls)',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
@@ -532,6 +562,18 @@ class Role < ApplicationRecord
         category: 'Client Extras',
         sub_category: 'General Client Access',
       },
+      can_view_project_locations: {
+        description: 'Access to the map view of project locations',
+        administrative: false,
+        category: 'Client Extras',
+        sub_category: 'Privacy',
+      },
+      can_view_supplemental_client_data: {
+        description: 'Access to assigned external supplemental client data',
+        administrative: false,
+        category: 'Client Extras',
+        sub_category: 'General Client Access',
+      },
       can_edit_client_notes: {
         description: 'Ability to edit any client note, used to remove inappropriate notes',
         administrative: true,
@@ -564,6 +606,12 @@ class Role < ApplicationRecord
       },
       can_configure_cohorts: {
         description: 'Ability to create, configure, and remove cohorts',
+        administrative: false,
+        category: 'Cohorts',
+        sub_category: 'Cohort Administration',
+      },
+      can_edit_cohort_columns: {
+        description: 'Ability to adjust columns on assigned cohorts',
         administrative: false,
         category: 'Cohorts',
         sub_category: 'Cohort Administration',
@@ -658,8 +706,9 @@ class Role < ApplicationRecord
         category: 'Client Extras',
         sub_category: 'Auditing',
       },
+      # DEPRECATED, superseded by can_view_assigned_reports in combination with access controls
       can_view_all_reports: {
-        description: 'Access to all reports, regardless the user who ran the report',
+        description: 'Access to all reports, regardless the user who ran the report (Note: for Access Controls, this is superseded by "Can View Assigned Reports")',
         administrative: true,
         category: 'Reporting',
         sub_category: 'Report Access',
@@ -683,7 +732,7 @@ class Role < ApplicationRecord
         sub_category: 'Report Administration',
       },
       can_view_project_related_filters: {
-        description: 'Ability to specify filters of project, organization, funding source and data sources.  Most single CoC installations will want this enabled for anyone with reporting access.',
+        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view projects" permission).',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Data Access',
@@ -903,6 +952,18 @@ class Role < ApplicationRecord
         administrative: false,
         category: 'Administration',
         sub_category: 'Site Configuration',
+      },
+      can_view_client_name: {
+        description: 'Can view client names',
+        administrative: false,
+        category: 'Client Access',
+        sub_category: 'General Client Access',
+      },
+      can_view_client_photo: {
+        description: 'Can view client photos',
+        administrative: false,
+        category: 'Client Access',
+        sub_category: 'General Client Access',
       },
     }
   end

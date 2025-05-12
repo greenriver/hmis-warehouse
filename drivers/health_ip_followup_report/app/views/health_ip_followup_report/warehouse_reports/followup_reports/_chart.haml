@@ -20,7 +20,7 @@
       data: {
         x: 'x',
         xFormat: '%Y-%m-%d',
-        columns: #{raw @report.for_chart}
+        columns: #{@report.for_chart.to_json.html_safe}
       },
       axis: {
         x: {

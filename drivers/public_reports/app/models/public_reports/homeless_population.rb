@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -514,7 +514,7 @@ module PublicReports
         25 => '25 to 39',
         40 => '40 to 49',
         50 => '50 to 62',
-        63 => 'Over 63',
+        63 => 'Over 62',
         unknown: 'Unknown',
       }.freeze
     end
@@ -620,8 +620,8 @@ module PublicReports
       @coc_codes ||= begin
         result = scope.joins(project: :project_cocs).distinct.
           pluck(pc_t[:CoCCode])
-        reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_state.where(cocnum: result).count
-        result = GrdaWarehouse::Shape::Coc.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
+        reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_states.where(cocnum: result).count
+        result = GrdaWarehouse::Shape::Coc.my_states.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 
         result
       end

@@ -1,10 +1,10 @@
-- title = "Potential Duplicates for #{@client.name}"
+- title = "Potential Duplicates"
 - content_for :title, title
 = render 'breadcrumbs'
 
 = render 'clients/aliases'
 = render 'tab_navigation', current: edit_client_path(@client)
-%h1= title
+= render_display_title "Potential Duplicates for #{@client.pii_provider(user: current_user).full_name}"
 - if @client.source_clients.size > 1
   = render 'unmerge_form'
 - if @client.splits_from.present? || @client.splits_to.present?

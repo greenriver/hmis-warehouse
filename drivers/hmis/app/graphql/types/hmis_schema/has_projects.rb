@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,10 +24,6 @@ module Types
       end
 
       included do
-        def resolve_projects_with_loader(association_name = :projects, **args)
-          load_ar_association(object, association_name, scope: scoped_projects(Hmis::Hud::Project, **args))
-        end
-
         def resolve_projects(scope = object.projects, **args)
           scoped_projects(scope, **args)
         end

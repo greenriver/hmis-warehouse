@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -160,6 +160,8 @@ module Cohorts
       end
       @client_notes = cohort_client_notes(@clients)
       @removal_reasons = removal_reasons(@clients)
+      # Clients is an array of hashes
+      @clients.uniq!
       Rails.logger.info "CLIENTS: #{@clients.count}"
     end
 
@@ -483,7 +485,7 @@ module Cohorts
       else
         log_removal(@client.cohort_id, @client.id, params.dig(:grda_warehouse_cohort_client, :reason))
         if @client.destroy
-          flash[:notice] = "Removed #{@client.name}"
+          flash[:notice] = "Removed #{@client.client.pii_provider(user: current_user).full_name}"
           redirect_to cohort_path(@cohort)
         else
           render :pre_destroy
@@ -603,15 +605,18 @@ module Cohorts
     # only clients who have at least one source client
     # that is visible in the window
     # This is more strict than visible_in_window_to(user)
+    # Additionally limited to clients the user has access to see
+    # via can_view_clients or an ROI
     def client_scope
-      if @cohort.only_window
+      scope = if @cohort.only_window
         client_source.destination.where(
           id: GrdaWarehouse::WarehouseClient.joins(:data_source).
-          where(ds_t[:visible_in_window].eq(true)).select(:destination_id),
+          merge(GrdaWarehouse::DataSource.visible_in_window).select(:destination_id),
         )
       else
         client_source.destination
       end
+      scope.destination_visible_to(current_user)
     end
 
     def client_source

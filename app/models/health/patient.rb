@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -141,7 +141,7 @@ module Health
     # If there is already a housing status on the date, update it, otherwise create a new one
     #
     # Note that this is often called in an after_save hook, so care needs to be take not to create cycles
-    def record_housing_status(status, on_date: Date.current)
+    def record_housing_status(status, on_date: Date.current, validate_qa: true)
       return unless status.present? && on_date.present?
 
       prior_housing_status = recent_housing_status
@@ -154,21 +154,21 @@ module Health
         housing_statuses.create(collected_on: on_date, status: status)
       end
 
-      generate_daily_hrsn_qa(housing_status) if prior_housing_status.present? && on_date > '2024-03-01'.to_date
+      generate_daily_hrsn_qa(housing_status, validate_qa) if prior_housing_status.present? && on_date > '2024-03-01'.to_date
       housing_status
     end
 
-    private def generate_daily_hrsn_qa(housing_status)
+    private def generate_daily_hrsn_qa(housing_status, validate_qa)
       return unless engaged? # Daily HRSNs are not produced until the patient is engaged
 
-      previous_status = Health::HousingStatus.as_of(date: housing_status.collected_on - 1.day).first
+      previous_status = housing_statuses.as_of(date: housing_status.collected_on - 1.day).first
       return unless housing_status.positive_for_homelessness? && previous_status.present? && ! previous_status.positive_for_homelessness? # Only record no -> yes
 
       return if Health::QualifyingActivity.find_by(date_of_activity: housing_status.collected_on, activity: :sdoh_positive).present? # Don't duplicate QAs
       return if housing_status.collected_on < Health::QualifyingActivityV2::EFFECTIVE_DATE_RANGE.first # SDoH QAs added in CP 2.0
 
       user = User.system_user # Mark created QAs as from the system
-      ::Health::QualifyingActivity.create!(
+      qa = ::Health::QualifyingActivity.new(
         source_type: housing_status.class.name,
         source_id: housing_status.id,
         user_id: user.id,
@@ -180,6 +180,8 @@ module Health
         activity: :sdoh_positive,
         follow_up: 'Patient SDoH Screening Positive',
       )
+      qa.save(validate: validate_qa)
+      qa.maintain_cached_values if qa.persisted?
     end
 
     scope :pilot, -> { where pilot: true }
@@ -356,8 +358,9 @@ module Health
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
     # Oct 31, 2023: simplified engagement to be based on PCTP being sent to PCP in the last year
+    # May 7, 2024: Removed requirement that the PCTP had to be sent in the last year, leaving just that it had to be sent
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      where(id: Health::PctpCareplan.recent.sent_within(on - 365.days .. on).select(:patient_id))
+      where(id: Health::PctpCareplan.sent_within(.. on).select(:patient_id))
     end
 
     scope :engagement_required_by, ->(date) do
@@ -470,13 +473,13 @@ module Health
     end
 
     scope :needs_renewal, ->(on: Date.current.end_of_month) do
-      joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+      joins(:pctp_careplans).
+        merge(Health::PctpCareplan.sent.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
     end
 
     scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
-      joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
+      joins(:pctp_careplans).
+        merge(Health::PctpCareplan.sent.recent.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users
@@ -520,7 +523,7 @@ module Health
     end
 
     def contributing_enrollment_start_date
-      patient_referrals.contributing.minimum(:enrollment_start_date)
+      @contributing_enrollment_start_date ||= patient_referrals.contributing.minimum(:enrollment_start_date)
     end
 
     def current_days_enrolled
@@ -666,7 +669,9 @@ module Health
     end
 
     def self.update_demographic_from_sources
+      Rails.logger.info 'Patient: start update_demographics_from_sources'
       all.each(&:update_demographics_from_sources)
+      Rails.logger.info 'Patient: end update_demographics_from_sources'
     end
 
     def available_team_members
@@ -723,29 +728,7 @@ module Health
     end
 
     def anything_expiring?
-      release_status.present? || cha_status.present? || ssm_status.present? || careplan_status.present?
-    end
-
-    def participation_form_status
-      @participation_form_status ||= if active_participation_form? && ! expiring_participation_form?
-        # Valid
-      elsif expiring_participation_form?
-        "Participation form expires #{participation_forms.recent.expiring_soon.during_current_enrollment.last.expires_on}"
-      elsif expired_participation_form?
-        "Participation expired on #{participation_forms.recent.expired.during_current_enrollment.last.expires_on}"
-      end
-    end
-
-    private def active_participation_form?
-      @active_participation_form ||= participation_forms.active.during_current_enrollment.exists?
-    end
-
-    private def expiring_participation_form?
-      @expiring_participation_form ||= participation_forms.expiring_soon.during_current_enrollment.exists?
-    end
-
-    private def expired_participation_form?
-      @expired_participation_form ||= participation_forms.expired.during_current_enrollment.exists?
+      release_status.present? || hrsn_status.present? || ca_status.present? || careplan_status.present?
     end
 
     def release_status
@@ -770,59 +753,59 @@ module Health
       @expired_release ||= release_forms.expired.during_current_enrollment.exists?
     end
 
-    def cha_status
-      @cha_status ||= if active_cha? && ! expiring_cha?
+    def hrsn_status
+      @hrsn_status ||= if active_hrsn? && !expiring_hrsn?
         # Valid
-      elsif expiring_cha?
-        "Comprehensive Health Assessment expires #{comprehensive_health_assessments.recent.expiring_soon.during_current_enrollment.last.expires_on}"
-      elsif expired_cha?
-        "Comprehensive Health Assessment expired on #{comprehensive_health_assessments.recent.expired.during_current_enrollment.last.expires_on}"
+      elsif expiring_hrsn?
+        "HRSN Assessment expires #{recent_hrsn_screening.expires_on}"
+      elsif expired_hrsn?
+        "HRSN Assessment expired on #{recent_hrsn_screening.expires_on}"
       end
     end
 
-    private def active_cha?
-      @active_cha ||= comprehensive_health_assessments.active.during_current_enrollment.exists?
+    private def active_hrsn?
+      @active_hrsn ||= recent_hrsn_screening&.active? || false
     end
 
-    private def expiring_cha?
-      @expiring_cha ||= comprehensive_health_assessments.recent.expiring_soon.during_current_enrollment.exists?
+    private def expiring_hrsn?
+      @expiring_hrsn ||= recent_hrsn_screening&.expiring? || false
     end
 
-    private def expired_cha?
-      @expired_cha ||= comprehensive_health_assessments.recent.expired.during_current_enrollment.exists?
+    private def expired_hrsn?
+      @expired_hrsn ||= recent_hrsn_screening&.expired? || false
     end
 
-    def ssm_status
-      @ssm_status ||= if active_ssm? && ! expiring_ssm?
+    def ca_status
+      @ca_status ||= if active_ca? && !expiring_ca?
         # Valid
-      elsif expiring_ssm?
-        "Self-Sufficiency Matrix Form expires #{self_sufficiency_matrix_forms.completed.during_current_enrollment.last.expires_on}"
-      elsif expired_ssm?
-        "Self-Sufficiency Matrix Form expired on #{self_sufficiency_matrix_forms.completed.during_current_enrollment.last.expires_on}"
+      elsif expiring_ca?
+        "Comprehensive Assessment expires #{recent_ca_assessment.expires_on}"
+      elsif expired_ca?
+        "Comprehensive Assessment expired on #{recent_ca_assessment.expires_on}"
       end
     end
 
-    private def active_ssm?
-      @active_ssm ||= self_sufficiency_matrix_forms.completed.active.during_current_enrollment.exists?
+    private def active_ca?
+      @active_ca ||= recent_ca_assessment&.active? || false
     end
 
-    private def expiring_ssm?
-      @expiring_ssm ||= self_sufficiency_matrix_forms.completed.expiring_soon.during_current_enrollment.exists?
+    private def expiring_ca?
+      @expiring_ca ||= recent_ca_assessment&.expiring? || false
     end
 
-    private def expired_ssm?
-      @expired_ssm ||= self_sufficiency_matrix_forms.completed.expired.during_current_enrollment.exists?
+    private def expired_ca?
+      @expired_ca ||= recent_ca_assessment&.expired? || false
     end
 
     def careplan_status
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
       elsif missing_careplan?
-        'Care plan not completed by required date'
+        'Person-Centered Treatment Plan not completed by required date'
       elsif expiring_careplan?
-        "Care plan expires #{recent_pctp_careplan.expires_on}"
+        "Person-Centered Treatment Plan expires #{recent_pctp_careplan.expires_on}"
       elsif expired_careplan?
-        "Care plan expired on #{recent_pctp_careplan.expires_on}"
+        "Person-Centered Treatment Plan expired on #{recent_pctp_careplan.expires_on}"
       end
     end
 
@@ -979,6 +962,18 @@ module Health
       'managed'
     end
 
+    def pii_provider(user:)
+      # patient almost duck-types for client, except dob field is different
+      GrdaWarehouse::PiiProvider.from_attributes(
+        policy: user.policy_for(client),
+        first_name: first_name,
+        last_name: last_name,
+        middle_name: middle_name,
+        dob: birthdate,
+        ssn: ssn,
+      )
+    end
+
     def coverage_level_managed?
       coverage_level == Health::Patient.coverage_level_managed_value
     end
@@ -1009,7 +1004,7 @@ module Health
     end
 
     def engaged?
-      self.class.engaged.where(id: id).exists?
+      @engaged ||= self.class.engaged.where(id: id).exists?
       # ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
     end
 

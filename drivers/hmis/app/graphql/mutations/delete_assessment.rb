@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,7 +43,7 @@ module Mutations
             end
           end,
           after_delete: -> do
-            record.form_processor.related_records.each(&:destroy!)
+            record.form_processor.destroy_related_records!
 
             # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record,
             # and moving the referral back to "accepted" status

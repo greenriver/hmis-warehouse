@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -347,7 +349,7 @@ module GrdaWarehouse::WarehouseReports
       scope = filter_for_race(scope)
       scope = filter_for_gender(scope)
       # NOTE: this is not exposed on the page, but is potentially called from the Performance Metrics report
-      scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
       scope = filter_for_cohorts(scope)
       scope = filter_for_head_of_household(scope)

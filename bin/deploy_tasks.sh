@@ -9,11 +9,8 @@ sed -i.bak '/EXTENSION/d' db/health_structure.sql
 sed -i.bak '/EXTENSION/d' db/reporting_structure.sql
 sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 
-# Only enable for initial deployments to new installations
-if [[ "$BOOTSTRAP_DATABASES" = "true" ]]
-then
-  ./bin/db_prep --no-create-databases
-fi
+# Protections in this script make this okay to call on every deployment
+bundle exec ./bin/db_prep --no-create-databases --no-print-done
 
 echo Storing Themed Maintenance Page
 T1=`date +%s`
@@ -61,7 +58,7 @@ echo "...rake db:seed took $(expr $T2 - $T1) seconds"
 
 echo 'Installing cron'
 T1=`date +%s`
-bundle exec rails runner ./config/deploy/docker/lib/cron_installer.rb
+EAGER_LOAD=false bundle exec rails runner ./config/deploy/docker/lib/cron_installer.rb
 T2=`date +%s`
 echo "..../bin/cron_installer.rb took $(expr $T2 - $T1) seconds"
 

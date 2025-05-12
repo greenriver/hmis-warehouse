@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -60,7 +60,7 @@ module ServiceHistory::Builder
       else
         started = Time.current
         while builder_batch_job_scope.exists?
-          break if (Time.current - started) > max_wait_seconds
+          return if (Time.current - started) > max_wait_seconds
 
           sleep(interval)
         end
@@ -121,7 +121,14 @@ module ServiceHistory::Builder
 
     # Class method
     private def builder_batch_job_scope
-      Delayed::Job.where(failed_at: nil).jobs_for_class('ServiceHistory::RebuildEnrollments')
+      @counter ||= 1
+      Delayed::Job.uncached do
+        Delayed::Job.where(failed_at: nil).
+          # Cache buster - for whatever reason `uncached` is completely inconsistent.
+          # We ALWAYS want this to query the database.
+          where("1 != #{@counter += 1}").
+          jobs_for_class('ServiceHistory::RebuildEnrollments')
+      end
     end
 
     # Class method

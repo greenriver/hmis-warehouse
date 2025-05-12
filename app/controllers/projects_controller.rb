@@ -1,18 +1,21 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ProjectsController < ApplicationController
-  before_action :require_can_view_projects!
-  before_action :require_can_delete_projects_or_data_sources!, only: [:destroy]
-  before_action :require_can_edit_projects!, only: [:edit, :update]
-  before_action :set_project, only: [:show, :update, :edit, :destroy]
-  before_action :set_census_params, only: [:show]
-  before_action :require_can_view_confidential_project_names!, if: -> { !can_edit_projects? && @project.confidential? }
-
+class ProjectsController < ApplicationControllerV2
   include ArelHelper
+
+  before_action :set_project, only: [:show, :update, :edit, :destroy]
+  authorize_with { project_policy.can_view? }
+  authorize_with(only: :destroy) { project_policy.can_destroy? }
+  authorize_with(only: [:edit, :update]) { project_policy.can_edit? }
+  before_action :set_census_params, only: [:show]
+
+  helper_method def project_policy
+    current_user.policy_for(@project)
+  end
 
   def show
     @clients = @project.service_history_enrollments.entry.

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
@@ -22,12 +24,16 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
     ]
   end
 
+  def project_id_header
+    Translation.translate('Warehouse Project ID')
+  end
+
   def default_support_columns
     {
       residential_project: Translation.translate('Project Name'),
       housed_date: Translation.translate('Entry Date'),
       housing_exit: Translation.translate('Exit Date'),
-      project_id: Translation.translate('Warehouse Project ID'),
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }
@@ -39,7 +45,7 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
       destination: Translation.translate('Destination'),
       housed_date: Translation.translate('Entry Date'),
       housing_exit: Translation.translate('Exit Date'),
-      project_id: Translation.translate('Warehouse Project ID'),
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }
@@ -65,7 +71,7 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
       destination: Translation.translate('Destination'),
       housed_date: Translation.translate('Entry Date'),
       housing_exit: Translation.translate('Exit Date'),
-      project_id: Translation.translate('Warehouse Project ID'),
+      project_id: project_id_header,
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
     }

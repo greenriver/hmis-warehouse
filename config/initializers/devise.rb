@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # Use this hook to configure devise mailer, warden hooks and so forth.
@@ -15,6 +17,8 @@ Devise.setup do |config|
   # Devise will use the `secret_key_base` on Rails 4+ applications as its `secret_key`
   # by default. You can change it below and use your own secret key.
   # config.secret_key = '94fce868bb2c8cb73ca02fb7d349d869c718a5bb4b54638c7522f763edb8e8f0a4585117332673a4ef448bc85fa68a3763b59dc71d9f1f02cf5ad9cbba55adf1'
+
+  config.secret_key = Rails.application.secret_key_base
 
   # ==> Mailer Configuration
   # Configure the e-mail address which will be shown in Devise::Mailer,
@@ -341,9 +345,14 @@ Devise.setup do |config|
   # ==> Security Extension
   # Configure security extension for devise
 
-  # Should the password expire (e.g 3.months)
-  # config.expire_password_after = false
-  expire_password_after = ENV.fetch('PASSWORD_EXPIRATION_DAYS') { 'false' }
+  # Password expires after a configurable time (in seconds).
+  # Or expire passwords on demand by setting this configuration to `true`
+  # Use `user.need_change_password!` to expire a password.
+  # Setting the configuration to `false` will completely disable expiration checks.
+  # config.expire_password_after = 3.months | true | false
+  # We use the password expiration feature to handle forced password resets.
+  # If no ENV is provided, use true, which expires on demand
+  expire_password_after = ENV.fetch('PASSWORD_EXPIRATION_DAYS') { 'true' }
   if expire_password_after == 'true'
     config.expire_password_after = true
   elsif expire_password_after == 'false'

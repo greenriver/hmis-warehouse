@@ -1,3 +1,4 @@
 "AssessmentQuestionID","AssessmentID","EnrollmentID","PersonalID","AssessmentQuestionGroup","AssessmentQuestionOrder","AssessmentQuestion","AssessmentAnswer","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
 Q-1,1-1,1-4,1-1,,,hat_e11_cps,Yes,2017-01-01 00:00:00,2017-01-01 00:00:00,catalina,,1-1
 Q-2,1-1,1-4,1-1,,,hat_e14_ipv_date,2015-01-02,2017-01-01 00:00:00,2017-01-01 00:00:00,catalina,,1-1
+Q-1,1-1,1-4,1-1,,,hat_c7_can_pass_drug_test,,2017-01-01 00:00:00,2017-01-01 00:00:00,catalina,,1-1

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,6 +43,16 @@ module HealthThriveAssessment
       completed_on.present?
     end
 
+    # A QualifyingActivity that is the same or newer than the date created of this CA
+    def hrsn_screening_qa?
+      return false unless completed_on.present?
+
+      qa = patient.current_qa_factory&.hrsn_screening_qa
+      return false unless qa.present? && qa.date_of_activity.present?
+
+      qa.date_of_activity >= completed_on
+    end
+
     def positive_sdoh?
       at_risk? || homeless? ||
         food_insecurity_sometimes? || food_insecurity_often? ||
@@ -74,6 +84,10 @@ module HealthThriveAssessment
 
     def positive_for_homelessness?
       homeless?
+    end
+
+    def case_manager
+      user&.name || external_name
     end
 
     enum reporter: {

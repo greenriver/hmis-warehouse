@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 module HmisCsvTwentyTwentyFour::Importer::ImportConcern
   extend ActiveSupport::Concern
@@ -31,7 +33,7 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
   ] + HMIS_DATE_FORMATS).freeze # order matters, we need to try more logical and longer patterns first
 
   included do
-    belongs_to :importer_log, optional: true
+    belongs_to :importer_log, optional: true, class_name: 'HmisCsvImporter::Importer::ImporterLog'
 
     # If the model is paranoid, include the deleted rows by default
     default_scope do
@@ -55,6 +57,10 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
     def self.apply_import_overrides(row)
       import_overrides.each do |override|
         row = override.apply(row)
+        # note that this override has been used
+        # also note that event though we're calling this in a tight loop, it should only save once
+        # per override per day (update doesn't save unless there is a change)
+        override.update(last_used_on: Date.current)
       end
       row
     end
@@ -112,12 +118,14 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
 
     # Override as necessary
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted.
-        update_all(pending_date_deleted: pending_date_deleted)
+      project_ids.each_slice(250) do |project_ids_slice|
+        involved_warehouse_scope(
+          data_source_id: data_source_id,
+          project_ids: project_ids_slice,
+          date_range: date_range,
+        ).with_deleted.
+          update_all(pending_date_deleted: pending_date_deleted)
+      end
     end
 
     def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
@@ -152,6 +160,14 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
         date_range: date_range,
       ).with_deleted.
         delete_pending
+    end
+
+    # Override as necessary
+    # The import process is relying on flagging records with pending_date_deleted to identify
+    # record changes in the import process. This flag allows for marking the records for deletion
+    # without actually delete them.
+    def self.prevent_import_deletions?
+      false
     end
 
     def self.pending_deletions(data_source_id:, project_ids:, date_range:)

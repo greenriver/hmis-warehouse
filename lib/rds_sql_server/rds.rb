@@ -8,8 +8,6 @@ class Rds
 
   REGION             ||= 'us-east-1'.freeze
   AVAILABILITY_ZONE  ||= 'us-east-1a'.freeze
-  ACCESS_KEY_ID      ||= ENV.fetch('RDS_AWS_ACCESS_KEY_ID')
-  SECRET_ACCESS_KEY  ||= ENV.fetch('RDS_AWS_SECRET_ACCESS_KEY')
   USERNAME           ||= ENV.fetch('RDS_USERNAME')
   PASSWORD           ||= ENV.fetch('RDS_PASSWORD')
   DB_INSTANCE_CLASS  ||= ENV.fetch('RDS_DB_INSTANCE_CLASS')
@@ -36,23 +34,17 @@ class Rds
     @timeout || 50_000_000
   end
 
-  def initialize
-    # if environment is set up correctly, this can be
-    # self.client = Aws::RDS::Client.new
-    if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
-      self.client = Aws::RDS::Client.new({
-                                           region: REGION,
-                                           access_key_id: ACCESS_KEY_ID,
-                                           secret_access_key: SECRET_ACCESS_KEY,
-                                         })
-    else
-      self.client = Aws::RDS::Client.new({
-                                           region: REGION,
-                                         })
-    end
+  def self.rds_available?
+    new.client.present?
   end
 
-  define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
+  def initialize
+    self.client = Aws::RDS::Client.new
+  rescue RuntimeError
+    self.client = nil
+  end
+
+  define_method(:sqlservers) { _list&.select { |server| server.engine.match(/sqlserver/) } }
 
   def start!
     status = current_state
@@ -82,7 +74,7 @@ class Rds
     end
   end
 
-  define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
+  define_method(:terminate!) { client&.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
 
@@ -151,7 +143,23 @@ class Rds
     end
 
     # FIXME: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.Concepts.General.SSL.Using.html#SQLServer.Concepts.General.SSL.Forcing
-    @response = client.create_db_instance(
+    begin
+      @response = create_db_on_aws
+    rescue Aws::RDS::Errors::DBInstanceAlreadyExists
+      # Sometimes the database is in the process of being deleted and the delayed job
+      # is too fast.  We'll wait, and attempt to create it one more time after 10 minutes
+      # if it is the process of being deleted
+      status = current_state
+      if status == 'deleting'
+        sleep(600)
+        @response = create_db_on_aws
+      end
+      # if we weren't deleting, just assume it'll be fine
+    end
+  end
+
+  private def create_db_on_aws
+    client.create_db_instance(
       db_instance_class: DB_INSTANCE_CLASS,
       db_instance_identifier: identifier,
       allocated_storage: 100, # 20GB is minimum required, 100 so we don't run out of space
@@ -162,7 +170,7 @@ class Rds
       timezone: 'US Eastern Standard Time',
       copy_tags_to_snapshot: true,
       multi_az: false,
-      engine_version: '14.00.3460.9.v1',
+      engine_version: '16.00.4140.3.v1',
       tags: [
         { key: 'Rails Environment', value: Rails.env },
       ],
@@ -177,8 +185,8 @@ class Rds
       publicly_accessible: true,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
-      db_parameter_group_name: 'sqlserver-web-14-tls',
-      option_group_name: 'default:sqlserver-web-14-00',
+      db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
+      option_group_name: 'default:sqlserver-web-16-00',
       port: 1433,
     )
   end
@@ -247,6 +255,7 @@ class Rds
   end
 
   def db_exists?
+    load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
     db_exists = SqlServerBootstrapModel.connection.execute(<<~SQL)
       if not exists(select * from sys.databases where name = '#{database}')
         select 0;
@@ -271,7 +280,7 @@ class Rds
   end
 
   def my_instance
-    sqlservers.find do |server|
+    sqlservers&.find do |server|
       server.db_instance_identifier == identifier
     end
   rescue Aws::RDS::Errors::ServiceUnavailable
@@ -297,6 +306,6 @@ class Rds
     resp.db_instances.first
   end
 
-  define_method(:_list)       { client.describe_db_instances.db_instances }
-  define_method(:_operations) { client.operation_names }
+  define_method(:_list)       { client&.describe_db_instances&.db_instances }
+  define_method(:_operations) { client&.operation_names }
 end

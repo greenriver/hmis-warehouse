@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -75,10 +75,10 @@ module HudApr::Generators::Shared::Fy2024
           project.ProjectType,
           project.RRHSubType,
           # Coordinated Entry Access Point
-          (ce_participation&.AccessPoint || 0),
+          ce_participation&.AccessPoint || 0,
           # (If 2.02.6 =6 or (13 and 2.02.6A = 1)), then 0 or 1
-          (project.ProjectType == 6 || (project.ProjectType == 13 && project.RRHSubType == 1) ? project.ResidentialAffiliation : 0),
-          if project.ProjectType == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ResProjectID).join(', ') else ' ' end,
+          (project.ProjectType == 6 || (project.ProjectType == 13 && project.RRHSubType == 1) ? (project.ResidentialAffiliation || 0) : 0),
+          if project.ProjectType == 6 && project.ResidentialAffiliation == 1 then project.residential_projects.map(&:ProjectID).join(', ') else ' ' end,
           project.project_cocs.map(&:effective_coc_code).join(', '),
           project.project_cocs.map(&:effective_geocode).join(', '),
           if project.VictimServicesProvider.present? then project.VictimServicesProvider else 0 end,

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV['RAILS_ENV'] = 'test'
 require File.expand_path('../config/environment', __dir__)
@@ -6,6 +8,7 @@ abort('The Rails environment is running in production mode!') if Rails.env.produ
 require 'spec_helper'
 require 'rspec/rails'
 require 'deprecation_helper'
+require './db/seed_maker'
 # require 'simplecov'
 # require 'simplecov-console'
 # SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
@@ -70,26 +73,43 @@ RSpec.configure do |config|
   config.include S3Utils
 
   config.before(:suite) do
-    Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
-      FileUtils.rm(filename)
-    end
-    Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
-      # The 2024 test kit is HUGE, so we'll use the preprocessed version
-      # This means when the test kit changes, we need to update both the CSVs and the SQL fixpoint
-      next if filename.include?('drivers/datalab_testkit/spec/fixpoints')
-
-      FileUtils.rm(filename)
-    end
-
-    GrdaWarehouse::Utility.clear!
-    Delayed::Job.delete_all
-    GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
-    AccessGroup.maintain_system_groups
-
-    # disable papertrail for test performance
+    # disable paper trail for test performance
     PaperTrail.enabled = false
 
-    ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
+    # disable rack attack unless we are testing it explicitly
+    Rack::Attack.enabled = false
+
+    example_file_paths = RSpec.world.filtered_examples.values.flatten.map { |e| e.metadata[:file_path] }.uniq
+    # load fixpoints if we're running tests that may need them
+    if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any? # rubocop:disable Style/RegexpLiteral
+      Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
+        FileUtils.rm(filename)
+      end
+      Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
+        # The 2024 test kit is HUGE, so we'll use the preprocessed version
+        # This means when the test kit changes, we need to update both the CSVs and the SQL fixpoint
+        # To rebuild, push a commit that contains `[gh:rebuild_fixpoints]` in the commit message.
+        next if filename.include?('drivers/datalab_testkit/spec/fixpoints')
+
+        FileUtils.rm(filename)
+      end
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+    end
+
+    # load hmis forms if we're testing the driver
+    if example_file_paths.grep(%r{/drivers/hmis/}).any? # rubocop:disable Style/RegexpLiteral
+      ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
+    end
+
+    AccessGroup.maintain_system_groups
+  end
+
+  config.before(:all) do
+    # Ensure we _always_ have all appropriate CoCs
+    GrdaWarehouse::Lookups::CocCode.maintain!
+
+    # Ensure we have all the cohort columns
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 end
 

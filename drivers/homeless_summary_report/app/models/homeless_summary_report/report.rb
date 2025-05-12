@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -68,6 +68,7 @@ module HomelessSummaryReport
           :project_group_ids,
           :data_source_ids,
           :funder_ids,
+          :funder_others,
           :hoh_only,
         ],
       )
@@ -458,6 +459,8 @@ module HomelessSummaryReport
               report_client[:last_name] = hud_client.last_name
               report_client[:report_id] = id
               report_client["spm_#{spm_field}"] = parts.fetch(:value_accessor).call(spm_member)
+              # In Measure 7b, set the destination to 0 to flag the destination as 'Remained housed'
+              report_client["spm_#{spm_field}"] ||= 0 if measure_7b_remained_housed?(spm_field, spm_member)
               # FIXME: document what this is
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
               report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
@@ -492,6 +495,22 @@ module HomelessSummaryReport
         },
       )
       universe.add_universe_members(report_clients)
+    end
+
+    # Identify members who have remainied housed in Meaasure 7b
+    private def measure_7b_remained_housed?(spm_field, spm_member)
+      # We only want to calculate this for measure 7b
+      return unless spm_field == :m7b2_destination
+
+      # client must have moved in and not exited by the end of the report date
+      valid_move_in = spm_member.move_in_date.present?
+      valid_exit = spm_member.exit_date.blank? || spm_member.exit_date > @filter.end
+
+      # this must be for a PH project, exluding RRH
+      valid_project_types = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_number('PH - RRH')]
+      valid_project = valid_project_types.include?(spm_member.enrollment&.project&.project_type)
+
+      valid_project && valid_move_in && valid_exit
     end
 
     # This needs to temporarily set @filter to something useful for further limiting the default
@@ -662,31 +681,31 @@ module HomelessSummaryReport
       {
         m1a_es_sh_days: {
           cells: [['1a', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
           cells: [['1a', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
           cells: [['1b', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
           cells: [['1b', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
+          value_accessor: lambda(&:days_homeless),
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m2_reentry_days: {
           cells: [['2a and 2b', 'B7']],
-          value_accessor: ->(spm_return) { spm_return.days_to_return },
+          value_accessor: ->(spm_return) { spm_return.days_to_return || -1 }, # -1 is client didn't return to allow for 0 day returns
           title: 'Re-Entering Homelessness',
         },
         m7a1_destination: {
@@ -695,7 +714,7 @@ module HomelessSummaryReport
             ['7a.1', 'C3'],
             ['7a.1', 'C4'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'who exit Street Outreach',
           calculations: [:count, :count_destinations],
         },
@@ -704,7 +723,7 @@ module HomelessSummaryReport
             ['7b.1', 'C2'],
             ['7b.1', 'C3'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
           calculations: [:count, :count_destinations],
         },
@@ -713,7 +732,7 @@ module HomelessSummaryReport
             ['7b.2', 'C2'],
             ['7b.2', 'C3'],
           ],
-          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
+          value_accessor: lambda(&:destination),
           title: 'in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
           calculations: [:count, :count_destinations],
         },
@@ -823,91 +842,9 @@ module HomelessSummaryReport
     end
 
     def self.demographic_variants
-      {
-        hispanic_latinaeo: {
-          name: HudUtility2024.race('HispanicLatinaeo'), # non-hispanic latino
-          extra_filters: {
-            races: ['HispanicLatinaeo'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        black_african_american: {
-          name: HudUtility2024.race('BlackAfAmerican'),
-          extra_filters: {
-            races: ['BlackAfAmerican'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        asian: {
-          name: HudUtility2024.race('Asian'),
-          extra_filters: {
-            races: ['Asian'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        american_indian_alaskan_native: {
-          name: HudUtility2024.race('AmIndAKNative'),
-          extra_filters: {
-            races: ['AmIndAKNative'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        native_hawaiian_other_pacific_islander: {
-          name: HudUtility2024.race('NativeHIPacific'),
-          extra_filters: {
-            races: ['NativeHIPacific'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        white: {
-          name: HudUtility2024.race('White'),
-          extra_filters: {
-            races: ['White'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        mid_east_n_african: {
-          name: HudUtility2024.race('MidEastNAfrican'),
-          extra_filters: {
-            races: ['MidEastNAfrican'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        multi_racial: {
-          name: HudUtility2024.race('MultiRacial'),
-          extra_filters: {
-            races: ['MultiRacial'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        race_none: {
-          name: 'Unknown Race',
-          extra_filters: {
-            races: ['RaceNone'],
-          },
-          demographic_filters: [:filter_for_race],
-        },
-        fleeing_dv: {
-          name: 'Currently Fleeing DV',
-          extra_filters: {
-            currently_fleeing: [1],
-          },
-          demographic_filters: [:filter_for_dv_currently_fleeing],
-        },
-        veteran: {
-          name: 'Veterans',
-          extra_filters: {
-            veteran_statuses: [1],
-          },
-          demographic_filters: [:filter_for_veteran_status],
-        },
-        has_disability: {
-          name: 'With Indefinite and Impairing Disability',
-          extra_filters: {
-            indefinite_disabilities: [1],
-          },
-          demographic_filters: [:filter_for_indefinite_disabilities],
-        },
+      variants = ::Filters::DemographicFilters.race_ethnicity_combination_filters
+      variants.merge!(::Filters::DemographicFilters.subpopulation_filters)
+      variants.merge!(
         has_rrh_move_in_date: {
           name: 'Moved in to RRH',
           extra_filters: {
@@ -937,8 +874,9 @@ module HomelessSummaryReport
           },
           demographic_filters: [:filter_for_returned_to_homelessness_from_permanent_destination],
         },
-      }.
-        freeze
+      ).freeze
+
+      variants
     end
 
     def exclude_variants(measure_name, variant)

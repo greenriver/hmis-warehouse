@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,11 +37,12 @@ module ClientController
         )
       end
 
-      # Filter by population with whitelist
-      if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(params[:population].to_sym)
-        population = params[:population].to_sym
-        @clients = @clients.public_send(population) if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(population)
-      end
+      # Filter by known population
+      population = GrdaWarehouse::WarehouseReports::Dashboard::Base.
+        available_sub_populations.
+        values.
+        detect { |p| params[:population]&.to_sym == p }
+      @clients = @clients.public_send(population) if population
 
       if params[:data_source_id].present?
         @data_source_id = params[:data_source_id].to_i

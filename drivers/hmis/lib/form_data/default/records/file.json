@@ -2,11 +2,11 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "file-group",
+      "link_id": "file_group",
       "item": [
         {
           "type": "STRING",
-          "link_id": "file-id",
+          "link_id": "file_id",
           "hidden": true,
           "mapping": {
             "field_name": "id"
@@ -15,7 +15,7 @@
         {
           "type": "FILE",
           "required": true,
-          "link_id": "file-blob-id",
+          "link_id": "file_blob_id",
           "text": "Attachment",
           "mapping": {
             "field_name": "fileBlobId"
@@ -23,7 +23,7 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "file-id",
+              "question": "file_id",
               "operator": "EXISTS",
               "answer_boolean": false
             }
@@ -33,7 +33,7 @@
           "type": "CHOICE",
           "required": true,
           "repeats": true,
-          "link_id": "file-tags",
+          "link_id": "file_tags",
           "text": "File Tags",
           "pick_list_reference": "AVAILABLE_FILE_TYPES",
           "mapping": {
@@ -43,7 +43,7 @@
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "file-enrollment",
+          "link_id": "file_enrollment",
           "text": "Enrollment",
           "pick_list_reference": "ENROLLMENTS_FOR_CLIENT",
           "mapping": {
@@ -54,7 +54,7 @@
         {
           "type": "BOOLEAN",
           "required": true,
-          "link_id": "file-confidential",
+          "link_id": "file_confidential",
           "text": "Confidential File?",
           "readonly_text": "Confidential File",
           "mapping": {

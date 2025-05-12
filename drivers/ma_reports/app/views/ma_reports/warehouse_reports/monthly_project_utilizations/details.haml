@@ -14,12 +14,12 @@
     %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
       %thead.thead-dark
         %tr
-          - MaReports::MonthlyPerformance::Enrollment.headers.each_value do |label|
+          - MaReports::MonthlyPerformance::Enrollment.detail_headers.each_value do |label|
             %th= label
       %tbody.thead-dark
         - @report.enrollments_for(@key, @sub_key).each do |enrollment|
           %tr
-            - MaReports::MonthlyPerformance::Enrollment.headers.each_key do |column|
+            - MaReports::MonthlyPerformance::Enrollment.detail_headers.each_key do |column|
               - # TODO: these should probably get formatted, but we'd like to confirm contents first
               %td= enrollment.public_send(column)
 

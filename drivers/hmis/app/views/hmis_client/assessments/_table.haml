@@ -16,12 +16,7 @@
         %td= assessment.enrollment.project.warehouse_project.name(current_user)
         %td= assessment.AssessmentDate
         %td= assessment.user&.name
-        %td
-          - path = assessment.data_source.hmis_url_for(assessment, user: current_user)
-          - if path.present?
-            = link_to path, target: :_blank do
-              Open in HMIS
-              %i.icon-link-ext
+        %td= hmis_external_link(assessment, user: current_user)
         %td.zero-width
           - if any_buttons
             %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
@@ -32,10 +27,5 @@
           %td= assessment.enrollment.project.warehouse_project.name(current_user)
           %td= assessment.AssessmentDate
           %td= assessment.user&.name
-          %td
-            - path = assessment.data_source.hmis_url_for(assessment, user: current_user)
-            - if path.present?
-              = link_to path, target: :_blank do
-                Open in HMIS
-                %i.icon-link-ext
+          %td= hmis_external_link(assessment, user: current_user)
           %td.zero-width

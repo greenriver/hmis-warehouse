@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -172,11 +172,14 @@ module HudApr::Generators::Shared::Fy2024
         answer.update(summary: members.count)
       end
 
+      # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
       ps_rrh_w_move_in = universe.members.where(
-        a_t[:project_type].in([3, 13]).
-          and(a_t[:move_in_date].not_eq(nil).
-          and(a_t[:move_in_date].lteq(@report.end_date))).
-          and(a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gteq(a_t[:move_in_date]))),
+        # Generates (project_type in 3, 13 or pay_for_success = true) AND ...
+        a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true)).
+          and(a_t[:adjusted_move_in_date].not_eq(nil).
+          and(a_t[:adjusted_move_in_date].lteq(@report.end_date))).
+          and(a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gteq(a_t[:adjusted_move_in_date]))),
       )
       row_seven_cells.each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])
@@ -286,7 +289,10 @@ module HudApr::Generators::Shared::Fy2024
 
     private def pit_universe(month:)
       pit_date = pit_date(month: month, before: @report.end_date)
-      universe.members.where("pit_enrollments ? '#{pit_date}'").where(a_t[:first_date_in_program].lteq(pit_date))
+      # Logic for step 4 is enforced when addding PIT dates to the client record
+      # If a client doesn't have any overlapping enrollments that qualify, they won't
+      # have a record for the PIT date
+      universe.members.where("pit_enrollments ? '#{pit_date}'")
     end
   end
 end

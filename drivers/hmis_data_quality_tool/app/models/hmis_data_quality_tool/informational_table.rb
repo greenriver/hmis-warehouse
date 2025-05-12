@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,6 +34,12 @@ module HmisDataQualityTool
         title: 'Percent of Exits to Temporary Destinations',
         description: 'The percentage of everyone with an exit date that was to a temporary destination.',
         value_meth: :destination_temporary,
+        xlsx_styles: { format_code: '0%' },
+      },
+      {
+        title: 'Percent of Exits to Permanent Destinations',
+        description: 'The percentage of everyone with an exit date that was to a permanent destination.',
+        value_meth: :destination_permanent,
         xlsx_styles: { format_code: '0%' },
       },
       {
@@ -76,6 +82,11 @@ module HmisDataQualityTool
 
     def destination_temporary
       v = @report.destination_percent('destination_temporary')
+      @format == :xlsx ? v / 100.0 : "#{number_with_delimiter(v)}%"
+    end
+
+    def destination_permanent
+      v = @report.destination_percent('destination_permanent')
       @format == :xlsx ? v / 100.0 : "#{number_with_delimiter(v)}%"
     end
 

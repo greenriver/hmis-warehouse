@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -108,11 +108,12 @@ module HudApr::Generators::Shared::Fy2024
       end
 
       # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
       ps_rrh_w_move_in = universe.members.where(
-        a_t[:project_type].in([3, 13]).
-          and(a_t[:head_of_household].eq(true)).
-          and(a_t[:move_in_date].not_eq(nil).
-          and(a_t[:move_in_date].lteq(@report.end_date))),
+        a_t[:head_of_household].eq(true).
+          and(a_t[:project_type].in([3, 13]).or(a_t[:pay_for_success].eq(true))).
+          and(a_t[:hoh_move_in_date].not_eq(nil).
+          and(a_t[:hoh_move_in_date].lteq(@report.end_date))),
       )
       unless q8a_intentionally_blank.include?('B3')
         answer = @report.answer(question: table_name, cell: 'B3')
@@ -196,11 +197,19 @@ module HudApr::Generators::Shared::Fy2024
       # NOTE: from AirTable Issue 31, this needs to find households based on any
       # client active on the pit date, then return the HoH for those households.
       # This will catch the edge case where an HoH left, but other members remain
-      heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
+
       pit_date = pit_date(month: month, before: @report.end_date)
-      # "?" is a jsonb postgres operator, true if value is contained in array
-      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'").where(a_t[:first_date_in_program].lteq(pit_date))
-      heads_of_household.where(a_t[:household_id].in(active_members.pluck(a_t[:household_id])))
+
+      # Logic for step 4 is enforced when addding PIT dates to the client record
+      # If a client doesn't have any overlapping enrollments that qualify, they won't
+      # have a record for the PIT date
+      # The client we return may not be an HoH in relation to the rest of the APR, but they
+      # must be an HoH for the enrollment that was open on the PIT date
+      query = <<~SQL
+        pit_enrollments ? '#{pit_date}'
+        AND pit_enrollments -> '#{pit_date}' @> '[{"relationship_to_hoh": 1}]'
+      SQL
+      universe.members.where(query)
     end
   end
 end

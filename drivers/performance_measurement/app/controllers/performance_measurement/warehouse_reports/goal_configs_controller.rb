@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,6 +18,7 @@ module PerformanceMeasurement::WarehouseReports
 
     def edit
       @pit_counts = @goal.pit_counts.order(pit_date: :desc)
+      @spms = @goal.static_spms.order(report_start: :desc, report_end: :desc)
     end
 
     def create

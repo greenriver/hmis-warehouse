@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module ClientSearch
   extend ActiveSupport::Concern
@@ -13,7 +15,7 @@ module ClientSearch
     def self.text_searcher(text, sorted:, resolve_for_join_query: false)
       return none unless text.present?
 
-      text.strip!
+      text = text.strip
       sa = arel_table
       alpha_numeric = /[[[:alnum:]]-]+/.match(text).try(:[], 0) == text
       numeric = /[\d-]+/.match(text).try(:[], 0) == text
@@ -32,7 +34,7 @@ module ClientSearch
         return where(sa[:id].eq(matching_scan_card.client_id)) if matching_scan_card
       end
 
-      if alpha_numeric && (text.size == 32 || text.size == 36)
+      if alpha_numeric && [32, 36].include?(text.size)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
         where = sa[:SSN].eq(text.gsub('-', ''))

@@ -1,0 +1,22 @@
+= render 'ma_reports/csg_engage/tabs', selected_path: ma_reports_csg_engage_reports_path
+
+%h3 Transmission History
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Agency
+        %th Program Count
+        %th Created At
+        %th Started At
+        %th Completed At
+        %th Status
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td=link_to(ma_reports_csg_engage_report_path(report.id)) { report.agency&.name }
+          %td=report.program_reports.count
+          %td=report.created_at
+          %td=report.started_at
+          %td=report.completed_at
+          %td=report.status_text

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,15 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   self.table_name = :hmis_form_instances
 
   belongs_to :entity, polymorphic: true, optional: true
-  belongs_to :definition, foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+
+  # This belongs_to relationship is a bit confusing since now form identifiers can have multiple versions.
+  # We should aim to gradually replace usages of :definition with the has_many :definitions relationship below,
+  # so that we're explicit about which statuses of definition (draft, published, retired) we accept in a given situation.
+  belongs_to :definition,
+             -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
+             foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+
+  has_many :definitions, primary_key: :definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
 
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
@@ -18,6 +26,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }, allow_blank: true
   validates :funder, inclusion: { in: HudUtility2024.funding_sources.keys }, allow_blank: true
   validates :project_type, inclusion: { in: HudUtility2024.project_types.keys }, allow_blank: true
+  validate :validate_external_form_restrictions
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }
@@ -38,7 +47,10 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                      )
                    end
 
-  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].eq(role)) }
+  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].in(role)) }
+
+  scope :published, -> { joins(:definition).merge(Hmis::Form::Definition.published) }
+  scope :published_or_retired, -> { joins(:definition).merge(Hmis::Form::Definition.published_or_retired) }
 
   # Find instances that are for a specific Project
   scope :for_project, ->(project_id) { for_projects.where(entity_id: project_id) }
@@ -88,12 +100,31 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     end
   end
 
+  def validate_external_form_restrictions
+    return unless definition.role.to_s == 'EXTERNAL_FORM'
+
+    # External forms can only have Project-level rules, because they are not meant to be reviewed in multiple projects
+    errors.add(:base, :invalid, full_message: 'External forms only support rule specification by Project') if entity_type != 'Hmis::Hud::Project'
+    # External forms can only have ONE active Project-level rule
+    errors.add(:base, :invalid, full_message: 'External forms can only have one active rule') if new_record? && definition.instances.active.for_projects.exists?
+  end
+
+  def project_matches(project_scope)
+    project_scope.map { |project| project_match(project) }.compact
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::FormInstanceFilter.new(input).filter_scope(self)
   end
 
   def self.detect_best_instance_for_project(project:)
     matches = all.map { |i| i.project_match(project) }.compact
+    # with_index for stable sort
+    matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
+  end
+
+  def self.detect_best_instance_for_enrollment(enrollment:)
+    matches = all.map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
     # with_index for stable sort
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end

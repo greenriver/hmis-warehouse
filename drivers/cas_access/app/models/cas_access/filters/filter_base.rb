@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/boston-cas/blob/production/LICENSE.md
 ###
@@ -105,7 +107,7 @@ module CasAccess::Filters
     def to_h
       for_params[:filters]
     end
-    alias inspect to_h
+    alias_method :inspect, :to_h
 
     def known_params
       @known_params ||= [

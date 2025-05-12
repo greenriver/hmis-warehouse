@@ -6,37 +6,22 @@
     display: block;
   }
 = render 'breadcrumbs'
--# confidentiality status ignored because page is not visible to users who can't see confidential project names
-- content_for :title, "#{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
-.row
-  .col-sm-8
-    %h1= content_for :title
-  .col-sm-4.text-right
-    - if can_edit_projects?
-      = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
-        %i.icon-pencil
-        Edit Project
-    - if can_delete_projects?
-      .mt-4
-        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
-          %i.icon-cross
-          Delete Project
-.row.mb-4
-  .col-sm-8
+- content_for :title, "#{@project.name(ignore_confidential_status: can_edit_projects?)} at #{@project.organization.name(ignore_confidential_status: can_edit_organizations?)}"
+%h1= content_for :title
+.row.mb-6
+  .col-sm-4
     .card
-      %table.table.table-striped.table-hover.mb-0
+      %table.table.table-striped.mb-0
         %tr
           %th Project Type
           %td
-            = HudUtility2024.project_type(@project.ProjectType)
+            = HudUtility2024.project_type_with_sub_type(@project.project_type, @project.rrh_sub_type)
             - if @project.active_homeless_status_override.present?
               %br
-              %em
-                Enrolled clients are actively homeless for CAS and Cohorts
+              %em Enrolled clients are actively homeless for CAS and Cohorts
             - if @project.include_in_days_homeless_override.present?
               %br
-              %em
-                Days served are included in verified additional days
+              %em Days served are included in verified additional days
         %tr
           %th Operating Start Date
           %td.d-flex
@@ -59,10 +44,14 @@
               - if @project.HousingType.present?
                 = HudUtility2024.housing_type(@project.HousingType)
                 (#{@project.HousingType})
-        - if can_view_imports?
+        - if project_policy.can_view_imports?
           %tr
             %th Project Contacts
             %td= link_to 'View/Edit', project_contacts_path(@project)
+        - if project_policy.can_view_project_locations?
+          %tr
+            %th Client Locations
+            %td= link_to 'View', map_client_location_history_project_path(@project)
         %tr
           %th
             %span{data: {toggle: :tooltip, title: @project.confidential_hint}} Confidential Project?
@@ -82,26 +71,24 @@
             %td
               - @project.affiliated_projects.each do |project|
                 = link_to project_path(project) do
-                  = project.name(current_user, ignore_confidential_status: can_edit_projects?)
+                  = project.name(current_user, ignore_confidential_status: project_policy.can_edit?)
         - if @project.residential_projects.any?
           %tr
             %th Affiliated Residential Projects
             %td
               - @project.residential_projects.each do |project|
                 = link_to project_path(project) do
-                  = project.name(current_user, ignore_confidential_status: can_edit_projects?)
+                  = project.name(current_user, ignore_confidential_status: project_policy.can_edit?)
 
   .col-sm-4
-    .d-flex.mt-4
-      %h4 HMIS Info
-      .ml-auto
-        - if can_see_raw_hmis_data?
-          = link_to 'HMIS', source_datum_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
     .card
-      %table.table.table-striped.table-hover.mb-0
+      %table.table.table-striped.mb-0
         %tr
           %th Project ID
-          %td= @project.ProjectID
+          %td
+            = @project.ProjectID
+            - if @project.data_source.hmis_link_available?
+              = hmis_external_link(@project, user: current_user, wrapper_class: 'mt-2 text-teeny')
         %tr
           %th Organization ID
           %td= @project.OrganizationID
@@ -110,16 +97,33 @@
           %td= @project.data_source.short_name
         %tr
           %th Target Population
-          %td
-            = HudUtility2024.target_population(@project.TargetPopulation)
+          %td= HudUtility2024.target_population(@project.TargetPopulation)
         %tr
           %th Household Type
           %td
             %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
               = @project.main_population
-        %tr
-          %th PIT Count
-          %td= @project.PITCount
+        - unless @project.data_source.hmis?
+          %tr
+            %th
+              %span{data: {toggle: :tooltip, title: 'PITCount value from most recent Project.csv import'}} PIT Count
+            %td= @project.PITCount
+  .col-sm-4.text-right
+    - if project_policy.can_edit?
+      .mb-4
+        = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
+          %i.icon-pencil
+          Edit Project
+    - if project_policy.can_destroy?
+      .mb-4
+        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
+          %i.icon-cross
+          Delete Project
+    - if RailsDrivers.loaded.include?(:synthetic_ce_assessment) && project_policy.can_edit?
+      = render 'synthetic_ce_assessments/project_config'
+    - if project_policy.can_see_raw_hmis_data?
+      .mb-4
+        = link_to 'HMIS', source_datum_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
 - overrides = HmisCsvImporter::ImportOverride.where(data_source: @project.data_source).sorted.select { |override| override.applies?(@project) }
 - if overrides.any?
   %p The following import overrides are in effect for this project.
@@ -139,7 +143,7 @@
   :javascript
     (function($) {
       if ('#{@census_filter_params.present?}' === 'true') {
-        census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{can_view_clients?}' });
+        census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{project_policy.can_view_clients?}' });
         census.load();
       }
     })(jQuery);

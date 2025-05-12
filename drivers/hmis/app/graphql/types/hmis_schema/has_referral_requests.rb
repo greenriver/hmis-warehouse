@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,12 +20,6 @@ module Types
           end
         end
       end
-
-      # FIXME: combining the extra scope isn't working here- perhaps rails 6 bug
-      # def resolve_referral_requests_with_loader(association_name, **args)
-      #   scope = scoped_referral_requests(HmisExternalApis::AcHmis::ReferralRequest.all, **args)
-      #   load_ar_association(object, association_name, scope: scope)
-      # end
 
       def scoped_referral_requests(scope, sort_order: nil)
         scope = scope.active.viewable_by(current_user)

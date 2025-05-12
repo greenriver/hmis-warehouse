@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 require 'memery'
 
 module SystemPathways
@@ -11,6 +12,8 @@ module SystemPathways
     include Memery
     include SystemPathways::ChartBase
     include SystemPathways::TimeChart::Race
+    include SystemPathways::TimeChart::Ethnicity
+    include SystemPathways::TimeChart::RaceAndEthnicity
     include SystemPathways::TimeChart::Veteran
     include SystemPathways::TimeChart::Chronic
     include SystemPathways::TimeChart::InvolvesCe
@@ -19,6 +22,8 @@ module SystemPathways
     def known_categories
       [
         ['Race', 'race'],
+        ['Ethnicity', 'ethnicity'],
+        ['Race and Ethnicity', 'race_and_ethnicity'],
         ['Veteran Status', 'veteran_status'],
         ['Disabling Condition', 'disabling_condition'],
         ['Household Chronic at Entry', 'chronic_at_entry'],
@@ -34,6 +39,10 @@ module SystemPathways
       data = case chart.to_s
       when 'race'
         race_chart_data
+      when 'ethnicity'
+        ethnicity_chart_data
+      when 'race_and_ethnicity'
+        race_and_ethnicity_chart_data
       when 'veteran_status'
         veteran_chart_data
       when 'disabling_condition'

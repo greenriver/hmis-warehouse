@@ -4,7 +4,7 @@
       "type": "CHOICE",
       "component": "DROPDOWN",
       "required": true,
-      "link_id": "2.08.1",
+      "link_id": "q_2_08_1",
       "text": "HMIS Participation Type",
       "pick_list_reference": "HMISParticipationType",
       "mapping": {
@@ -14,7 +14,7 @@
     {
       "type": "DATE",
       "required": true,
-      "link_id": "2.08.2",
+      "link_id": "q_2_08_2",
       "text": "Start Date",
       "mapping": {
         "field_name": "hmisParticipationStatusStartDate"
@@ -33,14 +33,14 @@
         {
           "id": "max-start-date-range",
           "type": "MAX",
-          "question": "2.08.3"
+          "question": "q_2_08_3"
         }
       ]
     },
     {
       "type": "DATE",
       "required": false,
-      "link_id": "2.08.3",
+      "link_id": "q_2_08_3",
       "text": "End Date",
       "mapping": {
         "field_name": "hmisParticipationStatusEndDate"
@@ -59,7 +59,7 @@
         {
           "id": "max-end-date-range",
           "type": "MIN",
-          "question": "2.08.2"
+          "question": "q_2_08_2"
         }
       ]
     }

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class ProjectCoc < Base
@@ -21,11 +23,11 @@ module GrdaWarehouse::Hud
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :project_cocs, optional: true
-    has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
-    has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
+    belongs_to :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', foreign_key: :CoCCode, primary_key: :coc_code, inverse_of: :project_cocs, optional: true
     belongs_to :data_source
-    has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
-    has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
+
+    has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
+    has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], query_constraints: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
 
     # hide previous declaration of :importable, we'll use this one
     replace_scope :importable, -> do
@@ -80,7 +82,7 @@ module GrdaWarehouse::Hud
           group_ids = user.collections_for_permission(permission)
           return none if group_ids.empty?
 
-          coc_codes = Collection.where(id: group_ids).pluck(:coc_codes).flatten
+          coc_codes = Collection.where(id: group_ids).preload(:coc_codes).flat_map { |c| c.coc_codes.map(&:coc_code) }.uniq
           GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)
         end
       else
@@ -93,25 +95,6 @@ module GrdaWarehouse::Hud
         end
       end
       # END_ACL
-    end
-
-    scope :overridden, -> do
-      scope = where(Arel.sql('1=0'))
-      override_columns.each_key do |col|
-        scope = scope.or(where.not(col => nil))
-      end
-      scope
-    end
-
-    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
-    # If any of these are not blank, we'll consider it overridden
-    def self.override_columns
-      {
-        hud_coc_code: :CoCCode,
-        geography_type_override: :GeographyType,
-        geocode_override: :Geocode,
-        zip_override: :Zip,
-      }
     end
 
     def self.zip_code_shapes

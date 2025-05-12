@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ module Admin::Health
       if params[:q].present?
         @users = User.text_search(params[:q])
       else
-        @users = User.all
+        @users = User.active
       end
       @users = @users.order(last_name: :asc, first_name: :asc)
       @pagy, @users = pagy(@users)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,9 +17,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q4a',
-        skip: [
-          'L2', # Is the generator name, so not expected to match
-        ],
       )
     end
 
@@ -80,8 +77,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
-    xit 'Q7b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
+    it 'Q7b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q7b',
@@ -96,10 +93,16 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
     end
 
     # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
-    xit 'Q8b' do
+    it 'Q8b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
+        skip: [
+          'B3', # expected '68.0000' (68), got '67.0000' (67)
+          'D3', # expected '20.0000' (20), got '19.0000' (19)
+          'B4', # expected '73.0000' (73), got '70.0000' (70)
+          'D4', # expected '18.0000' (18), got '15.0000' (15)
+        ],
       )
     end
 
@@ -237,10 +240,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
-        skip: [
-          'F7', # rounding difference, not significant
-          'J2', # rounding difference, not significant
-        ],
       )
     end
 
@@ -268,9 +267,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q21' do
+    it 'Q21' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q21',
@@ -298,30 +295,32 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q22e' do
+    it 'Q22e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22e',
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q22f' do
+    it 'Q22f' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q22g' do
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
+        skip: [
+          'B3', # expected '0.0000' (0), got '1.0000' (1)
+          'C3', # expected '0.0000' (0), got '2.0000' (2)
+          'D3', # expected '0.0000' (0), got '45.0000' (45)
+          'H3', # expected '0.0000' (0), got '40.0000' (40)
+          'I3', # expected '0.0000' (0), got '11.0000' (11)
+          'J3', # expected '0.0000' (0), got '7.0000' (7)
+        ],
       )
     end
 
@@ -377,8 +376,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
 
     # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
     # Not counting children with HoH or adult in CH calculation
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recT9z9YkbQtWwAmm
-    xit 'Q25b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recT9z9YkbQtWwAmm
+    it 'Q25b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q25b',
@@ -419,20 +418,19 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
         question: 'Q26a',
         # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
         skip: [
-          'B3',
-          'C3', # new
-          'D3',
-          'B5',
-          'C5', # new
-          'D5',
+          'B3', # expected '247.0000' (247), got '249.0000' (249)
+          'C3', # expected '185.0000' (185), got '186.0000' (186)
+          'D3', # expected '62.0000' (62), got '63.0000' (63)
+          'B5', # expected '20.0000' (20), got '18.0000' (18)
+          'C5', # expected '15.0000' (15), got '14.0000' (14)
+          'D5', # expected '5.0000' (5), got '4.0000' (4)
         ],
       )
     end
 
     # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
-    # Not counting children with HoH or adult in CH calculation
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recTCOE44QtrUKsfZ
-    xit 'Q26b' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recTCOE44QtrUKsfZ
+    it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
@@ -534,11 +532,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27j',
-        # We round, it's unclear what the expectation is
-        skip: [
-          'B2',
-          'C2',
-        ],
       )
     end
 
@@ -550,9 +543,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q27l' do
+    it 'Q27l' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27l',

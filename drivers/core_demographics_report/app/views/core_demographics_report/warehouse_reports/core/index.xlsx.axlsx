@@ -11,13 +11,13 @@ th_style = wb_styles.add_style(
   {
     bg_color: '81adb9',
     b: true,
-    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
-  }
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
 )
 wb_styles.add_style(
   {
-    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
-  }
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
 )
 wb.add_worksheet(name: 'Report Info') do |sheet|
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
@@ -42,7 +42,9 @@ data_styles = {
   'Age Breakdowns' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
   'Gender/Age' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
   'Gender Breakdowns' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
-  'Race' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
+  'Race by Ethnicity' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
+  'Race Overall' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
+  'Ethnicity Overall' => [th_style, nil, nil, nil, percentage_format] + [nil, percentage_format] * coc_count,
   'Relationship' => [th_style, nil, nil, nil, percentage_format],
   'Disabilities' => [th_style, nil, nil, nil, percentage_format],
   'At Least One Disability' => [th_style, nil, nil, nil, percentage_format],

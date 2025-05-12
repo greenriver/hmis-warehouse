@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,13 +8,21 @@ module Clients
   class CasReadinessController < ApplicationController
     include ClientPathGenerator
     include ClientDependentControllers
+    extend BackgroundRenderAction
 
     before_action :require_can_edit_clients!
     before_action :set_client
     after_action :log_client
 
     def edit
-      @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
+    end
+
+    background_render_action(:render_content, ::BackgroundRender::CasReadinessJob) do
+      {
+        client_id: @client.id,
+        user_id: current_user.id,
+        token: form_authenticity_token,
+      }
     end
 
     def update
@@ -57,7 +65,7 @@ module Clients
     end
 
     def title_for_show
-      "#{@client.name} - CAS Readiness"
+      "#{@client.pii_provider(user: current_user).full_name} - CAS Readiness"
     end
   end
 end

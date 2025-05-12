@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
@@ -23,12 +25,17 @@
 # # at this point, you can call any of the various import methods, usually, the last one that was attempted
 # imp.log_timing(:process_existing)
 
+require 'memery'
+require 'zlib'
+require 'base64'
+
 module HmisCsvImporter::Importer
   class Importer
     include TsqlImport
     include NotifierConfig
     include HmisCsvImporter::HmisCsv
     include ArelHelper
+    include Memery
 
     attr_accessor :import, :range, :data_source, :importer_log
 
@@ -68,28 +75,28 @@ module HmisCsvImporter::Importer
 
     # Needs to return an import_log instance
     def import!(import_log = nil)
-      # log that we're waiting, but then continue on.
-      already_running_for_data_source?
+      start_import
+      @import_log = import_log
+      log_timing :analyze_tables
+      log_timing :pre_process!
+      log_timing :validate_data_set!
+      log_timing :aggregate!
+      log_timing :cleanup_data_set!
+      log_timing :analyze_tables
 
-      GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
-        start_import
-        @import_log = import_log
-        log_timing :analyze_tables
-        log_timing :pre_process!
-        log_timing :validate_data_set!
-        log_timing :aggregate!
-        log_timing :cleanup_data_set!
-        log_timing :analyze_tables
-        # refuse to proceed with the import if there are any errors and that setting is in effect
-        if should_pause?
-          pause_import
-        else
-          ingest!
-          log_timing :invalidate_aggregated_enrollments!
-          complete_import
-          post_process
-        end
-      end
+      # Determine what changes will be made and make note for alerting and monitoring. This is only needed if the data source is configured to pause on errors.
+      log_timing :precalculate_change_counts if @data_source.ever_pause_imports_with_errors? || @data_source.ever_notify_for_imports?
+
+      # Send any notifications that might be relevant to the error state of this import
+      notify_of_import_status
+
+      # refuse to proceed with the import if there are any errors and that setting is in effect
+      return pause_import if should_pause?
+
+      ingest!
+      log_timing :invalidate_aggregated_enrollments!
+      complete_import
+      post_process
     end
 
     def resume!
@@ -101,27 +108,220 @@ module HmisCsvImporter::Importer
       # and we may have paused for a significant amount of time
       @started_at = Time.current
       ingest!
-      invalidate_aggregated_enrollments!
+      log_timing :invalidate_aggregated_enrollments!
       complete_import
       post_process
     end
 
-    def should_pause?
-      return false unless @data_source.refuse_imports_with_errors
+    ##
+    # Determines whether the import process should be paused based on error thresholds.
+    #
+    # This method evaluates the configured settings for pausing imports due to errors and
+    # checks the current status of the loader log. It aggregates error counts from different
+    # sources and determines if they exceed the allowable threshold.
+    #
+    # The decision to pause is made based on the following conditions:
+    # - If the data source is configured to pause imports due to errors or record changes.
+    # - If the loader log status is not `'loaded'`, indicating the import has not progressed to that stage.
+    # - If any individual file has exceeded its error threshold, the import is paused.
+    #
+    # @return [Boolean] `true` if the import should be paused due to exceeding error thresholds, otherwise `false`.
+    #
+    memoize def should_pause?
       return true unless @loader_log.status == 'loaded'
 
-      loader_errors = @loader_log.summary.values.sum { |h| h['total_errors'].to_i }
+      return true if @data_source.ever_pause_imports_with_errors? && any_error_thresholds_met?
 
-      db_errors = HmisCsvImporter::Importer::ImportError.where(
+      @data_source.ever_pause_imports_with_record_changes? && any_record_count_thresholds_met?
+    end
+
+    ##
+    # Determines if any file in the import process has exceeded its allowed error threshold.
+    #
+    # This method iterates over all import files and checks whether the number of errors
+    # in each file surpasses the defined threshold. If any file's error count exceeds the
+    # threshold set in the data source, the method returns `true`.
+    #
+    # @return [Boolean] `true` if any file has met or exceeded its error threshold, otherwise `false`.
+    #
+    memoize private def any_error_thresholds_met?
+      return false unless @data_source.ever_notify_for_imports?
+
+      # counts of expected rows in each file
+      totals_by_filename = @loader_log.summary.map { |filename, data| [filename, data['total_lines'].to_i] }.to_h
+      totals_by_filename.any? do |filename, total_count|
+        @data_source.error_count_threshold_reached?(total_count, error_counts[filename])
+      end
+    end
+
+    ##
+    # Determines if any file in the import process has exceeded its allowed record count change threshold.
+    #
+    # This method evaluates the total number of records and absolute number of changes (additions minus removals)
+    # for each file. If the number of changes exceeds the configured threshold for any file, the method
+    # returns `true`.
+    #
+    # @return [Boolean] `true` if any file has met or exceeded its record count change threshold, otherwise `false`.
+    #
+    memoize private def any_record_count_thresholds_met?
+      return false unless @data_source.ever_notify_for_imports?
+
+      change_counts.values.any? do |data|
+        total = data[:total_count]
+        changes = data[:change_count]
+        @data_source.record_count_threshold_reached?(total, changes)
+      end
+    end
+
+    ##
+    # Collects and aggregates import errors from the loader and import processes.
+    #
+    # This method retrieves error counts from different parts of the import process:
+    # - Errors logged in the loader summary.
+    # - Errors recorded in the {HmisCsvImporter::Importer::ImportError} model.
+    # - Validation errors recorded in the {HmisCsvImporter::HmisCsvValidation::Base} model.
+    #
+    # It maps error counts to their respective filenames and ensures that the counts
+    # are aggregated correctly without raising additional errors if files are missing.
+    #
+    # @return [Hash{String => Integer}] A hash where keys are filenames and values are the total error counts for each file.
+    #
+    memoize private def error_counts
+      file_lookup = self.class.importable_files_map.invert
+
+      # Serialized hash of processing data persisted on the log model
+      summary = @loader_log.summary
+      # Initialize error counts grouped by filename
+      counts = summary.map { |filename, data| [filename, data['total_errors'].to_i] }.to_h
+
+      # Collect errors from ImportError model
+      HmisCsvImporter::Importer::ImportError.where(
         importer_log_id: importer_log.id,
-      )
+      ).
+        group(:source_type).
+        count.
+        map do |k, count|
+          # convert to filename keys
+          filename = file_lookup[k.demodulize]
 
-      validation_errors = HmisCsvImporter::HmisCsvValidation::Base.where(
+          counts[filename] += count
+        end
+
+      # Collect validation errors
+      HmisCsvImporter::HmisCsvValidation::Base.where(
         type: HmisCsvImporter::HmisCsvValidation::Error.subclasses.map(&:name),
         importer_log_id: importer_log.id,
-      )
+      ).
+        group(:source_type).
+        count.
+        map do |k, count|
+          # convert to filename keys
+          filename = file_lookup[k.demodulize]
+          # every file _should_ be present, but let's try not to throw any errors here
+          next unless counts[filename]
 
-      loader_errors.positive? || db_errors.count.positive? || validation_errors.count.positive?
+          counts[filename] += count
+        end
+      counts
+    end
+
+    ##
+    # Estimates the number of records that will be added and removed during the import process.
+    #
+    # This method calculates changes before ingestion to determine if the import
+    # exceeds configured thresholds. It compares existing records in the warehouse
+    # with incoming records from the import log to identify additions and removals.
+    #
+    # The results are stored in the `importer_log.summary` for each file, allowing these values
+    # to be used in import threshold checks before committing data changes.
+    #
+    # @return [void]
+    #
+    private def precalculate_change_counts
+      # This makes an estimate of the changes that will occur as it needs to be done before the
+      # actual processing so that it can pause the import if necessary.
+      # NOTE: as written this causes 2 additional, potentially slow queries
+      importable_files.map do |file, klass|
+        incoming_data = klass.incoming_data(importer_log_id: importer_log.id).
+          pluck(klass.hud_key).to_set
+
+        to_add = (incoming_data - existing_hud_keys(klass)).count
+        # If we never delete, just pretend it will be 0
+        to_remove = 0 if klass.prevent_import_deletions?
+        to_remove ||= (existing_hud_keys(klass) - incoming_data).count
+
+        importer_log.summary[file]['added'] = to_add
+        importer_log.summary[file]['removed'] = to_remove
+      end
+    end
+
+    ##
+    # Retrieves the set of existing HUD keys from the warehouse for a given class.
+    #
+    # This method queries the warehouse for records that match the data source,
+    # involved projects, and date range. It then extracts and returns the HUD keys
+    # as a set for efficient lookup and comparison.
+    #
+    # @param klass [Class] The class representing the data model being queried.
+    # @return [Set<String>] A set of existing HUD keys for the given class.
+    #
+    memoize private def existing_hud_keys(klass)
+      klass.existing_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      ).pluck(klass.hud_key).to_set
+    end
+
+    ##
+    # Collects and aggregates changes in record counts during the import process.
+    #
+    # This method calculates changes in records (additions and removals) for each importable file.
+    # It determines the total number of changes by comparing additions and removals and associates
+    # the changes with the corresponding file. Additionally, it retrieves the total record count
+    # for of existing data that matches each file to provide more context about the scale of the changes.
+    #
+    # @return [Hash{String => Hash{Symbol => Integer}}] A hash where keys are filenames, and values
+    #   are hashes containing:
+    #   - `:change_count` (Integer): The absolute value of the difference between additions and removals.
+    #   - `:total_count` (Integer): The total number of records for the corresponding file.
+    #
+    private def change_counts
+      importer_log.summary.map do |file, data|
+        klass = importable_files[file]
+        to_add = data['added']
+        to_remove = data['removed']
+        [
+          file,
+          {
+            change_count: (to_add - to_remove).abs,
+            total_count: existing_hud_keys(klass).count,
+          },
+        ]
+      end.to_h
+    end
+
+    ##
+    # Sends notifications about the current import status.
+    #
+    # This method triggers a emails to users who are setup to receive status notifications for the data source
+    # with the following details:
+    # - Whether any error thresholds have been exceeded.
+    # - Whether any record count change thresholds have been exceeded.
+    # - Whether the import process should be paused.
+    #
+    # @return [void]
+    #
+    private def notify_of_import_status
+      # don't do anything if we don't have an import log to reference.
+      return unless @import_log
+
+      @data_source.notify_of_import_status(
+        import_log_id: @import_log.id,
+        error_threshold_met: any_error_thresholds_met?,
+        record_count_threshold_met: any_record_count_thresholds_met?,
+        paused: should_pause?,
+      )
     end
 
     private def analyze_tables
@@ -198,6 +398,13 @@ module HmisCsvImporter::Importer
       importer_log.summary[file_name].merge!(stats)
       Rails.logger.debug do
         " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stats))}"
+      end
+    end
+
+    def self.expiring_models
+      importable_files.values.filter do |model|
+        # Don't expire or remove Export or Project records since they define the scope of a given import
+        !model.name.demodulize.in?(['Export', 'Project'])
       end
     end
 
@@ -299,6 +506,8 @@ module HmisCsvImporter::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
+      # Reset add/remove counts used for import thresholds
+      reset_import_counts
       importer_log.update(status: :importing)
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
@@ -341,15 +550,58 @@ module HmisCsvImporter::Importer
       data_source.import_cleanups[basename]&.map(&:constantize)
     end
 
+    # Capture executed sql for debugging. Also disable nested loops
+    # min_duration defaults to 1 minute
+    def with_sql_log(phase, klass, name: nil, min_duration: 60_000)
+      queries = []
+      callback = lambda { |event|
+        payload_sql = event.payload[:sql].squish
+        next if payload_sql =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
+        next if event.duration < min_duration
+
+        binds = (event.payload[:binds] || []).map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
+        query_data = { sql: payload_sql.squish, binds: binds }
+
+        compressed_query = begin
+          # decode with Zlib::Inflate.inflate(Base64.decode64(str))
+          Base64.strict_encode64(Zlib::Deflate.deflate(query_data.to_json)).chomp
+        rescue JSON::GeneratorError => e
+          Rails.logger.error("JSON serialization failed: #{e.message}")
+          nil
+        rescue Zlib::Error => e
+          Rails.logger.error("Compression failed: #{e.message}")
+          nil
+        end
+
+        queries << {
+          'compressed_query' => compressed_query,
+          'duration' => event.duration / 1000, # convert to seconds
+        }
+      }
+
+      result = nil
+      GrdaWarehouseBase.disable_nestloop do
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+          result = yield
+        end
+      end
+
+      scope_name = [klass.name.demodulize, name].compact.join('.')
+      importer_log.log_phase(phase, **{ scope_name => queries }) if queries.any?
+      result
+    end
+
     def mark_tree_as_dead
       importable_files.each_value do |klass|
-        klass.mark_tree_as_dead(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-          pending_date_deleted: Date.current,
-          importer_log_id: @importer_log.id,
-        )
+        with_sql_log(__method__, klass, name: 'involved_warehouse_scope') do
+          klass.mark_tree_as_dead(
+            data_source_id: data_source.id,
+            project_ids: involved_project_ids,
+            date_range: date_range,
+            pending_date_deleted: Date.current,
+            importer_log_id: @importer_log.id,
+          )
+        end
       end
     end
 
@@ -367,11 +619,13 @@ module HmisCsvImporter::Importer
         # Export has already been processed
         next if klass.hud_key == :ExportID
 
-        klass.involved_warehouse_scope(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        ).update_all(ExportID: export_record.ExportID)
+        involved_project_ids.each_slice(250) do |project_ids_slice|
+          klass.involved_warehouse_scope(
+            data_source_id: data_source.id,
+            project_ids: project_ids_slice,
+            date_range: date_range,
+          ).update_all(ExportID: export_record.ExportID)
+        end
       end
     end
 
@@ -380,11 +634,16 @@ module HmisCsvImporter::Importer
         destination_class = klass.reflect_on_association(:destination_record).klass
         # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
-        existing_keys = klass.existing_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-        ).pluck(klass.hud_key).to_set
+        # This is the same query as `existing_hud_keys` but the memoization of that method prevents this from
+        # using it.
+        existing_keys = nil
+        with_sql_log(__method__, klass, name: 'existing_data') do
+          existing_keys = klass.existing_data(
+            data_source_id: data_source.id,
+            project_ids: involved_project_ids,
+            date_range: date_range,
+          ).pluck(klass.hud_key).to_set
+        end
 
         bm = Benchmark.measure do
           klass.incoming_data(importer_log_id: importer_log.id).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
@@ -437,9 +696,11 @@ module HmisCsvImporter::Importer
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
-        mark_unchanged(klass, file_name)
-        mark_incoming_older(klass, file_name)
-        apply_updates(klass, file_name)
+        with_sql_log(__method__, klass) do
+          mark_unchanged(klass, file_name)
+          mark_incoming_older(klass, file_name)
+          apply_updates(klass, file_name)
+        end
       end
     end
 
@@ -448,28 +709,29 @@ module HmisCsvImporter::Importer
         # Never delete Exports
         next if klass.hud_key == :ExportID
 
-        # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
-        if klass.hud_key.in?([:ProjectID, :OrganizationID])
-          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
+        # If the klass does not allow deletions through the import process, remove the pending deletion flag from all klass records associated with this import.
+        if klass.prevent_import_deletions?
+          existing_destination_data_scope(klass).update_all(pending_date_deleted: nil, source_hash: nil)
         elsif klass.hud_key == :PersonalID
           # Clients need to be treated differently for the situation where we are importing a partial data source
-          existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range)
+          existing = existing_destination_data_scope(klass)
           # for everyone who would have been included in this import, but didn't get
           # processed above, set their source hash to nil so future imports will fix them
-          existing.joins(enrollments: :project).
-            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
-            merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
-            update_all(source_hash: nil)
-          existing.update_all(pending_date_deleted: nil)
+          with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
+            existing.joins(enrollments: :project).
+              merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
+              merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
+              update_all(source_hash: nil)
+            existing.update_all(pending_date_deleted: nil)
+          end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           # Do this in batches to avoid the complex join during the update
-          scope = klass.existing_destination_data(
-            data_source_id: data_source.id,
-            project_ids: involved_project_ids,
-            date_range: date_range,
-          )
-          all_ids = scope.pluck(:id)
+          scope = existing_destination_data_scope(klass)
+          all_ids = nil
+          with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
+            all_ids = scope.pluck(:id)
+          end
           update_scope = if scope.klass.paranoid?
             scope.klass.with_deleted
           else
@@ -489,6 +751,14 @@ module HmisCsvImporter::Importer
         pluck(:ProjectID)
     end
 
+    private def existing_destination_data_scope(klass)
+      klass.existing_destination_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      )
+    end
+
     # At this point,
     #   * All new data has been added
     #   * All extraneous data has been deleted
@@ -505,14 +775,12 @@ module HmisCsvImporter::Importer
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
 
-      existing = klass.existing_destination_data(
-        data_source_id: data_source.id,
-        project_ids: involved_project_ids,
-        date_range: date_range,
-      ).distinct.pluck(klass.hud_key)
+      # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
-        existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+        # existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+        existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
+          hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
             importer_log_id: @importer_log.id,
             klass.hud_key => hud_keys,
@@ -586,11 +854,7 @@ module HmisCsvImporter::Importer
       # We always bring over Exports
       return if klass.hud_key == :ExportID
 
-      existing = klass.existing_destination_data(
-        data_source_id: data_source.id,
-        project_ids: involved_project_ids,
-        date_range: date_range,
-      ).where.not(DateUpdated: nil). # A bad import can sometimes cause this
+      existing = existing_destination_data_scope(klass).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :source_hash)
@@ -617,11 +881,7 @@ module HmisCsvImporter::Importer
       return if klass.hud_key == :ExportID
       return if most_recent_export_for_ds?
 
-      existing = klass.existing_destination_data(
-        data_source_id: data_source.id,
-        project_ids: involved_project_ids,
-        date_range: date_range,
-      ).pluck(klass.hud_key, :DateUpdated).to_h
+      existing = existing_destination_data_scope(klass).pluck(klass.hud_key, :DateUpdated).to_h
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :DateUpdated).to_h
 
@@ -723,12 +983,6 @@ module HmisCsvImporter::Importer
       export_record.ExportDate.to_date >= previous_date
     end
 
-    def already_running_for_data_source?
-      running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{data_source.id}")
-      log("Import of Data Source: #{data_source.short_name} already running...waiting") if running
-      running
-    end
-
     def pause_import
       Rails.logger.info "pause_import #{hash_as_log_str({ importer_log_id: importer_log.id })}"
 
@@ -745,6 +999,25 @@ module HmisCsvImporter::Importer
 
       importer_log.summary[file][type] ||= 0
       importer_log.summary[file][type] += increment_by
+    end
+
+    ##
+    # Resets the import counts for each importable file.
+    #
+    # This method ensures that the counts for 'added' and 'removed' records
+    # are set to zero before running ingest!.
+    # These numbers are pre-calculated and saved to determine if the import should trigger any
+    # notifications or should pause.  They are re-added as we process batches of data and
+    # delete existing records, so we'll zero them out and let the re-accumulate
+    #
+    # @return [void]
+    #
+    private def reset_import_counts
+      importable_files.each_key do |file|
+        ['added', 'removed'].each do |type|
+          importer_log.summary[file][type] = 0
+        end
+      end
     end
 
     def setup_summary(file)
@@ -794,37 +1067,53 @@ module HmisCsvImporter::Importer
         importer_log.status = :complete
         importer_log.completed_at = Time.current
         importer_log.upload_id = @upload.id if @upload.present?
-        importer_log.save
-        data_source.update(last_imported_at: Time.current)
+        importer_log.save!
+        data_source.update!(last_imported_at: Time.current)
         elapsed = importer_log.completed_at - @started_at
         Rails.logger.tagged({ task_name: 'HMIS CSV Importer', repeating_task: true, task_runtime: elapsed }) do
           log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
         end
-        @import_log&.update(importer_log: importer_log)
+        @import_log&.update!(importer_log: importer_log)
       end
     end
 
     private def post_process
-      # s_time = Time.current
+      log_timing :project_cleanup
+      log_timing :cleanup_dangling_enrollments
+      log_timing :identify_duplicates
+      log_timing :queue_enrollment_processing
+      log_timing :maintain_ch_enrollments
+    end
+
+    private def project_cleanup
       project_ids = GrdaWarehouse::Hud::Project.
         where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
         pluck(:id)
       GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run! if @project_cleanup
+    end
 
+    private def cleanup_dangling_enrollments
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.
         joins(:warehouse_client_source).
         where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
         pluck(wc_t[:destination_id])
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+    end
 
+    private def queue_enrollment_processing
       # Enrollment.processed_as is cleared if the enrollment changed
       # queue up a rebuild to keep things as in sync as possible
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+    end
+
+    private def maintain_ch_enrollments
       # These need to be updated any time the enrollment changes
       GrdaWarehouse::ChEnrollment.maintain!
-      # puts "Took #{Time.current - s_time} seconds - #{Time.current}"
+    end
+
+    private def identify_duplicates
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     end
 
     private def db_transaction(&block)

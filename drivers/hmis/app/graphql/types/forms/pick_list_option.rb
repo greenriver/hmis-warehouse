@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +24,7 @@ module Types
 
     def self.options_for_type(pick_list_type, user:, project_id: nil, client_id: nil, household_id: nil)
       result = static_options_for_type(pick_list_type, user: user)
-      return result if result.present?
+      return result unless result.nil? # check nil so we return an empty array if it was static but there were no options
 
       project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
       client = Hmis::Hud::Client.viewable_by(user).find_by(id: client_id) if client_id.present?
@@ -70,6 +70,8 @@ module Types
         available_unit_types_for_project(project)
       when 'AVAILABLE_UNITS_FOR_ENROLLMENT'
         available_units_for_enrollment(project, household_id: household_id)
+      when 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT'
+        admin_available_units_for_enrollment(project, household_id: household_id)
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project, user: user)
       when 'ENROLLMENTS_FOR_CLIENT'
@@ -78,6 +80,12 @@ module Types
         external_form_types_for_project(project)
       when 'ASSESSMENT_NAMES'
         assessment_names_for_project(project)
+      when 'STAFF_ASSIGNMENT_RELATIONSHIPS'
+        staff_assignment_relationships(project)
+      when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
+        eligible_staff_assignment_user_picklist(project)
+      else
+        raise "Unknown pick list type: #{pick_list_type}"
       end
     end
 
@@ -94,6 +102,8 @@ module Types
         service_types_picklist
       when 'ALL_SERVICE_CATEGORIES'
         service_categories_picklist
+      when 'CUSTOM_SERVICE_CATEGORIES'
+        service_categories_picklist(custom_only: true)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -119,12 +129,56 @@ module Types
               { code: k, label: v.description.gsub(CODE_PATTERN, ''), group_label: group }
             end
           end.flatten
-      when 'USERS'
+      when 'USERS', 'AUDITABLE_USERS'
         user_picklist(user)
       when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
         enrollment_audit_event_record_type_picklist
       when 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
         client_audit_event_record_type_picklist
+      when 'PROJECTS_RECEIVING_REFERRALS'
+        projects_receiving_referrals(user.hmis_data_source_id)
+      when 'FORM_TYPES'
+        # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
+        # not all users can access all form types:
+        form_types = if user.can_administrate_config?
+          # Super-admins should be able to select any form type when creating a form
+          Hmis::Form::Definition.form_role_enum_map.members
+        else
+          # Other users should only see the limited list roles that we have designated for general editing, like service and custom assessment
+          Hmis::Form::Definition.non_admin_form_role_enum_map.members
+        end
+
+        form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
+      when 'CONTINUUM_PROJECTS'
+        Hmis::Hud::Project.
+          where(data_source_id: user.hmis_data_source_id, continuum_project: true).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
+      when 'OTHER_FUNDERS'
+        Hmis::Hud::Funder.where(data_source_id: user.hmis_data_source_id).
+          where(Funder: HudUtility2024.local_or_other_funding_source).where.not(OtherFunder: nil).
+          pluck(:OtherFunder).uniq.sort.map do |other_funder|
+            { code: other_funder, label: other_funder }
+          end
+      when 'WORKFLOW_DEFINITION_TEMPLATES'
+        return [] unless Hmis::Ce.configuration.enabled?
+
+        # TODO(#7502) - templates are shared across data sources
+        Hmis::WorkflowDefinition::Template.all.map do |template|
+          { code: template.id, label: template.name }
+        end
+      end
+    end
+
+    def self.eligible_staff_assignment_user_picklist(project)
+      return [] unless project&.staff_assignments_enabled?
+
+      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
+        {
+          code: user.id.to_s,
+          label: user.full_name,
+        }
       end
     end
 
@@ -221,7 +275,7 @@ module Types
       available_codes = if selected_project.present?
         selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility2024.cocs[code] || code] }
       else
-        ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE'])
+        ::HudUtility2024.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes)
       end
 
       available_codes.sort.map do |code, name|
@@ -230,14 +284,16 @@ module Types
     end
 
     def self.geocodes_picklist
-      state = ENV['RELEVANT_COC_STATE']
-      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
-        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
-      end.map do |obj|
-        {
-          code: obj['geocode'],
-          label: "#{obj['geocode']} - #{obj['name']}",
-        }
+      GrdaWarehouse::Config.relevant_state_codes.flat_map do |state|
+        Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+          JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+        end.map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+            group_label: state,
+          }
+        end
       end
     end
 
@@ -248,7 +304,8 @@ module Types
         {
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
-          initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+          # NOTE: HMIS currently only supports one state installations
+          initial_selected: obj['abbreviation'].in?(GrdaWarehouse::Config.relevant_state_codes&.first),
         }
       end
     end
@@ -264,9 +321,10 @@ module Types
       options
     end
 
-    def self.service_categories_picklist
-      options = Hmis::Hud::CustomServiceCategory.all.
-        to_a.
+    def self.service_categories_picklist(custom_only: false)
+      scope = custom_only ? Hmis::Hud::CustomServiceCategory.non_hud : Hmis::Hud::CustomServiceCategory.all
+
+      options = scope.to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:label] }
 
@@ -383,7 +441,7 @@ module Types
 
     # This is used for selecting a household for an "outgoing referral"
     def self.open_hoh_enrollments_for_project(project, user:)
-      raise 'Project required' unless project.present?
+      return [] unless project
 
       enrollments = project.enrollments.viewable_by(user).
         open_excluding_wip.
@@ -404,9 +462,10 @@ module Types
     end
 
     def self.external_form_types_for_project(project)
-      return [] unless project.present?
+      return [] unless project
 
-      Hmis::Form::Instance.for_project(project).
+      # External forms can only be enabled by Project-level instances
+      Hmis::Form::Instance.for_project(project).active.published.
         with_role(:EXTERNAL_FORM).
         preload(:definition).
         order(:id).
@@ -414,7 +473,7 @@ module Types
     end
 
     def self.enrollments_for_client(client, user:)
-      raise 'Client required' unless client.present?
+      return [] unless client
 
       enrollments = client.enrollments.viewable_by(user).preload(:project, :exit)
       enrollments.sort_by_option(:most_recent).map do |en|
@@ -425,8 +484,8 @@ module Types
       end
     end
 
-    def self.available_units_for_enrollment(project, household_id: nil)
-      raise 'Project required' unless project.present?
+    def self.admin_available_units_for_enrollment(project, household_id: nil)
+      return [] unless project
 
       # Eligible units are unoccupied units, PLUS units occupied by household members
       unoccupied_units = project.units.unoccupied_on.pluck(:id)
@@ -438,10 +497,8 @@ module Types
         []
       end
 
-      unit_types_assigned_to_household = Hmis::Unit.where(id: hh_units).pluck(:unit_type_id).compact.uniq
       eligible_units = Hmis::Unit.where(id: unoccupied_units + hh_units)
-      # If some household members are assigned to units with unit types, then list should be limited to units of the same type.
-      eligible_units = eligible_units.where(unit_type_id: unit_types_assigned_to_household) if unit_types_assigned_to_household.any?
+
       eligible_units.preload(:unit_type).
         order(:unit_type_id, :id).
         map do |unit|
@@ -453,6 +510,24 @@ module Types
             initial_selected: unit.id == hh_units.first,
           }
         end
+    end
+
+    def self.available_units_for_enrollment(project, household_id: nil)
+      return [] unless project
+
+      # use picklist that includes all available units including units of other types
+      picklist = admin_available_units_for_enrollment(project, household_id: household_id)
+      return picklist unless household_id # no household, so no need to filter unit types
+
+      # drop units that have different types
+      hh_unit_type_ids = project.enrollments.where(household_id: household_id).map(&:current_unit_type).compact.map(&:id).uniq
+      return picklist if hh_unit_type_ids.empty? # household doesn't have a unit type, so no need for further filtering
+
+      # if the household has a unit type, exclude units that don't match
+      allowed_unit_type_unit_ids = project.units.where(unit_type_id: hh_unit_type_ids).pluck(:id).to_set
+      picklist.filter do |option|
+        option[:code].in?(allowed_unit_type_unit_ids)
+      end
     end
 
     def self.assessment_names_for_project(project)
@@ -470,6 +545,20 @@ module Types
         map { |k| { code: k.to_s, label: k.to_s.humanize } }
 
       hud_options + custom_options
+    end
+
+    def self.staff_assignment_relationships(project)
+      return [] unless project&.staff_assignments_enabled?
+
+      Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
+    end
+
+    def self.projects_receiving_referrals(data_source_id)
+      Hmis::Hud::Project.where(data_source_id: data_source_id).
+        receiving_referrals.
+        joins(:organization).preload(:organization).
+        sort_by_option(:organization_and_name).
+        map(&:to_pick_list_option)
     end
   end
 end

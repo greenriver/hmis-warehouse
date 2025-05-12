@@ -1,26 +1,35 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa
   class LsasController < ::HudReports::BaseController
+    include AjaxModalRails::Controller
+    include ArelHelper
     before_action :filter
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
     before_action :set_reports, except: [:index, :running_all_questions]
 
-    def new
-      report
+    private def report_scope
+      report_source.lsa.where(report_name: possible_titles)
     end
 
-    def new_hic
+    private def report_source
+      ::HudLsa::Generators::Fy2024::Lsa
+    end
+
+    def new
       report
     end
 
     def create
       if @filter.valid?
         @report = report_class.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
+
         @report.state = 'Waiting'
         @report.question_names = @report.class.questions.keys
         @report.save!
@@ -55,7 +64,7 @@ module HudLsa
     end
 
     private def report
-      @report ||= report_class.new(options: { user_id: current_user.id })
+      @report ||= report_class.new(options: { user_id: current_user.id, start: default_start_date, end: default_end_date })
     end
 
     private def report_class
@@ -63,43 +72,89 @@ module HudLsa
     end
     helper_method :report_class
 
+    def data_missing
+      @modal_size = :xl
+      respond_to do |format|
+        format.html {}
+        format.json { render json: missing_data[:show_missing_data] }
+      end
+    end
+
     private def missing_data
-      @missing_data ||= report.missing_data(current_user)
+      @missing_data ||= begin
+        # If we have chosen any options, only show projects that contain enrollments in
+        # the matching universe.  If no projects qualify, pass a 0 so we don't get an
+        # indication of missing data.
+        # If we haven't chosen any projects, show the overall status of projects we have
+        # access to.
+        default_ids = if filter_params.present?
+          [0]
+        else
+          []
+        end
+        report.missing_data(current_user, project_ids: project_ids_to_check.presence || default_ids, filter: filter)
+      end
     end
     helper_method :missing_data
+
+    # This mirrors /api/hud_filters, but limited to the projects and project types in the HIC/LSA
+    private def project_ids_to_check
+      filter = filter_class.new(user_id: current_user.id)
+      filter.update(filter_params.merge(coc_codes: [filter_params[:coc_code]]))
+      report = report_class.from_filter(filter, report_name, build_for_questions: [])
+      filter.effective_project_ids_during_range(report.export_date_range)
+    end
 
     private def active_version
       possible_generator_classes[default_report_version]
     end
 
-    private def filter
-      year = if Date.current.month >= 10
+    private def default_year
+      if Date.current.month >= 10
         Date.current.year
       else
         Date.current.year - 1
       end
+    end
+
+    private def default_start_date
+      Date.new(default_year - 1, 10, 1)
+    end
+
+    private def default_end_date
+      Date.new(default_year, 9, 30)
+    end
+
+    private def filter
       # Some sane defaults, using the previous report if available
-      @filter = filter_class.new(
-        user_id: current_user.id,
-        enforce_one_year_range: false,
-      )
-      if filter_params.blank?
-        prior_report = generator.find_report(current_user)
-        options = prior_report&.options
-        if options.present?
-          @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
-          @filter.end = options['end'].presence || Date.new(year, 9, 30)
-          @filter.coc_code = options['coc_codes'].presence || site_coc_codes
-          @filter.update(options.with_indifferent_access)
-          @filter.report_version = options['report_version'].presence || default_report_version
-        else
-          @filter.start = Date.new(year - 1, 10, 1)
-          @filter.end = Date.new(year, 9, 30)
-          @filter.report_version = default_report_version
+      @filter ||= begin
+        filter = filter_class.new(
+          user_id: current_user.id,
+          enforce_one_year_range: false,
+        )
+        if filter_params.blank?
+          prior_report = generator.find_report(current_user)
+          options = prior_report&.options
+          if options.present?
+            cocs = options['coc_codes'].presence || site_coc_codes
+            filter.update(options.with_indifferent_access.except(:on))
+            filter.on = nil
+            filter.start = options['start'].presence || default_start_date
+            filter.end = options['end'].presence || default_end_date
+            filter.coc_code = cocs.try(&:first)
+            filter.coc_codes = cocs
+            filter.report_version = options['report_version'].presence || default_report_version
+          else
+            filter.on = nil
+            filter.start = default_start_date
+            filter.end = default_end_date
+            filter.report_version = default_report_version
+          end
         end
+        # Override with params if set
+        filter.update(filter_params) if filter_params.present?
+        filter
       end
-      # Override with params if set
-      @filter.update(filter_params) if filter_params.present?
     end
 
     def filter_params
@@ -111,6 +166,11 @@ module HudLsa
       filter_p
     end
 
+    def filtered?
+      filter_params.present?
+    end
+    helper_method :filtered?
+
     private def report_name
       active_version.title
     end
@@ -118,13 +178,14 @@ module HudLsa
     def available_report_versions
       {
         'FY 2022' => { slug: :fy2022, active: false },
-        'FY 2023' => { slug: :fy2023, active: true },
+        'FY 2023' => { slug: :fy2023, active: false },
+        'FY 2024' => { slug: :fy2024, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2023
+      :fy2024
     end
 
     private def filter_class
@@ -135,6 +196,7 @@ module HudLsa
       {
         fy2022: HudLsa::Generators::Fy2022::Lsa,
         fy2023: HudLsa::Generators::Fy2023::Lsa,
+        fy2024: HudLsa::Generators::Fy2024::Lsa,
       }
     end
 

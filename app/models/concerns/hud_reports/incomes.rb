@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -203,15 +203,30 @@ module HudReports::Incomes
           {
             'Adults with Missing Income Information' => a_t[:annual_assessment_expected].eq(true).
               and(a_t[:annual_assessment_in_window].eq(true)).
-              and(a_t["income_total_at_#{suffix}"].eq(99).
-                or(a_t["income_total_at_#{suffix}"].eq(nil))),
+              and(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(nil).
+                or(a_t["income_from_any_source_at_#{suffix}"].eq(99)).
+                or(
+                  a_t["income_total_at_#{suffix}"].eq(nil).
+                  and(
+                    # Responses of 8 & 9 are expected to have total income nil.
+                    # These are filtered out to prevent duplicates. They are captured in a different row.
+                    a_t["income_from_any_source_at_#{suffix}"].not_in([8, 9]).or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)),
+                  ),
+                )),
           },
         )
       else
         responses.merge!(
           {
-            'Adults with Missing Income Information' => a_t["income_total_at_#{suffix}"].eq(99).
-              or(a_t["income_total_at_#{suffix}"].eq(nil)),
+            'Adults with Missing Income Information' => a_t["income_from_any_source_at_#{suffix}"].eq(99).
+              or(
+                a_t["income_total_at_#{suffix}"].eq(nil).
+                and(
+                  # Responses of 8 & 9 are expected to have total income nil.
+                  # These are filtered out to prevent duplicates. They are captured in a different row.
+                  a_t["income_from_any_source_at_#{suffix}"].not_in([8, 9]).or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)),
+                ),
+              ),
           },
         )
       end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,8 +8,9 @@ class Translation < ApplicationRecord
   include NotifierConfig
 
   def self.translate(text)
-    # don't set expiry, the cache is updated via BuildTranslationCacheJob
-    translated = Rails.cache.fetch(cache_key(text)) do
+    # The cache is updated via BuildTranslationCacheJob, but without an expiration is uses the default
+    # expiration of 5 minutes in development, 8 hours in production
+    translated = Rails.cache.fetch(cache_key(text), expires_in: 8.hours) do
       translation = where(key: text).order(:id).first_or_create do |record|
         record.key = text
         Rails.logger.info("Unknown Translation key \"#{text}\", added to DB")
@@ -104,9 +105,6 @@ class Translation < ApplicationRecord
       'BH CP Request for Care Plan Signature',
       'Backup Plan Emergency Note',
       'Bed Utilization Percentages',
-      'Boston DND HMIS Warehouse',
-      'Boston DND Warehouse',
-      'Boston HMIS staff at DND',
       'Boston Reports Configuration',
       'Built For Zero Monthly Report',
       'Bulk set Health Prioritization for CAS.',
@@ -1244,7 +1242,7 @@ class Translation < ApplicationRecord
       'Child-Only Households',
       'Children under age 18 in household',
       'Chronically Homeless for CAS',
-      'City of Boston DND Warehouse',
+      'Open Path HMIS Warehouse',
       'Clean/sober for at least one year',
       'Client Activity Report',
       'Client Contact Locations',
@@ -1313,7 +1311,7 @@ class Translation < ApplicationRecord
       'Document Ready',
       'Earning a living wage ($13 or more)',
       'Employed for 3 or more months',
-      'Ending Veteran & Chronic Homelessness in Boston',
+      'Ending Homelessness',
       'Enrolled in PH',
       'Enrolled in sheltered homeless project (ES, TH, SH)',
       'Enrolled in unsheltered homeless project (SO)',
@@ -1421,7 +1419,6 @@ class Translation < ApplicationRecord
       'Location Type',
       'MA YYA Follow Up Report',
       'MA YYA Report',
-      'MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool',
       'Manually entered date at which the client became document ready',
       'Median Length of Time from CE Project Entry to Housing Referral',
       'Median Length of Time from Housing Referral to Housing Start',
@@ -1592,7 +1589,6 @@ class Translation < ApplicationRecord
       'TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most.',
       'TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most. Projects are allowed to reject up to 10% of  CES referrals for reasons stated in the CES Operation Manual.',
       'Text Message Queue',
-      'The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.',
       'The HMIS Warehouse can be used for homeless client care coordination and reporting.',
       'The measure indicates if agency is participating in CoC-related activities',
       'This is a Family VI-SPDAT',
@@ -1796,7 +1792,7 @@ class Translation < ApplicationRecord
       'pre-placement',
       'search',
       'stabilization',
-      'the Boston Emergency Shelter Commission',
+      'the Emergency Shelter Commission',
       'the date of the activity is missing',
       'too many months with non-outreach activities and no signed careplan',
       'too many months with outreach activities',
@@ -1851,6 +1847,16 @@ class Translation < ApplicationRecord
       'c_pathways_service_indicators_shelter_restriction' => 'I\'ve faced indefinite restrictions and a history of restrictions from area shelters',
       'c_share_permission' => 'Permission to Share Your Information with Partner Agencies',
       'c_singleadult_sro' => 'If you are a single adult, would you consider living in a single room occupancy (SRO)?',
+      'c_transfer_barrier_meth' => 'Have been convicted or found guilty of producing methamphetamine on subsidized properties',
+      'c_transfer_barrier_PHAterm' => 'Have been evicted from a BHA development or have had a BHA voucher terminated within the last three years',
+      'c_transfer_barrier_SORI' => 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
+      'c_rrh_transfer_daily_life_functions' => 'Does client have a physical or mental impairment that substantially limits one or more daily life functions? Daily life functions include: obtaining food/eating, sleeping, physical movement, caring for one’s personal hygiene, and communicating.',
+      'c_rrh_transfer_addiction_history' => 'Does the client have a history of substance use disorder that prevents them from living independently without support services?',
+      'c_rrh_transfer_federal_benefits' => 'Does the client qualify for federal benefits?',
+      'c_rrh_transfer_eviction_history' => 'Does the client have one eviction within the last 5 years?',
+      'c_rrh_transfer_eviction_history_disabilty_cause' => 'Were any previous evictions due to a disability or substance use disorder',
+      'c_transfer_rrh_enrollment_moves' => 'How many times has the client moved while enrolled in rapid Re-housing?',
+      'c_latest_date_financial_assistance_eligibility_rrh' => 'Enter date for last day of financial assistance',
     }
   end
 end

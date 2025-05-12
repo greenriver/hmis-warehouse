@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Tasks
   class PushClientsToCas
@@ -50,6 +52,7 @@ module GrdaWarehouse::Tasks
               source_clients: [
                 :most_recent_current_living_situation,
                 :most_recent_tc_hat,
+                :data_source,
                 {
                   most_recent_pathways_or_rrh_assessment: [
                     :assessment_questions,
@@ -67,16 +70,23 @@ module GrdaWarehouse::Tasks
                 :source_eccovia_case_managers,
               ]
             end
-            client_source.preload(preloads).
+            safe_project_names = {}
+            GrdaWarehouse::Hud::Project.find_each do |project|
+              safe_project_names[project.id] = project.safe_project_name
+            end
+            client_source.lazy_preload(preloads).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
 
-              case GrdaWarehouse::Config.get(:cas_days_homeless_source)
-              when 'days_homeless_plus_overrides'
-                project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
-              else
-                project_client.days_homeless = client.days_homeless
+              # The Boston calculator handles days homeless natively
+              unless calculator_instance.handles_days_homeless?
+                case GrdaWarehouse::Config.get(:cas_days_homeless_source)
+                when 'days_homeless_plus_overrides'
+                  project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+                else
+                  project_client.days_homeless = client.days_homeless
+                end
               end
 
               project_client.calculated_last_homeless_night = client.date_of_last_homeless_service
@@ -89,6 +99,9 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_rrh = client.enrolled_in_rrh(enrollments)
               project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
+              project_client.ongoing_es_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_es&.map { |e| safe_project_names[e['project_id']] + ': ' + e['date']&.to_date.to_s }.presence
+              project_client.ongoing_so_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_so&.map { |e| safe_project_names[e['project_id']] + ': ' + e['date']&.to_date.to_s }.presence
+              project_client.last_seen_projects = client.last_intentional_contacts_for_cas(safe_project_names: safe_project_names).presence
               project_client.enrolled_in_rrh_pre_move_in = client.enrolled_in_rrh_pre_move_in(enrollments)
               project_client.enrolled_in_psh_pre_move_in = client.enrolled_in_psh_pre_move_in(enrollments)
               project_client.enrolled_in_ph_pre_move_in = client.enrolled_in_ph_pre_move_in(enrollments)
@@ -102,8 +115,8 @@ module GrdaWarehouse::Tasks
               project_client.needs_update = true
               to_update << project_client
             end
-            to_insert = to_update.select { |c| c.id.blank? }
-            to_upsert = to_update.select { |c| c.id.present? }
+            to_insert = to_update.select { |c| c.id.blank? }.uniq
+            to_upsert = to_update.select { |c| c.id.present? }.uniq
 
             CasAccess::ProjectClient.import!(to_upsert, on_duplicate_key_update: update_columns) if to_upsert.present?
             CasAccess::ProjectClient.import!(update_columns, to_insert) if to_insert.present?
@@ -283,12 +296,15 @@ module GrdaWarehouse::Tasks
         total_homeless_nights_sheltered: :total_homeless_nights_sheltered,
         service_need: :service_need,
         housing_barrier: :housing_barrier,
+        psh_required: :psh_required,
       }
     end
 
     private def attributes_for_cas_project_client(client)
       {}.tap do |options|
-        project_client_columns.map do |destination, source|
+        columns = project_client_columns
+        columns[:days_homeless] = :days_homeless if calculator_instance.handles_days_homeless?
+        columns.map do |destination, source|
           # puts "Processing: #{destination} from: #{source}"
           options[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
         end
@@ -326,6 +342,8 @@ module GrdaWarehouse::Tasks
     def value_display_for(key, value)
       if value.in?([true, false])
         ApplicationController.helpers.yes_no(value)
+      elsif value.in?(['yes', 'no'])
+        ApplicationController.helpers.yes_no(value == 'yes')
       elsif key.in?([:veteran_status])
         HudUtility2024.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
@@ -337,7 +355,7 @@ module GrdaWarehouse::Tasks
           CasAccess::Tag.find(id).name
         end&.join('; ')
       elsif key == :default_shelter_agency_contacts
-        value.join('; ')
+        value&.join('; ')
       elsif key == :active_cohort_ids
         value.map do |id|
           GrdaWarehouse::Cohort.find(id).name
@@ -370,6 +388,7 @@ module GrdaWarehouse::Tasks
           sro_ok: 'SRO OK',
           dv_rrh_desired: 'DV RRH Desired',
           rrh_th_desired: 'RRH TH Desired',
+          psh_required: 'PSH Required',
           active_cohort_ids: 'Active Cohorts',
           dv_date: 'Most recent date of DV',
           th_desired: 'TH Desired',

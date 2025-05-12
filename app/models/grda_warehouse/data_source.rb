@@ -1,16 +1,22 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+#
+require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include EntityAccess
   include ArelHelper
+  include Memery
 
   self.primary_key = :id
-  require 'memery'
+  TodoOrDie('Remove refuse_imports_with_errors from ignored columns', by: '2025-06-01')
+  self.ignored_columns = ['refuse_imports_with_errors']
 
   acts_as_paranoid
   validates :name, presence: true
@@ -35,6 +41,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :non_hmis_uploads
 
   has_one :hmis_import_config
+  has_one :import_threshold
+  has_one :external_hmis_configuration
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
@@ -188,6 +196,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     ids += data_source_ids_from_viewable_entities(user, permission)
     ids += data_source_ids_from_organizations(user, permission)
     ids += data_source_ids_from_projects(user, permission)
+    ids += data_source_ids_from_project_access_groups(user, permission)
+    ids += data_source_ids_from_cocs(user, permission)
     ids
   end
 
@@ -195,28 +205,28 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return [] unless user.present?
     return [] unless user.send("#{permission}?")
 
-    group_ids = user.collections_for_permission(permission)
-    return [] if group_ids.empty?
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
 
     GrdaWarehouse::GroupViewableEntity.where(
-      collection_id: group_ids,
+      collection_id: collection_ids,
       entity_type: 'GrdaWarehouse::DataSource',
     ).pluck(:entity_id)
   end
 
-  def self.data_source_ids_from_entity_type(user, permission, entity_class)
+  def self.data_source_ids_from_entity_type(user, permission, entity_class, join_name: :data_source)
     return [] unless user.present?
     return [] unless user.send("#{permission}?")
 
-    group_ids = user.collections_for_permission(permission)
-    return [] if group_ids.empty?
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
 
     entity_class.where(
       id: GrdaWarehouse::GroupViewableEntity.where(
-        collection_id: group_ids,
+        collection_id: collection_ids,
         entity_type: entity_class.sti_name,
       ).select(:entity_id),
-    ).joins(:data_source).pluck(ds_t[:id])
+    ).joins(join_name).pluck(ds_t[:id])
   end
 
   def self.data_source_ids_from_projects(user, permission)
@@ -225,6 +235,30 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def self.data_source_ids_from_organizations(user, permission)
     data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
+  end
+
+  def self.data_source_ids_from_cocs(user, permission)
+    data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Lookups::CocCode, join_name: :data_sources)
+  end
+
+  # NOTE: project access groups need to pull the data sources from their projects
+  # so this differs from projects and organizations
+  def self.data_source_ids_from_project_access_groups(user, permission)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
+
+    entity_class = GrdaWarehouse::ProjectAccessGroup
+    entity_class.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        collection_id: collection_ids,
+        entity_type: entity_class.sti_name,
+      ).select(:entity_id),
+    ).joins(:projects).
+      distinct.
+      pluck(p_t[:data_source_id])
   end
 
   def self.source_data_source_ids
@@ -433,6 +467,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def policy_class
+    GrdaWarehouse::AuthPolicies::DataSourcePolicy
+  end
+
   def directly_viewable_by?(user, permission: :can_view_projects)
     # TODO: START_ACL cleanup after migration to ACLs
     if user.using_acls?
@@ -458,36 +496,45 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
   end
 
-  # Have we received the expected number of files at least once over the past 48 hours?
-  # there is an assumption that within
-  # return the date of the most-recent fully successful import
-  def stalled_since?(date)
-    return nil unless date.present?
+  # Returns the date of the most recent fully successful import if the import is stalled, nil if it is not stalled
+  # @return [Date, nil] The date the import stalled, or nil if not stalled.
+  def stalled_date
     return nil if import_paused
     return nil unless hmis_import_config&.active
 
     # hmis_import_config.file_count is the expected number of uploads for a given day
     # fetch the expected number, and confirm they all arrived within a 24 hour window
     most_recent_uploads = uploads.completed.
-      # limit look back to 6 months to improve performance
-      where(user_id: User.system_user.id, completed_at: 6.months.ago.to_date..Date.current).
-      order(created_at: :desc).
-      select(:id, :data_source_id, :user_id, :completed_at).
+      # limit look back to 6 months to improve performance, but to potentially highlight missing data
+      where(user_id: User.system_user.id, completed_at: 6.months.ago..Time.current).
+      order(completed_at: :desc, created_at: :desc).
+      select(:id, :data_source_id, :user_id, :completed_at, :created_at).
+      distinct.
       first(hmis_import_config.file_count)
-    return nil unless most_recent_uploads
+    # We didn't find any uploads in the last 6 months, assume this isn't connected yet
+    return nil unless most_recent_uploads.present?
 
-    most_recent_upload = most_recent_uploads.first
-    previously_completed_upload = most_recent_uploads.last
-    # Check that the expected number of files arrived within a 24 hour window, otherwise we might be looking
-    # at two partial runs
-    # If we only expect one file, then first and last will be the same and time_diff will be 0.0
-    return nil if most_recent_upload.blank? || previously_completed_upload.blank?
+    min_completion_time = most_recent_uploads.minimum(:completed_at)
+    received_files_count = most_recent_uploads.count
 
-    time_diff = most_recent_upload.completed_at - previously_completed_upload.completed_at
-    return most_recent_upload.completed_at unless time_diff < 24.hours.to_i
-    return nil if most_recent_upload.completed_at > 48.hours.ago
+    # If we only expected one file
+    if hmis_import_config.file_count == 1
+      # and it came in the last 24 hours, we're good
+      return nil if min_completion_time > 24.hours.ago
 
-    most_recent_upload.completed_at.to_date
+      # if not, return the last time we received a file
+      return min_completion_time.to_date
+    end
+
+    # If we processed the expected number of files within a 24 hour period, we're good
+    return nil if min_completion_time > 24.hours.ago && received_files_count >= hmis_import_config.file_count
+
+    # Note the last time we received a file
+    min_completion_time.to_date
+  end
+
+  def self.import_advisory_lock_name(data_source_id)
+    "enforce_sequential_data_source_imports_for_#{data_source_id}"
   end
 
   def self.stalled_imports?(user)
@@ -498,7 +545,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
         most_recently_completed = data_source.import_logs.maximum(:completed_at)
         if most_recently_completed.present?
-          stalled = true if data_source.stalled_since?(most_recently_completed)
+          stalled = true if data_source.stalled_date.present?
         end
       end
 
@@ -520,12 +567,101 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       end
   end
 
+  delegate :error_count_threshold_reached?, to: :import_threshold, allow_nil: true
+  ##
+  # Determines whether imports should be paused based on error thresholds.
+  #
+  # This method checks if an import threshold is set and whether the number of errors
+  # exceeds the allowed limit. If so, it returns `true`, indicating that imports should
+  # be paused.
+  #
+  # @param total [Integer] The total number of rows in the import file. Required.
+  # @param errors [Integer] The number of errors encountered. Required.
+  # @return [Boolean] `true` if imports should be paused due to errors, otherwise `false`.
+  #
+  memoize def pause_imports_with_errors?(total:, errors:)
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    error_count_threshold_reached?(total, errors)
+  end
+
+  ##
+  # Determines if imports should ever be paused due to errors.
+  #
+  # This method checks whether an error threshold is configured and if a minimum error count
+  # or percentage threshold is set. If both conditions are met, it indicates that the import
+  # process has a mechanism to pause based on errors.
+  #
+  # @return [Boolean] `true` if error-based pausing is possible, otherwise `false`.
+  #
+  memoize def ever_pause_imports_with_errors?
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    import_threshold.error_count_min_threshold.present? && import_threshold.error_percent_threshold.present?
+  end
+
+  delegate :record_count_threshold_reached?, to: :import_threshold, allow_nil: true
+  ##
+  # Determines whether imports should be paused based on record count change thresholds.
+  #
+  # This method checks if an import threshold is set and whether the number of changes to records
+  # (overall additions and removals)
+  # exceeds the allowed limit. If so, it returns `true`, indicating that imports should
+  # be paused.
+  #
+  # @param total [Integer] The total number of records in the data source for the given class. Required.
+  # @param errors [Integer] The absolute number of additions - removals encountered for the import file. Required.
+  # @return [Boolean] `true` if imports should be paused due to errors, otherwise `false`.
+  #
+  memoize def pause_imports_with_record_count_changes?(total:, changes:)
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_record_count_threshold
+
+    record_count_threshold_reached?(total, changes)
+  end
+
+  ##
+  # Determines if imports should ever be paused due to changes in record counts.
+  #
+  # This method checks whether a threshold for record count changes is configured and if
+  # minimum change or percentage thresholds are defined. If both conditions exist, the system
+  # can pause imports based on significant changes in the number of records.
+  #
+  # @return [Boolean] `true` if imports may be paused due to record count changes, otherwise `false`.
+  #
+  memoize def ever_pause_imports_with_record_changes?
+    return false unless import_threshold.present?
+    return false unless import_threshold.pause_on_error_threshold
+
+    import_threshold.record_count_change_min_threshold.present? && import_threshold.record_count_change_percent_threshold.present?
+  end
+
+  def notify_of_import_status(import_log_id:, error_threshold_met:, record_count_threshold_met:, paused:)
+    return unless import_threshold.present?
+
+    import_threshold.send_status_notifications(
+      import_log_id: import_log_id,
+      error_threshold_met: error_threshold_met,
+      record_count_threshold_met: record_count_threshold_met,
+      paused: paused,
+    )
+  end
+
+  def ever_notify_for_imports?
+    return false unless import_threshold.present?
+
+    # Do we have any thresholds set?
+    import_threshold.record_count_change_percent_threshold || import_threshold.error_percent_threshold
+  end
+
   def manual_import_path
     "/tmp/uploaded#{file_path}"
   end
 
   def has_data? # rubocop:disable Naming/PredicateName
-    exports.any?
+    exports.any? || (hmis? && organizations.any?)
   end
 
   def organization_names
@@ -553,19 +689,32 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  def hmis_link_available?
+    hmis? || external_hmis_configuration&.active?
+  end
+
   def hmis_url_for(entity, user: nil)
-    return unless hmis? && HmisEnforcement.hmis_enabled?
+    # Ignore any entity that isn't in this data source
     return unless entity&.data_source_id == id
 
+    # Handle the Open Path HMIS natively
+    return open_path_hmis_url(entity, user: user) if hmis? && HmisEnforcement.hmis_enabled?
+
+    external_hmis_configuration&.url(entity)
+  end
+
+  private def open_path_hmis_url(entity, user: nil)
     base = "https://#{hmis}"
+    base += ':5173' if Rails.env.development? # port used by hmis vite dev server
+
     url = case entity
-    when GrdaWarehouse::Hud::Project
+    when GrdaWarehouse::Hud::Project, Hmis::Hud::Project
       "#{base}/projects/#{entity.id}"
-    when GrdaWarehouse::Hud::Organization
+    when GrdaWarehouse::Hud::Organization, Hmis::Hud::Organization
       "#{base}/organizations/#{entity.id}"
-    when GrdaWarehouse::Hud::Client
+    when GrdaWarehouse::Hud::Client, Hmis::Hud::Client
       "#{base}/client/#{entity.id}"
-    when GrdaWarehouse::Hud::Enrollment
+    when GrdaWarehouse::Hud::Enrollment, Hmis::Hud::Enrollment
       "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
     when Hmis::Hud::CustomAssessment
       "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/assessments/#{entity.id}"
@@ -641,6 +790,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def entity_relation_type
     :data_sources
+  end
+
+  def collection_type
+    'Projects'
   end
 
   class << self

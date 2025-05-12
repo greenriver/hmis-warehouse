@@ -5,10 +5,15 @@
       .report-parameters.parameter-label= @report.filter.describe_filter_as_html(@report.known_params)
       = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
         %p You can optionally specify a sub-folder to make this report unique from others.  This often takes the form of a CoC code, or version number.  If you only expect to have one published version of the report, you can leave it blank.
-        .d-flex
-          = f.input :path, label: 'Folder',  wrapper_html: { class: 'ml-auto' }
-          .ml-4.pt-no-label
-            = f.submit 'Update Folder', class: 'btn btn-secondary'
+        - if @report.published?
+          %p
+            Published to the folder:
+            %strong= @report.published_report&.path
+        - else
+          .d-flex
+            = f.input :path, label: 'Folder',  wrapper_html: { class: 'ml-auto' }
+            .ml-4.pt-no-label
+              = f.submit 'Update Folder', class: 'btn btn-secondary'
       %hr
       - if @report.published?
         = render 'common/re_publish'

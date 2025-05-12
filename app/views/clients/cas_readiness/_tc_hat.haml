@@ -1,19 +1,17 @@
-- check_wrapper_class = {class: 'form-group--tight'}
-= simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
-  .row
-    %section.o-section-card.col-lg-12.col-xl-10
-      = render 'attributes_table', f: f, title: 'Characteristics from TC HAT'
+.row
+  %section.o-section-card.col-lg-12.col-xl-10
+    = render 'attributes_table', f: f, title: 'Characteristics from TC HAT'
 
-  .row
-    .col-lg-8.col-xl-6
-      = render 'disability_verification', f: f
+.row
+  .col-lg-8.col-xl-6
+    = render 'disability_verification', f: f
 
-  .row
-    .col-lg-8.col-xl-6
-      = render 'veteran', f: f
+.row
+  .col-lg-8.col-xl-6
+    = render 'veteran', f: f
 
-  .row
-    .col-lg-8.col-xl-6
-      = render 'tc_hat_days_homeless', f: f
+.row
+  .col-lg-8.col-xl-6
+    = render 'tc_hat_days_homeless', f: f
 
-  = render 'sync_with_cas', f: f
+= render 'sync_with_cas', f: f

@@ -1,10 +1,11 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # encoding: utf-8
+# frozen_string_literal: true
 
 class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   # we will use mini magics API to process attachments
@@ -82,6 +83,7 @@ class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   def whitelist_mime_type_pattern
     Regexp.union WHITELIST
   end
+
   # not sure how this works internally, so adding this duplicate method for now...
   def allowlist_mine_type_pattern
     Regexp.union WHITELIST
@@ -98,12 +100,9 @@ class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   end
 
   private def content_type_from_bytes(_file_to_test = file)
-    @filemagic ||= FileMagic.new(FileMagic::MAGIC_MIME_TYPE)
-    begin
-      @filemagic.buffer(file.read)
-    rescue StandardError
-      nil
-    end
+    Marcel::MimeType.for(file.read, name: file.name)
+  rescue StandardError
+    nil
   end
 
   alias extract_content_type content_type_from_bytes

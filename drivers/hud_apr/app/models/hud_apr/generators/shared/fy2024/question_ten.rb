@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,7 @@ module HudApr::Generators::Shared::Fy2024
         'B' => Arel.sql('1=1'),
         'C' => a_t[:age].between(0..17),
         'D' => a_t[:age].between(18..24),
-        'E' => a_t[:age].between(25..65),
+        'E' => a_t[:age].between(25..64),
         'F' => a_t[:age].gteq(65),
         'G' => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
         'H' => a_t[:dob_quality].not_in([8, 9]).

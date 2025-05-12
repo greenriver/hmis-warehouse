@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'faker'
 
@@ -13,9 +15,12 @@ class SeedMaker
 
     User.transaction do
       # Add roles
-      admin = Role.where(name: 'Admin').first_or_create
+      admin = Role.where(name: 'Green River Developer').first_or_create
       # a role that can edit permissions and create users
-      admin.update(can_edit_users: true, can_edit_roles: true)
+      admin.update(
+        can_edit_users: true,
+        can_edit_roles: true,
+      )
       coc_staff = Role.where(name: 'CoC Staff').first_or_create
       # a role with some basic access
       coc_staff.update(
@@ -46,7 +51,7 @@ class SeedMaker
       # legacy access
       admin.add(user)
       coc_staff.add(user)
-      user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+      user_group = UserGroup.where(name: 'Green River Developers').first_or_create
       user_group.add(user)
       all_ds_entity_collection = Collection.system_collection(:data_sources)
       AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)
@@ -255,10 +260,7 @@ class SeedMaker
   end
 
   def maintain_lookups
-    HudUtility2024.cocs.each do |code, name|
-      coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
-      coc.update(official_name: name)
-    end
+    GrdaWarehouse::Lookups::CocCode.maintain!
     GrdaWarehouse::Lookups::YesNoEtc.transaction do
       GrdaWarehouse::Lookups::YesNoEtc.delete_all
       columns = [:value, :text]
@@ -346,7 +348,10 @@ class SeedMaker
     end
 
     # Create HMIS Data Source
-    hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
+    hostnames = ENV['HMIS_HOSTNAME'].split(',')
+    raise 'hmis seed doesn\'t support multiple hostnames' if hostnames.size > 1
+
+    hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: hostnames.first).first_or_create! do |ds|
       ds.name = 'HMIS'
       ds.short_name = 'HMIS'
       ds.authoritative = true
@@ -409,5 +414,6 @@ class SeedMaker
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
     Translation.maintain_keys
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 end

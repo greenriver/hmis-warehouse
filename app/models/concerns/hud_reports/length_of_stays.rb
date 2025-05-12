@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -85,14 +85,18 @@ module HudReports::LengthOfStays
     end
 
     private def date_to_street(enrollment, reporting_age, hoh_enrollment)
-      return enrollment.enrollment.DateToStreetESSH unless hoh_enrollment&.first_date_in_program == enrollment.first_date_in_program
-      return hoh_enrollment&.enrollment&.DateToStreetESSH if reporting_age.present? && reporting_age <= 17
+      return hoh_enrollment&.enrollment&.DateToStreetESSH if reporting_age.present? && reporting_age <= 17 && hoh_enrollment&.first_date_in_program == enrollment.first_date_in_program
 
       enrollment.enrollment.DateToStreetESSH
     end
 
     private def approximate_time_to_move_in(enrollment, reporting_age, hoh_enrollment)
-      move_in_date = if enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
+      # PSH/RRH w/ move in date
+      # OR project type 7 (other) with Funder 35 (Pay for Success)
+      valid_ph_project_types = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_brief('PH - OPH', true)]
+      valid_ph_enrollment = enrollment.project_type.in?(valid_ph_project_types)
+      other_pay_for_success = enrollment.project_type.in?([HudUtility2024.project_type_brief('Other', true)]) && enrollment.project.pay_for_success?
+      move_in_date = if valid_ph_enrollment || other_pay_for_success
         appropriate_move_in_date(enrollment) || enrollment.first_date_in_program
       else
         enrollment.first_date_in_program
@@ -100,7 +104,7 @@ module HudReports::LengthOfStays
       # DateToStreetESSH needs to be pulled from HoH if not available on client
       # This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
       dts = date_to_street(enrollment, reporting_age, hoh_enrollment)
-      return nil if dts.blank? || dts > move_in_date
+      return nil if dts.blank? || move_in_date.nil? || dts > move_in_date
 
       (move_in_date - dts).to_i
     end
@@ -111,7 +115,7 @@ module HudReports::LengthOfStays
       move_in_date = enrollment.move_in_date
       return move_in_date if move_in_date.present?
 
-      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household_id]]
+      hoh_move_in_date = hoh_move_in_dates[enrollment[:head_of_household_id]]
       return nil unless hoh_move_in_date.present?
       return hoh_move_in_date if enrollment.first_date_in_program < hoh_move_in_date
 

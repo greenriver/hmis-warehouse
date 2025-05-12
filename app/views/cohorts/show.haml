@@ -1,7 +1,7 @@
-= stylesheet_link_tag 'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-grid.css'
-= stylesheet_link_tag 'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-theme-balham.css'
-= javascript_include_tag 'https://unpkg.com/ag-grid-community@27.3.0/dist/ag-grid-community.min.noStyle.js'
-
+-# = stylesheet_link_tag 'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-grid.css'
+-# = stylesheet_link_tag 'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-theme-balham.css'
+-# = javascript_include_tag 'https://unpkg.com/ag-grid-community@27.3.0/dist/ag-grid-community.min.noStyle.js'
+-# = javascript_include_tag 'ag-grid-community-33.1.1', 'data-turbo-track': 'reload', defer: true
 
 - title = @cohort.name
 - content_for :title, title
@@ -13,7 +13,11 @@
 - if @cohort.inactive?
   %p.alert.alert-warning.text-center
     %i.icon-warning
-    This cohort is inactive.  Changes will not be reflected on client dashboards.
+    This cohort is inactive.
+    - if @cohort.should_show_on_client_dashboard?
+      However it is set to continue showing on client dashboards.
+    - else
+      Changes will not be reflected on client dashboards.
 
 = render 'nav', system_cohort: @cohort.system_cohort, active_tab: 'cohort'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)

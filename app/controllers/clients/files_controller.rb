@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Clients
   class FilesController < ApplicationController
@@ -63,7 +65,7 @@ module Clients
             client_id: @client.id,
             user_id: current_user.id,
             visible_in_window: window_visible?(allowed_params[:visible_in_window]),
-            consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
+            consent_form_confirmed: GrdaWarehouse::Config.get(:auto_confirm_consent) || allowed_params[:consent_form_confirmed],
             coc_codes: allowed_params[:coc_codes].reject(&:blank?),
           ),
         )
@@ -107,7 +109,9 @@ module Clients
         attrs[:effective_date] = attrs[:consent_form_signed_on]
         attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
       end
-      @file.update(attrs)
+      @file.assign_attributes(attrs)
+      @file.sync_revokation_info(current_user)
+      @file.save
     end
 
     def show_delete_modal
@@ -266,7 +270,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Files"
+      "#{@client.pii_provider(user: current_user).full_name} - Files"
     end
 
     def window_visible?(visibility)

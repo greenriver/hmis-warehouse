@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 # ==  Hmis::Hud::Processors::Base
 #
@@ -24,6 +26,10 @@ class Hmis::Hud::Processors::Base
     attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
     @processor.send(factory_name)&.assign_attributes(attribute_name => attribute_value)
+  end
+
+  def post_process
+    # implement in subclass, if necessary
   end
 
   def assign_metadata
@@ -95,7 +101,7 @@ class Hmis::Hud::Processors::Base
     is_array = value.is_a? Array
 
     # The field was left empty. Save as nil or 99.
-    if value.nil?
+    if value.nil? || value == ''
       enum_type&.data_not_collected_value
     elsif is_array && value.empty?
       [enum_type&.data_not_collected_value].compact
@@ -139,10 +145,10 @@ class Hmis::Hud::Processors::Base
   # Assign custom data element values to record, if this is a custom data element field
   def process_custom_field(field, value)
     record = @processor.send(factory_name)
-    return false unless record.respond_to?(:custom_data_elements)
+    raise "Record #{record.class.name} does not support custom data elements" unless record.respond_to?(:custom_data_elements)
 
     cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
-    return false unless cded.present?
+    raise 'Unknown custom data element' unless cded
 
     attrs = {
       user: @processor.hud_user,
@@ -151,32 +157,43 @@ class Hmis::Hud::Processors::Base
     }
     # Normalize the input value
     value = normalize_custom_field_value(cded, value)
+
+    # Existing CustomDataElement records for this record with this definition
+    existing_cdes = existing_custom_data_elements[cded.id] || []
+
+    # `file` is the only field type that saves an additional record, so do some special-case processing
+    value = process_files(cded, value, existing_cdes) if cded.field_type == 'file'
+
     # Infer the field name on the CustomDataElement
     value_field_name = "value_#{cded.field_type}"
 
-    # Existing CustomDataElement records for this record with this definition
-    existing_values = existing_custom_data_elements[cded.id] || []
-
     # If this custom field only allows 1 value and there already is one, update it.
-    if !cded.repeats && existing_values.any?
-      cde_attributes = { id: existing_values.first.id }
+    if !cded.repeats && existing_cdes.any?
+      cde_attributes = { id: existing_cdes.first.id }
       if value.nil?
         cde_attributes[:_destroy] = 1
       else
         cde_attributes[value_field_name] = value
         cde_attributes.merge!(attrs)
       end
-    # If value(s) haven't changed, just update the User and timestamps
-    elsif existing_values.map(&:value) == Array.wrap(value)
-      cde_attributes = existing_values.map { |cde| { id: cde.id, user: @processor.hud_user } }
-    # Else create new custom field value(s), and delete any existing ones.
     else
+      submitted = Array.wrap(value)
+
+      # Helper lambda to check if an existing value was also in the submitted values
+      is_in_submitted = ->(cde) { submitted.include?(cde.value) }
+
+      new_values = submitted - existing_cdes.map(&:value)
+      unchanged = existing_cdes.filter(&is_in_submitted)
+      to_remove = existing_cdes.reject(&is_in_submitted)
+
       cde_attributes = [
+        # For value(s) that haven't changed, just update the User and timestamps
+        unchanged.map { |cde| { id: cde.id, user: @processor.hud_user } },
         # Add new value(s)
-        *Array.wrap(value).map { |new_value| { value_field_name => new_value, **attrs } },
-        # Destroy any existing values for this custom field
-        *existing_values.map { |old_cde| { id: old_cde.id, _destroy: 1 } },
-      ]
+        new_values.map { |new_value| { value_field_name => new_value, **attrs } },
+        # Destroy removed value(s) for this custom field
+        to_remove.map { |old_cde| { id: old_cde.id, _destroy: 1 } },
+      ].flatten.compact
     end
 
     record.assign_attributes(custom_data_elements_attributes: Array.wrap(cde_attributes))
@@ -233,7 +250,7 @@ class Hmis::Hud::Processors::Base
     if cded.repeats
       Array.wrap(value).map do |val|
         normalize_single_custom_field_value(cded, val)
-      end.compact.presence
+      end.compact.uniq.presence
     # Else normalize the single element, and ensure its not an array
     else
       raise "Custom field '#{cded.key}' can't be an array" if value.is_a?(Array)
@@ -283,7 +300,17 @@ class Hmis::Hud::Processors::Base
       case value
       when nil, ''
         nil
-      when true, false
+      when 0, '0', false
+        false
+      when 1, '1', true
+        true
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    when 'file'
+      case value
+      when String
+        # value string should be either a File ID, or a signed ActiveStorage blob ID.
         value
       else
         raise "unexpected value \"#{value}\""
@@ -297,5 +324,47 @@ class Hmis::Hud::Processors::Base
     Date.strptime(string, '%Y-%m-%d')
   rescue ArgumentError
     raise "unexpected value for date \"#{string}\""
+  end
+
+  private def process_files(cded, value, existing_cdes)
+    if cded.repeats?
+      Array.wrap(value).map do |val|
+        process_id_to_file(val, existing_cdes)
+      end
+    else
+      process_id_to_file(value, existing_cdes)
+    end
+  end
+
+  private def process_id_to_file(value, existing_cdes)
+    return value unless value
+
+    if value.to_i.to_s == value.to_s
+      # If value is a string representation of an integer, then it should be the ID of an existing File record.
+      # Check that this existing file is already associated with this processor.
+      raise 'Access denied' unless existing_cdes.pluck(:value_file_id).include?(value.to_i)
+
+      Hmis::File.find(value)
+    else
+      # Otherwise, it should be a signed blob ID of a recently-uploaded file. We need to create the File record.
+      blob = ActiveStorage::Blob.find_signed(value)
+
+      raise "could not find file blob #{value}" unless blob
+
+      # Check if a File for this blob already exists (this likely won't happen, but just in case)
+      return Hmis::File.find(blob.attachments.first.record_id) unless blob.attachments.empty?
+
+      enrollment = @processor.send(:enrollment_factory)
+      raise "cannot save file for blob #{value} without enrollment" unless enrollment
+
+      file = Hmis::File.new
+      file.name = blob.filename
+      file.client = @processor.send(:client_factory)
+      file.enrollment = enrollment
+      file.client_file.attach(blob)
+      file.user = @processor.current_user
+      file.updated_by = @processor.current_user
+      file
+    end
   end
 end

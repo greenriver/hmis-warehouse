@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,12 +41,16 @@ module CustomImportsBostonAssessmentLookups
     private def header_lookup
       {
         'Field Name' => 'assessment_question',
-        'Numeric Response' => 'response_code',
-        'Text Response' => 'response_text',
+        'Code' => 'response_code',
+        'Value Name' => 'response_text',
+        nil => 'do_not_import',
       }
     end
 
     def post_process
+      # Refuse to delete anything if the import has no rows, we probably didn't get a file
+      return unless rows.exists?
+
       update(status: 'adding')
       GrdaWarehouse::AssessmentAnswerLookup.transaction do
         GrdaWarehouse::AssessmentAnswerLookup.where(data_source_id: data_source_id).delete_all

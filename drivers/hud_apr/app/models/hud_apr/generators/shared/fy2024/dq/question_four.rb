@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -155,8 +155,14 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionFour
       answer.add_members(members)
       answer.update(summary: members.count)
 
+      # HMIS Reporting Glossary Reference: Data Quality - Q1-17: Heads of households and adult stayers in the project 365 days or more
+      stayers_over_365_days = adults_and_hohs.where(
+        a_t[:length_of_stay].gteq(365).
+          and(stayers_clause),
+      )
+
       answer = @report.answer(question: table_name, cell: 'F4')
-      answer.update(summary: percentage(members.count / stayers_with_anniversary.count.to_f))
+      answer.update(summary: percentage(members.count / stayers_over_365_days.count.to_f))
 
       # income at exit
       leavers = adults_and_hohs.where(a_t[:last_date_in_program].lteq(@report.end_date))

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,9 @@ module GrdaWarehouse
     attr_accessor :editor_ids
 
     validates_presence_of :name
-    after_create :maintain_system_group
+    # allows us to skip this expensive operation when running in tests
+    attr_accessor :skip_maintain_system_group
+    after_create :maintain_system_group, unless: :skip_maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
     has_many :clients, through: :projects
@@ -134,6 +136,7 @@ module GrdaWarehouse
 
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :project_groups)
+      Collection.delayed_system_group_maintenance(group: :project_groups)
     end
 
     def filter
@@ -309,6 +312,10 @@ module GrdaWarehouse
 
     def entity_relation_type
       :project_groups
+    end
+
+    def collection_type
+      'Project Groups'
     end
   end
 end

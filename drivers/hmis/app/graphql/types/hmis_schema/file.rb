@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,7 +21,6 @@ module Types
     field :url, String, null: true
     field :name, String, null: false
     field :tags, [String], null: false
-    field :file_blob_id, ID, null: true
     field :own_file, Boolean, null: false
     field :redacted, Boolean, null: false
 
@@ -51,7 +50,7 @@ module Types
       unless_redacted do
         return unless object.client_file.attached?
         # Use service url in dev to avoid CORS issues
-        return object.client_file.blob.service_url if Rails.env.development?
+        return object.client_file.blob.url if Rails.env.development?
 
         Rails.application.routes.url_helpers.rails_blob_url(object.client_file, only_path: true)
       end

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module
   CoreDemographicsReport::GenderCalculations
@@ -15,14 +17,19 @@ module
             title: "Gender - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_gender(key)).distinct },
+            scope: -> {
+              report_scope.
+                joins(:client, :enrollment).
+                where(client_id: client_ids_in_gender(key)).
+                distinct
+            },
           }
         end
       end
     end
 
     def gender_count(type, coc_code = base_count_sym)
-      mask_small_population(gender_breakdowns(coc_code)[gender_column_to_numeric(type)]&.count&.presence || 0)
+      mask_small_population(client_ids_in_gender(type, coc_code)&.count&.presence || 0)
     end
 
     def gender_percentage(type, coc_code = base_count_sym)
@@ -36,9 +43,7 @@ module
     end
 
     def gender_age_count(gender:, age_range:, coc_code: base_count_sym)
-      age_range.to_a.map do |age|
-        mask_small_population(gender_age_breakdowns(coc_code)[[gender_column_to_numeric(gender), age]]&.count&.presence || 0)
-      end.sum
+      mask_small_population(client_ids_in_gender_age(gender, age_range, coc_code)&.count&.presence || 0)
     end
 
     def gender_age_percentage(gender:, age_range:, coc_code: base_count_sym)
@@ -114,10 +119,10 @@ module
       end
     end
 
-    def client_ids_in_gender_age(gender, age)
+    def client_ids_in_gender_age(gender, age, coc_code = base_count_sym)
       ids = Set.new
       age.to_a.each do |age_old|
-        client_ids = gender_age_breakdowns[[gender_column_to_numeric(gender), age_old]]&.map(&:first)
+        client_ids = gender_age_breakdowns(coc_code)[[gender_column_to_numeric(gender), age_old]]&.map(&:first)
         ids += client_ids if client_ids
       end
       ids
@@ -151,20 +156,28 @@ module
             each do |row|
               client_id, age, _, *gender_values = row
               client = genders.keys.zip(gender_values).to_h
+              # HudUtility2024.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
+              # all of these to the id "8" so they all will be included in the Unknown Gender counts.
+              gender = GrdaWarehouse::Hud::Client.gender_binary(client).presence || 8
+              gender = 8 if gender.in?([9, 99])
               clients[base_count_sym][client_id] ||= {
-                gender: GrdaWarehouse::Hud::Client.gender_binary(client).presence || 99,
+                gender: gender,
                 age: age,
               }
             end
           available_coc_codes.each do |coc_code|
             report_scope.joins(:client).order(first_date_in_program: :desc).
-              distinct.in_coc(coc_code: coc_code).
+              distinct.in_enrollment_coc(coc_code: coc_code).
               pluck(:client_id, age_calculation, :first_date_in_program, *genders.keys.map { |col| c_t[col] }).
               each do |row|
                 client_id, age, _, *gender_values = row
                 client = genders.keys.zip(gender_values).to_h
+                # HudUtility2024.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
+                # all of these to the id "8" so they all will be included in the Unknown Gender counts.
+                gender = GrdaWarehouse::Hud::Client.gender_binary(client).presence || 8
+                gender = 8 if gender.in?([9, 99])
                 clients[coc_code.to_sym][client_id] ||= {
-                  gender: GrdaWarehouse::Hud::Client.gender_binary(client).presence || 99,
+                  gender: gender,
                   age: age,
                 }
               end

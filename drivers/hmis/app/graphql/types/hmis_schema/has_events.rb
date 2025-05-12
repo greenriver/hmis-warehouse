@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,10 +20,6 @@ module Types
             instance_eval(&block) if block_given?
           end
         end
-      end
-
-      def resolve_events_with_loader(association_name = :events, **args)
-        load_ar_association(object, association_name, scope: scoped_events(Hmis::Hud::Event, **args))
       end
 
       def resolve_events(scope = object.events, **args)

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +9,7 @@
 module HmisStructure::Shared
   extend ActiveSupport::Concern
 
+  # Alias CamelCase HUD CSV column names to snake_case for Rails convention
   included do
     ['2022', '2024'].each do |version|
       configuration = hmis_configuration(version: version)

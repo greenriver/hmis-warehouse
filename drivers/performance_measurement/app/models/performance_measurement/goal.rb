@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,7 @@ module PerformanceMeasurement
   class Goal < GrdaWarehouseBase
     acts_as_paranoid
     has_many :pit_counts
+    has_many :static_spms
 
     scope :default, -> do
       where(coc_code: :default)

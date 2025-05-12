@@ -1,14 +1,16 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 require 'memery'
 module GrdaWarehouse::CasProjectClientCalculator
   class Boston < Default
     include Memery
-    MAX_ADDITIONAL_DAYS = 548
+    MAX_UNVERIFIED_ADDITIONAL_DAYS = 548
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
@@ -25,12 +27,17 @@ module GrdaWarehouse::CasProjectClientCalculator
       # If calculator didn't return anything, ask the client for the answer
       # special case disabling_condition since it actually doesn't come from the pathways assessment
       # and we need to make it performant, so we can't just ask the client
-      if column == :disabling_condition?
+      # Also include some days homeless columns since they have specific Boston logic
+      if column.in?(sometimes_pathways_questions)
         send(column, client)
       elsif column.in?(unrelated_columns)
       else
         client.send(column)
       end
+    end
+
+    def handles_days_homeless?
+      true
     end
 
     def unrelated_columns
@@ -40,6 +47,18 @@ module GrdaWarehouse::CasProjectClientCalculator
         :vispdat_priority_score,
         :vispdat_prioritization_days_homeless,
       ].freeze
+    end
+
+    private def sometimes_pathways_questions
+      [
+        :additional_homeless_nights_unsheltered,
+        :additional_homeless_nights_sheltered,
+        :disabling_condition?,
+        :calculated_homeless_nights_sheltered,
+        :calculated_homeless_nights_unsheltered,
+        :total_homeless_nights_sheltered,
+        :total_homeless_nights_unsheltered,
+      ]
     end
 
     private def custom_descriptions
@@ -61,7 +80,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         cas_assessment_collected_at: 'Date the assessment was collected', # note this is really just assessment_collected_at
         majority_sheltered: 'Most recent current living situation was sheltered',
         assessment_score_for_cas: 'Days homeless in the past 3 years for pathways, score for transfer assessments',
-        tie_breaker_date: 'Date pathways was collected, or Financial Assistance End Date for transfer assessments',
+        tie_breaker_date: 'Date pathways was collected for Pathways 2023, First Date Homeless for Pathways 2024, or Financial Assistance End Date for Transfer Assessments',
         financial_assistance_end_date: 'Latest Date Eligible for Financial Assistance response from the most recent pathways assessment',
         assessor_first_name: 'First name of the user who completed the most recent pathways assessment',
         assessor_last_name: 'Last name of the user who completed the most recent pathways assessment',
@@ -73,6 +92,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         days_homeless_for_vispdat_prioritization: 'Unused',
         hiv_positive: 'HIV/AIDS response from the most recent pathways assessment',
         meth_production_conviction: 'Meth production response from the most recent pathways assessment',
+        lifetime_sex_offender: 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
         requires_wheelchair_accessibility: 'Does the client need a wheelchair accessible unit response from the most recent pathways assessment',
         income_maximization_assistance_requested: 'Did the client request income maximization services response from the most recent pathways assessment',
         sro_ok: 'Is the client ok with an SRO response from the most recent pathways assessment',
@@ -94,7 +114,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         hiv_positive: 'c_housing_HIV',
         income_maximization_assistance_requested: 'c_interest_income_max',
         sro_ok: 'c_singleadult_sro',
-        evicted: 'c_pathways_barrier_eviction',
         rrh_desired: 'c_interested_rrh',
         housing_barrier: 'c_pathways_barriers_yn',
       }.freeze
@@ -143,6 +162,14 @@ module GrdaWarehouse::CasProjectClientCalculator
         :calculated_homeless_nights_unsheltered,
         :total_homeless_nights_sheltered,
         :total_homeless_nights_unsheltered,
+        :date_of_first_service,
+        :psh_required,
+        :interested_in_set_asides,
+        :meth_production_conviction,
+        :lifetime_sex_offender,
+        :evicted,
+        :days_homeless,
+        :hmis_days_homeless_all_time,
       ]
     end
     # memoize :pathways_questions
@@ -171,23 +198,40 @@ module GrdaWarehouse::CasProjectClientCalculator
     memoize :most_recent_pathways_or_transfer
 
     private def for_boolean(client, key)
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement(key, '1').
         present?
     end
 
     private def meth_production_conviction(client)
       # check pathways and transfer fields
-      conviction = most_recent_pathways_or_transfer(client).question_matching_requirement('c_pathways_barrier_meth', '1').present? ||
-      most_recent_pathways_or_transfer(client).question_matching_requirement('c_transfer_barrier_meth', '1').present?
+      conviction = most_recent_pathways_or_transfer(client)&.question_matching_requirement('c_pathways_barrier_meth', '1').present? ||
+      most_recent_pathways_or_transfer(client)&.question_matching_requirement('c_transfer_barrier_meth', '1').present?
       return true if conviction
 
       # Otherwise, unknown
       nil
     end
 
+    private def lifetime_sex_offender(client)
+      most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement('c_transfer_barrier_SORI', '1').present?
+    end
+
+    private def evicted(client)
+      evicted = most_recent_pathways_or_transfer(client)&.question_matching_requirement('c_pathways_barrier_meth', '1').present?
+      return true if evicted
+
+      evicted = most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement('c_transfer_barrier_PHAterm', '1').present?
+      return true if evicted
+
+      # Otherwise unknown
+      nil
+    end
+
     private def service_need(client)
-      need = most_recent_pathways_or_transfer(client).question_matching_requirement('c_pathways_service_indicators', '1').present?
+      need = most_recent_pathways_or_transfer(client)&.question_matching_requirement('c_pathways_service_indicators', '1').present?
       return true if need
 
       # Otherwise, unknown
@@ -195,28 +239,26 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def family_member(client)
-      household_members_response = most_recent_pathways_or_transfer(client).
+      household_members_response = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_additional_household_members')&.AssessmentAnswer&.to_i&.positive?
-      pregnant_or_parenting_pathway_response = most_recent_pathways_or_transfer(client).
+      pregnant_or_parenting_pathway_response = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
-      household_size_pathway_response = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer&.to_i || 0
-      household_members_response || pregnant_or_parenting_pathway_response || household_size_pathway_response > 1
+      household_members_response || pregnant_or_parenting_pathway_response
     end
 
     private def child_in_household(client)
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
     end
 
     private def required_minimum_occupancy(client)
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer&.to_i
     end
 
     private def cellphone(client)
       # TODO: what is this field name?
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('FIXME')&.AssessmentAnswer
     end
 
@@ -224,7 +266,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_youth_choice	1	Youth-specific only: (Youth-specific programs are with agencies who have a focus on young populations; they may be able to offer drop-in spaces for youth, as well as community-building and connections with other youth)
       # c_youth_choice	2	Adult programs only: (Adult programs serve youth who are 18-24, but may not have built in community space or activities to connect with other youth. They can help you find those opportunities. The adult RRH programs typically have more frequent openings)
       # c_youth_choice	3	Both Adult and youth-specific programs
-      option_one = most_recent_pathways_or_transfer(client).
+      option_one = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_youth_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
       return option_one if option_one
       return false unless client.youth_on?
@@ -237,7 +279,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_survivor_choice	1	Domestic Violence (DV)-specific only: (agencies who have a focus on populations experiencing violence; they may be able to offer specialized services for survivors in-house, such as support groups, clinical services, and legal services)
       # c_survivor_choice	2	Non-DV programs only (serve people fleeing violence, but may need to link you to outside, specialized agencies for services such as DV support groups, clinical services and legal services. Non-DV RRH programs typically have more frequent openings)
       # c_survivor_choice	3	Both DV and non-DV programs
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_survivor_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
     end
 
@@ -245,7 +287,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # as an integer of the number of rooms. For now we'll grab just the integer section of the looked up value
     # so that we get the right number in CAS
     private def required_number_of_bedrooms(client)
-      bedrooms = most_recent_pathways_or_transfer(client).
+      bedrooms = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_larger_room_size')&.lookup&.response_text&.scan(/\d+/)&.first
       return unless bedrooms.present?
 
@@ -258,7 +300,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	5	Both Wheelchair accessible and First Floor/Elevator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.to_s.in?(['2', '5'])
     end
 
@@ -268,7 +310,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	5	Both Wheelchair accessible and First Floor/Elevator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.to_s.in?(['1', '5'])
     end
 
@@ -294,10 +336,79 @@ module GrdaWarehouse::CasProjectClientCalculator
         'c_neighborhood_westroxbury' => 'West Roxbury',
       }
       names = neighborhoods.map do |key, name|
-        name if most_recent_pathways_or_transfer(client).
+        name if most_recent_pathways_or_transfer(client)&.
           question_matching_requirement(key, '1').present?
       end.compact
       CasAccess::Neighborhood.neighborhood_ids_from_names(names)
+    end
+
+    # # From HMIS/Warehouse
+    # calculated_homeless_nights_unsheltered
+    # calculated_homeless_nights_sheltered
+    #
+    # Self-report
+    # additional_homeless_nights_unsheltered
+    # additional_homeless_nights_sheltered
+    #
+    # # Calculated based on setup
+    # total_homeless_nights_unsheltered
+    # total_homeless_nights_sheltered
+
+    # Unsheltered days homeless from HMIS data - unsheltered days exclude any day the client was also sheltered
+    # For Individual Pathways, this is limited to the last 3 years
+    # For Family Pathways, this is for "all time" which we are limiting to the last 20 years for performance
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    def calculated_homeless_nights_unsheltered(client)
+      return client.unsheltered_days_homeless_last_three_years unless most_recent_pathways_or_transfer(client)&.family_pathways_2024?
+
+      end_date = Date.current
+      start_date = end_date - 20.years
+      client.unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
+    end
+
+    # Sheltered days homeless from HMIS data
+    # For Individual Pathways, this is limited to the last 3 years
+    # For Family Pathways, this is for "all time" which we are limiting to the last 20 years for performance
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    def calculated_homeless_nights_sheltered(client)
+      return client.sheltered_days_homeless_last_three_years unless most_recent_pathways_or_transfer(client)&.family_pathways_2024?
+
+      end_date = Date.current
+      start_date = end_date - 20.years
+      client.sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
+    end
+
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    # Allowed Self-Report Unsheltered
+    # The lesser of max_possible_self_report_homeless_days(client) and days from pathways
+    def additional_homeless_nights_unsheltered(client)
+      unsheltered = most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer.to_i || 0
+
+      [unsheltered, max_possible_self_report_homeless_days(client)].min || 0
+    end
+
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    # Allowed Self-Report Sheltered
+    # min of (max_possible_self_report_homeless_days(client) - self-report unsheltered) and self-reported sheltered
+    #
+    def additional_homeless_nights_sheltered(client)
+      sheltered = most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer.to_i || 0
+
+      allowed_sheltered_self_report = max_possible_self_report_homeless_days(client) - additional_homeless_nights_unsheltered(client)
+      [allowed_sheltered_self_report, sheltered].min || 0
+    end
+
+    # Cap total homeless unsheltered nights at 1,096, incorporate clamp on self-report
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    private def total_homeless_nights_unsheltered(client)
+      calculated_homeless_nights_unsheltered(client) + additional_homeless_nights_unsheltered(client)
+    end
+
+    # See https://docs.google.com/spreadsheets/d/1A9zMLGI-nxnSRfuwn1akSS7B_tLJYzMKuSaIIMghTnE/edit?gid=0#gid=0 for spec
+    def total_homeless_nights_sheltered(client)
+      calculated_homeless_nights_sheltered(client) + additional_homeless_nights_sheltered(client)
     end
 
     # NOTE: this is also used in cohorts
@@ -312,6 +423,33 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days
     end
 
+    # For individual pathways, assessments, extra days are limited to 1,096 if a certification is on file, 548 if not
+    # For family pathways, this is limited to 548 if there is no certification on file, no limit otherwise
+    # Self-report days are only available if the overall number of warehouse/calculated/HMIS days does not meet the maximum
+    private def max_possible_self_report_homeless_days(client)
+      # Ignore clamping prior to the start date
+      start_date = GrdaWarehouse::Config.get(:self_report_start_date)
+
+      allowed_days = (max_possible_days(client) - warehouse_days_from_hmis(client)).clamp(0, MAX_UNVERIFIED_ADDITIONAL_DAYS)
+      # If the client doesn't have a certification on file and the start date is in the past, we don't allow extra days
+      return allowed_days if ce_self_certification_client_ids.exclude?(client.id) && start_date&.past?
+
+      (max_possible_days(client) - warehouse_days_from_hmis(client)).clamp(0, max_possible_days(client))
+    end
+
+    # Individual Pathways and transfer assessments would be capped at 3 years
+    # Family Pathways has no official cap, we're setting it to 20 years
+    private def max_possible_days(client)
+      return 1_096 unless most_recent_pathways_or_transfer(client)&.family_pathways_2024?
+
+      # 20 years
+      7_300
+    end
+
+    private def warehouse_days_from_hmis(client)
+      calculated_homeless_nights_unsheltered(client) + calculated_homeless_nights_sheltered(client)
+    end
+
     private def literally_homeless_last_three_years_cached(client)
       assessment = most_recent_pathways_or_transfer(client)
       pre_calculated_days = client.processed_service_history&.literally_homeless_last_three_years || 0
@@ -323,79 +461,97 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days
     end
 
+    # Overrides the usual calculation for first date homeless if available
+    # If the question doesn't exist on the assessment or is empty, use the usual definition
+    private def date_of_first_service(client)
+      field_name = 'c_pathways_first_date_homeless'
+      answer = most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement(field_name)&.AssessmentAnswer
+
+      return client.date_of_first_service if answer.blank?
+
+      answer.to_date
+    end
+
     # If a client has more than 548 self-reported days (combination of sheltered and unsheltered)
     # and does not have a verification uploaded, count unsheltered days first, then count sheltered days UP TO 548.
     # If the self reported days are verified, use the provided amounts.
     private def pathways_days_homeless(client)
       unsheltered_days = additional_homeless_nights_unsheltered(client)
       sheltered_days = additional_homeless_nights_sheltered(client)
-      days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
+      days = (unsheltered_days + sheltered_days).clamp(0, max_possible_self_report_homeless_days(client))
 
       warehouse_unsheltered_days = calculated_homeless_nights_unsheltered(client)
       warehouse_sheltered_days = calculated_homeless_nights_sheltered(client)
 
       days += warehouse_unsheltered_days
       days += warehouse_sheltered_days
-      days
+      days.clamp(0, max_possible_days(client))
     end
 
-    private def total_homeless_nights_unsheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer&.to_i || 0
+    # all-time days homeless
+    def days_homeless(client)
+      overall_nights_homeless(client)
     end
 
-    private def max_extra_homeless_days(client)
-      start_date = GrdaWarehouse::Config.get(:self_report_start_date)
-      return 1096 if start_date.blank? || start_date.future? || ce_self_certification_client_ids.include?(client.id)
-
-      548
+    def hmis_days_homeless_all_time(client)
+      overall_nights_homeless(client)
     end
 
-    # IF a client has less than 548 self-reported days (combination of sheltered and unsheltered) use the values provided regardless of whether a verification is uploaded
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND has a verification uploaded, use the values provided
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
-    def additional_homeless_nights_sheltered(client)
-      sheltered = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
-      return sheltered if ce_self_certification_client_ids.include?(client.id)
-
-      unsheltered = additional_homeless_nights_unsheltered(client)
-      # 2. Find the maximum amount of sheltered days to count based on the total unsheltered days.
-      #    The combination of the two cannot exceed 548.
-      available_nights = MAX_ADDITIONAL_DAYS - unsheltered
-      # 3. Cap the sheltered days counted at the calculated max if it exceeds that amount.
-      sheltered.clamp(0, available_nights)
-    end
-
-    # IF a client has less than 548 self-reported days (combination of sheltered and unsheltered) use the values provided regardless of whether a verification is uploaded
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND has a verification uploaded, use the values provided
-    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
-    def additional_homeless_nights_unsheltered(client)
-      unsheltered = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
-      return unsheltered if ce_self_certification_client_ids.include?(client.id)
-
-      # 1. Cap the total unsheltered at 548 days if it is greater than this amount.
-      unsheltered.clamp(0, MAX_ADDITIONAL_DAYS)
-    end
-
-    def calculated_homeless_nights_sheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
-    end
-
-    def calculated_homeless_nights_unsheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
-    end
-
-    def total_homeless_nights_sheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer&.to_i || 0
+    private def overall_nights_homeless(client)
+      total_homeless_nights_unsheltered(client) + total_homeless_nights_sheltered(client)
     end
 
     private def default_shelter_agency_contacts(client)
-      client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+      contact_emails = client.client_contacts.shelter_agency_contacts.where.not(email: nil).pluck(:email)
+      contact_emails << client.source_assessments.max_by(&:assessment_date)&.user&.user_email
+      contact_emails.compact.uniq
+    end
+
+    # Transfer Assessment:
+    # 0 = No PSH
+    # 1 = PSH required
+    # 2 = Either
+    # Default to either if we don't have an answer
+    # CAS uses `yes`, `no`, `maybe` strings
+    #
+    # Family Pathways
+    # 0 = No PSH
+    # 1 = PSH required
+    private def psh_required(client)
+      unknown_response = nil
+      value = nil
+      if most_recent_pathways_or_transfer(client)&.family_pathways_2024?
+        value = most_recent_pathways_or_transfer(client)&.
+          question_matching_requirement('c_pathways_fam_PSH')&.AssessmentAnswer.to_i
+      else
+        unknown_response = 'maybe'
+        value = most_recent_pathways_or_transfer(client)&.
+          question_matching_requirement('c_rrh_transfer_needs_subsidized_housing_resource')&.AssessmentAnswer.to_i || 2
+      end
+
+      case value
+      when 0
+        'no'
+      when 1
+        'yes'
+      else
+        unknown_response
+      end
+    end
+
+    # Family Pathways
+    # 0 = No Set-Asides
+    # 1 = Yes Set-Asides
+    private def interested_in_set_asides(client)
+      value = most_recent_pathways_or_transfer(client)&.
+        question_matching_requirement('c_pathways_Fam_set_aside')&.AssessmentAnswer&.to_i
+      case value
+      when 0
+        'no'
+      when 1
+        'yes'
+      end
     end
 
     private def contact_info_for_rrh_assessment(client)
@@ -407,7 +563,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def cas_assessment_name(client)
       # c_housing_assessment_name	1	Pathways
       # c_housing_assessment_name	2	RRH-PSH Transfer
-      value = most_recent_pathways_or_transfer(client).
+      value = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_housing_assessment_name')&.AssessmentAnswer
       return 'IdentifiedClientAssessment' unless value.present?
 
@@ -415,11 +571,13 @@ module GrdaWarehouse::CasProjectClientCalculator
         1 => 'IdentifiedPathwaysVersionThreePathways',
         2 => 'IdentifiedPathwaysVersionThreeTransfer',
         3 => 'IdentifiedPathwaysVersionFourPathways',
+        4 => 'IdentifiedPathwaysVersionFourTransfer',
+        5 => 'IdentifiedPathwaysVersionFourFamilyPathways',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
     private def max_current_total_monthly_income(client)
-      amount = most_recent_pathways_or_transfer(client).
+      amount = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_hh_estimated_annual_gross')&.AssessmentAnswer
       return nil if amount.blank?
 
@@ -439,25 +597,46 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def financial_assistance_end_date(client)
-      most_recent_pathways_or_transfer(client).
+      most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_latest_date_financial_assistance_eligibility_rrh')&.AssessmentAnswer
     end
 
+    # For 2024/2025 score calculations are:
+    # Individual Pathways Assessment: days homeless in the past 3 years, prefer Pathways answer clamped to 1,096, use
+    # days in the past three years from the warehouse if not available.
+    # Family Pathways Assessment: overall days homeless (all time), prefer Pathways answer, use client.days_homeless if
+    # not available.
+    # Transfer Assessment: use assessment score.
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
-        days_homeless_in_last_three_years_cached(client)
-      when 'IdentifiedPathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways', 'IdentifiedPathwaysVersionFourFamilyPathways'
+        if most_recent_pathways_or_transfer(client)&.family_pathways_2024?
+          # Family
+          overall_nights_homeless(client)
+        else
+          # Individual
+          days_homeless_in_last_three_years_cached(client)
+        end
+
+        # all time homeless days (no cap on total, but self-report limited to 548 if no verification)
+        # Also need a mechanism to identify family Pathways assessments/AssessmentQuestions
+      when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         assessment_score(client)
       end
     end
 
+    # Various tie-breaker dates used for prioritization in CAS when all else is equal
+    # For Pathways V3, use the date the assessment was collected
+    # For the V3 Transfer assessment, use the financial assistance end date
+    # For Pathways V4, use the first date of homelessness
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionThreePathways'
         cas_assessment_collected_at(client)
-      when 'IdentifiedPathwaysVersionThreeTransfer'
+      when 'IdentifiedPathwaysVersionThreeTransfer', 'IdentifiedPathwaysVersionFourTransfer'
         financial_assistance_end_date(client)
+      when 'IdentifiedPathwaysVersionFourPathways', 'IdentifiedPathwaysVersionFourFamilyPathways'
+        date_of_first_service(client)
       end
     end
 
@@ -474,7 +653,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # 30 No exit interview completed
       # 17 Other
       # 37 Worker unable to determine
-      # 8 Client doesn’t know
+      # 8 Client doesn't know
       # 9 Client refused
       # 99 Data not collected
       return nil if cls.CurrentLivingSituation.in?([nil, 30, 17, 37, 8, 9, 99])
@@ -573,12 +752,15 @@ module GrdaWarehouse::CasProjectClientCalculator
       end&.max_by(&:InformationDate)&.InformationDate
     end
 
-    # Any open enrollments 4.11.2 DomesticViolenceVictim = 1
+    # CE enrollments 4.11.2 DomesticViolenceSurvivor = 1
     private def domestic_violence(client)
-      return 1 if client.source_health_and_dvs.select do |m|
-        m.DomesticViolenceVictim == 1 &&
-        [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
-      end.any?
+      return 1 if client.source_health_and_dvs.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.project_type_number('CE'))).
+        select do |m|
+                    m.DomesticViolenceSurvivor == 1 &&
+                    [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
+                  end.any?
 
       # Return 0 so we don't drop into calling this on the client, which has different results
       0

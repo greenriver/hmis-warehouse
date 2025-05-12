@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,10 +8,15 @@ module HmisExternalApis::AcHmis
   # A proposed fulfillment of a referral request
   class ReferralPosting < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_referral_postings'
+    include ::Hmis::Hud::Concerns::FormSubmittable
+
+    include HasPiiAttributes
+    pii_attr :status_note, as: :free_text
+
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :referral_request, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', optional: true
-    belongs_to :project, class_name: 'Hmis::Hud::Project'
-    belongs_to :unit_type, class_name: 'Hmis::UnitType'
+    belongs_to :project, class_name: 'Hmis::Hud::Project' # project that is receiving the referral
+    belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     belongs_to :status_updated_by, class_name: 'Hmis::User', optional: true
@@ -25,6 +30,7 @@ module HmisExternalApis::AcHmis
 
     scope :from_link, -> { where.not(identifier: nil) }
 
+    # viewability is based on whether the user can see the project that is RECEIVING the referral. It does not check referral perms.
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated
 
@@ -38,11 +44,12 @@ module HmisExternalApis::AcHmis
         denied_pending_status: 19,
         accepted_status: 20,
         denied_status: 21,
-        accepted_by_other_program_status: 22,
-        not_selected_status: 23,
-        void_status: 25,
-        new_status: 55,
-        assigned_to_other_program_status: 60,
+        # The below statuses are present in the LINK system, but we don't interface with them.
+        # accepted_by_other_program_status: 22,
+        # not_selected_status: 23,
+        # void_status: 25,
+        # new_status: 55,
+        # assigned_to_other_program_status: 60,
         # closed: 65,
       },
       referral_result: ::HudUtility2024.hud_list_map_as_enumerable(:referral_results),
@@ -88,8 +95,11 @@ module HmisExternalApis::AcHmis
       validates :denial_note, length: { maximum: 2_000 }
     end
 
+    validate :validate_unit_availability, on: :form_submission, if: :new_record?
+
     before_create do
       self.status_updated_at ||= created_at
+      self.status_updated_by ||= current_user if current_user
     end
 
     ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
@@ -123,6 +133,12 @@ module HmisExternalApis::AcHmis
       return unless expected_statuses.present?
 
       errors.add(:status, :invalid, message: "is invalid. Expected one of: #{expected_statuses.map(&:humanize).join(', ')}") unless expected_statuses.include?(status)
+    end
+
+    private def validate_unit_availability
+      return unless unit_type_id.present?
+
+      errors.add(:unit_type_id, :invalid, message: 'is not available in the selected project') unless project.units.unoccupied_on.where(unit_type_id: unit_type_id).exists?
     end
 
     # referral came from LINK
@@ -176,6 +192,28 @@ module HmisExternalApis::AcHmis
         )
       end
       Hmis::Hud::Exit.import!(exits)
+    end
+
+    # Initialize a new ReferralPosting with a Referral and ReferralHouseholdMembers
+    def self.new_with_referral(enrollment:, receiving_project:, user:)
+      referral = HmisExternalApis::AcHmis::Referral.new(
+        enrollment: enrollment,
+        referral_date: Time.current,
+        service_coordinator: user.name,
+      )
+      referral.household_members = enrollment.household_members.preload(:client).map do |member|
+        HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
+          relationship_to_hoh: member.relationship_to_hoh,
+          client_id: member.client.id,
+        )
+      end
+      posting = referral.postings.build(
+        status: 'assigned_status',
+        project: receiving_project,
+        data_source: enrollment.data_source,
+      )
+      posting.current_user = user # used by track_status_changes
+      posting
     end
   end
 end

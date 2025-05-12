@@ -15,6 +15,7 @@ FactoryBot.define do
     can_edit_users { true }
     can_view_full_ssn { true }
     can_view_full_dob { true }
+    can_view_client_name { true }
     can_view_hiv_status { true }
     can_view_dmh_status { true }
     can_view_imports { true }

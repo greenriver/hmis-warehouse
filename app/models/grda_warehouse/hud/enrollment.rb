@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,6 +52,11 @@ module GrdaWarehouse::Hud
     has_many :current_living_situations, **hud_enrollment_belongs('CurrentLivingSituation'), inverse_of: :enrollment
     has_many :youth_education_statuses, **hud_enrollment_belongs('YouthEducationStatus'), inverse_of: :enrollment
 
+    #####
+    # DEPRECATED 🚨
+    # The EnrollmentCoC class has been deprecated as of 10/1/2024. The class is sill needed by
+    # the importer to handle data from sources that ship in older formats.
+    #####
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)
     end, **hud_enrollment_belongs('EnrollmentCoc')
@@ -105,7 +112,7 @@ module GrdaWarehouse::Hud
     end, **hud_enrollment_belongs('HealthAndDv')
 
     # NOTE: you will want to limit this to a particular record_type
-    has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', query_constraints: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     has_many :service_history_services, through: :service_history_enrollment
 
@@ -156,6 +163,8 @@ module GrdaWarehouse::Hud
       visible_to(user)
     end
 
+    # this scope is defined in the ClientAccessControl::GrdaWarehouse::Hud::EnrollmentExtension
+    # TODO: why not just define it here
     scope :visible_to, ->(_user) do
       none
     end
@@ -318,6 +327,33 @@ module GrdaWarehouse::Hud
     # awkward name to distinguish it from the deprecated "Enrollment.exit_date"
     def real_exit_date
       exit&.ExitDate
+    end
+
+    def prior_living_situation_label
+      HudUtility2024.living_situation(living_situation)
+    end
+
+    # Returns a HUD known household type:
+    # Without Children
+    # With Children and Adults
+    # With Only Children
+    # Unknown Household Type
+    def household_type(clients = household_members)
+      member_ages = clients.map(&:DOB).
+        map { |dob| GrdaWarehouse::Hud::Client.age(date: Date.current, dob: dob) }
+
+      return 'With Only Children' if member_ages.all?(&:present?) && member_ages.all? { |age| age < 18 }
+      return 'Without Children' if member_ages.all?(&:present?) && member_ages.all? { |age| age >= 18 }
+      return 'With Children and Adults' if member_ages.reject(&:blank?).any? { |age| age >= 18 } && member_ages.reject(&:blank?).any? { |age| age < 18 }
+
+      'Unknown Household Type'
+    end
+
+    # NOTE: this causes additional queries, you may want to find these clients in a more efficient way
+    # Returns the source client records for anyone in the household
+    def household_members
+      GrdaWarehouse::Hud::Client.joins(:enrollments).
+        merge(GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id, household_id: household_id))
     end
 
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HmisCsvTwentyTwentyFour::Exporter
   class Project
@@ -28,6 +30,11 @@ module HmisCsvTwentyTwentyFour::Exporter
         project_scope.
           modified_within_range(range: (export.start_date..export.end_date))
       end
+
+      filter = export.filter
+      # Limit to the chosen date range if the option is enabled
+      export_scope = export_scope.within_range(export.start_date..export.end_date) if filter.enforce_project_date_scope
+
       note_involved_user_ids(scope: export_scope, export: export)
 
       export_scope.distinct.preload(:user, :organization)

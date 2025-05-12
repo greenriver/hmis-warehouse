@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 FactoryBot.define do
   factory :hmis_external_api_ac_hmis_referral_household_member, class: 'HmisExternalApis::AcHmis::ReferralHouseholdMember' do
+    referral { association :hmis_external_api_ac_hmis_referral }
     client { association :hmis_hud_client }
     relationship_to_hoh { 1 }
     mci_id { Faker::IdNumber.valid }

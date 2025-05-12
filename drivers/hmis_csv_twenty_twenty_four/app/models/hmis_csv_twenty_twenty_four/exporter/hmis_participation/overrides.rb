@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +24,7 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def self.apply_overrides(row)
-      missing_type = if row.project.organization.VictimServiceProvider == 1
+      missing_type = if row.project&.organization&.VictimServiceProvider == 1
         2 # Assume VSPs are using a CD if we don't know
       else
         0

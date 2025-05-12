@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,10 +12,10 @@ module SystemPathways::Equity::InvolvesCe
       chart: 'involves_ce',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: involves_ce_data,
+      data: involves_ce_data.merge(stack: { normalize: true }),
       table: as_table(involves_ce_counts, ['Project Type'] + involves_ces.values),
       # array for rows and array for columns to indicate which link params
       # should be attached for each

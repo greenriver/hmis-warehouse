@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +26,7 @@ module Health
 
     belongs_to :signable_document, optional: true
     belongs_to :careplan, optional: true
-    has_one :team_member, required: false, class_name: 'Health::Team::Member', primary_key: [:patient_id, :to_email], foreign_key: [:patient_id, :email]
+    has_one :team_member, required: false, class_name: 'Health::Team::Member', primary_key: [:patient_id, :to_email], query_constraints: [:patient_id, :email]
 
     validates_presence_of :patient_id, :careplan_id, :to_email, :to_name, :requestor_email, :requestor_name, :expires_at
     attr_accessor :team_member_id
@@ -43,7 +45,7 @@ module Health
 
     scope :outstanding, -> do
       where(arel_table[:expires_at].gt(Time.now)).
-      where(completed_at: nil)
+        where(completed_at: nil)
     end
 
     def self.expires_in
@@ -73,9 +75,11 @@ module Health
     def pcp_request?
       false
     end
+
     def aco_request?
       false
     end
+
     def patient_request?
       false
     end

@@ -1,17 +1,36 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
+  UNUSED_DAYS = 30
   belongs_to :data_source
   has_paper_trail
   acts_as_paranoid
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  # NOTE: this crosses database boundaries, so can't be used in a join
+  belongs_to :creator, class_name: 'User', foreign_key: :created_by, optional: true
+
+  validates :data_source, presence: true
+  validates :replacement_value, presence: true
+  validates :replaces_column, presence: true
+  validates :replaces_value, uniqueness: { scope: [:data_source_id, :file_name, :replaces_column, :matched_hud_key, :replaces_value], message: 'is already in use.  Another override exists with the same combination of file, matched ID, replacement column, value to replace, and replacement value, this one cannot be created at it would be a duplicate.' }
+
+  # Ensure we always have a starting point for determining when an override was last used
+  after_initialize -> do
+    self.last_used_on ||= Date.current
+  end
 
   scope :sorted, -> do
-    order(:file_name, :matched_hud_key)
+    order(:file_name, :replaces_column, :matched_hud_key)
+  end
+
+  scope :expired, -> do
+    where(expires_on: ...Date.current)
   end
 
   def self.file_name_keys
@@ -29,6 +48,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     available_classes.keys
   end
 
+  def self.available_files_for(data_source_id)
+    where(data_source_id: data_source_id).distinct.pluck(:file_name).sort
+  end
+
   def self.known_columns
     [
       :file_name,
@@ -36,6 +59,8 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
       :replaces_column,
       :replaces_value,
       :replacement_value,
+      :description,
+      :expires_on,
     ]
   end
 
@@ -52,6 +77,11 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     applied_overrides.any?
   end
 
+  # This is run daily and deletes any records where the expires_on date is in the past
+  def self.remove_expired!
+    expired.destroy_all
+  end
+
   # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
   # Returns same object with overides applied
   # NOTE: this does not save the object
@@ -61,7 +91,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     # We either have the right HUD Key, or the right source value, or both
     # or we weren't looking for anything specific
     # Just replace the data
-    row[replaces_column] = replacement_value == ':NULL:' ? nil : replacement_value
+    row[replaces_column] = normalized_replacement_value
 
     row
   end
@@ -78,6 +108,8 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     return false unless row.key?(replaces_column)
     # We were expecting a specific HUD key, and this is not it
     return false if matched_hud_key.presence&.!= row[hud_key]
+    # We were expecting a null or blank value, and the value IS null or blank
+    return true if replaces_value == ':NULL:' && row[replaces_column].blank?
     # We were expecting a specific value, and this is not it
     return false if replaces_value.presence&.!= row[replaces_column]
 
@@ -109,40 +141,104 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     "#{replaces_column} has been #{with_clause} #{when_clause}."
   end
 
+  # returns a markdown description of the override suitable for the override summary report
+  def describe_overall
+    # build a more human readable description of what will happen when the override is applied.
+    with_clause = describe_with
+    with_clause = 'will be **removed**' if with_clause.nil?
+    with_clause = "will be replaced with **#{with_clause}**" unless describe_with.nil?
+
+    when_clause = "where **#{describe_when}**"
+    when_clause = 'for **all records** in the data source' if describe_when == 'always'
+
+    "In #{file_name}, **#{replaces_column}** will be #{with_clause} #{when_clause}."
+  end
+
   def describe_with
     replacement_value == ':NULL:' ? nil : replacement_value
   end
 
   def describe_when
-    return 'always' if matched_hud_key.blank? && replaces_value.blank?
-    return "#{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value}" if matched_hud_key.present? && replaces_value.present?
+    return 'always' if matched_hud_key.blank? && replaces_value_language.blank?
+    return "#{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value_language}" if matched_hud_key.present? && replaces_value_language.present?
     return "#{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
 
-    "#{replaces_column} is #{replaces_value}" if replaces_value.present?
+    "#{replaces_column} is #{replaces_value_language}" if replaces_value_language.present?
+  end
+
+  def describe_expiration
+    expires_on || 'Indefinite'
+  end
+
+  def describe_created
+    text = 'Created'
+    return "#{text} on _#{created_at&.to_date}_" unless created_by.present?
+
+    "#{text} by _#{creator.name_with_email}_ on _#{created_at.to_date}_"
+  end
+
+  def incorrect_warning
+    'This override may be stale or incorrect.'
   end
 
   def associated_class
     self.class.available_classes.dig(file_name, :model)
   end
 
+  def normalized_replaces_value
+    return [nil, ''] if replaces_value == ':NULL:'
+
+    replaces_value
+  end
+
+  def normalized_replacement_value
+    return nil if replacement_value == ':NULL:'
+
+    replacement_value
+  end
+
+  def replaces_value_language
+    return 'blank or NULL' if replaces_value == ':NULL:'
+
+    replaces_value
+  end
+
+  def recently_used?
+    last_used_on >= UNUSED_DAYS.days.ago
+  end
+
+  def describe_last_use
+    "Last used #{ActionController::Base.helpers.pluralize((Date.current - last_used_on).to_i, 'day')} ago"
+  end
+
   def hud_key
     associated_class.hud_key.to_s
   end
 
+  def requires_project?
+    return true if associated_class.column_names.include?('ProjectID')
+    return true if associated_class.column_names.include?('EnrollmentID')
+
+    false
+  end
+
   def project
+    # Only return projects for PDDE classes
     return [] unless associated_class.column_names.include?('ProjectID')
+    return [] if associated_class.column_names.include?('EnrollmentID')
     return [] if matched_hud_key.blank? && replaces_value.blank?
 
     project_ids = associated_class.where(data_source_id: data_source_id).to_a.select do |row|
       applies?(row)
     end.map(&:ProjectID)
-    GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids).to_a
+    # Limit to 10 for performance
+    GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids.uniq.first(10)).to_a
   end
 
   def apply_to_warehouse
     scope = associated_class.where(data_source_id: data_source_id)
     scope = scope.where(associated_class.hud_key => matched_hud_key) if matched_hud_key.present?
-    scope = scope.where(replaces_column => replaces_value) if replaces_value.present?
-    scope.update_all(replaces_column => replacement_value)
+    scope = scope.where(replaces_column => normalized_replaces_value) if replaces_value.present?
+    scope.update_all(replaces_column => normalized_replacement_value)
   end
 end

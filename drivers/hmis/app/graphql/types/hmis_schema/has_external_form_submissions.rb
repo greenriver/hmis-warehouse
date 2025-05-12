@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,9 +21,9 @@ module Types
       end
 
       def resolve_external_form_submissions(scope = object.external_form_submissions, filters: nil)
-        return [] unless current_user.can_manage_external_form_submissions?
+        return scope.none unless current_permission?(permission: :can_manage_external_form_submissions, entity: object)
 
-        scope = scope.apply_filters(filters) if filters.present?
+        scope = scope.apply_filters(filters)
         scope.order(submitted_at: :desc, id: :desc)
       end
     end

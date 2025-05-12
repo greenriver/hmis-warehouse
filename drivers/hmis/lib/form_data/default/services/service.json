@@ -141,7 +141,6 @@
         "field_name": "faStartDate"
       },
       "enable_behavior": "ANY",
-      "service_detail_type": "CLIENT",
       "enable_when": [
         {
           "local_constant": "$hudRecordType",
@@ -159,7 +158,6 @@
         "field_name": "faEndDate"
       },
       "enable_behavior": "ANY",
-      "service_detail_type": "CLIENT",
       "enable_when": [
         {
           "local_constant": "$hudRecordType",
@@ -184,7 +182,6 @@
         "field_name": "faAmount"
       },
       "enable_behavior": "ANY",
-      "service_detail_type": "CLIENT",
       "enable_when": [
         {
           "local_constant": "$hudRecordType",

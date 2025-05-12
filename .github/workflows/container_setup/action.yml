@@ -1,0 +1,73 @@
+name: "Container Setup"
+description: "Reusable action to DRY up CI"
+
+## Call from the caller workflow like so:
+# - name: Checkout
+#     uses: actions/checkout@v4
+# - name: 'Container Setup'
+#   id: container-setup
+#   uses: ./.github/workflows/container_setup
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install git
+      shell: sh
+      run: |
+        apk add --no-cache git
+
+    # ensure changed-files can read repo files from git
+    - name: Configure Git Safe Directory
+      shell: sh
+      run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
+
+    - name: Install GNU tar (required by cache step and checksumming)
+      shell: sh
+      run: |
+        apk add --no-cache tar
+
+    - name: Set up dependencies
+      shell: sh
+      env:
+        DATABASE_APP_DB_TEST: warehouse_app_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
+        DATABASE_DB_TEST: cas_test
+        REPORTING_DATABASE_DB_TEST: reporting_test
+        # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+        PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      run: |
+        apk add --no-cache $(cat .github/dependencies.txt)
+
+        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+        chmod 600 ~/.pgpass
+
+    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
+    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
+    # isn't supported on Alpine.
+    - name: cache gems
+      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+      id: gemcache
+      with:
+        path: |
+          vendor/bundle
+          /usr/local/bundle/
+        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+
+    - name: Install gems
+      shell: bash
+      run: |
+        gem install bundler --version=2.6.3
+        bundle config set --local without 'production staging'
+        bundle install --jobs 10 --retry 3
+
+    - name: Cache Node.js modules
+      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
+
+    - name: Install Node.js modules
+      shell: bash
+      run: yarn install --frozen-lockfile

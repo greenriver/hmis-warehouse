@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 class GrdaWarehouse::Utility
   def self.clear!
@@ -16,6 +18,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Census::ByProject,
       GrdaWarehouse::ProjectGroup,
       GrdaWarehouse::Chronic,
+      GrdaWarehouse::ClientRoiAuthorization,
       GrdaWarehouse::HudChronic,
       GrdaWarehouse::Hud::Affiliation,
       GrdaWarehouse::Hud::Disability,
@@ -70,6 +73,7 @@ class GrdaWarehouse::Utility
       UserGroupMember,
       UserGroup,
       AccessControl,
+      User,
       HudReports::ReportInstance,
       HudReports::UniverseMember,
       HudReports::ReportCell,
@@ -95,6 +99,8 @@ class GrdaWarehouse::Utility
       ActiveStorage::Blob,
       GrdaWarehouse::File,
       GrdaWarehouse::Config,
+      GrdaWarehouse::ImportThreshold,
+      GrdaWarehouse::NotificationConfiguration,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -106,16 +112,27 @@ class GrdaWarehouse::Utility
     tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
     if RailsDrivers.loaded.include?(:hud_spm_report)
       tables << HudSpmReport::Fy2020::SpmClient
-      tables << HudSpmReport::Fy2023::SpmEnrollment
-      tables << HudSpmReport::Fy2023::Episode
-      tables << HudSpmReport::Fy2023::BedNight
-      tables << HudSpmReport::Fy2023::EnrollmentLink
-      tables << HudSpmReport::Fy2023::Return
+      tables << HudSpmReport::Fy2024::SpmEnrollment
+      tables << HudSpmReport::Fy2024::Episode
+      tables << HudSpmReport::Fy2024::BedNight
+      tables << HudSpmReport::Fy2024::EnrollmentLink
+      tables << HudSpmReport::Fy2024::Return
     end
 
     if RailsDrivers.loaded.include?(:hud_data_quality_report)
       tables << HudDataQualityReport::Fy2020::DqClient
       tables << HudDataQualityReport::Fy2020::DqLivingSituation
+    end
+
+    if RailsDrivers.loaded.include?(:performance_measurement)
+      tables << PerformanceMeasurement::Report
+      tables << PerformanceMeasurement::Client
+      tables << PerformanceMeasurement::Project
+      tables << PerformanceMeasurement::Goal
+      tables << PerformanceMeasurement::Result
+      tables << PerformanceMeasurement::StaticSpm
+      tables << PerformanceMeasurement::PitCount
+      tables << PerformanceMeasurement::ClientProject
     end
 
     tables << CustomImportsBostonService::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
@@ -124,6 +141,8 @@ class GrdaWarehouse::Utility
       tables << CasCeData::GrdaWarehouse::CasReferralEvent
       tables << CasCeData::Synthetic::Assessment
     end
+
+    tables << SyntheticCeAssessment::ProjectConfig if RailsDrivers.loaded.include?(:synthetic_ce_assessment)
 
     HmisCsvImporter::Utility.clear! if RailsDrivers.loaded.include?(:hmis_csv_importer)
 
@@ -181,12 +200,16 @@ class GrdaWarehouse::Utility
 
   def self.modifier(model)
     cascade_models = [
+      GrdaWarehouse::File,
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::Hud::Enrollment,
+      GrdaWarehouse::Hud::User,
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
       ActiveStorage::Blob,
+      User,
     ]
     return 'CASCADE' if cascade_models.include?(model)
 

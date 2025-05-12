@@ -20,6 +20,14 @@
     = link_to new_data_source_hmis_import_config_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
       %i.icon-file-drawn
       Automate HMIS CSV Loads
+  .config-button-wrapper
+    = link_to data_source_import_threshold_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
+      %i.icon-bell
+      Configure Import Alerts
+  .config-button-wrapper
+    = link_to data_source_external_hmis_configuration_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
+      %i.icon-link-ext
+      External HMIS Configuration
 
 - if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
   .config-button-wrapper
@@ -44,3 +52,9 @@
     = link_to data_source_custom_imports_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-eye
       Custom Imports
+
+- if RailsDrivers.loaded.include?(:hmis_supplemental) && can_edit_data_sources? && can_manage_config?
+  .config-button-wrapper
+    = link_to data_source_hmis_supplemental_data_sets_path(data_source_id: @data_source.id), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
+      %span.icon-eye
+      Supplemental Data Sets

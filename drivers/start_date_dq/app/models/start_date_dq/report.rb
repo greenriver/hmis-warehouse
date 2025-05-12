@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -117,7 +119,7 @@ module StartDateDq
       scope = report_scope_source
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
-      scope = filter_for_project_type(scope, all_project_types: false)
+      scope = filter_for_project_type(scope)
       scope = filter_for_projects(scope)
       scope = filter_for_cocs(scope)
       scope

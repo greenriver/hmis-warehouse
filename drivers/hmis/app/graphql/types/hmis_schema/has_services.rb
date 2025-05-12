@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,10 +21,6 @@ module Types
             instance_eval(&block) if block_given?
           end
         end
-      end
-
-      def resolve_services_with_loader(association_name = :hmis_services, **args)
-        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::HmisService, **args))
       end
 
       def resolve_services(scope = object.hmis_services, **args)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,11 +7,18 @@
 module ClientFileBase
   extend ActiveSupport::Concern
   include ArelHelper
+  include HasPiiAttributes
 
   included do
+    pii_attr :note, as: :free_text
+    pii_attr :name, as: :full_name
+    pii_attr :client_file, as: :attached_file
+
     has_one_attached :client_file
 
-    validates_presence_of :name
+    # The file_exists_and_not_too_large validation checks that the client_file exists, so we can rely on that and only validate presence of name if the file has a client_file attachment.
+    # This avoids an awkward double-error "Name can't be blank" if the file is not uploaded or has expired.
+    validates_presence_of :name, if: -> { client_file.attached? }
     validate :file_exists_and_not_too_large
     validate :note_if_other
 
@@ -27,7 +34,7 @@ module ClientFileBase
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with('Client Headshot')
       tag_id = ActsAsTaggableOn::Tag.where(
-        name: 'Client Headshot',
+        name: headshot_tag_name,
       ).pluck(:id)
       tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: tag_id).
         pluck(:taggable_id)
@@ -35,12 +42,16 @@ module ClientFileBase
       where(id: tagging_ids)
     end
 
+    def self.headshot_tag_name
+      'Client Headshot'
+    end
+
     def tags
       GrdaWarehouse::AvailableFileTag.where(id: tag_list)
     end
 
     def file_exists_and_not_too_large
-      errors.add :client_file, full_message: 'No uploaded file found' if (client_file.byte_size || 0) < 100
+      errors.add :client_file, full_message: 'No uploaded file found.' if (client_file.byte_size || 0) < 100
       errors.add :client_file, full_message: 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
     end
 
@@ -64,13 +75,23 @@ module ClientFileBase
     def as_preview
       return client_file.download unless client_file.variable?
 
-      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
+      begin
+        client_file.variant(resize_to_limit: [1920, 1080]).processed.download
+      rescue ActiveStorage::FileNotFoundError
+        Rails.logger.warn('Could not find client file')
+        return nil
+      end
     end
 
     def as_thumb
       return nil unless client_file.variable?
 
-      client_file.variant(resize_to_limit: [400, 400]).processed.download
+      begin
+        client_file.variant(resize_to_limit: [400, 400]).processed.download
+      rescue ActiveStorage::FileNotFoundError
+        Rails.logger.warn('Could not find client file')
+        return nil
+      end
     end
   end
 end

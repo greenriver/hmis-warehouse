@@ -8,6 +8,7 @@ wb.add_worksheet(name: 'User Logins') do |sheet|
       'First Name',
       'Last Name',
       'Email',
+      'ID',
       'Agency',
       'Last Login',
     ],
@@ -19,6 +20,7 @@ wb.add_worksheet(name: 'User Logins') do |sheet|
       user.first_name,
       user.last_name,
       user.email,
+      user.id,
       user.agency.name,
       user.current_sign_in_at,
     ]

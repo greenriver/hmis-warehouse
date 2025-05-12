@@ -1,0 +1,11 @@
+= render partial: 'breadcrumbs'
+.o-page
+  .o-page__title
+    - content_for :title, "Upload CSV for data set: #{@data_set.name}"
+    %h1= content_for :title
+  .alert.alert-warning
+    This form is intended for testing functionality. This will replace the current values for this data set.
+  = form_with(url: url_for(action: :create), local: true, multipart: true) do |form|
+    .my-4
+      = form.file_field :upload, required: true
+    = form.submit "Upload"

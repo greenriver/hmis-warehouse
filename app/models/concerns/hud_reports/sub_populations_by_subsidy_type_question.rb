@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,7 +38,8 @@ module HudReports::SubPopulationsBySubsidyTypeQuestion
       end
       sheet.update_cell_members(
         cell: [cols[col_index], 13],
-        members: scope,
+        # We only want clients captured in the rows above. Filter the scope to clients with a valid subsidy type
+        members: scope.where(a_t[:exit_destination_subsidy_type].in(HudUtility2024.rental_subsidy_types.keys)),
       )
     end
   end

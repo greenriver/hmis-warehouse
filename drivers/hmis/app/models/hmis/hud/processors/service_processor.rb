@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -40,18 +40,6 @@ module Hmis::Hud::Processors
     end
 
     def information_date(_)
-    end
-
-    def assign_metadata
-      hmis_service = @processor.owner_factory
-      hmis_service.assign_attributes(user: @processor.hud_user)
-      hmis_service.owner.assign_attributes(user: @processor.hud_user)
-      return unless hmis_service.hud_service?
-
-      hmis_service.owner.assign_attributes(
-        record_type: hmis_service.service_type&.hud_record_type,
-        type_provided: hmis_service.service_type&.hud_type_provided,
-      )
     end
   end
 end

@@ -1,18 +1,25 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
-    serialize :client_details, Array
+    serialize :client_details, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
     after_save :invalidate_cache
 
     def self.cas_enabled?
       CasBase.db_exists?
+    end
+
+    def self.relevant_state_codes
+      # NOTE: memoized class variable, only changes on restart/redeploy
+      @relevant_state_codes ||= GrdaWarehouse::Config.get(:relevant_state_codes)&.split(',') || ['MA']
     end
 
     def self.available_cas_methods
@@ -145,6 +152,7 @@ module GrdaWarehouse
         'Tarrant HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHat',
         'Tarrant HMIS HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHmisHat',
         'Housing Forward' => 'GrdaWarehouse::CasProjectClientCalculator::Mdha',
+        'Springfield' => 'GrdaWarehouse::CasProjectClientCalculator::Springfield',
         'Default' => 'GrdaWarehouse::CasProjectClientCalculator::Default',
       }
     end
@@ -308,6 +316,9 @@ module GrdaWarehouse
         :include_pii_in_detail_downloads,
         :self_report_start_date,
         :chronic_adult_only_cohort,
+        :enable_auto_deduplication,
+        :rds_s3_integration_role_arn,
+        :relevant_state_codes,
         client_details: [],
       ]
     end
@@ -344,6 +355,13 @@ module GrdaWarehouse
       return Consent::Implied if implied_consent?
 
       Consent::Default
+    end
+
+    def self.available_number_lms_courses_required
+      {
+        "All": -1,
+        "One of Any": 1,
+      }
     end
   end
 end

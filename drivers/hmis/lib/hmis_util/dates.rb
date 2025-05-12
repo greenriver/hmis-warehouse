@@ -1,14 +1,9 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
 module HmisUtil
   class Dates
     def self.safe_parse_date(date_string:, date_format: '%Y-%m-%d')

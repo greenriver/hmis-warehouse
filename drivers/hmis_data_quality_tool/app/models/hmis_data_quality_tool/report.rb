@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 module HmisDataQualityTool
   class Report < HudReports::ReportInstance
@@ -71,6 +73,8 @@ module HmisDataQualityTool
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
       ]
       filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
@@ -82,6 +86,8 @@ module HmisDataQualityTool
         :organization_ids,
         :project_group_ids,
         :data_source_ids,
+        :funder_ids,
+        :funder_others,
       ]
       filter.describe_filter(keys)
     end
@@ -97,6 +103,7 @@ module HmisDataQualityTool
         :project_group_ids,
         :data_source_ids,
         :funder_ids,
+        :funder_others,
         :default_project_type_codes,
       ]
     end
@@ -217,7 +224,7 @@ module HmisDataQualityTool
       scope = filter_for_range(scope)
       # Only apply CoC Code filter to the projects, we need to include
       # clients with enrollment CoC in the wrong CoC so we can identify them
-      filter.apply(scope, except: :filter_for_enrollment_cocs)
+      filter.apply(scope, except: [:filter_for_enrollment_cocs])
     end
 
     def can_see_client_details?(user)
@@ -290,6 +297,7 @@ module HmisDataQualityTool
         'enrollment_any_ch',
         'average_days_before_entry',
         'destination_temporary',
+        'destination_permanent',
         'destination_other',
       ].freeze
     end
@@ -316,6 +324,9 @@ module HmisDataQualityTool
         item_class = Enrollment
       when 'destination_temporary'
         title = 'Temporary Destination'
+        item_class = Enrollment
+      when 'destination_permanent'
+        title = 'Permanent Destination'
         item_class = Enrollment
       when 'destination_other'
         title = 'Other Destination'
@@ -354,6 +365,8 @@ module HmisDataQualityTool
         enrollments.where.not(days_before_entry: nil)
       when 'destination_temporary'
         enrollments.where(destination: ::HudUtility2024.temporary_destinations)
+      when 'destination_permanent'
+        enrollments.where(destination: ::HudUtility2024.permanent_destinations)
       when 'destination_other'
         enrollments.where(destination: ::HudUtility2024.other_destinations)
       end
@@ -362,13 +375,13 @@ module HmisDataQualityTool
     def destination_percent(category)
       # All exits
       denominator = enrollments.where.not(exit_date: nil).count
-      # Exits in category (destination_temporary or destination_other)
+      # Exits in category (destination_temporary, destination_other, or destination_permanent)
       numerator = items_for(category.to_s).count
 
       return 100 if denominator.zero?
       return 0 if numerator.zero?
 
-      ((numerator / denominator.to_f) * 100).round
+      percent(denominator, numerator)
     end
 
     def average_days_before_entry
@@ -377,7 +390,155 @@ module HmisDataQualityTool
 
       return 0 if count.zero?
 
-      sum / count
+      (sum / count.to_f).round
+    end
+
+    def average_days_to_enter_entry_date
+      count = enrollments.count
+      sum = enrollments.sum(:days_to_enter_entry_date)
+
+      return 0 if count.zero?
+
+      (sum / count.to_f).round
+    end
+
+    def average_days_to_enter_exit_date
+      # Only count enrollments with an exit date
+      scope = enrollments.where.not(exit_date: nil)
+      count = scope.count
+      sum = scope.sum(:days_to_enter_exit_date)
+
+      return 0 if count.zero?
+
+      (sum / count.to_f).round
+    end
+
+    def average_time_to_enter_date(date_type)
+      days = 0
+      goal = 0
+      label = ''
+      case date_type
+      when :entry
+        days = average_days_to_enter_entry_date
+        goal = timeliness_entry_goal
+        label = 'Days to Record Entry'
+      when :exit
+        days = average_days_to_enter_exit_date
+        goal = timeliness_exit_goal
+        label = 'Days to Record Exit'
+      else
+        raise 'Unknown date type'
+      end
+      # these need to be padded front and back for chart js to correctly show the goal
+      labels = ['', label, '']
+      goal = [goal, goal, goal]
+      {
+        labels: labels,
+        data: {
+          'Goal' => goal,
+          'Average' => [0, days, 0],
+        },
+      }
+    end
+
+    def timeliness_entry_goal
+      goal_config.entry_date_entered_length # days
+    end
+
+    def timeliness_exit_goal
+      goal_config.exit_date_entered_length # days
+    end
+
+    def time_in_enrollment_chart
+      data = {}
+      [
+        :es,
+        :so,
+        :ph,
+      ].each do |project_type_slug|
+        next unless any_enrollments_in_type?(project_type_slug)
+
+        data[project_type_slug.upcase] = [
+          enrollments_of_length(0..30, project_type_slug),
+          enrollments_of_length(31..180, project_type_slug),
+          enrollments_of_length(181..364, project_type_slug),
+          enrollments_of_length(365.., project_type_slug),
+        ]
+      end
+      {
+        labels: ['1 month or less', '1 to 6 months', '6 to 12 months', '12 months or greater'],
+        data: data,
+        ranges: {
+          '1 month or less' => '0..30',
+          '1 to 6 months' => '31..180',
+          '6 to 12 months' => '181..364',
+          '12 months or greater' => '365..Infinity',
+        },
+      }
+    end
+
+    def any_enrollments_in_type?(project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      enrollments.where(project_type: project_types).exists?
+    end
+
+    def average_time_in_project_type(project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      scope = enrollments.where(project_type: project_types)
+      scope = scope.where(move_in_date: nil) if project_type_slug == :ph
+      count = scope.count
+      sum = scope.sum(:lot)
+      return 0 if count.zero?
+
+      (sum / count.to_f).round
+    end
+
+    def percent_enrollments_over_one_year(project_type_slug)
+      numerator = enrollments_of_length(365.., project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      scope = enrollments.where(project_type: project_types)
+      scope = scope.where(move_in_date: nil) if project_type_slug == :ph
+      denominator = scope.count
+      return 0 if denominator.zero?
+
+      percent(denominator, numerator)
+    end
+
+    private def enrollments_of_length(range, project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      scope = enrollments.where(lot: range, project_type: project_types)
+      scope = scope.where(move_in_date: nil) if project_type_slug == :ph
+      scope.count
+    end
+
+    def goal_segments
+      @goal_segments ||= goal_config&.active_segments
+    end
+
+    def completeness_target
+      return nil unless goal_segments.present?
+
+      # Return the bottom of the top segment
+      goal_segments.values.map(&:first).max
+    end
+
+    def completeness(category)
+      @completeness ||= {}
+      @completeness[category] ||= begin
+        completeness_data = results.group_by(&:category)[category]
+        labels = completeness_data.map(&:title)
+        columns = completeness_data.map(&:slug)
+        data = {
+          'Valid': completeness_data.map(&:percent_valid),
+          'Invalid': completeness_data.map(&:percent_invalid),
+        }
+        data['Target'] = Array.new(columns.count) { completeness_target } if completeness_target.present?
+        {
+          labels: labels,
+          data: data,
+          columns: columns,
+        }
+      end
     end
 
     private def result_groups
@@ -389,6 +550,14 @@ module HmisDataQualityTool
           race_issues: Client,
           gender_issues: Client,
           veteran_issues: Client,
+          afghanistan_oef: Enrollment,
+          iraq_oif: Enrollment,
+          iraq_ond: Enrollment,
+          military_branch: Enrollment,
+          discharge_status: Enrollment,
+          employed: Enrollment,
+          employment_type_matches_status: Enrollment,
+          not_employed_reason_matches_status: Enrollment,
         },
         'Enrollments' => {
           disabling_condition_issues: Enrollment,
@@ -398,6 +567,10 @@ module HmisDataQualityTool
           no_hoh_issues: Enrollment,
           multiple_hoh_issues: Enrollment,
           hoh_client_location_issues: Enrollment,
+          hp_targeting_criteria: Enrollment,
+          vamc_station: Enrollment,
+          no_veteran_in_household: Enrollment,
+          hoh_not_veteran: Enrollment,
           date_to_street_issues: Enrollment,
           times_homeless_issues: Enrollment,
           months_homeless_issues: Enrollment,
@@ -436,6 +609,11 @@ module HmisDataQualityTool
           ncb_as_expected_at_entry: Enrollment,
           ncb_as_expected_at_annual: Enrollment,
           ncb_as_expected_at_exit: Enrollment,
+          hoh_income_percent_ami: Enrollment,
+          total_monthly_income_at_entry: Enrollment,
+          income_source_amounts_match_total_at_entry: Enrollment,
+          total_monthly_income_at_exit: Enrollment,
+          income_source_amounts_match_total_at_exit: Enrollment,
         },
         'Insurance' => {
           insurance_from_any_source_at_entry: Enrollment,
@@ -453,6 +631,8 @@ module HmisDataQualityTool
           days_since_last_service_es_90_issues: Enrollment,
           days_since_last_service_es_180_issues: Enrollment,
           days_since_last_service_es_365_issues: Enrollment,
+          homeless_living_situation_issues: Enrollment,
+          non_homeless_living_situation_issues: Enrollment,
         },
         'Inventory' => {
           dedicated_bed_issues: Inventory,
@@ -533,7 +713,6 @@ module HmisDataQualityTool
               next if overall_count.zero?
 
               this_result[:projects][project.id] = {
-                project_name: project&.name(user) || 'unknown',
                 invalid_count: invalid_count,
                 total: overall_count,
               }

@@ -17,30 +17,7 @@
               %td= row[:description]
               %td= link_to row[:value], row[:value_path]
 
-.card.mb-6.page-break-avoid
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Projects
-        - @report.categories.each do |cat|
-          %th= cat
-    %tbody
-      - @report.per_project_results.each do |project_id, data|
-        - project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
-        - next unless project.present?
-        %tr
-          %td= link_to_if can_view_projects?, project.name(current_user), project_path(project)
-          - @report.categories.each do |cat|
-            - valid_count = data[cat][:total] - data[cat][:invalid_count]
-            - valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
-            - if goal_config.present? && goal_config.active?
-              - name = goal_config.name_for(valid_percent.to_i)
-              - if name.present?
-                -# !important for print -- bootstrap has an !important style that for some reason overrides inline styles
-                - background_color = "background-color: #{goal_config.color_for(valid_percent.to_i)} !important;"
-                %td{ style: background_color, data: { toggle: :tooltip, title: "#{valid_count} of #{data[cat][:total]}" }} #{valid_percent}%
-            - else
-              %td #{valid_percent}%
+= render 'projects', goal_config: goal_config
 
 .card.mb-6.page-break-avoid
   %table.table.table-striped

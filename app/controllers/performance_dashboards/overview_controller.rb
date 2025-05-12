@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -46,6 +48,7 @@ module PerformanceDashboards
           :sub_population,
           :race,
           :ethnicity,
+          :race_and_ethnicity,
           :project_type,
           :coc,
           :lot_homeless,
@@ -70,7 +73,9 @@ module PerformanceDashboards
     end
 
     private def set_key
-      @key = report_class.detail_method(params.dig(:filters, :key))
+      key_from_params = params.dig(:filters, :key).presence
+      # FIXME: this may crash because key can be missing from params
+      @key = report_class.detail_method(key_from_params)
     end
 
     private def set_pdf_export

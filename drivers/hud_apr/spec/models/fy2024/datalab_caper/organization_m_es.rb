@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,9 +17,6 @@ RSpec.shared_context 'datalab organization m es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q4a',
-        skip: [
-          'L2', # Is the generator name, so not expected to match
-        ],
       )
     end
 

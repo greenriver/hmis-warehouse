@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,14 @@
 module IncomeBenefitsReport
   class Client < GrdaWarehouseBase
     self.table_name = 'income_benefits_report_clients'
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :middle_name
+    pii_attr :last_name
+    pii_attr :dob
+    pii_attr :age
+
     belongs_to :report
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true

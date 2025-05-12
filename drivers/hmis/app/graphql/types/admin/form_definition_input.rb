@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,9 +12,7 @@ module Types
     argument :definition, String, required: false
 
     def to_attributes
-      attrs = to_h.except(:definition)
-      attrs[:definition] = JSON.parse(definition) if definition.present?
-      attrs
+      to_h.except(:definition)
     end
   end
 end

@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudReports::Util
   extend ActiveSupport::Concern
+  include ActionView::Helpers::NumberHelper
 
   included do
     private def overlapping_enrollments(enrollments, last_enrollment)
@@ -57,7 +58,7 @@ module HudReports::Util
     end
 
     private def money(value)
-      format('%.2f', value.round(2))
+      format('%.2f', number_with_precision(value, precision: 2, round_mode: :banker))
     end
   end
 

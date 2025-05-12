@@ -11,30 +11,7 @@ Delayed::Worker.queue_attributes = {
   long_running: { priority: 5 },
 }
 
-# Monkey patch so Delayed::Worker knows where it started
-# Delayed::Worker::Deployment.deployed_to
 module Delayed
-  class Worker
-    class Deployment
-      def self.deployed_to
-        if Rails.env.development? || Rails.env.test?
-          File.realpath(FileUtils.pwd)
-        else
-          Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)}
-        end
-      end
-    end
-  end
-  # class Job
-  #   def self.jobs_for_class(handlers)
-  #     handlers = Array.wrap(handlers)
-  #     sql = arel_table[:id].eq(0) # This will never happen
-  #     handlers.each do |handler|
-  #       sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
-  #     end
-  #     where(sql)
-  #   end
-  # end
   module Backend
     module ActiveRecord
       class Job < ::ActiveRecord::Base
@@ -45,10 +22,6 @@ module Delayed
             sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
           end
           where(sql)
-        end
-
-        def self.queue_status
-          where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.humanize }
         end
 
         # You can pass things you'd like to match that exist within the handlers column
@@ -69,21 +42,17 @@ module Delayed
           return false if handlers.blank?
 
           handlers = Array.wrap(handlers)
-          scope = where(failed_at: nil).where.not(locked_at: nil)
+          scope = running
           handlers.each do |handler|
             scope = scope.jobs_for_class(handler)
           end
           scope.exists?
         end
+
+        def self.running
+          where(failed_at: nil).where.not(locked_at: nil)
+        end
       end
     end
   end
-end
-
-root_folder = File.basename(Rails.root)
-# If the root folder is all digits, we're probably on a deployed server
-ENV['CURRENT_PATH'] = if /^\d+$/.match?(root_folder)
-  Rails.root.to_s.gsub(File.join('releases', root_folder), 'current')
-else
-  Rails.root.to_s
 end

@@ -16,12 +16,10 @@
           %td= service.warehouse_project.name(current_user)
           %td= service.enrollment.entry_date
           %td= service.date_provided
-          %td= service.display_name
+          %td= link_to_if can_view_enrollment_details?, service.display_name, hmis_client_client_service_path(@client, service), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
           %td.text-right
             - if @client.hmis_source_visible_by?(current_user)
-              = link_to service.data_source.hmis_url_for(service, user: current_user), target: :_blank do
-                Open in HMIS
-                %i.icon-link-ext
+              = hmis_external_link(service, user: current_user)
               .text-teeny.font-weight-light
                 .text-nowrap
                   Created: #{service.DateCreated}

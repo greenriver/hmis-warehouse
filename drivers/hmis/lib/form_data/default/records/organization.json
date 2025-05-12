@@ -3,28 +3,33 @@
     {
       "type": "GROUP",
       "link_id": "organization",
-      "required": false,
       "item": [
         {
           "type": "STRING",
           "required": true,
           "link_id": "name",
           "text": "Organization Name",
-          "mapping": { "field_name": "organizationName" }
+          "mapping": {
+            "field_name": "organizationName"
+          }
         },
         {
           "type": "TEXT",
           "required": false,
           "link_id": "description",
           "text": "Description",
-          "mapping": { "field_name": "description" }
+          "mapping": {
+            "field_name": "description"
+          }
         },
         {
           "type": "TEXT",
           "required": false,
           "link_id": "contact",
           "text": "Contact Information",
-          "mapping": { "field_name": "contactInformation" }
+          "mapping": {
+            "field_name": "contactInformation"
+          }
         },
         {
           "type": "CHOICE",
@@ -33,7 +38,9 @@
           "text": "Victim Service Provider",
           "pick_list_reference": "NoYesMissing",
           "link_id": "victimServiceProvider",
-          "mapping": { "field_name": "victimServiceProvider" }
+          "mapping": {
+            "field_name": "victimServiceProvider"
+          }
         }
       ]
     }

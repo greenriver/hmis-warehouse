@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+#
+# frozen_string_literal: true
 
 module PerformanceMeasurement::ResultCalculation
   extend ActiveSupport::Concern
@@ -77,10 +79,11 @@ module PerformanceMeasurement::ResultCalculation
       ((numerator / denominator.to_f) * 100).round
     end
 
+    # it appears we only store integers so round the average
     def average(value, count)
       return 0 unless count.positive?
 
-      value.to_f / count
+      (value.to_f / count).round
     end
 
     def median(values)
@@ -117,15 +120,13 @@ module PerformanceMeasurement::ResultCalculation
       @client_count_present[column][project_id] || 0
     end
 
+    # Calculates the sum of a specific field across clients, properly deduplicating client records
     def client_sum(field, period, project_id: nil)
-      column = "#{period}_#{field}"
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).sum(column) if project_id.blank?
+      return PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period).execute_sum if project_id.blank?
 
       @client_sums ||= {}
-      @client_sums[column] ||= clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
-        group(:project_id).
-        sum(column)
+      column = "#{period}_#{field}"
+      @client_sums[column] ||= PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period, group_by_project: true).execute_sum
       @client_sums[column][project_id] || 0
     end
 
@@ -162,22 +163,26 @@ module PerformanceMeasurement::ResultCalculation
       @client_ids.dig(key, project_id) || []
     end
 
+    # Retrieves raw client data for a specific field, properly deduplicating client records
+    #
+    # @return [Array] An array of values for the specified field from deduplicated clients
     def client_data(field, period, project_id: nil)
       key = [period, field]
-      column = key.join('_')
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).pluck(column) if project_id.blank?
+
+      return PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period).execute_pluck if project_id.blank?
 
       @client_data ||= {}
       existing = @client_data.dig(key)
       return existing.dig(project_id) || [] if existing.present?
 
-      clients.joins(:client_projects).
-        merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
-        distinct.pluck(:project_id, column).each do |p_id, value|
-          @client_data[key] ||= {}
+      @client_data[key] ||= {}
+
+      PerformanceMeasurement::UniqueClientMetricsQuery.new(clients, field, period, group_by_project: true).
+        execute_pluck.each do |p_id, value|
           @client_data[key][p_id] ||= []
           @client_data[key][p_id] << value
         end
+
       @client_data.dig(key, project_id) || []
     end
 
@@ -307,7 +312,11 @@ module PerformanceMeasurement::ResultCalculation
     def first_time_homeless_clients(detail, project: nil)
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
+      comparison_count = if existing_static_comparison_spm.present?
+        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+      else
+        client_count(field, :comparison, project_id: project&.project_id)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
       PerformanceMeasurement::Result.new(
@@ -335,11 +344,16 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
-      comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
       reporting_average = average(reporting_days, reporting_count)
-      comparison_average = average(comparison_days, comparison_count)
+
+      comparison_average = if existing_static_comparison_spm.present?
+        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+      else
+        comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
+        comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
+        average(comparison_days, comparison_count)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(
@@ -367,10 +381,14 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_days = client_data(field, :comparison, project_id: project&.project_id)
-
       reporting_median = median(reporting_days)
-      comparison_median = median(comparison_days)
+
+      comparison_median = if existing_static_comparison_spm.present?
+        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+      else
+        comparison_days = client_data(field, :comparison, project_id: project&.project_id)
+        median(comparison_days)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(
@@ -461,11 +479,16 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
-      comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
       reporting_average = average(reporting_days, reporting_count)
-      comparison_average = average(comparison_days, comparison_count)
+
+      comparison_average = if existing_static_comparison_spm.present?
+        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+      else
+        comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
+        comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
+        average(comparison_days, comparison_count)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_average)
       PerformanceMeasurement::Result.new(
@@ -493,10 +516,14 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
 
       reporting_days = client_data(field, :reporting, project_id: project&.project_id)
-      comparison_days = client_data(field, :comparison, project_id: project&.project_id)
-
       reporting_median = median(reporting_days)
-      comparison_median = median(comparison_days)
+
+      comparison_median = if existing_static_comparison_spm.present?
+        existing_static_comparison_spm.data_for(detail[:table], detail[:cell]) || 0
+      else
+        comparison_days = client_data(field, :comparison, project_id: project&.project_id)
+        median(comparison_days)
+      end
 
       progress = calculate_processed(detail[:goal_calculation], reporting_median)
       PerformanceMeasurement::Result.new(
@@ -588,14 +615,27 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
       reporting_destinations = client_ids([:so_destination, :es_sh_th_rrh_destination, :moved_in_destination], :reporting, project_id: nil)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: nil)
-      comparison_destinations = client_ids([:so_destination, :es_sh_th_rrh_destination, :moved_in_destination], :comparison, project_id: nil)
-      comparison_destinations_in_range = client_ids(field, :comparison, project_id: nil)
       reporting_denominator = reporting_destinations.count
       reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.count
-      comparison_numerator = comparison_destinations_in_range.count
+      comparison_denominator = 0
+      comparison_numerator = 0
+      if existing_static_comparison_spm.present?
+        comparison_denominator += existing_static_comparison_spm.data_for('7a.1', 'C2') || 0
+        comparison_denominator += existing_static_comparison_spm.data_for('7b.1', 'C2') || 0
+        comparison_denominator += existing_static_comparison_spm.data_for('7b.2', 'C2') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C3') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C4') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7b.1', 'C3') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7b.2', 'C3') || 0
+      else
+        comparison_destinations = client_ids([:so_destination, :es_sh_th_rrh_destination, :moved_in_destination], :comparison, project_id: nil)
+        comparison_destinations_in_range = client_ids(field, :comparison, project_id: nil)
+        comparison_denominator = comparison_destinations.count
+        comparison_numerator = comparison_destinations_in_range.count
+      end
+
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
@@ -629,14 +669,23 @@ module PerformanceMeasurement::ResultCalculation
 
       reporting_destinations = client_ids(:so_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
-      comparison_destinations = client_ids(:so_destination, :comparison, project_id: project&.project_id)
-      comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_destinations.count
       reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.count
-      comparison_numerator = comparison_destinations_in_range.count
+      comparison_denominator = 0
+      comparison_numerator = 0
+      if existing_static_comparison_spm.present?
+        comparison_denominator += existing_static_comparison_spm.data_for('7a.1', 'C2') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C3') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7a.1', 'C4')
+      else
+        comparison_destinations = client_ids(:so_destination, :comparison, project_id: project&.project_id)
+        comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+        comparison_denominator = comparison_destinations.count
+        comparison_numerator = comparison_destinations_in_range.count
+      end
+
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
@@ -670,14 +719,22 @@ module PerformanceMeasurement::ResultCalculation
 
       reporting_destinations = client_ids(:es_sh_th_rrh_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
-      comparison_destinations = client_ids(:es_sh_th_rrh_destination, :comparison, project_id: project&.project_id)
-      comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_destinations.count
       reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.count
-      comparison_numerator = comparison_destinations_in_range.count
+      comparison_denominator = 0
+      comparison_numerator = 0
+      if existing_static_comparison_spm.present?
+        comparison_denominator += existing_static_comparison_spm.data_for('7b.1', 'C2') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7b.1', 'C3') || 0
+      else
+        comparison_destinations = client_ids(:es_sh_th_rrh_destination, :comparison, project_id: project&.project_id)
+        comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+        comparison_denominator = comparison_destinations.count
+        comparison_numerator = comparison_destinations_in_range.count
+      end
+
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
@@ -711,14 +768,22 @@ module PerformanceMeasurement::ResultCalculation
 
       reporting_destinations = client_ids(:moved_in_destination, :reporting, project_id: project&.project_id)
       reporting_destinations_in_range = client_ids(field, :reporting, project_id: project&.project_id)
-      comparison_destinations = client_ids(:moved_in_destination, :comparison, project_id: project&.project_id)
-      comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_destinations.count
       reporting_numerator = reporting_destinations_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_destinations.count
-      comparison_numerator = comparison_destinations_in_range.count
+      comparison_denominator = 0
+      comparison_numerator = 0
+      if existing_static_comparison_spm.present?
+        comparison_denominator += existing_static_comparison_spm.data_for('7b.2', 'C2') || 0
+        comparison_numerator += existing_static_comparison_spm.data_for('7b.2', 'C3') || 0
+      else
+        comparison_destinations = client_ids(:moved_in_destination, :comparison, project_id: project&.project_id)
+        comparison_destinations_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+        comparison_denominator = comparison_destinations.count
+        comparison_numerator = comparison_destinations_in_range.count
+      end
+
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
@@ -761,14 +826,21 @@ module PerformanceMeasurement::ResultCalculation
       field = detail[:calculation_column]
       reporting_returns = client_ids(:exited_to_permanent_destination, :reporting, project_id: project&.project_id)
       reporting_returns_in_range = client_ids(field, :reporting, project_id: project&.project_id)
-      comparison_returns = client_ids(:exited_to_permanent_destination, :comparison, project_id: project&.project_id)
-      comparison_returns_in_range = client_ids(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_returns.count
       reporting_numerator = reporting_returns_in_range.count
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
-      comparison_denominator = comparison_returns.count
-      comparison_numerator = comparison_returns_in_range.count
+      comparison_denominator = 0
+      comparison_numerator = 0
+      if existing_static_comparison_spm.present?
+        comparison_denominator += existing_static_comparison_spm.data_for(detail[:table], detail[:cell_denominator]) || 0
+        comparison_numerator += existing_static_comparison_spm.data_for(detail[:table], detail[:cell_numerator]) || 0
+      else
+        comparison_returns = client_ids(:exited_to_permanent_destination, :comparison, project_id: project&.project_id)
+        comparison_returns_in_range = client_ids(field, :comparison, project_id: project&.project_id)
+        comparison_denominator = comparison_returns.count
+        comparison_numerator = comparison_returns_in_range.count
+      end
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
@@ -833,19 +905,48 @@ module PerformanceMeasurement::ResultCalculation
 
     def average_bed_utilization(detail, meth, project_type:, project: nil)
       field = detail[:calculation_column]
-      day_count = filter.range.count
+
+      # The number of days in the reporting range that intersect with the inventory range
+      if project
+        min_date = [project.hud_project.inventories.within_range(filter.range).minimum(i_t[:InventoryStartDate]), filter.range.first].compact.max
+        max_date = [project.hud_project.inventories.within_range(filter.range).maximum(i_t[:InventoryEndDate]), filter.range.last].compact.min
+      else
+        inventory_scope = projects.joins(hud_project: :inventories).
+          merge(GrdaWarehouse::Hud::Inventory.within_range(filter.range)).
+          merge(GrdaWarehouse::Hud::Project.send(project_type))
+        min_date = [inventory_scope.minimum(i_t[:InventoryStartDate]), filter.range.first].compact.max
+        max_date = [inventory_scope.maximum(i_t[:InventoryEndDate]), filter.range.last].compact.min
+      end
+      reporting_day_count = (min_date..max_date).count
+      # The number of days in the comparison range that intersect with the inventory range
+      if project
+        min_date = [project.hud_project.inventories.within_range(filter.comparison_range).minimum(i_t[:InventoryStartDate]), filter.comparison_range.first].compact.max
+        max_date = [project.hud_project.inventories.within_range(filter.comparison_range).maximum(i_t[:InventoryEndDate]), filter.comparison_range.last].compact.min
+      else
+        inventory_scope = projects.joins(hud_project: :inventories).
+          merge(GrdaWarehouse::Hud::Inventory.within_range(filter.comparison_range)).
+          merge(GrdaWarehouse::Hud::Project.send(project_type))
+        min_date = [inventory_scope.minimum(i_t[:InventoryStartDate]), filter.comparison_range.first].compact.max
+        max_date = [inventory_scope.maximum(i_t[:InventoryEndDate]), filter.comparison_range.last].compact.min
+      end
+      comparison_day_count = (min_date..max_date).count
+
       reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
       reporting_inventory = inventory_sum(:ave_bed_capacity_per_night, :reporting, project_id: project&.project_id, project_type: project_type)
       comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
       comparison_inventory = inventory_sum(:ave_bed_capacity_per_night, :comparison, project_id: project&.project_id, project_type: project_type)
 
       reporting_denominator = reporting_inventory
-      reporting_numerator = reporting_days / day_count.to_f
+      reporting_numerator = reporting_days / reporting_day_count.to_f
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
 
       comparison_denominator = comparison_inventory
-      comparison_numerator = comparison_days / day_count.to_f
+      comparison_numerator = comparison_days / comparison_day_count.to_f
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
+
+      # Ensure if there are more than 0 days, but less than one, we report an average of 1
+      reporting_numerator = 1 if reporting_numerator.positive? && reporting_numerator < 1
+      comparison_numerator = 1 if comparison_numerator.positive? && comparison_numerator < 1
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent)
       PerformanceMeasurement::Result.new(
@@ -965,11 +1066,21 @@ module PerformanceMeasurement::ResultCalculation
     def increased_income(detail, status_field, meth, project: nil)
       income_field = detail[:calculation_column]
       reporting_denominator = client_count(status_field, :reporting, project_id: project&.project_id)
-      comparison_denominator = client_count(status_field, :comparison, project_id: project&.project_id)
       reporting_numerator = client_count(income_field, :reporting, project_id: project&.project_id)
-      comparison_numerator = client_count(income_field, :comparison, project_id: project&.project_id)
-
       reporting_percent = percent_of(reporting_numerator, reporting_denominator)
+
+      comparison_denominator = 0
+      comparison_numerator = 0
+      if existing_static_comparison_spm.present?
+        detail[:tables].each do |table|
+          comparison_denominator += existing_static_comparison_spm.data_for(table, detail[:cell_denominator]) || 0
+          comparison_numerator += existing_static_comparison_spm.data_for(table, detail[:cell_numerator]) || 0
+        end
+      else
+        comparison_denominator = client_count(status_field, :comparison, project_id: project&.project_id)
+        comparison_numerator = client_count(income_field, :comparison, project_id: project&.project_id)
+      end
+
       comparison_percent = percent_of(comparison_numerator, comparison_denominator)
 
       progress = calculate_processed(detail[:goal_calculation], reporting_percent, comparison_percent)

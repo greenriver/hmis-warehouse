@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +17,7 @@ module HmisCsvTwentyTwentyTwo::Importer
     self.primary_key = 'id'
 
     has_one :destination_record, **hud_assoc(:ExitID, 'Exit')
-    belongs_to :enrollment, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Enrollment', autosave: false, optional: true
+    belongs_to :enrollment, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Enrollment', autosave: false, optional: true
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?

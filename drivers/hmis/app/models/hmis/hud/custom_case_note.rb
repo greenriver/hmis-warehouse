@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,8 +17,11 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
     },
   )
 
+  include HasPiiAttributes
+  pii_attr :content, as: :free_text, level: 2, required: true
+
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true

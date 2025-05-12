@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,6 +48,10 @@ class Consent::Implied
     self.class.full_release_string
   end
 
+  def self.release_string_query
+    GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].in([full_release_string, partial_release_string])
+  end
+
   def release_current_status
     consent_text = no_release_string
     consent_text = full_release_string if current_consent_type == full_release_string
@@ -55,33 +59,27 @@ class Consent::Implied
     consent_text
   end
 
-  def scope_for_residential_enrollments(user)
+  def consent_view_permission
     revoked_consent = release_current_status == revoked_consent_string
 
-    permission = if revoked_consent
+    if revoked_consent
       :can_view_clients
     else
       :can_view_client_enrollments_with_roi
     end
+  end
 
+  def scope_for_residential_enrollments(user)
     scope = @client.service_history_enrollments.
       entry.
       hud_residential
-    scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
+    scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: consent_view_permission))
   end
 
   def scope_for_other_enrollments(user)
-    revoked_consent = release_current_status == revoked_consent_string
-
-    permission = if revoked_consent
-      :can_view_clients
-    else
-      :can_view_client_enrollments_with_roi
-    end
-
     scope = @client.service_history_enrollments.
       entry.
       hud_non_residential
-    scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
+    scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: consent_view_permission))
   end
 end

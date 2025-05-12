@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -246,10 +246,5 @@ module CombinedClientPathsGenerator
       [:edit] + client_path_generator + [:chronic]
     end
     helper_method :client_chronic_path_generator
-
-    def source_client_image_path_generator
-      [:image] + source_client_path_generator
-    end
-    helper_method :source_client_image_path_generator
   end
 end

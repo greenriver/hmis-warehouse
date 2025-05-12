@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 require 'rails_helper'
 
@@ -51,6 +53,16 @@ RSpec.describe 'Applies overrides as expected', type: :model do
     it 'Funder have Funder 2' do
       expect(GrdaWarehouse::Hud::Funder.find_by(FunderID: 29).Funder).to eq('2')
       expect(GrdaWarehouse::Hud::Funder.pluck(:Funder).uniq.sort).to eq(['2', '9', '34'].sort)
+    end
+
+    it 'Enrollment has NULL DisablingCondition' do
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-1').DisablingCondition).to eq(nil)
+    end
+
+    it 'Enrollment has blank PreferredLanguageDifferent' do
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-8').PreferredLanguageDifferent).to eq(nil)
+      # The importer cleans up empty strings to NULL, so not totally clear we can test this, leaving commented out for now
+      # expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-9').PreferredLanguageDifferent).to eq('')
     end
   end
 
@@ -102,6 +114,15 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       expect(GrdaWarehouse::Hud::Funder.pluck(:Funder).uniq.sort).to eq(['2', '4', '9', '34'].sort)
     end
 
+    it 'Enrollment DisablingCondition is updated to 99' do
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-1').DisablingCondition).to eq(99)
+    end
+
+    it 'Enrollment PreferredLanguageDifferent is updated to Other' do
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-8').PreferredLanguageDifferent).to eq('Other')
+      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-9').PreferredLanguageDifferent).to eq('Other')
+    end
+
     it 'Applies? and apply method works even with an instance' do
       funder = GrdaWarehouse::Hud::Funder.find_by(FunderID: 29)
       # reset funder record since the previous run update the db as part of the import process
@@ -118,6 +139,10 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       expect(override.applies?(funder.attributes)).to eq(false)
       # No change
       expect(override.apply(funder).Funder).to eq('2')
+    end
+
+    it 'Updates last_used_on' do
+      expect(HmisCsvImporter::ImportOverride.pluck(:last_used_on).uniq).to include(Date.current)
     end
   end
 
@@ -149,6 +174,12 @@ RSpec.describe 'Applies overrides as expected', type: :model do
 
       # Changed to PH, for checking move-in date translator
       create(:import_override, data_source: @data_source, file_name: 'Project.csv', matched_hud_key: '506', replaces_column: 'ProjectType', replacement_value: '3')
+
+      # Matches null value
+      create(:import_override, data_source: @data_source, file_name: 'Enrollment.csv', replaces_value: ':NULL:', replaces_column: 'DisablingCondition', replacement_value: '99')
+
+      # Matches empty value
+      create(:import_override, data_source: @data_source, file_name: 'Enrollment.csv', replaces_value: ':NULL:', replaces_column: 'PreferredLanguageDifferent', replacement_value: 'Other')
     end
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/import_overrides_test_files',

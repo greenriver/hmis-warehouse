@@ -1,9 +1,11 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# part of the "new" permission system
+#
 class UserGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
@@ -12,6 +14,8 @@ class UserGroup < ApplicationRecord
   has_many :access_controls, inverse_of: :user_group
   has_many :user_group_members, inverse_of: :user_group
   has_many :users, through: :user_group_members
+
+  belongs_to :source, optional: true, polymorphic: true
 
   after_save :invalidate_user_permission_cache
 
@@ -27,6 +31,14 @@ class UserGroup < ApplicationRecord
   scope :with_user_id, ->(user_id) do
     joins(:user_group_members).
       merge(UserGroupMember.where(user_id: user_id))
+  end
+
+  scope :with_source_entity, -> do
+    where.not(source_id: nil)
+  end
+
+  scope :without_source_entity, -> do
+    where(source_id: nil)
   end
 
   def self.system_user_group
@@ -51,7 +63,9 @@ class UserGroup < ApplicationRecord
   def add(users)
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
-      user_group_members.where(user_id: user.id).first_or_create!
+      member = user_group_members.with_deleted.where(user_id: user.id).first_or_create!
+      member.restore if member.deleted?
+
       # Queue recomputation of external report access
       user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,6 +18,11 @@ Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2020::Generato
 }
 
 Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2023::Generator'] = {
+  title: 'System Performance Measures',
+  helper: 'hud_reports_spms_path',
+}
+
+Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2024::Generator'] = {
   title: 'System Performance Measures',
   helper: 'hud_reports_spms_path',
 }

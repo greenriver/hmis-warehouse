@@ -1,11 +1,15 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module  HudPit::Generators::Pit::Fy2024
   class Generator < ::HudReports::GeneratorBase
+    cattr_accessor :write_detail_path
+
     def self.fiscal_year
       'FY 2024'
     end
@@ -18,7 +22,7 @@ module  HudPit::Generators::Pit::Fy2024
       'PIT'
     end
 
-    def self.allowed_options
+    def self.allowed_options(_)
       [
         :on,
         :coc_codes,

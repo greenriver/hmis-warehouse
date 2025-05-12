@@ -1,12 +1,11 @@
 {
   "type": "GROUP",
-  "required": false,
-  "link_id": "mci-clearance",
+  "link_id": "mci_clearance",
   "text": "MCI ID",
   "item": [
     {
       "type": "OBJECT",
-      "link_id": "current-mci-id",
+      "link_id": "current_mci_id",
       "repeats": true,
       "hidden": true,
       "initial": [
@@ -19,7 +18,7 @@
     {
       "type": "STRING",
       "required": false,
-      "link_id": "mci-clearance-value",
+      "link_id": "mci_clearance_value",
       "component": "MCI",
       "text": "MCI ID",
       "_comment": "NOTE: mciId is not a real field on Client, but the ClientProcessor has a special case to handle it",
@@ -37,25 +36,25 @@
           "answer_boolean": true
         },
         {
-          "question": "first-name",
+          "question": "first_name",
+          "_comment": "dummy dependency to enable reset when field changes. FIXME: first_name is not a valid reference; it doesn't exist in the form",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "question": "middle_name",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
         },
         {
-          "question": "middle-name",
+          "question": "last_name",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
         },
         {
-          "question": "last-name",
-          "_comment": "dummy dependency to enable reset when field changes",
-          "operator": "ENABLED",
-          "answer_boolean": true
-        },
-        {
-          "question": "name-dq",
+          "question": "name_dq",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
@@ -67,7 +66,7 @@
           "answer_boolean": true
         },
         {
-          "question": "dob-dq",
+          "question": "dob_dq",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true

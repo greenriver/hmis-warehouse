@@ -1,33 +1,27 @@
 inherit_from: .rubocop_todo.yml
-require:
-  - ./lib/rubocop/cop/lint/last_keyword_argument.rb
 
 AllCops:
   SuggestExtensions: false
   Exclude:
-    - 'db/**/*'
-    - 'config/*'
-    - 'config/environments/**/*.rb'
-    - 'config/initializers/**/*.rb'
-    - 'config/locales/**/*.rb'
-    - 'script/**/*'
-    - 'bin/{rails,rake,bundle}'
-    - 'app/assets/**/*'
-    - 'bin/db_prep'
+    - "db/**/*"
+    - "config/*"
+    - "config/environments/**/*.rb"
+    - "config/initializers/**/*.rb"
+    - "config/locales/**/*.rb"
+    - "script/**/*"
+    - "bin/{rails,rake,bundle}"
+    - "app/assets/**/*"
+    - "bin/db_prep"
 
   Include:
-    - '**/Rakefile'
-    - 'app/**/*.rb'
-    - 'spec/**/*.rb'
-    - 'drivers/**/*.rb'
-    - 'lib/**/*.rb'
-    - 'config/deploy/docker/lib/*.rb'
+    - "**/Rakefile"
+    - "app/**/*.rb"
+    - "spec/**/*.rb"
+    - "drivers/**/*.rb"
+    - "lib/**/*.rb"
+    - "config/deploy/docker/lib/*.rb"
 
   NewCops: disable
-
-Lint/LastKeywordArgument:
-  Enabled: true
-  Safe: false
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -40,16 +34,19 @@ Metrics/AbcSize:
   # a Float.
   Max: 175
   Exclude:
-    - 'app/models/exporters/tableau'
+    - "app/models/exporters/tableau"
 Metrics/CyclomaticComplexity:
   Max: 50
   Exclude:
-    - 'lib/util/hud.rb'
-    - 'app/models/exporters/tableau'
+    - "lib/util/hud.rb"
+    - "app/models/exporters/tableau"
 Metrics/PerceivedComplexity:
   Max: 50
   Exclude:
-    - 'app/models/exporters/tableau'
+    - "app/models/exporters/tableau"
+Style/Alias:
+  # alias_method has more consistent behavior and syntax
+  EnforcedStyle: prefer_alias_method
 # Trailing commas make for clearer diffs because the last line won't appear
 # to have been changed, as it would if it lacked a comma and had one added.
 Style/TrailingCommaInArguments:
@@ -80,15 +77,14 @@ Style/PercentLiteralDelimiters:
   PreferredDelimiters:
     # Using `[]` for string arrays instead of `()`, since normal arrays are
     # indicated with `[]` not `()`.
-    '%w': '[]'
-    '%W': '[]'
+    "%w": "[]"
+    "%W": "[]"
 
 Style/AndOr:
   Enabled: true
 
 Style/ClassAndModuleChildren:
-  Enabled:
-    false
+  Enabled: false
 
 Style/ConditionalAssignment:
   Enabled: false
@@ -106,7 +102,7 @@ Style/RescueStandardError:
   Enabled: true
 
 Style/FrozenStringLiteralComment:
-  Enabled: false
+  Enabled: true
 
 Style/CommentedKeyword:
   Enabled: false
@@ -122,6 +118,7 @@ Naming/MethodParameterName:
     - io
     - to
     - qa
+    - s3
 
 Style/MixinUsage:
   Enabled: false
@@ -170,7 +167,7 @@ Style/RegexpLiteral:
 
 Lint/UnusedMethodArgument:
   Exclude:
-    - 'lib/rds_sql_server/hmis_sql_server.rb'
+    - "lib/rds_sql_server/hmis_sql_server.rb"
 
 Style/DoubleNegation:
   Enabled: false

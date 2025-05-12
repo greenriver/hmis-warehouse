@@ -1,7 +1,8 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 require 'rails_helper'
 
@@ -98,6 +99,48 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
         a_hash_including({ 'ResponseID' => uo1.id.to_s, 'RecordId' => e2.id.to_s, 'Response' => '1 bed room' }),
         a_hash_including({ 'ResponseID' => uo2.id.to_s, 'RecordId' => e3.id.to_s, 'Response' => '1 bed room' }),
       )
+    end
+  end
+
+  it 'reports auto-exited enrollments' do
+    exit1 = create(:hmis_hud_exit, data_source: ds, enrollment: e1, exit_date: 2.days.ago, auto_exited: Time.current - 2.days)
+    subject.run!
+    result = CSV.parse(output, headers: true)
+    unit_rows = result.map(&:to_h).select { |r| r['CustomFieldKey'] == 'auto_exit' }
+    expect(unit_rows.length).to eq(1)
+    expect(unit_rows).to contain_exactly(
+      a_hash_including({ 'ResponseID' => exit1.id.to_s, 'RecordId' => e1.id.to_s, 'Response' => 'true' }),
+    )
+  end
+
+  context 'when there are excluded CDEs' do
+    let!(:cded) { create :hmis_custom_data_element_definition, data_source: ds, owner_type: 'Hmis::Hud::Service', field_type: :string, key: 'client_pathway_3' }
+
+    it 'excludes pathways cdes' do
+      subject.run!
+      expect(subject.send(:cdes).length).to eq(0)
+    end
+  end
+
+  context 'when there is a CDE with a Client owner type' do
+    let!(:cded) { create :hmis_custom_data_element_definition_for_color, data_source: ds }
+    let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: c1, data_source: ds, value_string: 'Pink', DateCreated: creation_time, DateUpdated: creation_time }
+
+    it 'excludes CDE if Client doesn\'t have a destination client' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+      expect(result.length).to eq(0)
+    end
+
+    context 'when client has a destination' do
+      let!(:c1) { create :hmis_hud_client_with_warehouse_client, data_source: ds }
+
+      it 'exports warehouse destination client ID, not source ID' do
+        subject.run!
+        result = CSV.parse(output, headers: true)
+        expect(result.length).to eq(1)
+        expect(result.first['RecordId']).to eq(c1.warehouse_id.to_s)
+      end
     end
   end
 end

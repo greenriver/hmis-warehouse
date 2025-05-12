@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +14,10 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   self.table_name = :CustomClientContactPoint
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   has_paper_trail(meta: { client_id: ->(r) { r.client&.id } })
+
+  include HasPiiAttributes
+  pii_attr :value, as: :free_text, level: 2
+  pii_attr :notes, as: :free_text, level: 2
 
   # Based on https://build.fhir.org/valueset-contact-point-use.html
   USE_VALUES = [
@@ -34,7 +40,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
-  alias_to_underscore [:NameDataQuality, :ContactPointID]
+  alias_to_underscore [:ContactPointID]
 
   scope :active, ->(date = Date.current) do
     left_outer_joins(:active_range).where(Hmis::ActiveRange.arel_active_on(date))

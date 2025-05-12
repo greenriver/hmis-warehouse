@@ -28,7 +28,9 @@ RSpec.describe UserGroup, type: :model do
       expect(user_group.users.reload.length).to be 2
 
       # can remove multiple users
-      user_group.remove([user_one, user_two])
+      expect do
+        user_group.remove([user_one, user_two])
+      end.to change(user_group.user_group_members.only_deleted, :count).by(2)
       expect(user_group.users.reload.length).to be 0
 
       # gracefully handles removing non-existant users
@@ -36,7 +38,11 @@ RSpec.describe UserGroup, type: :model do
       expect(user_group.users.reload.length).to be 0
 
       # can re-add previously removed users
-      user_group.add([user_one, user_two])
+      expect do
+        user_group.add([user_one, user_two])
+      end.to change(user_group.user_group_members, :count).by(2).
+        and change(user_group.user_group_members.with_deleted, :count).by(0) # restores deleted records
+
       expect(user_group.users.reload.length).to be 2
     end
   end

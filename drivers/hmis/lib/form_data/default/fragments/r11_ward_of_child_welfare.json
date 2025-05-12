@@ -2,37 +2,10 @@
   "type": "GROUP",
   "link_id": "R11",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      },
-      {
-        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 43
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R11.1",
+      "link_id": "R11_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Formerly a Ward of Child Welfare/Foster Care Agency",
@@ -44,11 +17,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R11.1-dependents",
+      "link_id": "R11_1_dependents",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "R11.1",
+          "question": "R11_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -56,7 +29,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "R11.A",
+          "link_id": "R11_A",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of Years",
@@ -68,7 +41,7 @@
         },
         {
           "type": "INTEGER",
-          "link_id": "R11.B",
+          "link_id": "R11_B",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of Months",
@@ -79,7 +52,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R11.A",
+              "question": "R11_A",
               "operator": "EQUAL",
               "answer_code": "LESS_THAN_ONE_YEAR"
             }

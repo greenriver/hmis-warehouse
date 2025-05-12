@@ -8,6 +8,7 @@ module AccessControlSetup
     ).first_or_create!
     user_group.add(user)
     user.collections.reload
+    user.clear_memery_cache!
     access_control
   end
 end

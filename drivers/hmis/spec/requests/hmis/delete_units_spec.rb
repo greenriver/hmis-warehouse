@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -22,7 +24,7 @@ RSpec.describe 'Delete units mutation', type: :request do
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_inventory]) }
+  let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_units, :can_view_units]) }
   let(:unit) { create(:hmis_unit, project: p1) }
 
   before(:each) do
@@ -38,5 +40,18 @@ RSpec.describe 'Delete units mutation', type: :request do
       expect(response.status).to eq 200
     end.to change(versions, :count).by(1).
       and change(units, :count).by(-1)
+  end
+
+  context 'when unit has an opportunity' do
+    let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: p1, status: :open) }
+
+    it 'deletes the unit and the opportunity' do
+      input = { input: { unitIds: [unit.id.to_s] } }
+      expect do
+        response, = post_graphql(input) { mutation }
+        expect(response.status).to eq 200
+      end.to change(Hmis::Unit, :count).by(-1).
+        and change(Hmis::Ce::Opportunity, :count).by(-1)
+    end
   end
 end

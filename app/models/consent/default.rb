@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,6 +39,10 @@ class Consent::Default
 
   def full_release_string
     self.class.full_release_string
+  end
+
+  def self.release_string_query
+    GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].matches("%#{full_release_string}")
   end
 
   def release_current_status

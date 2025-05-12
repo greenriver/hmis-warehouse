@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,6 +24,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasScanCardCodes
+    include ::Hmis::Concerns::HmisArelHelper
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -31,6 +32,8 @@ module Types
 
     # check for the most minimal permission needed to resolve this object
     def self.authorized?(object, ctx)
+      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
+      # the viewable_by scope is our primary defense against this.
       permission = :can_view_clients
       super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
@@ -80,14 +83,23 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    field :hud_chronic, Boolean, null: true
+    field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
+
+    field :eligible_ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
+      # Omit status, since we only return open opportunities for the client anyway
+      filters_argument Types::HmisSchema::CeOpportunity, omit: [:status], type_name: 'ClientEligibleCeOpportunity'
+    end
+
+    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
+      filters_argument Types::HmisSchema::CeReferral
+    end
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
       argument :project_id, ID, required: true
       argument :open_on_date, GraphQL::Types::ISO8601Date, required: true
     end
 
-    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date, :assigned_staff], type_name: 'EnrollmentsForClient' } do
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
     end
@@ -227,7 +239,8 @@ module Types
     end
 
     def files(**args)
-      resolve_files(**args)
+      # Exclude files that have been uploaded by custom assessments
+      resolve_files(object.files.where.missing(:custom_data_element), client_ids: [object.id], **args)
     end
 
     def pronouns
@@ -334,12 +347,25 @@ module Types
       load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
     end
 
+    # not optimized for batch queries, causes n+1 queries
     def hud_chronic
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
 
-      # client.hud_chronic causes n+1 queries
-      enrollments = object.enrollments.hmis
-      !!object.hud_chronic?(scope: enrollments)
+      # We are intentionally not checking enrollment visibility. The can_view_hud_chronic_status
+      # permission grants visibility into HUD Chronic status across all the client's enrollments
+      open_enrollments = object.enrollments.open_excluding_wip.preload(:ch_enrollment, :project)
+
+      # Check if there's an open enrollment at a residential project with a move in date that has occurred
+      today = Date.current
+      client_is_housed = open_enrollments.any? do |enrollment|
+        enrollment.project.project_type.in?(HudUtility2024.permanent_housing_project_types) && (enrollment.move_in_date&.<= today)
+      end
+      return false if client_is_housed
+
+      # Check chronic status at open enrollments for homeless project types
+      open_enrollments.any? do |enrollment|
+        enrollment.project.project_type.in?(HudUtility2024.chronic_project_types) && enrollment.ch_enrollment&.chronically_homeless?
+      end
     end
 
     def audit_history(filters: nil)
@@ -389,6 +415,30 @@ module Types
         joins(:definition).
         where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
         pluck(:role).uniq
+    end
+
+    def eligible_ce_opportunities(filters: nil)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = Hmis::Ce::Opportunity.viewable_by(current_user).for_client(object)
+      scope = scope.where(project_id: filters.project) if filters&.project.present?
+
+      scope = scope.joins(:project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
+
+      scope.order(:id)
+    end
+
+    def ce_referrals(filters: nil)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      scope = object.ce_referrals.viewable_by(current_user)
+      scope = scope.where(status: filters&.status) if filters&.status.present?
+
+      opportunity_table = Hmis::Ce::Opportunity.arel_table
+      scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters&.project.present?
+
+      scope = scope.joins(opportunity: :project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
+      scope.order(created_at: :desc, id: :asc)
     end
   end
 end

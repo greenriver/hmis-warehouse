@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,7 +21,7 @@ class OauthController < ApplicationController
       email: user.email,
       # These need to match the human-readable names of the roles available in
       # the corresponding superset environment. "Admin" for example. Roles
-      # currently only change on login and aren't instantanious.
+      # currently only change on login and aren't instantaneous.
       superset_roles: user.superset_roles,
     }
 

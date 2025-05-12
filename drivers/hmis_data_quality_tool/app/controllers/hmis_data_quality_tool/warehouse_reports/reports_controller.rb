@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,8 +13,9 @@ module HmisDataQualityTool::WarehouseReports
     include HistoryFilter
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
+    before_action :set_report, only: [:show, :by_client, :by_chart, :destroy, :details, :items]
     before_action :set_pdf_export, only: [:show]
+    before_action :set_chart_pdf_export, only: [:by_chart]
     before_action :set_excel_export, only: [:show]
     before_action :set_excel_by_client_export, only: [:by_client]
 
@@ -24,7 +25,7 @@ module HmisDataQualityTool::WarehouseReports
       @report = report_class.new(user_id: current_user.id)
       @filter.default_project_type_codes = @report.default_project_type_codes
       previous_report = report_scope.where(user_id: current_user.id).last
-      @filter.update(previous_report.options) if previous_report
+      @filter.update(previous_report.options) if previous_report && params[:filters].blank?
 
       # Make sure the form will work
       filters
@@ -41,7 +42,7 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     def by_client
-      @clients = @report.clients.order(:last_name, :first_name)
+      @clients = @report.clients.preload(client: :data_source).order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
       respond_to do |format|
@@ -51,6 +52,15 @@ module HmisDataQualityTool::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def by_chart
+      @per_page_js = [
+        'hmis_dq_tool_chart',
+        'hmis_dq_tool_completeness',
+        'hmis_dq_tool_time_to_enter',
+        'hmis_dq_tool_time_in_enrollment',
+      ]
     end
 
     def create
@@ -75,6 +85,7 @@ module HmisDataQualityTool::WarehouseReports
         respond_with(@report, location: @report.index_path)
       else
         @pagy, @reports = pagy(report_scope.ordered)
+        set_view_filter
         filters
         render :index
       end
@@ -128,6 +139,10 @@ module HmisDataQualityTool::WarehouseReports
 
     private def set_pdf_export
       @pdf_export = HmisDataQualityTool::DocumentExports::ReportExport.new
+    end
+
+    private def set_chart_pdf_export
+      @pdf_export = HmisDataQualityTool::DocumentExports::ReportChartPdfExport.new
     end
 
     private def set_excel_export

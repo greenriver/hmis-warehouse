@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,12 +17,17 @@ module Mutations
       raise HmisErrors::ApiError, 'Record not found' unless client.present?
       raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(client, :can_edit_clients)
 
-      client.image_blob_id = image_blob_id
-      client.save_image_blob_as_client_headshot!
+      errors = HmisErrors::Errors.new
+
+      if client.build_client_headshot_file(image_blob_id, current_user)
+        client.save!
+      else
+        errors.add(:base, :invalid, full_message: 'No uploaded file found. The upload may have expired; please try reloading the page and retrying the upload.')
+      end
 
       {
         client: client,
-        errors: [],
+        errors: errors,
       }
     end
   end

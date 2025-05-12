@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -42,62 +44,74 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  context 'User access tests' do
-    let!(:client1) { create :hmis_hud_client, data_source: ds1 }
-    let!(:client2) { create :hmis_hud_client, data_source: ds2 }
-    let!(:client3) { create :hmis_hud_client, data_source: ds1 }
+  context 'User access tests where user has full access to 1 project' do
+    let!(:client1) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
+    let!(:client2) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds2 }
+    let!(:client3) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
 
-    it 'should only show clients from HMIS data source' do
-      response, result = post_graphql(input: {}) { query }
-
-      expect(response.status).to eq 200
-      clients = result.dig('data', 'clientSearch', 'nodes')
-      expect(clients).to include({ 'id' => client1.id.to_s })
-      expect(clients).not_to include({ 'id' => client2.id.to_s })
-      expect(clients).to include({ 'id' => client3.id.to_s })
+    def perform_search(input = { text_search: 'Darlene Ranger' })
+      response, result = post_graphql(input: input) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'clientSearch', 'nodes')
     end
 
-    it 'should only show clients with enrollments at projects the user has view access for' do
-      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client1, user: u1)
-      create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
+    it 'should return all unenrolled clients from HMIS data source' do
+      # Even though the current user only has access to view clients at p1,
+      # they can still see all "unenrolled" aka "orphaned" client records in their data source
+      clients = perform_search
+      expect(clients).to contain_exactly(
+        include({ 'id' => client1.id.to_s }),
+        include({ 'id' => client3.id.to_s }),
+      )
+    end
+
+    it 'should return clients enrolled at user\'s project' do
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client1)
+      create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3)
 
       expect(client1.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? })
       expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? })
 
       # Shouldn't see client3 since it has enrollments elsewhere
-      _response, result = post_graphql(input: {}) { query }
-      expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s))
+      clients = perform_search
+      expect(clients).to contain_exactly(include('id' => client1.id.to_s))
 
-      create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: client3, user: u1)
+      create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: client3)
       client3.reload
 
       expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? }, satisfy(&:in_progress?))
 
       # Now we should see client3 since it has a WIP enrollment at our project
-      _response, result = post_graphql(input: {}) { query }
-      expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s), include('id' => client3.id.to_s))
+      clients = perform_search
+      expect(clients).to contain_exactly(
+        include('id' => client1.id.to_s),
+        include('id' => client3.id.to_s),
+      )
     end
 
-    it 'should exclude clients enrolled at a project without user view permission' do
+    it 'should exclude clients enrolled at other projects where user lacks can_view_clients' do
       # Grant user access to p2, but without the ability to view clients
       create_access_control(hmis_user, p2, without_permission: :can_view_clients)
       # Enroll client3 in p2
       create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
 
-      response, result = post_graphql(input: {}) { query }
-      expect(response.status).to eq 200
-      clients = result.dig('data', 'clientSearch', 'nodes')
-      expect(clients).to include({ 'id' => client1.id.to_s })
-      expect(clients).not_to include({ 'id' => client2.id.to_s })
-      expect(clients).not_to include({ 'id' => client3.id.to_s })
+      clients = perform_search
+      expect(clients).to contain_exactly(include('id' => client1.id.to_s))
     end
 
     it 'should return no clients if user does not have permission to view clients' do
       remove_permissions(access_control, :can_view_clients)
-      response, result = post_graphql(input: {}) { query }
-      expect(response.status).to eq 200
-      clients = result.dig('data', 'clientSearch', 'nodes')
+
+      clients = perform_search
       expect(clients).to be_empty
+    end
+
+    it 'should not allow search without tokens' do
+      expect_gql_error post_graphql(input: {}) { query }, message: /Invalid search/
+
+      # projects and organizations don't count as a query, they are meant to be used as a filter
+      expect_gql_error post_graphql(input: { projects: [p1.id] }) { query }, message: /Invalid search/
+      expect_gql_error post_graphql(input: { organizations: [o1.id] }) { query }, message: /Invalid search/
     end
   end
 
@@ -143,6 +157,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ['text: personal id', 'db422f5fff0b8f1c9a4b81f01b00fdb4', true],
           ['text: wrong personal id and not match', '00000000000000000000000000000000', false],
           ['text: ssn', '123-45-6789', true],
+          ['text: partial ssn', '123-45-', false], # partial ssn does not match, for PII protection, but should not raise (regression (#7576)
           ['text: wrong ssn and not match', '000-00-0000', false],
           ['text: dob', '12/01/1999', true],
           ['text: wrong dob and not match', '12/01/2000', false],
@@ -247,6 +262,61 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           matcher = include({ 'id' => client.id.to_s })
           match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
         end
+      end
+    end
+  end
+
+  describe 'Searching against bad data' do
+    let!(:client) { create :hmis_hud_client, first_name: 'Genevieve', data_source: ds1 }
+    def perform_search
+      post_graphql(input: { first_name: client.first_name }) { query }
+    end
+
+    it 'should raise when authorization check failed (regression #6641)' do
+      # remove client access
+      remove_permissions(access_control, :can_view_clients)
+
+      # mock a scenario where client search incorrectly returns a Client that will fail the `authorized?` check (ClientAccessLoader query)
+      expect(Hmis::Hud::Client).to receive(:client_search).and_return(Hmis::Hud::Client.where(id: client.id))
+
+      expect_gql_error perform_search, message: /failed authorization check/
+    end
+
+    context 'when there are multiple hmis installations' do
+      # Create a 2nd data source and give hmis_user permission to view clients in it
+      let!(:ds2) { create :hmis_data_source }
+      # Create a client in the 2nd data source
+      let!(:client2) { create :hmis_hud_client, data_source: ds2 }
+
+      it 'should raise when querying client in a different data source (regression #6758)' do
+        # Remove client access from ds1
+        remove_permissions(access_control, :can_view_clients)
+        # Add permissions in ds2. The query below will still fail because it is querying in the ds1 context.
+        create_access_control(hmis_user, ds2, with_permission: [:can_view_clients])
+
+        # Mock a scenario where client search incorrectly returns a client in ds2.
+        # (This wouldn't happen in real life thanks to viewable_by scope)
+        expect(Hmis::Hud::Client).to receive(:client_search).and_return(Hmis::Hud::Client.where(id: client2.id))
+
+        # Object-level authorization (i.e. HmisSchema::Client.authorized?) should still cause the query to fail
+        expect_gql_error perform_search, message: /failed authorization check/
+      end
+    end
+
+    context 'when client has an Enrollment at a deleted project (regression #6641)' do
+      before(:each) do
+        # client has 1 non-deleted Enrollment that is at a deleted Project (specific regression scenario)
+        enrollment = create(:hmis_hud_enrollment, client: client, data_source: ds1)
+        enrollment.project.delete
+        raise unless enrollment.reload.project.nil? # confirm setup
+      end
+
+      it 'should return the client' do
+        # search should successfully return the client, despite their "bad" Enrollment
+        response, result = perform_search
+        expect(response.status).to eq(200), result.inspect
+        clients = result.dig('data', 'clientSearch', 'nodes')
+        expect(clients).to contain_exactly(a_hash_including({ 'id' => client.id.to_s }))
       end
     end
   end

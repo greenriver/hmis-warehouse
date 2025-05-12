@@ -5,9 +5,12 @@
 %header.mb-3
   %h1= content_for :title
 .d-flex
-  .mb-2.reports.warehouse-reports__completed.d-flex
-    - filter = Filters::FilterBase.new(user_id: @report.user_id).update(@report.options.with_indifferent_access)
-    = filter.describe_filter_as_html(@generator.allowed_options, limited: false)
+  .mb-2
+    .reports.warehouse-reports__completed.d-flex
+      - filter = Filters::FilterBase.new(user_id: @report.user_id).update(@report.options.with_indifferent_access)
+      = filter.describe_filter_as_html(@generator.allowed_options(@report), limited: false)
+    .alert.alert-info.mt-4
+      %p Please note that the LSA requires a 7 year lookback, the Source HMIS Data will include data 7 years prior to the report start date.
   .ml-auto.text-right
     - if @report.summary_result.present?
       = link_to({action: :download, format: :zip},{class: 'btn btn-primary'}) do

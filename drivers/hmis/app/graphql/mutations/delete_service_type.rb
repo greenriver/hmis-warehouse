@@ -1,7 +1,8 @@
-#  Copyright 2016 - 2024 Green River Data Analysis, LLC
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 
 module Mutations
   class DeleteServiceType < CleanBaseMutation
@@ -14,9 +15,14 @@ module Mutations
       access_denied! unless current_user.can_configure_data_collection?
 
       service_type = Hmis::Hud::CustomServiceType.find(id)
+      raise "Can't delete HUD service type: #{service_type.id} #{service_type.name}" if service_type.hud_service?
 
-      # TODO: Eventually this should be a user-facing ValidationError returned in the {errors:} object
-      raise 'Cannot delete a service type that has services' if service_type.custom_services.exists?
+      # Can't delete service type that already has services
+      if service_type.custom_services.exists?
+        errors = HmisErrors::Errors.new
+        errors.add :base, :invalid, full_message: 'Cannot delete a service type that has services'
+        return { errors: errors }
+      end
 
       default_delete_record(
         record: service_type,

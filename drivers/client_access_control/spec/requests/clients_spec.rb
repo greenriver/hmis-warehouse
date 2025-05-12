@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -428,7 +428,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     it 'allows create' do
       sign_in user
-      post clients_path(client: { data_source_id: window_visible_data_source.id, SSN: '123456789', FirstName: 'New First', LastName: 'New Last', DOB: '2019-09-16' })
+      post clients_path(client: { data_source_id: window_visible_data_source.id, SSN: '123456789', FirstName: 'New First', LastName: 'New Last', DOB: '2019-09-16', PersonalID: '1234' })
       expect(GrdaWarehouse::Hud::Client.source.where(FirstName: 'New First', LastName: 'New Last').count).to eq(1)
     end
 

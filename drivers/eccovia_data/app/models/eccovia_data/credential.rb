@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,9 +12,15 @@ module EccoviaData
   class Credential < ::GrdaWarehouse::RemoteCredential
     # Docs: https://apidoc.eccovia.com/
     alias_attribute :subscriptionkey, :username
-    alias_attribute :apikey, :password
+
+    # Can't use alias_attribute here due to RemoteCredential's use of attr_encrypted(:password)
+    def apikey = password
+
+    def apikey=(value)
+      self.password = value
+    end
+
     PAGE_SIZE = 25
-    acts_as_paranoid
 
     # Note, CRQL queries are paginated at 25 by default, if more than 25 results are needed
     # and 25 results are returned, continue to fetch additional queries incrementing the page argument

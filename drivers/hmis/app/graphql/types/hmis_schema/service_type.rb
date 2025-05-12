@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,12 +25,14 @@ module Types
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     field :category, String, null: false
+    field :service_category, HmisSchema::ServiceCategory, null: false
     field :form_definitions, [Forms::FormDefinition], null: false, description: 'Definitions that are specified for this service type'
 
     # object is a Hmis::Hud::CustomServiceType
 
+    # TODO(#5737) - remove this in favor of service_category
     def category
-      category_record.name
+      service_category.name
     end
 
     def hud_type_provided
@@ -42,12 +44,12 @@ module Types
     def form_definitions
       raise 'unauthorized' unless current_user.can_configure_data_collection?
 
-      definitions_for_type = load_ar_association(object, :definitions)
-      definitions_for_category = load_ar_association(category_record, :definitions)
+      definitions_for_type = load_ar_association(object, :definitions).select(&:published?)
+      definitions_for_category = load_ar_association(service_category, :definitions).select(&:published?)
       (definitions_for_type + definitions_for_category).uniq.sort_by(&:id)
     end
 
-    protected def category_record
+    def service_category
       load_ar_association(object, :custom_service_category)
     end
   end

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,17 +13,21 @@ module GrdaWarehouse::Vispdat
     ####################
     # Constants
     ####################
-    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/.freeze
+    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/
 
     ####################
     # enums
     ####################
 
-    enum contact_answers: [
-      :contact_phone,
-      :contact_virtual,
-      :contact_in_person,
-    ]
+    enum contact_method: {
+      contact_phone: 'contact_phone',
+      contact_virtual: 'contact_virtual',
+      contact_in_person: 'contact_in_person',
+    }
+
+    class << self
+      alias_method :contact_answers, :contact_methods
+    end
 
     enum language_answer: [
       :language_english,

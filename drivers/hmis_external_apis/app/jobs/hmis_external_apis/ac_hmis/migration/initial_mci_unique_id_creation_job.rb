@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisExternalApis::AcHmis::Migration
   class InitialMciUniqueIdCreationJob < BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     def perform(clobber: false)
       delete_all_mci_uniq_ids! if clobber
 

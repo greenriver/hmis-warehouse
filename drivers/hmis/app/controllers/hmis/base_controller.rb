@@ -1,11 +1,14 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::BaseController < ActionController::Base
   include BaseApplicationControllerBehavior
+  include LogRagePayloadBehavior
 
   before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
@@ -28,6 +31,8 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
+    raise 'cannot determine HMIS host because origin is missing' unless request.origin.present?
+
     URI.parse(request.origin).host
   end
 
@@ -38,7 +43,7 @@ class Hmis::BaseController < ActionController::Base
     domain = ENV['HMIS_HOSTNAME'] if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
 
     data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
-    raise 'HMIS data source not configured' unless data_source_id.present?
+    raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
 
     current_hmis_user.hmis_data_source_id = data_source_id
   end
@@ -55,8 +60,8 @@ class Hmis::BaseController < ActionController::Base
     {
       user_id: current_hmis_user&.id,
       true_user_id: true_hmis_user&.id,
-      session_id: request.env['rack.session.record']&.session_id,
-      request_id: request.uuid,
+      session_id: session&.id&.to_s, # maps to session_hash in Hmis::ActivityLog
+      request_id: request.uuid, # maps to request_id on ActivityLog, and X-Request-Id header in Sentry
     }
   end
 
@@ -85,11 +90,16 @@ class Hmis::BaseController < ActionController::Base
     raise 'current_user called in HMIS controller. Did you mean current_hmis_user?'
   end
 
-  def not_authorized!
-    raise HmisErrors::NotAuthorizedError
+  def append_info_to_payload(payload)
+    super
+    payload[:user_id] = current_app_user&.id
   end
 
-  rescue_from 'HmisErrors::NotAuthorizedError' do |_exception|
+  def not_authorized!
+    raise NotAuthorizedError
+  end
+
+  rescue_from 'NotAuthorizedError' do |_exception|
     head :unauthorized
   end
 end

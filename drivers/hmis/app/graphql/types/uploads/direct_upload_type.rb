@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,6 @@ module Types
     field :headers, String,
           'HTTP request headers (JSON-encoded)',
           null: false
-    field :blob_id, ID, 'Created blob record ID', null: false
     field :signed_blob_id, ID,
           'Created blob record signed ID',
           null: false

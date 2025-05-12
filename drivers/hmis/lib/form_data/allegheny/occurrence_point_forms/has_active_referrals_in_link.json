@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "link_id": "has-active-referrals-in-link",
+      "link_id": "has_active_referrals_in_link",
       "type": "BOOLEAN",
       "text": "Has Active Referrals in LINK",
       "read_only": true,

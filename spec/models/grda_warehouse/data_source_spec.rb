@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 model = GrdaWarehouse::DataSource
@@ -31,6 +39,12 @@ RSpec.describe model, type: :model do
   let!(:p6) { create :hud_project, data_source_id: ds2.id, OrganizationID: o3.OrganizationID }
   let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
   let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
+
+  let!(:pcoc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'XX-500' }
+  let!(:pcoc2) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'XX-501' }
+
+  let!(:pg1) { create :project_access_group, projects: [p1] }
+  let!(:pg2) { create :project_access_group, projects: [p1, p5] }
 
   let!(:empty_collection) { create :collection }
 
@@ -95,6 +109,85 @@ RSpec.describe model, type: :model do
           setup_access_control(user, can_view_projects, empty_collection)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
+      end
+
+      describe 'user assigned to projet group' do
+        it 'sees ds1' do
+          empty_collection.set_viewables({ project_access_groups: [pg1.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1]
+        end
+        it 'sees ds1 and ds2' do
+          empty_collection.set_viewables({ project_access_groups: [pg1.id, pg2.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1, ds2]
+        end
+      end
+
+      describe 'user assigned to CoC XX-500' do
+        it 'sees ds1' do
+          empty_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500']).pluck(:id) })
+          setup_access_control(user, can_view_projects, empty_collection)
+
+          expect(user_ids[user]).to eq ids[ds1]
+        end
+        it 'sees ds1 and ds2' do
+          empty_collection.set_viewables({ coc_codes: GrdaWarehouse::Lookups::CocCode.where(coc_code: ['XX-500', 'XX-501']).pluck(:id) })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1, ds2]
+        end
+      end
+    end
+  end
+
+  describe 'importer' do
+    let!(:imports) { create_list :grda_warehouse_upload, 12, data_source_id: ds1.id, user_id: User.system_user.id, percent_complete: 100, completed_at: 2.years.ago }
+
+    describe 'when expecting one file' do
+      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 1, data_source_id: ds1.id }
+      it 'is not stalled when there are no prior imports in the past 6 months' do
+        expect(ds1.stalled_date).to eq(nil)
+      end
+
+      it 'is stalled when the last import was over 24 hours ago' do
+        imports.each.with_index { |import, i| import.update(completed_at: (i + 1).days.ago - 2.minutes) }
+        expect(ds1.stalled_date).to_not eq(nil)
+      end
+
+      it 'is not stalled when there was an import yesterday' do
+        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago + 2.minutes) }
+        expect(ds1.stalled_date).to eq(nil)
+      end
+
+      it 'is stalled when the last import was 26 hours ago' do
+        imports.each.with_index do |import, i|
+          time = i.days.ago - 26.hours
+          import.update(completed_at: time)
+        end
+        expect(ds1.stalled_date).to_not eq(nil)
+      end
+    end
+
+    describe 'when expecting multiple file' do
+      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 3, data_source_id: ds1.id }
+      it 'is not stalled when there are no prior imports in the past 6 months' do
+        expect(ds1.stalled_date).to eq(nil)
+      end
+
+      it 'is stalled when there was a partial import yesterday' do
+        # Move one file into the expected range
+        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago) }
+        expect(ds1.stalled_date).to_not eq(nil)
+      end
+
+      it 'is stalled when there was a full import recently, but nothing in the past 24 hours' do
+        imports.first(3).each { |import| import.update(completed_at: 25.hours.ago) }
+        expect(ds1.stalled_date).to_not eq(nil)
+      end
+
+      it 'is not stalled when there was a full import within the last 24 hours' do
+        imports.first(3).each { |import| import.update(completed_at: 23.hours.ago) }
+        expect(ds1.stalled_date).to eq(nil)
       end
     end
   end

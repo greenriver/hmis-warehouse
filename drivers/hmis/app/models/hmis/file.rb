@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
+  include ::Hmis::Hud::Concerns::FormSubmittable
   has_paper_trail(
     meta: {
       enrollment_id: :enrollment_id,
@@ -33,6 +34,7 @@ class Hmis::File < GrdaWarehouse::File
   belongs_to :client, class_name: '::Hmis::Hud::Client'
   belongs_to :user, class_name: 'Hmis::User', optional: true
   belongs_to :updated_by, class_name: 'Hmis::User', optional: true
+  has_one :custom_data_element, class_name: 'Hmis::Hud::CustomDataElement', foreign_key: 'value_file_id', inverse_of: :value_file
 
   scope :with_owner, ->(user) do
     where(user_id: user.id)
@@ -41,17 +43,23 @@ class Hmis::File < GrdaWarehouse::File
   scope :confidential, -> { where(confidential: true) }
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
-  scope :viewable_by, ->(user) do
+  # Passing client_ids can significantly improve performance, to avoid a subquery on the entire Client table.
+  # This may not be the perfect solution (combining scopes would be neater) but it works.
+  # It is similar to the strategy described in the Warehouse's EnrollmentArbiter.
+  scope :viewable_by, ->(user, client_ids: nil) do
     # NOTE: it's okay that confidential files are included in this scope even if the user
     # doesn't have permission to read the file. Users can see the existence of confidential
-    # files but they can't read them. Reference:
-    # https://www.pivotaltracker.com/n/projects/2591838/stories/185293913
+    # files but they can't read them. Reference: https://github.com/open-path/Green-River/issues/5184
+
     client_scope = Hmis::Hud::Client.
       viewable_by(user).
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    client_scope = client_scope.where(id: client_ids) if client_ids.present?
+
     enrollment_scope = Hmis::Hud::Enrollment.
       viewable_by(user).
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    enrollment_scope = enrollment_scope.joins(:client).where(c_t[:id].in(client_ids)) if client_ids.present?
 
     case_statement = Arel::Nodes::Case.new.
       when(arel_table[:enrollment_id].not_eq(nil)).

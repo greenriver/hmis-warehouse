@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,29 @@ require 'aws-sdk-s3'
 class AwsS3
   attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key, :client
   attr_reader :bucket
+
+  AVAILABLE_S3_REGIONS = [
+    'us-east-1',
+    'us-east-2',
+    'us-west-1',
+    'us-west-2',
+    'ap-northeast-1',
+    'ap-northeast-2',
+    'ap-south-1',
+    'ap-southeast-1',
+    'ap-southeast-2',
+    'ca-central-1',
+    'eu-central-1',
+    'eu-west-1',
+    'eu-west-2',
+    'eu-west-3',
+    'sa-east-1',
+  ].freeze
+
+  def self.available_s3_regions
+    AVAILABLE_S3_REGIONS
+  end
+
   def initialize(
     region: nil,
     bucket_name:,
@@ -82,6 +105,12 @@ class AwsS3
     end
   end
 
+  def count(prefix: '')
+    # Note that this DOES still call list_objects_v2 internally, but ignores the 1000 key limit.
+    # See https://stackoverflow.com/questions/2862617/how-can-i-tell-how-many-objects-ive-stored-in-an-s3-bucket
+    @bucket.objects(prefix: prefix).count
+  end
+
   # Return oldest first
   def fetch_key_list(prefix: '')
     @bucket.objects(prefix: prefix).sort_by(&:last_modified).map(&:key)
@@ -146,13 +175,13 @@ class AwsS3
     end
   end
 
-  def store(content:, name:)
+  def store(content:, name:, content_type: nil)
     obj = @bucket.object(name)
-    if Rails.env.development? || Rails.env.test?
-      obj.put(body: content)
-    else
-      obj.put(body: content, server_side_encryption: 'AES256')
-    end
+    args = { body: content }
+    args.merge!(content_type: content_type) if content_type
+    # we're skipping server side encryption for test and development because it hard to support in minio
+    args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
+    obj.put(**args)
   end
 
   # Uploads all files from a local directory

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class ClientId < ReadOnly
@@ -24,6 +26,14 @@ module CohortColumns
       html = content_tag(:span, value(cohort_client), class: 'hidden')
       html += link_to_if(user.can_access_some_version_of_clients?, value(cohort_client), appropriate_client_path(cohort_client.client), target: '_blank')
       html
+    end
+
+    def analytics_value
+      value(cohort_client)
+    end
+
+    def analytics_data_type
+      'integer'
     end
   end
 end

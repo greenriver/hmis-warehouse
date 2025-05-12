@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,8 +16,8 @@ module HmisCsvTwentyTwenty::Aggregated
     self.table_name = 'hmis_2020_aggregated_enrollments'
 
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')
-    has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], class_name: 'HmisCsvTwentyTwenty::Aggregated::Exit', autosave: false
-    belongs_to :project, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], class_name: 'HmisCsvTwentyTwenty::Importer::Project', autosave: false, optional: true
+    has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], class_name: 'HmisCsvTwentyTwenty::Aggregated::Exit', autosave: false
+    belongs_to :project, primary_key: [:ProjectID, :data_source_id], query_constraints: [:ProjectID, :data_source_id], class_name: 'HmisCsvTwentyTwenty::Importer::Project', autosave: false, optional: true
 
     scope :open_during_range, ->(range) do
       e_t = arel_table

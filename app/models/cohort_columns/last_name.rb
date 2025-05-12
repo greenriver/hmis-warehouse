@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class LastName < ReadOnly
@@ -38,6 +40,11 @@ module CohortColumns
       end
       html += link_to_if(user.can_access_some_version_of_clients?, value(cohort_client), appropriate_client_path(cohort_client.client), target: '_blank')
       html
+    end
+
+    # Don't report PII in Cohort Data, this can be obtained from the PII store
+    def analytics_value
+      nil
     end
   end
 end

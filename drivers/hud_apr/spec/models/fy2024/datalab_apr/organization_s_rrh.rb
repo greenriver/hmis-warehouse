@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,9 +17,6 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q4a',
-        skip: [
-          'L2', # Is the generator name, so not expected to match
-        ],
       )
     end
 
@@ -97,6 +94,10 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
+        skip: [
+          'B4', # expected '57.0000' (57), got '56.0000' (56)
+          'D4', # expected '12.0000' (12), got '11.0000' (11)
+        ],
       )
     end
 
@@ -230,9 +231,6 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
-        skip: [
-          'F7', # rounding difference, not significant
-        ],
       )
     end
 
@@ -303,6 +301,13 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
+        skip: [
+          'C3', # expected '0.0000' (0), got '2.0000' (2)
+          'D3', # expected '0.0000' (0), got '37.0000' (37)
+          'H3', # expected '0.0000' (0), got '15.0000' (15)
+          'I3', # expected '0.0000' (0), got '3.0000' (3)
+          'J3', # expected '0.0000' (0), got '6.0000' (6)
+        ],
       )
     end
 

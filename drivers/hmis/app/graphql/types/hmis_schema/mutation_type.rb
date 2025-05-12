@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,13 +35,9 @@ module Types
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
     field :bulk_remove_service, mutation: Mutations::BulkRemoveService
 
-    field :create_service_category, mutation: Mutations::CreateServiceCategory
-    field :delete_service_category, mutation: Mutations::DeleteServiceCategory
-    field :rename_service_category, mutation: Mutations::RenameServiceCategory
-
     field :create_service_type, mutation: Mutations::CreateServiceType
     field :delete_service_type, mutation: Mutations::DeleteServiceType
-    field :rename_service_type, mutation: Mutations::RenameServiceType
+    field :update_service_type, mutation: Mutations::UpdateServiceType
 
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
@@ -56,18 +52,24 @@ module Types
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
-    field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
 
+    field :join_household, mutation: Mutations::JoinHousehold
+    field :split_household, mutation: Mutations::SplitHousehold
+
     field :create_form_definition, mutation: Mutations::CreateFormDefinition
     field :update_form_definition, mutation: Mutations::UpdateFormDefinition
     field :delete_form_definition, mutation: Mutations::DeleteFormDefinition
+    field :publish_form_definition, mutation: Mutations::PublishFormDefinition
+    field :create_next_draft_form_definition, mutation: Mutations::CreateNextDraftFormDefinition
+    field :create_duplicate_form_definition, mutation: Mutations::CreateDuplicateFormDefinition
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
-    field :update_form_rule, mutation: Mutations::UpdateFormRule
+    field :delete_form_rule, mutation: Mutations::DeleteFormRule
+    field :update_form_rule, mutation: Mutations::UpdateFormRule, deprecation_reason: 'Replaced with DeleteFormRule'
 
     field :create_project_config, mutation: Mutations::CreateProjectConfig
     field :update_project_config, mutation: Mutations::UpdateProjectConfig
@@ -82,5 +84,21 @@ module Types
 
     field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
     field :delete_external_form_submission, mutation: Mutations::DeleteExternalFormSubmission
+    field :bulk_review_external_submissions, mutation: Mutations::BulkReviewExternalSubmissions
+    field :refresh_external_submissions, mutation: Mutations::RefreshExternalSubmissions
+
+    field :assign_staff, mutation: Mutations::AssignStaff
+    field :unassign_staff, mutation: Mutations::UnassignStaff
+
+    # CE
+    field :create_ce_opportunity, mutation: Mutations::Ce::CreateCeOpportunity
+    field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
+    field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
+    field :submit_ce_referral_step, mutation: Mutations::Ce::SubmitCeReferralStep
+    field :assign_referral_participants, mutation: Mutations::Ce::AssignReferralParticipants
+
+    # CE Unit management
+    field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable
+    field :mark_units_unavailable, mutation: Mutations::Ce::MarkUnitsUnavailable
   end
 end

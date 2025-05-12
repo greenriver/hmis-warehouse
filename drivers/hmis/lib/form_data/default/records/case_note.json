@@ -2,11 +2,11 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "custom-case-note-group",
+      "link_id": "custom_case_note_group",
       "item": [
         {
           "type": "DATE",
-          "link_id": "information-date",
+          "link_id": "information_date",
           "text": "Information Date",
           "mapping": {
             "field_name": "informationDate"

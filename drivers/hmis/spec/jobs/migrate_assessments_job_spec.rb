@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +16,6 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let(:time_fmt) { '%Y-%m-%d %T.%3N'.freeze }
 
     # Full record set for Entry and Annual
     let!(:records_by_data_collaction_stage) do
@@ -68,15 +69,17 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         [1, 2, 3].each do |dcs|
           assessment = e1.custom_assessments.where(data_collection_stage: dcs).first!
           expected_records = records_by_data_collaction_stage[dcs]
-          # Assessment Date should be MIN from records
-          expected_assmt_date = expected_records.map { |r| r.respond_to?(:information_date) ? r.information_date : r.exit_date }.min
+          # Assessment Date should be MIN from records' information dates, except...
+          information_date = expected_records.pluck(:information_date).compact.min
+          exit_date = expected_records.pluck(:exit_date).compact.max
+          expected_assmt_date = exit_date || information_date # ...if exit_date is provided, it's prioritized even if it isn't the minimum
           expect(assessment.assessment_date).to eq(expected_assmt_date)
           # User should be the most recent updated
           expect(assessment.user).to eq(expected_records.max_by(&:date_updated).user)
           # Date created should be MIN from records
-          expect(assessment.date_created.strftime(time_fmt)).to eq(expected_records.map(&:date_created).min.strftime(time_fmt))
+          expect(assessment.date_created.to_fs(:db)).to eq(expected_records.map(&:date_created).min.to_fs(:db))
           # Date updated should be MAX from records
-          expect(assessment.date_updated.strftime(time_fmt)).to eq(expected_records.map(&:date_updated).max.strftime(time_fmt))
+          expect(assessment.date_updated.to_fs(:db)).to eq(expected_records.map(&:date_updated).max.to_fs(:db))
 
           related_records = [
             :health_and_dv,
@@ -106,6 +109,16 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         create(:hmis_income_benefit, data_source: ds1, enrollment: e2, client: c1, data_collection_stage: 1)
 
         Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, project_ids: [p2.id])
+
+        expect(e1.custom_assessments).to be_empty # didn't create assessment for p1 enrollment
+        expect(e2.intake_assessment).to be_present
+      end
+
+      it 'creates assessments only in specified enrollment scope' do
+        e2 = create(:hmis_hud_enrollment, data_source: ds1, client: c1)
+
+        enrollments = Hmis::Hud::Enrollment.where(id: e2.id)
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, enrollments: enrollments, generate_empty_intakes: true)
 
         expect(e1.custom_assessments).to be_empty # didn't create assessment for p1 enrollment
         expect(e2.intake_assessment).to be_present
@@ -147,6 +160,22 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         expect { annual_assessment.reload }.to raise_error(ActiveRecord::RecordNotFound, /Couldn't find Hmis::Hud::CustomAssessment/)
         fully_custom_assessment.reload
         expect(fully_custom_assessment.enrollment).to eq(e1)
+      end
+
+      context 'when there is an ExitDate and another record with earlier information date' do
+        let!(:today) { Date.current }
+        let!(:exit) { create(:hmis_hud_exit, exit_date: today - 2.weeks, enrollment: e1) }
+        let!(:income_benefit) { create(:hmis_income_benefit, enrollment: e1, data_collection_stage: 3, information_date: today - 3.weeks) }
+        let!(:records_by_data_collaction_stage) { nil }
+
+        it 'prefers ExitDate over other information date' do
+          expect do
+            Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+          end.to change(Hmis::Hud::CustomAssessment.exits, :count).from(0).to(1)
+
+          exit_assessment = Hmis::Hud::CustomAssessment.exits.sole
+          expect(exit_assessment.assessment_date).to eq(exit.exit_date)
+        end
       end
     end
 

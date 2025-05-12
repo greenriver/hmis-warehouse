@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,16 @@
 module Financial
   class Client < ::GrdaWarehouseBase
     self.table_name = :financial_clients
+
+    include HasPiiAttributes
+    pii_attr :client_first_name, as: :first_name
+    pii_attr :client_last_name, as: :last_name
+    pii_attr :client_birthdate, as: :dob
+    pii_attr :address_line_1, as: :geo_street
+    pii_attr :address_line_2, as: :geo_street
+    pii_attr :city, as: :geo_locality
+    pii_attr :state, as: :geo_admin_1
+    pii_attr :zip_code, as: :geo_postal_code
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     has_many :transactions, foreign_key: :external_client_id

@@ -3,7 +3,7 @@
     {
       "type": "TEXT",
       "link_id": "notes",
-      "text": "User Notes",
+      "text": "Reviewer Notes",
       "mapping": {
         "field_name": "notes"
       }
@@ -15,7 +15,16 @@
       "text": "Mark reviewed",
       "mapping": {
         "field_name": "reviewed"
-      }
+      },
+      "enable_when": [
+        {
+          "local_constant": "$reviewed",
+          "operator": "EQUAL",
+          "answer_boolean": false
+        }
+      ],
+      "enable_behavior": "ALL",
+      "disabled_display": "PROTECTED_WITH_VALUE"
     },
     {
       "link_id": "spam",

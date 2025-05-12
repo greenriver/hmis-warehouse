@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -75,6 +75,8 @@ module HealthPctp
       sent_to_pcp_on.nil?
     end
 
+    # NOTE: this needs to be updated before expires_on can be based on sent_to_pcp_on
+    # What are the consequences of changing the completed? calculation?
     def completed?
       patient_signed_on.present?
     end
@@ -92,6 +94,13 @@ module HealthPctp
     end
 
     def cp2?
+      true
+    end
+
+    def archived?
+      return false if active?
+      return false if patient.recent_pctp_careplan.instrument.id == id
+
       true
     end
 
@@ -120,7 +129,7 @@ module HealthPctp
     end
 
     def expires_on
-      patient_signed_on + 1.year
+      (sent_to_pcp_on.presence || patient_signed_on) + 1.year
     end
 
     def identifying_information

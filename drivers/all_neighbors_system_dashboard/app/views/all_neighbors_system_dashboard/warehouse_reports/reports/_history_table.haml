@@ -19,7 +19,12 @@
                   .mt-2.mb-4
                     = link_to 'View External Dashboard', all_neighbors_system_dashboard_warehouse_reports_report_path(report), class: 'btn btn-sm btn-secondary'
                 = report.status
-              %th.report-parameters= report.describe_filter_as_html(report.known_params)
+              %th.report-parameters
+                = report.describe_filter_as_html(report.known_params)
+                - opts = report.filter.to_h
+                - opts[:default_project_type_codes] = report.default_project_type_codes
+                .ml-auto.nobr
+                  = render 'filters/view_filter_details', filter_hash: opts, selected_keys: report.known_params
               %td.text-nowrap
                 = report.created_at
                 .text-sm.text-muted by #{report.user&.name}

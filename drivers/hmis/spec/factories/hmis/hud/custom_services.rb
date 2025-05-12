@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,5 +15,13 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     DateProvided { Date.parse('2019-01-01') }
+    transient do
+      definition { nil }
+    end
+    after(:create) do |service, evaluator|
+      next unless evaluator.definition
+
+      service.form_processor = create(:hmis_form_processor, owner: service, definition: evaluator.definition)
+    end
   end
 end

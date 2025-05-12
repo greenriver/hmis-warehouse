@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -96,6 +96,7 @@ module LongitudinalSpm
           :project_group_ids,
           :data_source_ids,
           :funder_ids,
+          :funder_others,
           :hoh_only,
         ],
       )
@@ -139,9 +140,12 @@ module LongitudinalSpm
       return spm_generator.describe_table(measure_or_table) if cell.blank?
 
       # Don't break terribly if the SPM version has changed
-      return '' unless spms.first.hud_spm.report_name == 'System Performance Measures - FY 2023'
+      return '' unless spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2024'
 
       @sample_spm ||= spms.first.hud_spm # Just find one of the SPMs so we can get metadata
+      # Sometimes we get into a weird state where the SPMs didn't run, return so we don't throw errors
+      return '' unless @sample_spm.completed?
+
       row = cell.gsub(/\D/, '').to_i - 2 # cells are 1 based, rows 0 based and the first row is ignored
       return @sample_spm.answer(question: measure_or_table).metadata['row_labels'][row] if row_col == :row
 
@@ -164,13 +168,20 @@ module LongitudinalSpm
 
     def spm_measures
       # if we're running the report, return the current version
-      return spm_measures_2023 unless spms.present?
+      return spm_measures_2024 unless spms.present?
+      # If we're looking at the 2024 version
+      return spm_measures_2024 if HudSpmReport::Generators::Fy2024::Generator.title == spms.first.hud_spm.report_name
       # If we're looking at the 2023 version
       return spm_measures_2023 if HudSpmReport::Generators::Fy2023::Generator.title == spms.first.hud_spm.report_name
       # If we're looking at the 2020 version
       return spm_measures_2020 if HudSpmReport::Generators::Fy2020::Generator.title == spms.first.hud_spm.report_name
 
       raise 'Unknown SPM VERSION'
+    end
+
+    private def spm_measures_2024
+      # SPM 2024 measures currently matches the SPM 2023 measures. If they diverge, updates should be done here.
+      spm_measures_2023
     end
 
     private def spm_measures_2023

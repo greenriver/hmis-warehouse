@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module CohortColumns
   class YouthRrhDesired < ReadOnly
@@ -26,6 +28,14 @@ module CohortColumns
 
     def text_value(cohort_client)
       cohort_client.client.youth_rrh_desired
+    end
+
+    def analytics_value
+      text_value(cohort_client)
+    end
+
+    def analytics_data_type
+      'boolean'
     end
   end
 end

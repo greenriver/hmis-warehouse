@@ -1,17 +1,20 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceMeasurement
   class Client < GrdaWarehouseBase
+    include Filter::FilterScopes # for race-ethnicity combination scopes
     self.table_name = :pm_clients
     acts_as_paranoid
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
-    has_many :client_projects, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
+    has_many :client_projects, primary_key: [:client_id, :report_id], query_constraints: [:client_id, :report_id]
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', optional: true, foreign_key: :client_id
 
     # Gender scopes
@@ -68,10 +71,6 @@ module PerformanceMeasurement
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
     end
 
-    scope :race_hispanic_latinaeo, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
-    end
-
     scope :race_mid_east_n_african, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_mid_east_n_african)
     end
@@ -90,6 +89,96 @@ module PerformanceMeasurement
 
     scope :race_not_collected, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_collected)
+    end
+
+    # Ethnicity Scopes
+    scope :ethnicity_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
+    end
+
+    scope :ethnicity_non_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_hispanic_latinaeo)
+    end
+
+    # Race Ethnicity Combination Scopes
+    def report_scope_source # needed for filter scopes
+      self.class
+    end
+
+    protected def criteria_configuration(**opts)
+      defaults = {
+        join_clients_method: :source_client,
+      }
+      super(**defaults.merge(opts))
+    end
+
+    scope :race_ethnicity_alternative, ->(key, hispanic_latinaeo) do
+      client_scope = GrdaWarehouse::Hud::Client.race_ethnicity_alternative(key, hispanic_latinaeo)
+      joins(:source_client).merge(client_scope)
+    end
+
+    scope :race_ethnicity_am_ind_ak_native, -> do
+      race_ethnicity_alternative(:AmIndAKNative, false)
+    end
+
+    scope :race_ethnicity_am_ind_ak_native_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:AmIndAKNative, true)
+    end
+
+    scope :race_ethnicity_asian, -> do
+      race_ethnicity_alternative(:Asian, false)
+    end
+
+    scope :race_ethnicity_asian_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:Asian, true)
+    end
+
+    scope :race_ethnicity_black_af_american, -> do
+      race_ethnicity_alternative(:BlackAfAmerican, false)
+    end
+
+    scope :race_ethnicity_black_af_american_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:BlackAfAmerican, true)
+    end
+
+    scope :race_ethnicity_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:HispanicLatinaeo, true)
+    end
+
+    scope :race_ethnicity_mid_east_n_african, -> do
+      race_ethnicity_alternative(:MidEastNAfrican, false)
+    end
+
+    scope :race_ethnicity_mid_east_n_african_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:MidEastNAfrican, true)
+    end
+
+    scope :race_ethnicity_native_hi_pacific, -> do
+      race_ethnicity_alternative(:NativeHIPacific, false)
+    end
+
+    scope :race_ethnicity_native_hi_pacific_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:NativeHIPacific, true)
+    end
+
+    scope :race_ethnicity_white, -> do
+      race_ethnicity_alternative(:White, false)
+    end
+
+    scope :race_ethnicity_white_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:White, true)
+    end
+
+    scope :race_ethnicity_multi_racial, -> do
+      race_ethnicity_alternative(:MultiRacial, false)
+    end
+
+    scope :race_ethnicity_multi_racial_hispanic_latinaeo, -> do
+      race_ethnicity_alternative(:MultiRacial, true)
+    end
+
+    scope :race_ethnicity_race_none, -> do
+      race_none
     end
 
     def self.column_titles(period: 'reporting')
@@ -121,10 +210,10 @@ module PerformanceMeasurement
         "#{period}_days_in_th_bed_in_period" => 'TH Days in Period',
         # "#{period}_days_referral_to_ph_entry" => '',
         "#{period}_days_homeless_before_move_in" => 'Days Before Move-In',
-        "#{period}_days_in_es_bed_details_in_period" => 'ES Details in Period',
-        "#{period}_days_in_sh_bed_details_in_period" => 'SH Details in Period',
-        "#{period}_days_in_so_bed_details_in_period" => 'SO Details in Period',
-        "#{period}_days_in_th_bed_details_in_period" => 'TH Details in Period',
+        "#{period}_days_in_es_bed_details_in_period" => 'ES Details in Period for Project',
+        "#{period}_days_in_sh_bed_details_in_period" => 'SH Details in Period for Project',
+        "#{period}_days_in_so_bed_details_in_period" => 'SO Details in Period for Project',
+        "#{period}_days_in_th_bed_details_in_period" => 'TH Details in Period for Project',
         "#{period}_days_in_homeless_bed" => 'Homeless Days',
         "#{period}_days_in_homeless_bed_details" => 'Homeless Days Details',
         "#{period}_days_in_homeless_bed_in_period" => 'Homeless Days in Period',

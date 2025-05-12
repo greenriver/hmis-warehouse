@@ -1,7 +1,7 @@
 [
   {
     "link_id": "R6",
-    "rule": {
+    "custom_rule": {
       "operator": "ANY",
       "_comment": "Custom funders, YHDP or VA GPD. Project type is not specified because these funders only ever fund one project type.",
       "parts": [

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ module Mutations
 
     def resolve(id:, input:)
       posting = HmisExternalApis::AcHmis::ReferralPosting.active.viewable_by(current_user).find(id)
+      handle_error('access denied') unless current_user.can_view_enrollment_details_for?(posting.project)
       handle_error('referral not found') unless posting
       handle_error('connection not configured') if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
 
@@ -35,6 +36,21 @@ module Mutations
 
       posting_status_change = posting.changes['status']
 
+      if posting_status_change == ['assigned_status', 'accepted_pending_status']
+        # Similar to query_type.rb:project_can_accept_referral, but returns info about each conflicting enrollment, so the user can fix the errors.
+        personal_ids = posting.referral.household_members.map(&:client).pluck(:personal_id)
+        # no need to check viewable_by on the enrollments, since we would have already raised 'access denied' above
+        conflicting_enrollments = posting.project.enrollments.open_including_wip.where(personal_id: personal_ids)
+
+        unless conflicting_enrollments.empty?
+          conflicting_enrollments.each do |e|
+            errors.add :base, :invalid, full_message: "#{e.client.full_name} already has an open enrollment in this project (entry date: #{e.entry_date}). Please exit the client if the enrollment is invalid or out-of-date, and otherwise deny the referral."
+          end
+
+          return { errors: errors }
+        end
+      end
+
       with_logging_transaction(posting) do |logger|
         posting.save(context: validation_context) # context for validations
         errors.add_ar_errors(posting.errors.errors)
@@ -42,8 +58,10 @@ module Mutations
         # if moving from assigned to accepted_pending, enroll household and assign to unit
         if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
           # choose any available unit of type, error if none available
-          unit_to_assign = posting.project&.units&.unoccupied_on&.find_by(unit_type_id: posting.unit_type_id)
-          errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
+          if posting.unit_type_id
+            unit_to_assign = posting.project&.units&.unoccupied_on&.find_by(unit_type_id: posting.unit_type_id)
+            errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
+          end
           raise ActiveRecord::Rollback if errors.any?
 
           # build new household of WIP enrollments
@@ -51,7 +69,7 @@ module Mutations
           build_enrollments(posting).each do |enrollment|
             enrollment.household_id = household_id
             if enrollment.valid?
-              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user)
+              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user) if posting.unit_type_id
               enrollment.save_in_progress! # this method will unset projectID and calls enrollment.save!
             else
               handle_error('Could not create valid enrollments')
@@ -74,7 +92,7 @@ module Mutations
 
         # note, cannot mark postings as accepted in this mutation, only denied. Otherwise we'd need to handle that here
         # too
-        posting.exit_origin_household(user: hmis_user) if posting_status_change == ['denied_pending_status', 'denied_status']
+        posting.exit_origin_household(user: hud_user) if posting_status_change == ['denied_pending_status', 'denied_status']
 
         # send to link if:
         # * the referral came from link

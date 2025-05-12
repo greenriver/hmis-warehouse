@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +12,6 @@ module SystemPathways
     acts_as_paranoid
 
     # Uses a compound key so we can reference a client without needing to know the report.client.id
-    belongs_to :client, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
+    belongs_to :client, primary_key: [:client_id, :report_id], query_constraints: [:client_id, :report_id]
   end
 end

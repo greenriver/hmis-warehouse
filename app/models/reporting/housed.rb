@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,14 @@ module Reporting
 
     self.table_name = :warehouse_houseds
     include ArelHelper
+
+    include HasPiiAttributes
+    pii_attr :dob
+    pii_attr :age_at_search_start, as: :age
+    pii_attr :age_at_search_end, as: :age
+    pii_attr :age_at_search_start, as: :age
+    pii_attr :age_at_housed_date, as: :age
+    pii_attr :age_at_housing_exit, as: :age
 
     scope :viewable_by, ->(user) do
       # need to pluck project ids from the warehouse database

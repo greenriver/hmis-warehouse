@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Admin
   class CollectionsController < ApplicationController
@@ -12,7 +14,7 @@ module Admin
     before_action :set_entities, only: [:new, :edit, :create, :update, :entities]
 
     def index
-      @collections = collection_scope.order(:name)
+      @collections = collection_scope.without_source_entity.order(:name)
       @collections = @collections.text_search(params[:q]) if params[:q].present?
       @pagy, @collections = pagy(@collections)
     end
@@ -69,6 +71,8 @@ module Admin
         @reports
       when :cohorts
         @cohorts
+      when :supplemental_data_sets
+        @supplemental_data_sets
       when :project_groups
         @project_groups
       end
@@ -82,20 +86,16 @@ module Admin
         # Prevent unsetting other entity types
         if entity_type.to_s == params[:entities]
           values.each do |id, checked|
-            id = id.to_i unless entity_type == :coc_codes
+            id = id.to_i
             ids[entity_type] << id if checked == '1'
           end
         else
-          next if entity_type == :coc_codes
-
           ids[entity_type] = @collection.send(entity_type).map(&:id)
         end
       end
-      if params[:entities].to_sym == :coc_codes
-        @collection.update(coc_codes: ids[:coc_codes].uniq)
-      else
-        @collection.set_viewables(ids.with_indifferent_access)
-      end
+
+      @collection.set_viewables(ids.with_indifferent_access)
+
       redirect_to({ action: :show }, notice: "Collection #{@collection.name} updated.")
     end
 
@@ -108,20 +108,19 @@ module Admin
         :name,
         :description,
         :collection_type,
-        coc_codes: [],
-      ).tap do |result|
-        result[:coc_codes] ||= []
-      end
+      )
     end
 
     private def viewable_params
       params.require(:collection).permit(
         data_sources: [],
         organizations: [],
+        coc_codes: [],
         projects: [],
         project_access_groups: [],
         reports: [],
         cohorts: [],
+        supplemental_data_sets: [],
         project_groups: [],
       )
     end
@@ -135,6 +134,7 @@ module Admin
         project_access_groups: {},
         reports: {},
         cohorts: {},
+        supplemental_data_sets: {},
         project_groups: {},
       )
     end
@@ -204,8 +204,8 @@ module Admin
 
       @cocs = {
         label: 'CoC Codes',
-        selected: @collection&.coc_codes || [],
-        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        selected: @collection&.coc_codes&.map(&:id) || [],
+        collection: GrdaWarehouse::Lookups::CocCode.joins(:project_cocs).distinct.order(:coc_code),
         placeholder: 'CoC',
         multiple: true,
         input_html: {
@@ -216,8 +216,8 @@ module Admin
 
       @coc_codes = {
         label: 'CoC Codes',
-        selected: @collection&.coc_codes || [],
-        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact.map { |coc| [HudUtility2024.coc_name(coc), coc] },
+        selected: @collection&.coc_codes&.map(&:id) || [],
+        collection: GrdaWarehouse::Lookups::CocCode.joins(:project_cocs).distinct.order(:coc_code),
         placeholder: 'CoC',
         multiple: true,
         input_html: {
@@ -268,6 +268,17 @@ module Admin
         input_html: {
           class: 'jUserViewable jCohorts',
           name: 'collection[cohorts][]',
+        },
+      }
+
+      @supplemental_data_sets = {
+        selected: @collection&.supplemental_data_sets&.map(&:id) || [],
+        collection: HmisSupplemental::DataSet.order(:name, :id),
+        placeholder: 'Supplemental Data Set',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jSupplementalDataSets',
+          name: 'collection[supplemental_data_sets][]',
         },
       }
     end

@@ -13,7 +13,7 @@
       %span.icon-plus
       Add a Collection
     .w-50.ml-auto
-      - @prompt = 'Search user groups...'
+      - @prompt = 'Search collections…'
       = render 'search_form'
   - if @pagy.count.positive?
     = render 'common/pagination_top', item_name: 'group'

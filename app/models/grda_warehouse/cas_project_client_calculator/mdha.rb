@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       when :match_group
         match_group(client)
       when :chronically_homeless_for_cas
-        client.source_enrollments.map { |en| en&.ch_enrollment&.chronically_homeless_at_entry }.any?
+        chronically_homeless_for_cas(client)
       when *eccovia_columns
         send(column, client)
       when :days_homeless
@@ -21,6 +21,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       return current_value unless current_value.nil?
 
       client.send(column)
+    end
+
+    def chronically_homeless_for_cas(client)
+      client.source_enrollments.map { |en| en&.ch_enrollment&.chronically_homeless_at_entry }.any?
     end
 
     private def custom_descriptions

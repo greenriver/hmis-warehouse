@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module AllNeighborsSystemDashboard
     def tabs
       [
         { name: 'Housing Placements' },
-        { name: 'Time To Obtain Housing' },
+        # { name: 'Time To Obtain Housing' }, # disabled per-request 12/9/2024
         { name: 'Returns To Homelessness' },
         # { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
@@ -29,13 +29,13 @@ module AllNeighborsSystemDashboard
           name: 'Housing Placements',
           display_method: :number_with_delimiter,
         },
-        {
-          id: 'days_to_obtain_housing',
-          icon: 'icon-house',
-          value: average_days_to_obtain_housing.round.abs,
-          name: 'Average Number of Days Between Referral and Housing Move-in',
-          display_method: :number_with_delimiter,
-        },
+        # {
+        #   id: 'days_to_obtain_housing',
+        #   icon: 'icon-house',
+        #   value: average_days_to_obtain_housing.round.abs,
+        #   name: 'Average Number of Days Between Referral and Housing Move-in',
+        #   display_method: :number_with_delimiter,
+        # },
         {
           id: 'no_return',
           icon: 'icon-clip-board-check',
@@ -59,7 +59,7 @@ module AllNeighborsSystemDashboard
     end
 
     def returned_percent
-      return 0 if housed_count.zero?
+      return 0 if housed_and_exited_count.zero?
 
       percent = ((returned_total_scope.select(Enrollment.arel_table[:return_date]).count / housed_and_exited_count.to_f) * 100).round
       "#{percent}%"

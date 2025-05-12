@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,10 @@ module HudReports
   class UniverseMember < GrdaWarehouseBase
     acts_as_paranoid
     include RailsDrivers::Extensions
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
 
     self.table_name = 'hud_report_universe_members'
 

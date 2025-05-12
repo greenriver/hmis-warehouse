@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Clients
   class ReleasesController < FilesController
@@ -56,7 +58,7 @@ module Clients
             client_id: @client.id,
             user_id: current_user.id,
             visible_in_window: window_visible?(allowed_params[:visible_in_window]),
-            consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
+            consent_form_confirmed: GrdaWarehouse::Config.get(:auto_confirm_consent) || allowed_params[:consent_form_confirmed],
             coc_codes: allowed_params[:coc_codes]&.reject(&:blank?) || [],
           ),
         )
@@ -103,7 +105,9 @@ module Clients
         attrs[:effective_date] = attrs[:consent_form_signed_on]
         attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
       end
-      @file.update(attrs)
+      @file.assign_attributes(attrs)
+      @file.sync_revokation_info(current_user)
+      @file.save
     end
 
     def file_params
@@ -137,7 +141,7 @@ module Clients
 
     private def render_pdf!
       @pdf = true
-      file_name = "Release of Information for #{@client.name}"
+      file_name = "Release of Information for #{@client.pii_provider(user: current_user).full_name}"
       send_data roi_pdf(file_name), filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -173,7 +177,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Release of Information"
+      "#{@client.pii_provider(user: current_user).full_name} - Release of Information"
     end
 
     def window_visible?(_visibility)

@@ -1,0 +1,7 @@
+.form-group.form-group-valid
+  .mb-1.h5-prs1= control.label
+  .d-flex
+    .mr-2
+      = f.input :days_since_contact_min, as: :numeric, label: 'Minimum Days Since Contact'
+    %div
+      = f.input :days_since_contact_max, as: :numeric, label: 'Maximum Days Since Contact', hint: 'Leave blank for no maximum'

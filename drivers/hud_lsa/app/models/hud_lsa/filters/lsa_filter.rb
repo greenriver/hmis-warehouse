@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,14 +17,22 @@ module HudLsa::Filters
 
     # If a single day for the PIT has been selected, set the start and end dates from the 'on' date
     def update(filters)
+      # CoC Codes get treated in some odd ways, try to standardize, LSA & HIC can only run on one CoC at a time
+      raise ArgumentError, 'Only one CoC code is allowed' if filters[:coc_code].is_a?(Array) && filters[:coc_code].reject(&:blank?).count > 1
+
+      filters[:coc_code] = filters[:coc_code].reject(&:blank?).first if filters[:coc_code].is_a?(Array)
       super
 
       filters = filters.to_h.with_indifferent_access
-      pit_date = filters.dig(:on)&.to_date
-      return unless pit_date.present?
 
-      self.start = pit_date
-      self.end = pit_date + 1.day
+      # Support the HIC
+      if filters.dig(:lsa_scope) == HudLsa::Fy2024::Report.available_lsa_scopes['HIC'].to_s
+        pit_date = filters.dig(:on)&.to_date
+        self.start = pit_date
+        self.end = pit_date
+      else
+        self.on = nil
+      end
       self
     end
 

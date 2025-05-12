@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Export::Exporter
   extend ActiveSupport::Concern
@@ -10,7 +12,7 @@ module Export::Exporter
 
   included do
     def setup_export
-      @export ||= GrdaWarehouse::HmisExport.create(options.merge(started_at: Time.current))
+      @export ||= GrdaWarehouse::HmisExport.create!(options.merge(started_at: Time.current))
       @export.fake_data ||= GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
     end
 
@@ -24,6 +26,7 @@ module Export::Exporter
         hash_status: @hash_status,
         faked_pii: @faked_pii,
         confidential: @confidential,
+        enforce_project_date_scope: @enforce_project_date_scope,
         project_ids: @projects,
         include_deleted: @include_deleted,
         version: @version,
@@ -54,9 +57,11 @@ module Export::Exporter
     end
 
     def upload_zip
-      @export.file = Pathname.new(zip_path).open
-      @export.content_type = @export.file.content_type
-      @export.content = @export.file.read
+      @export.hmis_zip.attach(
+        io: Pathname.new(zip_path).open,
+        filename: File.basename(zip_path),
+      )
+      @export.file = 'See S3'
       @export.save
     end
 

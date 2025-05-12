@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   include ::HmisStructure::Inventory
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   validates_with Hmis::Hud::Validators::InventoryValidator
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

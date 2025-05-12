@@ -1,18 +1,26 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # retrieve and process external form submissions
-class HmisExternalApis::ConsumeExternalFormSubmissionsJob
+class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   def perform
     s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('hmis_external_form_submissions')&.s3
     encryption_key = GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug('hmis_external_forms_shared_key')
 
     return unless s3 && encryption_key
 
-    s3.list_objects.each do |object|
+    # This job is run hourly, so 10,000 is an unexpected amount to pile up between runs.
+    # Raise so that Sentry alerts and we can investigate malicious activity.
+    raise 'Unexpectedly high number of external submissions' if s3.count > 10_000
+
+    # list_objects_v2 only fetches 1000 at a time, but this uses our internal AwsS3 client, which paginates
+    s3.list_objects(10_000).each do |object|
       raw_data_string = s3.get_as_io(key: object.key)&.read
       raw_data = raw_data_string ? parse_json(raw_data_string) : nil
       if !raw_data
@@ -31,6 +39,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
   protected
 
   def log_error(message, object_key:)
+    Sentry.capture_message("external form submission #{object_key}: #{message}")
     Rails.logger.error("external form submission #{object_key}: #{message}")
   end
 

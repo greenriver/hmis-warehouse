@@ -1,9 +1,16 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+#####
+# DEPRECATED 🚨
+# The EnrollmentCoC class has been deprecated as of 10/1/2024. The class is still needed by
+# the importer to handle data from sources that ship in older formats.
+#####
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
@@ -23,7 +30,6 @@ module GrdaWarehouse::Hud
 
     has_one :client, through: :enrollment, inverse_of: :enrollment_cocs
     has_one :project, through: :enrollment
-    has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :enrollment_coc
 
     scope :viewable_by, ->(user) do
       if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)

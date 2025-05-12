@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 module ClientAccessControl::GrdaWarehouse::Hud
   module ClientExtension
@@ -12,26 +14,41 @@ module ClientAccessControl::GrdaWarehouse::Hud
     included do
       # hide previous declaration of :destination_visible_to, we'll use this one
       replace_scope :destination_visible_to, ->(user, source_client_ids: nil) do
-        limited_scope = if user.system_user?
-          current_scope || all
-        else
-          arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
-        end
-        merge(limited_scope)
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_destination_visible_to(user, source_client_ids: source_client_ids)
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
       end
 
       # hide previous declaration of :source_visible_to, we'll use this one
       replace_scope :source_visible_to, ->(user, client_ids: nil) do
-        limited_scope = if user.system_user?
-          current_scope || all
-        else
-          arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
-        end
-        merge(limited_scope)
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_source_visible_to(user, client_ids: client_ids)
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
+      end
+
+      # hide previous declaration of :source_visible_to, we'll use this one
+      replace_scope :destination_or_source_visible_to, ->(user, client_ids: nil) do
+        return current_scope || all if user.system_user?
+
+        filtered = arbiter(user).clients_destination_or_source_visible_to(user, client_ids: client_ids)
+
+        return filtered if current_scope.nil?
+
+        return current_scope.where(id: filtered.select(:id))
       end
 
       # hide previous declaration of :searchable_to, we'll use this one
       # can search even if no ROI
+      #
+      # Note, this may return either source or destination clients
       replace_scope :searchable_to, ->(user, client_ids: nil) do
         # TODO: START_ACL cleanup after ACL migration is complete
         limited_scope = if user.using_acls?
@@ -45,7 +62,10 @@ module ClientAccessControl::GrdaWarehouse::Hud
         end
         # END_ACL
         limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
-        merge(limited_scope)
+
+        return limited_scope if current_scope.nil?
+
+        return current_scope.where(id: limited_scope.select(:id))
       end
 
       scope :destination_from_searchable_to, ->(user) do
@@ -186,7 +206,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
             count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
             # days included in adjusted days that are not also served by a residential project
             adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates(enrollments: enrollments)
+            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - ClientHistory::Calculator.new(client: self).residential_dates(enrollments: enrollments)
             # extrapolated days may extend beyond the actual last contact, turning off ineligible_uses_extrapolated_days means
             # we only count actual contacts
             most_recent_service = if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
@@ -194,18 +214,21 @@ module ClientAccessControl::GrdaWarehouse::Hud
             else
               entry.service_history_services.service_excluding_extrapolated.maximum(:date)
             end
-            new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
+            # default to entry date if we don't have any services
+            most_recent_service ||= entry.entry_date
+
+            new_episode = new_episode?(residential_enrollments: enrollments, enrollment: entry)
             {
               client_source_id: entry.source_client.id,
               project_id: project.id,
               ProjectID: project.ProjectID,
               project_name: project_name,
               confidential_project: project.confidential,
-              entry_date: entry.first_date_in_program,
+              entry_date: entry.entry_date,
               living_situation: entry.enrollment.LivingSituation,
               chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
               chronically_homeless_at_most_recent: entry.enrollment.chronically_homeless_at_start?(date: most_recent_service),
-              exit_date: entry.last_date_in_program,
+              exit_date: entry.exit_date,
               destination: entry.destination,
               move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
               move_in_date: entry.move_in_date,
@@ -218,6 +241,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               household: household(entry.household_id, entry.enrollment.data_source_id),
               project_type: ::HudUtility2024.project_type_brief(entry.project_type),
               project_type_id: entry.project_type,
+              rrh_sub_type: project.rrh_sub_type,
               class: "client__service_type_#{entry.project_type}",
               most_recent_service: most_recent_service,
               new_episode: new_episode,
@@ -232,6 +256,30 @@ module ClientAccessControl::GrdaWarehouse::Hud
               # support: dates_served,
             }
           end
+        end
+      end
+
+      private def adjusted_dates(dates:, stop_date:)
+        return dates if stop_date.nil?
+
+        dates.select { |date| date <= stop_date }
+      end
+
+      private def adjusted_months_served(dates:)
+        dates.group_by { |d| [d.year, d.month] }.keys
+      end
+
+      private def calculated_end_of_enrollment(enrollment:, enrollments:)
+        if enrollment.project.street_outreach_and_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+          enrollment.last_date_in_program&.end_of_month
+        elsif enrollment.project.bed_night_tracking?
+          enrollment.last_date_in_program
+        else
+          enrollments.select do |m|
+            m.project_type == enrollment.project_type &&
+              m.first_date_in_program > enrollment.first_date_in_program
+          end.
+            sort_by(&:first_date_in_program)&.first&.first_date_in_program || enrollment.last_date_in_program # rubocop:disable Style/RedundantSort
         end
       end
 

@@ -1,0 +1,19 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# persist the HUD calculation for chronic homelessness at the enrollment level
+# see GrdaWarehouse::ChEnrollment for details
+module Hmis
+  class ChEnrollment < GrdaWarehouseBase
+    self.table_name = 'ch_enrollments'
+    belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment'
+
+    # the chronically_homeless_at_entry is poorly named
+    def chronically_homeless?
+      chronically_homeless_at_entry?
+    end
+  end
+end

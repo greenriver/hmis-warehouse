@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,8 +22,7 @@ module Health
     has_many :batches, class_name: 'Health::EligibilityInquiry', foreign_key: :batch_id, dependent: :destroy
 
     scope :pending, -> do
-      where.not(inquiry: nil).
-        where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
+      where.not(inquiry: nil).where.missing(:eligibility_response)
     end
 
     scope :patients, -> do

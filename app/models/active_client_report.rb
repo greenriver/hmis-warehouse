@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,27 +34,12 @@ class ActiveClientReport
     value
   end
 
-  def enrollments
-    @enrollments ||= active_client_service_history
-  end
-
-  def clients
-    @clients ||= GrdaWarehouse::Hud::Client.where(id: enrollments.keys).
-      preload(:source_clients).
-      index_by(&:id)
-  end
-
-  def active_client_service_history
-    enrollment_scope.distinct.group_by(&:client_id)
-  end
-
-  private def enrollment_scope
+  def enrollment_scope
     residential_service_history_source.joins(:client, :enrollment, :project).
-      includes(:client, :enrollment, :project).
       with_service_between(start_date: @filter.start, end_date: @filter.end).
       open_between(start_date: @filter.start, end_date: @filter.end).
       distinct.
-      order(first_date_in_program: :asc)
+      order(first_date_in_program: :asc, last_date_in_program: :asc)
   end
 
   def residential_service_history_source

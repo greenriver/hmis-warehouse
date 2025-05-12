@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,16 +48,19 @@ module ClientAccessControl
     end
 
     def available_projects(month:, year:, client:, user:)
-      @available_projects ||= ::GrdaWarehouse::Hud::Project.
-        joins(service_history_enrollments: :enrollment).
-        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
-        merge(
-          ::GrdaWarehouse::ServiceHistoryEnrollment.open_between(
-            start_date: date_range_for(month: month, year: year).first,
-            end_date: date_range_for(month: month, year: year).last,
-          ).where(client_id: client.id),
-        ).distinct.to_a.
-        sort_by { |p| p.name(user) }
+      @available_projects ||= begin
+        scope = ::GrdaWarehouse::Hud::Project.
+          joins(service_history_enrollments: :enrollment).
+          merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
+          merge(
+            ::GrdaWarehouse::ServiceHistoryEnrollment.open_between(
+              start_date: date_range_for(month: month, year: year).first,
+              end_date: date_range_for(month: month, year: year).last,
+            ).where(client_id: client.id),
+          ).distinct
+        scope = scope.merge(::GrdaWarehouse::Hud::Project.viewable_by(user, permission: client.consent_view_permission)) if client.consent_view_permission.present?
+        scope.to_a.sort_by { |p| p.name(user) }
+      end
     end
 
     def available_project_types(month:, year:, client:, user:)
@@ -66,14 +69,18 @@ module ClientAccessControl
     end
 
     private def enrollments(month:, year:, client:, week:, user:)
-      @enrollments ||= client.service_history_entries.
-        joins(:enrollment).
-        preload(:project).
-        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
-        open_between(
-          start_date: date_range_for(month: month, year: year).first,
-          end_date: date_range_for(month: month, year: year).last,
-        ).to_a
+      @enrollments ||= begin
+        scope = client.service_history_entries.
+          joins(:enrollment, :project).
+          preload(:project).
+          merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
+          open_between(
+            start_date: date_range_for(month: month, year: year).first,
+            end_date: date_range_for(month: month, year: year).last,
+          )
+        scope = scope.merge(::GrdaWarehouse::Hud::Project.viewable_by(user, permission: client.consent_view_permission)) if client.consent_view_permission.present?
+        scope.to_a
+      end
       @enrollments.select do |en|
         en.entry_date < week.last && (en.exit_date.blank? || en.exit_date > week.first)
       end
@@ -256,12 +263,12 @@ module ClientAccessControl
     def add_project_for_week(projects:, project:, she:, user:)
       return projects unless project.present?
 
-      project_type = project.project_type_to_use
+      project_type = project.project_type
       projects[she.id] ||= {
         project_id: project.id.to_s,
         project_name: project.name(user),
         project_type: project_type.to_s,
-        project_type_name: HudUtility2024.project_type_brief(project_type),
+        project_type_name: HudUtility2024.brief_project_type_with_sub_type(project_type, project.rrh_sub_type),
         entry_date: she.entry_date,
         exit_date: she.exit_date.presence || Date.current,
       }

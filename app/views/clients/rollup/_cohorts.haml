@@ -1,5 +1,4 @@
-- expires_in = if Rails.env.production? then 4.hours else 1.minutes end
-= cache(['clients', 'cohorts', @client, @client.active_cohorts.count, can_view_cohorts?, controller_path, current_user], expires_in: expires_in) do
+= cache(['clients', 'cohorts', @client, @client.active_cohorts.count, can_view_cohorts?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   .d-none--empty.mr-6
     - cohorts = @client.cohorts_for_dashboard(current_user)
     - if cohorts.any?
@@ -15,6 +14,6 @@
             %tbody
               - cohorts.uniq.each do |cohort|
                 %tr
-                  %td= link_to_if cohort.link, cohort.name, cohort_path(cohort.id)
-                  %td= yes_no(cohort.active)
+                  %td= link_to_if cohort.link && cohort.active, cohort.name, cohort_path(cohort.id)
+                  %td= yes_no(cohort.active == true)
                   %td= yes_no(cohort.recent_activity)

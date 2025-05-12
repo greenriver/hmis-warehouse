@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -69,6 +69,10 @@ module GrdaWarehouse::Hud
       HudUtility2024.funding_sources.keys.include?(funder)
     end
 
+    def pay_for_success?
+      HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true).to_s == self.Funder.to_s
+    end
+
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
     end
@@ -82,6 +86,19 @@ module GrdaWarehouse::Hud
           [
             "#{HudUtility2024.funding_source(funder_code&.to_i)} (#{funder_code})",
             funder_code,
+          ]
+        end
+    end
+
+    def self.options_for_select_other(user:)
+      viewable_by(user).
+        distinct.
+        order(OtherFunder: :asc).
+        pluck(:OtherFunder).
+        map do |funder_other|
+          [
+            funder_other,
+            funder_other,
           ]
         end
     end

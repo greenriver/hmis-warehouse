@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -107,10 +107,6 @@ module GraphqlHelpers
         __typename
       }
     ERRORS
-  end
-
-  def to_gql_input_object(values, klass, current_user: nil)
-    klass.new(nil, context: { current_user: current_user }, defaults_used: Set.new, ruby_kwargs: values)
   end
 
   def expect_gql_error(arr, message: nil)

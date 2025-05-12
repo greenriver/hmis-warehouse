@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,10 @@ module HmisDataQualityTool
     include ArelHelper
     include DqConcern
     acts_as_paranoid
+
+    include HasPiiAttributes
+    pii_attr :first_name
+    pii_attr :last_name
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
@@ -50,6 +54,8 @@ module HmisDataQualityTool
             current_living_situation: current_living_situation,
             report: report,
           )
+          next unless item.present?
+
           sections(report).each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
@@ -82,6 +88,8 @@ module HmisDataQualityTool
 
       project = current_living_situation.enrollment.project
       client = current_living_situation.enrollment.client
+      return unless client.present?
+
       report_item = new(
         report_id: report.id,
         current_living_situation_id: current_living_situation.id,

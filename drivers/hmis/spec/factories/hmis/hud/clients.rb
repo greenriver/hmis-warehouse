@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ FactoryBot.define do
     skip_validations { [:all] }
     FirstName { 'Bob' }
     LastName { 'Ross' }
-    DOB { '1999-12-01' }
+    DOB { (Date.current - 24.years).to_fs(:db) }
     transient do
       with_enrollment_at { nil }
     end
@@ -36,7 +36,7 @@ FactoryBot.define do
     NameDataQuality { 1 }
     SSN { Faker::IdNumber.valid.gsub(/[^0-9]/, '') }
     SSNDataQuality { 1 }
-    DOB { '1999-12-01' }
+    DOB { (Date.current - 24.years).to_fs(:db) }
     DOBDataQuality { 1 }
     VeteranStatus { [0, 1, 8, 9, 99].sample }
     DateCreated { DateTime.current }
@@ -45,22 +45,36 @@ FactoryBot.define do
       with_custom_client_name { false }
     end
     after(:build) do |client, evaluator|
-      HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", [0, 1].sample) }
-      HudUtility2024.gender_fields.excluding(:GenderNone).each { |f| client.send("#{f}=", [0, 1].sample) }
+      race_attributes = HudUtility2024.races.except('RaceNone').keys.map { |r| [r, [1, 0].sample] }.to_h
+      race_attributes['RaceNone'] = [8, 9, 99].sample if race_attributes.values.sum.zero?
+      client.assign_attributes(race_attributes)
+
+      gender_attributes = HudUtility2024.gender_fields.excluding(:GenderNone).map { |r| [r, [1, 0].sample] }.to_h
+      gender_attributes['GenderNone'] = [8, 9, 99].sample if gender_attributes.values.sum.zero?
+      client.assign_attributes(gender_attributes)
+
       client.build_primary_custom_client_name if evaluator.with_custom_client_name
     end
   end
 
+  # Client that is in the Warehouse destination data source (not the HMIS data source)
+  factory :destination_client, parent: :hmis_hud_base_client do
+    data_source { association :destination_data_source }
+  end
+
+  # WarehouseClient that links the source HMIS client to the destination client
   factory :hmis_warehouse_client, class: 'Hmis::WarehouseClient' do
     data_source { association :hmis_data_source }
-    destination { association :hmis_hud_base_client, data_source: data_source }
+    destination { association :destination_client }
     source { association :hmis_hud_base_client, data_source: data_source }
     sequence(:id_in_source, 100)
   end
 
+  # HMIS Source Client that is linked to a destination client (Via WarehouseClient)
   factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
     after(:create) do |client|
-      create(:hmis_warehouse_client, data_source: client.data_source, source: client)
+      destination = create(:destination_client, personal_id: client.personal_id)
+      create(:hmis_warehouse_client, data_source: client.data_source, source: client, destination: destination)
     end
   end
 end

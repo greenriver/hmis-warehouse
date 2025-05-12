@@ -5,6 +5,7 @@ class WarehouseDbLoad < ActiveRecord::Migration[6.1]
   # Place it in `db/structures/appropriate.sql`
   # Comment out any lines with `ar_internal_metadata`
   # Comment out any lines with `schema_migrations`
+  # Remove the migrations from the appropriate db/*/migrate directory
   # Delete the schema_migrations insert from the bottom of the file
   def up
     GrdaWarehouseBase.connection.execute(IO.read(Rails.root.join('db', 'structures', 'warehouse.sql')))

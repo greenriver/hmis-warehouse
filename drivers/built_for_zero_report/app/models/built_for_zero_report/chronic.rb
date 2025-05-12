@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,7 @@ module BuiltForZeroReport
     alias data chronic
 
     def initialize(start_date, end_date, user:)
-      @chronic = Calculator.new(:chronic_cohort, start_date, end_date, user: user)
+      @chronic = Calculator.new(:chronic_adult_only_cohort, start_date, end_date, user: user)
     end
 
     def self.sub_population_name

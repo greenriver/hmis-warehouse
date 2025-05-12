@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module
   CoreDemographicsReport::RaceCalculations
@@ -22,11 +24,19 @@ module
     end
 
     def race_buckets
-      @race_buckets ||= ::HudUtility2024.races.merge('MultiRacial' => 'Multi-racial', "Don't Know" => "Don't know", 'Prefers not to answer' => 'Prefers not to answer', 'Not Collected' => 'Data not collected').except('RaceNone')
+      @race_buckets ||= ::HudUtility2024.races(multi_racial: true).merge(unknown_race_buckets).except('RaceNone')
+    end
+
+    private def unknown_race_buckets
+      {
+        'Does Not Know' => 'Does Not Know',
+        'Prefers not to answer' => 'Prefers not to answer',
+        'Not Collected' => 'Data not collected',
+      }
     end
 
     def race_count(type, coc_code = base_count_sym)
-      mask_small_population(race_breakdowns(coc_code)[type]&.count&.presence || 0)
+      mask_small_population(client_ids_in_race(type, coc_code)&.count&.presence || 0)
     end
 
     def race_percentage(type, coc_code = base_count_sym)
@@ -41,16 +51,16 @@ module
 
     def race_data_for_export(rows)
       rows['_Race Break'] ||= []
-      rows['*Race'] ||= []
-      rows['*Race'] += ['Race', nil, 'Count', 'Percentage', nil]
+      rows['*Race Overall'] ||= []
+      rows['*Race Overall'] += ['Race Overall', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Race'] += ["#{coc_code} Client"]
-        rows['*Race'] += ["#{coc_code} Percentage"]
+        rows['*Race Overall'] += ["#{coc_code} Client"]
+        rows['*Race Overall'] += ["#{coc_code} Percentage"]
       end
-      rows['*Race'] += [nil]
+      rows['*Race Overall'] += [nil]
       race_buckets.each do |id, title|
-        rows["_Race_data_#{title}"] ||= []
-        rows["_Race_data_#{title}"] += [
+        rows["_Race Overall_data_#{title}"] ||= []
+        rows["_Race Overall_data_#{title}"] += [
           title,
           nil,
           race_count(id),
@@ -58,7 +68,7 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Race_data_#{title}"] += [
+          rows["_Race Overall_data_#{title}"] += [
             race_count(id, coc_code.to_sym),
             race_percentage(id, coc_code.to_sym) / 100,
           ]
@@ -93,7 +103,7 @@ module
           available_coc_codes.each do |coc_code|
             client_coc_scope = GrdaWarehouse::Hud::Client.in_coc(coc_code: coc_code).where(id: distinct_client_ids)
             cache_coc_client = GrdaWarehouse::Hud::Client.new
-            distinct_client_ids.in_coc(coc_code: coc_code).pluck(:client_id).each do |client_id|
+            distinct_client_ids.in_enrollment_coc(coc_code: coc_code).pluck(:client_id).each do |client_id|
               clients[coc_code.to_sym][client_id] = cache_coc_client.race_string(scope_limit: client_coc_scope, include_none_reason: true, destination_id: client_id)
             end
           end

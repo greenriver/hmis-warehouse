@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
@@ -12,13 +14,17 @@ module GrdaWarehouse
     include ClientFileBase
     include ArelHelper
 
+    CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'
+
     mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
+    has_paper_trail
     acts_as_taggable
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
+    belongs_to :consent_revoked_by_user, class_name: 'User', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
@@ -29,6 +35,17 @@ module GrdaWarehouse
 
     validates :data_source, presence: true, if: ->(o) { o.confidential? && o.enrollment_id.blank? }
     validates :enrollment, presence: true, if: ->(o) { o.confidential? && o.data_source_id.blank? }
+
+    # If the attached client_file is changed, clear the active_storage_url
+    # The scheduled task will re-populate it as necessary
+    before_save :clear_active_storage_url
+
+    private def clear_active_storage_url
+      # Only set the URL for S3 storage services
+      return unless Rails.application.config.active_storage.service.in?([:amazon, :minio])
+
+      self.active_storage_url = nil
+    end
 
     scope :confidential, -> do
       where(confidential: true)
@@ -128,12 +145,15 @@ module GrdaWarehouse
     scope :consent_forms, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
-      ).pluck(:id)
-      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
+      consent_form_tagging_ids = Rails.cache.fetch(CONSENT_FORM_TAG_CACHE_KEY, expires_in: 2.minutes) do
+        consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
+        ).pluck(:id)
+
+        ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
 
       where(id: consent_form_tagging_ids)
     end
@@ -141,12 +161,15 @@ module GrdaWarehouse
     scope :non_consent, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
-      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
-      ).pluck(:id)
-      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
+      consent_form_tagging_ids = Rails.cache.fetch(CONSENT_FORM_TAG_CACHE_KEY, expires_in: 2.minutes) do
+        consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name),
+        ).pluck(:id)
+
+        ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
 
       where.not(id: consent_form_tagging_ids)
     end
@@ -154,12 +177,15 @@ module GrdaWarehouse
     scope :verified_homeless_history, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      verified_homeless_history_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name),
-      ).pluck(:id)
-      verified_homeless_history_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: verified_homeless_history_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
+      verified_homeless_history_tagging_ids = Rails.cache.fetch('verified_homeless_history_tagging_ids/tag_ids', expires_in: 2.minutes) do
+        verified_homeless_history_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name),
+        ).pluck(:id)
+
+        ActsAsTaggableOn::Tagging.where(tag_id: verified_homeless_history_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
 
       where(id: verified_homeless_history_tagging_ids)
     end
@@ -167,14 +193,15 @@ module GrdaWarehouse
     scope :recent_ce_self_report_certification, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
-      ce_self_report_certification_tag_ids = ActsAsTaggableOn::Tag.where(
-        name: GrdaWarehouse::AvailableFileTag.ce_self_report_certification.pluck(:name),
-      ).pluck(:id)
+      ce_self_report_certification_tag_ids_tagging_ids = Rails.cache.fetch('ce_self_report_certification_tag_ids_tagging_ids/tag_ids', expires_in: 2.minutes) do
+        ce_self_report_certification_tag_ids = ActsAsTaggableOn::Tag.where(
+          name: GrdaWarehouse::AvailableFileTag.ce_self_report_certification.pluck(:name),
+        ).pluck(:id)
 
-      ce_self_report_certification_tag_ids_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: ce_self_report_certification_tag_ids).
-        where(taggable_type: 'GrdaWarehouse::File').
-        pluck(:taggable_id)
-
+        ActsAsTaggableOn::Tagging.where(tag_id: ce_self_report_certification_tag_ids).
+          where(taggable_type: 'GrdaWarehouse::File').
+          pluck(:taggable_id)
+      end
       where(id: ce_self_report_certification_tag_ids_tagging_ids, effective_date: 1.years.ago.to_date..)
     end
 
@@ -221,10 +248,10 @@ module GrdaWarehouse
     ####################
     # Callbacks
     ####################
-    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? }
-    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? }
-    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? }
-    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? }
+    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
+    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? } # rubocop:disable Style/SymbolProc
 
     def should_run_callbacks?
       callbacks_skipped.nil? || ! callbacks_skipped
@@ -298,6 +325,8 @@ module GrdaWarehouse
     end
 
     def set_client_consent
+      # Invalidate consent form tag cache before we check for consent forms
+      Rails.cache.delete(CONSENT_FORM_TAG_CACHE_KEY)
       # If the client consent is not valid,
       # update client to match file (don't overwrite with blanks)
       #
@@ -394,6 +423,35 @@ module GrdaWarehouse
             ds.id,
           ]
         end
+    end
+
+    def sync_revokation_info(current_user)
+      return unless consent_revoked_at_changed?
+
+      self.consent_revoked_by_user_id = if consent_revoked_at.present?
+        current_user.id
+      else # rubocop:disable Style/EmptyElse
+        nil
+      end
+    end
+
+    def self.maintain_urls
+      where(active_storage_url: nil).find_in_batches do |files|
+        batch = []
+        files.each do |file|
+          next unless file.client_file.attached?
+
+          batch << {
+            id: file.id,
+            active_storage_url: file.client_file&.blob&.url,
+          }
+        rescue StandardError
+          # Ignore errors, in development.  We'll revisit in production
+          # but if we can't find the url, we don't need to populate it
+          raise unless Rails.env.development?
+        end
+        upsert_all(batch, update_only: [:active_storage_url], record_timestamps: false) if batch.any?
+      end
     end
 
     def copy_to_s3!

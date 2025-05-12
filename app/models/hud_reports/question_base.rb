@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,10 +42,13 @@ module HudReports
       remaining_questions = @report.remaining_questions - [self.class.question_number]
       @report.update(remaining_questions: remaining_questions)
     rescue StandardError => e
+      # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
+      # and we'd like to get the backtrace from the original exception
+      raise if Rails.env.test? && e.is_a?(ActiveRecord::StatementInvalid)
+
       sanitized_message = "#{e.message} at #{Rails.backtrace_cleaner.clean(e.backtrace, :all).join('; ')}}"
-      @report.answer(question: self.class.question_number).update(error_messages: sanitized_message, status: 'Failed')
-      @report.update(state: 'Failed')
-      raise e
+      @report.answer(question: self.class.question_number).update!(error_messages: sanitized_message, status: 'Failed')
+      raise
     end
 
     def self.most_recent_answer(user:, report_name:)

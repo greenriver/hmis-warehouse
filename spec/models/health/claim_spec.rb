@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Health::Claim, type: :model do
   let!(:sender) { create(:sender) }
   let!(:patient) { create(:patient) }
+  let!(:patient_referral) { create :current_referral, patient_id: patient.id }
   let!(:ssm) { create(:ssm, patient_id: patient.id, housing_score: 1) }
   let!(:qa1) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.current, force_payable: true) }
   # QA2 is generated, so we retrieve it

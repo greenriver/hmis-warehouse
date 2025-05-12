@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,11 @@ module GrdaWarehouse::CasProjectClientCalculator
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
       client.send(column)
+    end
+
+    # Defer calculation of `days_homeless` to PushClientsToCas
+    def handles_days_homeless?
+      false
     end
 
     def description_for_column(column)
@@ -29,6 +34,10 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     def most_recent_assessment_for_destination(_)
       nil
+    end
+
+    def chronically_homeless_for_cas(client)
+      client.chronically_homeless_for_cas?
     end
   end
 end

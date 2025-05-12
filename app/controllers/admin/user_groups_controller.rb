@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ module Admin
     before_action :set_group, only: [:edit, :update, :destroy]
 
     def index
-      @groups = user_group_scope.order(:name)
+      @groups = user_group_scope.without_source_entity.order(:name)
       @groups = @groups.text_search(params[:q]) if params[:q].present?
       @pagy, @groups = pagy(@groups)
     end
@@ -30,8 +30,13 @@ module Admin
     end
 
     def update
-      @group.update(group_params)
-      @group.save
+      users = User.where(id: group_params[:user_ids])
+      users_to_remove = @group.users - users
+      @group.add(users) # add with paper trail
+      @group.remove(users_to_remove) # destroy with paranoia
+
+      @group.update!(group_params.except(:user_ids)) # update name
+
       respond_with(@group, location: edit_admin_user_group_path(@group))
     end
 

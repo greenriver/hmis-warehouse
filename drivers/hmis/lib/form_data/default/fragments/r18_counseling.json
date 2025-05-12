@@ -3,26 +3,10 @@
   "link_id": "R18",
   "text": "Counseling",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ALL",
-    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-    "parts": [
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HHS: RHY"
-      },
-      {
-        "variable": "projectType",
-        "operator": "NOT_EQUAL",
-        "value": 4
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R18.1",
+      "link_id": "R18_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Counseling received by client",
@@ -34,11 +18,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R18.1.conditionals",
+      "link_id": "R18_1_conditionals",
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "R18.1",
+          "question": "R18_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -46,7 +30,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "R18.A",
+          "link_id": "R18_A",
           "required": false,
           "warn_if_empty": true,
           "repeats": true,
@@ -59,7 +43,7 @@
         },
         {
           "type": "INTEGER",
-          "link_id": "R18.B",
+          "link_id": "R18_B",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of sessions received by exit",
@@ -72,7 +56,7 @@
     },
     {
       "type": "INTEGER",
-      "link_id": "R18.2",
+      "link_id": "R18_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Total number of sessions planned in youth's treatment or service plan",
@@ -82,7 +66,7 @@
       }
     },
     {
-      "link_id": "R18.3",
+      "link_id": "R18_3",
       "type": "CHOICE",
       "pick_list_reference": "NoYesMissing",
       "required": false,

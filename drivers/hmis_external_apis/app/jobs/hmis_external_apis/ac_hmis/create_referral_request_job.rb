@@ -1,12 +1,13 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # An HMIS User indicates that there is a vacancy in a program.
 module HmisExternalApis::AcHmis
-  class CreateReferralRequestJob < ApplicationJob
+  class CreateReferralRequestJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
     # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]

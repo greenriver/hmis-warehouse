@@ -1,26 +1,34 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 module ClientLocationHistory
   class ClientsController < ApplicationController
     include ClientController
     include ClientPathGenerator
+    include ClientDependentControllers
+
     before_action :require_can_view_clients!
     before_action :require_can_view_client_locations!
     before_action :set_client
 
     def map
-      @locations = @client.client_location_histories.where(located_on: filter.range)
+      client_ids = [@client.id]
+      # Include any source clients with a location, but make sure we only bring in those that are visible to the current user
+      client_ids += ::GrdaWarehouse::Hud::Client.source_visible_to(current_user, client_ids: @client.source_client_ids).where(id: @client.source_client_ids).pluck(:id) if @client.destination?
+      client_ids = client_ids.uniq
+      @locations = ClientLocationHistory::Location.where(client_id: client_ids, located_on: filter.range)
       @markers = @locations.map(&:as_marker)
       @bounds = ClientLocationHistory::Location.bounds(@locations)
       @markers = ClientLocationHistory::Location.highlight(@markers)
       @options = {
         bounds: @bounds,
         cluster: true,
-        marker_color: '#72A0C1',
+        marker_color: ClientLocationHistory::Location::MARKER_COLOR,
       }
     end
 

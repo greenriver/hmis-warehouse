@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -98,6 +98,14 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
 
     def debug
+      respond_to do |format|
+        format.html {}
+        format.csv do
+          response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+          response.headers['Content-Disposition'] = "attachment; filename=\"#{@report.title}-#{@report.id}-#{Time.current.to_fs(:number)}.csv\""
+          self.response_body = @report.enrollments_as_csv
+        end
+      end
     end
 
     def filter_params

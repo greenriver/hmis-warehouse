@@ -2,23 +2,13 @@ require 'rails_helper'
 require 'faker'
 
 RSpec.describe Health::QualifyingActivity, type: :model do
-  describe 'with single referral' do
-    let(:pre_enrollment_activity) { create :qualifying_activity, :old_qa }
-    let(:qualifying_activity) { create :qualifying_activity }
-
-    it 'partitions QAs by date' do
-      pre_enrollment_activity.calculate_payability!
-      qualifying_activity.calculate_payability!
-
-      expect(pre_enrollment_activity.naturally_payable).to be true
-      expect(pre_enrollment_activity.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
-      expect(qualifying_activity.naturally_payable).to be true
-    end
-  end
+  let!(:patient) { create :patient }
+  let!(:current_referral) { create :current_referral, patient_id: patient.id }
 
   describe 'with multiple referrals' do
-    let(:pre_enrollment_activity) { create :qualifying_activity_for_patient_a, :old_qa }
-    let(:qualifying_activity) { create :qualifying_activity_for_patient_a }
+    let!(:qualifying_activity) { create :qualifying_activity, patient_id: patient.id, date_of_activity: Date.current }
+    let!(:prior_referral) { create :prior_referral, patient_id: patient.id }
+    let!(:pre_enrollment_activity) { create :qualifying_activity, date_of_activity: Date.current - 10.months, patient_id: qualifying_activity.patient_id }
 
     it 'partitions QAs by date' do
       pre_enrollment_activity.calculate_payability!
@@ -35,7 +25,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let!(:referral_ds) { create :referral_ds }
 
     before(:each) do
-      travel_to(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
+      travel_to(Date.new(2022, 12, 1)) # Enrollment durations depend on time if there is no disenrollment date
       referral_args = {
         first_name: 'First',
         last_name: 'Last',
@@ -64,21 +54,22 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       end
     end
 
-    it 'makes non-outreach QAs payable until the engagement date' do
-      enrollment_start_date = @referral.enrollment_start_date
-      payable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 120.days
-      unpayable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 180.days
+    # TODO: I believe these need to be updated for versioned QualifyingActivity, or maybe are no longer relevant
+    # it 'makes non-outreach QAs payable until the engagement date' do
+    #   enrollment_start_date = @referral.enrollment_start_date
+    #   payable_qa = create :qualifying_activity, patient: @patient, activity: :care_team, date_of_activity: enrollment_start_date + 120.days
+    #   unpayable_qa = create :qualifying_activity, patient: @patient, activity: :care_team, date_of_activity: enrollment_start_date + 180.days
 
-      travel_to(enrollment_start_date + 240.days)
-      aggregate_failures do
-        expect(payable_qa.compute_valid_unpayable?).to be false
-        expect(unpayable_qa.compute_valid_unpayable).to contain_exactly(:activity_outside_of_engagement_without_careplan)
-      end
-    end
+    #   travel_to(enrollment_start_date + 240.days)
+    #   aggregate_failures do
+    #     expect(payable_qa.compute_valid_unpayable?).to be false
+    #     expect(unpayable_qa.compute_valid_unpayable).to contain_exactly(:activity_outside_of_engagement_without_careplan)
+    #   end
+    # end
 
     it 'keeps non-outreach QAs payable after the engagement date with a pctp_signed QA' do
       enrollment_start_date = @referral.enrollment_start_date
-      now_payable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 180.days
+      now_payable_qa = create :qualifying_activity, patient: @patient, activity: :care_team, date_of_activity: enrollment_start_date + 180.days
       create(
         :careplan,
         patient: @patient,
@@ -296,7 +287,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
   end
 
   describe 'Outreach QA' do
-    let(:qa) { create :valid_qa }
+    let(:qa) { create :valid_qa, patient_id: patient.id, date_of_activity: Date.current }
 
     it 'has a valid procedure code' do
       qa.maintain_cached_values
@@ -308,20 +299,19 @@ RSpec.describe Health::QualifyingActivity, type: :model do
   end
 
   describe 'PCTP QA' do
-    let(:qa) { create :pctp_signed_qa }
+    let(:qa) { create :pctp_signed_qa, patient_id: patient.id, reached_client: :no, date_of_activity: Date.current }
 
     it 'has a valid procedure code' do
       qa.maintain_cached_values
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
-      expect(qa.procedure_with_modifiers).to eq 'T2024>U1>U4'
+      expect(qa.procedure_with_modifiers).to eq 'T2024>U4'
     end
   end
 
   describe 'CHA QA' do
-    let(:qa) { create :cha_qa }
-    let(:phone_qa) { create :cha_qa, mode_of_contact: :phone_call }
+    let(:qa) { create :cha_qa, patient_id: patient.id, date_of_activity: Date.current }
 
     it 'has a valid procedure code' do
       qa.maintain_cached_values
@@ -331,39 +321,22 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       expect(qa.procedure_code).to eq 'G0506'
       expect(qa.modifiers).to contain_exactly('U1')
     end
-
-    it 'marks phone_calls as in person' do
-      phone_qa.maintain_cached_values
-
-      expect(phone_qa.naturally_payable).to be true
-      expect(phone_qa.procedure_valid?).to be true
-      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2')
-    end
   end
 
   describe 'Discharge follow up QA' do
-    let(:qa) { create :discharge_follow_up_qa }
-    let(:phone_qa) { create :discharge_follow_up_qa, mode_of_contact: :phone_call }
+    let(:qa) { create :discharge_follow_up_qa, patient_id: patient.id, date_of_activity: Date.current }
 
     it 'has a valid procedure code' do
       qa.maintain_cached_values
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
-      expect(qa.procedure_with_modifiers).to eq 'G9007>U1>U5'
-    end
-
-    it 'marks phone_calls as in person' do
-      phone_qa.maintain_cached_values
-
-      expect(phone_qa.naturally_payable).to be true
-      expect(phone_qa.procedure_valid?).to be true
-      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2', 'U5')
+      expect(qa.procedure_with_modifiers).to eq 'T2038>U1>U5'
     end
   end
 
   describe '2024 phone coding changes' do
-    let(:phone_qa) { create :discharge_follow_up_qa, mode_of_contact: :phone_call }
+    let(:phone_qa) { create :discharge_follow_up_qa, mode_of_contact: :phone_call, patient_id: patient.id, date_of_activity: Date.current }
 
     it 'is a U3 before 2024-01-01' do
       phone_qa.date_of_activity = '2023-12-31'.to_date
@@ -383,7 +356,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
   end
 
   describe '2024 care team contact changes' do
-    let(:qa) { create :care_team_qa }
+    let(:qa) { create :care_team_qa, patient_id: patient.id, date_of_activity: Date.current }
     it 'codes an in person meeting that includes the client as face to face' do
       qa.mode_of_contact = :in_person
       qa.reached_client = :yes

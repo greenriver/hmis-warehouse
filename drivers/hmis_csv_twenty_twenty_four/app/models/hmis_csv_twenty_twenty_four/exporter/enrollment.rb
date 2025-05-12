@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,10 +41,6 @@ module HmisCsvTwentyTwentyFour::Exporter
         enrollment_scope.
           modified_within_range(range: (export.start_date..export.end_date))
       end
-      # Limit to the chosen CoC codes if any are specified
-      # Also include any blank records since enrollment.EnrollmentCoC isn't always set correctly
-      filter = export.filter
-      export_scope = export_scope.where(EnrollmentCoC: filter.coc_codes + [nil]) if filter.coc_codes.any?
 
       note_involved_user_ids(scope: export_scope, export: export)
 

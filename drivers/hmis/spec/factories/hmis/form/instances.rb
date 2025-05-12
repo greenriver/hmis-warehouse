@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,10 +12,11 @@ FactoryBot.define do
     system { false }
     transient do
       role { nil }
+      definition_status { nil }
     end
     after(:create) do |instance, evaluator|
       instance.definition.update(role: evaluator.role) if evaluator.role.present?
-      instance.definition.update(identifier: evaluator.definition_identifier) if evaluator.definition_identifier.present?
+      instance.definition.update(status: evaluator.definition_status) if evaluator.definition_status.present?
     end
   end
 end

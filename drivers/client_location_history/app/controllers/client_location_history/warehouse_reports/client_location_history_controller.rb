@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 module ClientLocationHistory::WarehouseReports
   class ClientLocationHistoryController < ApplicationController
@@ -15,18 +17,18 @@ module ClientLocationHistory::WarehouseReports
 
     def index
       ids = ClientLocationHistory::Location.joins(:client).
-        merge(GrdaWarehouse::Hud::Client.destination_visible_to(current_user)).
+        merge(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(current_user)).
         where(located_on: filter.range).
         order(:client_id, located_on: :desc).
         distinct_on(:client_id).pluck(:id)
       @contacts = ClientLocationHistory::Location.where(id: ids).preload(:client)
-      @markers = @contacts.map { |c| c.as_marker_with_name(current_user) }
+      @markers = @contacts.map { |c| c.as_marker(current_user, [:name, :seen_on, :collected_by]) }
       @bounds = ClientLocationHistory::Location.bounds(@contacts)
       @markers = ClientLocationHistory::Location.highlight(@markers)
       @options = {
         bounds: @bounds,
         cluster: true,
-        marker_color: '#72A0C1',
+        marker_color: ClientLocationHistory::Location::MARKER_COLOR,
         link: true,
       }
     end

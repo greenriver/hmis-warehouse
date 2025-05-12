@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility inquiry and contains PHI
@@ -19,6 +21,25 @@ module MedicaidHmisInterchange::Health
     attr_accessor :clients
 
     has_one :medicaid_id_response, dependent: :destroy
+
+    scope :inquiries_between, ->(range) do
+      where(created_at: range)
+    end
+
+    def self.success_rate(date)
+      attempted = 0
+      found = 0
+      inquiries = inquiries_between(date.beginning_of_day .. date.end_of_day).joins(:medicaid_id_response)
+      inquiries.each do |inq|
+        reply = inq.medicaid_id_response
+        attempted += reply.subscribers.count
+        found += reply.matched_subscribers.count
+      end
+      {
+        attempted: attempted,
+        found: found,
+      }
+    end
 
     def build_inquiry_file
       self.inquiry ||= begin

@@ -17,7 +17,7 @@
             %tr
               %td= link_to health_agency.name, edit_admin_health_agency_path(health_agency)
               %td
-                - health_agency.users.each do |user|
+                - health_agency.users.active.each do |user|
                   .health_agency_user= user.name
               %td
                 = link_to admin_health_agency_path(health_agency), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { :confirm => 'Are you sure?' } do

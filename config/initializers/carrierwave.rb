@@ -10,6 +10,7 @@ CarrierWave.configure do |config|
     config.aws_bucket = tmp_bucket
 
     config.aws_credentials = {
+      credentials: Aws::Credentials.new(tmp_access_key, tmp_secret_key),
       access_key_id: tmp_access_key,
       secret_access_key: tmp_secret_key,
       region: ENV.fetch('S3_TMP_REGION'),

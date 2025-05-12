@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,24 +26,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:stub_clearance_results) do
     [
-      HmisExternalApis::AcHmis::MciClearanceResult.new(
-        mci_id: 10,
-        score: 80,
-        client: create(:hmis_hud_client, first_name: 'rita', woman: 1),
-        existing_client_id: 100,
-      ),
-      HmisExternalApis::AcHmis::MciClearanceResult.new(
-        mci_id: 50,
-        score: 90,
-        client: create(:hmis_hud_client, first_name: 'reet', woman: 1, man: 1),
-        existing_client_id: nil,
-      ),
-      HmisExternalApis::AcHmis::MciClearanceResult.new(
-        mci_id: 80,
-        score: 50, # below threshold
-        client: create(:hmis_hud_client),
-        existing_client_id: nil,
-      ),
+      build(:mci_clearance_result, mci_id: '10', score: 80, client: build(:hmis_hud_client, first_name: 'rita', woman: 1), existing_client_id: 100),
+      build(:mci_clearance_result, mci_id: '50', score: 90, client: build(:hmis_hud_client, first_name: 'reet', woman: 1, man: 1)),
+      build(:mci_clearance_result, mci_id: '80', score: 50),
     ]
   end
 
@@ -86,25 +71,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should transform MciClearanceInput into Client with correct values' do
-    client = to_gql_input_object({ **input, gender: [0, 1] }, Types::AcHmis::MciClearanceInput, current_user: hmis_user).to_client
+    attrs = { **input, gender: [0, 1] }
+    client = Types::AcHmis::MciClearanceInput.to_client(attrs, hmis_user)
 
     expect(client.persisted?).to eq(false)
     expect(client.first_name).to eq(input[:first_name])
     expect(client.middle_name).to eq(input[:middle_name])
     expect(client.last_name).to eq(input[:last_name])
+    expect(client.name_data_quality).to eq(1)
     expect(client.ssn).to eq(input[:ssn])
+    expect(client.ssn_data_quality).to eq(1)
     expect(client.dob).to eq(Date.parse(input[:dob]))
+    expect(client.dob_data_quality).to eq(1)
     expect(client.gender_multi).to eq([0, 1])
   end
 
   it 'should transform MciClearanceInput into Client with minimal values' do
-    client = to_gql_input_object({ **input.except(:middle_name, :ssn, :gender) }, Types::AcHmis::MciClearanceInput, current_user: hmis_user).to_client
+    attrs = input.except(:middle_name, :ssn, :gender)
+    client = Types::AcHmis::MciClearanceInput.to_client(attrs, hmis_user)
 
     expect(client.persisted?).to eq(false)
     expect(client.first_name).to eq(input[:first_name])
     expect(client.middle_name).to be nil
     expect(client.last_name).to eq(input[:last_name])
     expect(client.ssn).to be nil
+    expect(client.ssn_data_quality).to eq(99)
     expect(client.dob).to eq(Date.parse(input[:dob]))
     expect(client.gender_multi).to eq([99])
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,9 +23,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c4) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
-  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 99 }
-  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 99 }
-  let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: 2.weeks.ago, relationship_to_ho_h: 99 }
+  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 5 }
+  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 5 }
+  let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: 2.weeks.ago, relationship_to_ho_h: 5 }
   let!(:fd1) do
     ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
       create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
@@ -33,6 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create :hmis_form_definition
   end
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
+  let(:hud_user) { Hmis::Hud::User.from_user(hmis_user) }
 
   before(:each) do
     hmis_login(user)
@@ -63,11 +64,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:save_input) do
     {
       form_definition_id: fd1.id,
-      values: { 'linkid-date' => 2.weeks.ago.strftime('%Y-%m-%d') },
+      values: { 'linkid_date' => 2.weeks.ago.strftime('%Y-%m-%d') },
       hud_values: { 'informationDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
     }
   end
-  let(:incomplete_values) { { **save_input[:values], 'linkid-choice' => nil } }
+  let(:incomplete_values) { { **save_input[:values], 'linkid_choice' => nil } }
 
   let(:save_assessment) do
     <<~GRAPHQL
@@ -89,9 +90,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Submitting multiple saved assessments' do
     # Create 3 WIP Assessments that have saved values
-    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1) }
-    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1) }
-    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1) }
+    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1, created_by_hud_user: hud_user) }
+    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1, created_by_hud_user: hud_user) }
+    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1, created_by_hud_user: hud_user) }
 
     it 'should work' do
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
@@ -112,6 +113,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessments.size).to eq(3)
         expect(Hmis::Hud::CustomAssessment.count).to eq(3)
         expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.pluck(:created_by_hud_user_id).uniq).to contain_exactly(hud_user.id)
+        expect(Hmis::Hud::CustomAssessment.pluck(:user_id).uniq).to contain_exactly(hud_user.user_id)
+        expect(Hmis::Hud::CustomAssessment.pluck(:updated_by_hud_user_id).uniq).to contain_exactly(hud_user.id)
+      end
+    end
+
+    context 'when the assessments are submitted by a different user than the one who first saved them' do
+      let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
+      let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
+      let!(:other_ac) { create_access_control(other_user, p1) }
+      let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
+
+      before(:each) do
+        delete destroy_hmis_user_session_path
+        hmis_login(other_user)
+      end
+
+      it 'should update user and updated_by_user' do
+        input = {
+          submissions: submission_input(a1, a2, a3),
+          confirmed: false,
+        }
+        response, result = post_graphql(input: input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+
+        expect(Hmis::Hud::CustomAssessment.pluck(:created_by_hud_user_id).uniq).to contain_exactly(hud_user.id) # unchanged
+        expect(Hmis::Hud::CustomAssessment.pluck(:user_id).uniq).to contain_exactly(other_hud_user.user_id)
+        expect(Hmis::Hud::CustomAssessment.pluck(:updated_by_hud_user_id).uniq).to contain_exactly(other_hud_user.id)
       end
     end
 
@@ -183,7 +212,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1 }
     let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 1 }
     let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 1 }
-    let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
+    let!(:definition) { create :hmis_intake_assessment_definition }
     let(:input) do
       {
         submissions: submission_input(a1, a2, a3),
@@ -239,7 +268,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 3 }
     let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 3 }
     let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 3 }
-    let(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
+    let!(:definition) { create :hmis_exit_assessment_definition }
     let(:input) do
       {
         submissions: submission_input(a1, a2, a3),

@@ -3,42 +3,10 @@
   "link_id": "R19",
   "text": "Safe and Appropriate Exit",
   "data_collected_about": "HOH_AND_ADULTS",
-  "rule": {
-    "operator": "ANY",
-    "parts": [
-      {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and Homelessness Prevention",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 12
-          }
-        ]
-      },
-      {
-        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 43
-      }
-    ]
-  },
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R19.1",
+      "link_id": "R19_1",
       "required": false,
       "component": "RADIO_BUTTONS",
       "warn_if_empty": true,
@@ -51,7 +19,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.2",
+      "link_id": "R19_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Exit destination safe - as determined by the project/caseworker",
@@ -63,7 +31,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.3",
+      "link_id": "R19_3",
       "required": false,
       "warn_if_empty": true,
       "text": "Client has permanent positive adult connections outside of project",
@@ -75,7 +43,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.4",
+      "link_id": "R19_4",
       "required": false,
       "warn_if_empty": true,
       "text": "Client has permanent positive peer connections outside of project",
@@ -87,7 +55,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R19.5",
+      "link_id": "R19_5",
       "required": false,
       "warn_if_empty": true,
       "text": "Client has permanent positive community connections outside of project",

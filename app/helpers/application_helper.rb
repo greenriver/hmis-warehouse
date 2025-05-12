@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: false
 
 require_relative '../../lib/util/git'
 
@@ -17,6 +19,7 @@ module ApplicationHelper
       current_user.try(permission)
     end
   end
+
   # END Permissions
 
   # Backwards compatible translations for views so we don't have to
@@ -29,25 +32,31 @@ module ApplicationHelper
     ::Menu::Menu.new(user: current_user, context: self).site_menu
   end
 
-  def yes_no(boolean, include_icon: true)
-    case boolean
-    when nil
-      'Not Specified'
+  def yes_no(boolean, include_icon: true, include_content_tag: true)
+    return 'Not Specified' if boolean.nil?
+
+    text = case boolean
     when true, 'Yes'
-      capture do
-        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive' if include_icon
-        concat ' Yes'
-      end
+      'Yes'
     when false, 'No'
-      capture do
-        concat content_tag :span, nil, class: 'icon-cross o-color--danger' if include_icon
-        concat ' No'
-      end
+      'No'
     when 'Refused'
-      capture do
-        concat content_tag :span, nil, class: 'icon-warning o-color--warning' if include_icon
-        concat ' Refused/Unsure'
-      end
+      'Refused/Unsure'
+    end
+    return text unless include_content_tag
+
+    css_classes = case text
+    when 'Yes'
+      'icon-checkmark o-color--positive'
+    when 'No'
+      'icon-cross o-color--danger'
+    when 'Refused/Unsure'
+      'icon-warning o-color--warning'
+    end
+
+    capture do
+      concat content_tag :span, nil, class: css_classes if include_icon
+      concat " #{text}"
     end
   end
 
@@ -119,20 +128,39 @@ module ApplicationHelper
     end
   end
 
+  def hmis_external_link(entity, data_source: entity.data_source, user: nil, wrapper_class: 'text-teeny', text: 'Open in HMIS ', icon_class: 'icon-link-ext', icon_style: nil)
+    path = data_source.hmis_url_for(entity, user: user)
+    return unless path.present?
+
+    capture do
+      content_tag(:div, class: wrapper_class) do
+        content_tag(:a, href: path, target: :_blank) do
+          concat(
+            content_tag(:span, text) +
+            content_tag(:i, '', class: icon_class, style: icon_style),
+          )
+        end
+      end
+    end
+  end
+
   def ssn(number)
     if can_view_full_ssn?
       # pad with leading 0s if we don't have enough characters
       number = number.to_s.rjust(9, '0') if number.present?
-      content_tag :span, number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, '\1-\2-\3')
+      content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, '\1-\2-\3')
     else
       masked_ssn(number)
     end
   end
 
-  def masked_ssn(number)
+  def masked_ssn(number, include_content_tag: true)
     # pad with leading 0s if we don't have enough characters
     number = number.to_s.rjust(9, '0') if number.present?
-    content_tag :span, number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, 'XXX-XX-\3')
+    value = number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
+    return value unless include_content_tag
+
+    content_tag :span, number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
   end
 
   def beautify_option(_key, value)
@@ -233,19 +261,13 @@ module ApplicationHelper
     SimpleCalendar::HomelessService.new(self, options).render(&block)
   end
 
-  # generates a list of HTML snippets representing the names the user is known by in different data sources
-  def client_aliases(client)
-    names = client.client_names(user: current_user, health: true)
-    names.map do |name|
-      sn = name[:ds]
-      id = name[:ds_id]
-      full_name = name[:name]
-      if GrdaWarehouse::Config.get(:multi_coc_installation)
-        content_tag(:div, full_name, class: 'mb-4')
-      else
-        content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
-      end
-    end.uniq
+  # Conditional HTML formatting for client name in different data sources (legacy view code)
+  def render_client_alias(name)
+    if GrdaWarehouse::Config.get(:multi_coc_installation)
+      content_tag(:div, name, class: 'mb-4')
+    else
+      content_tag(:em, name.ds_name, class: "ds-color-#{name.ds_id}") + name
+    end
   end
 
   def human_locale(locale)
@@ -276,9 +298,8 @@ module ApplicationHelper
   end
 
   def branch_info
-    branch_name = `git rev-parse --abbrev-ref HEAD`
     content_tag :div, class: 'navbar-text' do
-      content_tag :span, branch_name, class: 'label label-warning'
+      content_tag :span, Git.branch, class: 'label label-warning'
     end
   end
 
@@ -442,12 +463,54 @@ module ApplicationHelper
     }</span>)
   end
 
+  # Renders a paginated list of the items `scope` with pagination controls at the top and bottom.
+  # This method uses the `pagy` gem for pagination and renders the list using a specified partial.
+  #
+  # @param [ActiveRecord::Relation] scope The scope used to fetch the paginated list
+  # @param [String] item_name The singular name of the item being listed, used for messages.
+  # @param [String] list_partial The path to the partial used to render the list items.
+  #
+  # @return [String] HTML markup for the paginated list with controls.
+  #
+  # @example Usage:
+  #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
+  #
+  def render_paginated_list(scope:, item_name:, list_partial:)
+    pagy, list = controller.send(:pagy, scope)
+    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial)
+  end
+
+  # Renders a paginated list of the items in `list` with pagination controls at the top and bottom based
+  # on the `pagy` param. This is useful when you've already paginated the list (in the controller).
+  # For simpler cases, see render_paginated_list
+  #
+  # @param [Pagy] pagy The Pagy object for pagination.
+  # @param [Array] list The list of items to render.
+  # @param [String] item_name The singular name of the item being listed, used for messages.
+  # @param [String] list_partial The path to the partial used to render the list items.
+  #
+  # @return [String] HTML markup for the paginated list with controls.
+  #
+  # @example Usage:
+  #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
+  #
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:)
+    return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
+
+    capture do
+      concat render('common/pagination_top', item_name: item_name, pagy: pagy)
+      concat render(list_partial, list: list)
+      concat render('common/pagination_bottom', item_name: item_name, pagy: pagy)
+    end
+  end
+
   def small_population_brackets
     {
       0 => 0..0,
       25 => 1..25,
       50 => 26..50,
-      100 => 51..100,
+      75 => 51..75,
+      100 => 76..100,
       round: 101..,
     }.freeze
   end
@@ -462,5 +525,25 @@ module ApplicationHelper
     else
       bracket.first
     end
+  end
+
+  # page title with optional block
+  # = render_display_title "New Report" do
+  #   = render 'type_warning'
+  def render_display_title(title, &block)
+    content_tag(:div, class: 'o-page__title') do
+      concat(content_tag(:h1, title))
+      concat(capture(&block)) if block_given?
+    end
+  end
+
+  # Provides a generic mechanism to show an action menu if there is more than one item, button, if only one
+  # Expects an array of objects called items in the following format
+  # [{ link_to: { path: '/hud_reports/aprs/new?filter%5Bactive_roi%5D=false...'}, icon: :copy, label: 'Clone report' }, { link_to: { path: '/hud_reports/aprs/111', method: :delete }, icon: :cross, label: 'Delete' }]
+  def action_menu_or_button(items:)
+    return if items.empty?
+    return render('/common/action_menu', items: items) if items.many?
+
+    render('/common/action_button', item: items.sole)
   end
 end

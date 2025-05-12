@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class ClientsController < ApplicationController
   include AjaxModalRails::Controller
@@ -30,6 +32,10 @@ class ClientsController < ApplicationController
 
   def create
     clean_params = client_create_params
+    # Enforce DateCreated and DateUpdated
+    clean_params[:DateCreated] = Time.current
+    clean_params[:DateUpdated] = Time.current
+
     clean_params[:SSN] = clean_params[:SSN]&.gsub(/\D/, '')
     existing_matches = look_for_existing_match(clean_params)
     @bypass_search = false
@@ -43,7 +49,7 @@ class ClientsController < ApplicationController
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)
-    @client = client_source.new(clean_params)
+    @client = client_source.new(clean_params.merge(PersonalID: SecureRandom.uuid.gsub(/-/, '')))
 
     params_valid = validate_new_client_params(clean_params)
 
@@ -66,12 +72,11 @@ class ClientsController < ApplicationController
       client_source.transaction do
         destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
         @client.save
-        @client.update(PersonalID: @client.id)
 
         destination_client = client_source.new(clean_params.
           merge(
             data_source_id: destination_ds_id,
-            PersonalID: @client.id,
+            PersonalID: @client.PersonalID,
             creator_id: current_user.id,
           ))
         destination_client.send_notifications = true
@@ -173,7 +178,7 @@ class ClientsController < ApplicationController
   # Create new warehouse_clients to link source and destination
   # Queue update to service history
   def unmerge
-    to_unmerge = client_params['unmerge']&.reject(&:empty?)
+    to_unmerge = client_params['unmerge']&.reject(&:empty?) # Set of source client ids
     redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
 
     hmis_receiver = client_params['hmis_receiver']
@@ -223,6 +228,7 @@ class ClientsController < ApplicationController
   end
 
   private def client_scope(id: nil)
+    # this is probably not used since it is overridden in the client_access_control driver.
     source_client_ids = nil
     source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: id).pluck(:source_id) if id
     client_source.destination_visible_to(current_user, source_client_ids: source_client_ids).where(id: id)

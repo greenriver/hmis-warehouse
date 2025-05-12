@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::SystemCohorts
   class YouthHoh < CurrentlyHomeless
@@ -15,14 +17,14 @@ module GrdaWarehouse::SystemCohorts
       GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: youth_and_hoh_client_ids)
     end
 
-    private def project_group
-      @project_group ||= ::GrdaWarehouse::Config.get(:youth_hoh_cohort_project_group_id)
+    private def project_group_limiter
+      @project_group_limiter ||= ::GrdaWarehouse::Config.get(:youth_hoh_cohort_project_group_id)
     end
 
     # This is a special case, we limit to youth enrolled in a project
     # that is included in the selected project group (if a project groups is present)
     private def households(hoh_only: false)
-      return super(hoh_only: hoh_only) unless project_group.present?
+      return super(hoh_only: hoh_only) unless project_group_limiter.present?
 
       @households ||= {}.tap do |hh|
         enrollments = GrdaWarehouse::Hud::Enrollment.open_on_date(@processing_date).
@@ -46,17 +48,17 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def project_ids
-      @project_ids ||= GrdaWarehouse::ProjectGroup.where(id: project_group).
+      @project_ids ||= GrdaWarehouse::ProjectGroup.where(id: project_group_limiter).
         joins(:projects).
         pluck(p_t[:id])
     end
 
     private def candidate_enrollments
-      return super unless project_group.present?
+      return super unless project_group_limiter.present?
 
       @candidate_enrollments ||= enrollment_source.
         # homeless. # Not limiting to homeless since we're limiting by project group
-        ongoing(on_date: @processing_date). # who's enrollment is open today
+        ongoing(on_date: @processing_date). # whose enrollment is open today
         with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
         where.not( # who didn't receive a non-homeless (housed) service on the processing date
           client_id: service_history_source.
@@ -69,7 +71,7 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def active_ongoing_homeless_enrollments
-      return super unless project_group.present?
+      return super unless project_group_limiter.present?
 
       enrollment_source.
         # homeless. # Not limiting to homeless since we're limiting by project group
@@ -84,7 +86,7 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def active_client_ids
-      return super unless project_group.present?
+      return super unless project_group_limiter.present?
 
       enrollment_source.
         # homeless. # Not limiting to homeless since we're limiting by project group
@@ -97,7 +99,7 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def with_homeless_enrollment
-      return super unless project_group.present?
+      return super unless project_group_limiter.present?
 
       enrollment_source.
         # homeless. # Not limiting to homeless since we're limiting by project group

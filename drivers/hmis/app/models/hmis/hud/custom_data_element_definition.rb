@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     :text,
     :date,
     :json,
+    :file,
   ].freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -26,11 +27,18 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
   belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
+  validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
   validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
 
   scope :for_type, ->(owner_type) do
     where(owner_type: owner_type)
   end
+
+  scope :for_custom_assessments, -> { for_type(Hmis::Hud::CustomAssessment.sti_name) }
+  scope :for_hud_services, -> { for_type(Hmis::Hud::Service.sti_name) }
+  scope :for_custom_services, -> { for_type(Hmis::Hud::CustomService.sti_name) }
+  scope :for_hud_or_custom_services, -> { for_type([Hmis::Hud::Service.sti_name, Hmis::Hud::CustomService.sti_name]) }
+  scope :for_clients, -> { for_type(Hmis::Hud::Client.sti_name) }
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 end

@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module
   CoreDemographicsReport::OutcomeCalculations
@@ -230,9 +232,9 @@ module
           available_coc_codes.each do |coc_code|
             initialize_outcome_client_counts(clients, coc_code.to_sym)
 
-            clients[:average_los][coc_code.to_sym] = report_scope.distinct.in_coc(coc_code: coc_code).in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(shs_t[:date]).to_set
+            clients[:average_los][coc_code.to_sym] = report_scope.distinct.in_enrollment_coc(coc_code: coc_code).in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(shs_t[:date]).to_set
 
-            report_scope.distinct.in_coc(coc_code: coc_code).
+            report_scope.distinct.in_enrollment_coc(coc_code: coc_code).
               exit_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
               order(first_date_in_program: :desc).
               pluck(:client_id, :destination, :first_date_in_program).
@@ -242,7 +244,7 @@ module
                 set_outcome_exit_client_counts(clients, client_id, destination, coc_code.to_sym)
               end
 
-            report_scope.distinct.in_coc(coc_code: coc_code).
+            report_scope.distinct.in_enrollment_coc(coc_code: coc_code).
               entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
               order(first_date_in_program: :desc).
               pluck(:client_id, :first_date_in_program).

@@ -1,10 +1,18 @@
+# frozen_string_literal: true
+
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# A HUD Report instance, identified by report name (e.g., report_name: 'CE APR - 2020')
+# A HUD Report instance
+#
+# While the model supports STI, this is not commonly used to identify report type. Instead, the report_name is used to
+# indicate the type of report. For example:
+#  - "Annual PATH Report - FY 2024",
+#  - "HMIS Data Quality Report - FY 2024",
+#  - "System Performance Measures - FY 2024"
 module HudReports
   class ReportInstance < GrdaWarehouseBase
     acts_as_paranoid
@@ -22,6 +30,11 @@ module HudReports
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
+    scope :incomplete, -> { where(completed_at: nil) }
+    scope :started, -> { where(state: 'Started') }
+    scope :created_recently, -> { where(created_at: 24.hours.ago .. Time.current) }
+    scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
+    scope :for_report, ->(report_name) { where(report_name: report_name) }
 
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
@@ -30,8 +43,8 @@ module HudReports
         remaining_questions: build_for_questions,
         user_id: filter.user_id,
         project_ids: filter.effective_project_ids,
-        start_date: filter.start.to_date,
-        end_date: filter.end.to_date,
+        start_date: filter.start&.to_date,
+        end_date: filter.end&.to_date,
         coc_codes: filter.coc_codes,
         options: filter.to_h,
       )
@@ -44,9 +57,20 @@ module HudReports
 
       case state
       when 'Waiting'
-        'Queued to start'
+        if job_failed? || related_job.blank?
+          # provide a "fast fail" if the delayed job failed or we can't find one
+          'Failed'
+        else
+          'Queued to start'
+        end
       when 'Started'
         if started_at.present? && started_at < 24.hours.ago
+          'Failed'
+        elsif job_failed?
+          # provide a "fast fail" if the delayed job failed (and we can find one)
+          'Failed'
+        elsif related_job.blank?
+          # if the related delayed job has been deleted, probably because it failed and was cleaned up
           'Failed'
         elsif started_at.present?
           "#{state} at #{started_at}"
@@ -74,6 +98,17 @@ module HudReports
       report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
     end
 
+    private def job_failed?
+      related_job.present? && related_job.failed?
+    end
+
+    def related_job
+      # See if we can find a related job (this is really overloading the jobs_for_class scope, but should work)
+      dj = Delayed::Job.jobs_for_class('RunReportJob').jobs_for_class(id.to_s)
+      # If we didn't find an obvious match, just return nothing
+      dj&.first unless dj.many?
+    end
+
     # Mark a question as started
     #
     # @param question [String] the question name (e.g., 'Q1')
@@ -81,26 +116,25 @@ module HudReports
     # FIXME: maybe a single question column on report_instance to track if this is a single
     # question run or all questions.... Need better start/complete logic
     def start(question, tables)
-      universe(question).update(status: 'Started', metadata: { tables: Array(tables) })
-      start_report if build_for_questions.count == remaining_questions.count
+      universe(question).update!(status: 'Started', metadata: { tables: Array(tables) })
     end
 
     def start_report
-      update(state: 'Started', started_at: Time.current)
+      update!(state: 'Started', started_at: Time.current)
     end
 
     # Mark a question as completed
     #
     # @param question [String] the question name (e.g., 'Question 1')
     def complete(question)
-      universe(question).update(status: 'Completed')
+      universe(question).update!(status: 'Completed')
       complete_report if remaining_questions.empty?
     end
 
     def complete_report
       return if @failed
 
-      update(state: 'Completed', completed_at: Time.current)
+      update!(state: 'Completed', completed_at: Time.current)
     end
 
     def completed_questions
@@ -111,9 +145,14 @@ module HudReports
       state == 'Completed'
     end
 
+    def failed?
+      current_status == 'Failed'
+    end
+
     def running?
       return false if started_at.present? && started_at < 24.hours.ago
       return false if started_at.blank? && created_at < 24.hours.ago
+      return false if failed?
 
       state.in?(['Waiting', 'Started'])
     end
@@ -140,7 +179,11 @@ module HudReports
         first_or_create
     end
 
-    # The universe of clients for a question
+    # The universe of members (such as clients) for a question
+    #
+    # The per-question universe allows us to explain why a given member was not included in a cell; the inverse of
+    # explaining why member was included in a cell using the cell members. As of this writing this universe is not
+    # exposed in the UI
     #
     # @param question [String] the question name (e.g., 'Q1')
     # @return [ReportCell] the universe cell

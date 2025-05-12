@@ -1,8 +1,10 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -17,8 +19,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:enrollments) do
     10.times.map do
-      client = create :hmis_hud_client_complete, data_source: ds1, user: u1
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1
+      hoh_enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1)
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, household_id: hoh_enrollment.household_id)
+
+      # add some services and staff assignments to test n+1 for optional columns
+      3.times { create :hmis_hud_service, data_source: ds1, project: p1, enrollment: hoh_enrollment, user: u1 }
+      3.times { create :hmis_custom_service, data_source: ds1, project: p1, enrollment: hoh_enrollment, user: u1 }
+      3.times { create :hmis_staff_assignment, data_source: ds1, enrollment: hoh_enrollment }
+
+      hoh_enrollment
     end
   end
 
@@ -31,9 +40,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'project households' do
+    # Tests the query fetched from the HMIS frontend Project Households table.
+    # This should be updated periodically to ensure it reflects the current query. The below query and variables are copied from browser dev tools network tab.
     let(:query) do
       <<~GRAPHQL
-        query GetProjectHouseholds($id: ID!, $filters: HouseholdFilterOptions, $sortOrder: HouseholdSortOption, $limit: Int = 10, $offset: Int = 0) {
+          query GetProjectHouseholds($id: ID!, $filters: HouseholdFilterOptions, $sortOrder: HouseholdSortOption, $limit: Int = 10, $offset: Int = 0, $includeStaffAssignment: Boolean = false, $includeMoveInDate: Boolean = false, $includeLastContact: Boolean = false) {
           project(id: $id) {
             id
             households(
@@ -63,6 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ...ProjectEnrollmentsHouseholdClientFields
             __typename
           }
+          ...HouseholdWithStaffAssignments @include(if: $includeStaffAssignment)
           __typename
         }
 
@@ -77,15 +89,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
           enrollment {
             id
+            lockVersion
             entryDate
             exitDate
             inProgress
+            autoExited
+            moveInDate @include(if: $includeMoveInDate)
+            lastContact @include(if: $includeLastContact) {
+              contactDate
+              contactType
+              __typename
+            }
             __typename
           }
           __typename
         }
 
         fragment ClientName on Client {
+          id
+          lockVersion
           firstName
           middleName
           lastName
@@ -95,15 +117,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         fragment ClientIdentificationFields on Client {
           id
+          lockVersion
           dob
           age
-          ssn
-          access {
-            id
-            canViewFullSsn
-            canViewPartialSsn
+          gender
+          pronouns
+          __typename
+        }
+
+        fragment HouseholdWithStaffAssignments on Household {
+          id
+          currentStaffAssignments {
+            ...StaffAssignmentDetails
             __typename
           }
+          __typename
+        }
+
+        fragment StaffAssignmentDetails on StaffAssignment {
+          id
+          user {
+            id
+            name
+            __typename
+          }
+          staffAssignmentRelationship
+          assignedAt
+          unassignedAt
           __typename
         }
       GRAPHQL
@@ -121,6 +161,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ],
         },
         "sortOrder": 'MOST_RECENT',
+        "includeStaffAssignment": false,
+        "includeMoveInDate": false,
+        "includeLastContact": false,
       }
     end
 
@@ -149,6 +192,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         _, result = post_graphql({ id: p2.id.to_s, filters: { status: ['ACTIVE', 'INCOMPLETE'] } }) { query }
         expect(Hmis::Hud::Household.where(household_id: '1').count).to eq(1)
         expect(result.dig('data', 'project', 'households', 'nodes').count).to eq(1), result.inspect
+      end
+    end
+
+    describe 'with optional columns' do
+      let(:variables) do
+        {
+          "id": p1.id.to_s,
+          "limit": 10,
+          "offset": 0,
+          "filters": {},
+          "sortOrder": 'MOST_RECENT',
+          "includeStaffAssignment": true,
+          "includeMoveInDate": true,
+          "includeLastContact": true,
+        }
+      end
+
+      it 'minimizes n+1 queries' do
+        expect do
+          _, result = post_graphql(**variables) { query }
+          expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size), result.inspect
+        end.to make_database_queries(count: 10..50) # Query count is high due to optional fields, especially "last contact date". Can maybe optimize further
       end
     end
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ module ClientShowPages
     include ArelHelper
 
     def title_for_show
-      @client.full_name
+      @client.pii_provider(user: current_user).full_name
     end
     alias_method :title_for_edit, :title_for_show
     alias_method :title_for_destroy, :title_for_show

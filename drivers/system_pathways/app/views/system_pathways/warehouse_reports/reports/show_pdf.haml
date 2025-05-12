@@ -11,3 +11,13 @@
   - @pathways_chart.project_type_node_names_with_data.each.with_index do |label, i|
     .mb-8.page-break-avoid
       = render 'node', label: label, i: i, pathways: @pathways_chart
+
+- klass = SystemPathways::Equity
+- equity = klass.new(report: @report, filter: @filter, show_filter: show_filter)
+- equity.known_categories.each do |label, key|
+  = render 'system_pathways/warehouse_reports/reports/pdf/equity/chart_and_table', equity: equity, label: label, key: key, klass: klass
+
+- klass = SystemPathways::TimeChart
+- time = klass.new(report: @report, filter: @filter, show_filter: show_filter)
+- time.known_categories.each do |label, key|
+  = render 'system_pathways/warehouse_reports/reports/pdf/time/chart_and_table', time: time, label: label, key: key, klass: klass
