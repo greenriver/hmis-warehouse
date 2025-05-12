@@ -50,6 +50,7 @@ module Hmis::Ce
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
     scope :active_or_accepted, -> { where.not(status: 'rejected') }
 
+    validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity
 
     state_machine_config column: 'status' do
