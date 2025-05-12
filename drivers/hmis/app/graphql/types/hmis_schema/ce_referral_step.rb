@@ -19,6 +19,7 @@ module Types
     field :submitted_values, JsonObject, null: true
     delegate :name, to: :workflow_task
     field :assignees, [Application::User], null: false, description: 'User(s) currently assigned to this step'
+    field :can_current_user_perform, Boolean, null: false
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
@@ -40,6 +41,13 @@ module Types
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
       workflow_task.form_definitions.published.order(version: :desc).first
+    end
+
+    # Helper for the frontend to determine whether to show buttons for interacting with the step.
+    # That way the logic, which is more complicated for this permission than most, gets to live in only one place.
+    def can_current_user_perform
+      referral = Hmis::Ce::Referral.find_by(workflow_instance: object.instance)
+      referral.user_can_perform_task?(user: current_user, step: object)
     end
 
     private
