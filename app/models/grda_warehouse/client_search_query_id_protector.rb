@@ -11,12 +11,12 @@ module GrdaWarehouse
   # - Ensure URLs cannot be easily guessed or manipulated
   # - Provide a secure method for retrieving search results via encrypted IDs
   #
-  # It uses AES-128-GCM encryption with automatic key management and Base64 URL-safe
+  # It uses AES-256-GCM encryption with automatic key management and Base64 URL-safe
   # encoding for browser compatibility. The encryption key is stored in app_config_properties.
   class ClientSearchQueryIdProtector
     include Singleton
-    CIPHER = 'aes-128-gcm'
-    KEY_LENGTH_BYTES = 16
+    CIPHER = 'aes-256-gcm'
+    KEY_LENGTH_BYTES = 32
 
     def initialize
       @encryptor = build_encryptor
