@@ -67,6 +67,9 @@ class SeedMaker
       # If the role already exists, skip it, we may have adjusted the permissions in the UI
       next if role.persisted? && !reset_permissions
 
+      # Don't add any roles if you already have more than 3 roles (we can manually override with reset_permissions)
+      next if Role.count > 3 && !reset_permissions
+
       # ensure all permissions are false if we are resetting
       if reset_permissions
         Role.permissions_with_descriptions.each_key do |permission|
