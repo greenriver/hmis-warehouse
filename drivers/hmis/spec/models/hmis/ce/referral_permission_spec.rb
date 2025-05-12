@@ -15,6 +15,10 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   let!(:other_referral) { create(:hmis_ce_referral) }
 
+  let!(:ds_access_control) do # overwrite the access control included with the CE spec helper
+    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details])
+  end
+
   describe 'viewable_by scope' do
     it 'does not return any referrals when user has no permission' do
       expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty

@@ -9,8 +9,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_referrals]) }
-
   describe 'ce_referral query' do
     let(:query) do
       <<~GRAPHQL
@@ -86,7 +84,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'returns no referral when user lacks permission' do
         # see additional permission logic testing in the Referral model spec
-        remove_permissions(access_control, :can_view_referrals)
+        remove_permissions(ds_access_control, :can_view_referrals)
 
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
