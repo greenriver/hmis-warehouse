@@ -2,7 +2,9 @@
 
 class CreateClientSearches < ActiveRecord::Migration[7.1]
   def change
-    create_table :client_search_queries do |t|
+    enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+
+    create_table :client_search_queries, id: :uuid do |t|
       t.timestamps
       t.references :created_by, null: false, index: false
       t.jsonb :params, null: false

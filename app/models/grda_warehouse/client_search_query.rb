@@ -7,7 +7,7 @@ module GrdaWarehouse
   # It provides:
   # - Parameter validation and normalization
   # - Fingerprinting based on query content to allow finding existing searches
-  # - ID encryption for secure URL sharing
+  # - Uses UUID primary key for secure URL sharing
   class ClientSearchQuery < GrdaWarehouseBase
     belongs_to :created_by, class_name: 'User'
 
@@ -16,19 +16,6 @@ module GrdaWarehouse
     ALLOWED_CLIENT_PARAMS = ['first_name', 'last_name', 'dob', 'ssn'].freeze
 
     validate :validate_params
-
-    def encrypted_id
-      raise 'Attempt to encrypt NULL id' unless id.present?
-
-      ClientSearchQueryIdProtector.instance.encrypt(id.to_s)
-    end
-
-    def self.find_by_encrypted_id(encrypted_id)
-      id = ClientSearchQueryIdProtector.instance.decrypt(encrypted_id)
-      return nil unless id.present?
-
-      find_by(id: id)
-    end
 
     # @param params [ActionController::Parameters] request params
     # @return [ActionController::Parameters, nil] Permitted parameters or nil if no valid params present

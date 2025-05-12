@@ -16,34 +16,6 @@ RSpec.describe GrdaWarehouse::ClientSearchQuery, type: :model do
     }
   end
 
-  describe '#encrypted_id' do
-    let(:query) { create(:grda_warehouse_client_search_query, created_by: user, params: valid_params) }
-
-    it 'encrypts the database id' do
-      expect(query.encrypted_id).to be_present
-      expect(query.encrypted_id).not_to eq(query.id.to_s)
-    end
-
-    it 'raises an error if id is not present' do
-      query = build(:grda_warehouse_client_search_query, created_by: user, params: valid_params)
-      expect { query.encrypted_id }.to raise_error(/Attempt to encrypt NULL id/)
-    end
-  end
-
-  describe '.find_by_encrypted_id' do
-    let!(:query) { create(:grda_warehouse_client_search_query, created_by: user, params: valid_params) }
-
-    it 'finds a record by its encrypted id' do
-      encrypted = query.encrypted_id
-      found = described_class.find_by_encrypted_id(encrypted)
-      expect(found).to eq(query)
-    end
-
-    it 'returns nil for invalid encrypted ids' do
-      expect(described_class.find_by_encrypted_id('invalid-id')).to be_nil
-    end
-  end
-
   describe '.permit_params' do
     let(:params) { ActionController::Parameters.new(valid_params) }
 

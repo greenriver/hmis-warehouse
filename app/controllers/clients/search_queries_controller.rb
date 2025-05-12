@@ -9,7 +9,7 @@ module Clients
       safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
       query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
       if query.valid?
-        redirect_to client_search_query_path(id: query.encrypted_id)
+        redirect_to client_search_query_path(id: query.id)
       else
         flash[:error] = 'Search query not valid'
         redirect_to clients_path

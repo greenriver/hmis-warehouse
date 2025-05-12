@@ -33,7 +33,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       search_query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
       return handle_invalid_query('Search query not valid') unless search_query.valid?
 
-      redirect_to client_search_query_path(id: search_query.encrypted_id), status: :moved_permanently
+      redirect_to client_search_query_path(id: search_query.id), status: :moved_permanently
     else
       # render empty search
       perform_search
@@ -41,7 +41,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def search
-    search_query = GrdaWarehouse::ClientSearchQuery.find_by_encrypted_id(params[:id])
+    search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:id])
     return handle_invalid_query('Search query not found') if search_query.nil?
 
     search_query.touch
