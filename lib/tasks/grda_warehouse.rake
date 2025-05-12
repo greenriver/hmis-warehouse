@@ -342,7 +342,8 @@ namespace :grda_warehouse do
 
     # Purge old soft-deleted records
     begin
-      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5
+      enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
+      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
     rescue StandardError => e
       Sentry.capture_exception(e)
       Rails.logger.error(e.message)
