@@ -7072,6 +7072,11 @@ enum PickListType {
   DESTINATION
 
   """
+  Current users who can be assigned to referral steps in the specified project
+  """
+  ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS
+
+  """
   Current users who are eligible for staff assignment
   """
   ELIGIBLE_STAFF_ASSIGNMENT_USERS

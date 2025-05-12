@@ -84,6 +84,8 @@ module Types
         staff_assignment_relationships(project)
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
         eligible_staff_assignment_user_picklist(project)
+      when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
+        eligible_referral_step_assignment_user_picklist(project)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -174,12 +176,19 @@ module Types
     def self.eligible_staff_assignment_user_picklist(project)
       return [] unless project&.staff_assignments_enabled?
 
-      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
-        {
-          code: user.id.to_s,
-          label: user.full_name,
-        }
-      end
+      Hmis::User.can_edit_enrollments_for(project).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_hash)
+    end
+
+    def self.eligible_referral_step_assignment_user_picklist(project)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
+
+      Hmis::User.can_perform_any_referral_tasks_for(project).
+        or(Hmis::User.can_perform_own_referral_tasks_for(project)).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_hash).uniq
     end
 
     def self.user_picklist(current_user)

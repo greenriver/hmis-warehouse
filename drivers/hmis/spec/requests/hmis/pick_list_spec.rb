@@ -426,6 +426,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(options.first['code']).to eq(referral_dest_project.id.to_s)
     end
   end
+
+  describe 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS' do
+    let!(:project) { create(:hmis_hud_project, data_source: ds1) }
+
+    let!(:user) { create(:user) }
+    let(:hmis_user) { user.related_hmis_user(ds1) }
+    let!(:ac1) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+    let!(:user2) { create(:user) }
+    let(:hmis_user2) { user2.related_hmis_user(ds1) }
+    let!(:ac2) { create_access_control(hmis_user2, project, with_permission: [:can_perform_own_referral_tasks]) }
+    let!(:user3) { create(:user) }
+    let(:hmis_user3) { user3.related_hmis_user(ds1) } # no access
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    it 'returns eligible users and not ineligible users' do
+      response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', project_id: project.id.to_s) { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options).to contain_exactly(
+        a_hash_including('code' => hmis_user.id.to_s),
+        a_hash_including('code' => hmis_user2.id.to_s),
+      )
+    end
+  end
 end
 
 RSpec.configure do |c|

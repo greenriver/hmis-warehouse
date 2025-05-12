@@ -244,6 +244,13 @@ class Hmis::User < ApplicationRecord
     end
   end
 
+  def to_pick_list_hash
+    {
+      code: id.to_s,
+      label: full_name,
+    }
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
