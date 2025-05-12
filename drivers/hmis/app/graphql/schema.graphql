@@ -881,6 +881,7 @@ type CeReferralStep {
   User(s) currently assigned to this step
   """
   assignees: [ApplicationUser!]!
+  canCurrentUserPerform: Boolean!
   formDefinition: FormDefinition!
 
   """
@@ -9030,6 +9031,7 @@ type Project {
 }
 
 type ProjectAccess {
+  canAssignReferralTasks: Boolean!
   canDeleteAssessments: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteProject: Boolean!
@@ -9041,11 +9043,17 @@ type ProjectAccess {
   canManageIncomingReferrals: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageUnits: Boolean!
+  canPerformAnyReferralTasks: Boolean!
+  canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
+  canStartReferrals: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
+  canViewPrioritizedClientLists: Boolean!
+  canViewReferrals: Boolean!
   canViewUnits: Boolean!
   id: ID!
 }

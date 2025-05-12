@@ -106,6 +106,13 @@ module Types
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
+      can :view_referrals
+      can :view_own_referrals
+      can :start_referrals
+      can :perform_any_referral_tasks
+      can :perform_own_referral_tasks
+      can :assign_referral_tasks
+      can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
