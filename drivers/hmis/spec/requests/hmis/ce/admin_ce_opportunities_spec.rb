@@ -56,11 +56,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    context 'with many opportunities' do
+    context 'with opportunities in multiple data sources' do
+      let!(:opportunity_in_another_data_source) { create :hmis_ce_opportunity }
+
+      it 'does not return opportunities from a different data source' do
+        response, result = post_graphql { query }
+        expect(response.status).to eq(200), result.inspect
+
+        opportunities = result.dig('data', 'ceOpportunities', 'nodes')
+        expect(opportunities).to contain_exactly(a_hash_including('id' => opportunity.id.to_s))
+      end
+    end
+
+    context 'with many projects and opportunities' do
       before do
-        40.times do
+        20.times do
           project = create :hmis_hud_project, data_source: ds1
-          create :hmis_ce_opportunity, project: project
+          2.times do
+            create :hmis_ce_opportunity, project: project
+          end
         end
       end
 
@@ -69,7 +83,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunities', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 7..12)
+        end.to make_database_queries(count: 10..15)
       end
     end
   end

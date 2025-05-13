@@ -27,7 +27,9 @@ module Hmis::Ce
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
 
     # TODO(#7395): permissions
-    scope :viewable_by, ->(_user) { all }
+    scope :viewable_by, ->(user) do
+      joins(:target_project).merge(Hmis::Hud::Project.viewable_by(user))
+    end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
     scope :active_or_accepted, -> { where.not(status: 'rejected') }

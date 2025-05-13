@@ -561,12 +561,12 @@ module Types
     ce_opportunities_field
     def ce_opportunities(**args)
       # TODO(#7506) - gated by admin permission
-      resolve_ce_opportunities(Hmis::Ce::Opportunity.all, **args)
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 
     ce_referrals_field
     def ce_referrals(**args)
-      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
   end
 end
