@@ -1,4 +1,5 @@
 -- rails generate scenic:view hmis_group_viewable_entity_projects --replace
+--TODO
 (
   -- projects
   SELECT

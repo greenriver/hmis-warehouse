@@ -13,6 +13,8 @@ module Hmis
     has_paper_trail
     include ::Hmis::Concerns::HmisArelHelper
 
+    # TODO: we should probably have a data_source_id ref on this table. Doesnt make sense to have cross-DS HMIS project groups.
+
     validates :name, presence: true, uniqueness: true
     # validate :validate_criteria_json
     # TODO validates configuration shape
@@ -23,6 +25,10 @@ module Hmis
 
     # GroupViewableEntities that are associated with this project group
     has_many :hmis_group_viewable_entities, -> { where(entity_type: 'Hmis::ProjectGroup') }, class_name: 'Hmis::GroupViewableEntity', foreign_key: :entity_id
+
+    # go through view? do we need these?
+    # has_many :group_viewable_entity_projects
+    # has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
     scope :viewable_by, ->(user) do
       # We will likely expand visibility of project groups later, for now only HMIS admins can see them.
