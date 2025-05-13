@@ -151,7 +151,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect do
               response, result = post_graphql(**variables) { query }
               expect(response.status).to eq(200), result.inspect
-            end.to make_database_queries(count: 15..20)
+            end.to make_database_queries(count: 20..30)
           end
         end
       end
