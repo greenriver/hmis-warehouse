@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]

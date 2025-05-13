@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class AddFy2026Columns < ActiveRecord::Migration[7.1]
   def change
     add_column :Client, :Sex, :integer
