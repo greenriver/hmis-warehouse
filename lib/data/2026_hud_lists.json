@@ -472,10 +472,6 @@
         "description": "HUD: ESG - Street Outreach"
       },
       {
-        "key": 12,
-        "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
-      },
-      {
         "key": 13,
         "description": "HUD: HOPWA - Hotel/Motel Vouchers"
       },
@@ -598,18 +594,6 @@
       {
         "key": 46,
         "description": "Local or Other Funding Source"
-      },
-      {
-        "key": 47,
-        "description": "HUD: ESG - CV"
-      },
-      {
-        "key": 48,
-        "description": "HUD: HOPWA - CV"
-      },
-      {
-        "key": 49,
-        "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
       },
       {
         "key": 50,
@@ -2542,52 +2526,6 @@
       {
         "key": 4,
         "description": "Four or more times"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "Gender",
-    "code": "3.6.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "Woman (Girl, if child)"
-      },
-      {
-        "key": 1,
-        "description": "Man (Boy, if child)"
-      },
-      {
-        "key": 2,
-        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
-      },
-      {
-        "key": 4,
-        "description": "Non-Binary"
-      },
-      {
-        "key": 5,
-        "description": "Transgender"
-      },
-      {
-        "key": 6,
-        "description": "Questioning"
-      },
-      {
-        "key": 3,
-        "description": "Different Identity"
       },
       {
         "key": 8,

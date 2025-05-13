@@ -9,7 +9,7 @@
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 module Concerns::HudLists2026
   extend ActiveSupport::Concern
-  class_methods do
+  #class_methods do
     # 1.1
     def period_types
       {
@@ -678,7 +678,6 @@ module Concerns::HudLists2026
         9 => 'HUD: ESG - Homelessness Prevention',
         10 => 'HUD: ESG - Rapid Rehousing',
         11 => 'HUD: ESG - Street Outreach',
-        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
         13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
         14 => 'HUD: HOPWA - Housing Information',
         15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
@@ -710,9 +709,6 @@ module Concerns::HudLists2026
         44 => 'HUD: CoC - Joint Component TH/RRH',
         45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
         46 => 'Local or Other Funding Source',
-        47 => 'HUD: ESG - CV',
-        48 => 'HUD: HOPWA - CV',
-        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
         50 => 'HUD: HOME',
         51 => 'HUD: HOME (ARP)',
         52 => 'HUD: PIH (Emergency Housing Voucher)',
@@ -898,26 +894,6 @@ module Concerns::HudLists2026
 
     def relationship_to_hoh(id, reverse = false, raise_on_missing: false)
       _translate(relationships_to_hoh, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # 3.6.1
-    def genders
-      {
-        0 => 'Woman (Girl, if child)',
-        1 => 'Man (Boy, if child)',
-        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
-        4 => 'Non-Binary',
-        5 => 'Transgender',
-        6 => 'Questioning',
-        3 => 'Different Identity',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def gender(id, reverse = false, raise_on_missing: false)
-      _translate(genders, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917
@@ -2607,5 +2583,5 @@ module Concerns::HudLists2026
     def race(id, reverse = false, raise_on_missing: false)
       _translate(race_field_name_to_description, id, reverse, raise_on_missing: raise_on_missing)
     end
-  end
+  #end
 end

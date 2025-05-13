@@ -8,9 +8,14 @@
 
 module HudUtility2026
   include ::Concerns::HudValidationUtil
-  include ::Concerns::HudLists2026
 
-  module_function
+  class << self
+    include ::Concerns::HudLists2026
+    # funding_sources => deprecated funding sources
+    # funding_sources_current => actual funding sources from HudLists2026
+    alias_method :funding_sources_current, :funding_sources
+    include HudUtility2026Deprecations
+  end
 
   SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
 
@@ -824,4 +829,7 @@ module HudUtility2026
       '65+' => 65..Float::INFINITY,
     }
   end
+
+
+
 end
