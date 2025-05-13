@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -20,7 +22,7 @@ module Admin::Health
           direction: @direction,
         ).to_sql,
       )
-      @patients = @patients.text_search(params[:q]) if params[:q].present?
+      @patients = @patients.text_search(params[:q], patient_scope: @patients) if params[:q].present?
       @pagy, @patients = pagy(@patients, items: 50)
     end
 

@@ -10,12 +10,9 @@
 module HmisExternalApis::AcHmis
   class DataWarehouseUploadJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-    include NotifierConfig
-
     attr_accessor :state
 
     def perform(methods)
-      setup_notifier("AC Data Warehouse upload (methods: #{methods})")
       if Exporters::DataWarehouseUploader.can_run?
         Rails.logger.info "Running #{methods} DW upload job"
 
@@ -39,11 +36,20 @@ module HmisExternalApis::AcHmis
     rescue StandardError => e
       puts e.message
       self.state = :failed
-      @notifier.ping('Failure in Data Warehouse uploader job', { exception: e })
+      log('Failure in Data Warehouse uploader job', exception: e)
       Rails.logger.fatal e.message
     end
 
     private
+
+    def log(message, exception: nil)
+      if exception
+        Sentry.capture_exception(exception)
+        Rails.logger.error("#{message} #{exception.message}")
+      else
+        Rails.logger.info(message)
+      end
+    end
 
     def known?(method)
       known_methods.include?(method)

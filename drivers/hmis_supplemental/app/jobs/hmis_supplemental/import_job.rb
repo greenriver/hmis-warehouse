@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisSupplemental::ImportJob < BaseJob
   attr_reader :data_set
 
@@ -13,7 +15,6 @@ class HmisSupplemental::ImportJob < BaseJob
     return unless @data_set
 
     csv_string ||= read_csv_from_s3
-
     with_lock do
       values = read_csv_rows(csv_string).
         flat_map { |row| row_values(row) }.
@@ -110,7 +111,10 @@ class HmisSupplemental::ImportJob < BaseJob
 
   def log(message, type: :error)
     Rails.logger.send(type, "#{self.class.name} s3:#{object_key}: #{message}")
-    nil
+
+    return nil unless type == :error
+
+    Sentry.capture_message(message, level: :error)
   end
 
   def parse_csv_string(csv_string)

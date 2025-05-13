@@ -19,7 +19,6 @@ module GrdaWarehouse::Tasks
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
-      @logger = Rails.logger
     end
 
     def run!
@@ -176,9 +175,9 @@ module GrdaWarehouse::Tasks
     def match_existing!
       user = User.setup_system_user
       if GrdaWarehouse::Config.get(:enable_auto_deduplication)
-        @logger.info '=== Starting match_existing! ==='
+        Rails.logger.info '=== Starting match_existing! ==='
       else
-        @logger.info '=== match_existing! not running, auto deduplication is disabled ==='
+        Rails.logger.info '=== match_existing! not running, auto deduplication is disabled ==='
         return
       end
       # candidates now contains a hash keyed on client ids with arrays of destination client ids that will be
@@ -188,7 +187,7 @@ module GrdaWarehouse::Tasks
       # all merges have been checked to confirm they won't exceed the max allowable source clients, and if
       # they would have exceeded the limit, a new group has been added
       candidates = find_merge_candidates_for_match_existing
-      @logger.info "Found #{candidates.size} merge candidates"
+      Rails.logger.info "Found #{candidates.size} merge candidates"
 
       candidates.each_slice(500) do |batch|
         client_lookups = GrdaWarehouse::Hud::Client.where(id: batch.flatten).index_by(&:id)
@@ -202,12 +201,12 @@ module GrdaWarehouse::Tasks
             check_and_mark_previous_candidate_matches(source_id, destination_id)
 
             begin
-              @logger.info "Attempting merge of #{source_id} into #{destination_id}"
+              Rails.logger.info "Attempting merge of #{source_id} into #{destination_id}"
               # merge_from must be called on a destination client, "source" can be a destination or array of source clients
               # This will log an error if the destination does not have at least one source client
               destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current, cleanup: false)
             rescue Exception => e
-              @logger.error "Merge failed: #{e.message}\n#{e.backtrace.join("\n")}"
+              Rails.logger.error "Merge failed: #{e.message}\n#{e.backtrace.join("\n")}"
               Sentry.capture_exception_with_info(
                 e,
                 info: {
@@ -220,7 +219,7 @@ module GrdaWarehouse::Tasks
         end
         ClientCleanupJob.set(priority: 6).perform_later(batch.flatten)
       end
-      @logger.info '=== Completed match_existing! ==='
+      Rails.logger.info '=== Completed match_existing! ==='
       return unless @run_post_processing
 
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
@@ -245,7 +244,7 @@ module GrdaWarehouse::Tasks
         [destination_id, source_id],
       ].each do |pair|
         if previous_candidate_matches.include?(pair)
-          @logger.info "Found previous candidate match: source=#{pair.first} destination=#{pair.last}"
+          Rails.logger.info "Found previous candidate match: source=#{pair.first} destination=#{pair.last}"
           mark_as_accepted(pair.first, pair.last)
         end
       end
@@ -534,7 +533,7 @@ module GrdaWarehouse::Tasks
     private def find_merge_candidates_for_match_existing
       # Never return obvious matches if auto deduplication is disabled
       unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
-        @logger.info 'Auto deduplication disabled, returning empty set'
+        Rails.logger.info 'Auto deduplication disabled, returning empty set'
         return {}
       end
 
@@ -556,14 +555,14 @@ module GrdaWarehouse::Tasks
 
       # Get split history
       all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
-      @logger.info "Found #{all_splits.size} split history records: #{all_splits.inspect}"
+      Rails.logger.info "Found #{all_splits.size} split history records: #{all_splits.inspect}"
 
       # Filter more_than_one_match removing any that were split previously
       all_splits.each do |row|
         sorted_row = row.sort
         next unless more_than_one_match.key?(sorted_row)
 
-        @logger.info "Removing previously split pair: #{sorted_row.inspect}"
+        Rails.logger.info "Removing previously split pair: #{sorted_row.inspect}"
         more_than_one_match.delete(sorted_row)
       end
       candidates = group_merge_chains(more_than_one_match)
@@ -578,7 +577,7 @@ module GrdaWarehouse::Tasks
     private def find_merge_candidates_for_unprocessed
       # Never return obvious matches if auto deduplication is disabled
       unless GrdaWarehouse::Config.get(:enable_auto_deduplication)
-        @logger.info 'Auto deduplication disabled, returning empty set'
+        Rails.logger.info 'Auto deduplication disabled, returning empty set'
         return []
       end
 
