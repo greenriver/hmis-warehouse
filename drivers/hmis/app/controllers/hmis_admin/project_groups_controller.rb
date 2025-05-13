@@ -24,18 +24,24 @@ module HmisAdmin
     end
 
     def create
-      @project_group = project_group_source.new(
-        name: project_group_params[:name],
-      )
+      p = project_group_params
+
+      @project_group = project_group_source.new
+      @project_group.name = p[:name]
+      @project_group.inclusion_criteria = p[:inclusion_criteria].to_json
+      @project_group.exclusion_criteria = p[:exclusion_criteria].to_json
+
+      # Validation failed: Name has already been taken
+
       project_group_source.transaction do
         @project_group.save!
         @project_group.maintain_projects!
+        redirect_to hmis_admin_project_group_path(@project_group), notice: 'Project Group was successfully created.'
       rescue Exception => e
-        flash[:error] = e.message
+        flash[:error] = @project_group.errors.full_messages.join(', ') if @project_group.errors.any?
+        flash[:error] ||= e.message
         render action: :new
-        return
       end
-      respond_with(@project_group, location: edit_hmis_admin_project_group_path(@project_group.id))
     end
 
     def edit
@@ -56,7 +62,8 @@ module HmisAdmin
         @project_group.maintain_projects!
         redirect_to hmis_admin_project_group_path(@project_group), notice: 'Project Group was successfully updated.'
       rescue Exception => e
-        flash[:error] = e.message
+        flash[:error] = @project_group.errors.full_messages.join(', ') if @project_group.errors.any?
+        flash[:error] ||= e.message
         render action: :edit
       end
     end

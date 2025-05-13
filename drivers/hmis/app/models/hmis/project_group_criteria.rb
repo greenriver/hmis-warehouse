@@ -12,6 +12,7 @@ module Hmis
     include ApplicationHelper
     include ActionView::Helpers::TagHelper
     include ActionView::Context
+    include ::Hmis::Concerns::HmisArelHelper
 
     # Define attributes with defaults
     attribute :project_ids, Array, default: []
@@ -44,8 +45,6 @@ module Hmis
     # Update attributes dynamically
     def update(attributes)
       attributes = parse_input(attributes)
-      Rails.logger.info(">>> attributes #{attributes}")
-      # {:project_ids=>["", "88"], :data_source_ids=>[""], :organization_ids=>[""], :project_type_numbers=>[""]}
       attributes.each do |key, value|
         cleaned_value = value.is_a?(Array) ? value.reject(&:blank?) : value
         send("#{key}=", cleaned_value) if ALLOWED_ATTRIBUTES.include?(key)
@@ -68,18 +67,14 @@ module Hmis
       false
     end
 
-    # Effective project IDs based on criteria
+    # Returns a unique list of project IDs that match the criteria defined by this class.
     def effective_project_ids
       ids = []
       ids << Hmis::Hud::Project.hmis.where(id: project_ids).pluck(:id) if project_ids.any?
-      ids << Hmis::Hud::Organization.hmis.joins(:projects).where(id: organization_ids).pluck(:id) if organization_ids.any?
-      ids << GrdaWarehouse::DataSource.hmis.joins(:projects).where(id: data_source_ids).pluck(:id) if data_source_ids.any?
+      ids << Hmis::Hud::Organization.hmis.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
+      ids << ::GrdaWarehouse::DataSource.hmis.joins(:projects).where(id: data_source_ids).pluck(p_t[:id]) if data_source_ids.any?
       ids << Hmis::Hud::Project.hmis.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
       ids.flatten.uniq
-    end
-
-    def self.available_project_type_numbers
-      ::HudUtility2024.project_types.invert
     end
 
     # Describe criteria as HTML
@@ -102,12 +97,15 @@ module Hmis
 
       # Add Data Sources
       if data_source_ids.any?
-        data_source_names = GrdaWarehouse::DataSource.hmis.where(id: data_source_ids).pluck(:name)
+        data_source_names = ::GrdaWarehouse::DataSource.hmis.where(id: data_source_ids).pluck(:name)
         criteria << { label: 'Data Sources', values: data_source_names }
       end
 
       # Add Project Types
-      criteria << { label: 'Project Types', values: project_type_names } if project_type_numbers.any?
+      if project_type_numbers.any?
+        project_type_names = project_type_numbers.uniq.map { |pt| HudUtility2024.project_type(pt.to_i) }
+        criteria << { label: 'Project Types', values: project_type_names }
+      end
 
       # Generate HTML
       criteria_inner = criteria.map do |criterion|
@@ -132,9 +130,8 @@ module Hmis
       content_tag(:div, criteria_inner, class: 'report-parameters-all') # wrap in div for styling
     end
 
-    # Get project type names
-    def project_type_names
-      project_type_numbers.uniq.map { |pt| HudUtility2024.project_type(pt.to_i) }
+    def self.available_project_type_numbers
+      ::HudUtility2024.project_types.invert
     end
 
     private
