@@ -3854,48 +3854,6 @@
     ]
   },
   {
-    "name": "SexualOrientation",
-    "code": "R3.1",
-    "values": [
-      {
-        "key": 1,
-        "description": "Heterosexual"
-      },
-      {
-        "key": 2,
-        "description": "Gay"
-      },
-      {
-        "key": 3,
-        "description": "Lesbian"
-      },
-      {
-        "key": 4,
-        "description": "Bisexual"
-      },
-      {
-        "key": 5,
-        "description": "Questioning / unsure"
-      },
-      {
-        "key": 6,
-        "description": "Other"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "LastGradeCompleted",
     "code": "R4.1",
     "values": [

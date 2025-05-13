@@ -109,4 +109,24 @@ module HudUtility2026Deprecations
   def gender(id, reverse = false, raise_on_missing: false)
     _translate(genders, id, reverse, raise_on_missing: raise_on_missing)
   end
+
+  # HUD 2024 sexual_orientations (retired field)
+  # R3.1
+  def sexual_orientations
+    {
+      1 => 'Heterosexual',
+      2 => 'Gay',
+      3 => 'Lesbian',
+      4 => 'Bisexual',
+      5 => 'Questioning / unsure',
+      6 => 'Other',
+      8 => "Client doesn't know",
+      9 => 'Client prefers not to answer',
+      99 => 'Data not collected',
+    }.freeze
+  end
+
+  def sexual_orientation(id, reverse = false, raise_on_missing: false)
+    _translate(sexual_orientations, id, reverse, raise_on_missing: raise_on_missing)
+  end
 end
