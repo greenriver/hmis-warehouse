@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # require 'get_process_mem'
 # Required concerns:
 #   HudReports::Ages
@@ -168,6 +170,8 @@ module HudReports::Households
 
             date = [enrollment.first_date_in_program, @report.start_date].max
             age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
+            report_date = @generator&.filter&.on || enrollment.enrollment.EntryDate
+
             @households[get_hh_id(enrollment)] ||= []
             @households[get_hh_id(enrollment)] << {
               client_id: enrollment.client_id,
@@ -175,6 +179,9 @@ module HudReports::Households
               dob: enrollment.enrollment.client.DOB,
               age: age,
               veteran_status: enrollment.enrollment.client.VeteranStatus,
+              # Chronic status is calculated as of the report date, use the enrollment start date if no report date is provided
+              pit_chronic_status: enrollment.enrollment.chronically_homeless_at_start?(date: report_date),
+              # Chronic status is calculated as of the enrollment start date
               chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
               chronic_detail: enrollment.enrollment.chronically_homeless_at_start,
               relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
