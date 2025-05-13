@@ -7,17 +7,32 @@
 # frozen_string_literal: true
 
 module HudUtility2026
+  # these modules define class methods (essentially extend)
   include ::Concerns::HudValidationUtil
+  include ::Concerns::HudLists2026
 
+  SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
   class << self
-    include ::Concerns::HudLists2026
     # funding_sources => deprecated funding sources
     # funding_sources_current => actual funding sources from HudLists2026
     alias_method :funding_sources_current, :funding_sources
+    def funding_source_current(id, reverse = false, raise_on_missing: false)
+      _translate(funding_sources_current, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    alias_method :ssvf_financial_assistance_options_current, :ssvf_financial_assistance_options
+    def ssvf_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_financial_assistance_options_current, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # bring in deprecated fields and options from previous years
     include HudUtility2026Deprecations
   end
 
-  SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
+  ##
+  # WARNING: all methods below are class-methods due this this line
+  ##
+  module_function
 
   def races(multi_racial: false)
     return race_field_name_to_description unless multi_racial
@@ -829,7 +844,4 @@ module HudUtility2026
       '65+' => 65..Float::INFINITY,
     }
   end
-
-
-
 end

@@ -155,13 +155,11 @@ RSpec.describe HudUtility2026 do
     end
 
     # Test gender method
-    describe '#gender' do
-      let(:genders) { hud_lists.find { |list| list['name'] == 'Gender' } }
-
-      it 'translates between gender codes and descriptions' do
-        genders['values'].each do |value|
-          expect(HudUtility2026.gender(value['key'])).to eq(value['description'])
-          expect(HudUtility2026.gender(value['description'], true)).to eq(value['key'])
+    describe '#gender (deprecated)' do
+      it 'translates between gender codes and descriptions from 2024' do
+        HudUtility2024.genders.each do |key, description|
+          expect(HudUtility2026.gender(key)).to eq(description)
+          expect(HudUtility2026.gender(description, true)).to eq(key)
         end
       end
     end
@@ -172,8 +170,19 @@ RSpec.describe HudUtility2026 do
 
       it 'translates between funding source codes and descriptions' do
         funding_sources['values'].each do |value|
-          expect(HudUtility2026.funding_source(value['key'])).to eq(value['description'])
-          expect(HudUtility2026.funding_source(value['description'], true)).to eq(value['key'])
+          expect(HudUtility2026.funding_source_current(value['key'])).to eq(value['description'])
+          expect(HudUtility2026.funding_source_current(value['description'], true)).to eq(value['key'])
+        end
+      end
+    end
+
+    describe '#ssvf_financial_assistance' do
+      let(:ssvf_financial_assistance) { hud_lists.find { |list| list['name'] == 'SSVFFinancialAssistance' } }
+
+      it 'translates between funding source codes and descriptions' do
+        ssvf_financial_assistance['values'].each do |value|
+          expect(HudUtility2026.ssvf_financial_assistance(value['key'])).to eq(value['description'])
+          expect(HudUtility2026.ssvf_financial_assistance(value['description'], true)).to eq(value['key'])
         end
       end
     end

@@ -9,7 +9,7 @@
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 module Concerns::HudLists2026
   extend ActiveSupport::Concern
-  #class_methods do
+  class_methods do
     # 1.1
     def period_types
       {
@@ -2092,7 +2092,6 @@ module Concerns::HudLists2026
         8 => 'Transportation services: tokens/vouchers',
         9 => 'Transportation services: vehicle repair/maintenance',
         10 => 'Child care',
-        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
         12 => 'General housing stability assistance',
         14 => 'Emergency housing assistance',
         15 => 'Shallow Subsidy - Financial Assistance',
@@ -2583,5 +2582,5 @@ module Concerns::HudLists2026
     def race(id, reverse = false, raise_on_missing: false)
       _translate(race_field_name_to_description, id, reverse, raise_on_missing: raise_on_missing)
     end
-  #end
+  end
 end
