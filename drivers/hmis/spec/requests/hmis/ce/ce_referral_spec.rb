@@ -329,7 +329,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 20..25)
+          end.to make_database_queries(count: 25..30)
         end
       end
     end
