@@ -29,3 +29,13 @@
           %br
       - else
         There are no projects in this group.
+
+      - if HmisEnforcement.hmis_admin_visible?(current_user)
+        - collections = Hmis::AccessGroup.contains(@project_group)
+        %h3.mt-6.mb-4= "Related Collections (#{collections.count})"
+        - if collections.count > 0
+          - collections.sort_by { |g| g.name }.sort.each do |group|
+            = link_to group.name, hmis_admin_group_path(group)
+            %br
+        - else
+          There are no collections associated with this project group.

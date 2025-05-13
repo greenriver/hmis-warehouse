@@ -24,10 +24,6 @@ module Hmis
     # GroupViewableEntities that are associated with this project group
     has_many :hmis_group_viewable_entities, -> { where(entity_type: 'Hmis::ProjectGroup') }, class_name: 'Hmis::GroupViewableEntity', foreign_key: :entity_id
 
-    # NOTE: these are in the app DB
-    has_many :hmis_access_groups, through: :hmis_group_viewable_entities
-    has_many :hmis_access_controls, through: :hmis_access_groups
-
     scope :viewable_by, ->(user) do
       # We will likely expand visibility of project groups later, for now only HMIS admins can see them.
       return all if HmisEnforcement.hmis_admin_visible?(user)

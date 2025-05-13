@@ -2,7 +2,7 @@
 - associated_items = @group.associated_by(associations: associations) if defined?(associations)
 - name = entity[:label] || entity[:placeholder]
 - id = entity[:id] || name.parameterize(separator: '_').to_sym
-
+= associations
 .c-columns__column.j-column{data: {title: name.pluralize}}
   .c-columns__column-header
     %h3.c-columns__column-title=name.pluralize
