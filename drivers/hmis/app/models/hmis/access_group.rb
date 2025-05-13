@@ -111,39 +111,6 @@ class Hmis::AccessGroup < ApplicationRecord
     ).destroy_all
   end
 
-  # Provides a means of showing projects associated through other entities
-  def associated_by(associations:)
-    return [] unless associations.present?
-
-    associations.flat_map do |association|
-      case association
-      when :organization
-        organizations.preload(:projects).map do |org|
-          [
-            org.OrganizationName,
-            org.projects.map(&:ProjectName),
-          ]
-        end
-      when :project_group
-        project_groups.preload(:projects).map do |pg|
-          [
-            pg.name,
-            pg.projects.map(&:ProjectName),
-          ]
-        end
-      when :data_source
-        data_sources.preload(:projects).map do |ds|
-          [
-            ds.name,
-            ds.projects.map(&:ProjectName),
-          ]
-        end
-      else
-        []
-      end
-    end
-  end
-
   def clean_entity_type(key)
     entity_types.keys.detect { |e| e == key.to_sym } || entity_types.keys.first
   end
