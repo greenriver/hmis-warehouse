@@ -16,7 +16,6 @@ module Hmis
 
     # TODO: rename AccessGroup class to `Collection`, update all references
     belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities, foreign_key: :collection_id
-    alias_method access_group collection
 
     belongs_to :entity, polymorphic: true
 
@@ -70,6 +69,10 @@ module Hmis
       where(entity: data_source).
         or(where(entity_type: Hmis::Hud::Project.sti_name, entity_id: project_ids)).
         or(where(entity_type: Hmis::Hud::Organization.sti_name, entity_id: organization_ids))
+    end
+
+    def access_group
+      collection
     end
   end
 end
