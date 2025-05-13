@@ -11,7 +11,7 @@ RSpec.describe HudUtility2026 do
   #
   # Testing strategy:
   # 1. Load the JSON file containing the HUD data lists/codes
-  # 2. For each lookup method in, test both the forward lookup (code to description)
+  # 2. For each lookup method in the HUD lists file, test both the forward lookup (code to description)
   #    and reverse lookup (description to code) where applicable
   # 3. Test utility methods that categorize or transform the HUD data
   #
