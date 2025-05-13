@@ -600,6 +600,14 @@
         "description": "Local or Other Funding Source"
       },
       {
+        "key": 47,
+        "description": "HUD: ESG - CV"
+      },
+      {
+        "key": 48,
+        "description": "HUD: HOPWA - CV"
+      },
+      {
         "key": 49,
         "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
       },
@@ -3340,32 +3348,6 @@
     ]
   },
   {
-    "name": "Sex",
-    "code": "4.21",
-    "values": [
-      {
-        "key": 0,
-        "description": "Female"
-      },
-      {
-        "key": 1,
-        "description": "Male"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "EarlyExitReason",
     "code": "R17.A",
     "values": [
@@ -5330,6 +5312,28 @@
       {
         "key": 13,
         "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "MentalHeathConsultation",
+    "code": "V10",
+    "values": [
+      {
+        "key": 1,
+        "description": "Mental health consultation completed"
+      },
+      {
+        "key": 2,
+        "description": "Mental health consultation being coordinated/arranged with VA provider"
+      },
+      {
+        "key": 3,
+        "description": "Mental health consultation being coordinated/arranged with other provider"
+      },
+      {
+        "key": 4,
+        "description": "Offer declined"
       }
     ]
   },

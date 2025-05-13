@@ -710,6 +710,8 @@ module Concerns::HudLists2026
         44 => 'HUD: CoC - Joint Component TH/RRH',
         45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
         46 => 'Local or Other Funding Source',
+        47 => 'HUD: ESG - CV',
+        48 => 'HUD: HOPWA - CV',
         49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
         50 => 'HUD: HOME',
         51 => 'HUD: HOME (ARP)',
@@ -1184,21 +1186,6 @@ module Concerns::HudLists2026
 
     def referral_result(id, reverse = false, raise_on_missing: false)
       _translate(referral_results, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # 4.21
-    def sexes
-      {
-        0 => 'Female',
-        1 => 'Male',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def sex(id, reverse = false, raise_on_missing: false)
-      _translate(sexes, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 5.03.1
@@ -2009,6 +1996,20 @@ module Concerns::HudLists2026
 
     def discharge_status(id, reverse = false, raise_on_missing: false)
       _translate(discharge_statuses, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # V10
+    def mental_heath_consultations
+      {
+        1 => 'Mental health consultation completed',
+        2 => 'Mental health consultation being coordinated/arranged with VA provider',
+        3 => 'Mental health consultation being coordinated/arranged with other provider',
+        4 => 'Offer declined',
+      }.freeze
+    end
+
+    def mental_heath_consultation(id, reverse = false, raise_on_missing: false)
+      _translate(mental_heath_consultations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.2
