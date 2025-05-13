@@ -1,5 +1,17 @@
 ## HmisCsvTwentyTwentySix README
 
+### Significant Changes since FY2024
+* Column Changes
+  * Client
+    * Removed gender columns (Woman, Man, NonBinary, CulturallySpecific, Transgender, Questioning, DifferentIdentity, GenderNone, DifferentIdentityText)
+    * Added sex column (Sex)
+  * Enrollment
+    * Added V10 MentalHealthConsultation
+    * Removed R3 sexual orientation (SexualOrientation, SexualOrientationOther)
+  * Service
+    * Added InformationDate
+* Introduction of "dry-run" imports.  These will **always** pause for review.
+
 ### Exporter Module
 
 Exporting logic for HMIS CSV files in the 2026 HUD format.

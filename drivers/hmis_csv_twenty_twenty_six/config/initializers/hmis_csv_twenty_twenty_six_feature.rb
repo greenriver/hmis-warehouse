@@ -19,7 +19,8 @@ Rails.application.reloader.to_prepare do
 end
 
 # Reminder: Disable any old versions when moving to 2026
-Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentySix'
+TodoOrDie('Switch to 2026 data lake', by: '2025-10-01')
+# Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentySix'
 
 Rails.application.config.queued_tasks[:hmis_twenty_twenty_six_upgrade_recurring_exports] = -> do
   HmisCsvTwentyTwentySix::Tasks::UpgradeRecurringExports.upgrade!

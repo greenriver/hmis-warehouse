@@ -57,4 +57,26 @@ module HmisCsvTwentyTwentySix
       "HmisCsvTwentyTwentySix::Importer::#{name}".constantize
     end.compact.freeze
   end
+
+  # The following are usually in drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv.rb
+  # but have been duplicated here as the 2026 loader and importer classes are not ready for release
+  def self.loadable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Loader')
+    end
+  end
+
+  def self.importable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Importer')
+    end
+  end
+
+  def self.importable_file_class(name)
+    importable_files["#{name}.csv"]
+  end
+
+  def self.data_lake_file_class(name, phase)
+    "#{HmisCsvTwentyTwentySix}::#{phase}::#{name}".constantize
+  end
 end

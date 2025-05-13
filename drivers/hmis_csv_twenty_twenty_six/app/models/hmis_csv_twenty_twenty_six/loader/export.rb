@@ -6,12 +6,12 @@
 
 # frozen_string_literal: true
 
-module HmisCsvTwentyTwentyFour::Loader
+module HmisCsvTwentyTwentySix::Loader
   class Export < GrdaWarehouse::Hud::Base
     include LoaderConcern
     include ::HmisStructure::Export
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
-    self.table_name = 'hmis_csv_2024_exports'
+    self.table_name = 'hmis_csv_2026_exports'
 
     attr_accessor :file_path
 

@@ -156,7 +156,7 @@ module HmisStructure::Base
       end
     end
 
-    def hmis_table_create_indices!(version: hud_csv_version)
+    def hmis_table_create_indices!(version: hud_csv_version, ignored_indexes: {})
       existing_indices = connection.indexes(table_name).map { |i| [i.name, i.columns] }
       hmis_indices(version: version).each do |columns, details|
         # enforce a short index name
@@ -164,7 +164,10 @@ module HmisStructure::Base
         # name = ([table_name[0..4]+table_name[-4..]] + cols).join('_')
         name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest(columns.join('_'))[0, 4]
         next if existing_indices.include?([name, columns.map(&:to_s)])
+        # these indexes that were deemed unnecessary and should no longer be created
+        next if ignored_indexes[columns.map(&:to_s)]&.include?(table_name)
 
+        puts "creating index on #{table_name} with #{columns.map(&:to_s).join(', ')} class: #{self.name}"
         if details.blank?
           connection.add_index table_name, columns, name: name
         elsif details[:include].present?
