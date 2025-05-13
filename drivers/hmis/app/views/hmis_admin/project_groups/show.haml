@@ -9,20 +9,22 @@
 .row
   .col-sm-6
     .well
-      %h3 Project Group Rules
-      %dl
-        %dt Inclusion Criteria
-        %dd
-          = @project_group.parsed_inclusion_criteria.describe_criteria_as_html
-        %br
-        %dt Exclusion Criteria
-        %dd
-          = @project_group.parsed_exclusion_criteria.describe_criteria_as_html || 'No exclusions'
+      -# %h3.mb-4 Project Group Rules
+      %div.mb-8
+        %h3 Project Inclusion Rules
+        %p
+          Projects matching the following criteria are included in the group.
+        = @project_group.parsed_inclusion_criteria.describe_criteria_as_html
+      %div
+        %h3 Project Exclusion Rules
+        %p
+          Projects matching the following criteria are excluded from the group.
+        = @project_group.parsed_exclusion_criteria.describe_criteria_as_html || 'No exclusions'
   .col-sm-6
     .well
-      %h3.mb-4= "Included Projects (#{@project_group.projects.count})"
-      - if @project_group.projects.count > 0
-        - @project_group.projects.preload(:organization).map { |p| "#{p.organization.organization_name} - #{p.project_name}" }.sort.each do |name|
+      %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"
+      - if @project_group.warehouse_projects.count > 0
+        - @project_group.warehouse_projects.preload(:organization).map { |p| p.organization_and_name(current_user) }.sort.each do |name|
           = name
           %br
       - else
