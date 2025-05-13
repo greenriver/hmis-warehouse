@@ -25,7 +25,7 @@ module HudTwentyTwentyFourToTwentyTwentySix::Kiba
     end
 
     private def update_batch
-      valid_keys = @destination_class.keys_for_migrations(version: '2024')
+      valid_keys = @destination_class.keys_for_migrations(version: '2026')
       @batch.map! do |row|
         row.select { |key, _| key.in?(valid_keys) }
       end

@@ -27,9 +27,8 @@ module HudTwentyTwentyFourToTwentyTwentySix
         model: GrdaWarehouse::Hud::User,
       },
       'Project.csv' => {
-        action: :update,
+        action: :copy,
         model: GrdaWarehouse::Hud::Project,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::Project::Csv,
       },
       'Funder.csv' => {
         action: :copy,
@@ -48,27 +47,12 @@ module HudTwentyTwentyFourToTwentyTwentySix
         model: GrdaWarehouse::Hud::Affiliation,
       },
       'HMISParticipation.csv' => {
-        action: :create,
+        action: :copy,
         model: GrdaWarehouse::Hud::HmisParticipation,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::HmisParticipation::Csv,
-        references: {
-          project: {
-            file: 'Project.csv',
-          },
-          organization: {
-            file: 'Organization.csv',
-          },
-        },
       },
-      'CEParticipation.csv' => { # Create an empty placeholder file, but we aren't populating it..
-        action: :create,
+      'CEParticipation.csv' => {
+        action: :copy,
         model: GrdaWarehouse::Hud::CeParticipation,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::CeParticipation::Csv,
-        references: {
-          project: {
-            file: 'Project.csv',
-          },
-        },
       },
       # Client File
       'Client.csv' => {
@@ -81,26 +65,18 @@ module HudTwentyTwentyFourToTwentyTwentySix
         action: :update,
         model: GrdaWarehouse::Hud::Enrollment,
         transformer: HudTwentyTwentyFourToTwentyTwentySix::Enrollment::Csv,
-        references: {
-          enrollment_coc: {
-            file: 'EnrollmentCoC.csv',
-          },
-        },
       },
       'Exit.csv' => {
-        action: :update,
+        action: :copy,
         model: GrdaWarehouse::Hud::Exit,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::Exit::Csv,
       },
       'IncomeBenefits.csv' => {
-        action: :update,
+        action: :copy,
         model: GrdaWarehouse::Hud::IncomeBenefit,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::IncomeBenefit::Csv,
       },
       'HealthAndDV.csv' => {
-        action: :update,
+        action: :copy,
         model: GrdaWarehouse::Hud::HealthAndDv,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::HealthAndDv::Csv,
       },
       'EmploymentEducation.csv' => {
         action: :copy,
@@ -116,9 +92,8 @@ module HudTwentyTwentyFourToTwentyTwentySix
         transformer: HudTwentyTwentyFourToTwentyTwentySix::Service::Csv,
       },
       'CurrentLivingSituation.csv' => {
-        action: :update,
+        action: :copy,
         model: GrdaWarehouse::Hud::CurrentLivingSituation,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::CurrentLivingSituation::Csv,
       },
       'Assessment.csv' => {
         action: :copy,
@@ -196,7 +171,7 @@ module HudTwentyTwentyFourToTwentyTwentySix
             CSV.open(
               destination_file, 'w',
               write_headers: true,
-              headers: model.hmis_configuration(version: '2024').keys.map(&:to_s)
+              headers: model.hmis_configuration(version: '2026').keys.map(&:to_s)
             ) { |csv| } # Empty block
           end
         end
@@ -204,12 +179,12 @@ module HudTwentyTwentyFourToTwentyTwentySix
     end
 
     def self.header_converter(klass)
-      normalized_klass_keys = klass.hmis_configuration(version: '2022').keys.map { |key| [key.to_s.downcase, key.to_s] }.to_h
+      normalized_klass_keys = klass.hmis_configuration(version: '2026').keys.map { |key| [key.to_s.downcase, key.to_s] }.to_h
       proc { |header| normalized_klass_keys[header.downcase] || header }
     end
 
     def self.destination_headers(target_class)
-      target_class.hmis_configuration(version: '2024').keys.map(&:to_s)
+      target_class.hmis_configuration(version: '2026').keys.map(&:to_s)
     end
   end
 end

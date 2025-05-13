@@ -9,8 +9,7 @@
 module HudTwentyTwentyFourToTwentyTwentySix::Service
   class AddNewColumns
     def process(row)
-      row['FAStartDate'] = nil
-      row['FAEndDate'] = nil
+      row['InformationDate'] = row['DateProvided']
 
       row
     end

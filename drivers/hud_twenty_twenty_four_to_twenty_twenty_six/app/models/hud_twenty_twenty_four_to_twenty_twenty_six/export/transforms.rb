@@ -11,7 +11,6 @@ module HudTwentyTwentyFourToTwentyTwentySix::Export
     def self.transforms(csv: false, db: false, references: {}) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
         HudTwentyTwentyFourToTwentyTwentySix::Export::UpdateCsvVersion,
-        HudTwentyTwentyFourToTwentyTwentySix::Export::AddImplementationId,
       ]
     end
 

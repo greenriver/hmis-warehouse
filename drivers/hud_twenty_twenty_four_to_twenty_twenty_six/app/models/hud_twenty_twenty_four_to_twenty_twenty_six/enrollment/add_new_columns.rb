@@ -9,9 +9,7 @@
 module HudTwentyTwentyFourToTwentyTwentySix::Enrollment
   class AddNewColumns
     def process(row)
-      row['TranslationNeeded'] = nil
-      row['PreferredLanguage'] = nil
-      row['PreferredLanguageDifferent'] = nil
+      row['MentalHealthConsultation'] = nil
 
       row
     end

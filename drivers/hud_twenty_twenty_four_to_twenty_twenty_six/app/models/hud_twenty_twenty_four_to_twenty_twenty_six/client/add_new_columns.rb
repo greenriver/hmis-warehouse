@@ -6,10 +6,10 @@
 
 # frozen_string_literal: true
 
-module HudTwentyTwentyFourToTwentyTwentySix::HealthAndDv
-  class RenameDvSurvivor
+module HudTwentyTwentyFourToTwentyTwentySix::Client
+  class AddNewColumns
     def process(row)
-      row['DomesticViolenceSurvivor'] = row['DomesticViolenceVictim']
+      row['Sex'] = nil
 
       row
     end

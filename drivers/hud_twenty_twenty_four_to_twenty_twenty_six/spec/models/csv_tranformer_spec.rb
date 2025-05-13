@@ -47,3 +47,7 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
     results
   end
 end
+# output:
+# PersonalID,FirstName,MiddleName,LastName,NameSuffix,NameDataQuality,SSN,SSNDataQuality,DOB,DOBDataQuality,Sex,AmIndAKNative,Asian,BlackAfAmerican,HispanicLatinaeo,MidEastNAfrican,NativeHIPacific,White,RaceNone,AdditionalRaceEthnicity,VeteranStatus,YearEnteredService,YearSeparated,WorldWarII,KoreanWar,VietnamWar,DesertStorm,AfghanistanOEF,IraqOIF,IraqOND,OtherTheater,MilitaryBranch,DischargeStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+# input
+# PersonalID,FirstName,MiddleName,LastName,NameSuffix,NameDataQuality,SSN,SSNDataQuality,DOB,DOBDataQuality,AmIndAKNative,Asian,BlackAfAmerican,HispanicLatinaeo,MidEastNAfrican,NativeHIPacific,White,RaceNone,AdditionalRaceEthnicity,Sex,VeteranStatus,YearEnteredService,YearSeparated,WorldWarII,KoreanWar,VietnamWar,DesertStorm,AfghanistanOEF,IraqOIF,IraqOND,OtherTheater,MilitaryBranch,DischargeStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID

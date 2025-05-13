@@ -14,9 +14,3 @@ From within the Rails console:
 <pre>
 HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(<i>source_dir</i>, <i>destination_dir</i>)
 </pre>
-
-#### To Convert DB
-
-From the command line:
-
-`rails driver:hud_twenty_twenty_four_to_twenty_twenty_six:migrate:up`

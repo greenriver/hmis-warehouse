@@ -9,52 +9,7 @@
 module HudTwentyTwentyFourToTwentyTwentySix
   class DbTransformer
     def self.up
-      classes = {
-        HudTwentyTwentyFourToTwentyTwentySix::HmisParticipation::Db => {
-          project: {
-            model: GrdaWarehouse::Hud::Project,
-          },
-          organization: {
-            model: GrdaWarehouse::Hud::Organization,
-          },
-        },
-        HudTwentyTwentyFourToTwentyTwentySix::CeParticipation::Db => {
-          project: {
-            model: GrdaWarehouse::Hud::Project,
-          },
-        },
-        HudTwentyTwentyFourToTwentyTwentySix::Export::Db => {},
-        HudTwentyTwentyFourToTwentyTwentySix::Client::Db => {},
-        HudTwentyTwentyFourToTwentyTwentySix::CurrentLivingSituation::Db => {},
-        HudTwentyTwentyFourToTwentyTwentySix::Enrollment::Db => {
-          enrollment_coc: {
-            model: GrdaWarehouse::Hud::EnrollmentCoc,
-          },
-        },
-        HudTwentyTwentyFourToTwentyTwentySix::Exit::Db => {},
-        HudTwentyTwentyFourToTwentyTwentySix::HealthAndDv::Db => {},
-        HudTwentyTwentyFourToTwentyTwentySix::IncomeBenefit::Db => {},
-        HudTwentyTwentyFourToTwentyTwentySix::Project::Db => {},
-        # HudTwentyTwentyFourToTwentyTwentySix::Service::Db, # Only adds nils, so processing not required
-      }
-
-      if RailsDrivers.loaded.include?(:hmis_csv_importer)
-        classes.merge!(
-          {
-            HudTwentyTwentyFourToTwentyTwentySix::AggregatedEnrollment::Db => {
-              enrollment_coc: {
-                model: GrdaWarehouse::Hud::EnrollmentCoc,
-              },
-            },
-            HudTwentyTwentyFourToTwentyTwentySix::AggregatedExit::Db => {},
-          },
-        )
-      end
-
-      classes.each do |klass, references|
-        puts klass
-        ::Kiba.run(klass.up(references))
-      end
+      # There is no data mapping for FY2026, so no changes to the database needed.
     end
   end
 end

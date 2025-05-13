@@ -10,10 +10,7 @@ module HudTwentyTwentyFourToTwentyTwentySix::Enrollment
   class Transforms
     def self.transforms(csv: false, db: false, references:) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
-        HudTwentyTwentyFourToTwentyTwentySix::Enrollment::AddRentalSubsidyType,
-        [HudTwentyTwentyFourToTwentyTwentySix::Enrollment::MoveEnrollmentCoC, references],
         HudTwentyTwentyFourToTwentyTwentySix::Enrollment::AddNewColumns,
-        HudTwentyTwentyFourToTwentyTwentySix::Enrollment::ChangeLivingSituation, # Done last as it overwrites the old living situation value
       ]
     end
 
