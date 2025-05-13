@@ -50,16 +50,16 @@ module GraphqlApplicationHelper
 
   # Helper to resolve the active enrollment for this client at the specified project on the specified date.
   # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
-  # For efficiency, assume the caller has already verified user permission to see enrollments at the project.
-  #
   # This is in this module because its shared between query and mutation code.
   def load_open_enrollment_for_client(client, project_id:, open_on_date:)
-    # Load all enrollments for the client, skipping visibility check since we'll filter by project below, to avoid n+1
+    # Load all enrollments for the client
     enrollments = load_ar_association(client, :enrollments_with_exits)
 
-    # Filter down by project and date
+    # Filter to only enrollments the user has permission to see;
+    # Filter down to open enrollments in the specified project on the specified date
     enrollments.filter do |en|
-      en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
+      has_permission = current_permission?(permission: :can_view_enrollment_details, entity: en)
+      has_permission && en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
   end
 

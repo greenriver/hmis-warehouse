@@ -203,9 +203,6 @@ module Types
     end
 
     def active_enrollment(project_id:, open_on_date:)
-      project = load_ar_scope(scope: Hmis::Hud::Project, id: project_id)
-      return unless current_permission?(permission: :can_view_project, entity: project) && current_permission?(permission: :can_view_enrollment_details, entity: project)
-
       load_open_enrollment_for_client(
         object,
         project_id: project_id,
