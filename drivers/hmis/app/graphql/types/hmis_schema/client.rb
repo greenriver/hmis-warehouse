@@ -419,7 +419,6 @@ module Types
     end
 
     def eligible_ce_opportunities(**args) # Don't resolve in batch
-      # todo @martha - add spec
       # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
       access_denied! unless current_user.can_view_client_eligible_opportunities?
 
