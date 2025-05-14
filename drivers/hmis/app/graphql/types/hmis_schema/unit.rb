@@ -67,7 +67,7 @@ module Types
 
     def accepting_ce_referrals
       # No additional permission check. If the user can view this unit, they can view the opportunity.
-      # Separately, they may NOT be able to view the referral; but the referral object is not actually resolved here,
+      # They may _not_ be able to view the referral; but the referral object is not actually resolved here,
       # just used to determine whether the unit is currently accepting referrals.
 
       # First check for an existing opportunity. If there is none, or it's already closed, then this unit isn't accepting referrals

@@ -45,6 +45,8 @@ module Types
       referral = load_ar_association(object, :active_or_accepted_referral)
       return if referral.nil?
 
+      # Permission logic lives on the viewable_by scope, so just reuse that here
+      # (even though this field doesn't need to be resolved in batch)
       load_ar_scope(scope: Hmis::Ce::Referral.viewable_by(current_user), id: referral.id)
     end
 

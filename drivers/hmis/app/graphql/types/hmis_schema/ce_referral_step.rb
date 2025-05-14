@@ -43,8 +43,7 @@ module Types
       workflow_task.form_definitions.published.order(version: :desc).first
     end
 
-    # Helper for the frontend to determine whether to show buttons for interacting with the step.
-    # That way the logic, which is more complicated for this permission than most, gets to live in only one place.
+    # Helper for the frontend to determine whether to show buttons for starting/submitting the step.
     def can_current_user_perform
       referral = Hmis::Ce::Referral.find_by(workflow_instance: object.instance)
       referral.user_can_perform_task?(user: current_user, step: object)

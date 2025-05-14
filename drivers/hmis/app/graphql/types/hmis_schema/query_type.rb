@@ -553,6 +553,8 @@ module Types
       raise unless Hmis::Ce.configuration.enabled?
 
       step = Hmis::WorkflowExecution::Step.find(id)
+
+      # Referral permission governs step viewing permission. If you can view a referral, you can view all its steps.
       referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance: step.instance)
       access_denied! unless referral
 
