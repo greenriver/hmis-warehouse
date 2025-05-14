@@ -1,4 +1,5 @@
 -- rails generate scenic:view hmis_group_viewable_entity_projects --replace
+-- V3 changes: add hmis project groups, enabling `Hmis::GroupViewableEntity.where(entity_type: "Hmis::ProjectGroup").last&.projects`
 (
   -- projects
   SELECT
@@ -27,6 +28,22 @@ UNION
     AND "Organization"."OrganizationID" = "Project"."OrganizationID"
   WHERE
     "hmis_group_viewable_entities"."entity_type" = 'Hmis::Hud::Organization'
+    AND "hmis_group_viewable_entities"."deleted_at" IS NULL
+)
+UNION
+(
+  -- projects through project groups
+  SELECT
+    "hmis_group_viewable_entities"."id" AS group_viewable_entity_id,
+    NULL AS organization_id,
+    "hmis_project_project_groups"."project_id" AS project_id
+  FROM
+    "hmis_group_viewable_entities"
+    INNER JOIN "hmis_project_groups" ON "hmis_project_groups"."deleted_at" IS NULL
+    AND "hmis_project_groups"."id" = "hmis_group_viewable_entities"."entity_id"
+    INNER JOIN "hmis_project_project_groups" ON "hmis_project_project_groups"."hmis_project_group_id" = "hmis_project_groups"."id"
+  WHERE
+    "hmis_group_viewable_entities"."entity_type" = 'Hmis::ProjectGroup'
     AND "hmis_group_viewable_entities"."deleted_at" IS NULL
 )
 UNION

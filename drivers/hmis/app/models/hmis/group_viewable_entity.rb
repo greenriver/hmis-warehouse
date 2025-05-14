@@ -15,19 +15,16 @@ module Hmis
     has_paper_trail
 
     # TODO: rename AccessGroup class to `Collection`, update all references
-    belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities, foreign_key: :collection_id
+    belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities
 
     belongs_to :entity, polymorphic: true
 
     has_many :group_viewable_entity_projects
     has_many :projects, through: :group_viewable_entity_projects, source: :project
 
-    # Hmis::GroupViewableEntity.where(entity_type: "Hmis::ProjectGroup").last.projects -- broken without view update
-
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
-    scope :project_groups, -> { where(entity_type: Hmis::ProjectGroup.sti_name) }
 
     scope :includes_project, ->(project) do
       joins(:projects).where(p_t[:id].eq(project.id))
@@ -35,10 +32,6 @@ module Hmis
 
     scope :includes_organization, ->(organization) do
       where(entity: organization).or(includes_data_source(organization.data_source))
-    end
-
-    scope :includes_project_group, ->(project_group) do
-      where(entity: project_group)
     end
 
     scope :includes_data_source, ->(data_source) do
@@ -51,8 +44,6 @@ module Hmis
         includes_project(entity)
       when Hmis::Hud::Organization.name
         includes_organization(entity)
-      when Hmis::Hud::ProjectGroup.name
-        includes_project_group(entity)
       when ::GrdaWarehouse::DataSource.name
         includes_data_source(entity)
       else
