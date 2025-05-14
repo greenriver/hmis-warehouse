@@ -15,6 +15,15 @@ module Hmis::WorkflowExecution
 
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
 
+    # TODO(#7395): permissions
+    scope :viewable_by, ->(_user) { all }
+
+    scope :open, -> { where(status: ['available', 'in_progress']) }
+
+    def open?
+      [:available, :in_progress].include?(status.to_sym)
+    end
+
     # note, step status is not intended to be manipulated outside of the workflow engine
     state_machine_config column: 'status' do
       state :unavailable, initial: true
