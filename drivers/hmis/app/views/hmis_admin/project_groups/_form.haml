@@ -1,8 +1,8 @@
 = f.error_notification
 
-
-- project_list = api_projects_path(selected_project_ids: @project_group.parsed_inclusion_criteria.project_ids, data_source_ids: GrdaWarehouse::DataSource.hmis.pluck(:id))
-- organizations_list = GrdaWarehouse::Hud::Organization.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis).options_for_select(user: current_user)
+-# Project Group must have data source specified. Only allow selecting inclusion criteria for the given data source
+- ds = @project_group.data_source
+- organization_options = GrdaWarehouse::Hud::Organization.where(data_source_id: ds.id).options_for_select(user: current_user)
 
 %div.mb-4
   %h3 Project Group Name
@@ -11,13 +11,13 @@
 %div.mb-4
   %h3 Inclusion Criteria
   = f.simple_fields_for :inclusion_criteria do |ic|
-    = ic.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => project_list }, placeholder: 'Choose Projects'}, label: 'Projects', required: false
-    = ic.input :organization_ids, collection: organizations_list, selected: @project_group.parsed_inclusion_criteria.organization_ids, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations', required: false
+    = ic.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_inclusion_criteria.project_ids, data_source_ids: [ds.id]) }, placeholder: 'Choose Projects'}, label: 'Projects', required: false
+    = ic.input :organization_ids, collection: organization_options, selected: @project_group.parsed_inclusion_criteria.organization_ids, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations', required: false
     = ic.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, selected: @project_group.parsed_inclusion_criteria.project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two, required: false
-    = ic.input :data_source_ids, collection: GrdaWarehouse::DataSource.hmis.options_for_select(user: current_user), selected: @project_group.parsed_inclusion_criteria.data_source_ids, as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources' }, label: 'Data Sources', required: false
+    = ic.input :data_source_ids, collection: GrdaWarehouse::DataSource.where(id: ds.id).options_for_select(user: current_user), selected: @project_group.parsed_inclusion_criteria.data_source_ids, as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources' }, label: 'Data Sources', required: false, hint: 'If selected, all projects in the Data Source will be included in the group.'
 
 %div.mb-4
   %h3 Exclusion Criteria
   = f.simple_fields_for :exclusion_criteria do |ec|
-    = ec.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => project_list }, placeholder: 'Choose Projects'}, label: 'Projects to Exclude', required: false
+    = ec.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_exclusion_criteria.project_ids, data_source_ids: [ds.id]) }, placeholder: 'Choose Projects'}, label: 'Projects to Exclude', required: false
     = ec.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, selected: @project_group.parsed_exclusion_criteria.project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types to Exclude', as: :select_two, required: false

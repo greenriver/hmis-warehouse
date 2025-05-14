@@ -3,7 +3,11 @@
 = render 'breadcrumbs'
 %h1= title
 
-= simple_form_for @project_group, as: :filters, url: hmis_admin_project_groups_path() do |f|
-  = render 'form', f: f
-  .form-actions
-  = f.button :submit, class: 'btn btn-primary', value: 'Create Project Group'
+- data_source_options = GrdaWarehouse::DataSource.hmis.options_for_select(user: current_user)
+.row
+  .col-6
+    = simple_form_for @project_group, as: :filters, url: hmis_admin_project_groups_path() do |f|
+      = f.input :name, label: 'Project Group Name'
+      = f.input :data_source_id, collection: data_source_options, selected: data_source_options.size == 1 ? data_source_options.first.last : nil, as: :select_two, input_html: { placeholder: 'Choose Data Source' }, label: 'Data Source', required: true
+      .form-actions
+      = f.button :submit, class: 'btn btn-primary', value: 'Create Project Group'

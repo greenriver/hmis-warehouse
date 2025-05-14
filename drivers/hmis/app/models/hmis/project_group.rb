@@ -20,6 +20,7 @@ module Hmis
     # TODO validates configuration shape
     # TODO validates project_must_belong_to_hmis_data_source
 
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     has_and_belongs_to_many :projects, class_name: 'Hmis::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
     has_and_belongs_to_many :warehouse_projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
 
@@ -54,6 +55,14 @@ module Hmis
           arel_table[:name].lower.matches("%#{query.downcase}%").
           or(p_t[:ProjectName].lower.matches("%#{query.downcase}%")),
         )
+    end
+
+    def any_inclusion_criteria?
+      JSON.parse(inclusion_criteria).compact_blank.any?
+    end
+
+    def any_exclusion_criteria?
+      JSON.parse(exclusion_criteria || '{}').compact_blank.any?
     end
 
     def parsed_inclusion_criteria= criteria

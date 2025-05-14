@@ -14,7 +14,7 @@ module HmisAdmin
     before_action :set_project_group, only: [:edit, :update, :destroy, :show]
 
     def index
-      @project_groups = Hmis::ProjectGroup.all
+      @project_groups = Hmis::ProjectGroup.all.preload(:data_source, :projects)
       @project_groups = @project_groups.text_search(params[:q]) if params[:q].present?
       @pagy, @project_groups = pagy(@project_groups)
     end
@@ -23,19 +23,17 @@ module HmisAdmin
       @project_group = project_group_source.new
     end
 
+    # When creating a new Project Group, user must specify name and data source. Criteria is set on update only.
     def create
-      p = project_group_params
-
-      @project_group = project_group_source.new
-      @project_group.name = p[:name]
-      @project_group.inclusion_criteria = p[:inclusion_criteria].to_json
-      @project_group.exclusion_criteria = p[:exclusion_criteria].to_json
-
-      # Validation failed: Name has already been taken
+      @project_group = project_group_source.new(
+        name: create_project_group_params[:name],
+        data_source_id: create_project_group_params[:data_source_id],
+        inclusion_criteria: {}.to_json, # empty to start
+      )
+      raise 'must be hmis data source' unless @project_group.data_source.hmis?
 
       project_group_source.transaction do
         @project_group.save!
-        @project_group.maintain_projects!
         redirect_to hmis_admin_project_group_path(@project_group), notice: 'Project Group was successfully created.'
       rescue Exception => e
         flash[:error] = @project_group.errors.full_messages.join(', ') if @project_group.errors.any?
@@ -82,6 +80,13 @@ module HmisAdmin
 
     def set_project_group
       @project_group = Hmis::ProjectGroup.find(params[:id])
+    end
+
+    def create_project_group_params
+      params.require(:filters).permit(
+        :name,
+        :data_source_id,
+      )
     end
 
     def project_group_params
