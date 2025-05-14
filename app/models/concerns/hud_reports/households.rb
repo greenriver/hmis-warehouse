@@ -170,7 +170,8 @@ module HudReports::Households
 
             date = [enrollment.first_date_in_program, @report.start_date].max
             age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
-            report_date = @generator&.filter&.on || enrollment.enrollment.EntryDate
+            report_date = @generator.filter&.on if @generator.respond_to?(:filter) && @generator.filter.present?
+            report_date ||= enrollment.enrollment.EntryDate
 
             @households[get_hh_id(enrollment)] ||= []
             @households[get_hh_id(enrollment)] << {
