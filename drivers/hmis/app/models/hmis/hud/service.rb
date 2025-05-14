@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Service < Hmis::Hud::Base
   self.table_name = :Services
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -17,6 +19,8 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
+  scope :ordered_by_date, -> { where.not(date_provided: nil).order(date_provided: :asc) }
 
   validates_with Hmis::Hud::Validators::ServiceValidator
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -82,6 +84,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
         it 'returns a 200 when visiting various pages' do
           aggregate_failures 'checking pages' do
             get clients_path(q: 'bob')
+            follow_redirect!
             expect(response).to have_http_status(200)
             get(warehouse_reports_path)
             expect(response).to have_http_status(200)

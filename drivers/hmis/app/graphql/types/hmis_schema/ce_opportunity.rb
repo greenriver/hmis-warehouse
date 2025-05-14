@@ -85,7 +85,7 @@ module Types
     end
 
     def categories
-      load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
+      load_ar_association(object, :categories).to_a.sort_by(&:name).map(&:name)
     end
 
     def candidates_generated_at

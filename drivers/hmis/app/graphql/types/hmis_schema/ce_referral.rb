@@ -41,7 +41,7 @@ module Types
       arg :on_current_step_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
-    def steps
+    def steps # Don't resolve in batch
       instance = object.workflow_instance
       steps_by_node_id = instance.steps.index_by(&:node_id)
 
@@ -61,7 +61,8 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client, scope: Hmis::Hud::Client.viewable_by(current_user))
+      # TODO(#7573) - fix n+1, see 'xit' test in drivers/hmis/spec/requests/hmis/ce/project_ce_referrals_spec.rb
+      Hmis::Hud::Client.viewable_by(current_user).find_by(id: object.client_id)
     end
 
     def current_steps

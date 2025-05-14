@@ -28,6 +28,10 @@ module Hmis::WorkflowExecution
       order(:updated_at).order(:id) # Fallback to order by ID so it's determinate
     end
 
+    def open?
+      [:available, :in_progress].include?(status.to_sym)
+    end
+
     # note, step status is not intended to be manipulated outside of the workflow engine
     state_machine_config column: 'status' do
       state :unavailable, initial: true

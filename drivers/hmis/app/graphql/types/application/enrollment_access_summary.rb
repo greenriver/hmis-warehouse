@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Types
   class Application::EnrollmentAccessSummary < Types::BaseObject
     # maps to Hmis::EnrollmentAccessSummary
@@ -47,15 +49,15 @@ module Types
     protected
 
     def enrollment
-      load_ar_association(object, :enrollment, scope: Hmis::Hud::Enrollment.with_deleted)
+      load_ar_association(object, :enrollment)
     end
 
     def project
-      load_ar_association(object, :project, scope: Hmis::Hud::Project.with_deleted)
+      load_ar_association(object, :project)
     end
 
     def client
-      load_ar_association(enrollment, :client, scope: Hmis::Hud::Client.with_deleted) if enrollment
+      load_ar_association(enrollment, :client_including_deleted) if enrollment
     end
   end
 end
