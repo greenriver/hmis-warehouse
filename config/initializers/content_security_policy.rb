@@ -10,7 +10,12 @@ Rails.application.config.content_security_policy do |policy|
   policy.default_src(:self)
   policy.object_src(:none) # Prevents potentially dangerous browser plugins
   policy.base_uri(:self) # Only allows base URLs from your own domain, prevents cross-origin base URL injection
-  policy.form_action(:self) # Protects against form-action hijacking
+  policy.form_action( # Protects against form-action hijacking
+    *[
+      :self,
+      ENV['OKTA_DOMAIN'], # okta auth form redirect location
+    ].compact_blank,
+  )
   policy.frame_ancestors(:none) # Prevents clickjacking attacks (UI redressing attacks)
 
   policy.font_src(
@@ -58,7 +63,7 @@ Rails.application.config.content_security_policy do |policy|
     project_id = uri.path&.split('/')&.last.presence
     raise 'Invalid sentry dsn' unless uri.scheme == 'https' && public_key && host && project_id && project_id =~ /\A\d+\z/
 
-    policy.report_uri = "https://#{host}/api/#{project_id}/security/?sentry_key=#{public_key}"
+    policy.report_uri("https://#{host}/api/#{project_id}/security/?sentry_key=#{public_key}")
   end
 end
 
