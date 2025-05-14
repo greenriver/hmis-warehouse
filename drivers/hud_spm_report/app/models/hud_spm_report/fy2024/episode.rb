@@ -200,6 +200,7 @@ module HudSpmReport::Fy2024
       end
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
+          # FIXME, see #7473
           next unless enrollment.enrollment.present? # Skip if the enrollment has disappeared (e.g., a concurrent import deleted it)
 
           # https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications-September-2023.pdf - p11
@@ -286,6 +287,9 @@ module HudSpmReport::Fy2024
       bed_nights = existing_bed_nights.index_by(&:last)
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
+          # FIXME, see #7473
+          next unless enrollment.enrollment.present? # Skip if the enrollment has disappeared (e.g., a concurrent import deleted it)
+
           # NbN only gets service nights in the report range and within the enrollment period
           first_night = [report_start_date, enrollment.entry_date].max
           last_night = if enrollment.exit_date.present?
