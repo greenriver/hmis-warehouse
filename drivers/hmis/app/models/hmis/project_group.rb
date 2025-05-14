@@ -70,7 +70,7 @@ module Hmis
     end
 
     def parsed_inclusion_criteria
-      @parsed_inclusion_criteria ||= Hmis::ProjectGroupCriteria.new(inclusion_criteria)
+      @parsed_inclusion_criteria ||= Hmis::ProjectGroupCriteria.new(inclusion_criteria, source_data_source_id: data_source_id)
     end
 
     def parsed_exclusion_criteria= criteria
@@ -78,7 +78,7 @@ module Hmis
     end
 
     def parsed_exclusion_criteria
-      @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria)
+      @parsed_exclusion_criteria ||= Hmis::ProjectGroupCriteria.new(exclusion_criteria, source_data_source_id: data_source_id)
     end
 
     def self.maintain_project_lists!
@@ -87,7 +87,7 @@ module Hmis
 
     def maintain_projects!
       # this directly updates the hmis_project_project_groups join table
-      self.projects = Hmis::Hud::Project.hmis.where(id: effective_project_ids)
+      self.projects = Hmis::Hud::Project.hmis.where(data_source_id: data_source_id).where(id: effective_project_ids)
     end
 
     def effective_project_ids

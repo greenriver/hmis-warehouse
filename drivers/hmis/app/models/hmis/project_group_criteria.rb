@@ -14,13 +14,16 @@ module Hmis
     include ActionView::Context
     include ::Hmis::Concerns::HmisArelHelper
 
-    # Define attributes with defaults
+    # Source data source for this project group
+    attribute :source_data_source_id, Integer, default: nil
+
+    # Attributes for filtering
     attribute :project_ids, Array, default: []
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :project_type_numbers, Array, default: []
-    attribute :hmis_participation_status, Integer, default: nil
-    attribute :project_status, String, default: 'all'
+    # attribute :hmis_participation_status, Integer, default: nil
+    # attribute :project_status, String, default: 'all'
 
     # Allowed attributes for validation and updates
     ALLOWED_ATTRIBUTES = [
@@ -28,8 +31,8 @@ module Hmis
       :organization_ids,
       :data_source_ids,
       :project_type_numbers,
-      :hmis_participation_status,
-      :project_status,
+      # :hmis_participation_status,
+      # :project_status,
     ].freeze
 
     # Validations
@@ -37,9 +40,10 @@ module Hmis
     validates :project_status, inclusion: { in: ['open', 'closed', 'all'], allow_nil: true, message: "must be 'open', 'closed', or 'all'" }
 
     # Initialize with a hash or JSON blob
-    def initialize(input = {})
+    def initialize(input = {}, source_data_source_id:)
       super()
       update(input)
+      self.source_data_source_id = source_data_source_id
     end
 
     # Update attributes dynamically
@@ -70,11 +74,23 @@ module Hmis
     # Returns a unique list of project IDs that match the criteria defined by this class.
     def effective_project_ids
       ids = []
-      ids << Hmis::Hud::Project.hmis.where(id: project_ids).pluck(:id) if project_ids.any?
-      ids << Hmis::Hud::Organization.hmis.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
-      ids << ::GrdaWarehouse::DataSource.hmis.joins(:projects).where(id: data_source_ids).pluck(p_t[:id]) if data_source_ids.any?
-      ids << Hmis::Hud::Project.hmis.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
+      ids << project_scope.where(id: project_ids).pluck(:id) if project_ids.any?
+      ids << organization_scope.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
+      ids << data_source_scope.joins(:projects).where(id: data_source_ids).pluck(p_t[:id]) if data_source_ids.any? # user can select data source to include all projects
+      ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
       ids.flatten.uniq
+    end
+
+    def project_scope
+      ::GrdaWarehouse::Hud::Project.where(id: source_data_source_id)
+    end
+
+    def organization_scope
+      ::GrdaWarehouse::Hud::Organization.where(id: source_data_source_id)
+    end
+
+    def data_source_scope
+      ::GrdaWarehouse::DataSource.hmis.where(id: source_data_source_id)
     end
 
     # Describe criteria as HTML
@@ -85,19 +101,19 @@ module Hmis
 
       # Add Projects
       if project_ids.any?
-        project_names = Hmis::Hud::Project.hmis.where(id: project_ids).pluck(:ProjectName)
+        project_names = project_scope.where(id: project_ids).pluck(:ProjectName)
         criteria << { label: 'Projects', values: project_names }
       end
 
       # Add Organizations
       if organization_ids.any?
-        organization_names = Hmis::Hud::Organization.hmis.where(id: organization_ids).pluck(:OrganizationName)
+        organization_names = organization_scope.where(id: organization_ids).pluck(:OrganizationName)
         criteria << { label: 'Organizations', values: organization_names }
       end
 
       # Add Data Sources
       if data_source_ids.any?
-        data_source_names = ::GrdaWarehouse::DataSource.hmis.where(id: data_source_ids).pluck(:name)
+        data_source_names = data_source_scope.where(id: data_source_ids).pluck(:name)
         criteria << { label: 'Data Sources', values: data_source_names }
       end
 
