@@ -35,7 +35,6 @@ module Hmis::Ce
       # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
       base_scope = joins(:target_project).left_outer_joins(:steps).left_outer_joins(steps: :assignments)
 
-      # todo @martha - same question here about project viewable access
       # Projects in which the user can_view_referrals
       access_through_project = base_scope.
         merge(Hmis::Hud::Project.with_access(user, :can_view_referrals))

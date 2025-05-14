@@ -419,10 +419,13 @@ module Types
     end
 
     def eligible_ce_opportunities(**args) # Don't resolve in batch
-      # todo @martha - this will cause merge conflicts, and likely need something like dangerous_skip_permission_check
+      # todo @martha - add spec
+      # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
       access_denied! unless current_user.can_view_client_eligible_opportunities?
 
-      resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), **args)
+      # If so, skip the further permission checks. The global permission gives the user permission to view all
+      # opportunities the client is eligible for, regardless of project-level access to those opportunities.
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), dangerous_skip_permission_check: true, **args)
     end
 
     def ce_referrals(**args)

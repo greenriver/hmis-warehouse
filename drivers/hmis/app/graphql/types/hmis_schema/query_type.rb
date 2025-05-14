@@ -563,10 +563,9 @@ module Types
       step
     end
 
-    # Globally available CE opportunities gated by admin permission
+    # All CE opportunities the user can view, resolved on admin page
     ce_opportunities_field
     def ce_opportunities(**args)
-      # TODO(#7506) - gated by admin permission
       resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 

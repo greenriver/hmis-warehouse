@@ -43,7 +43,6 @@ module Hmis::Ce
     end
 
     scope :viewable_by, ->(user) do
-      # todo @martha - investigate "with_access" should it always be used in conjunction with viewable_by?
       joins(:project).merge(Hmis::Hud::Project.with_access(user, :can_view_units))
     end
 
