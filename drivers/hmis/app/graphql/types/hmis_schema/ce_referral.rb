@@ -61,8 +61,7 @@ module Types
     end
 
     def client
-      # TODO(#7573) - fix n+1, see 'xit' test in drivers/hmis/spec/requests/hmis/ce/project_ce_referrals_spec.rb
-      Hmis::Hud::Client.viewable_by(current_user).find_by(id: object.client_id)
+      load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
 
     def current_steps

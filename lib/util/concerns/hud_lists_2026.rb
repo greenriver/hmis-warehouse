@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
-module Concerns::HudLists2024
+module Concerns::HudLists2026
   extend ActiveSupport::Concern
   class_methods do
     # 1.1
@@ -678,7 +678,6 @@ module Concerns::HudLists2024
         9 => 'HUD: ESG - Homelessness Prevention',
         10 => 'HUD: ESG - Rapid Rehousing',
         11 => 'HUD: ESG - Street Outreach',
-        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
         13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
         14 => 'HUD: HOPWA - Housing Information',
         15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
@@ -710,15 +709,13 @@ module Concerns::HudLists2024
         44 => 'HUD: CoC - Joint Component TH/RRH',
         45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
         46 => 'Local or Other Funding Source',
-        47 => 'HUD: ESG - CV',
-        48 => 'HUD: HOPWA - CV',
-        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
         50 => 'HUD: HOME',
         51 => 'HUD: HOME (ARP)',
         52 => 'HUD: PIH (Emergency Housing Voucher)',
         53 => 'HUD: ESG - RUSH',
         54 => 'HUD: Unsheltered Special NOFO',
         55 => 'HUD: Rural Special NOFO',
+        56 => 'HUD: CoC Builds',
       }.freeze
     end
 
@@ -897,26 +894,6 @@ module Concerns::HudLists2024
 
     def relationship_to_hoh(id, reverse = false, raise_on_missing: false)
       _translate(relationships_to_hoh, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # 3.6.1
-    def genders
-      {
-        0 => 'Woman (Girl, if child)',
-        1 => 'Man (Boy, if child)',
-        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
-        4 => 'Non-Binary',
-        5 => 'Transgender',
-        6 => 'Questioning',
-        3 => 'Different Identity',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def gender(id, reverse = false, raise_on_missing: false)
-      _translate(genders, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917
@@ -1849,25 +1826,6 @@ module Concerns::HudLists2024
       _translate(aftercare_provideds, id, reverse, raise_on_missing: raise_on_missing)
     end
 
-    # R3.1
-    def sexual_orientations
-      {
-        1 => 'Heterosexual',
-        2 => 'Gay',
-        3 => 'Lesbian',
-        4 => 'Bisexual',
-        5 => 'Questioning / unsure',
-        6 => 'Other',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def sexual_orientation(id, reverse = false, raise_on_missing: false)
-      _translate(sexual_orientations, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
     # R4.1
     def last_grade_completeds
       {
@@ -1997,6 +1955,20 @@ module Concerns::HudLists2024
       _translate(discharge_statuses, id, reverse, raise_on_missing: raise_on_missing)
     end
 
+    # V10
+    def mental_heath_consultations
+      {
+        1 => 'Mental health consultation completed',
+        2 => 'Mental health consultation being coordinated/arranged with VA provider',
+        3 => 'Mental health consultation being coordinated/arranged with other provider',
+        4 => 'Offer declined',
+      }.freeze
+    end
+
+    def mental_heath_consultation(id, reverse = false, raise_on_missing: false)
+      _translate(mental_heath_consultations, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
     # V2.2
     def ssvf_services_options
       {
@@ -2009,11 +1981,27 @@ module Concerns::HudLists2024
         7 => 'Shallow Subsidy',
         8 => 'Returning Home',
         9 => 'Rapid Resolution',
+        10 => 'Healthcare Navigation',
       }.freeze
     end
 
     def ssvf_services(id, reverse = false, raise_on_missing: false)
       _translate(ssvf_services_options, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # V2.3
+    def hopwa_financial_assistance_options
+      {
+        1 => 'Rental assistance',
+        2 => 'Security deposits',
+        3 => 'Utility deposits',
+        4 => 'Utility payments',
+        7 => 'Mortgage assistance',
+      }.freeze
+    end
+
+    def hopwa_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(hopwa_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.A
@@ -2085,7 +2073,6 @@ module Concerns::HudLists2024
         8 => 'Transportation services: tokens/vouchers',
         9 => 'Transportation services: vehicle repair/maintenance',
         10 => 'Child care',
-        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
         12 => 'General housing stability assistance',
         14 => 'Emergency housing assistance',
         15 => 'Shallow Subsidy - Financial Assistance',
@@ -2433,21 +2420,6 @@ module Concerns::HudLists2024
 
     def hopwa_services(id, reverse = false, raise_on_missing: false)
       _translate(hopwa_services_options, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # W2.2
-    def hopwa_financial_assistance_options
-      {
-        1 => 'Rental assistance',
-        2 => 'Security deposits',
-        3 => 'Utility deposits',
-        4 => 'Utility payments',
-        7 => 'Mortgage assistance',
-      }.freeze
-    end
-
-    def hopwa_financial_assistance(id, reverse = false, raise_on_missing: false)
-      _translate(hopwa_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W3
