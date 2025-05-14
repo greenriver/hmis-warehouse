@@ -84,6 +84,7 @@ GrdaWarehouse::Config.set(:rds_s3_integration_role_arn, 'arn:aws:iam::...')
    - Imports HMIS data into SQL Server
    - Uses bulk insert for performance
    - Handles data type conversions
+   - Fixes some known data quality issues with obvious fixes
 
 5. **LSA Processing**:
    - Runs LSA queries in sequence
