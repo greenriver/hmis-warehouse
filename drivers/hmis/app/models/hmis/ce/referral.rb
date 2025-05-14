@@ -12,7 +12,6 @@ module Hmis::Ce
     include SimpleStateMachine
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
-    has_one :project, class_name: 'Hmis::Hud::Project', through: :opportunity
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant'
@@ -29,7 +28,7 @@ module Hmis::Ce
       # - If they have can_view_own_referrals, AND are assigned a step in the referral.
 
       # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
-      base_scope = joins(:project).left_outer_joins(:steps).left_outer_joins(steps: :assignments)
+      base_scope = joins(:target_project).left_outer_joins(:steps).left_outer_joins(steps: :assignments)
 
       # Projects in which the user can_view_referrals
       access_through_project = base_scope.
@@ -89,9 +88,8 @@ module Hmis::Ce
     def user_can_perform_task?(user:, step:)
       raise unless step.instance == workflow_instance
 
-      project = opportunity.project
-      permission_from_project = user.can_perform_any_referral_tasks_for?(project)
-      permission_from_assignment = user.can_perform_own_referral_tasks_for?(project) && step.assignments.any? { |assignment| assignment.user == user }
+      permission_from_project = user.can_perform_any_referral_tasks_for?(target_project)
+      permission_from_assignment = user.can_perform_own_referral_tasks_for?(target_project) && step.assignments.any? { |assignment| assignment.user == user }
 
       permission_from_project || permission_from_assignment
     end

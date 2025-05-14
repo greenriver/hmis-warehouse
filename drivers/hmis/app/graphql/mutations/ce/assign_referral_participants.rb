@@ -17,7 +17,7 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
-      project = referral.opportunity.project
+      project = referral.target_project
       access_denied! unless current_permission?(permission: :can_assign_referral_tasks, entity: project)
 
       swimlane_ids = participants.map(&:swimlane_id).uniq
