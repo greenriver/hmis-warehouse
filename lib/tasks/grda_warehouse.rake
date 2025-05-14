@@ -398,6 +398,13 @@ namespace :grda_warehouse do
       Rails.logger.error(e.message)
     end
 
+    begin
+      GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask.perform
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
+
     BuildTranslationCacheJob.perform_later
 
     # Disabled pg-hero status job for now. This doesn't have the required permissions

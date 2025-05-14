@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,18 +8,29 @@
 
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
+require 'nokogiri'
+require_relative '../support/client_search_context'
 
 RSpec.describe ClientAccessControl::ClientsController, type: :request do
   include_context 'visibility test context'
+  include_context 'client search helpers'
+
   let!(:config) { create :config_b }
   let!(:user) { create :acl_user }
 
   before do
     Collection.maintain_system_groups
   end
+
   describe 'logged out' do
     it 'doesn\'t allow index' do
       get clients_path
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'doesn\'t allow search results' do
+      query = create(:grda_warehouse_client_search_query)
+      get client_search_query_path(id: query.id)
       expect(response).to redirect_to(new_user_session_path)
     end
 
@@ -80,11 +93,16 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   describe 'logged in, no permissions' do
     # FIXME: find_client in the controller 404s when there are no data sources visible in the window
 
-    let(:user) { create :acl_user }
-
     it 'doesn\'t allow index' do
       sign_in user
       get clients_path
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'doesn\'t allow search results' do
+      sign_in user
+      query = create(:grda_warehouse_client_search_query, created_by: user)
+      get client_search_query_path(id: query.id)
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -160,10 +178,50 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
     end
 
-    it 'allows index' do
+    it 'allows index with no params' do
       sign_in user
       get clients_path
       expect(response).to render_template(:index)
+    end
+
+    it 'handles legacy GET search request' do
+      sign_in user
+      get clients_path, params: { q: 'test' }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
+    end
+
+    it 'handles POST search request' do
+      sign_in user
+      post client_search_queries_path, params: { q: 'test' }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
+    end
+
+    it 'reuses existing search query for same params' do
+      sign_in user
+      query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
+      post client_search_queries_path, params: { q: 'test' }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(query.id.to_s)
+    end
+
+    it 'allows viewing search results' do
+      sign_in user
+      query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'test' })
+      original_updated_at = query.updated_at
+      travel 1.hour do
+        get client_search_query_path(id: query.id)
+        expect(response).to have_http_status(200)
+        expect(query.reload.updated_at).to be > original_updated_at
+      end
+    end
+
+    it 'handles text search' do
+      sign_in user
+      post client_search_queries_path, params: { q: 'test' }
+      follow_redirect!
+      expect(response).to have_http_status(200)
     end
 
     it 'doesn\'t allow show' do
@@ -237,6 +295,37 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
   end
 
+  describe 'logged in, and can use strict search' do
+    before do
+      setup_access_control(user, can_use_strict_search, Collection.system_collection(:window_data_sources))
+      setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+    end
+
+    it 'handles strict search params' do
+      sign_in user
+      post client_search_queries_path, params: {
+        client: {
+          first_name: 'John',
+          last_name: 'Doe',
+          dob: '1990-01-01',
+          ssn: '123456789',
+        },
+      }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
+    end
+
+    it 'renders strict search template' do
+      sign_in user
+      query = create(
+        :grda_warehouse_client_search_query,
+        params: { client: { first_name: 'John', last_name: 'Doe' } },
+      )
+      get client_search_query_path(id: query.id)
+      expect(response).to render_template('strict_search')
+    end
+  end
+
   describe 'logged in, and can view client window' do
     before do
       setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
@@ -246,6 +335,20 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'allows index' do
       sign_in user
       get clients_path
+      expect(response).to have_http_status(200)
+    end
+
+    it 'handles search request' do
+      sign_in user
+      post client_search_queries_path, params: { q: 'test' }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
+    end
+
+    it 'allows viewing search results' do
+      sign_in user
+      query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
+      get client_search_query_path(id: query.id)
       expect(response).to have_http_status(200)
     end
 
@@ -333,6 +436,20 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(200)
     end
 
+    it 'handles search request' do
+      sign_in user
+      post client_search_queries_path, params: { q: 'test' }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
+    end
+
+    it 'allows viewing search results' do
+      sign_in user
+      query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
+      get client_search_query_path(id: query.id)
+      expect(response).to have_http_status(200)
+    end
+
     it 'allows show' do
       sign_in user
       get client_path(window_destination_client)
@@ -411,6 +528,20 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'allows index' do
       sign_in user
       get clients_path
+      expect(response).to have_http_status(200)
+    end
+
+    it 'handles search request' do
+      sign_in user
+      post client_search_queries_path, params: { q: 'test' }
+      redirect_id = extract_redirect_id(response)
+      expect(redirect_id).to eq(GrdaWarehouse::ClientSearchQuery.sole.id.to_s)
+    end
+
+    it 'allows viewing search results' do
+      sign_in user
+      query = create(:grda_warehouse_client_search_query, params: { q: 'test' })
+      get client_search_query_path(id: query.id)
       expect(response).to have_http_status(200)
     end
 
