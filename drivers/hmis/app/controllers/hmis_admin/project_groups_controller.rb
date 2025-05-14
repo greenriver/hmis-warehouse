@@ -52,8 +52,8 @@ module HmisAdmin
       p = project_group_params
 
       @project_group.name = p[:name]
-      @project_group.inclusion_criteria = p[:inclusion_criteria].to_json
-      @project_group.exclusion_criteria = p[:exclusion_criteria].to_json
+      @project_group.inclusion_criteria = p[:inclusion_criteria].to_h.map { |k, v| [k, v.compact_blank!] }.to_h.compact_blank.to_json
+      @project_group.exclusion_criteria = p[:exclusion_criteria].to_h.map { |k, v| [k, v.compact_blank!] }.to_h.compact_blank.to_json
 
       project_group_source.transaction do
         @project_group.save!
