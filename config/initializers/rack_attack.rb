@@ -167,7 +167,7 @@ Rack::Attack.tap do |config|
     limit: 30,
     period: 1.minute,
   ) do |request|
-    if request.tracking_enabled? && request.authenticated? && request.get? && request.path =~ /^\/client_searches\/\d+$/
+    if request.tracking_enabled? && request.authenticated? && request.get? && request.path =~ /^\/client_searches\/[\w-]+\z/
       request.request_ip
     end
   end
