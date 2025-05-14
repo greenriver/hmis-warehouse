@@ -82,11 +82,11 @@ module Hmis
     end
 
     def project_scope
-      ::GrdaWarehouse::Hud::Project.where(id: source_data_source_id)
+      ::GrdaWarehouse::Hud::Project.where(data_source_id: source_data_source_id)
     end
 
     def organization_scope
-      ::GrdaWarehouse::Hud::Organization.where(id: source_data_source_id)
+      ::GrdaWarehouse::Hud::Organization.where(data_source_id: source_data_source_id)
     end
 
     def data_source_scope

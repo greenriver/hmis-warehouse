@@ -1,10 +1,15 @@
 - title = "Edit Project Group: #{@project_group.name}"
 = content_for(:title, title)
 = render 'breadcrumbs'
-
+- associated_collections = Hmis::AccessGroup.contains(@project_group).map(&:name).sort
+- confirm_delete_msg = associated_collections.any? ? "The project group will be removed from the following HMIS Collections: #{associated_collections.join(', ')}. Users may lose access to HMIS data." : ''
 .row
   .col-sm-10
-    %h1= title
+    %h1.d-flex.justify-content-between.align-items-center
+      = title
+      = link_to hmis_admin_project_group_path(@project_group), method: :delete, class: 'btn btn-danger', data: { confirm: "Are you sure you want to delete this project group? #{confirm_delete_msg}" } do
+        %i.icon-cross
+        Delete Group
     .mt-8
     = simple_form_for @project_group, as: :filters, url: hmis_admin_project_group_path(@project_group) do |f|
       = render 'form', f: f

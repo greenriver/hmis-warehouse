@@ -66,6 +66,14 @@ module HmisAdmin
       end
     end
 
+    def destroy
+      project_group_source.transaction do
+        @project_group.remove_from_group_viewable_entities!
+        @project_group.destroy!
+      end
+      redirect_to hmis_admin_project_groups_path, notice: 'Project Group was successfully deleted.'
+    end
+
     private
 
     def project_group_source

@@ -13,12 +13,7 @@ module Hmis
     has_paper_trail
     include ::Hmis::Concerns::HmisArelHelper
 
-    # TODO: we should probably have a data_source_id ref on this table. Doesnt make sense to have cross-DS HMIS project groups.
-
-    validates :name, presence: true, uniqueness: true
-    # validate :validate_criteria_json
-    # TODO validates configuration shape
-    # TODO validates project_must_belong_to_hmis_data_source
+    validate :data_source_must_be_hmis
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     has_and_belongs_to_many :projects, class_name: 'Hmis::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
@@ -27,19 +22,15 @@ module Hmis
     # GroupViewableEntities that are associated with this project group
     has_many :hmis_group_viewable_entities, -> { where(entity_type: 'Hmis::ProjectGroup') }, class_name: 'Hmis::GroupViewableEntity', foreign_key: :entity_id
 
-    # go through view? do we need these?
-    # has_many :group_viewable_entity_projects
-    # has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
-
     scope :viewable_by, ->(user) do
-      # We will likely expand visibility of project groups later, for now only HMIS admins can see them.
+      # Only HMIS admins. We may expand visibility of project groups later with new permissions.
       return all if HmisEnforcement.hmis_admin_visible?(user)
 
       none
     end
 
     scope :editable_by, ->(user) do
-      # We may expand editability of project groups later, for now only HMIS admins can edit them.
+      # Only HMIS admins. We may expand visibility of project groups later with new permissions.
       return all if HmisEnforcement.hmis_admin_visible?(user)
 
       none
@@ -94,6 +85,26 @@ module Hmis
       included_project_ids = parsed_inclusion_criteria.effective_project_ids
       excluded_project_ids = parsed_exclusion_criteria.effective_project_ids
       included_project_ids - excluded_project_ids
+    end
+
+    # Custom validation to ensure the data source is an HMIS data source
+    def data_source_must_be_hmis
+      return if data_source&.hmis?
+
+      errors.add(:data_source, 'must be an HMIS data source')
+    end
+
+    ##
+    # Marks this entity as deleted in all group viewable records.
+    #
+    # This prevents the entity from being viewed as part of any group.
+    #
+    # @return [void]
+    def remove_from_group_viewable_entities!
+      Hmis::GroupViewableEntity.where(
+        entity_type: self.class.sti_name,
+        entity_id: id,
+      ).update_all(deleted_at: Time.current)
     end
   end
 end
