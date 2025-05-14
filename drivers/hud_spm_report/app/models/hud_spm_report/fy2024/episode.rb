@@ -200,7 +200,7 @@ module HudSpmReport::Fy2024
       end
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
-           # FIXME, see #7473
+          # FIXME, see #7473
           next unless enrollment.enrollment.present? # Skip if the enrollment has disappeared (e.g., a concurrent import deleted it)
 
           # https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications-September-2023.pdf - p11
