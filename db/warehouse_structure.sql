@@ -20485,6 +20485,72 @@ ALTER SEQUENCE public.hmis_group_viewable_entities_id_seq OWNED BY public.hmis_g
 
 
 --
+-- Name: hmis_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_groups (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    inclusion_criteria jsonb NOT NULL,
+    exclusion_criteria jsonb,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_project_groups (
+    id bigint NOT NULL,
+    hmis_project_group_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_group_viewable_entity_projects; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_group_viewable_entity_projects AS
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
+    NULL::integer AS organization_id,
+    hmis_group_viewable_entities.entity_id AS project_id
+   FROM public.hmis_group_viewable_entities
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
+    "Organization".id AS organization_id,
+    "Project".id AS project_id
+   FROM ((public.hmis_group_viewable_entities
+     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = hmis_group_viewable_entities.entity_id))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
+    NULL::integer AS organization_id,
+    hmis_project_project_groups.project_id
+   FROM ((public.hmis_group_viewable_entities
+     JOIN public.hmis_project_groups ON (((hmis_project_groups.deleted_at IS NULL) AND (hmis_project_groups.id = hmis_group_viewable_entities.entity_id))))
+     JOIN public.hmis_project_project_groups ON ((hmis_project_project_groups.hmis_project_group_id = hmis_project_groups.id)))
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::ProjectGroup'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
+    "Organization".id AS organization_id,
+    "Project".id AS project_id
+   FROM (((public.hmis_group_viewable_entities
+     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = hmis_group_viewable_entities.entity_id))))
+     LEFT JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
+     LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND (data_sources.id = "Organization".data_source_id))))
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL));
+
+
+--
 -- Name: hmis_household_events; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20625,22 +20691,6 @@ ALTER SEQUENCE public.hmis_project_configs_id_seq OWNED BY public.hmis_project_c
 
 
 --
--- Name: hmis_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_project_groups (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    inclusion_criteria jsonb NOT NULL,
-    exclusion_criteria jsonb,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
 -- Name: hmis_project_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20657,19 +20707,6 @@ CREATE SEQUENCE public.hmis_project_groups_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_groups_id_seq OWNED BY public.hmis_project_groups.id;
-
-
---
--- Name: hmis_project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_project_project_groups (
-    id bigint NOT NULL,
-    hmis_project_group_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
 
 
 --
