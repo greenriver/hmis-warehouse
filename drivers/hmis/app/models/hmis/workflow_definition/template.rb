@@ -16,6 +16,7 @@ module Hmis::WorkflowDefinition
     validates :name, presence: true
     validates :status, presence: true
     validates :version, presence: true
+    validate :unique_status_per_identifier
 
     state_machine_config column: 'status' do
       state :draft, initial: true
@@ -35,6 +36,16 @@ module Hmis::WorkflowDefinition
 
     def graph(preloads: nil) # Caller can optionally pass additional attributes to preload, to avoid n+1s
       Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows, *preloads))
+    end
+
+    def unique_status_per_identifier
+      return unless ['draft', 'published'].include?(status)
+
+      return unless self.class.where(identifier: identifier, status: status).
+        where.not(id: id).
+        exists?
+
+      errors.add(:base, "There can only be one #{status} template for the identifier #{identifier}.")
     end
   end
 end

@@ -119,7 +119,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   class << self
-    alias viewable_by visible_to
+    alias_method :viewable_by, :visible_to
   end
 
   scope :searchable_to, ->(user) do

@@ -16,6 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
+  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project]) }
 
   describe 'ce_opportunity query' do
     let(:query) do
@@ -163,7 +164,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
           expect(candidates).to be_an(Array)
-          expect(candidates.length).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
+          expect(candidates.size).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
 
           # Verify candidates are ordered by priority score
           expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
@@ -261,7 +262,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
-        end.to make_database_queries(count: 30..40)
+        end.to make_database_queries(count: 25..35)
       end
     end
 
@@ -309,7 +310,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
 
         candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
-        expect(candidates.length).to eq(2)
+        expect(candidates.size).to eq(2)
 
         candidate1 = candidates.first
         candidate2 = candidates.second

@@ -760,10 +760,12 @@ type CeOpportunity {
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
+  dateAvailable: ISO8601Date!
   eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
+  organizationName: String!
   priorityScheme: CeMatchRule
   projectId: ID!
   projectName: String!
@@ -774,11 +776,36 @@ type CeOpportunity {
   """
   referral: CeReferral
   status: CeOpportunityStatus!
+  unit: Unit
+}
+
+input CeOpportunityFilterOptions {
+  availableOnDate: ISO8601Date
+  organization: [ID!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  status: [CeOpportunityStatus!]
+  workflowTemplate: [String!]
 }
 
 input CeOpportunityInput {
   name: String!
   templateId: ID!
+}
+
+"""
+Opportunity Sorting Options
+"""
+enum CeOpportunitySortOption {
+  """
+  Date Available, earliest first
+  """
+  DATE_AVAILABLE_EARLIEST_FIRST
+
+  """
+  Date Available, latest first
+  """
+  DATE_AVAILABLE_LATEST_FIRST
 }
 
 enum CeOpportunityStatus {
@@ -830,7 +857,8 @@ type CeReferral {
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!
-  currentStepName: String
+  currentSteps: [CeReferralStep!]
+  daysOnCurrentSteps: Int
   id: ID!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
@@ -838,15 +866,20 @@ type CeReferral {
   steps: [CeReferralStep!]!
   swimlanes: [CeReferralSwimlane!]!
   targetEnrollment: Enrollment
+  targetOrganizationName: String!
   targetProjectId: ID!
   targetProjectName: String!
   targetProjectType: ProjectType!
+  updatedBy: ApplicationUser
 }
 
 input CeReferralFilterOptions {
+  onCurrentStepSince: ISO8601Date
+  organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
   status: [CeReferralStatus!]
+  workflowTemplate: [String!]
 }
 
 input CeReferralParticipantInput {
@@ -982,7 +1015,7 @@ type Client {
   alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
-  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
+  ceReferrals(filters: ClientCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactPoints: [ClientContactPoint!]!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
@@ -997,7 +1030,7 @@ type Client {
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  eligibleCeOpportunities(filters: ClientEligibleCeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
+  eligibleCeOpportunities(filters: ClientEligibleCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enabledFeatures: [ClientDashboardFeature!]!
@@ -1242,6 +1275,13 @@ type ClientAuditEventsPaginated {
   pagesCount: Int!
 }
 
+input ClientCeReferralFilterOptions {
+  organization: [ID!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  status: [CeReferralStatus!]
+}
+
 type ClientContactPoint {
   client: Client!
   createdBy: ApplicationUser
@@ -1317,6 +1357,7 @@ enum ClientDashboardFeature {
 }
 
 input ClientEligibleCeOpportunityFilterOptions {
+  organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
 }
@@ -7059,6 +7100,11 @@ enum PickListType {
   Grouped HUD CE Event types
   """
   CE_EVENTS
+
+  """
+  Templates for CE workflow definitions, including fully retired workflows
+  """
+  CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED
   CLIENT_AUDIT_EVENT_RECORD_TYPES
   COC
 
@@ -8971,7 +9017,7 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int): CeOpportunitiesPaginated!
+  ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactInformation: String
@@ -9335,9 +9381,11 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
   ceReferralStep(id: ID!): CeReferralStep
+  ceReferrals(filters: CeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
 
   """
   Client lookup
