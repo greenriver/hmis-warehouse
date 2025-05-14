@@ -283,7 +283,9 @@ namespace :grda_warehouse do
 
   desc 'Full import routine'
   task daily: [:environment, 'log:info_to_stdout'] do
-    Importing::RunDailyImportsJob.new.perform
+    GrdaWarehouse::TaskRuns.track('DailyImportsJob') do
+      Importing::RunDailyImportsJob.new.perform
+    end
   end
 
   desc 'Monthly tasks'
