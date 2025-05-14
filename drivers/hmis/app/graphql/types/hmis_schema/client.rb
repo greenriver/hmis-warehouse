@@ -422,8 +422,8 @@ module Types
       # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
       access_denied! unless current_user.can_view_client_eligible_opportunities?
 
-      # If so, skip the further permission checks. The global permission gives the user permission to view all
-      # opportunities the client is eligible for, regardless of project-level access to those opportunities.
+      # If so, we can skip the permission check inside resolve_ce_opportunities.
+      # The global permission gives the user permission to view all opportunities the client is eligible for, regardless of project-level access.
       resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), dangerous_skip_permission_check: true, **args)
     end
 

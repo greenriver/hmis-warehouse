@@ -197,11 +197,12 @@ task ce_starter_pack_20250302: [:environment] do
 
   enrollment_creator_template = create_template('Enrollment Creator', 'enrollment_creator')
   case_managers = enrollment_creator_template.swimlanes.find_or_create_by!(name: 'Case Managers')
+  providers = enrollment_creator_template.swimlanes.find_or_create_by!(name: 'Providers')
 
   start_workflow_event = create_start_event(enrollment_creator_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(enrollment_creator_template, 'accept referral', 'end_workflow', 'accept_referral')
 
-  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template,  'Confirm Client Accepts Referral', case_managers)
+  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template,  'Confirm Client Accepts Referral', providers)
   create_enrollment_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'ce_create_enrollment',
     status: 'published'

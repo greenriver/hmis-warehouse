@@ -12,10 +12,12 @@ module Mutations
     argument :input, Types::HmisSchema::CeOpportunityInput, required: true
     field :opportunity, Types::HmisSchema::CeOpportunity, null: false
 
-    def resolve(project_id:, input:)
+    def resolve(project_id:, input:) # TODO(#7522) - remove this mutation
       raise unless Hmis::Ce.configuration.enabled?
 
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
+      access_denied! unless current_permission?(permission: :can_manage_units, entity: project)
+
       template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).find(input.template_id)
       opportunity = nil
       project.with_lock do

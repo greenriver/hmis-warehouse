@@ -162,5 +162,19 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(unit_ids.count)
       end
     end
+
+    context 'when user lacks permission' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: :can_view_units) }
+
+      it 'raises access denied' do
+        expect do
+          expect_gql_error(
+            post_graphql(**variables) { mutation },
+            message: 'access denied',
+          )
+          unit.reload
+        end.to not_change(Hmis::Ce::Opportunity, :count)
+      end
+    end
   end
 end

@@ -70,6 +70,14 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       end
     end
 
+    context 'when user lacks permission' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: :can_view_units) }
+
+      it 'does not allow' do
+        expect_failure('access denied')
+      end
+    end
+
     context 'when unit is already not available' do
       let!(:opportunity) { create(:hmis_ce_opportunity) } # overwrite opportunity fixture with an opportunity that's not associated with this unit
 
