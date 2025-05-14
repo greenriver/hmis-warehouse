@@ -20,6 +20,7 @@ module Hmis::Ce
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
+    has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
 
     # TODO(#7395): permissions
     scope :viewable_by, ->(_user) { all }
