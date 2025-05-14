@@ -304,7 +304,7 @@ module Types
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?, # TODO(#7409) once we have project-level configuration, remove this
       }
     end
 
