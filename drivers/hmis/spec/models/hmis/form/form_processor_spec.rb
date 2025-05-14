@@ -196,7 +196,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.form_processor.run!(user: hmis_user)
       expect do
         assessment.form_processor.save!
-      end.to raise_error(ArgumentError, /Invalid value/).
+      end.to raise_error(ActiveRecord::RecordInvalid, /not a number/).
         and not_change(Hmis::Hud::IncomeBenefit, :count)
     end
 

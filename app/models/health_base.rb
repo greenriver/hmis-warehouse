@@ -6,7 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HealthBase < ActiveRecord::Base
+class HealthBase < HealthDbBase
   include CustomApplicationRecord
 
   self.abstract_class = true

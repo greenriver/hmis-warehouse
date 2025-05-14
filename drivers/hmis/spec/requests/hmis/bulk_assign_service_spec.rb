@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -17,6 +19,7 @@ RSpec.describe 'BulkAssignService', type: :request do
       mutation BulkAssignService($input: BulkAssignServiceInput!) {
         bulkAssignService(input: $input) {
           success
+          #{error_fields}
         }
       }
     GRAPHQL
@@ -162,7 +165,14 @@ RSpec.describe 'BulkAssignService', type: :request do
       unit = create(:hmis_unit, project: p1)
       create(:hmis_unit_occupancy, enrollment: c2_e1, unit: unit)
 
-      expect_gql_error(perform_mutation, message: 'no available units')
+      expect do
+        response, result = perform_mutation
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'bulkAssignService', 'errors')
+        expect(errors.length).to eq(1)
+        expect(errors.first['fullMessage']).to match(/no available units/)
+      end.to not_change(Hmis::Hud::Service, :count)
     end
 
     it 'fails if project has no coc codes' do
@@ -180,7 +190,14 @@ RSpec.describe 'BulkAssignService', type: :request do
     it 'fails if client has an overlapping enrollment' do
       create(:hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, entry_date: today)
 
-      expect_gql_error(perform_mutation(date_provided: 6.days.ago, client_ids: [c1.id]))
+      expect do
+        response, result = perform_mutation(date_provided: 6.days.ago, client_ids: [c1.id])
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'bulkAssignService', 'errors')
+        expect(errors.length).to eq(1)
+        expect(errors.first['fullMessage']).to eq(Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message)
+      end.to not_change(Hmis::Hud::Service, :count)
     end
 
     it 'succeeds if entry date is >30 days ago (internally generates warning)' do

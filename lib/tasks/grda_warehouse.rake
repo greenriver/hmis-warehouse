@@ -325,13 +325,28 @@ namespace :grda_warehouse do
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
+    # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
-      Hmis::AutoExitJob.perform_now
+      begin
+        Hmis::AutoExitJob.perform_now
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
+    end
+
+    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
+      # Generate CE candidate pools and run the match engine daily in the early morning
+      Hmis::MatchCandidatesJob.perform_later
     end
 
     # Purge old soft-deleted records. Enable on production when we have confidence job is correct
-    PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+    begin
+      PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
 
     # Run CSG Engage export if ready
     MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
@@ -369,7 +384,8 @@ namespace :grda_warehouse do
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
-    if DateTime.current.hour == 3
+    # Queue the cohort analytics generation job if it's not already queued
+    if DateTime.current.hour == 3 && ! Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
       GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
         delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
         maintain_cohort_intermediate_data
@@ -413,7 +429,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
-    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all!
+    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all! unless Delayed::Job.queued?('IdentifyExternalClientsJob')
 
     # Store S3 paths for files that don't have them so OP analytics can use them
     GrdaWarehouse::ClientFile.delay.maintain_urls
@@ -431,7 +447,8 @@ namespace :grda_warehouse do
 
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts
+    # Queue the cohort analytics generation job if it's not already queued
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'
