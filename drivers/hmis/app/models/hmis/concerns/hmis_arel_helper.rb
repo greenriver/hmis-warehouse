@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::Concerns::HmisArelHelper
   extend ActiveSupport::Concern
   include ArelHelper
@@ -68,9 +70,17 @@ module Hmis::Concerns::HmisArelHelper
     def ut_t
       Hmis::UnitType.arel_table
     end
+
+    def opp_t
+      Hmis::Ce::Opportunity.arel_table
+    end
+
+    def wfe_step_t
+      Hmis::WorkflowExecution::Step.arel_table
+    end
   end
 
   included do
-    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, :u_t, :ut_t, :fd_t, :fp_t, :fi_t, to: 'self.class'
+    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, :u_t, :ut_t, :fd_t, :fp_t, :fi_t, :opp_t, :wfe_step_t, to: 'self.class'
   end
 end

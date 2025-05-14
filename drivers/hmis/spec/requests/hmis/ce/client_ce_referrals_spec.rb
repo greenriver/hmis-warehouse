@@ -18,13 +18,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let!(:other_project) { create(:hmis_hud_project, project_type: 2, data_source: ds1) }
+  let!(:other_project) { create(:hmis_hud_project, data_source: ds1, project_type: 2) }
   let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, client: client) }
 
   describe 'project ceReferrals query' do
     let(:query) do
       <<~GRAPHQL
-        query GetClientCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: CeReferralFilterOptions = null) {
+        query GetClientCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: ClientCeReferralFilterOptions = null) {
           client(id: $id) {
             id
             ceReferrals(limit: $limit, offset: $offset, filters: $filters) {

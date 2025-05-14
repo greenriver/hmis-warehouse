@@ -16,14 +16,18 @@ module Types
     field :client_id, ID, null: false
     field :client, Types::HmisSchema::Client, null: true
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
-    field :current_step_name, String, null: true
-    field :target_enrollment, Types::HmisSchema::Enrollment, null: true # Don't resolve in batch
+
+    field :current_steps, [HmisSchema::CeReferralStep], null: true
+    field :days_on_current_steps, Integer, null: true
+    field :updated_by, Application::User, null: true
+    field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
     field :target_project_name, String, null: false
     field :target_project_type, HmisSchema::Enums::ProjectType, null: false
+    field :target_organization_name, String, null: false
 
     field :referred_by, Application::User, null: true
     field :active, Boolean, null: false, method: :active?
@@ -32,6 +36,9 @@ module Types
       arg :status, [HmisSchema::Enums::CeReferralStatus]
       arg :project, [ID]
       arg :project_type, [HmisSchema::Enums::ProjectType]
+      arg :workflow_template, [String]
+      arg :organization, [ID]
+      arg :on_current_step_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
     def steps # Don't resolve in batch
@@ -58,13 +65,29 @@ module Types
       Hmis::Hud::Client.viewable_by(current_user).find_by(id: object.client_id)
     end
 
-    def current_step_name
-      # There can be multiple steps currently in progress, but we're only going to show one in the project referrals table
-      step = load_ar_association(object, :steps).filter(&:open?).
-        min_by { |s| [s.status.to_sym == :in_progress ? 1 : 2, s.id] }
-      return if step.nil?
+    def current_steps
+      load_ar_association(object, :current_steps)
+    end
 
-      load_ar_association(step, :node)&.name
+    def days_on_current_steps
+      # If there are multiple open steps, use the oldest one
+      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:updated_at)
+      return nil if oldest_open_step.nil?
+
+      # how many days ago was this step last updated. # TODO(#7647) - use more accurate timestamp field rather than updated_at
+      (Date.current - oldest_open_step.updated_at.to_date).to_i
+    end
+
+    def updated_by
+      # TODO(#7678): Add updated_by as a field to the referral table, and use that directly here
+      most_recently_updated_step = load_ar_association(object, :current_steps).to_a.max_by(&:updated_at)
+
+      # If a step was updated more recently than the referral record itself, return the user who updated that step
+      if most_recently_updated_step.present? && most_recently_updated_step.updated_at > object.updated_at
+        load_last_user_from_versions(most_recently_updated_step)
+      else
+        load_last_user_from_versions(object)
+      end
     end
 
     def opportunity
@@ -81,6 +104,15 @@ module Types
 
     def target_project_type
       load_ar_association(object, :target_project).project_type
+    end
+
+    def target_organization_name
+      project = load_ar_association(object, :target_project)
+      load_ar_association(project, :organization).name
+    end
+
+    def target_enrollment
+      load_ar_association(object, :target_enrollment)
     end
 
     def referred_by

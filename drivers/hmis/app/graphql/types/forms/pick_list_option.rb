@@ -164,11 +164,23 @@ module Types
             { code: other_funder, label: other_funder }
           end
       when 'WORKFLOW_DEFINITION_TEMPLATES'
+        # TODO(#7522) - rename CE_WORKFLOW_TEMPLATE_IDENTIFIERS;
+        #  return identifiers and not IDs; only return published templates; only return CE templates
+        # TODO(#7502) - templates are shared across data sources
+        # Unique ce workflow template identifiers that are currently published.
+        # Used for configuring which template to use for a project/resource/group/etc
         return [] unless Hmis::Ce.configuration.enabled?
 
-        # TODO(#7502) - templates are shared across data sources
         Hmis::WorkflowDefinition::Template.all.map do |template|
           { code: template.id, label: template.name }
+        end
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
+        # Unique CE workflow template identifiers, including retired workflows with no currently published version.
+        # Used for filtering on existing/historical referrals.
+        base_scope = Hmis::WorkflowDefinition::Template.where(template_type: :ce_referral)
+        base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
+          description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
+          { code: identifier, label: description }
         end
       end
     end

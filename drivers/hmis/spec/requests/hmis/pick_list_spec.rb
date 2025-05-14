@@ -427,6 +427,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED' do
+    let!(:apples_retired) { create(:hmis_workflow_definition_template, identifier: 'apples', name: 'Apples 1', version: 0, status: :retired) }
+    let!(:apples_published) { create(:hmis_workflow_definition_template, identifier: 'apples', name: 'Apples 2', version: 1, status: :published) }
+    let!(:bananas_retired1) { create(:hmis_workflow_definition_template, identifier: 'bananas', name: 'Bananas 1', version: 0, status: :retired) }
+    let!(:bananas_retired2) { create(:hmis_workflow_definition_template, identifier: 'bananas', name: 'Bananas 2', version: 1, status: :retired) }
+    let!(:broccoli_not_ce) { create(:hmis_workflow_definition_template, identifier: 'broccoli', template_type: 'not_ce') }
+    let!(:beans_retired_not_ce) { create(:hmis_workflow_definition_template, identifier: 'beans', status: :retired, template_type: 'not_ce') }
+
+    it 'should return all templates including fully retired workflows, and not return non-ce templates' do
+      response, result = post_graphql(pick_list_type: 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.size).to eq(2)
+      expect(options).to contain_exactly(
+        a_hash_including('code' => 'apples', 'label' => 'Apples 2'),
+        a_hash_including('code' => 'bananas', 'label' => 'Bananas 2'),
+      )
+    end
+  end
+
   describe 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS' do
     let!(:project) { create(:hmis_hud_project, data_source: ds1) }
 

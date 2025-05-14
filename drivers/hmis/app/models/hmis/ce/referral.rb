@@ -11,6 +11,8 @@ module Hmis::Ce
   class Referral < GrdaWarehouseBase
     include SimpleStateMachine
 
+    has_paper_trail
+
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
@@ -22,6 +24,9 @@ module Hmis::Ce
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
 
+    has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
+    has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
+
     scope :viewable_by, ->(user) do
       # What makes a referral viewable by a user?
       # - If they have can_view_referrals at the target project, OR
@@ -30,6 +35,7 @@ module Hmis::Ce
       # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
       base_scope = joins(:target_project).left_outer_joins(:steps).left_outer_joins(steps: :assignments)
 
+      # todo @martha - same question here about project viewable access
       # Projects in which the user can_view_referrals
       access_through_project = base_scope.
         merge(Hmis::Hud::Project.with_access(user, :can_view_referrals))
@@ -82,6 +88,10 @@ module Hmis::Ce
 
     def active?
       !accepted? && !rejected?
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
     end
 
     # This is a helper on Referral, rather than on Step, because we want to keep Workflow Execution code encapsulated away from CE code

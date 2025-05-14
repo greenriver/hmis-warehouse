@@ -19,6 +19,8 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -559,6 +561,18 @@ module Types
       access_denied! unless referral
 
       step
+    end
+
+    # Globally available CE opportunities gated by admin permission
+    ce_opportunities_field
+    def ce_opportunities(**args)
+      # TODO(#7506) - gated by admin permission
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
+    end
+
+    ce_referrals_field
+    def ce_referrals(**args)
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
   end
 end

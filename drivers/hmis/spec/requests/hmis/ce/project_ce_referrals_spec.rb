@@ -33,7 +33,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   id
                   name
                 }
-                currentStepName
+                currentSteps {
+                  name
+                }
                 targetProjectId
                 targetProjectName
                 referredBy {
