@@ -142,7 +142,7 @@ module HudPit::Generators::Pit::Fy2024
             race_none: source_client.RaceNone,
             veteran: source_client.VeteranStatus,
             chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
-            chronically_homeless_household: household_chronic_status(hh_id, client.id).try(:[], :chronic_status) || false,
+            chronically_homeless_household: household_chronic_status(hh_id, client.id).try(:[], :pit_chronic_status) || false,
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
             domestic_violence: dv_record&.DomesticViolenceSurvivor,
