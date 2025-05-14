@@ -472,10 +472,6 @@
         "description": "HUD: ESG - Street Outreach"
       },
       {
-        "key": 12,
-        "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
-      },
-      {
         "key": 13,
         "description": "HUD: HOPWA - Hotel/Motel Vouchers"
       },
@@ -600,18 +596,6 @@
         "description": "Local or Other Funding Source"
       },
       {
-        "key": 47,
-        "description": "HUD: ESG - CV"
-      },
-      {
-        "key": 48,
-        "description": "HUD: HOPWA - CV"
-      },
-      {
-        "key": 49,
-        "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
-      },
-      {
         "key": 50,
         "description": "HUD: HOME"
       },
@@ -634,6 +618,10 @@
       {
         "key": 55,
         "description": "HUD: Rural Special NOFO"
+      },
+      {
+        "key": 56,
+        "description": "HUD: CoC Builds"
       }
     ]
   },
@@ -2554,52 +2542,6 @@
     ]
   },
   {
-    "name": "Gender",
-    "code": "3.6.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "Woman (Girl, if child)"
-      },
-      {
-        "key": 1,
-        "description": "Man (Boy, if child)"
-      },
-      {
-        "key": 2,
-        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
-      },
-      {
-        "key": 4,
-        "description": "Non-Binary"
-      },
-      {
-        "key": 5,
-        "description": "Transgender"
-      },
-      {
-        "key": 6,
-        "description": "Questioning"
-      },
-      {
-        "key": 3,
-        "description": "Different Identity"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "CurrentLivingSituation",
     "code": "4.12",
     "values": [
@@ -3170,10 +3112,6 @@
       {
         "key": 10,
         "description": "Child care"
-      },
-      {
-        "key": 11,
-        "description": "General housing stability assistance - emergency supplies [Deprecated]"
       },
       {
         "key": 12,
@@ -3916,48 +3854,6 @@
     ]
   },
   {
-    "name": "SexualOrientation",
-    "code": "R3.1",
-    "values": [
-      {
-        "key": 1,
-        "description": "Heterosexual"
-      },
-      {
-        "key": 2,
-        "description": "Gay"
-      },
-      {
-        "key": 3,
-        "description": "Lesbian"
-      },
-      {
-        "key": 4,
-        "description": "Bisexual"
-      },
-      {
-        "key": 5,
-        "description": "Questioning / unsure"
-      },
-      {
-        "key": 6,
-        "description": "Other"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "LastGradeCompleted",
     "code": "R4.1",
     "values": [
@@ -4274,12 +4170,16 @@
       {
         "key": 9,
         "description": "Rapid Resolution"
+      },
+      {
+        "key": 10,
+        "description": "Healthcare Navigation"
       }
     ]
   },
   {
     "name": "HOPWAFinancialAssistance",
-    "code": "W2.2",
+    "code": "V2.3",
     "values": [
       {
         "key": 1,
@@ -5304,6 +5204,28 @@
       {
         "key": 13,
         "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "MentalHeathConsultation",
+    "code": "V10",
+    "values": [
+      {
+        "key": 1,
+        "description": "Mental health consultation completed"
+      },
+      {
+        "key": 2,
+        "description": "Mental health consultation being coordinated/arranged with VA provider"
+      },
+      {
+        "key": 3,
+        "description": "Mental health consultation being coordinated/arranged with other provider"
+      },
+      {
+        "key": 4,
+        "description": "Offer declined"
       }
     ]
   },
