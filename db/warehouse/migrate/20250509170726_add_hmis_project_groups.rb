@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddHmisProjectGroups < ActiveRecord::Migration[7.1]
   def up
     # HMIS equivalent of project_groups table
@@ -11,7 +13,7 @@ class AddHmisProjectGroups < ActiveRecord::Migration[7.1]
     end
 
     # Make project group names unique per data source
-    add_index :hmis_project_groups, [:data_source_id, :name], unique: true, where: "deleted_at IS NULL", name: :uidx_hmis_project_groups_on_data_source_and_name
+    add_index :hmis_project_groups, [:data_source_id, :name], unique: true, where: 'deleted_at IS NULL', name: :uidx_hmis_project_groups_on_data_source_and_name
 
     # HMIS equivalent of project_project_groups table (join table)
     create_table :hmis_project_project_groups do |t|

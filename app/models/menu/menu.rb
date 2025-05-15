@@ -57,7 +57,7 @@ class Menu::Menu
     Menu::Item.new(
       user: user,
       path: hud_reports_path,
-      visible: ->(user) { user.can_view_hud_reports? },
+      visible: ->(user) { user.can_view_hud_reports? }, # rubocop:disable Style/SymbolProc
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
@@ -66,7 +66,7 @@ class Menu::Menu
   def warehouse_reports_menu
     Menu::Item.new(
       user: user,
-      visible: ->(user) { user.can_view_any_reports? },
+      visible: ->(user) { user.can_view_any_reports? }, # rubocop:disable Style/SymbolProc
       path: warehouse_reports_path,
       title: Translation.translate('Warehouse Reports'),
       id: 'warehouse-reports',
@@ -119,7 +119,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_all_agencies? },
+        visible: ->(user) { user.can_manage_all_agencies? }, # rubocop:disable Style/SymbolProc
         path: assigned_all_agencies_path,
         title: Translation.translate('All Assigned Clients'),
       ),
@@ -132,7 +132,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_agency? },
+        visible: ->(user) { user.can_manage_agency? }, # rubocop:disable Style/SymbolProc
         path: assigned_agencies_path,
         title: title,
       ),
@@ -163,7 +163,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_access_some_cohorts? },
+        visible: ->(user) { user.can_access_some_cohorts? }, # rubocop:disable Style/SymbolProc
         path: cohorts_path,
         title: Translation.translate('Cohorts'),
       ),
@@ -244,7 +244,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_see_raw_hmis_data? },
+        visible: ->(user) { user.can_see_raw_hmis_data? }, # rubocop:disable Style/SymbolProc
         path: source_data_path,
         title: Translation.translate('HMIS Source Data'),
       ),
@@ -252,7 +252,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_some_project_groups? },
+        visible: ->(user) { user.can_edit_some_project_groups? }, # rubocop:disable Style/SymbolProc
         path: project_groups_path,
         title: Translation.translate('Project Groups'),
       ),
@@ -345,7 +345,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_users? },
+        visible: ->(user) { user.can_edit_users? }, # rubocop:disable Style/SymbolProc
         path: admin_users_path,
         title: 'Users',
       ),
@@ -353,7 +353,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_roles? },
+        visible: ->(user) { user.can_edit_roles? }, # rubocop:disable Style/SymbolProc
         path: admin_roles_path,
         title: 'Roles & Permissions',
       ),
@@ -361,7 +361,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_collections? },
+        visible: ->(user) { user.can_edit_collections? }, # rubocop:disable Style/SymbolProc
         path: admin_groups_path,
         title: 'Groups',
       ),
@@ -378,7 +378,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_config? },
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: admin_configs_path,
         title: 'Site Config',
       ),
@@ -386,7 +386,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_config? },
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: admin_translation_keys_path,
         title: 'Translations',
       ),
@@ -394,7 +394,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_config? },
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: admin_links_path,
         title: 'Links',
       ),
@@ -402,7 +402,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_theme? },
+        visible: ->(user) { user.can_edit_theme? }, # rubocop:disable Style/SymbolProc
         path: edit_admin_theme_path,
         title: 'Theme',
       ),
@@ -410,7 +410,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_theme? },
+        visible: ->(user) { user.can_edit_theme? }, # rubocop:disable Style/SymbolProc
         path: edit_admin_color_path,
         title: 'Colors',
       ),
@@ -418,7 +418,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_users? },
+        visible: ->(user) { user.can_edit_users? }, # rubocop:disable Style/SymbolProc
         path: admin_agencies_path,
         title: 'Agencies',
       ),
@@ -426,7 +426,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_auto_client_de_duplication? },
+        visible: ->(user) { user.can_manage_auto_client_de_duplication? }, # rubocop:disable Style/SymbolProc
         path: admin_de_duplication_index_path,
         title: 'Client De-Duplication',
       ),
@@ -434,7 +434,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_auto_client_de_duplication? },
+        visible: ->(user) { user.can_manage_auto_client_de_duplication? }, # rubocop:disable Style/SymbolProc
         path: admin_consent_limits_path,
         title: 'CoCs for Consent',
       ),
@@ -442,7 +442,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_add_administrative_event? },
+        visible: ->(user) { user.can_add_administrative_event? }, # rubocop:disable Style/SymbolProc
         path: admin_administrative_events_path,
         title: 'Administrative Events',
       ),
@@ -450,7 +450,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_warehouse_alerts? },
+        visible: ->(user) { user.can_edit_warehouse_alerts? }, # rubocop:disable Style/SymbolProc
         path: admin_warehouse_alerts_path,
         title: 'Warehouse Alerts',
       ),
@@ -466,7 +466,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_inbound_api_configurations? },
+        visible: ->(user) { user.can_manage_inbound_api_configurations? }, # rubocop:disable Style/SymbolProc
         path: admin_inbound_api_configurations_path,
         title: 'Inbound APIs',
       ),
@@ -474,7 +474,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_config? },
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: oauth_applications_path,
         title: 'Oauth',
       ),
@@ -491,7 +491,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_view_imports? },
+        visible: ->(user) { user.can_view_imports? }, # rubocop:disable Style/SymbolProc
         path: admin_dashboard_imports_path,
         title: 'Imports',
       ),
@@ -500,7 +500,7 @@ class Menu::Menu
       menu.add_child(
         Menu::Item.new(
           user: user,
-          visible: ->(user) { user.can_view_imports? },
+          visible: ->(user) { user.can_view_imports? }, # rubocop:disable Style/SymbolProc
           path: ma_reports_csg_engage_reports_path,
           title: 'CSG Engage',
         ),
@@ -509,7 +509,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_add_administrative_event? },
+        visible: ->(user) { user.can_add_administrative_event? }, # rubocop:disable Style/SymbolProc
         path: admin_delayed_jobs_path,
         title: 'Delayed Jobs',
       ),
@@ -517,7 +517,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_sessions? },
+        visible: ->(user) { user.can_manage_sessions? }, # rubocop:disable Style/SymbolProc
         path: admin_sessions_path,
         title: 'Sessions',
       ),
@@ -664,7 +664,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_help? },
+        visible: ->(user) { user.can_edit_help? }, # rubocop:disable Style/SymbolProc
         path: help_index_path,
         title: Translation.translate('Help Documents'),
       ),
@@ -763,7 +763,7 @@ class Menu::Menu
     sub_menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_view_some_secure_files? },
+        visible: ->(user) { user.can_view_some_secure_files? }, # rubocop:disable Style/SymbolProc
         path: secure_files_path,
         title: Translation.translate('Secure Files'),
       ),
