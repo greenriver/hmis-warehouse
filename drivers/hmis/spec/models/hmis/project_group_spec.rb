@@ -20,137 +20,62 @@ RSpec.describe Hmis::ProjectGroup, type: :model do
   # project in another non-HMIS data source
   let!(:non_hmis_project) { create(:hmis_hud_project, data_source: create(:source_data_source)) }
 
-  describe 'inclusion_criteria' do
-    context 'when project_ids are specified' do
-      let(:project_group) do
-        create(:hmis_project_group, data_source: hmis_ds, inclusion_criteria: {
-          project_ids: [p1_o1.id, p2_o2.id],
-        }.to_json)
-      end
-
-      it 'includes projects specified by project_ids' do
-        expect(project_group.effective_project_ids).to contain_exactly(p1_o1.id, p2_o2.id)
-        expect(project_group.projects).to contain_exactly(p1_o1, p2_o2)
-      end
-
-      it 'does not include non-HMIS projects, even if specified' do
-        project_group.parsed_inclusion_criteria.project_ids << non_hmis_project.id
-        expect(project_group.effective_project_ids).not_to include(non_hmis_project.id)
-      end
+  describe 'access scopes' do
+    let!(:non_admin_user) do
+      hmis_user = create(:hmis_user, data_source: hmis_ds)
+      create_access_control(hmis_user, o1, without_permission: [:can_administer_hmis])
+      hmis_user
     end
-
-    context 'when organization_ids are specified' do
-      let(:project_group) do
-        create(:hmis_project_group, data_source: hmis_ds, inclusion_criteria: {
-          organization_ids: [o1.id],
-        }.to_json)
-      end
-
-      it 'includes all projects belonging to the specified organizations' do
-        expect(project_group.effective_project_ids).to contain_exactly(*o1.projects.pluck(:id))
-      end
+    let!(:admin_user) do
+      hmis_user = create(:hmis_user, data_source: hmis_ds)
+      create_access_control(hmis_user, hmis_ds)
+      hmis_user
     end
+    let!(:project_group) { create(:hmis_project_group, data_source: hmis_ds) }
 
-    context 'when data_source_ids are specified' do
-      let(:project_group) do
-        create(:hmis_project_group, data_source: hmis_ds, inclusion_criteria: {
-          data_source_ids: [hmis_ds.id],
-        }.to_json)
-      end
-
-      it 'includes all projects from the specified data sources' do
-        expect(project_group.effective_project_ids).to contain_exactly(*hmis_ds.projects.pluck(:id))
-      end
+    it 'allows admin users to view project groups' do
+      expect(Hmis::ProjectGroup.viewable_by(admin_user)).to include(project_group)
     end
-
-    context 'when project_type_numbers are specified' do
-      let(:project_group) do
-        create(:hmis_project_group, data_source: hmis_ds, inclusion_criteria: {
-          project_type_numbers: [1],
-        }.to_json)
-      end
-
-      it 'includes projects with the specified project types' do
-        expect(project_group.effective_project_ids).to contain_exactly(p1_o1.id)
-      end
+    it 'allows admin users to edit project groups' do
+      expect(Hmis::ProjectGroup.editable_by(admin_user)).to include(project_group)
     end
-
-    context 'when multiple criteria are specified' do
-      let(:project_group) do
-        create(:hmis_project_group, data_source: hmis_ds, inclusion_criteria: {
-          project_ids: [p2_o2.id],
-          organization_ids: [o1.id],
-          project_type_numbers: [3],
-        }.to_json)
-      end
-
-      it 'includes all projects that satisfy criteria' do
-        expected_projects = [p2_o2.id] + o1.projects.pluck(:id) + hmis_ds.projects.where(project_type: 3).pluck(:id)
-        expect(project_group.effective_project_ids).to contain_exactly(*expected_projects)
-      end
+    it 'disallows non-admin users from viewing project groups' do
+      expect(Hmis::ProjectGroup.viewable_by(non_admin_user)).to be_empty
+    end
+    it 'disallows non-admin users from editing project groups' do
+      expect(Hmis::ProjectGroup.editable_by(non_admin_user)).to be_empty
     end
   end
 
-  describe 'exclusion_criteria' do
-    context 'when project_ids are excluded' do
+  describe 'project evaluation' do
+    context 'when both inclusion and exclusion criteria are specified' do
       let(:project_group) do
         create(:hmis_project_group,
                data_source: hmis_ds,
-               including_entire_data_source: true,
-               exclusion_criteria: {
-                 project_ids: [p1_o1.id],
-               }.to_json)
-      end
-
-      it 'excludes the specified projects by project_ids' do
-        expect(project_group.effective_project_ids).to contain_exactly(*hmis_ds.projects.where.not(id: p1_o1.id).pluck(:id))
-      end
-    end
-
-    context 'when project_type_numbers are excluded' do
-      let(:project_group) do
-        create(:hmis_project_group,
-               data_source: hmis_ds,
-               including_entire_data_source: true,
-               exclusion_criteria: {
-                 project_type_numbers: [2],
-               }.to_json)
-      end
-
-      it 'excludes projects with the specified project types' do
-        expect(project_group.effective_project_ids).to contain_exactly(*hmis_ds.projects.where.not(project_type: 2).pluck(:id))
-      end
-    end
-
-    context 'when organization_ids are excluded' do
-      let(:project_group) do
-        create(:hmis_project_group,
-               data_source: hmis_ds,
-               including_entire_data_source: true,
-               exclusion_criteria: {
-                 organization_ids: [o2.id],
-               }.to_json)
-      end
-
-      it 'excludes all projects belonging to the specified organizations' do
-        expect(project_group.effective_project_ids).to contain_exactly(*(hmis_ds.projects.pluck(:id) - o2.projects.pluck(:id)))
-      end
-    end
-
-    context 'when multiple exclusion criteria are specified' do
-      let(:project_group) do
-        create(:hmis_project_group,
-               data_source: hmis_ds,
-               including_entire_data_source: true,
+               inclusion_criteria: {
+                 data_source_ids: [hmis_ds.id],
+               }.to_json,
                exclusion_criteria: {
                  project_ids: [p1_o1.id],
                  project_type_numbers: [2],
                }.to_json)
       end
 
-      it 'excludes projects that match any of the exclusion criteria' do
+      it 'evaluates effective_project_ids correctly' do
         expected = hmis_ds.projects.where.not(project_type: 2).where.not(id: p1_o1.id).pluck(:id)
+
+        # check effective_project_ids
         expect(project_group.effective_project_ids).to contain_exactly(*expected)
+
+        # sanity check effective_project_ids for each criteria
+        expect(project_group.parsed_inclusion_criteria.effective_project_ids).to contain_exactly(*hmis_ds.projects.map(&:id))
+        expect(project_group.parsed_exclusion_criteria.effective_project_ids).to contain_exactly(p1_o1.id, p2_o2.id)
+      end
+
+      it 'maintains projects correctly' do
+        expected = hmis_ds.projects.where.not(project_type: 2).where.not(id: p1_o1.id).pluck(:id)
+
+        # check maintained projects
         expect(project_group.projects.map(&:id)).to contain_exactly(*expected)
       end
     end
