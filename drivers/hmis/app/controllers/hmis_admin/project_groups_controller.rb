@@ -49,7 +49,7 @@ module HmisAdmin
     end
 
     def update
-      p = project_group_params
+      p = edit_project_group_params
 
       @project_group.name = p[:name]
       @project_group.inclusion_criteria = p[:inclusion_criteria].to_h.map { |k, v| [k, v.compact_blank!] }.to_h.compact_blank.to_json
@@ -87,7 +87,7 @@ module HmisAdmin
     end
 
     def set_project_group
-      @project_group = Hmis::ProjectGroup.find(params[:id])
+      @project_group = Hmis::ProjectGroup.viewable_by(current_user).find(params[:id])
     end
 
     def create_project_group_params
@@ -97,7 +97,7 @@ module HmisAdmin
       )
     end
 
-    def project_group_params
+    def edit_project_group_params
       permitted_criteria_params = {
         project_ids: [],
         data_source_ids: [],
