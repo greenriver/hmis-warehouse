@@ -6,7 +6,6 @@
 
 # frozen_string_literal: true
 
-# rename to ProjectFilter  class, as a generalized tool for creating a list of projects from criteria?
 module Hmis
   class ProjectGroupCriteria < ::ModelForm
     include ApplicationHelper
@@ -14,7 +13,7 @@ module Hmis
     include ActionView::Context
     include ::Hmis::Concerns::HmisArelHelper
 
-    # Source data source for this project group
+    # Source data source for this project filter. Filter cannot be used across multiple data sources.
     attribute :source_data_source_id, Integer, default: nil
 
     # Attributes for filtering
@@ -22,7 +21,13 @@ module Hmis
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :project_type_numbers, Array, default: []
+    # TODO: add more filtering capabilities:
     # attribute :hmis_participation_status, Integer, default: nil
+    # attribute :ce_participation_access_point, Boolean, default: nil
+    # attribute :funder_ids, Array, default: []
+    # attribute :coc_codes, Array, default: []
+    # attribute :project_group_ids, Array, default: []
+    # attribute :coc_codes, Array, default: []
     # attribute :project_status, String, default: 'all'
 
     # Allowed attributes for validation and updates
@@ -36,8 +41,8 @@ module Hmis
     ].freeze
 
     # Validations
-    validates :hmis_participation_status, inclusion: { in: [0, 1, 2], allow_nil: true, message: 'must be 0, 1, or 2' }
-    validates :project_status, inclusion: { in: ['open', 'closed', 'all'], allow_nil: true, message: "must be 'open', 'closed', or 'all'" }
+    # validates :hmis_participation_status, inclusion: { in: [0, 1, 2], allow_nil: true, message: 'must be 0, 1, or 2' }
+    # validates :project_status, inclusion: { in: ['open', 'closed', 'all'], allow_nil: true, message: "must be 'open', 'closed', or 'all'" }
 
     # Initialize with a hash or JSON blob
     def initialize(input = {}, source_data_source_id:)
@@ -56,17 +61,14 @@ module Hmis
       self
     end
 
-    # Convert to hash
     def to_h
       ALLOWED_ATTRIBUTES.index_with { |attr| send(attr) }
     end
 
-    # Convert to JSON
     def to_json(*_args)
       to_h.to_json
     end
 
-    # Check if the object is persisted
     def persisted?
       false
     end
@@ -79,18 +81,6 @@ module Hmis
       ids << data_source_scope.joins(:projects).where(id: data_source_ids).pluck(p_t[:id]) if data_source_ids.any? # user can select data source to include all projects
       ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
       ids.flatten.uniq
-    end
-
-    def project_scope
-      ::GrdaWarehouse::Hud::Project.where(data_source_id: source_data_source_id)
-    end
-
-    def organization_scope
-      ::GrdaWarehouse::Hud::Organization.where(data_source_id: source_data_source_id)
-    end
-
-    def data_source_scope
-      ::GrdaWarehouse::DataSource.hmis.where(id: source_data_source_id)
     end
 
     # Describe criteria as HTML
@@ -123,14 +113,14 @@ module Hmis
         criteria << { label: 'Project Types', values: project_type_names }
       end
 
-      # Generate HTML
+      # Generate HTML. This is based on Filter::FilterBase#describe_criteria_as_html
       criteria_inner = criteria.map do |criterion|
         wrapper_classes = ['report-parameters__parameter', 'd-flex']
         label_text = "#{criterion[:label]}:"
         values = criterion[:values]
 
         # Limit the number of displayed values
-        if values.is_a?(Array) && values.size > 5
+        if values.is_a?(Array) && values.size > 10
           count = values.size
           values = values.first(5)
           values << "#{count - 5} more"
@@ -151,6 +141,18 @@ module Hmis
     end
 
     private
+
+    def project_scope
+      ::GrdaWarehouse::Hud::Project.where(data_source_id: source_data_source_id)
+    end
+
+    def organization_scope
+      ::GrdaWarehouse::Hud::Organization.where(data_source_id: source_data_source_id)
+    end
+
+    def data_source_scope
+      ::GrdaWarehouse::DataSource.hmis.where(id: source_data_source_id)
+    end
 
     # Parse input as either JSON or a hash
     def parse_input(input)
