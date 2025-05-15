@@ -51,7 +51,7 @@ module HudSpmReport::Generators::Fy2026
         table_name,
         {
           2 => 'Universe: Persons who exit Street Outreach',
-          3 => 'Of persons above, those who exited to temporary & some institutional destinations',
+          3 => 'Of persons above, those who exited to specific homeless, temporary, and institutional destinations',
           4 => 'Of the persons above, those who exited to permanent housing destinations',
           5 => '% Successful exits',
         },
