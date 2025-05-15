@@ -6,14 +6,33 @@
 
 # frozen_string_literal: true
 
-# Placeholder for HUD Utility 2026 (currently using 2024 values)
 module HudUtility2026
+  # these modules define class methods (essentially extend)
   include ::Concerns::HudValidationUtil
-  include ::Concerns::HudLists2024
-
-  module_function
+  include ::Concerns::HudLists2026
 
   SSN_RGX = /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
+  class << self
+    # funding_sources => deprecated funding sources
+    # funding_sources_current => actual funding sources from HudLists2026
+    alias_method :funding_sources_current, :funding_sources
+    def funding_source_current(id, reverse = false, raise_on_missing: false)
+      _translate(funding_sources_current, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    alias_method :ssvf_financial_assistance_options_current, :ssvf_financial_assistance_options
+    def ssvf_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_financial_assistance_options_current, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # bring in deprecated fields and options from previous years
+    include HudUtility2026Deprecations
+  end
+
+  ##
+  # WARNING: all methods below are class-methods due this this line
+  ##
+  module_function
 
   def races(multi_racial: false)
     return race_field_name_to_description unless multi_racial
@@ -74,15 +93,6 @@ module HudUtility2026
     map = race_ethnicity_combinations
 
     _translate map, field, reverse
-  end
-
-  # 1.6
-  def gender_none(id, reverse = false)
-    race_none(id, reverse)
-  end
-
-  def race_gender_none_options
-    race_nones
   end
 
   def veteran_status(*args)
@@ -201,7 +211,7 @@ module HudUtility2026
 
   def residential_project_type_numbers_by_codes(*codes)
     codes = codes.flatten # Take either array, or multiple parameters
-    codes.map { |code| HudUtility2024.residential_project_type_numbers_by_code[code] }.
+    codes.map { |code| HudUtility2026.residential_project_type_numbers_by_code[code] }.
       flatten.
       uniq.
       sort.
@@ -316,50 +326,6 @@ module HudUtility2026
       4, # Street Outreach
       6, # Services Only
     ].freeze
-  end
-
-  def gender_fields
-    gender_id_to_field_name.values.uniq.freeze
-  end
-
-  def gender_field_name_to_id
-    gender_id_to_field_name.invert.freeze
-  end
-
-  def gender_field_name_label
-    genders.transform_keys do |k|
-      gender_id_to_field_name[k]
-    end
-  end
-
-  def gender_id_to_field_name
-    # Integer values from HUD Data Dictionary
-    {
-      0 => :Woman,
-      1 => :Man,
-      2 => :CulturallySpecific,
-      3 => :DifferentIdentity,
-      4 => :NonBinary,
-      5 => :Transgender,
-      6 => :Questioning,
-      8 => :GenderNone,
-      9 => :GenderNone,
-      99 => :GenderNone,
-    }.freeze
-  end
-
-  def gender_known_ids
-    [0, 1, 2, 3, 4, 5, 6].freeze
-  end
-
-  def gender_known_values
-    genders.values_at(*gender_known_ids).freeze
-  end
-
-  def gender_comparison_value(key)
-    return key if key.in?([8, 9, 99])
-
-    1
   end
 
   def race_fields
@@ -680,7 +646,7 @@ module HudUtility2026
       'HUD: Unsheltered Special NOFO' => [54],
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
-      'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
+      'HUD: PFS' => [HudUtility2026.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
       'HUD: HOME' => [50, 51],
     }
   end
@@ -722,43 +688,43 @@ module HudUtility2026
   def service_types_provided_map
     {
       141 => {
-        list: ::HudUtility2024.path_services_options,
+        list: ::HudUtility2026.path_services_options,
         label_method: :path_services,
       },
       142 => {
-        list: ::HudUtility2024.rhy_services_options,
+        list: ::HudUtility2026.rhy_services_options,
         label_method: :rhy_services,
       },
       143 => {
-        list: ::HudUtility2024.hopwa_services_options,
+        list: ::HudUtility2026.hopwa_services_options,
         label_method: :hopwa_services,
       },
       144 => {
-        list: ::HudUtility2024.ssvf_services_options,
+        list: ::HudUtility2026.ssvf_services_options,
         label_method: :ssvf_services,
       },
       151 => {
-        list: ::HudUtility2024.hopwa_financial_assistance_options,
+        list: ::HudUtility2026.hopwa_financial_assistance_options,
         label_method: :hopwa_financial_assistance,
       },
       152 => {
-        list: ::HudUtility2024.ssvf_financial_assistance_options,
+        list: ::HudUtility2026.ssvf_financial_assistance_options,
         label_method: :ssvf_financial_assistance,
       },
       161 => {
-        list: ::HudUtility2024.path_referral_options,
+        list: ::HudUtility2026.path_referral_options,
         label_method: :path_referral,
       },
       200 => {
-        list: ::HudUtility2024.bed_night_options,
+        list: ::HudUtility2026.bed_night_options,
         label_method: :bed_night,
       },
       210 => {
-        list: ::HudUtility2024.voucher_tracking_options,
+        list: ::HudUtility2026.voucher_tracking_options,
         label_method: :voucher_tracking,
       },
       300 => {
-        list: ::HudUtility2024.moving_on_assistance_options,
+        list: ::HudUtility2026.moving_on_assistance_options,
         label_method: :moving_on_assistance,
       },
     }.freeze
@@ -774,15 +740,15 @@ module HudUtility2026
   def service_sub_types_provided_map
     {
       3 => {
-        list: ::HudUtility2024.ssvf_sub_type3s,
+        list: ::HudUtility2026.ssvf_sub_type3s,
         label_method: :ssvf_sub_type3,
       },
       4 => {
-        list: ::HudUtility2024.ssvf_sub_type4s,
+        list: ::HudUtility2026.ssvf_sub_type4s,
         label_method: :ssvf_sub_type4,
       },
       5 => {
-        list: ::HudUtility2024.ssvf_sub_type5s,
+        list: ::HudUtility2026.ssvf_sub_type5s,
         label_method: :ssvf_sub_type5,
       },
     }

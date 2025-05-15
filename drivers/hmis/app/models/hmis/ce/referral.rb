@@ -11,6 +11,8 @@ module Hmis::Ce
   class Referral < GrdaWarehouseBase
     include SimpleStateMachine
 
+    has_paper_trail
+
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
@@ -20,9 +22,15 @@ module Hmis::Ce
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
+    has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
+
+    has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
+    has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
 
     # TODO(#7395): permissions
-    scope :viewable_by, ->(_user) { all }
+    scope :viewable_by, ->(user) do
+      joins(:target_project).merge(Hmis::Hud::Project.viewable_by(user))
+    end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
     scope :active_or_accepted, -> { where.not(status: 'rejected') }
@@ -59,6 +67,10 @@ module Hmis::Ce
 
     def active?
       !accepted? && !rejected?
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
     end
 
     private

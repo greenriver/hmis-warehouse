@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :code do
   # NOTE, you can check a PR for this with
   # git diff -U0 --minimal HEAD~1 | grep -v '^+#.*2024' | grep -v '^+#.*LICENSE.md' | grep -v '^+###$' | grep -v '^+#$' | grep -v '^diff --git' | grep -v '^index' | grep '^--- a' | grep '^+++ b' | more
@@ -24,6 +26,7 @@ namespace :code do
     filenames = []
     filenames << HudCodeGen.generate_hud_lists('2022')
     filenames << HudCodeGen.generate_hud_lists('2024')
+    filenames << HudCodeGen.generate_hud_lists('2026')
     exec("bundle exec rubocop -A --format simple #{filenames.join(' ')} > /dev/null")
   end
 

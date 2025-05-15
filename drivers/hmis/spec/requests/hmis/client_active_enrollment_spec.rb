@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -118,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(clients.size).to eq(20)
         # make sure each of them resolved an activeEnrollment
         expect(clients.map { |c| c[:activeEnrollment] }.compact.size).to eq(20)
-      end.to make_database_queries(count: 10..35) # makes 29, but leaving some wiggle room
+      end.to make_database_queries(count: 15..20)
     end
   end
 
@@ -132,6 +134,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       clients = result.dig('data', 'clientSearch', 'nodes').map(&:deep_symbolize_keys)
       expect(clients).to contain_exactly(
         # neither are included because we searched for active enrollments at p1
+        a_hash_including(id: c1.id.to_s, activeEnrollment: nil),
+        a_hash_including(id: c2.id.to_s, activeEnrollment: nil),
+      )
+    end
+  end
+
+  describe 'when the user can only view limited enrollments at this project' do
+    let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_limited_enrollment_details]) }
+
+    it 'does not resolve activeEnrollments' do
+      response, result = post_graphql(dob: shared_client_dob, project_id: p1.id, date: 2.days.ago) { query }
+
+      expect(response.status).to eq(200), result.inspect
+      clients = result.dig('data', 'clientSearch', 'nodes').map(&:deep_symbolize_keys)
+      expect(clients).to contain_exactly(
+        # both clients are included, but not their active enrollments
         a_hash_including(id: c1.id.to_s, activeEnrollment: nil),
         a_hash_including(id: c2.id.to_s, activeEnrollment: nil),
       )

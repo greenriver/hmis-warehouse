@@ -19,17 +19,23 @@ module Types
     field :project_id, ID, null: false
     field :project_name, String, null: false
     field :project_type, HmisSchema::Enums::ProjectType, null: false
+    field :organization_name, String, null: false
 
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_available, GraphQL::Types::ISO8601Date, null: false
+    field :unit, HmisSchema::Unit, null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
       arg :project, [ID]
       arg :project_type, [HmisSchema::Enums::ProjectType]
+      arg :organization, [ID]
+      arg :available_on_date, GraphQL::Types::ISO8601Date
+      arg :workflow_template, [String]
     end
 
     def candidates
@@ -53,6 +59,21 @@ module Types
       load_ar_association(object, :project).project_type
     end
 
+    def organization_name
+      project = load_ar_association(object, :project)
+      load_ar_association(project, :organization).name
+    end
+
+    def unit
+      owner = load_ar_association(object, :owner)
+      owner if owner.is_a?(Hmis::Unit)
+    end
+
+    def date_available
+      # TODO(#7537) - implement "available after date". Always returns date the referral was created, for now
+      object.created_at
+    end
+
     def eligibility_requirements
       # not to be used in batch
       Hmis::Ce::Match::Rule.eligibility_requirement.for_opportunity(object)
@@ -64,7 +85,7 @@ module Types
     end
 
     def categories
-      load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
+      load_ar_association(object, :categories).to_a.sort_by(&:name).map(&:name)
     end
 
     def candidates_generated_at

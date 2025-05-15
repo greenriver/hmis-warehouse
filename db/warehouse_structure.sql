@@ -7965,6 +7965,27 @@ ALTER SEQUENCE public.client_roi_authorizations_id_seq OWNED BY public.client_ro
 
 
 --
+-- Name: client_search_queries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_search_queries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    created_by_id bigint NOT NULL,
+    params jsonb NOT NULL,
+    fingerprint character varying NOT NULL
+);
+
+
+--
+-- Name: COLUMN client_search_queries.fingerprint; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.client_search_queries.fingerprint IS 'hash of normalized search parameters used for deduplication and efficient query retrieval';
+
+
+--
 -- Name: client_searchable_names; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -37362,6 +37383,14 @@ ALTER TABLE ONLY public.client_notes
 
 ALTER TABLE ONLY public.client_roi_authorizations
     ADD CONSTRAINT client_roi_authorizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_search_queries client_search_queries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_search_queries
+    ADD CONSTRAINT client_search_queries_pkey PRIMARY KEY (id);
 
 
 --
@@ -70680,6 +70709,13 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 
 
 --
+-- Name: uidx_client_search_queries; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_client_search_queries ON public.client_search_queries USING btree (fingerprint);
+
+
+--
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -73719,6 +73755,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250513134455'),
 ('20250513132551'),
+('20250505000700'),
 ('20250502193442'),
 ('20250424193430'),
 ('20250424193237'),

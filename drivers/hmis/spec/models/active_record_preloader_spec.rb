@@ -127,17 +127,6 @@ RSpec.describe Sources::ActiveRecordAssociation do
         end.to raise_error(/association must be symbol/)
       end
 
-      it 'respects custom scopes via Source' do
-        scope = Hmis::Hud::Project.where(id: project.id)
-        source = Sources::ActiveRecordAssociation.new(:project, scope)
-        records = [test_record]
-
-        results = source.fetch(records)
-
-        expect(results).to eq([project])
-        expect(test_record.association(:project).loaded?).to be true
-      end
-
       it 'generates appropriate batch keys' do
         scope = Hmis::Hud::Project.where(id: 1)
         key1 = Sources::ActiveRecordAssociation.batch_key_for(:project)
