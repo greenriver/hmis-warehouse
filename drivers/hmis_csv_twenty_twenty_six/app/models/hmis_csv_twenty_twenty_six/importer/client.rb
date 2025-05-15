@@ -61,74 +61,10 @@ module HmisCsvTwentyTwentySix::Importer
             arguments: { valid_options: HudUtility2026.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
-        # TODO: Enforce Race and Gender constraints?
-        Woman: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
+        Sex: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        Man: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        NonBinary: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        CulturallySpecific: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        Transgender: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        Questioning: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        DifferentIdentity: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        GenderNone: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.race_gender_none_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2026.sex_options.keys.map(&:to_s).freeze },
           },
         ],
         AmIndAKNative: [
