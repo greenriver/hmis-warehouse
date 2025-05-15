@@ -325,6 +325,13 @@ namespace :grda_warehouse do
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
+    begin
+      Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
+    rescue StandardError => e # rescue and report error, for example from incorrectly formatted criteria
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
+
     # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
       begin
