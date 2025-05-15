@@ -48,6 +48,14 @@ module HmisCsvTwentyTwentySix::Importer::ImportConcern
       where(should_import: true)
     end
 
+    def self.data_lake_module
+      'HmisCsvTwentyTwentySix'
+    end
+
+    def self.hud_csv_version
+      '2026'
+    end
+
     # Override as necessary
     def self.clean_row_for_import(row, deidentified:) # rubocop:disable Lint/UnusedMethodArgument
       row

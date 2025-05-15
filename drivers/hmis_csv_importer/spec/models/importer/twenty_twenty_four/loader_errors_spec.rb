@@ -15,8 +15,8 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     travel_to Time.local(2020, 1, 1) do
       @loader = import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/loader_errors',
-        version: '2026',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/loader_errors',
+        version: 'AutoMigrate',
         run_jobs: false,
       )
     end

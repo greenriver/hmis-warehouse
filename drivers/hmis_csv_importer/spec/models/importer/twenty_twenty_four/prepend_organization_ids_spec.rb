@@ -55,7 +55,7 @@ RSpec.describe 'Prepend Organization IDs', type: :model do
     GrdaWarehouse::Utility.clear!
     HmisCsvImporter::Utility.clear!
 
-    file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/cleanup_move_ins'
+    file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/cleanup_move_ins'
 
     @data_source = if with_cleanup
       create(:importer_prepend_organization_ids)

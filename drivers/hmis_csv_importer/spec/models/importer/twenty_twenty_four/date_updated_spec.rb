@@ -15,9 +15,9 @@ RSpec.describe 'HUD DateUpdated Tests', type: :model do
       GrdaWarehouse::Utility.clear!
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_initial',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/date_updated_initial',
         data_source: @data_source,
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
       )
     end
@@ -31,9 +31,9 @@ RSpec.describe 'HUD DateUpdated Tests', type: :model do
     describe 'older update' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_older',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/date_updated_older',
           data_source: @data_source,
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
         )
       end
@@ -48,9 +48,9 @@ RSpec.describe 'HUD DateUpdated Tests', type: :model do
     describe 'same day update' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_same_day',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/date_updated_same_day',
           data_source: @data_source,
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
         )
       end
@@ -65,9 +65,9 @@ RSpec.describe 'HUD DateUpdated Tests', type: :model do
     describe 'newer update' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_newer',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/date_updated_newer',
           data_source: @data_source,
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
         )
       end

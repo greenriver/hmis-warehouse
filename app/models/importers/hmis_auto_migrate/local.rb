@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'aws-sdk-rails'
 require 'zip'
 module Importers::HmisAutoMigrate
@@ -28,7 +30,7 @@ module Importers::HmisAutoMigrate
 
     def import!
       pre_process
-      @importer = Importers::HmisAutoMigrate::UploadedZip.new(
+      @importer = upload_zip_class.new(
         upload_id: @upload.id,
         data_source_id: @data_source_id,
         deidentified: @deidentified,
@@ -58,6 +60,10 @@ module Importers::HmisAutoMigrate
         end
       end
       upload(file_path: zip_file_path)
+    end
+
+    private def upload_zip_class
+      Importers::HmisAutoMigrate::UploadedZip
     end
   end
 end

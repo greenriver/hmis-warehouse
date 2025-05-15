@@ -48,9 +48,9 @@ RSpec.describe 'Prepend Project IDs', type: :model do
     end
 
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/cleanup_move_ins',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/cleanup_move_ins',
       data_source: data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
     )
   end

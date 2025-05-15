@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 module HmisCsvFixtures
   def import_hmis_csv_fixture(
     file_path,
@@ -33,6 +41,13 @@ module HmisCsvFixtures
 
       importer = if version == '2020'
         HmisCsvTwentyTwenty::Loader::Loader.new(
+          file_path: tmp_path,
+          data_source_id: data_source.id,
+          deidentified: deidentified,
+        )
+      elsif version == '2026'
+        TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
+        HmisCsvTwentyTwentySix::Loader::Loader.new(
           file_path: tmp_path,
           data_source_id: data_source.id,
           deidentified: deidentified,

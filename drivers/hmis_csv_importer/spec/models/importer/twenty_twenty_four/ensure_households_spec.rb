@@ -64,9 +64,9 @@ RSpec.describe 'Ensure Households', type: :model do
     @data_source = GrdaWarehouse::DataSource.find_by(name: 'Ensure Relationships') || create(:ensure_relationships_ds)
     @data_source.update(import_cleanups: import_cleanups)
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/ensure_households',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/ensure_households',
       data_source: @data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
     )
   end

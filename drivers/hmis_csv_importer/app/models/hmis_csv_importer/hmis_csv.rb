@@ -26,11 +26,15 @@ module HmisCsvImporter::HmisCsv
     end
 
     def self.importable_files_map
-      Rails.application.config.hmis_data_lake.constantize.importable_files_map
+      data_lake_module.constantize.importable_files_map
     end
 
     def self.data_lake_file_class(name, phase)
-      "#{Rails.application.config.hmis_data_lake}::#{phase}::#{name}".constantize
+      "#{data_lake_module}::#{phase}::#{name}".constantize
+    end
+
+    def self.data_lake_module
+      Rails.application.config.hmis_data_lake
     end
 
     def log(message, attachment = nil)

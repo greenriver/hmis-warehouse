@@ -60,9 +60,9 @@ RSpec.describe 'Fix Household IDs', type: :model do
     @data_source = GrdaWarehouse::DataSource.find_by(name: 'Fix blank household ids') || create(:fix_blank_household_ids)
     @data_source.update(import_cleanups: import_cleanups)
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/fix_household_ids',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/fix_household_ids',
       data_source: @data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
     )
   end

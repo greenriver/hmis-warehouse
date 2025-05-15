@@ -87,9 +87,9 @@ RSpec.describe 'Ensure Relationships', type: :model do
       create(:importer_dont_cleanup_ds)
     end
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/ensure_relationships',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/ensure_relationships',
       data_source: @data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
     )
   end

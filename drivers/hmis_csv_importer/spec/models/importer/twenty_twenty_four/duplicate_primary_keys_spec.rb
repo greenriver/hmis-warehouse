@@ -14,8 +14,8 @@ RSpec.describe HmisCsvImporter, type: :model do
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/duplicate_primary_keys',
-        version: '2026',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/duplicate_primary_keys',
+        version: 'AutoMigrate',
         run_jobs: false,
       )
     end
@@ -62,12 +62,10 @@ RSpec.describe HmisCsvImporter, type: :model do
   end
 
   def loadable_file_class(name)
-    TodoOrDie('Update namespace to HmisCsvImporter', by: '2025-10-01')
-    HmisCsvTwentyTwentySix::Loader::Loader.loadable_file_class(name)
+    HmisCsvImporter::Loader::Loader.loadable_file_class(name)
   end
 
   def importable_file_class(name)
-    TodoOrDie('Update namespace to HmisCsvImporter', by: '2025-10-01')
-    HmisCsvTwentyTwentySix::Importer::Importer.importable_file_class(name)
+    HmisCsvImporter::Importer::Importer.importable_file_class(name)
   end
 end

@@ -14,8 +14,8 @@ RSpec.describe HmisCsvImporter, type: :model do
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/project_test_files',
-        version: '2026',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/project_test_files',
+        version: 'AutoMigrate',
         run_jobs: true,
       )
     end
@@ -45,8 +45,8 @@ RSpec.describe HmisCsvImporter, type: :model do
         project_coc.ProjectID = project.ProjectID
         project_coc.save
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/project_test_files',
-          version: '2026',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/project_test_files',
+          version: 'AutoMigrate',
           run_jobs: true,
         )
       end

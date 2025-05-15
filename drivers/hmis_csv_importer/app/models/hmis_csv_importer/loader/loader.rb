@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
@@ -83,8 +85,7 @@ module HmisCsvImporter::Loader
       return unless @loader_log.successfully_loaded?
 
       # puts summary_as_log_str(@loader_log.summary)
-
-      @importer = HmisCsvImporter::Importer::Importer.new(
+      @importer = importer_class.new(
         loader_id: @loader_log.id,
         data_source_id: data_source.id,
         debug: @debug,
@@ -170,6 +171,10 @@ module HmisCsvImporter::Loader
           load_source_file_pg(read_from: file, klass: klass, original_file_path: source_file_path)
         end
       end
+    end
+
+    private def importer_class
+      HmisCsvImporter::Importer::Importer
     end
 
     private def load_source_file_pg(read_from:, klass:, original_file_path:)
@@ -323,7 +328,6 @@ module HmisCsvImporter::Loader
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return [:missing]
       end
-
       csv_header_names = klass.hud_csv_headers
       valid_headers = source_headers.map(&HEADER_NORMALIZER) == csv_header_names.map(&HEADER_NORMALIZER)
 

@@ -955,8 +955,12 @@ module HmisCsvImporter::Importer
     end
 
     private def source_data_scope_for(file_name)
-      scope = HmisCsvImporter::Loader::Loader.loadable_files[file_name]
+      scope = loader_class.loadable_files[file_name]
       scope.unscoped.where(loader_id: @loader_log.id)
+    end
+
+    private def loader_class
+      HmisCsvImporter::Loader::Loader
     end
 
     private def date_range

@@ -17,9 +17,9 @@ RSpec.describe 'Combine Enrollments', type: :model do
     create(:unversioned_combined_enrollment_project, data_source_id: data_source.id)
 
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/combine_enrollments',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/combine_enrollments',
       data_source: data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
     )
   end

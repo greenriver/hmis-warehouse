@@ -14,8 +14,8 @@ RSpec.describe HmisCsvImporter, type: :model do
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing',
-        version: '2026',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/client_processing',
+        version: 'AutoMigrate',
         run_jobs: false,
       )
     end
@@ -41,8 +41,8 @@ RSpec.describe HmisCsvImporter, type: :model do
         # Force an update
         GrdaWarehouse::Hud::Client.source.update(source_hash: nil)
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing',
-          version: '2026',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/client_processing',
+          version: 'AutoMigrate',
           run_jobs: false,
         )
       end
@@ -58,8 +58,8 @@ RSpec.describe HmisCsvImporter, type: :model do
       describe 'when re-importing and the source hash doesn\'t match' do
         before(:all) do
           import_hmis_csv_fixture(
-            'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing',
-            version: '2026',
+            'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/client_processing',
+            version: 'AutoMigrate',
             run_jobs: false,
           )
         end
@@ -76,8 +76,8 @@ RSpec.describe HmisCsvImporter, type: :model do
         describe 'when re-importing with changed enrollment' do
           before(:all) do
             import_hmis_csv_fixture(
-              'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing_2',
-              version: '2026',
+              'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/client_processing_2',
+              version: 'AutoMigrate',
               run_jobs: false,
             )
           end

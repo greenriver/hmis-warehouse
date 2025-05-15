@@ -182,9 +182,9 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       create(:import_override, data_source: @data_source, file_name: 'Enrollment.csv', replaces_value: ':NULL:', replaces_column: 'PreferredLanguageDifferent', replacement_value: 'Other')
     end
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/import_overrides_test_files',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/import_overrides_test_files',
       data_source: @data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
     )
   end

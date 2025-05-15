@@ -16,6 +16,10 @@ module HmisCsvTwentyTwentySix::Loader
       def hmis_data
         @hmis_data ||= slice(*self.class.hmis_structure.keys)
       end
+
+      def self.hud_csv_version
+        '2026'
+      end
     end
   end
 end

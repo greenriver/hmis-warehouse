@@ -24,9 +24,9 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
         # move to a time contemporaneous with the incoming data (this may not always be necessary)
         travel_to Time.local(2020, 1, 1) do
           @loader = import_hmis_csv_fixture(
-            'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/loader_errors',
+            'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/loader_errors',
             data_source: @data_source,
-            version: '2026',
+            version: 'AutoMigrate',
             run_jobs: false,
           )
         end
@@ -54,9 +54,9 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
 
         travel_to Time.local(2020, 1, 1) do
           @loader = import_hmis_csv_fixture(
-            'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/loader_errors',
+            'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/loader_errors',
             data_source: @data_source,
-            version: '2026',
+            version: 'AutoMigrate',
             run_jobs: false,
           )
         end

@@ -15,9 +15,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/allowed_projects',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/allowed_projects',
         data_source: @data_source,
-        version: '2026',
+        version: 'AutoMigrate',
         deidentified: true,
         run_jobs: false,
       )
@@ -50,9 +50,9 @@ RSpec.describe HmisCsvImporter, type: :model do
     describe 'when importing updated enrollment data and de-identifying' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/allowed_projects',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/allowed_projects',
           data_source: @data_source,
-          version: '2026',
+          version: 'AutoMigrate',
           deidentified: true,
           run_jobs: false,
         )

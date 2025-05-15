@@ -17,8 +17,8 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
       GrdaWarehouse::Utility.clear!
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/export_date_fixtures/date_updated_initial',
-        version: 'AutoMigrate',
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_initial',
+        version: '2026',
         data_source: @data_source,
         run_jobs: false,
       )
@@ -33,8 +33,8 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
     describe 'older update' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/export_date_fixtures/date_updated_older',
-          version: 'AutoMigrate',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_older',
+          version: '2026',
           data_source: @data_source,
           run_jobs: false,
         )
@@ -50,8 +50,8 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
     describe 'same day update' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/export_date_fixtures/date_updated_same_day',
-          version: 'AutoMigrate',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_same_day',
+          version: '2026',
           data_source: @data_source,
           run_jobs: false,
         )
@@ -67,8 +67,8 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
     describe 'newer update' do
       before(:all) do
         import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/export_date_fixtures/date_updated_newer',
-          version: 'AutoMigrate',
+          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_newer',
+          version: '2026',
           data_source: @data_source,
           run_jobs: false,
         )

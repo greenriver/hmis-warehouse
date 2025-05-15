@@ -48,13 +48,17 @@ module Importers::HmisAutoMigrate
       @notifier.ping(message)
     end
 
+    private def loader_class
+      ::HmisCsvImporter::Loader::Loader
+    end
+
     private def import(file_path, data_source_id, upload, deidentified:)
       log = ::HmisCsvImporter::ImportLog.create(
         created_at: Time.current,
         upload_id: upload.id,
         data_source_id: data_source_id,
       )
-      loader = ::HmisCsvImporter::Loader::Loader.new(
+      loader = loader_class.new(
         file_path: file_path,
         data_source_id: data_source_id,
         deidentified: deidentified,
