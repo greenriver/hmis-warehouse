@@ -4279,7 +4279,7 @@
   },
   {
     "name": "HOPWAFinancialAssistance",
-    "code": "V2.3",
+    "code": "W2.2",
     "values": [
       {
         "key": 1,
@@ -5610,20 +5610,20 @@
         "description": "Black, African American, or African"
       },
       {
-        "key": "NativeHIPacific",
-        "description": "Native Hawaiian or Pacific Islander"
-      },
-      {
-        "key": "White",
-        "description": "White"
-      },
-      {
         "key": "HispanicLatinaeo",
         "description": "Hispanic/Latina/e/o"
       },
       {
         "key": "MidEastNAfrican",
         "description": "Middle Eastern or North African"
+      },
+      {
+        "key": "NativeHIPacific",
+        "description": "Native Hawaiian or Pacific Islander"
+      },
+      {
+        "key": "White",
+        "description": "White"
       },
       {
         "key": "RaceNone",

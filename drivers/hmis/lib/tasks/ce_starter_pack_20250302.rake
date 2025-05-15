@@ -201,6 +201,7 @@ task ce_starter_pack_20250302: [:environment] do
   start_workflow_event = create_start_event(enrollment_creator_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(enrollment_creator_template, 'accept referral', 'end_workflow', 'accept_referral')
 
+  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template,  'Confirm Client Accepts Referral', case_managers)
   create_enrollment_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'ce_create_enrollment',
     status: 'published'
@@ -235,7 +236,9 @@ task ce_starter_pack_20250302: [:environment] do
   create_enrollment_task.save! if create_enrollment_task.changed?
 
   start_workflow_event.connect_to!(create_enrollment_task) unless start_workflow_event.outflows.where(target_node_id: create_enrollment_task.id).exists?
+  start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   create_enrollment_task.connect_to!(accept_workflow_event) unless create_enrollment_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
+  client_acceptance_task.connect_to!(accept_workflow_event) unless client_acceptance_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
 
   # Next, create a new organization and project to use for CE. This isn't strictly necessary -- devs will already have
   # orgs and projects in their local dbs they can use for testing -- but it's helpful for the sake of the starter pack

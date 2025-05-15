@@ -2016,21 +2016,6 @@ module Concerns::HudLists2024
       _translate(ssvf_services_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
-    # W2.2
-    def hopwa_financial_assistance_options
-      {
-        1 => 'Rental assistance',
-        2 => 'Security deposits',
-        3 => 'Utility deposits',
-        4 => 'Utility payments',
-        7 => 'Mortgage assistance',
-      }.freeze
-    end
-
-    def hopwa_financial_assistance(id, reverse = false, raise_on_missing: false)
-      _translate(hopwa_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
     # V2.A
     def ssvf_sub_type3s
       {
@@ -2448,6 +2433,21 @@ module Concerns::HudLists2024
 
     def hopwa_services(id, reverse = false, raise_on_missing: false)
       _translate(hopwa_services_options, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # W2.2
+    def hopwa_financial_assistance_options
+      {
+        1 => 'Rental assistance',
+        2 => 'Security deposits',
+        3 => 'Utility deposits',
+        4 => 'Utility payments',
+        7 => 'Mortgage assistance',
+      }.freeze
+    end
+
+    def hopwa_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(hopwa_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # W3

@@ -24,6 +24,8 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasScanCardCodes
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include ::Hmis::Concerns::HmisArelHelper
 
     def self.configuration
@@ -85,14 +87,14 @@ module Types
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
 
-    field :eligible_ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
-      # Omit status, since we only return open opportunities for the client anyway
-      filters_argument Types::HmisSchema::CeOpportunity, omit: [:status], type_name: 'ClientEligibleCeOpportunity'
-    end
-
-    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
-      filters_argument Types::HmisSchema::CeReferral
-    end
+    ce_opportunities_field(
+      :eligible_ce_opportunities,
+      filter_args: { omit: [:status, :available_on_date, :workflow_template], type_name: 'ClientEligibleCeOpportunity' },
+    )
+    ce_referrals_field(
+      :ce_referrals,
+      filter_args: { omit: [:workflow_template, :on_current_step_since], type_name: 'ClientCeReferral' },
+    )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
       argument :project_id, ID, required: true
@@ -253,11 +255,10 @@ module Types
       selected_races
     end
 
-    def image
+    def image # Don't resolve in batch
       return unless current_permission?(permission: :can_view_client_photo, entity: object)
 
-      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
-      file = files.first&.client_file
+      file = object.client_files.client_photos.newest_first.first&.client_file
       file&.download ? file : nil
     end
 
@@ -344,7 +345,7 @@ module Types
     def alerts
       return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
 
-      load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
+      load_ar_association(object, :active_alerts).sort_by(&:created_at).reverse
     end
 
     # not optimized for batch queries, causes n+1 queries
@@ -417,28 +418,12 @@ module Types
         pluck(:role).uniq
     end
 
-    def eligible_ce_opportunities(filters: nil)
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = Hmis::Ce::Opportunity.viewable_by(current_user).for_client(object)
-      scope = scope.where(project_id: filters.project) if filters&.project.present?
-
-      scope = scope.joins(:project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
-
-      scope.order(:id)
+    def eligible_ce_opportunities(**args) # Don't resolve in batch
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), **args)
     end
 
-    def ce_referrals(filters: nil)
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_referrals.viewable_by(current_user)
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-
-      opportunity_table = Hmis::Ce::Opportunity.arel_table
-      scope = scope.joins(:opportunity).where(opportunity_table[:project_id].in(filters&.project)) if filters&.project.present?
-
-      scope = scope.joins(opportunity: :project).where(p_t[:project_type].in(filters&.project_type)) if filters&.project_type.present?
-      scope.order(created_at: :desc, id: :asc)
+    def ce_referrals(**args)
+      resolve_ce_referrals(object.ce_referrals, **args)
     end
   end
 end

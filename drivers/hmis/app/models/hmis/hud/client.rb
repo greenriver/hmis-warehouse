@@ -40,6 +40,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
+  has_many :enrollments_with_exits, -> { preload(:exit) }, **hmis_relation(:PersonalID, 'Enrollment')
+
   # Projects that this Client is enrolled in, including through WIP enrollments
   has_many :projects, through: :enrollments
 
@@ -84,6 +86,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :scan_card_codes, class_name: 'Hmis::ScanCardCode', inverse_of: :client
 
   has_many :alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
+  has_many :active_alerts, -> { active }, class_name: '::Hmis::ClientAlert'
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
@@ -116,7 +119,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   class << self
-    alias viewable_by visible_to
+    alias_method :viewable_by, :visible_to
   end
 
   scope :searchable_to, ->(user) do

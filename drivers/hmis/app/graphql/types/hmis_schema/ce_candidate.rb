@@ -15,7 +15,7 @@ module Types
     field :priority_score, Integer, null: false
 
     def client
-      load_ar_association(object, :client, scope: Hmis::Hud::Client.viewable_by(current_user))
+      load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
   end
 end
