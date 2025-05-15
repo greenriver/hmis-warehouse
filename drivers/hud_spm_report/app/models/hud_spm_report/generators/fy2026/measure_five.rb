@@ -55,7 +55,7 @@ module HudSpmReport::Generators::Fy2026
         COLUMNS,
       )
 
-      report_members = create_universe(:m5_1, [:es, :sh, :th].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten)
+      report_members = create_universe(:m5_1, [:es, :sh, :th].map { |code| HudUtility2026.project_type_number_from_code(code) }.flatten)
       answer = @report.answer(question: table_name, cell: 'C2')
       answer.add_members(report_members)
       answer.update(summary: report_members.count)
@@ -84,7 +84,7 @@ module HudSpmReport::Generators::Fy2026
         COLUMNS,
       )
 
-      report_members = create_universe(:m5_2, [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) })
+      report_members = create_universe(:m5_2, [:es, :sh, :th, :ph].flat_map { |code| HudUtility2026.project_type_number_from_code(code) })
       answer = @report.answer(question: table_name, cell: 'C2')
       answer.add_members(report_members)
       answer.update(summary: report_members.count)
@@ -119,7 +119,7 @@ module HudSpmReport::Generators::Fy2026
         report_enrollments = HudSpmReport::Fy2026::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
         filter = ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
         adjusted_range = filter.range.begin - 730.days .. filter.range.end
-        project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) }
+        project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2026.project_type_number_from_code(code) }
         candidate_enrollments = enrollment_set.open_during_range(adjusted_range).where(project_type: project_types)
 
         universe_enrollments = []

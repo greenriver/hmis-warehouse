@@ -76,7 +76,7 @@ module HudSpmReport::Fy2026
       # ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
       pre_entry_inclusion_dates = if include_self_reported_and_ph
-        ph_enrollments = enrollments.select { |enrollment, _, _| enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph)) }
+        ph_enrollments = enrollments.select { |enrollment, _, _| enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:ph)) }
         add_self_reported([], ph_enrollments).reject { |_, _, date| date.in?(excluded_dates) }
       else
         # when not including 3.917
@@ -192,14 +192,14 @@ module HudSpmReport::Fy2026
         in_project_type = e.project_type.in?(project_types)
         # Always drop PH that wasn't literally homeless at entry or not in report range
         # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
-        if include_self_reported_and_ph && e.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
+        if include_self_reported_and_ph && e.project_type.in?(HudUtility2026.project_type_number_from_code(:ph))
           enrollment_literally_homeless_at_entry(e) && include_ph_enrollment?(e)
         else
           in_project_type
         end
       end
       enrollments.each do |enrollment|
-        if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
+        if enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:es_nbn))
           next unless enrollment.enrollment.present? # Skip if the enrollment has disappeared (e.g., a concurrent import deleted it)
 
           # https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications-September-2023.pdf - p11
@@ -231,7 +231,7 @@ module HudSpmReport::Fy2026
           )
         else
           start_date = enrollment.entry_date
-          end_date = if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
+          end_date = if enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:ph))
             # PH only gets days before move-in, if there is one
             enrollment.move_in_date || enrollment.exit_date
           else
@@ -254,7 +254,7 @@ module HudSpmReport::Fy2026
       bed_nights = Set.new
       enrollments = enrollments.select { |e| e.project_type.in?(project_types) }
       enrollments.each do |enrollment|
-        if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:th))
+        if enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:th))
           # TH bed nights are not considered homeless
           # The exit day, if present, is not a a bed night
           end_date = if enrollment.exit_date
@@ -263,7 +263,7 @@ module HudSpmReport::Fy2026
             report_end_date
           end
           bed_nights += (enrollment.entry_date .. end_date).to_a
-        elsif enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
+        elsif enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:ph))
           # PH bed nights on or after move in are not considered homeless
           next unless enrollment.move_in_date.present?
 
@@ -285,7 +285,7 @@ module HudSpmReport::Fy2026
     private def add_self_reported(existing_bed_nights, enrollments)
       bed_nights = existing_bed_nights.index_by(&:last)
       enrollments.each do |enrollment|
-        if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
+        if enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range and within the enrollment period
           first_night = [report_start_date, enrollment.entry_date].max
           last_night = if enrollment.exit_date.present?

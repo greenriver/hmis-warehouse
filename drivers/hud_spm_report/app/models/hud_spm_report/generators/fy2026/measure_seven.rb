@@ -174,7 +174,7 @@ module HudSpmReport::Generators::Fy2026
 
     def create_so_universe
       universe = @report.universe(:m7a1)
-      so_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:so))
+      so_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: HudUtility2026.project_type_number_from_code(:so))
       stayers = so_enrollments.where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
       leavers = so_enrollments.where.not(client_id: stayers.select(:client_id))
       enrollments = HudSpmReport::Fy2026::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
@@ -190,14 +190,14 @@ module HudSpmReport::Generators::Fy2026
 
     def create_ph_no_move_in_universe
       universe = @report.universe(:m7b1)
-      project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) }
+      project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2026.project_type_number_from_code(code) }
       open_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: project_types)
       stayers = open_enrollments.where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
       leavers = open_enrollments.where.not(client_id: stayers.select(:client_id))
 
       # FIXME, should use enrollment ID as a tie break for equal exit_dates
       enrollments = HudSpmReport::Fy2026::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
-      ph_not_rrh = HudUtility2024.project_type_number_from_code(:ph) - HudUtility2024.project_type_number_from_code(:rrh)
+      ph_not_rrh = HudUtility2026.project_type_number_from_code(:ph) - HudUtility2026.project_type_number_from_code(:rrh)
       enrollments = enrollments.where.not(spm_e_t[:project_type].in(ph_not_rrh).
         and(spm_e_t[:move_in_date].not_eq(nil).and(spm_e_t[:move_in_date].lteq(filter.end))))
       enrollments = enrollments.where.not(spm_e_t[:destination].in(M7B_REJECTED))
@@ -211,7 +211,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def create_ph_universe
-      ph_not_rrh = HudUtility2024.project_type_number_from_code(:ph) - HudUtility2024.project_type_number_from_code(:rrh)
+      ph_not_rrh = HudUtility2026.project_type_number_from_code(:ph) - HudUtility2026.project_type_number_from_code(:rrh)
       open_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: ph_not_rrh)
       stayers = open_enrollments.where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
       leavers = open_enrollments.where.not(client_id: stayers.select(:client_id))

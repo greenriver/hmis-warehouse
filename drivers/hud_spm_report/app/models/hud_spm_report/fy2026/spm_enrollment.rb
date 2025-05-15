@@ -90,7 +90,7 @@ module HudSpmReport::Fy2026
     scope :with_active_method_5_in_range, ->(range) do
       bed_night_cond = GrdaWarehouse::Hud::Service.arel_table.then do |table|
         [
-          table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
+          table[:record_type].eq(HudUtility2026.record_type('Bed Night', true)),
           table[:date_provided].between(range),
           table[:date_provided].gteq(arel_table[:entry_date]),
           # Bed nights cannot occur on the exit date, but CAN occur on the last day of the report
@@ -242,7 +242,7 @@ module HudSpmReport::Fy2026
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
       enrollment.project.funders.any? do |funder|
         # Unroll open_between to allow preload
-        funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
+        funder.funder.in?(HudUtility2026.spm_coc_funders.map(&:to_s)) &&
           # Unroll open_between to allow preload
           (funder.end_date.nil? || funder.end_date >= start_date) &&
           (funder.start_date.nil? || funder.start_date <= end_date)

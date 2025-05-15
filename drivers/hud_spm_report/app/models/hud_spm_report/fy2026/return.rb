@@ -26,7 +26,7 @@ module HudSpmReport::Fy2026
     def self.client_ids_with_permanent_exits(report, enrollments)
       filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
       enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
-        where(destination: HudUtility2024.permanent_destinations).
+        where(destination: HudUtility2026.permanent_destinations).
         pluck(:client_id).
         uniq
     end
@@ -58,7 +58,7 @@ module HudSpmReport::Fy2026
     def compute_return(enrollments)
       client_enrollments = enrollments.where(client_id: client_id)
       self.exit_enrollment = client_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
-        where(destination: HudUtility2024.permanent_destinations).
+        where(destination: HudUtility2026.permanent_destinations).
         order(exit_date: :asc, entry_date: :asc).
         first
       return unless exit_enrollment.present? # If no exit, no return
@@ -72,8 +72,8 @@ module HudSpmReport::Fy2026
         # Can't match yourself
         next false if enrollment.id == exit_enrollment.id
 
-        enrollment.project_type.in?(HudUtility2024.homeless_project_type_numbers) ||
-          (enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph)) &&
+        enrollment.project_type.in?(HudUtility2026.homeless_project_type_numbers) ||
+          (enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:ph)) &&
             enrollment.entry_date > exit_date + 14.days &&
             ! other_ph?(enrollment, candidate_returns))
       end
@@ -95,7 +95,7 @@ module HudSpmReport::Fy2026
         else
           report_end_date
         end
-        enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph)) &&
+        enrollment.project_type.in?(HudUtility2026.project_type_number_from_code(:ph)) &&
           ph_enrollment.entry_date.between?(enrollment.entry_date + 1.day, end_date)
       end.any?
     end

@@ -66,8 +66,8 @@ module HudSpmReport::Generators::Fy2026
 
       create_universe(
         :m1a1,
-        included_project_types: HudUtility2024.project_type_number_from_code(:es) + HudUtility2024.project_type_number_from_code(:sh),
-        excluded_project_types: HudUtility2024.project_type_number_from_code(:th) + HudUtility2024.project_type_number_from_code(:ph),
+        included_project_types: HudUtility2026.project_type_number_from_code(:es) + HudUtility2026.project_type_number_from_code(:sh),
+        excluded_project_types: HudUtility2026.project_type_number_from_code(:th) + HudUtility2026.project_type_number_from_code(:ph),
       )
 
       cell_universe = @report.universe(:m1a1).members
@@ -89,10 +89,10 @@ module HudSpmReport::Generators::Fy2026
 
       create_universe(
         :m1a2,
-        included_project_types: HudUtility2024.project_type_number_from_code(:es) +
-          HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_type_number_from_code(:th),
-        excluded_project_types: HudUtility2024.project_type_number_from_code(:ph),
+        included_project_types: HudUtility2026.project_type_number_from_code(:es) +
+          HudUtility2026.project_type_number_from_code(:sh) +
+          HudUtility2026.project_type_number_from_code(:th),
+        excluded_project_types: HudUtility2026.project_type_number_from_code(:ph),
       )
 
       cell_universe = @report.universe(:m1a2).members
@@ -121,10 +121,10 @@ module HudSpmReport::Generators::Fy2026
 
       create_universe(
         :m1b1,
-        included_project_types: HudUtility2024.project_type_number_from_code(:es) +
-          HudUtility2024.project_type_number_from_code(:sh),
-        excluded_project_types: HudUtility2024.project_type_number_from_code(:th) +
-          HudUtility2024.project_type_number_from_code(:ph),
+        included_project_types: HudUtility2026.project_type_number_from_code(:es) +
+          HudUtility2026.project_type_number_from_code(:sh),
+        excluded_project_types: HudUtility2026.project_type_number_from_code(:th) +
+          HudUtility2026.project_type_number_from_code(:ph),
         include_self_reported_and_ph: true,
       )
 
@@ -145,10 +145,10 @@ module HudSpmReport::Generators::Fy2026
 
       create_universe(
         :m1b2,
-        included_project_types: HudUtility2024.project_type_number_from_code(:es) +
-          HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_type_number_from_code(:th),
-        excluded_project_types: HudUtility2024.project_type_number_from_code(:ph),
+        included_project_types: HudUtility2026.project_type_number_from_code(:es) +
+          HudUtility2026.project_type_number_from_code(:sh) +
+          HudUtility2026.project_type_number_from_code(:th),
+        excluded_project_types: HudUtility2026.project_type_number_from_code(:ph),
         include_self_reported_and_ph: true,
       )
 
@@ -180,7 +180,7 @@ module HudSpmReport::Generators::Fy2026
         pluck(:client_id)
       if include_self_reported_and_ph
         # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness
-        literally_homeless_in_ph = enrollment_set.literally_homeless_at_entry_in_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:ph))
+        literally_homeless_in_ph = enrollment_set.literally_homeless_at_entry_in_range(filter.range).where(project_type: HudUtility2026.project_type_number_from_code(:ph))
         candidate_client_ids += literally_homeless_in_ph.pluck(:client_id)
       end
       enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)
