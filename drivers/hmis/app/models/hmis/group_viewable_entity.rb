@@ -58,10 +58,12 @@ module Hmis
     scope :includes_any_entity_in_data_source, ->(data_source) do
       project_ids = data_source.projects.select(:id)
       organization_ids = data_source.organizations.select(:id)
+      project_group_ids = data_source.hmis_project_groups.select(:id)
 
       where(entity: data_source).
         or(where(entity_type: Hmis::Hud::Project.sti_name, entity_id: project_ids)).
-        or(where(entity_type: Hmis::Hud::Organization.sti_name, entity_id: organization_ids))
+        or(where(entity_type: Hmis::Hud::Organization.sti_name, entity_id: organization_ids)).
+        or(where(entity_type: Hmis::ProjectGroup.sti_name, entity_id: project_group_ids))
     end
 
     def access_group

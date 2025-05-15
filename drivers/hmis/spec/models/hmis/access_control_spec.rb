@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -21,7 +23,9 @@ RSpec.describe Hmis::AccessControl, type: :model do
   let!(:o2) { create :hmis_hud_organization, data_source: ds1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
   let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o2 }
-  let(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+
+  let!(:pg1) { create :hmis_project_group, data_source: ds1, projects: [p2, p3] }
 
   describe 'entity ownership tests' do
     it 'should apply correctly when attached directly to a project' do
@@ -36,6 +40,13 @@ RSpec.describe Hmis::AccessControl, type: :model do
       expect(hmis_user.can_view_full_ssn_for?(p1)).to eq(true)
       expect(hmis_user.can_view_full_ssn_for?(p2)).to eq(true)
       expect(hmis_user.can_view_full_ssn_for?(p3)).to eq(false)
+    end
+
+    it 'should apply correctly when attached to a project group' do
+      create_access_control(hmis_user, pg1)
+      expect(hmis_user.can_view_full_ssn_for?(p1)).to eq(false)
+      expect(hmis_user.can_view_full_ssn_for?(p2)).to eq(true)
+      expect(hmis_user.can_view_full_ssn_for?(p3)).to eq(true)
     end
 
     it 'should apply correctly when attached to a data source' do
@@ -87,6 +98,11 @@ RSpec.describe Hmis::AccessControl, type: :model do
 
     it 'is true when user has access to a project in the data source' do
       create_access_control(hmis_user, p1)
+      expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(true)
+    end
+
+    it 'is true when user has access to a project group in the data source' do
+      create_access_control(hmis_user, pg1)
       expect(hmis_user.can_access_hmis_data_source?(ds1.id)).to eq(true)
     end
 
