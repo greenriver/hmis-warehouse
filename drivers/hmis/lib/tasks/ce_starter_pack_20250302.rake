@@ -204,7 +204,7 @@ task ce_starter_pack_20250302: [:environment] do
   task_2 = create_task(review_denial_form_def, sequential_template,  'Provider Confirm', providers)
 
   start_workflow_event.connect_to!(task_1) unless start_workflow_event.outflows.where(target_node_id: task_1.id).exists?
-  task_1.connect_to!(task_2) unless start_workflow_event.outflows.where(target_node_id: task_2.id).exists?
+  task_1.connect_to!(task_2) unless task_1.outflows.where(target_node_id: task_2.id).exists?
   task_2.connect_to!(accept_workflow_event) unless task_2.outflows.where(target_node_id: accept_workflow_event.id).exists?
 
   puts '- Creating Enrollment Creator template, a template with tasks that have side effects.'
