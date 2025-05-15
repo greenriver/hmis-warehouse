@@ -193,6 +193,20 @@ task ce_starter_pack_20250302: [:environment] do
   admin_review_gateway.connect_to!(client_acceptance_task, condition: 'review_denial_decision = 0') unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
   admin_review_gateway.connect_to!(reject_workflow_event, condition: 'review_denial_decision = 1') unless admin_review_gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
 
+  puts '- Creating Sequential template, a template with non-conditional tasks that are executed sequentially.'
+  sequential_template = create_template('Sequential', 'sequential')
+  case_managers = sequential_template.swimlanes.find_or_create_by!(name: 'Case Managers')
+  providers = sequential_template.swimlanes.find_or_create_by!(name: 'Providers')
+  start_workflow_event = create_start_event(sequential_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(sequential_template, 'accept referral', 'end_workflow', 'accept_referral')
+
+  task_1 = create_task(client_accepts_form_def, sequential_template,  'Case Manager Confirm', case_managers)
+  task_2 = create_task(review_denial_form_def, sequential_template,  'Provider Confirm', providers)
+
+  start_workflow_event.connect_to!(task_1) unless start_workflow_event.outflows.where(target_node_id: task_1.id).exists?
+  task_1.connect_to!(task_2) unless start_workflow_event.outflows.where(target_node_id: task_2.id).exists?
+  task_2.connect_to!(accept_workflow_event) unless task_2.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
   puts '- Creating Enrollment Creator template, a template with tasks that have side effects.'
 
   enrollment_creator_template = create_template('Enrollment Creator', 'enrollment_creator')
