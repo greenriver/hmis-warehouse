@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::HudReports
   module UniverseMemberExtension
     extend ActiveSupport::Concern
@@ -22,9 +24,9 @@ module HudSpmReport::HudReports
       belongs_to(
         :enrollment,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2026::SpmEnrollment'))
         end,
-        class_name: 'HudSpmReport::Fy2024::SpmEnrollment',
+        class_name: 'HudSpmReport::Fy2026::SpmEnrollment',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,
@@ -32,9 +34,9 @@ module HudSpmReport::HudReports
       belongs_to(
         :return,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2026::Return'))
         end,
-        class_name: 'HudSpmReport::Fy2024::Return',
+        class_name: 'HudSpmReport::Fy2026::Return',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,
