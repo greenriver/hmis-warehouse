@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class AddStepAvailableAt < ActiveRecord::Migration[7.1]
   def up
     add_column :wfe_steps, :available_at, :datetime, null: true
