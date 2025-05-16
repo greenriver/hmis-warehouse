@@ -197,8 +197,10 @@ module Types
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
 
-      Hmis::User.can_perform_any_referral_tasks_for(project).
-        or(Hmis::User.can_perform_own_referral_tasks_for(project)).
+      user_scope = Hmis::User.active
+
+      user_scope.can_perform_any_referral_tasks_for(project).
+        or(user_scope.can_perform_own_referral_tasks_for(project)).
         order(:last_name, :first_name, :id).
         map(&:to_pick_list_option).uniq
     end
