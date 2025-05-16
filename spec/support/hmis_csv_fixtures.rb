@@ -39,6 +39,12 @@ module HmisCsvFixtures
       tmp_path = File.join(file_path, data_source.id.to_s)
       FileUtils.cp_r(source_file_path, tmp_path)
 
+      if version == '2026'
+        Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentySix'
+        version = 'AutoMigrate'
+      else
+        Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentyFour'
+      end
       importer = if version == '2020'
         HmisCsvTwentyTwenty::Loader::Loader.new(
           file_path: tmp_path,
