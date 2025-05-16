@@ -115,7 +115,7 @@ module HudSpmReport::Generators::Fy2026
       nbn_enrollments = []
       if nbn_project_type_codes.present?
         nbn_enrollments = enrollment_set.
-          with_active_method_2_in_range(filter.range).
+          with_active_method_5_in_range(filter.range).
           where(project_type: project_type_numbers(nbn_project_type_codes)).
           where.not(client_id: ee_enrollments.select(:client_id))
       end
