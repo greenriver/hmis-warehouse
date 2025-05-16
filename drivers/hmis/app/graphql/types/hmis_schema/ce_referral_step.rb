@@ -32,7 +32,11 @@ module Types
     end
 
     def assignees
-      load_ar_association(object, :assignments)&.map(&:user)
+      if object.persisted?
+        load_ar_association(object, :assignments)&.map(&:user)
+      else
+        object.assignments.map(&:user)
+      end
     end
 
     def form_definition # Don't resolve in batch
