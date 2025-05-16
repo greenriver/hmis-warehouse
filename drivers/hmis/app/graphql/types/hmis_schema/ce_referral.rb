@@ -60,7 +60,7 @@ module Types
 
         # If the step is unpersisted, assignees won't be persisted yet either,
         # but we know the step's default assignees based on the referral participants, so return them
-        participants_by_swimlane_id[node.swimlane_id].each do |p|
+        participants_by_swimlane_id[node.swimlane_id]&.each do |p|
           step.assignments.new(user: p.user)
         end
 
