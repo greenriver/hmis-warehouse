@@ -55,7 +55,10 @@ module Hmis
       attributes = parse_input(attributes)
       attributes.each do |key, value|
         cleaned_value = value.is_a?(Array) ? value.reject(&:blank?) : value
-        send("#{key}=", cleaned_value) if ALLOWED_ATTRIBUTES.include?(key)
+
+        raise ArgumentError, "Invalid attribute for ProjectGroupCriteria: #{key}. Allowed attributes are: #{ALLOWED_ATTRIBUTES.join(', ')}" unless ALLOWED_ATTRIBUTES.include?(key)
+
+        send("#{key}=", cleaned_value)
       end
       self
     end

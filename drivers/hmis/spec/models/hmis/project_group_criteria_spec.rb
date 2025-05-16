@@ -25,7 +25,7 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
       let(:criteria) do
         Hmis::ProjectGroupCriteria.new(
           { project_ids: [p1_o1.id, p2_o2.id] },
-          source_data_source_id: hmis_ds.id,
+          data_source_id: hmis_ds.id,
         )
       end
 
@@ -43,7 +43,7 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
       let(:criteria) do
         Hmis::ProjectGroupCriteria.new(
           { organization_ids: [o1.id] },
-          source_data_source_id: hmis_ds.id,
+          data_source_id: hmis_ds.id,
         )
       end
 
@@ -52,11 +52,11 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
       end
     end
 
-    context 'when data_source_ids are specified' do
+    context 'when all_projects_in_data_source is true' do
       let(:criteria) do
         Hmis::ProjectGroupCriteria.new(
-          { data_source_ids: [hmis_ds.id] },
-          source_data_source_id: hmis_ds.id,
+          { all_projects_in_data_source: true },
+          data_source_id: hmis_ds.id,
         )
       end
 
@@ -69,7 +69,7 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
       let(:criteria) do
         Hmis::ProjectGroupCriteria.new(
           { project_type_numbers: [1] },
-          source_data_source_id: hmis_ds.id,
+          data_source_id: hmis_ds.id,
         )
       end
 
@@ -86,7 +86,7 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
             organization_ids: [o1.id],
             project_type_numbers: [3],
           },
-          source_data_source_id: hmis_ds.id,
+          data_source_id: hmis_ds.id,
         )
       end
 

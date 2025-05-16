@@ -12,15 +12,7 @@ FactoryBot.define do
     data_source { association :hmis_data_source }
     inclusion_criteria { {}.to_json } # no projects included
     exclusion_criteria { nil }
-
-    transient do
-      including_entire_data_source { nil }
-    end
-    after(:create) do |instance, evaluator|
-      if evaluator.including_entire_data_source
-        instance.inclusion_criteria = { data_source_ids: [instance.data_source_id] }.to_json
-        instance.save!
-      end
+    after(:create) do |instance, _evaluator|
       instance.maintain_projects!
     end
   end

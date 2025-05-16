@@ -53,7 +53,7 @@ RSpec.describe Hmis::ProjectGroup, type: :model do
         create(:hmis_project_group,
                data_source: hmis_ds,
                inclusion_criteria: {
-                 data_source_ids: [hmis_ds.id],
+                 all_projects_in_data_source: true,
                }.to_json,
                exclusion_criteria: {
                  project_ids: [p1_o1.id],
