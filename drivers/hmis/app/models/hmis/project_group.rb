@@ -49,7 +49,7 @@ module Hmis
     end
 
     def any_inclusion_criteria?
-      JSON.parse(inclusion_criteria).compact_blank.any?
+      JSON.parse(inclusion_criteria || '{}').compact_blank.any?
     end
 
     def any_exclusion_criteria?
