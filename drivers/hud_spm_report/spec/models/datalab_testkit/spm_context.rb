@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   def shared_filter_spec
     {
@@ -17,7 +19,7 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   def spm_filter_spec
     shared_filter_spec.merge(
       {
-        project_type_codes: HudUtility2024.spm_project_type_codes,
+        project_type_codes: HudUtility2026.spm_project_type_codes,
       },
     )
   end
@@ -27,7 +29,7 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   end
 
   def run(filter, question_numbers)
-    klass = HudSpmReport::Generators::Fy2024::Generator
+    klass = HudSpmReport::Generators::Fy2026::Generator
     report = ::HudReports::ReportInstance.from_filter(
       filter,
       klass.title,
