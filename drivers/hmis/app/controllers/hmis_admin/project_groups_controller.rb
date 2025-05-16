@@ -51,8 +51,8 @@ module HmisAdmin
       p = edit_project_group_params
 
       @project_group.name = p[:name]
-      @project_group.inclusion_criteria = p[:inclusion_criteria].to_h.map { |k, v| [k, v.compact_blank!] }.to_h.compact_blank.to_json
-      @project_group.exclusion_criteria = p[:exclusion_criteria].to_h.map { |k, v| [k, v.compact_blank!] }.to_h.compact_blank.to_json
+      @project_group.inclusion_criteria = Hmis::ProjectGroupCriteria.new(p[:inclusion_criteria].to_h, data_source_id: @project_group.data_source_id).to_json
+      @project_group.exclusion_criteria = Hmis::ProjectGroupCriteria.new(p[:exclusion_criteria].to_h, data_source_id: @project_group.data_source_id).to_json
 
       project_group_source.transaction do
         @project_group.save!
@@ -97,12 +97,16 @@ module HmisAdmin
     end
 
     def edit_project_group_params
-      permitted_criteria_params = {
-        project_ids: [],
-        data_source_ids: [],
-        organization_ids: [],
-        project_type_numbers: [],
-      }
+      permitted_criteria_params = [
+        :all_projects_in_data_source,
+        # :project_status,
+        {
+          project_ids: [],
+          organization_ids: [],
+          project_type_numbers: [],
+        },
+      ]
+
       params.require(:filters).permit(
         :name,
         inclusion_criteria: permitted_criteria_params,

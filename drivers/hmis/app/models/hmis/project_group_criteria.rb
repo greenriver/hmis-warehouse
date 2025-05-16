@@ -13,13 +13,13 @@ module Hmis
     include ActionView::Context
     include ::Hmis::Concerns::HmisArelHelper
 
-    # Source data source for this project filter. Filter cannot be used across multiple data sources.
-    attribute :source_data_source_id, Integer, default: nil
+    # Source data source for this project filter. ProjectGroupCriteria filter cannot be used across multiple data sources.
+    attribute :data_source_id, Integer, default: nil
 
     # Attributes for filtering
     attribute :project_ids, Array, default: []
     attribute :organization_ids, Array, default: []
-    attribute :data_source_ids, Array, default: []
+    attribute :all_projects_in_data_source, Boolean, default: false
     attribute :project_type_numbers, Array, default: []
     # TODO: add more filtering capabilities:
     # attribute :hmis_participation_status, Integer, default: nil
@@ -34,7 +34,7 @@ module Hmis
     ALLOWED_ATTRIBUTES = [
       :project_ids,
       :organization_ids,
-      :data_source_ids,
+      :all_projects_in_data_source,
       :project_type_numbers,
       # :hmis_participation_status,
       # :project_status,
@@ -45,13 +45,12 @@ module Hmis
     # validates :project_status, inclusion: { in: ['open', 'closed', 'all'], allow_nil: true, message: "must be 'open', 'closed', or 'all'" }
 
     # Initialize with a hash or JSON blob
-    def initialize(input = {}, source_data_source_id:)
+    def initialize(input = {}, data_source_id:)
       super()
       update(input)
-      self.source_data_source_id = source_data_source_id
+      self.data_source_id = data_source_id
     end
 
-    # Update attributes dynamically
     def update(attributes)
       attributes = parse_input(attributes)
       attributes.each do |key, value|
@@ -78,14 +77,14 @@ module Hmis
       ids = []
       ids << project_scope.where(id: project_ids).pluck(:id) if project_ids.any?
       ids << organization_scope.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
-      ids << data_source_scope.joins(:projects).where(id: data_source_ids).pluck(p_t[:id]) if data_source_ids.any? # user can select data source to include all projects
       ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
+      ids << data_source.projects.pluck(p_t[:id]) if all_projects_in_data_source
       ids.flatten.uniq
     end
 
     # Describe criteria as HTML
     def describe_criteria_as_html
-      return ''.html_safe if project_ids.blank? && organization_ids.blank? && data_source_ids.blank? && project_type_numbers.blank?
+      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank?
 
       criteria = []
 
@@ -102,10 +101,7 @@ module Hmis
       end
 
       # Add Data Sources
-      if data_source_ids.any?
-        data_source_names = data_source_scope.where(id: data_source_ids).pluck(:name)
-        criteria << { label: 'Data Sources', values: data_source_names }
-      end
+      criteria << { label: 'Include all projects in Data Source', values: ['Yes'] } if all_projects_in_data_source
 
       # Add Project Types
       if project_type_numbers.any?
@@ -143,15 +139,15 @@ module Hmis
     private
 
     def project_scope
-      ::GrdaWarehouse::Hud::Project.where(data_source_id: source_data_source_id)
+      ::GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id)
     end
 
     def organization_scope
-      ::GrdaWarehouse::Hud::Organization.where(data_source_id: source_data_source_id)
+      ::GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_id)
     end
 
-    def data_source_scope
-      ::GrdaWarehouse::DataSource.hmis.where(id: source_data_source_id)
+    def data_source
+      ::GrdaWarehouse::DataSource.hmis.find(data_source_id)
     end
 
     # Parse input as either JSON or a hash
