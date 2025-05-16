@@ -201,7 +201,6 @@ module HmisCsvImporter::Loader
       # to have only the columns we expect
       # in a known order
       mapping_status, col_mapping = *clean_header_row(header_row, klass, file_name)
-
       if mapping_status == :ok
         pg_cols = col_mapping + meta_data_names
       elsif mapping_status == :mapped
@@ -246,7 +245,6 @@ module HmisCsvImporter::Loader
                 row
               end
               values += (parser.lineno == 1 ? meta_data_names : meta_data)
-
               # There were excess columns, probably due to an unquoted comma
               if values.size > expect_col_count
                 row_errors << {

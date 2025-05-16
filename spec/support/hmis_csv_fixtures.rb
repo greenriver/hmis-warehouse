@@ -39,6 +39,7 @@ module HmisCsvFixtures
       tmp_path = File.join(file_path, data_source.id.to_s)
       FileUtils.cp_r(source_file_path, tmp_path)
 
+      TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
       if version == '2026'
         Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentySix'
         version = 'AutoMigrate'
@@ -51,20 +52,20 @@ module HmisCsvFixtures
           data_source_id: data_source.id,
           deidentified: deidentified,
         )
-      elsif version == '2026'
-        TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
-        # HmisCsvTwentyTwentySix::Loader::Loader.new(
-        #   file_path: tmp_path,
-        #   data_source_id: data_source.id,
-        #   deidentified: deidentified,
-        # )
-        HmisCsvTwentyTwentySix::Importer::Local.new(
-          file_path: tmp_path,
-          data_source_id: data_source.id,
-          deidentified: deidentified,
-          allowed_projects: allowed_projects,
-          project_cleanup: false,
-        )
+      # elsif version == '2026'
+      #   TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
+      #   # HmisCsvTwentyTwentySix::Loader::Loader.new(
+      #   #   file_path: tmp_path,
+      #   #   data_source_id: data_source.id,
+      #   #   deidentified: deidentified,
+      #   # )
+      #   HmisCsvTwentyTwentySix::Importer::Local.new(
+      #     file_path: tmp_path,
+      #     data_source_id: data_source.id,
+      #     deidentified: deidentified,
+      #     allowed_projects: allowed_projects,
+      #     project_cleanup: false,
+      #   )
       elsif version == 'AutoMigrate'
         Importers::HmisAutoMigrate::Local.new(
           file_path: tmp_path,

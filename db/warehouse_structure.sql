@@ -16724,7 +16724,8 @@ CREATE TABLE public.hmis_aggregated_enrollments (
     "RentalSubsidyType" integer,
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying
+    "PreferredLanguageDifferent" character varying,
+    "MentalHealthConsultation" integer
 );
 
 
@@ -73753,6 +73754,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250516193728'),
 ('20250513134455'),
 ('20250513132551'),
 ('20250505000700'),

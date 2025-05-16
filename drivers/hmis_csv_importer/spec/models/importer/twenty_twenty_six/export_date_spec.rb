@@ -41,9 +41,11 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
       end
 
       it 'Client One has not changed' do
+        # Client.csv in date_updated_older has matching PersonalID, with a different last name and
+        # older modification date, so we don't expect the name to change
         client = GrdaWarehouse::Hud::Client.first
         expect(GrdaWarehouse::Hud::Client.count).to eq(1)
-        expect(client.full_name).to eq('Client Older')
+        expect(client.full_name).to eq('Client One')
       end
     end
 
