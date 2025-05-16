@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 class UpdateAggregatedEnrollmentForFy2026 < ActiveRecord::Migration[7.1]
