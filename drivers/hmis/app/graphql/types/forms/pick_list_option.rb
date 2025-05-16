@@ -310,14 +310,15 @@ module Types
     end
 
     def self.state_picklist
+      relevant_states = GrdaWarehouse::Config.relevant_state_codes
+
       Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
         JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
       end.map do |obj|
         {
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
-          # NOTE: HMIS currently only supports one state installations
-          initial_selected: obj['abbreviation'].in?(GrdaWarehouse::Config.relevant_state_codes&.first),
+          initial_selected: relevant_states&.size == 1 && obj['abbreviation'] == relevant_states.first,
         }
       end
     end
