@@ -47,10 +47,17 @@ module HmisCsvFixtures
         )
       elsif version == '2026'
         TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
-        HmisCsvTwentyTwentySix::Loader::Loader.new(
+        # HmisCsvTwentyTwentySix::Loader::Loader.new(
+        #   file_path: tmp_path,
+        #   data_source_id: data_source.id,
+        #   deidentified: deidentified,
+        # )
+        HmisCsvTwentyTwentySix::Importer::Local.new(
           file_path: tmp_path,
           data_source_id: data_source.id,
           deidentified: deidentified,
+          allowed_projects: allowed_projects,
+          project_cleanup: false,
         )
       elsif version == 'AutoMigrate'
         Importers::HmisAutoMigrate::Local.new(

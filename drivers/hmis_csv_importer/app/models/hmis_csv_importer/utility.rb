@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisCsvImporter::Utility
   def self.clear!
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
@@ -13,6 +15,17 @@ class HmisCsvImporter::Utility
     end
 
     HmisCsvImporter::Loader::Loader.loadable_files.each do |_, klass|
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY")
+    end
+
+    TodoOrDie('Remove the explicit truncation of TwentyTwentySix tables', by: '2025-10-01')
+    # TwentyTwentySix is explicitly not included in the importable_files to prevent auto migration
+    # before it is fully launched.
+    HmisCsvTwentyTwentySix::Importer::Importer.importable_files.each do |_, klass|
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY")
+    end
+
+    HmisCsvTwentyTwentySix::Loader::Loader.loadable_files.each do |_, klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY")
     end
 

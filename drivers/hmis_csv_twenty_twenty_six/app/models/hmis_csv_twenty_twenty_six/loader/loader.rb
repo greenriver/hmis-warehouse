@@ -34,7 +34,8 @@ module HmisCsvTwentyTwentySix::Loader
 
     private def load_source_files!
       @loader_log.update(status: :loading)
-      ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
+
+      HmisCsvImporter::Loader::ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
       loadable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)

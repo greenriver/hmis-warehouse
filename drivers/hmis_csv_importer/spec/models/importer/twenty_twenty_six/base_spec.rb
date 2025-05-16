@@ -62,7 +62,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     describe 'after second import without allowing deletion' do
       before(:each) do
-        allow(HmisCsvTwentyTwentyFour::Importer::User).to receive(:prevent_import_deletions?).and_return(true)
+        allow(HmisCsvTwentyTwentySix::Importer::User).to receive(:prevent_import_deletions?).and_return(true)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/user',
           version: '2026',
@@ -90,7 +90,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     describe 'after second import with allowing deletion' do
       before(:each) do
-        allow(HmisCsvTwentyTwentyFour::Importer::User).to receive(:prevent_import_deletions?).and_return(false)
+        allow(HmisCsvTwentyTwentySix::Importer::User).to receive(:prevent_import_deletions?).and_return(false)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/user',
           version: '2026',
@@ -141,7 +141,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     describe 'after second import without allowing deletion' do
       before(:each) do
-        allow(HmisCsvTwentyTwentyFour::Importer::Organization).to receive(:prevent_import_deletions?).and_return(true)
+        allow(HmisCsvTwentyTwentySix::Importer::Organization).to receive(:prevent_import_deletions?).and_return(true)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/organization',
           version: '2026',
@@ -166,7 +166,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     describe 'after second import with allowing deletion' do
       before(:each) do
-        allow(HmisCsvTwentyTwentyFour::Importer::Organization).to receive(:prevent_import_deletions?).and_return(false)
+        allow(HmisCsvTwentyTwentySix::Importer::Organization).to receive(:prevent_import_deletions?).and_return(false)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/organization',
           version: '2026',
@@ -216,7 +216,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     describe 'after second import without allowing deletion' do
       before(:each) do
-        allow(HmisCsvTwentyTwentyFour::Importer::Project).to receive(:prevent_import_deletions?).and_return(true)
+        allow(HmisCsvTwentyTwentySix::Importer::Project).to receive(:prevent_import_deletions?).and_return(true)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/project',
           version: '2026',
@@ -245,7 +245,7 @@ RSpec.describe HmisCsvImporter, type: :model do
       # the same regardless of the `prevent_import_deletions?` flag. These tests are included to catch any divergence
       # from this in the future.
       before(:each) do
-        allow(HmisCsvTwentyTwentyFour::Importer::Project).to receive(:prevent_import_deletions?).and_return(false)
+        allow(HmisCsvTwentyTwentySix::Importer::Project).to receive(:prevent_import_deletions?).and_return(false)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/project',
           version: '2026',

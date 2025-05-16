@@ -11,7 +11,7 @@
 require 'aws-sdk-rails'
 require 'zip'
 module HmisCsvTwentyTwentySix::Importer
-  class Local < Importers::HmisAutoMigrate::Base
+  class Local < Importers::HmisAutoMigrate::Local
     attr_accessor :importer
 
     def initialize(
@@ -33,6 +33,10 @@ module HmisCsvTwentyTwentySix::Importer
 
     private def upload_zip_class
       HmisCsvTwentyTwentySix::Importer::UploadedZip
+    end
+
+    private def loader_class
+      ::HmisCsvTwentyTwentySix::Loader::Loader
     end
   end
 end
