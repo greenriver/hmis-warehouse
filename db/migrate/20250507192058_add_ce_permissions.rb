@@ -7,7 +7,6 @@ class AddCePermissions < ActiveRecord::Migration[7.1]
   end
 
   def down
-    remove_column :hmis_roles, :can_view_enrollment_location_map
     remove_column :hmis_roles, :can_view_prioritized_client_lists
     remove_column :hmis_roles, :can_start_referrals
     remove_column :hmis_roles, :can_view_referrals
