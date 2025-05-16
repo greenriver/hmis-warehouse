@@ -244,7 +244,7 @@ class Hmis::User < ApplicationRecord
     end
   end
 
-  def to_pick_list_hash
+  def to_pick_list_option
     {
       code: id.to_s,
       label: full_name,

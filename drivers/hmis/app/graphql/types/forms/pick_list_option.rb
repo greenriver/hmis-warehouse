@@ -190,7 +190,7 @@ module Types
 
       Hmis::User.can_edit_enrollments_for(project).
         order(:last_name, :first_name, :id).
-        map(&:to_pick_list_hash)
+        map(&:to_pick_list_option)
     end
 
     def self.eligible_referral_step_assignment_user_picklist(project)
@@ -200,7 +200,7 @@ module Types
       Hmis::User.can_perform_any_referral_tasks_for(project).
         or(Hmis::User.can_perform_own_referral_tasks_for(project)).
         order(:last_name, :first_name, :id).
-        map(&:to_pick_list_hash).uniq
+        map(&:to_pick_list_option).uniq
     end
 
     def self.user_picklist(current_user)
