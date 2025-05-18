@@ -16,8 +16,8 @@ wb = xlsx_package.workbook
     sheet.add_row((['Message'] + inferred_cols), style: title)
 
     validations.each do |error|
-      source = error.source
-      row = [error.status] + (source&.hmis_data&.values || [])
+      source_data = error.source&.hmis_data || {}
+      row = [error.status] + source_data.values_at(*inferred_cols)
       sheet.add_row(row)
     end
   end
@@ -36,8 +36,8 @@ end
     sheet.add_row((['Message'] + inferred_cols), style: title)
 
     errors.each do |error|
-      source = error.source
-      row = [error.details] + (source&.values_at(inferred_cols) || [])
+      source_data = error.source&.hmis_data || {}
+      row = [error.details] + source_data.values_at(*inferred_cols)
       sheet.add_row(row)
     end
   end
