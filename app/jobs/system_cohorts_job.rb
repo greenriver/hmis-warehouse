@@ -25,11 +25,14 @@ class SystemCohortsJob < BaseJob
     did_run = false
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
       GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts
-      @notifier.ping('Processed system cohorts') if @send_notifications
       did_run = true
     end
-    return if did_run
+    return unless @send_notifications
 
-    @notifier.ping('Could not acquire advisory lock for SystemCohortsJob, another job is already running') if @send_notifications
+    if did_run
+      @notifier.ping('Processed system cohorts')
+    else
+      @notifier.ping('Could not acquire advisory lock for SystemCohortsJob, another job is already running')
+    end
   end
 end
