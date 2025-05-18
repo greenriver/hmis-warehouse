@@ -25,12 +25,12 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
       loader_id: 1,
     )
   end
-  let(:validation) { create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id) }
-  let(:error) { create(:hmis_csv_import_error, importer_log_id: importer_log.id) }
-  let(:validation_with_minimal_source) do
+  let!(:validation) { create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id) }
+  let!(:error) { create(:hmis_csv_import_error, importer_log_id: importer_log.id) }
+  let!(:validation_with_minimal_source) do
     create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
   end
-  let(:error_with_minimal_source) do
+  let!(:error_with_minimal_source) do
     create(:hmis_csv_import_error, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
   end
 
@@ -40,13 +40,6 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
   end
 
   describe 'GET #download' do
-    before do
-      validation
-      error
-      validation_with_minimal_source
-      error_with_minimal_source
-    end
-
     it 'generates xlsx file' do
       get :download, params: { id: importer_log.id }, format: :xlsx
       expect(response.headers['Content-Disposition']).to include("import_errors_#{importer_log.id}.xlsx")
@@ -92,13 +85,7 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
   end
 
   describe 'GET #show' do
-    let(:import_log) { create(:grda_warehouse_import_log, importer_log_id: importer_log.id, data_source: data_source) }
-
-    before do
-      import_log
-      error
-      error_with_minimal_source
-    end
+    let!(:import_log) { create(:grda_warehouse_import_log, importer_log_id: importer_log.id, data_source: data_source) }
 
     it 'paginates errors' do
       get :show, params: { id: importer_log.id, file: 'Enrollment' }

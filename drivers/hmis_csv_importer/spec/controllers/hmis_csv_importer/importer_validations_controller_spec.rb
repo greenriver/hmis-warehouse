@@ -24,8 +24,8 @@ RSpec.describe HmisCsvImporter::ImporterValidationsController, type: :controller
       loader_id: 1,
     )
   end
-  let(:validation) { create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id) }
-  let(:validation_with_minimal_source) do
+  let!(:validation) { create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id) }
+  let!(:validation_with_minimal_source) do
     create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
   end
 
@@ -35,11 +35,6 @@ RSpec.describe HmisCsvImporter::ImporterValidationsController, type: :controller
   end
 
   describe 'GET #download' do
-    before do
-      validation
-      validation_with_minimal_source
-    end
-
     it 'generates xlsx file' do
       get :download, params: { id: importer_log.id, file: 'Enrollment' }, format: :xlsx
       expect(response.headers['Content-Disposition']).to include('Enrollment_errors.xlsx')
@@ -77,13 +72,7 @@ RSpec.describe HmisCsvImporter::ImporterValidationsController, type: :controller
   end
 
   describe 'GET #show' do
-    let(:import_log) { create(:grda_warehouse_import_log, importer_log_id: importer_log.id, data_source: data_source) }
-
-    before do
-      import_log
-      validation
-      validation_with_minimal_source
-    end
+    let!(:import_log) { create(:grda_warehouse_import_log, importer_log_id: importer_log.id, data_source: data_source) }
 
     it 'paginates validations' do
       get :show, params: { id: importer_log.id, file: 'Enrollment' }

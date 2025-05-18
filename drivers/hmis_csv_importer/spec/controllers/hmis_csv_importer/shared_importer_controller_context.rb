@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.shared_context 'shared importer controller' do
-  let(:user) { create :acl_user }
-  let(:role) { create :admin_role, can_view_imports: true }
-  let(:data_source) { create(:grda_warehouse_data_source) }
-  let(:importer_log) { create(:hmis_csv_importer_log, data_source: data_source) }
+  let!(:user) { create :acl_user }
+  let!(:role) { create :admin_role, can_view_imports: true }
+  let!(:data_source) { create(:grda_warehouse_data_source) }
+  let!(:importer_log) { create(:hmis_csv_importer_log, data_source: data_source) }
   let(:minimal_source) do
     HmisCsvTwentyTwentyFour::Loader::Enrollment.create!(
       EnrollmentID: SecureRandom.uuid,
