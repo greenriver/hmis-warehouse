@@ -23,9 +23,9 @@ RSpec.describe HmisCsvImporter::ImporterValidationErrorsController, type: :contr
       loader_id: 1,
     )
   end
-  let(:validation) { create(:hmis_csv_import_validation, importer_log_id: importer_log.id) }
+  let(:validation) { create(:hmis_csv_import_length_validation, importer_log_id: importer_log.id) }
   let(:validation_with_minimal_source) do
-    create(:hmis_csv_import_validation, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
+    create(:hmis_csv_import_length_validation, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
   end
 
   before do
@@ -49,7 +49,7 @@ RSpec.describe HmisCsvImporter::ImporterValidationErrorsController, type: :contr
     end
 
     it 'handles nil sources without crashing' do
-      create_invalid_source_record(:hmis_csv_import_validation, importer_log_id: importer_log.id)
+      create_invalid_source_record(:hmis_csv_import_length_validation, importer_log_id: importer_log.id)
 
       get :show, params: { id: importer_log.id, file: 'Enrollment' }
       expect(response).to have_http_status(:success)

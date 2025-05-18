@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'roo'
 require_relative './shared_importer_controller_context'
 
-RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
+RSpec.describe HmisCsvImporter::ImporterValidationsController, type: :controller do
   render_views
   include_context 'shared importer controller'
 
@@ -13,7 +13,6 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:importer_log) { create(:hmis_csv_importer_log, data_source: data_source) }
   let(:minimal_source) do
-    # Create a minimal Loader::Enrollment record for use as a source
     HmisCsvTwentyTwentyFour::Loader::Enrollment.create!(
       EnrollmentID: SecureRandom.uuid,
       PersonalID: SecureRandom.uuid,
@@ -26,12 +25,8 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
     )
   end
   let(:validation) { create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id) }
-  let(:error) { create(:hmis_csv_import_error, importer_log_id: importer_log.id) }
   let(:validation_with_minimal_source) do
     create(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
-  end
-  let(:error_with_minimal_source) do
-    create(:hmis_csv_import_error, importer_log_id: importer_log.id, source_id: minimal_source.id, source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment')
   end
 
   before do
@@ -42,32 +37,30 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
   describe 'GET #download' do
     before do
       validation
-      error
       validation_with_minimal_source
-      error_with_minimal_source
     end
 
     it 'generates xlsx file' do
-      get :download, params: { id: importer_log.id }, format: :xlsx
-      expect(response.headers['Content-Disposition']).to include("import_errors_#{importer_log.id}.xlsx")
+      get :download, params: { id: importer_log.id, file: 'Enrollment' }, format: :xlsx
+      expect(response.headers['Content-Disposition']).to include('Enrollment_errors.xlsx')
       expect(response.content_type).to include('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     end
 
     it 'handles minimal source data' do
-      get :download, params: { id: importer_log.id }, format: :xlsx
+      get :download, params: { id: importer_log.id, file: 'Enrollment' }, format: :xlsx
       expect(response).to have_http_status(:success)
+      expect(response.headers['Content-Disposition']).to include('Enrollment_errors.xlsx')
+      expect(response.content_type).to include('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     end
 
     it 'handles nil sources without crashing' do
       create_invalid_source_record(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id)
-      create_invalid_source_record(:hmis_csv_import_error, importer_log_id: importer_log.id)
 
-      get :download, params: { id: importer_log.id }, format: :xlsx
+      get :download, params: { id: importer_log.id, file: 'Enrollment' }, format: :xlsx
       expect(response).to have_http_status(:success)
-      expect(response.headers['Content-Disposition']).to include("import_errors_#{importer_log.id}.xlsx")
+      expect(response.headers['Content-Disposition']).to include('Enrollment_errors.xlsx')
       expect(response.content_type).to include('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-      # Verify Excel was generated with empty arrays for nil sources
       require 'tempfile'
       temp_file = Tempfile.new(['test', '.xlsx'])
       temp_file.binmode
@@ -75,16 +68,8 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
       temp_file.rewind
 
       xlsx = Roo::Excelx.new(temp_file.path)
-
-      # Check validation sheet
-      validation_sheet = xlsx.sheet('Enrollment Validation Flags')
+      validation_sheet = xlsx.sheet('Enrollment.csv Validation Flags')
       expect(validation_sheet.row(1)[0]).to eq('Message')
-      expect(validation_sheet.row(2)[0]).to eq('warning')
-
-      # Check error sheet
-      error_sheet = xlsx.sheet('Enrollment Error Flags')
-      expect(error_sheet.row(1)[0]).to eq('Message')
-      expect(error_sheet.row(2)[0]).to eq('Test error details')
 
       temp_file.close
       temp_file.unlink
@@ -96,14 +81,22 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
 
     before do
       import_log
-      error
-      error_with_minimal_source
+      validation
+      validation_with_minimal_source
     end
 
-    it 'paginates errors' do
+    it 'paginates validations' do
       get :show, params: { id: importer_log.id, file: 'Enrollment' }
-      expect(assigns(:errors)).to include(error)
-      expect(assigns(:errors)).to include(error_with_minimal_source)
+      expect(assigns(:validations)).to include(validation)
+      expect(assigns(:validations)).to include(validation_with_minimal_source)
+    end
+
+    it 'handles nil sources without crashing' do
+      create_invalid_source_record(:hmis_csv_import_inclusion_validation, importer_log_id: importer_log.id)
+
+      get :show, params: { id: importer_log.id, file: 'Enrollment' }
+      expect(response).to have_http_status(:success)
+      expect(assigns(:validations)).to be_present
     end
   end
 end
