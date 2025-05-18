@@ -16,12 +16,6 @@ RSpec.describe HmisCsvImporter::ImporterValidationsController, type: :controller
   describe 'GET #download' do
     it 'generates xlsx file' do
       get :download, params: { id: importer_log.id, file: 'Enrollment' }, format: :xlsx
-      expect(response.headers['Content-Disposition']).to include('Enrollment_errors.xlsx')
-      expect(response.content_type).to include('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    end
-
-    it 'handles minimal source data' do
-      get :download, params: { id: importer_log.id, file: 'Enrollment' }, format: :xlsx
       expect(response).to have_http_status(:success)
       expect(response.headers['Content-Disposition']).to include('Enrollment_errors.xlsx')
       expect(response.content_type).to include('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
