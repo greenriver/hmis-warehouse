@@ -2,9 +2,12 @@
 
 require 'rails_helper'
 require 'roo'
+require_relative './shared_importer_controller_context'
 
 RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
   render_views
+  include_context 'shared importer controller'
+
   let(:user) { create :acl_user }
   let(:role) { create :admin_role, can_view_imports: true }
   let(:data_source) { create(:grda_warehouse_data_source) }
@@ -56,17 +59,8 @@ RSpec.describe HmisCsvImporter::ImporterErrorsController, type: :controller do
     end
 
     it 'handles nil sources without crashing' do
-      # Create validations and errors with invalid source references
-      create(:hmis_csv_import_validation,
-             importer_log_id: importer_log.id,
-             source_id: -1,
-             source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment',
-             status: 'Test Status')
-      create(:hmis_csv_import_error,
-             importer_log_id: importer_log.id,
-             source_id: -1,
-             source_type: 'HmisCsvTwentyTwentyFour::Loader::Enrollment',
-             details: 'Test Error')
+      create_invalid_source_record(:hmis_csv_import_validation, importer_log_id: importer_log.id)
+      create_invalid_source_record(:hmis_csv_import_error, importer_log_id: importer_log.id)
 
       get :download, params: { id: importer_log.id }, format: :xlsx
       expect(response).to have_http_status(:success)
