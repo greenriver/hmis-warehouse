@@ -16,9 +16,6 @@ class AddStepAvailableAt < ActiveRecord::Migration[7.1]
       SQL
 
       change_column_null :wfe_steps, :available_at, false
-
-      # Index because we have to sort steps on this field
-      add_index :wfe_steps, :available_at
     end
   end
 
