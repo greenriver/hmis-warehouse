@@ -14,6 +14,7 @@ class AddCePermissions < ActiveRecord::Migration[7.1]
     remove_column :hmis_roles, :can_perform_any_referral_tasks
     remove_column :hmis_roles, :can_perform_own_referral_tasks
     remove_column :hmis_roles, :can_view_client_eligible_opportunities
+    remove_column :hmis_roles, :can_administrate_coordinated_entry
     remove_column :hmis_roles, :can_assign_referral_tasks
   end
 end

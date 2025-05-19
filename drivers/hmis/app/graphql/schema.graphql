@@ -9549,6 +9549,7 @@ type Query {
 type QueryAccess {
   canAdministerHmis: Boolean!
   canAdministrateConfig: Boolean!
+  canAdministrateCoordinatedEntry: Boolean!
   canAssignReferralTasks: Boolean!
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!

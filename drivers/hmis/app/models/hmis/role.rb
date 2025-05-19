@@ -219,6 +219,14 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Administration',
         sub_category: 'Referrals',
       },
+      can_administrate_coordinated_entry: {
+        description: 'Ability to manage global CE configurations, and view CE admin screens. This is a global permission.',
+        administrative: true,
+        global: true,
+        access: [:editable],
+        category: 'Administration',
+        sub_category: 'Referrals',
+      },
       can_assign_referral_tasks: {
         description: 'Ability to assign contacts for any referral to the project that the user can view',
         administrative: false,
