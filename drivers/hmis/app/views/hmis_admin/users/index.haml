@@ -5,7 +5,7 @@
 - @prompt = 'Search users...'
 .o-page__controls
   .o-page__search
-    = render 'search_form'
+    = render_generic_search_form prompt: @prompt
 - if @users.blank?
   %p No HMIS users present.
 - else

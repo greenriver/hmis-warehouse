@@ -8,7 +8,7 @@
 
     .o-page__controls
       .o-page__search
-        = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', aria: { label: 'User Search' }, data: {placement: 'bottom'}
+        = render_generic_search_form prompt: @prompt, tooltip_title: 'Search on a user\'s first name, last name or email address', aria_label: 'User Search'
 
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
       %i.icon-file-excel.icon-lg

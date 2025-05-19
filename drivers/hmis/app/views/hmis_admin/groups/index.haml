@@ -11,7 +11,8 @@
       Add a Collection
     .w-50.ml-auto
       - @prompt = 'Search collections...'
-      = render 'search_form'
+      = render_generic_search_form prompt: @prompt
+
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'group'
   .table-responsive
