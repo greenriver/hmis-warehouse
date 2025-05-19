@@ -49,6 +49,7 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
 
       it 'includes all projects belonging to the specified organizations' do
         expect(criteria.effective_project_ids).to contain_exactly(*o1.projects.pluck(:id))
+        expect(criteria.effective_project_ids.count).to eq(1)
       end
     end
 
@@ -62,6 +63,7 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
 
       it 'includes all projects from the specified data sources' do
         expect(criteria.effective_project_ids).to contain_exactly(*hmis_ds.projects.pluck(:id))
+        expect(criteria.effective_project_ids.count).to eq(4)
       end
     end
 
@@ -91,8 +93,10 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
       end
 
       it 'includes all projects that satisfy criteria' do
-        expected_projects = [p2_o2.id] + o1.projects.pluck(:id) + hmis_ds.projects.where(project_type: 3).pluck(:id)
-        expect(criteria.effective_project_ids).to contain_exactly(*expected_projects)
+        expect(criteria.effective_project_ids.count).to eq(3)
+        expect(criteria.effective_project_ids).to include(p2_o2.id) # from project_ids
+        expect(criteria.effective_project_ids).to include(p1_o1.id) # from organization_ids
+        expect(criteria.effective_project_ids).to include(p3_o2.id) # from project_type_numbers
       end
     end
   end
