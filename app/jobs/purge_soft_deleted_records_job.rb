@@ -13,7 +13,7 @@
 # * Maintains referential integrity by properly handling dependent relationships
 # * Enforces a maximum deletion limit as a safety mechanism
 class PurgeSoftDeletedRecordsJob < BaseJob
-  include NotifierConfig
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   # @param retain_at [DateTime] Records deleted before this date will be purged
   # @param max_deleted [Integer] Maximum number of records to delete in one run

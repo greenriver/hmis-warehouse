@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class TeamPatientsController < HealthController
     include ClientPathGenerator
@@ -27,7 +29,7 @@ module Health
         @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
           Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
           ::Health::CoordinationTeam.first
-        @active_team.name
+        @active_team&.name
       else
         @active_team = ::Health::CoordinationTeam.find_by(name: @team_name)
       end

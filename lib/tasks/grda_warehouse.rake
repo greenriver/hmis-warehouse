@@ -340,9 +340,10 @@ namespace :grda_warehouse do
       Hmis::MatchCandidatesJob.perform_later
     end
 
-    # Purge old soft-deleted records. Enable on production when we have confidence job is correct
+    # Purge old soft-deleted records
     begin
-      PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+      enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
+      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
     rescue StandardError => e
       Sentry.capture_exception(e)
       Rails.logger.error(e.message)

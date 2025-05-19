@@ -5,7 +5,7 @@
 - @prompt = "Search project groups..."
 .row.mb-4
   .col-sm-8
-    = render 'search_form'
+    = render_generic_search_form
   .col-sm-4.text-right
     = link_to new_project_group_path, class: 'btn btn-primary mb-2' do
       %span.icon-plus
