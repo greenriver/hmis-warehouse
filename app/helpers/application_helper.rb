@@ -546,4 +546,37 @@ module ApplicationHelper
 
     render('/common/action_button', item: items.sole)
   end
+
+  def render_generic_search_form(
+    url_for_options = nil,
+    method: 'get',
+    prompt: nil,
+    initial_value: params[:q],
+    tooltip_title: nil,
+    aria_label: nil,
+    autofocus: true,
+    input_type: 'search',
+    input_name: 'q'
+  )
+    raise ArgumentError, "Method must be 'get' or 'post'" unless ['get', 'post'].include?(method.to_s)
+
+    form_options = { method: method }
+    input_data = { toggle: 'tooltip', title: tooltip_title, placement: 'bottom' } if tooltip_title
+    input_attrs = {
+      name: input_name,
+      autofocus: autofocus,
+      type: input_type,
+      placeholder: prompt,
+      value: initial_value,
+      data: input_data,
+    }
+    input_attrs[:aria] = { label: aria_label } if aria_label
+
+    render(
+      '/common/generic_search_form',
+      url_for_options: url_for_options,
+      form_options: form_options,
+      input_attrs: input_attrs,
+    )
+  end
 end
