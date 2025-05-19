@@ -65,7 +65,7 @@ module Types
     end
 
     def current_steps
-      load_ar_association(object, :current_steps)
+      load_ar_association(object, :current_steps).sort_by(&:available_at)
     end
 
     def days_on_current_steps

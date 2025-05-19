@@ -22,11 +22,6 @@ module Hmis::WorkflowExecution
 
     scope :open, -> { where(status: ['available', 'in_progress']) }
 
-    scope :order_by_available_at, -> do
-      # Used for returning the current steps of a referral, with stalest steps first
-      order(:available_at).order(:id) # Fallback to order by ID so it's determinate
-    end
-
     def open?
       [:available, :in_progress].include?(status.to_sym)
     end
