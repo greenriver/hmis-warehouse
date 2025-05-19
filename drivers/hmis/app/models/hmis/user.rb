@@ -116,6 +116,16 @@ class Hmis::User < ApplicationRecord
     end
   end
 
+  def can_perform_referral_step?(step)
+    referral = Hmis::Ce::Referral.find_by(workflow_instance: step.instance)
+    project = referral.target_project
+
+    permission_from_project = can_perform_any_referral_tasks_for?(project)
+    permission_from_assignment = can_perform_own_referral_tasks_for?(project) && step.assignments.any? { |assignment| assignment.user == self }
+
+    permission_from_project || permission_from_assignment
+  end
+
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
   end

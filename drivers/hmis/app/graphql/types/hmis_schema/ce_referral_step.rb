@@ -45,8 +45,9 @@ module Types
 
     # Helper for the frontend to determine whether to show buttons for starting/submitting the step.
     def can_current_user_perform
-      referral = Hmis::Ce::Referral.find_by(workflow_instance: object.instance)
-      referral.user_can_perform_task?(user: current_user, step: object)
+      # Can be resolved in bulk for steps on the same referral; relies on ActiveRecord caching the steps' project
+      load_ar_association(object, :assignments) # Preload assignments with dataloader
+      current_user.can_perform_referral_step?(object)
     end
 
     private

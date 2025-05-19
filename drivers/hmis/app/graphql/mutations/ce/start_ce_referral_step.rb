@@ -20,7 +20,7 @@ module Mutations
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
-        access_denied! unless referral.user_can_perform_task?(user: current_user, step: step)
+        access_denied! unless current_user.can_perform_referral_step?(step)
 
         engine.start_step!(step, user: current_user)
       end

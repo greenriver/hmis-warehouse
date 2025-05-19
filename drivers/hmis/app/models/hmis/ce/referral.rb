@@ -93,16 +93,6 @@ module Hmis::Ce
       Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
     end
 
-    # This is a helper on Referral, rather than on Step, because we want to keep Workflow Execution code encapsulated away from CE code
-    def user_can_perform_task?(user:, step:)
-      raise unless step.instance == workflow_instance
-
-      permission_from_project = user.can_perform_any_referral_tasks_for?(target_project)
-      permission_from_assignment = user.can_perform_own_referral_tasks_for?(target_project) && step.assignments.any? { |assignment| assignment.user == user }
-
-      permission_from_project || permission_from_assignment
-    end
-
     private
 
     def unique_referral_per_opportunity
