@@ -77,11 +77,17 @@ module Hmis
 
     # Returns a unique list of project IDs that match the criteria defined by this class.
     def effective_project_ids
+      # If "all projects in data source" is selected, return early with all project IDs
+      return data_source.projects.pluck(p_t[:id]) if all_projects_in_data_source
+
       ids = []
+      # Add projects selected by project IDs
       ids << project_scope.where(id: project_ids).pluck(:id) if project_ids.any?
+      # Add projects selected by organization IDs
       ids << organization_scope.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
+      # Add projects selected by project type
       ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
-      ids << data_source.projects.pluck(p_t[:id]) if all_projects_in_data_source
+      # Flatten and remove duplicates
       ids.flatten.uniq
     end
 
