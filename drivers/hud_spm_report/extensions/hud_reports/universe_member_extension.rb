@@ -24,9 +24,11 @@ module HudSpmReport::HudReports
       belongs_to(
         :enrollment,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2026::SpmEnrollment'))
+          TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-09-01')
+          TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-10-01')
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
         end,
-        class_name: 'HudSpmReport::Fy2026::SpmEnrollment',
+        class_name: 'HudSpmReport::Fy2024::SpmEnrollment',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,
@@ -34,9 +36,11 @@ module HudSpmReport::HudReports
       belongs_to(
         :return,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2026::Return'))
+          TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Fy2026::Return'", by: '2025-09-01')
+          TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::Return'", by: '2025-10-01')
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
         end,
-        class_name: 'HudSpmReport::Fy2026::Return',
+        class_name: 'HudSpmReport::Fy2024::Return',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,

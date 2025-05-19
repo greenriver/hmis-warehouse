@@ -10,18 +10,22 @@ module HudSpmReport
   class BaseController < ::HudReports::BaseController
     before_action :filter
 
+    TodoOrDie('Set SPM Current Version on Staging to :fy2026', by: '2025-09-01')
+    TodoOrDie('Set SPM Current Version to :fy2026', by: '2025-10-01')
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
         'FY 2023' => { slug: :fy2023, active: false },
-        'FY 2024' => { slug: :fy2024, active: false },
-        'FY 2026 (current)' => { slug: :fy2026, active: true },
+        'FY 2024 (current)' => { slug: :fy2024, active: true },
+        'FY 2026' => { slug: :fy2026, active: false },
       }.freeze
     end
     helper_method :available_report_versions
 
+    TodoOrDie('Set SPM Default Report Version on Staging to :fy2026', by: '2025-09-01')
+    TodoOrDie('Set SPM Default Report Version to :fy2026', by: '2025-10-01')
     def default_report_version
-      :fy2026
+      :fy2024
     end
 
     private def relevant_project_types
