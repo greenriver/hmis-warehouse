@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -53,8 +55,10 @@ module GrdaWarehouse::Cohorts::DocumentExports
 
         write_tmp_file(
           renderer.render(
+            template: 'cohorts/export',
             action: :show,
-            format: :xlsx,
+            formats: [:xlsx],
+            handlers: [:axlsx], # Forces Rails to use the Axlsx handler
             assigns: view_assigns,
           ),
           "Cohort - #{cohort.name} - #{params['population']} - #{Time.current.to_fs(:db)}",
