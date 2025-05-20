@@ -179,7 +179,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: RailsDrivers.loaded.include?(:hmis) && Hmis::Ce.configuration.enabled?,
+        proc: ENV['RAILS_ENV'] == 'test' || Hmis::Ce.configuration.enabled?,
       },
       can_start_referrals: {
         description: 'Ability to initiate referrals from the client waitlist in the project',
