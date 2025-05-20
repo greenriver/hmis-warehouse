@@ -929,6 +929,8 @@ type CeReferralStep {
   stepId: ID
   submittedValues: JsonObject
   swimlane: String!
+  updatedAt: ISO8601DateTime
+  updatedBy: ApplicationUser
 }
 
 enum CeReferralStepStatus {

@@ -56,7 +56,15 @@ module Types
         next nil if node.conditional_inflows? # task is conditional, don't show it yet
 
         # initialize step to display in the UI
-        instance.steps.new(node: node).freeze
+        step = instance.steps.new(node: node).freeze
+
+        # If the step is unpersisted, assignees won't be persisted yet either,
+        # but we know the step's default assignees based on the referral participants, so return them
+        participants_by_swimlane_id[node.swimlane_id]&.each do |p|
+          step.assignments.new(user: p.user)
+        end
+
+        step
       end.compact
     end
 
@@ -123,9 +131,6 @@ module Types
       user_ids = object.participants.map(&:user_id).uniq
       users_by_id = Hmis::User.where(id: user_ids).index_by(&:id)
 
-      # Fetch participants and group them by swimlane
-      participants_by_swimlane_id = object.participants.group_by(&:swimlane_id)
-
       object.swimlanes.map do |swimlane|
         # For this swimlane, get all associated participants, and map to the user objects that were already fetched
         participants = (participants_by_swimlane_id[swimlane.id] || []).filter_map do |participant|
@@ -138,6 +143,12 @@ module Types
           participants: participants,
         )
       end
+    end
+
+    private
+
+    def participants_by_swimlane_id
+      @participants_by_swimlane_id ||= object.participants.group_by(&:swimlane_id)
     end
   end
 end

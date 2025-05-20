@@ -4,7 +4,7 @@
 = render 'menus/health_admin_tabs'
 .row
   .col-sm-6.mt-2.mb-4
-    = render 'search_form'
+    = render_generic_search_form
 %p Use this form to grant access to the healthcare sections of the window into the warehouse to users.
 
 - if @pagy.count.positive?
