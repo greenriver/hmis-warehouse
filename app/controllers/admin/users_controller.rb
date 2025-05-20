@@ -300,7 +300,7 @@ module Admin
     end
 
     private def sort_direction
-      params[:sort].presence_in(['asc', 'desc']) || 'asc'
+      params[:direction].presence_in(['asc', 'desc']) || 'asc'
     end
 
     private def set_user
