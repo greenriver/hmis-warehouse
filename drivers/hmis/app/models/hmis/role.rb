@@ -101,19 +101,13 @@ class Hmis::Role < ::ApplicationRecord
       permissions_with_descriptions.each do |key, role|
         # proc is optional; if it evaluates to false, then hide this permission.
         # (If it's nil, still include the permission)
-        next if role[:proc] == false
+        next if role[:proc] && !role[:proc].call
 
         perms[role[:category]] ||= {}
         perms[role[:category]][role[:sub_category]] ||= {}
         perms[role[:category]][role[:sub_category]][key] = role
       end
     end
-  end
-
-  def self.show_ce_permissions?
-    # Show CE permissions if CE is enabled
-    # In test env on CI, permissions_by_group is called before the database is loaded(?)
-    ENV['RAILS_ENV'] == 'test' || Hmis::Ce.configuration.enabled?
   end
 
   # List permissions that are granted by this role
@@ -185,7 +179,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_start_referrals: {
         description: 'Ability to initiate referrals from the client waitlist in the project',
@@ -193,7 +187,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_view_referrals: {
         description: 'Ability to view all referrals to the project',
@@ -201,7 +195,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_view_own_referrals: {
         description: 'Grants the same permissions as "Can view referrals", but only for referrals in which this user has at least one assigned, available task',
@@ -209,7 +203,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_perform_any_referral_tasks: {
         description: 'Ability to start and submit any referral task, and add referral notes, on all referrals to the project',
@@ -217,7 +211,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_perform_own_referral_tasks: {
         description: 'Grants the same permission as "Can perform any referral tasks," but only for referrals in which this user has at least one assigned, available task. This permission informs the dropdown of users available for assignment to referral swimlanes.',
@@ -225,7 +219,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_view_client_eligible_opportunities: {
         description: 'Ability to view the Client page showing all Opportunities a client is eligible for. This is a global permission (not per-project).',
@@ -234,7 +228,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Administration',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_administrate_coordinated_entry: {
         description: 'Ability to manage global CE configurations, and view CE admin screens. This is a global permission.',
@@ -243,7 +237,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_assign_referral_tasks: {
         description: 'Ability to assign contacts for any referral to the project that the user can view',
@@ -251,7 +245,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: Hmis::Role.show_ce_permissions?,
+        proc: -> { Hmis::Ce.configuration.enabled? },
       },
       can_manage_incoming_referrals: { # TODO - Deprecate and delete
         description: 'Ability to accept/deny incoming referrals in the Project',
