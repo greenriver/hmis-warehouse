@@ -49,14 +49,6 @@ RSpec.describe GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport, type:
     end
 
     it 'creates a valid export file' do
-      # This would be a more comprehensive test in reality, but for now just ensure it runs
-      # without error and sets the expected properties
-
-      # Mock the controller renderer to avoid actual template rendering
-      # renderer = double('renderer')
-      # allow(renderer).to receive(:render).and_return('mock excel data')
-      # allow_any_instance_of(CohortsController).to receive(:renderer).and_return(double('renderer_class', new: renderer))
-
       expect { export.perform }.not_to raise_error
 
       expect(export.status).to eq(GrdaWarehouse::DocumentExport::COMPLETED_STATUS)

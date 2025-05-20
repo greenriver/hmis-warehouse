@@ -7,6 +7,13 @@
 ###
 
 module GrdaWarehouse::Cohorts::DocumentExports
+  # Handles export of cohort data to Excel files (.xlsx) format
+  #
+  # This class is responsible for:
+  # - Validating user authorization for cohort downloads
+  # - Collecting cohort data based on specified population parameters
+  # - Rendering an Excel workbook using the axlsx template engine
+  # - Creating a downloadable file with proper naming and MIME type
   class CohortExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
