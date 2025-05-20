@@ -179,7 +179,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Project Access',
         sub_category: 'Referrals',
-        proc: false,
+        proc: Hmis::Ce.configuration.enabled?,
       },
       can_start_referrals: {
         description: 'Ability to initiate referrals from the client waitlist in the project',
