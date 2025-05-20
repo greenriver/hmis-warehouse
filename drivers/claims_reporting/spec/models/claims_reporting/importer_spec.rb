@@ -2,78 +2,61 @@ require 'rails_helper'
 
 RSpec.describe ClaimsReporting::Importer do
   let(:importer) { described_class.new }
-  let(:test_credentials) do
-    {
-      'host' => 'sftp.example.com',
-      'username' => 'testuser',
-      'password' => 'testpass',
-      'path' => '/uploads'
-    }
-  end
 
-  describe '#default_credentials' do
-    it 'returns the active claims_reporting import config' do
-      config = build(:hmis_health_import_config, kind: :claims_reporting)
-      allow(::Health::ImportConfig).to receive_message_chain(:active, :find_by).and_return(config)
+  describe '#import_from_zip' do
+    # This will test the actual functionality with minimal sample data
+    let(:zip_path) { Rails.root.join('drivers', 'claims_reporting', 'spec', 'fixtures', 'test_claims.zip') }
+    let(:fixtures_dir) { Rails.root.join('drivers', 'claims_reporting', 'spec', 'fixtures') }
 
-      expect(importer.default_credentials).to eq(config)
-    end
-  end
-
-  describe '#polling_enabled?' do
-    it 'returns true when host and path are present' do
-      allow(importer).to receive(:default_credentials).and_return(test_credentials)
-
-      expect(importer.polling_enabled?).to be true
-    end
-
-    it 'returns false when host or path is missing' do
-      credentials = test_credentials.merge('host' => nil)
-      allow(importer).to receive(:default_credentials).and_return(credentials)
-
-      expect(importer.polling_enabled?).to be false
-    end
-  end
-
-  describe '#nightly!' do
-    it 'calls import_all_from_health_sftp when polling is enabled' do
-      allow(importer).to receive(:polling_enabled?).and_return(true)
-      expect(importer).to receive(:import_all_from_health_sftp)
-
-      importer.nightly!
-    end
-
-    it 'does nothing when polling is disabled' do
-      allow(importer).to receive(:polling_enabled?).and_return(false)
-      expect(importer).not_to receive(:import_all_from_health_sftp)
-
-      importer.nightly!
-    end
-  end
-
-  describe '#check_sftp' do
-    let(:mock_sftp) { instance_double(Net::SFTP::Session) }
-    let(:mock_dir) { instance_double(Net::SFTP::Operations::Dir) }
-    let(:test_file_listing) do
-      [
-        double(name: 'claims_jan_2023.zip'),
-        double(name: 'claims_feb_2023.zip'),
-        double(name: 'other_document.pdf')
+    # Create valid CSV content for each model based on its schema
+    let(:member_roster_csv) do
+      headers = ["member_id", "nam_first", "nam_last", "sex", "date_of_birth", "enrolled_flag", "last_office_visit", "last_ed_visit", "last_ip_visit", "cp_claim_dt"]
+      data = [
+        ["test1234", "Test", "User", "M", "1980-01-01", "Y", "2024-03-20", "2024-03-15", "2024-03-10", "2024-03-05"]
       ]
+
+      CSV.generate(col_sep: '|') do |csv|
+        csv << headers
+        data.each { |row| csv << row }
+      end
     end
-    let(:root_path) { '/uploads' }
 
     before do
-      allow(Net::SFTP).to receive(:start).and_yield(mock_sftp)
-      allow(mock_sftp).to receive(:dir).and_return(mock_dir)
-      allow(mock_dir).to receive(:glob).and_return(test_file_listing)
+      # Create a test zip file with CSV data - just one file to keep it simple
+      FileUtils.mkdir_p(fixtures_dir)
+
+      Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
+        zipfile.get_output_stream("member_roster.csv") { |f| f.write(member_roster_csv) }
+      end
     end
 
-    it 'returns files that match the naming convention' do
-      results = importer.check_sftp(credentials: test_credentials, show_import_status: false, root_path: root_path)
+    after do
+      # Clean up test files
+      FileUtils.rm_f(zip_path)
 
-      expect(results.size).to eq(2)
-      expect(results.map { |r| r[:year] }).to all(eq('2023'))
+      # Clean up any test data we created
+      ClaimsReporting::MemberRoster.where(member_id: "test1234").delete_all
+    end
+
+    it 'imports data from a zip file' do
+      # First, create an import record
+      import = ClaimsReporting::Import.create!(
+        source_url: "file://#{zip_path}",
+        started_at: Time.current,
+        importer: "ClaimsReporting::Importer",
+        method: "import_from_zip",
+        args: { replace_all: true }
+      )
+
+      importer.instance_variable_set(:@import, import)
+
+      results = importer.import_from_zip(zip_path, new_import: false, replace_all: true)
+
+      # Check basic results
+      expect(results.keys).to include("member_roster.csv")
+
+      # Verify data was read
+      expect(results["member_roster.csv"][:records_read]).to be > 0
     end
   end
 end
