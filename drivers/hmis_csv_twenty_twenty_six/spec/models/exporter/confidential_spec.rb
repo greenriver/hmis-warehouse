@@ -7,20 +7,22 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative 'export_helper'
+require_relative '../../support/export_helper_2026'
 
 RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
   before(:all) do
     cleanup_test_environment
-    setup_data
-    @organizations.each.with_index do |org, i|
+    ExportHelper2026.setup_data
+
+    # Set up non-confidential projects and organizations
+    ExportHelper2026.organizations.each.with_index do |org, i|
       org.update(
         OrganizationID: (i + 1).to_s,
         OrganizationName: "Organization Name #{i + 1}",
         OrganizationCommonName: "Organization Common Name #{i + 1}",
       )
     end
-    @projects.each.with_index do |proj, i|
+    ExportHelper2026.projects.each.with_index do |proj, i|
       proj.update(
         ProjectName: "Project Name #{i + 1}",
         ProjectCommonName: "Project Common Name #{i + 1}",
@@ -29,21 +31,20 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       )
     end
 
-    @project_class = HmisCsvTwentyTwentySix::Exporter::Project
     @exporter = HmisCsvTwentyTwentySix::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
-      projects: @projects.map(&:id),
+      projects: ExportHelper2026.projects.map(&:id),
       period_type: 3,
       directive: 3,
-      user_id: @user.id,
+      user_id: ExportHelper2026.user.id,
     )
+    ExportHelper2026.instance_variable_set(:@exporter, @exporter)
     @exporter.export!(cleanup: false, zip: false, upload: false)
   end
 
   after(:all) do
-    @exporter.remove_export_files
-    cleanup_test_environment
+    ExportHelper2026.cleanup
   end
 
   [
@@ -70,14 +71,14 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         expect(scope.count).to eq 5
       end
       it 'creates one CSV file' do
-        expect(File.exist?(csv_file_path(options[:export_class]))).to be true
+        expect(File.exist?(ExportHelper2026.csv_file_path(options[:export_class]))).to be true
       end
       it "adds five rows to the #{options[:export_class].name} CSV file" do
-        csv = CSV.read(csv_file_path(options[:export_class]), headers: true)
+        csv = CSV.read(ExportHelper2026.csv_file_path(options[:export_class]), headers: true)
         expect(csv.count).to eq 5
       end
       it "name from CSV matches name from #{options[:export_class].name}" do
-        csv = CSV.read(csv_file_path(options[:export_class]), headers: true)
+        csv = CSV.read(ExportHelper2026.csv_file_path(options[:export_class]), headers: true)
         options[:fields].each do |field|
           expect(csv.first[field]).to eq options[:export_class].hmis_class.first[field].to_s
           expect(csv.first[field]).to include('Name')
@@ -90,26 +91,27 @@ end
 describe 'Project and organization confidential items' do
   before(:all) do
     cleanup_test_environment
-    setup_data
-    @organizations.map { |p| p.update(confidential: true) }
-    @projects.map { |p| p.update(confidential: true) }
+    ExportHelper2026.setup_data
 
-    @project_class = HmisCsvTwentyTwentySix::Exporter::Project
+    # Set up confidential projects and organizations
+    ExportHelper2026.organizations.map { |p| p.update(confidential: true) }
+    ExportHelper2026.projects.map { |p| p.update(confidential: true) }
+
     @exporter = HmisCsvTwentyTwentySix::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
-      projects: @projects.map(&:id),
+      projects: ExportHelper2026.projects.map(&:id),
       period_type: 3,
       directive: 3,
-      user_id: @user.id,
+      user_id: ExportHelper2026.user.id,
       confidential: true,
     )
+    ExportHelper2026.instance_variable_set(:@exporter, @exporter)
     @exporter.export!(cleanup: false, zip: false, upload: false)
   end
 
   after(:all) do
-    @exporter.remove_export_files
-    cleanup_test_environment
+    ExportHelper2026.cleanup
   end
 
   [
@@ -136,16 +138,15 @@ describe 'Project and organization confidential items' do
         expect(scope.count).to eq 5
       end
       it 'creates one CSV file' do
-        expect(File.exist?(csv_file_path(options[:export_class]))).to be true
+        expect(File.exist?(ExportHelper2026.csv_file_path(options[:export_class]))).to be true
       end
       it "adds five rows to the #{options[:export_class].name} CSV file" do
-        csv = CSV.read(csv_file_path(options[:export_class]), headers: true)
+        csv = CSV.read(ExportHelper2026.csv_file_path(options[:export_class]), headers: true)
         expect(csv.count).to eq 5
       end
       it "name from CSV does not match name from #{options[:export_class].name}" do
-        csv = CSV.read(csv_file_path(options[:export_class]), headers: true)
+        csv = CSV.read(ExportHelper2026.csv_file_path(options[:export_class]), headers: true)
         options[:fields].each do |field|
-          # expect(csv.first[field]).to not_eq options[:export_class].hmis_class.first.instance_variable_get(field).to_s
           expect(csv.first[field]).to include('Confidential')
         end
       end

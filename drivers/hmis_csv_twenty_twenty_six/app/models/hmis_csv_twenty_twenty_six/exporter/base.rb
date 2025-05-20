@@ -145,23 +145,10 @@ module HmisCsvTwentyTwentySix::Exporter
       @export
     end
 
-    def setup_enforce_project_date_scope
-      setup_export
-      @export.update(options: { enforce_project_date_scope: true })
-    end
-
     def file_name_for(klass)
       return 'Export.csv' if klass == HmisCsvTwentyTwentySix::Exporter::Export
 
       hmis_class_for(klass).hud_csv_file_name(version: '2026')
-    end
-
-    def hmis_class_for(klass)
-      exportable_files[klass][:hmis_class]
-    end
-
-    def self.hmis_class_for(klass)
-      class_mappings[klass][:hmis_class]
     end
 
     def self.class_mappings

@@ -27,6 +27,8 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :TypeProvided, default_value: 99)
+      # Ensure InformationDate is populated with DateProvided if it is blank
+      row = replace_blank(row, hud_field: :InformationDate, default_value: row[:DateProvided])
 
       row
     end

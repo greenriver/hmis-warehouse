@@ -30,7 +30,6 @@ module HmisCsvTwentyTwentySix::Exporter
       # Don't actually do this, identify duplicates and client cleanup should handle this, just use the destination client
       # row = pick_best_source_client_data(row)
       row = apply_hash_status(row, export)
-      row = enforce_gender_none(row)
       row = enforce_race_none(row)
       row = enforce_required_fields(row)
 
@@ -53,17 +52,8 @@ module HmisCsvTwentyTwentySix::Exporter
       row
     end
 
-    def self.enforce_gender_none(row)
-      # GenderNone should be 99 if it was blank and all other gender columns are blank or 0
-      gender_columns = HudUtility2026.gender_fields - [:GenderNone]
-      any_genders = gender_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
-      row.GenderNone ||= 99 unless any_genders
-
-      row
-    end
-
     def self.enforce_race_none(row)
-      # RaceNone should be 99 if it was blank and all other gender columns are blank or 0
+      # RaceNone should be 99 if it was blank and all other race columns are blank or 0
       race_columns = HudUtility2026.race_fields - [:RaceNone]
       any_races = race_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
       row.RaceNone ||= 99 unless any_races
@@ -82,8 +72,7 @@ module HmisCsvTwentyTwentySix::Exporter
         row = replace_blank(row, hud_field: hud_field, default_value: 99)
       end
 
-      default_to_no = HudUtility2026.gender_fields - [:GenderNone]
-      default_to_no += HudUtility2026.race_fields - [:RaceNone]
+      default_to_no = HudUtility2026.race_fields - [:RaceNone]
       default_to_no.each do |hud_field|
         row = replace_blank(row, hud_field: hud_field, default_value: 0)
       end

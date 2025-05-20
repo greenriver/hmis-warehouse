@@ -112,6 +112,10 @@ module GrdaWarehouse
       ::Filters::HmisExport.new(options)
     end
 
+    def source_type
+      filter.source_type || 3 # data warehouse
+    end
+
     def export_file_name
       "HMIS_export_#{created_at.to_s.gsub(/\W+/, '_')}.zip"
     end
