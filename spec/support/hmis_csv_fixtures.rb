@@ -41,10 +41,10 @@ module HmisCsvFixtures
 
       TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
       if version == '2026'
-        Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentySix'
         version = 'AutoMigrate'
-      else
-        Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentyFour'
+      elsif version == 'AutoMigrate'
+        # Until we remove the 2024 tests, prevent them from auto migrating to 2026
+        stop_version = '2024'
       end
       importer = if version == '2020'
         HmisCsvTwentyTwenty::Loader::Loader.new(
@@ -52,20 +52,6 @@ module HmisCsvFixtures
           data_source_id: data_source.id,
           deidentified: deidentified,
         )
-      # elsif version == '2026'
-      #   TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
-      #   # HmisCsvTwentyTwentySix::Loader::Loader.new(
-      #   #   file_path: tmp_path,
-      #   #   data_source_id: data_source.id,
-      #   #   deidentified: deidentified,
-      #   # )
-      #   HmisCsvTwentyTwentySix::Importer::Local.new(
-      #     file_path: tmp_path,
-      #     data_source_id: data_source.id,
-      #     deidentified: deidentified,
-      #     allowed_projects: allowed_projects,
-      #     project_cleanup: false,
-      #   )
       elsif version == 'AutoMigrate'
         Importers::HmisAutoMigrate::Local.new(
           file_path: tmp_path,
@@ -73,6 +59,7 @@ module HmisCsvFixtures
           deidentified: deidentified,
           allowed_projects: allowed_projects,
           project_cleanup: false,
+          stop_version: stop_version,
         )
       else
         raise "Unsupported CSV version #{version}"

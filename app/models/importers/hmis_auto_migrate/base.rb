@@ -65,6 +65,7 @@ module Importers::HmisAutoMigrate
         limit_projects: @allowed_projects,
         post_processor: @post_processor,
         project_cleanup: @project_cleanup,
+        stop_version: @stop_version,
       )
 
       loader.import!(log)

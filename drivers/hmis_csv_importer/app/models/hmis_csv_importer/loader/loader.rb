@@ -25,7 +25,7 @@ module HmisCsvImporter::Loader
     include HmisCsvImporter::HmisCsv
     include ExternalFileUtils
 
-    attr_accessor :import, :range, :data_source, :loader_log, :limit_projects
+    attr_accessor :import, :range, :data_source, :loader_log, :limit_projects, :current_version
 
     # Prepare a loader for HmisCsvImporter CSVs
     # in the directory `file_path`
@@ -42,7 +42,8 @@ module HmisCsvImporter::Loader
       deidentified: false,
       limit_projects: false,
       post_processor: nil,
-      project_cleanup: true
+      project_cleanup: true,
+      stop_version: nil
     )
       raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
 
@@ -56,6 +57,10 @@ module HmisCsvImporter::Loader
       @limit_projects = limit_projects
       @post_processor = post_processor
       @project_cleanup = project_cleanup
+      @current_version = Importers::HmisAutoMigrate.calculate_current_version(@file_path)
+      @stop_version = stop_version
+      @loader_log.version = @current_version
+
       loadable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -158,7 +163,8 @@ module HmisCsvImporter::Loader
     private def load_source_files!
       @loader_log.update(status: :loading)
 
-      Importers::HmisAutoMigrate.apply_migrations(@file_path, @notifier)
+      @current_version = Importers::HmisAutoMigrate.apply_migrations(@file_path, @notifier, stop_version: @stop_version)
+      @loader_log.version = @current_version
       ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
       loadable_files.each do |file_name, klass|
@@ -349,14 +355,6 @@ module HmisCsvImporter::Loader
       return [:mapped, mapping]
     end
     HEADER_NORMALIZER = ->(s) { s.to_s.downcase }
-
-    def loadable_files
-      self.class.loadable_files
-    end
-
-    def self.loadable_file_class(name)
-      data_lake_file_class(name, 'Loader')
-    end
 
     private def remove_import_files
       Rails.logger.info "Removing #{@file_path}"

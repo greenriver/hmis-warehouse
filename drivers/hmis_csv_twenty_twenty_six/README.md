@@ -27,8 +27,6 @@ This will:
 2. run necessary ETL to bring them into a structured, validated set of tables
 3. bring any changes into the warehouse proper
 
-There can only be one set of importer modules installed at a time. The correct modules are installed into the
-via the configuration `Rails.application.config.hmis_data_lake` in `hmis_csv_twenty_twenty_six_feature.rb`.
 
 #### HmisCsvTwentyTwentySix::Loader
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyTwo
   def self.table_name_prefix
     'hmis_csv_twenty_twenty_two_'
@@ -35,6 +37,26 @@ module HmisCsvTwentyTwentyTwo
       'User.csv' => 'User',
       'YouthEducationStatus.csv' => 'YouthEducationStatus',
     }.freeze
+  end
+
+  def self.data_lake_module
+    'HmisCsvTwentyTwentyTwo'
+  end
+
+  def self.loadable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Loader')
+    end
+  end
+
+  def self.importable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Importer')
+    end
+  end
+
+  def self.data_lake_file_class(name, phase)
+    "#{data_lake_module}::#{phase}::#{name}".constantize
   end
 
   def self.expiring_loader_classes

@@ -57,7 +57,10 @@ module HmisCsvImporter::Importer
 
       @deidentified = deidentified
       @project_cleanup = project_cleanup
+      @current_version = @loader_log.version
       self.importer_log = setup_import
+      importer_log.version = @current_version
+
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -955,7 +958,7 @@ module HmisCsvImporter::Importer
     end
 
     private def source_data_scope_for(file_name)
-      scope = loader_class.loadable_files[file_name]
+      scope = loader_class.loadable_files(importer_log.version)[file_name]
       scope.unscoped.where(loader_id: @loader_log.id)
     end
 
@@ -1036,16 +1039,9 @@ module HmisCsvImporter::Importer
       }
     end
 
-    def importable_files
-      self.class.importable_files
-    end
-
-    def importable_file_class(name)
-      self.class.data_lake_file_class(name, 'Importer')
-    end
-
-    def self.soft_deletable_sources
-      importable_files_map.except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
+    # Note, only used for tests
+    def self.soft_deletable_sources(version)
+      importable_files_map(version).except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
     end
 
     def setup_import

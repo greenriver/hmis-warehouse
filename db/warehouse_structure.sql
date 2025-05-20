@@ -22207,7 +22207,8 @@ CREATE TABLE public.hmis_csv_importer_logs (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     upload_id integer,
-    phase_metrics jsonb
+    phase_metrics jsonb,
+    version character varying
 );
 
 
@@ -22277,7 +22278,8 @@ CREATE TABLE public.hmis_csv_loader_logs (
     completed_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    upload_id integer
+    upload_id integer,
+    version character varying
 );
 
 
@@ -73754,6 +73756,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250520185619'),
 ('20250516193728'),
 ('20250513134455'),
 ('20250513132551'),

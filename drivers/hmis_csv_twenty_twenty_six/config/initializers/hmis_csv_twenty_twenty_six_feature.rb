@@ -18,10 +18,10 @@ Rails.application.reloader.to_prepare do
   Filters::HmisExport.register_version('HMIS 2026', '2026', 'HmisCsvTwentyTwentySix::ExportJob')
 end
 
-# Reminder: Disable any old versions when moving to 2026
-TodoOrDie('Switch to 2026 data lake', by: '2025-10-01')
-# Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentySix'
+Rails.application.config.hmis_data_lakes['2026'] = 'HmisCsvTwentyTwentySix'
 
-Rails.application.config.queued_tasks[:hmis_twenty_twenty_six_upgrade_recurring_exports] = -> do
-  HmisCsvTwentyTwentySix::Tasks::UpgradeRecurringExports.upgrade!
+if (Date.current >= '2025-10-01'.to_date && Rails.env.production?) || (Date.current >= '2025-09-01'.to_date && Rails.env.staging?)
+  Rails.application.config.queued_tasks[:hmis_twenty_twenty_six_upgrade_recurring_exports] = -> do
+    HmisCsvTwentyTwentySix::Tasks::UpgradeRecurringExports.upgrade!
+  end
 end

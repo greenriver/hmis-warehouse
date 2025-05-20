@@ -40,26 +40,10 @@ module HmisCsvTwentyTwentySix
     }.freeze
   end
 
-  def self.expiring_loader_classes
-    importable_files_map.values.map do |name|
-      # Never expire Export or Project
-      next if name.in?(['Export', 'Project'])
-
-      "HmisCsvTwentyTwentySix::Loader::#{name}".constantize
-    end.compact.freeze
+  def self.data_lake_module
+    'HmisCsvTwentyTwentySix'
   end
 
-  def self.expiring_importer_classes
-    importable_files_map.values.map do |name|
-      # Never expire Export or Project
-      next if name.in?(['Export', 'Project'])
-
-      "HmisCsvTwentyTwentySix::Importer::#{name}".constantize
-    end.compact.freeze
-  end
-
-  # The following are usually in drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv.rb
-  # but have been duplicated here as the 2026 loader and importer classes are not ready for release
   def self.loadable_files
     importable_files_map.transform_values do |name|
       data_lake_file_class(name, 'Loader')
@@ -72,11 +56,29 @@ module HmisCsvTwentyTwentySix
     end
   end
 
-  def self.importable_file_class(name)
-    importable_files["#{name}.csv"]
+  def self.data_lake_file_class(name, phase)
+    "#{data_lake_module}::#{phase}::#{name}".constantize
   end
 
-  def self.data_lake_file_class(name, phase)
-    "#{HmisCsvTwentyTwentySix}::#{phase}::#{name}".constantize
+  def self.expiring_loader_classes
+    importable_files_map.values.map do |name|
+      # Never expire Export or Project
+      next if name.in?(['Export', 'Project'])
+
+      "#{data_lake_module}::Loader::#{name}".constantize
+    end.compact.freeze
+  end
+
+  def self.expiring_importer_classes
+    importable_files_map.values.map do |name|
+      # Never expire Export or Project
+      next if name.in?(['Export', 'Project'])
+
+      "#{data_lake_module}::Importer::#{name}".constantize
+    end.compact.freeze
+  end
+
+  def self.importable_file_class(name)
+    importable_files["#{name}.csv"]
   end
 end

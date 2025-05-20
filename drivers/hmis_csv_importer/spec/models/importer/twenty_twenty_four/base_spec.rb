@@ -415,7 +415,7 @@ RSpec.describe HmisCsvImporter, type: :model do
     end
 
     it 'will clean up the pending deletes' do
-      HmisCsvImporter::Importer::Importer.soft_deletable_sources.each do |source|
+      HmisCsvImporter::Importer::Importer.soft_deletable_sources('2024').each do |source|
         expect(source.where.not(pending_date_deleted: nil).count).to eq 0
       end
     end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyFour
   def self.table_name_prefix
     'hmis_csv_twenty_twenty_four_'
@@ -38,12 +40,32 @@ module HmisCsvTwentyTwentyFour
     }.freeze
   end
 
+  def self.data_lake_module
+    'HmisCsvTwentyTwentyFour'
+  end
+
+  def self.loadable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Loader')
+    end
+  end
+
+  def self.importable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Importer')
+    end
+  end
+
+  def self.data_lake_file_class(name, phase)
+    "#{data_lake_module}::#{phase}::#{name}".constantize
+  end
+
   def self.expiring_loader_classes
     importable_files_map.values.map do |name|
       # Never expire Export or Project
       next if name.in?(['Export', 'Project'])
 
-      "HmisCsvTwentyTwentyFour::Loader::#{name}".constantize
+      "#{data_lake_module}::Loader::#{name}".constantize
     end.compact.freeze
   end
 
@@ -52,7 +74,11 @@ module HmisCsvTwentyTwentyFour
       # Never expire Export or Project
       next if name.in?(['Export', 'Project'])
 
-      "HmisCsvTwentyTwentyFour::Importer::#{name}".constantize
+      "#{data_lake_module}::Importer::#{name}".constantize
     end.compact.freeze
+  end
+
+  def self.importable_file_class(name)
+    importable_files["#{name}.csv"]
   end
 end

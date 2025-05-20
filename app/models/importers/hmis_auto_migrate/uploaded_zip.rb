@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'zip'
 require 'pty'
 require 'expect'
@@ -16,7 +18,8 @@ module Importers::HmisAutoMigrate
       allowed_projects: false,
       file_path: 'tmp/hmis_import',
       file_password: nil,
-      project_cleanup: true
+      project_cleanup: true,
+      stop_version: nil
     )
       setup_notifier('HMIS Upload AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -27,6 +30,7 @@ module Importers::HmisAutoMigrate
       @local_path = Dir.mktmpdir([file_path, @data_source_id.to_s])
       @file_password = file_password
       @project_cleanup = project_cleanup
+      @stop_version = stop_version
       @post_processor = if @allowed_projects
         ->(_) { replace_original_upload_file }
       else
