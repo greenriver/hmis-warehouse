@@ -20,7 +20,6 @@ class AddStepAvailableAt < ActiveRecord::Migration[7.1]
   end
 
   def down
-    remove_index :wfe_steps, :available_at
     remove_column :wfe_steps, :available_at
   end
 end
