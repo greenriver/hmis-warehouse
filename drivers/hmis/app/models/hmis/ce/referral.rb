@@ -33,15 +33,15 @@ module Hmis::Ce
       # - If they have can_view_own_referrals, AND are assigned a step in the referral.
 
       # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
-      base_scope = joins(:target_project).left_outer_joins(:steps).left_outer_joins(steps: :assignments)
+      base_scope = joins(:target_project).left_outer_joins(steps: :assignments)
 
       # Projects in which the user can_view_referrals
       access_through_project = base_scope.
-        merge(Hmis::Hud::Project.with_access(user, :can_view_referrals))
+        merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_referrals))
 
       # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals
       own_referrals = base_scope.
-        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
+        merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_own_referrals)).
         merge(
           Hmis::WorkflowExecution::Step.
             where(Hmis::WorkflowExecution::StepAssignment.arel_table[:user_id].eq(user.id)).

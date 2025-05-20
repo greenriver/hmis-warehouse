@@ -120,10 +120,11 @@ class Hmis::User < ApplicationRecord
     referral = Hmis::Ce::Referral.find_by(workflow_instance: step.instance)
     project = referral.target_project
 
-    permission_from_project = can_perform_any_referral_tasks_for?(project)
-    permission_from_assignment = can_perform_own_referral_tasks_for?(project) && step.assignments.any? { |assignment| assignment.user == self }
+    # User can perform any tasks in this project
+    return true if can_perform_any_referral_tasks_for?(project)
 
-    permission_from_project || permission_from_assignment
+    # User can perform their own tasks, AND this task is assigned to them
+    can_perform_own_referral_tasks_for?(project) && step.assignments.any? { |assignment| assignment.user == self }
   end
 
   def lock_access!(opts = {})

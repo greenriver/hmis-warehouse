@@ -45,7 +45,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
     create_access_control(
       hmis_user,
       ds1,
-      with_permission: [:can_view_referrals, :can_perform_any_referral_tasks],
+      with_permission: [:can_view_project, :can_view_referrals, :can_perform_any_referral_tasks],
     )
   end
 
@@ -129,7 +129,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
       end
 
       context 'without permission' do
-        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals]) }
+        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_view_project]) }
 
         it 'raises an error' do
           expect do
@@ -139,7 +139,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
       end
 
       context 'with permission on own tasks' do
-        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_own_referral_tasks]) }
+        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_own_referral_tasks, :can_view_project]) }
 
         it 'raises an error' do
           expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')

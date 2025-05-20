@@ -8,7 +8,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
   include_context 'hmis base setup'
 
   before(:all) do
-    # cleanup_test_environment
+    cleanup_test_environment
   end
 
   let!(:ds_access_control) do
@@ -16,6 +16,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
       hmis_user,
       ds1,
       with_permission: [
+        :can_view_project,
         :can_view_units,
         :can_start_referrals,
       ],
