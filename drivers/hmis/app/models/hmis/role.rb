@@ -99,6 +99,10 @@ class Hmis::Role < ::ApplicationRecord
   def self.permissions_by_group
     {}.tap do |perms|
       permissions_with_descriptions.each do |key, role|
+        # proc is optional; if it evaluates to false, then hide this permission.
+        # (If it's nil, still include the permission)
+        next if role[:proc] == false
+
         perms[role[:category]] ||= {}
         perms[role[:category]][role[:sub_category]] ||= {}
         perms[role[:category]][role[:sub_category]][key] = role
@@ -175,6 +179,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         category: 'Project Access',
         sub_category: 'Referrals',
+        proc: false,
       },
       can_start_referrals: {
         description: 'Ability to initiate referrals from the client waitlist in the project',
