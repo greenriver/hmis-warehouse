@@ -7,15 +7,15 @@
 # frozen_string_literal: true
 
 # Validates Workflow Templates - all nodes are reachable, there is a start and (at least one) end node, etc.
-# Does not inherit from ActiveModel::Validator! We don't want these validations to run as part of lifecycle hooks,
+# Does not inherit from ActiveModel::Validator, since we don't want these validations to run as part of lifecycle hooks,
 # because it's convenient to be able to save the workflow template before creating its nodes and flows.
-# Some of these checks could be validators on the Node subclasses (like EndEvent and StartEvent), but we kept
-# everything here to keep the validation logic in one place.
+# Some of these checks could be validators on the Node subclasses (like EndEvent and StartEvent), but everything lives
+# here to keep the validation logic in one place.
 class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
   def validate(record)
     validate_start(record)
     validate_end(record)
-    validate_nodes(record)
+    validate_tasks_and_gateways(record)
     validate_nodes_reachable(record)
   end
 
@@ -44,7 +44,7 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
     record.errors.add(:base, "The following end events have outflows: #{with_outflows.map(&:name).join(', ')}") if with_outflows.any?
   end
 
-  def validate_nodes(record)
+  def validate_tasks_and_gateways(record)
     invalid_nodes = (record.nodes.gateways + record.nodes.tasks).filter { |node| node.inflows.none? || node.outflows.none? }
     record.errors.add(:base, "The following nodes must have at least one inflow and one outflow: #{invalid_nodes.map(&:name).join(', ')}") if invalid_nodes.any?
   end

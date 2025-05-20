@@ -17,6 +17,8 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
   let!(:task) { create(:hmis_workflow_definition_task, template: template, name: 'Client Acceptance', form_definition: step_def) }
   let!(:gateway) { create(:hmis_workflow_definition_gateway, template: template, name: 'Gateway') }
 
+  # Basic valid workflow. The rest of the tests modify it to be invalid in different ways
+  #
   #     start
   #       |
   #     task

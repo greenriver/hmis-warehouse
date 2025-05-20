@@ -54,6 +54,7 @@ module Hmis::WorkflowDefinition
     end
 
     def validate!
+      # Run validations that don't run on lifecycle hooks, and raise if they result in any errors.
       validate
       raise ActiveRecord::RecordInvalid, self if errors.any?
     end

@@ -46,7 +46,7 @@ module Hmis::WorkflowDefinition
 
     def unreachable_nodes
       reachable = walk.to_a # Walk the whole graph to find all reachable nodes
-      @nodes - reachable # Return nodes that are in @nodes but not in reachable_nodes
+      @nodes - reachable # all nodes minus reachable nodes = unreachable nodes
     end
   end
 end
