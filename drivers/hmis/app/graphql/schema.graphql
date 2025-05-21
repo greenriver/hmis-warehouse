@@ -910,11 +910,12 @@ enum CeReferralStatus {
 }
 
 type CeReferralStep {
+  access: CeReferralStepAccess!
+
   """
   User(s) currently assigned to this step
   """
   assignees: [ApplicationUser!]!
-  canCurrentUserPerform: Boolean!
   formDefinition: FormDefinition!
 
   """
@@ -932,6 +933,11 @@ type CeReferralStep {
   swimlane: String!
   updatedAt: ISO8601DateTime
   updatedBy: ApplicationUser
+}
+
+type CeReferralStepAccess {
+  canPerformStep: Boolean!
+  id: ID!
 }
 
 enum CeReferralStepStatus {
