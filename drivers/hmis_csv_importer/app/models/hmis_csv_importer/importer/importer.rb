@@ -190,7 +190,7 @@ module HmisCsvImporter::Importer
     # @return [Hash{String => Integer}] A hash where keys are filenames and values are the total error counts for each file.
     #
     memoize private def error_counts
-      file_lookup = self.class.importable_files_map.invert
+      file_lookup = self.class.importable_files_map(@current_version).invert
 
       # Serialized hash of processing data persisted on the log model
       summary = @loader_log.summary
