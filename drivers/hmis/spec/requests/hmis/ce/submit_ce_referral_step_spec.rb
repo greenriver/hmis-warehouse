@@ -117,14 +117,18 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
 
       context 'with permission' do
         it 'submits the step' do
-          response, result = post_graphql(**variables) { mutation }
-          expect(response.status).to eq(200), result&.inspect
-          step_data = result.dig('data', 'submitCeReferralStep', 'step')
-          expect(step_data['name']).to eq('Client Acceptance')
-          expect(step_data['status']).to eq('completed')
-          expect(step_data['swimlane']).to eq(case_manager_swimlane.name)
-          expect(step.reload.status).to eq('completed')
-          expect(referral.reload.status).to eq('accepted')
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result&.inspect
+            step_data = result.dig('data', 'submitCeReferralStep', 'step')
+            expect(step_data['name']).to eq('Client Acceptance')
+            expect(step_data['status']).to eq('completed')
+            expect(step_data['swimlane']).to eq(case_manager_swimlane.name)
+            step.reload
+            referral.reload
+          end.to change(step, :status).to('completed').
+            and change(step, :completed_at).from(nil).
+            and change(referral, :status).to('accepted')
         end
       end
 

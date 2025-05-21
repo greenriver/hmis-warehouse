@@ -123,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         referral.workflow_engine.start_workflow!(user: hmis_user)
         step = referral.steps
-        step.update_all(updated_at: 4.days.ago) # fake time on the current steps so they show up in the filter
+        step.update_all(available_at: 4.days.ago) # fake time on the current steps so they show up in the filter
 
         referral2.workflow_engine.start_workflow!(user: hmis_user)
         referral3.workflow_engine.start_workflow!(user: hmis_user)

@@ -131,6 +131,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
 
           step.reload
         end.to change(step, :status).to('in_progress').
+          and change(step, :started_at).from(nil).
           and change(Hmis::WorkflowExecution::AuditEvent, :count).by(1).
           and change(step.assignments, :count).by(1)
 
