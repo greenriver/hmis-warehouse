@@ -73,16 +73,16 @@ module Types
     end
 
     def current_steps
-      load_ar_association(object, :current_steps)
+      load_ar_association(object, :current_steps).sort_by { |step| [step.available_at, step.id] }
     end
 
     def days_on_current_steps
-      # If there are multiple open steps, use the oldest one
-      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:updated_at)
+      # If there are multiple open steps, use the one that has been available longest
+      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:available_at)
       return nil if oldest_open_step.nil?
 
-      # how many days ago was this step last updated. # TODO(#7647) - use more accurate timestamp field rather than updated_at
-      (Date.current - oldest_open_step.updated_at.to_date).to_i
+      # How many days ago this step was made available
+      (Date.current - oldest_open_step.available_at.to_date).to_i
     end
 
     def updated_by
