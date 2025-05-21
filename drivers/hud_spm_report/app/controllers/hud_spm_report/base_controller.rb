@@ -4,19 +4,26 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport
   class BaseController < ::HudReports::BaseController
     before_action :filter
 
+    TodoOrDie('Set SPM Current Version on Staging to :fy2026', by: '2025-09-01')
+    TodoOrDie('Set SPM Current Version to :fy2026', by: '2025-10-01')
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
         'FY 2023' => { slug: :fy2023, active: false },
         'FY 2024 (current)' => { slug: :fy2024, active: true },
+        'FY 2026' => { slug: :fy2026, active: false },
       }.freeze
     end
     helper_method :available_report_versions
 
+    TodoOrDie('Set SPM Default Report Version on Staging to :fy2026', by: '2025-09-01')
+    TodoOrDie('Set SPM Default Report Version to :fy2026', by: '2025-10-01')
     def default_report_version
       :fy2024
     end
@@ -98,6 +105,7 @@ module HudSpmReport
         fy2020: HudSpmReport::Generators::Fy2020::Generator,
         fy2023: HudSpmReport::Generators::Fy2023::Generator,
         fy2024: HudSpmReport::Generators::Fy2024::Generator,
+        fy2026: HudSpmReport::Generators::Fy2026::Generator,
       }
     end
   end
