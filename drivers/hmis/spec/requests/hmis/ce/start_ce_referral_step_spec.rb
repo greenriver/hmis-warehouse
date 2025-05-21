@@ -117,13 +117,16 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
 
       context 'with valid input' do
         it 'starts the step' do
-          _, result = post_graphql(**variables) { mutation }
-          step_data = result.dig('data', 'startCeReferralStep', 'step')
+          expect do
+            _, result = post_graphql(**variables) { mutation }
+            step_data = result.dig('data', 'startCeReferralStep', 'step')
 
-          expect(step_data['status']).to eq('in_progress')
-          expect(step_data['name']).to eq('Client Acceptance')
-          expect(step_data.dig('swimlane')).to eq(swimlane.name)
-          expect(step.reload.status).to eq('in_progress')
+            expect(step_data['status']).to eq('in_progress')
+            expect(step_data['name']).to eq('Client Acceptance')
+            expect(step_data.dig('swimlane')).to eq(swimlane.name)
+            step.reload
+          end.to change(step, :status).to('in_progress').
+            and change(step, :started_at).from(nil)
         end
 
         it 'assigns the user and returns the assignee' do
