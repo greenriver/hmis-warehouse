@@ -306,7 +306,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   id
                   name
                   status
-                  canCurrentUserPerform
+                  access {
+                    canPerformStep
+                  }
                 }
               }
             }
@@ -354,7 +356,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect do
               _, result = post_graphql(**variables) { query }
               steps = result.dig('data', 'ceReferral', 'steps')
-              expect(steps.map { |step| step['canCurrentUserPerform'] }).to all(be false)
+              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be false)
             end.to make_database_queries(count: 25..30)
           end
         end
