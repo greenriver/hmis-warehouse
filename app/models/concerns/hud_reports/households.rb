@@ -83,7 +83,7 @@ module HudReports::Households
     # NOTE: Client CH status is only inherited if the client was present at the start of the enrollment.
     # per HUD guidance, the HoH should always be present for the entire stay, so we'll compare start dates to them
     # see AirTable Issue ID 30
-    private def household_chronic_status(hh_id, client_id)
+    private def calculate_household_chronic_status(hh_id, client_id, chronic_status: :chronic_status)
       household_members = households[hh_id]
       # we couldn't find a household
       return false unless household_members.present?
@@ -91,16 +91,31 @@ module HudReports::Households
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
       current_member = household_members.detect { |hm| hm[:client_id] == client_id }
 
+      # When no specific client_id is provided (PIT), use the HoH as the current_memberfor the household calculation
+      # This will allow the entire HH to have the same chronic status
+      current_member ||= hoh
+
+      current_member_entry_date = current_member[:entry_date] if current_member.present?
+      # The current_member will not exist in cases where client_id is not provided (PIT) and the household does not have a HoH
+      # We will still want to check for a chronic adult in this case, so we'll use the earliest entry date in the HH
+      current_member_entry_date ||= household_members.map { |hm| hm[:entry_date] }.compact.min
+
       # HoH if they are chronically homeless
-      return hoh if hoh.present? && hoh[:chronic_status] && hoh[:entry_date] == current_member[:entry_date]
+      return hoh if hoh.present? && hoh[chronic_status] && hoh[:entry_date] == current_member_entry_date
 
       chronic_adult = household_members.detect do |hm|
         next false unless hm[:age].present?
 
-        hm[:age] >= 18 && hm[:chronic_status] && hm[:entry_date] == current_member[:entry_date]
+        adult_is_chronic = hm[:age] >= 18 && hm[chronic_status]
+        adult_matches_entry_date = hm[:entry_date] == current_member_entry_date
+
+        adult_is_chronic && adult_matches_entry_date
       end
       # if not, use any other adult who is (with the same entry date)
       return chronic_adult if chronic_adult.present?
+
+      # Return false if we don't have a valid member to check
+      return false unless current_member.present?
 
       # if no adults are either yes or no, use self for adults
       return current_member if current_member[:age].present? && current_member[:age] >= 18
@@ -116,6 +131,14 @@ module HudReports::Households
       current_member
     end
 
+    private def household_chronic_status(hh_id, client_id)
+      calculate_household_chronic_status(hh_id, client_id)
+    end
+
+    private def pit_household_chronic_status(hh_id)
+      calculate_household_chronic_status(hh_id, nil, chronic_status: :pit_chronic_status)
+    end
+
     private def calculate_hh_move_in_date(hh_id, she)
       # Get HoH for further calculations
       household_members = households[hh_id]
@@ -129,15 +152,15 @@ module HudReports::Households
       # Heads of household with [housing move-in dates] prior to their [project start dates] should have the [housing move-in dates] disregarded entirely.
       return nil unless hoh[:entry_date] <= hoh[:move_in_date]
 
-      # When a household member was already in the household when they became housed (individual’s [project
-      # start date] <= head of household’s [housing move-in date]), the head of household’s [housing move-in date]
-      # should be used as the individual’s [housing move-in date]. If the household member exited before the
+      # When a household member was already in the household when they became housed (individual's [project
+      # start date] <= head of household's [housing move-in date]), the head of household's [housing move-in date]
+      # should be used as the individual's [housing move-in date]. If the household member exited before the
       # household moved into housing, they do not inherit this [housing move-in date].
       return hoh[:move_in_date] if (she.entry_date..she.exit_date).cover?(hoh[:move_in_date])
 
-      # When a household member joins the household after they are already housed (individual’s [project start
-      # date] > head of household’s [housing move-in date]), the individual’s [project start date] should be used as
-      # the individual’s [housing move-in date].
+      # When a household member joins the household after they are already housed (individual's [project start
+      # date] > head of household's [housing move-in date]), the individual's [project start date] should be used as
+      # the individual's [housing move-in date].
       return she.entry_date if she.entry_date > hoh[:move_in_date]
 
       # Otherwise this move-in is completely invalid
