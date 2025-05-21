@@ -281,6 +281,15 @@ module PerformanceMeasurement
             end
           end
 
+          # Remove any days where inventory isn't present.  This accounts for situations where a project
+          # only operates seasonally.
+          # Example:
+          #   A project is open for the months of December, January, and July but completely closed otherwise
+          #   The inventory is averaged over the ~90 days instead of the full year, so utilization is
+          #   still 100% if they are full for those 3 months, but empty the remainder of the year
+          #
+          #   A project that operates year-round with a seasonal burst in winter, would still have the
+          #   utilization calculated for the full-year, but the capacity would be spread over the year.
           days.reject! { |_, count| count.zero? }
           average_capacity = days.values.sum.to_f / days.size if days.any?
 

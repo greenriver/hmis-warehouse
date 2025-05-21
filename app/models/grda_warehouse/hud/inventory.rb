@@ -137,7 +137,7 @@ module GrdaWarehouse::Hud
       # If we have an average of less than 1, round to 2 decimal places so we don't report 0
       return un_rounded.round(2) if un_rounded.positive? && un_rounded < 1
 
-      un_rounded&.round || 0
+      un_rounded.round
     end
 
     def inventory_by_date(range:, field:)
