@@ -1103,12 +1103,15 @@ type ClientAccess {
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
+  canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
+  canViewReferrals: Boolean!
   id: ID!
 }
 
