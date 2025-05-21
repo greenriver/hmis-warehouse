@@ -425,8 +425,7 @@ module HmisCsvImporter::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status}", summary_as_log_str(loader_log.summary))
-      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status} #{summary_as_log_str(@loader_log.summary)}")
       @import_log&.update(
         loader_log: loader_log,
         files: loadable_files.transform_values(&:name).invert.to_a,

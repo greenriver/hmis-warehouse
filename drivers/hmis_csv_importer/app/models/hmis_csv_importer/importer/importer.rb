@@ -445,7 +445,11 @@ module HmisCsvImporter::Importer
 
         log("Rebuilding aggregated enrollments with #{klass.name}")
         aggregators.each do |aggregator_klass|
-          aggregator_klass.new(importer_log: @importer_log, date_range: date_range).rebuild_warehouse_data
+          aggregator_klass.new(
+            importer_log: @importer_log,
+            date_range: date_range,
+            version: @current_version,
+          ).rebuild_warehouse_data
         end
       end
     end
