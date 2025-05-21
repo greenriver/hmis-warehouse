@@ -129,14 +129,28 @@ module GrdaWarehouse::Hud
 
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, computed_end_date].compact.min
+      puts "start_date: #{start_date}, end_date: #{end_date} count: #{count} range: #{range.length}"
       days = (end_date - start_date).to_i
       return 0 if days.negative? || days.zero? || range.length.zero? # rubocop:disable Style/ZeroLengthPredicate
 
-      un_rounded = (days.to_f * count / days)
+      un_rounded = (days.to_f * count / range.length)
       # If we have an average of less than 1, round to 2 decimal places so we don't report 0
       return un_rounded.round(2) if un_rounded.positive? && un_rounded < 1
 
-      un_rounded.round
+      un_rounded&.round || 0
+    end
+
+    def inventory_by_date(range:, field:)
+      count = self[field]
+      return 0 if count.blank? || count < 1
+
+      start_date = [range.start, computed_start_date].compact.max
+      end_date = [range.end, computed_end_date].compact.min
+      days = {}
+      (start_date..end_date).each do |date|
+        days[date] = count
+      end
+      days
     end
   end
 end
