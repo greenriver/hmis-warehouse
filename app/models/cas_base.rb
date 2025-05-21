@@ -14,18 +14,7 @@ if ENV['DATABASE_CAS_DB'].present?
     connects_to database: { writing: :cas, reading: :cas }
 
     def self.db_exists?
-      mem_cache.fetch('cas_db_exists', expires_in: 2.minutes) do
-        active_connection = connection_pool.with_connection(&:active?)
-        Sentry.capture_message('CAS DB is not active', level: :warning) unless active_connection
-        active_connection
-      rescue StandardError => e
-        Sentry.capture_exception(e)
-        false
-      end
-    end
-
-    def self.mem_cache
-      @mem_cache ||= ActiveSupport::Cache::MemoryStore.new
+      true
     end
   end
 
