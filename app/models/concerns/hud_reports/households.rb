@@ -91,23 +91,23 @@ module HudReports::Households
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
       current_member = household_members.detect { |hm| hm[:client_id] == client_id }
 
-      # When no specific client_id is provided (PIT), use the HoH as the current_memberfor the household calculation
+      # When no specific client_id is provided (PIT), use the HoH as the current_member for the household calculation
       # This will allow the entire HH to have the same chronic status
       current_member ||= hoh
 
       current_member_entry_date = current_member[:entry_date] if current_member.present?
-      # The current_member will not exist in cases where client_id is not provided (PIT) and the household does not have a HoH
-      # We will still want to check for a chronic adult in this case, so we'll use the earliest entry date in the HH
-      current_member_entry_date ||= household_members.map { |hm| hm[:entry_date] }.compact.min
+      hoh_entry_date = hoh[:entry_date] if hoh.present?
 
       # HoH if they are chronically homeless
-      return hoh if hoh.present? && hoh[chronic_status] && hoh[:entry_date] == current_member_entry_date
+      return hoh if hoh.present? && hoh[chronic_status] && hoh_entry_date == current_member_entry_date
 
+      # If the HoH is not chronically homeless, check if any other adult is
+      # The HH CH status will inherit from a CH adultas long as they have the same entry date as the HoH
       chronic_adult = household_members.detect do |hm|
         next false unless hm[:age].present?
 
         adult_is_chronic = hm[:age] >= 18 && hm[chronic_status]
-        adult_matches_entry_date = hm[:entry_date] == current_member_entry_date
+        adult_matches_entry_date = hm[:entry_date] == hoh_entry_date
 
         adult_is_chronic && adult_matches_entry_date
       end

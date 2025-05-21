@@ -158,7 +158,6 @@ module HudPit::Generators::Pit::Fy2025
             columns: pending_associations.values.first&.changes&.keys || [],
           },
         )
-        # binding.pry
 
         # Attach PIT Clients to relevant questions
         @report.build_for_questions.each do |question_number|
