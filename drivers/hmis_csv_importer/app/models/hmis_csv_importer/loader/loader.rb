@@ -60,10 +60,6 @@ module HmisCsvImporter::Loader
       @current_version = Importers::HmisAutoMigrate.calculate_current_version(@file_path)
       @stop_version = stop_version
       @loader_log.version = @current_version
-
-      loadable_files.each_key do |file_name|
-        setup_summary(file_name)
-      end
     end
 
     def load!(import_log = nil)
@@ -78,6 +74,8 @@ module HmisCsvImporter::Loader
         complete_load(status: :loaded)
       rescue StandardError => e
         complete_load(status: :failed, err: e)
+        # Make sure we see these in CI
+        raise e if Rails.env.test?
       ensure
         remove_import_files if @remove_files
       end
@@ -165,6 +163,12 @@ module HmisCsvImporter::Loader
 
       @current_version = Importers::HmisAutoMigrate.apply_migrations(@file_path, @notifier, stop_version: @stop_version)
       @loader_log.version = @current_version
+
+      # Summary needs to reflect the final version
+      loadable_files.each_key do |file_name|
+        setup_summary(file_name)
+      end
+
       ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
       loadable_files.each do |file_name, klass|

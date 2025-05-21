@@ -461,6 +461,7 @@ module HmisCsvImporter::Importer
           aggregator = aggregator_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
+            version: @current_version,
           )
           aggregator.remove_deleted_overlapping_data!
           aggregator.copy_incoming_data!
@@ -487,6 +488,7 @@ module HmisCsvImporter::Importer
           cleanup = cleanup_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
+            version: @current_version,
           )
           cleanup.cleanup!
         end

@@ -49,7 +49,7 @@ module Importers::HmisAutoMigrate
       # Transform temp over the to the CSV dir
       available_migrations[version]&.constantize&.up(source_dir, csv_dir)
     end
-    apply_migrations(csv_dir, notifier, recursed: true)
+    apply_migrations(csv_dir, notifier, recursed: true, stop_version: stop_version)
   end
 
   def self.calculate_current_version(file_path)
@@ -62,7 +62,7 @@ module Importers::HmisAutoMigrate
 
   def self.normalize_version(version)
     # Short circuit for 2026, we don't have anything newer, so there are no migrations for it
-    return '2026' if version.include?('2026')
+    return '2026' if version&.include?('2026')
 
     transformer_name = available_migrations[version]
     return unless transformer_name.present?
