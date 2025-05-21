@@ -1256,7 +1256,7 @@ class WarehouseReport::Outcomes::Base
       # If the project_id is not present, we'll use the destination client policy.
       # If neither are present, we'll use the Allow Policy for consistency with how the report worked prior to this change.
       pii_policy = if project_id.present?
-        user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+        user.policy_for(project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
       elsif client_id.present?
         client = GrdaWarehouse::Hud::Client.find(client_id)
         user.policy_for(client, policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
