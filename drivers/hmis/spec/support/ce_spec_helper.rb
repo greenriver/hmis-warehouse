@@ -86,6 +86,7 @@ RSpec.shared_context 'ce spec helper' do
       workflow_instance: workflow_instance,
       client: client,
       referred_by: hmis_user,
+      status: 'initialized',
     )
   end
 
