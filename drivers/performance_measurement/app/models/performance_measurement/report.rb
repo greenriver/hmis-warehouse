@@ -264,12 +264,37 @@ module PerformanceMeasurement
         projects.preload(hud_project: :inventories).each do |project|
           next unless project.project_id
 
-          average_capacity = project.hud_project.inventories.within_range(range).map do |inventory|
-            inventory.average_daily_inventory(
+          # Get the counts of beds on each day in the range
+          # Throw out any days with a zero count
+          # Calculate the average of the remaining days
+          average_capacity = 0 # if we don't have any inventory records, return 0
+          days = {}
+          range.range.each do |date|
+            days[date] = 0
+          end
+          project.hud_project.inventories.within_range(range).map do |inventory|
+            inventory.inventory_by_date(
               range: range,
               field: :BedInventory,
-            )
-          end.sum
+            ).each do |date, count|
+              days[date] += count
+            end
+          end
+
+          # Remove any days where inventory isn't present.  This accounts for situations where a project
+          # only operates seasonally.
+          # Example:
+          #   A project is open for the months of December, January, and July but completely closed otherwise
+          #   The inventory is averaged over the ~90 days instead of the full year, so utilization is
+          #   still 100% if they are full for those 3 months, but empty the remainder of the year
+          #
+          #   A project that operates year-round with a seasonal burst in winter, would still have the
+          #   utilization calculated for the full-year, but the capacity would be spread over the year.
+          days.reject! { |_, count| count.zero? }
+          average_capacity = days.values.sum.to_f / days.size if days.any?
+
+          # puts "ProjectID: #{project.hud_project.ProjectID} inventory_count: #{project.hud_project.inventories.within_range(range).map { |i| [i.InventoryID, i.BedInventory, i.InventoryStartDate, i.InventoryEndDate] }.inspect} \n\n day_count: #{days.size} day_sum: #{days.values.sum} average_capacity: #{average_capacity} \n\n days: #{days.inspect}" if project.hud_project.ProjectID == 'P-1' && period == :reporting
+
           # If we have an average of less than 1, count it as 1, anything else is rounded
           average_capacity = 1 if average_capacity.positive? && average_capacity < 1
           project.update("#{period}_ave_bed_capacity_per_night" => average_capacity.round)

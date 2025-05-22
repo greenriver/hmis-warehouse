@@ -46,7 +46,7 @@ RSpec.shared_context 'parenting youth', shared_context: :metadata do
       'Multi-Racial & Hispanic/Latina/e/o' => [2, 0, 0],
       'Multi-Racial (all other)' => [0, 0, 0],
       'Chronically Homeless: Total number of households' => [0, 0, 0],
-      'Chronically Homeless: Total number of persons' => [1, 0, 0],
+      'Chronically Homeless: Total number of persons' => [0, 0, 0],
     }
 
     results.each_with_index do |(category, data), row_index|
