@@ -36,6 +36,7 @@ module Hmis::Ce
     scope :active_or_accepted, -> { where.not(status: 'rejected') }
 
     validate :unique_referral_per_opportunity
+    validate :ce_template
 
     state_machine_config column: 'status' do
       state :initialized, initial: true
@@ -87,6 +88,12 @@ module Hmis::Ce
       return unless conflicting_referral_exists
 
       errors.add(:opportunity, 'can only have one active or accepted referral')
+    end
+
+    def ce_template
+      return if workflow_instance.template.template_type == 'ce_referral'
+
+      errors.add(:workflow_instance, 'must be a CE template')
     end
   end
 end

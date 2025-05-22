@@ -20,6 +20,16 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end.to change(Hmis::Ce::Referral, :count).from(0).to(1)
     end
 
+    it 'does not save a referral with a non-CE template' do
+      template = create(:hmis_workflow_definition_template, template_type: 'not_ce')
+      instance = create(:hmis_workflow_execution_instance, template: template)
+      referral = build(:hmis_ce_referral, workflow_instance: instance)
+      expect(referral.valid?).to be_falsy
+      expect do
+        referral.save!
+      end.to raise_error(ActiveRecord::RecordInvalid, /must be a CE template/)
+    end
+
     ['initialized', 'in_progress', 'accepted'].each do |status|
       context "when there is an existing #{status} referral" do
         let!(:existing) { create(:hmis_ce_referral, opportunity: opportunity, status: status) }

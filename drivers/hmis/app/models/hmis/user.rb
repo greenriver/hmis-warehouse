@@ -109,10 +109,16 @@ class Hmis::User < ApplicationRecord
       # This is a one-off custom logic permission for determining when to show "My Dashbord" in HMIS. It is resolved on the root access object.
       # This logic may evolve as we add more capabilities to the dashboard.
       # If we have more use-cases for this, we could make a helper in BaseAccess that accepts custom evaluation logic.
-      return false unless Hmis::ProjectStaffAssignmentConfig.exists? # micro optimization for installations without staff assignment
+      return false unless Hmis::ProjectStaffAssignmentConfig.exists? || Hmis::Ce.configuration.enabled?
 
       project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
-      Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
+      staff_assignment_projects_for_user = Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope)
+
+      # todo @martha - test this
+      can_view_referrals = permissions?(:can_view_referrals, :can_view_own_referrals)
+      can_perform_referral_steps = permissions?(:can_perform_any_referral_tasks, :can_perform_own_referral_tasks)
+
+      staff_assignment_projects_for_user.exists? || (can_view_referrals && can_perform_referral_steps)
     end
   end
 

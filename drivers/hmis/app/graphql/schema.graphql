@@ -193,6 +193,7 @@ User account for a user of the system
 type ApplicationUser {
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
   auditHistory(filters: UserAuditEventFilterOptions, limit: Int, offset: Int): ApplicationUserAuditEventsPaginated!
+  ceAssignedSteps(limit: Int, offset: Int): CeReferralStepsPaginated
   clientAccessSummaries(filters: ClientAccessSummaryFilterOptions, limit: Int, offset: Int): ClientAccessSummariesPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -914,6 +915,7 @@ type CeReferralStep {
   User(s) currently assigned to this step
   """
   assignees: [ApplicationUser!]!
+  availableAt: ISO8601DateTime
   formDefinition: FormDefinition!
 
   """
@@ -921,6 +923,7 @@ type CeReferralStep {
   """
   id: ID!
   name: String!
+  referral: CeReferral!
   status: CeReferralStepStatus!
 
   """
@@ -953,6 +956,16 @@ enum CeReferralStepStatus {
   Unavailable
   """
   unavailable
+}
+
+type CeReferralStepsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferralStep!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeReferralSwimlane {
