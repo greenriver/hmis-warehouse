@@ -9566,6 +9566,8 @@ type QueryAccess {
   canEditProjectDetails: Boolean!
   canEditUsersInWarehouse: Boolean!
   canEnrollClients: Boolean!
+  canHaveAssignedReferralTasks: Boolean!
+  canHaveAssignedStaff: Boolean!
   canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageClientAlerts: Boolean!

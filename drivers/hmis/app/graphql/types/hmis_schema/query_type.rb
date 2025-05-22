@@ -296,6 +296,8 @@ module Types
         root_can perm
       end
       field :can_view_my_dashboard, Boolean, null: false
+      field :can_have_assigned_staff, Boolean, null: false
+      field :can_have_assigned_referral_tasks, Boolean, null: false
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
       field :can_view_coordinated_entry, Boolean, null: false
     end
@@ -303,6 +305,8 @@ module Types
     def access
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
+        can_have_assigned_staff: current_user.can_have_assigned_staff?,
+        can_have_assigned_referral_tasks: current_user.can_have_assigned_referral_tasks?,
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
         can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
       }

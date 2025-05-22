@@ -106,19 +106,32 @@ class Hmis::User < ApplicationRecord
   def can_view_my_dashboard?
     key = [self.class.name, __method__, id]
     Rails.cache.fetch(key, expires_in: 1.minutes) do
-      # This is a one-off custom logic permission for determining when to show "My Dashbord" in HMIS. It is resolved on the root access object.
+      # This is a one-off custom logic permission for determining when to show the User Dashboard in HMIS. It is resolved on the root access object.
       # This logic may evolve as we add more capabilities to the dashboard.
       # If we have more use-cases for this, we could make a helper in BaseAccess that accepts custom evaluation logic.
-      return false unless Hmis::ProjectStaffAssignmentConfig.exists? || Hmis::Ce.configuration.enabled?
+      can_have_assigned_staff? || can_have_assigned_referral_tasks?
+    end
+  end
+
+  def can_have_assigned_staff?
+    key = [self.class.name, __method__, id]
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      return false unless Hmis::ProjectStaffAssignmentConfig.exists?
 
       project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
-      staff_assignment_projects_for_user = Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope)
+      Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
+    end
+  end
 
-      # todo @martha - test this
+  def can_have_assigned_referral_tasks?
+    key = [self.class.name, __method__, id]
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      return false unless Hmis::Ce.configuration.enabled?
+
       can_view_referrals = permissions?(:can_view_referrals, :can_view_own_referrals)
       can_perform_referral_steps = permissions?(:can_perform_any_referral_tasks, :can_perform_own_referral_tasks)
 
-      staff_assignment_projects_for_user.exists? || (can_view_referrals && can_perform_referral_steps)
+      can_view_referrals && can_perform_referral_steps
     end
   end
 
