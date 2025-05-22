@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-# test for rubocop
-
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
 # The import is authoritative for the projects specified in the Project.csv file
