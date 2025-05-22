@@ -66,6 +66,7 @@ module Importers::HmisAutoMigrate
         post_processor: @post_processor,
         project_cleanup: @project_cleanup,
         stop_version: @stop_version,
+        dry_run: @dry_run,
       )
 
       loader.import!(log)

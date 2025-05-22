@@ -374,11 +374,11 @@ class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]
   end
 
   def down
-    HmisCsvImporter::Loader::Loader.loadable_files.each_value do |klass|
+    HmisCsvTwentyTwentySix.loadable_files.each_value do |klass|
       drop_table klass.table_name
     end
 
-    HmisCsvImporter::Importer::Importer.importable_files.each_value do |klass|
+    HmisCsvTwentyTwentySix.importable_files.each_value do |klass|
       drop_table klass.table_name
     end
   end

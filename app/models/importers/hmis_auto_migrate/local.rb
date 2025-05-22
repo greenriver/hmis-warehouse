@@ -28,6 +28,7 @@ module Importers::HmisAutoMigrate
       @local_path = File.join(file_path, @data_source_id.to_s, Time.current.to_i.to_s)
       @project_cleanup = project_cleanup
       @stop_version = stop_version
+      @dry_run = dry_run
     end
 
     def import!
@@ -40,6 +41,7 @@ module Importers::HmisAutoMigrate
         file_path: @file_path,
         project_cleanup: @project_cleanup,
         stop_version: @stop_version,
+        dry_run: @dry_run,
       ).import!
     end
 

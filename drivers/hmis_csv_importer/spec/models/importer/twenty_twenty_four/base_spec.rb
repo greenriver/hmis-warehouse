@@ -618,4 +618,31 @@ RSpec.describe HmisCsvImporter, type: :model do
       end
     end
   end
+
+  describe 'When running with dry_run option' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+    end
+
+    it 'pauses the import when dry_run is true' do
+      loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        dry_run: true,
+      )
+      expect(loader.importer_log.status).to eq('paused')
+    end
+
+    it 'completes the import when dry_run is false' do
+      loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        dry_run: false,
+      )
+      expect(loader.importer_log.status).to eq('complete')
+    end
+  end
 end

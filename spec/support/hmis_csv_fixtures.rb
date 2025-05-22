@@ -60,6 +60,7 @@ module HmisCsvFixtures
           allowed_projects: allowed_projects,
           project_cleanup: false,
           stop_version: stop_version,
+          dry_run: dry_run,
         )
       else
         raise "Unsupported CSV version #{version}"

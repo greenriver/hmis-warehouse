@@ -19,7 +19,8 @@ module Importers::HmisAutoMigrate
       file_path: 'tmp/hmis_import',
       file_password: nil,
       project_cleanup: true,
-      stop_version: nil
+      stop_version: nil,
+      dry_run: false
     )
       setup_notifier('HMIS Upload AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -31,6 +32,7 @@ module Importers::HmisAutoMigrate
       @file_password = file_password
       @project_cleanup = project_cleanup
       @stop_version = stop_version
+      @dry_run = dry_run
       @post_processor = if @allowed_projects
         ->(_) { replace_original_upload_file }
       else

@@ -47,7 +47,8 @@ module HmisCsvImporter::Importer
       data_source_id:,
       debug: true,
       deidentified: false,
-      project_cleanup: true
+      project_cleanup: true,
+      dry_run: false
     )
       setup_notifier('HMIS CSV Importer')
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
@@ -58,6 +59,7 @@ module HmisCsvImporter::Importer
       @deidentified = deidentified
       @project_cleanup = project_cleanup
       @current_version = @loader_log.version
+      @dry_run = dry_run
       self.importer_log = setup_import
       importer_log.version = @current_version
 
@@ -95,6 +97,8 @@ module HmisCsvImporter::Importer
 
       # refuse to proceed with the import if there are any errors and that setting is in effect
       return pause_import if should_pause?
+      # if this is a dry run, pause, but don't notify unless there are errors
+      return pause_import if @dry_run
 
       ingest!
       log_timing :invalidate_aggregated_enrollments!

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class UploadsController < ApplicationController
   before_action :require_can_upload_hud_zips!
   before_action :set_data_source
@@ -56,9 +58,24 @@ class UploadsController < ApplicationController
       data_source_id: @upload.data_source_id,
       deidentified: @upload.deidentified,
       allowed_projects: @upload.project_whitelist,
+      stop_version: stop_version,
+      dry_run: dry_run_param,
     }
     job = Importing::HudZip::HmisAutoMigrateJob.perform_later(**options)
     @upload.update(delayed_job_id: job.provider_job_id)
+  end
+
+  TodoOrDie('Remove or update stop_version after FY2026 changeover', by: '2025-11-01')
+  # For now, prevent migrating beyond 2024 version
+  private def stop_version
+    return nil if Date.current >= '2025-10-01'.to_date
+    return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging?
+
+    '2026'
+  end
+
+  private def dry_run_param
+    params.require(:grda_warehouse_upload).permit(:dry_run).try(:[], :dry_run) == '1'
   end
 
   private def upload_params

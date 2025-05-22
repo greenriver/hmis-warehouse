@@ -43,7 +43,8 @@ module HmisCsvImporter::Loader
       limit_projects: false,
       post_processor: nil,
       project_cleanup: true,
-      stop_version: nil
+      stop_version: nil,
+      dry_run: false
     )
       raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
 
@@ -60,6 +61,7 @@ module HmisCsvImporter::Loader
       @current_version = Importers::HmisAutoMigrate.calculate_current_version(@file_path)
       @stop_version = stop_version
       @loader_log.version = @current_version
+      @dry_run = dry_run
     end
 
     def load!(import_log = nil)
@@ -94,6 +96,7 @@ module HmisCsvImporter::Loader
         debug: @debug,
         deidentified: @deidentified,
         project_cleanup: @project_cleanup,
+        dry_run: @dry_run,
       )
 
       @importer.import!(import_log)
