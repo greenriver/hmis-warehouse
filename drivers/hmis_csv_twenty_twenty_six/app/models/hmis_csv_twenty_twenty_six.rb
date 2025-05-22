@@ -78,6 +78,10 @@ module HmisCsvTwentyTwentySix
     end.compact.freeze
   end
 
+  def self.loadable_file_class(name)
+    loadable_files["#{name}.csv"]
+  end
+
   def self.importable_file_class(name)
     importable_files["#{name}.csv"]
   end
