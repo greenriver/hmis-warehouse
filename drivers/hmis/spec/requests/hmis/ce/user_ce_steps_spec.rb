@@ -25,7 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:non_ce_instance) { create(:hmis_workflow_execution_instance, template: non_ce_template) }
   let!(:non_ce_step) { create :hmis_wfe_step, instance: non_ce_instance, assignees: [hmis_user] }
 
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project]) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_view_referrals, :can_perform_own_referral_tasks]) }
 
   before(:each) do
     hmis_login(user)
@@ -75,7 +75,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'resolves nothing when the user lacks permission' do
-      remove_permissions(access_control, :can_view_project)
+      remove_permissions(access_control, :can_view_project, :can_view_referrals)
       response, result = post_graphql(id: hmis_user.id) { query }
       expect(response.status).to eq(200), result.inspect
       steps = result.dig('data', 'user', 'ceAssignedSteps', 'nodes')
