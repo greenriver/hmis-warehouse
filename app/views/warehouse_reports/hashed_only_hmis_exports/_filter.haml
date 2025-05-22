@@ -1,50 +1,6 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_hashed_only_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
-  - content_for :filters_col_full do
-    .row
-      .col-sm-3
-        = f.input :start_date, as: :date_picker
-      .col-sm-3
-        = f.input :end_date, as: :date_picker
-      -# .col-sm-3
-      -#   = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false
-      .col-sm-3
-        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, as: :select_two
-        %p.muted
+  = render 'warehouse_reports/hmis_exports/shared_filter', f: f, include_hash_status: false
 
-    .row
-      .col-sm-6
-        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
-      - if can_edit_project_groups?
-        .col-sm-6
-          = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), placeholder: 'Any Project Group', input_html: {multiple: true}, label: 'Project Groups', as: :select_two
-      .col-sm-6
-        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: {multiple: true }, label: 'Organizations'
-      .col-sm-6
-        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'Any Data Source', input_html: {multiple: true}, label: 'Data Sources', as: :select_two
-    .row
-      .col-sm-3
-        %label.control-label
-          Export Directive
-        %p Full Refresh
-      .col-sm-3
-        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
-      .col-sm-3
-        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
-    .row
-      .col-sm-12
-        %h4 Notes About Choices
-        %p
-          The various project related options will limit your export to a set of projects.  The four options are additive; choosing a project and a data source will produce a single export that includes all projects from the data source plus the selected project.  Leaving all four options blank will result in a warehouse-wide export.
-        %p
-          Choosing
-          %strong Other
-          for the period type is a superset of
-          %strong Reporting period
-          and additionally includes any records associated with enrollments that changed during the selected time range.
 
-  - content_for :filter_actions do
-    .row
-      .col-sm-3.text-right.pt-no-label
-        = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
-
-  = render 'warehouse_reports/filters', f:f
+  .well
+    = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }

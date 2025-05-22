@@ -369,7 +369,8 @@ namespace :grda_warehouse do
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
-    if DateTime.current.hour == 3
+    # Queue the cohort analytics generation job if it's not already queued
+    if DateTime.current.hour == 3 && ! Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
       GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
         delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
         maintain_cohort_intermediate_data
@@ -413,7 +414,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
-    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all!
+    IdentifyExternalClientsJob.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).run_all! unless Delayed::Job.queued?('IdentifyExternalClientsJob')
 
     # Store S3 paths for files that don't have them so OP analytics can use them
     GrdaWarehouse::ClientFile.delay.maintain_urls
@@ -431,7 +432,8 @@ namespace :grda_warehouse do
 
   desc 'Warm Cohort Cache'
   task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts
+    # Queue the cohort analytics generation job if it's not already queued
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts unless Delayed::Job.queued?('prepare_active_cohorts')
   end
 
   desc 'Process Recurring HMIS Exports'

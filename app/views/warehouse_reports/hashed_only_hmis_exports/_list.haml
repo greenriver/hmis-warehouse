@@ -1,0 +1,12 @@
+.card.warehouse-reports__completed.warehouse-reports__hmis_export
+  %table.table.table-hover
+    %thead
+      %tr
+        %th{style: 'min-width: 8em;'} Run At
+        %th{style: 'min-width: 8em;'} Run By
+        %th Version
+        %th Download
+        %th Parameters
+        %th Actions
+    %tbody
+      = render 'reports', list: list

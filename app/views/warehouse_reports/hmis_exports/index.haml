@@ -6,21 +6,10 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'exports'
 = render 'filter'
 
-.card.warehouse-reports__completed.warehouse-reports__hmis_export
-  %table.table.table-striped
-    %thead
-      %tr
-        %th{style: 'min-width: 8em;'} Run At
-        %th{style: 'min-width: 8em;'} Run By
-        %th Version
-        %th Download
-        %th Parameters
-        %th Delete
-        %th Edit
-        %th Cancel
-    %tbody.report-listing
-      = render 'reports'
-= link_to 'Reports', running_warehouse_reports_hmis_exports_path(skip_trackable: true), class: 'jReportBlock', remote: true
+.report-listing= render_paginated_list(scope: @exports, item_name: 'export', list_partial: 'list')
+- # Only refresh the page automatically on the first page where we show the running reports
+- if params[:page].blank? || params[:page].to_i == 1
+  = link_to 'Reports', running_warehouse_reports_hmis_exports_path(skip_trackable: true), class: 'jReportBlock', remote: true
 
 = content_for :page_js do
   :javascript

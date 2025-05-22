@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'active_support/testing/time_helpers'
 
 RSpec.describe Hmis::Ce::Match::Engine, type: :model do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:user) { create(:hmis_user) }
   let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template) }
   let(:instance) { opportunity.workflow_template.instances.create! }
@@ -72,6 +75,14 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     it 'filters correctly' do
       results = generate_candidates(pool, clients)
       expect(results.map(&:client_id).sort).to eq([client_senior_veteran.id])
+    end
+
+    it 'sets the candidates_generated_at timestamp' do
+      freeze_time do
+        expect do
+          generate_candidates(pool, clients)
+        end.to change(pool, :candidates_generated_at).from(nil).to(Time.current)
+      end
     end
   end
 end

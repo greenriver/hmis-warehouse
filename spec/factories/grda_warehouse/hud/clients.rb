@@ -1,4 +1,16 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https: //github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 FactoryBot.define do
+  factory :hud_client, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 10)
+  end
   factory :grda_warehouse_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :grda_warehouse_data_source
     sequence(:PersonalID, 100)
