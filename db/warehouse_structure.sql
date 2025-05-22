@@ -29481,7 +29481,6 @@ CREATE TABLE public.wfe_steps (
     form_definition_id bigint,
     reversible boolean DEFAULT true NOT NULL,
     status character varying NOT NULL,
-    assigned_to_id bigint,
     started_at timestamp(6) without time zone,
     completed_at timestamp(6) without time zone,
     submitted_values json,
@@ -65784,6 +65783,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250516141401'),
 ('20250514150515'),
+('20250512132201'),
 ('20250509170726'),
 ('20250505000700'),
 ('20250502193442'),

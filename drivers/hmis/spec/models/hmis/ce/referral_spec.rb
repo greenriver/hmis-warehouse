@@ -35,6 +35,21 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end
     end
 
+    context 'when there is an existing referral' do
+      let(:workflow_template) { opportunity.workflow_template }
+      let!(:workflow_instance) { workflow_template.instances.create! }
+      let!(:existing) { create(:hmis_ce_referral, workflow_instance: workflow_instance) }
+
+      it 'does not allow creating a new referral with the same instance' do
+        referral = build(:hmis_ce_referral, workflow_instance: workflow_instance)
+        expect(referral.valid?).to be_falsy
+        expect do
+          referral.save!
+        end.to raise_error(ActiveRecord::RecordInvalid, /Workflow instance has already been taken/).
+          and not_change(Hmis::Ce::Referral, :count).from(1)
+      end
+    end
+
     context 'when there are several existing rejected referrals' do
       before do
         3.times do
