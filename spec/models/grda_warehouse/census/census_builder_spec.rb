@@ -23,9 +23,9 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
   end
 
-  subject { described_class.new }
+  subject { described_class }
 
-  describe '#create_census' do
+  describe '.call' do
     it 'persists census records for all dates in the range' do
       create(:hud_inventory,
              ProjectID: @project.project_id,
@@ -35,7 +35,7 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
              BedInventory: 5)
 
       expect do
-        subject.create_census(start_date, end_date)
+        subject.call(start_date, end_date)
       end.to change { GrdaWarehouse::Census::ByProject.where(project_id: @project.id, date: start_date..end_date).count }.by((end_date - start_date + 1).to_i)
     end
 
@@ -49,7 +49,7 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
                InventoryEndDate: nil,
                BedInventory: 10)
 
-        subject.create_census(start_date, end_date)
+        subject.call(start_date, end_date)
 
         records = GrdaWarehouse::Census::ByProject.where(project_id: @project.id)
         expect(records.pluck(:beds).uniq).to eq([10])
@@ -63,7 +63,7 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
                InventoryEndDate: end_date,
                BedInventory: 5)
 
-        subject.create_census(start_date, end_date)
+        subject.call(start_date, end_date)
 
         # Check start boundary
         record_start = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date)
@@ -83,7 +83,7 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
                InventoryEndDate: nil,
                BedInventory: 8)
 
-        subject.create_census(start_date, end_date)
+        subject.call(start_date, end_date)
 
         # Before start date
         record_before = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: midpoint - 1.day)
@@ -114,7 +114,7 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
                InventoryEndDate: start_date + 24.days,
                BedInventory: 3)
 
-        subject.create_census(start_date, end_date)
+        subject.call(start_date, end_date)
 
         # Days 1-9: only first inventory (5 beds)
         record_early = GrdaWarehouse::Census::ByProject.find_by(project_id: @project.id, date: start_date + 5.days)

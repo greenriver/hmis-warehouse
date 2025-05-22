@@ -6,43 +6,106 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'progress_bar'
+
 # Builds and populates the nightly_census_by_projects table.
-# Processes service and inventory data in date range batches.
 # Entry point: GrdaWarehouse::Tasks::CensusImport#run!
 module GrdaWarehouse::Census
   class CensusBuilder
-    def create_census(start_date, end_date)
-      batch_start_date = start_date.to_date
-      while batch_start_date <= end_date.to_date
-        # Batches are 1 month, or to the end_date if closer
-        batch_end_date = [batch_start_date + 1.years, end_date].min
+    def self.call(...)
+      new(...).call
+    end
 
-        GrdaWarehouseBase.transaction do
-          batch_by_project = ProjectBatch.new(batch_start_date, batch_end_date)
-          batch_by_project.build_census_batch
+    attr_accessor :start_date, :end_date, :progress
+    def initialize(start_date, end_date, progress: false)
+      self.start_date = start_date
+      self.end_date = end_date
+      self.progress = progress
+    end
 
-          # Remove any existing census data for the batch range
-          ByProject.where(date: batch_start_date..batch_end_date).delete_all
-
-          # Save the new batch
-          headers = nil
-          values = []
-          batch_by_project.by_count.values.flat_map do |project|
-            headers = project.values.first.attributes.except('id').keys if headers.blank?
-            project.values.each do |day|
-              row = day.attributes.except('id')
-              row['created_at'] = Time.now
-              row['updated_at'] = Time.now
-              values << row.values
-            end
-            # project.values.each(&:save)
-          end
-          ByProject.new.insert_batch(ByProject, headers, values, transaction: false, batch_size: 500)
+    def call
+      bar = new_progress_bar(relevant_projects.count) if progress
+      relevant_projects.find_each do |project|
+        rows = project_rows(project)
+        ByProject.transaction do
+          ByProject.where(project: project).delete_all
+          ByProject.import!(rows) if rows.any?
         end
-
-        # Move batch forward
-        batch_start_date = batch_end_date + 1.day
+        # bar&.puts("Project ID #{project.id}, rows: #{rows.size}")
+        bar&.increment!(1)
       end
+    end
+
+    protected
+
+    def populations
+      @populations ||= GrdaWarehouse::Census.census_populations.map { |p| p[:population] }.uniq
+    end
+
+    def relevant_projects
+      GrdaWarehouse::Hud::Project
+    end
+
+    def project_rows(project)
+      merged = {}
+      populations.each do |population|
+        project_population_counts(project, population).each do |date, count|
+          merged[date] ||= { project_id: project.id }
+          merged[date][population] = count
+        end
+      end
+      inventories = project.inventories.within_range(start_date..end_date)
+      merged.keys.each do |date|
+        inventories.each do |inventory|
+          next unless inventory_active_on_date?(inventory, date)
+
+          merged[date][:beds] ||= 0
+          merged[date][:beds] += inventory.beds
+        end
+      end
+      # ensure consistent cols for import
+      cols = [:beds] + populations
+      merged.map do |date, row|
+        cols.each { |col| row[col] ||= 0 }
+        row[:date] = date
+        row
+      end
+    end
+
+    def project_population_counts(project, population)
+      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        where(project: project).
+        public_send(population)
+
+      GrdaWarehouse::ServiceHistoryService.
+        joins(service_history_enrollment: :project).
+        joins(:client).service_within_date_range(start_date: start_date, end_date: end_date).
+        merge(enrollment_scope).
+        group(:date).
+        count(:client_id)
+    end
+
+    def inventory_active_on_date?(inventory, date)
+      # Always active if all dates are blank
+      if inventory.InventoryStartDate.blank? &&
+         inventory.InventoryEndDate.blank?
+        return true
+      end
+
+      start_date = inventory.InventoryStartDate
+      end_date = inventory.InventoryEndDate
+
+      # If we have a start date but no end date, active from start onward
+      return true if start_date && !end_date && start_date <= date
+
+      # If we have both start and end dates, check if date is in range (inclusive)
+      return true if start_date && end_date && date.between?(start_date, end_date)
+
+      false
+    end
+
+    def new_progress_bar(total)
+      ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
     end
   end
 end
