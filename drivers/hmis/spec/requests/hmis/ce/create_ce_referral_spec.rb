@@ -16,9 +16,9 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
       hmis_user,
       ds1,
       with_permission: [
-        :can_view_clients,
         :can_view_project,
-        :can_edit_project_details,
+        :can_view_units,
+        :can_start_referrals,
       ],
     )
   end
@@ -101,6 +101,18 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
     context 'if the client is in a different data source' do
       let!(:ds2) { create :hmis_data_source }
       let!(:client) { create :hmis_hud_client, data_source: ds2 }
+
+      it 'raises an error' do
+        expect do
+          expect_gql_error post_graphql(**variables) { mutation }
+        end.not_to change(Hmis::Ce::Referral, :count)
+      end
+    end
+
+    context 'if the user lacks permission' do
+      before do
+        remove_permissions(ds_access_control, :can_start_referrals)
+      end
 
       it 'raises an error' do
         expect do

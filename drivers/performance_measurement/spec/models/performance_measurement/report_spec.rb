@@ -157,23 +157,23 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
       before(:each) do
         # Adjust the inventory to start and end 2 months into and before the report period
         GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2022-03-01', InventoryEndDate: '2022-10-31')
-
-        # Run report for full year
-        run!(default_filter)
       end
 
       it 'calculates average daily inventory correctly for truncated range' do
+        run!(default_filter)
         range = Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31'))
 
-        # Should only count beds for the 8 months the inventory was active
+        # Should average the number of beds over the number of days in the range
         expected_days = (Date.parse('2022-10-31') - Date.parse('2022-03-01')).to_i
-        expected_average = (expected_days.to_f * 10 / expected_days).round
+        # Two inventory records with 5 beds each calculated individually and added together
+        expected_average = (expected_days.to_f * 5 / range.length).round * 2
 
         actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
         expect(actual_average).to eq(expected_average)
       end
 
       it 'calculates bed utilization correctly in the report' do
+        run!(default_filter)
         report = report_class.last
 
         # Get the ES bed utilization result
@@ -191,15 +191,13 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     describe 'when inventory starts and ends after the report period' do
       before(:each) do
         GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2023-01-01', InventoryEndDate: '2023-12-31')
-
-        # Run report for full year
-        run!(default_filter)
       end
 
       it 'finds no inventory' do
+        run!(default_filter)
         range = Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31'))
 
-        actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
+        actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }&.sum
         expect(actual_average).to eq(0)
       end
     end
@@ -207,12 +205,10 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     describe 'when inventory ends before the report period start' do
       before(:each) do
         GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2023-01-01', InventoryEndDate: '2023-12-31')
-
-        # Run report for full year
-        run!(default_filter)
       end
 
       it 'finds no inventory' do
+        run!(default_filter)
         range = Filters::DateRange.new(start: Date.parse('2021-01-01'), end: Date.parse('2021-12-31'))
 
         actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
@@ -223,18 +219,169 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
     describe 'when inventory has no end date and overlaps the report period' do
       before(:each) do
         GrdaWarehouse::Hud::Inventory.update_all(InventoryStartDate: '2022-06-01', InventoryEndDate: nil)
-
-        # Run report for full year
-        run!(default_filter)
       end
 
       it 'finds expected inventory' do
+        run!(default_filter)
         range = Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31'))
 
         expected_days = (Date.parse('2022-12-31') - Date.parse('2022-06-01')).to_i
-        expected_average = (expected_days.to_f * 10 / expected_days).round
+        expected_average = (expected_days.to_f * 10 / range.length).round
         actual_average = GrdaWarehouse::Hud::Inventory.all.map { |i| i.average_daily_inventory(range: range, field: :BedInventory) }.sum
         expect(actual_average).to eq(expected_average)
+      end
+    end
+
+    describe 'when testing inventory data by day' do
+      let(:project) { GrdaWarehouse::Hud::Project.find_by(ProjectID: 'P-1') }
+      let(:inventory) do
+        create(
+          :hud_inventory,
+          ProjectID: project.ProjectID,
+          data_source_id: project.data_source_id,
+          InventoryStartDate: '2022-05-15',
+          InventoryEndDate: '2022-09-15',
+          BedInventory: 8,
+        )
+      end
+      let(:range) { Filters::DateRange.new(start: Date.parse('2022-01-01'), end: Date.parse('2022-12-31')) }
+
+      it 'calculates inventory correctly using average_daily_inventory' do
+        # Range from inventory start to end (123 days)
+        expected_days = (Date.parse('2022-09-15') - Date.parse('2022-05-15')).to_i
+        # Average should be (123 days with 8 beds) / 365 days in year = 2.7 beds per day for the year
+        expected_average = (expected_days.to_f * 8 / range.length).round
+
+        actual_average = inventory.average_daily_inventory(range: range, field: :BedInventory)
+        expect(actual_average).to eq(expected_average)
+      end
+
+      it 'returns correct daily inventory data using inventory_by_date' do
+        daily_data = inventory.inventory_by_date(range: range, field: :BedInventory)
+
+        # Should have data for each day in range
+        expect(daily_data.keys.min).to eq(Date.parse('2022-05-15'))
+        expect(daily_data.keys.max).to eq(Date.parse('2022-09-15'))
+        expect(daily_data.keys.count).to eq((Date.parse('2022-09-15') - Date.parse('2022-05-15')).to_i + 1)
+
+        # All days should have 8 beds
+        expect(daily_data.values.uniq).to eq([8])
+      end
+    end
+
+    describe 'when testing add_capacities' do
+      # The project already has one inventory record from the import, we'll update it and add a second
+      let(:project) { GrdaWarehouse::Hud::Project.find_by(ProjectID: 'P-1') }
+      let!(:removed_inventories) { GrdaWarehouse::Hud::Inventory.where(ProjectID: project.ProjectID).delete_all }
+      let!(:inventory) do
+        create(
+          :hud_inventory,
+          InventoryID: 'P-1-I-1',
+          ProjectID: project.ProjectID,
+          CoCCode: 'XX-501',
+          data_source_id: project.data_source_id,
+          InventoryStartDate: '2022-01-01',
+          InventoryEndDate: '2022-06-30',
+          BedInventory: 5,
+        )
+      end
+
+      # Add a second inventory record to the project
+      let!(:inventory2) do
+        create(
+          :hud_inventory,
+          InventoryID: 'P-1-I-2',
+          ProjectID: project.ProjectID,
+          CoCCode: 'XX-501',
+          data_source_id: project.data_source_id,
+          InventoryStartDate: '2022-07-01',
+          InventoryEndDate: '2022-12-31',
+          BedInventory: 10,
+        )
+      end
+
+      it 'correctly calculates average bed capacity for a project with changing inventory' do
+        run!(default_filter)
+        report = report_class.last
+        # Find the corresponding performance measurement project
+        pm_project = PerformanceMeasurement::Project.find_by(project_id: project.id, report_id: report.id)
+
+        # Verify the average bed capacity was calculated correctly
+        # First half year: 5 beds for 183 days (Jan 1 - Jun 30)
+        # Second half year: 10 beds for 183 days (Jul 1 - Dec 31)
+        # Total days in year: 365
+        # Average: ((5 * 183) + (10 * 183)) / 365 = 7.5, which rounds to 8
+        expect(pm_project.reporting_ave_bed_capacity_per_night).to eq(8)
+      end
+
+      describe 'correctly handles inventory ranges that extend beyond the report period' do
+        # Create a new inventory that extends beyond the report period
+        let!(:inventory3) do
+          create(
+            :hud_inventory,
+            InventoryID: 'P-1-I-3',
+            ProjectID: project.ProjectID,
+            CoCCode: 'XX-501',
+            data_source_id: project.data_source_id,
+            InventoryStartDate: '2022-11-01',
+            InventoryEndDate: '2023-03-31', # Extends beyond report period
+            BedInventory: 15,
+          )
+        end
+        it 'correctly calculates average bed capacity' do
+          run!(default_filter)
+          report = report_class.last
+          pm_project = PerformanceMeasurement::Project.find_by(project_id: project.id, report_id: report.id)
+
+          # Expected calculation:
+          # First half year: 5 beds for 183 days (Jan 1 - Jun 30)
+          # Second half year: 10 beds for 122 days (Jul 1 - Oct 31)
+          # Third half year: 10 + 15 = 25 beds for 60 days(Nov 1 - Dec 31)
+          # Average: ((5 * 183) + (10 * 122) + (25 * 60)) / 365 = 10.0, which rounds to 10
+          expect(pm_project.reporting_ave_bed_capacity_per_night).to eq(10)
+        end
+      end
+
+      describe 'correctly handles days with zero inventory' do
+        # Delete all inventories
+        let!(:removed_inventories) { GrdaWarehouse::Hud::Inventory.where(ProjectID: project.ProjectID).delete_all }
+
+        # Create an inventory with a gap
+        let!(:inventory4) do
+          create(
+            :hud_inventory,
+            ProjectID: project.ProjectID,
+            data_source_id: project.data_source_id,
+            InventoryStartDate: '2022-01-01',
+            InventoryEndDate: '2022-03-31',
+            BedInventory: 8,
+          )
+
+          let!(:inventory5) do
+            create(
+              :hud_inventory,
+              ProjectID: project.ProjectID,
+              data_source_id: project.data_source_id,
+              InventoryStartDate: '2022-08-01',
+              InventoryEndDate: '2022-12-31',
+              BedInventory: 12,
+            )
+          end
+
+          it 'correctly calculates average bed capacity' do
+            run!(default_filter)
+            report = report_class.last
+            pm_project = PerformanceMeasurement::Project.find_by(project_id: project.id, report_id: report.id)
+
+            # Expected calculation:
+            # Jan 1 - Mar 31: 8 beds (90 days)
+            # Apr 1 - Jul 31: 0 beds (122 days) - These days should be EXCLUDED from the average
+            # Aug 1 - Dec 31: 12 beds (153 days)
+            # Total days with inventory: 90 + 153 = 243 days
+            # Average: ((8 * 90) + (12 * 153)) / 243 = 10.5, which rounds to 11
+            expect(pm_project.reporting_ave_bed_capacity_per_night).to eq(11)
+          end
+        end
       end
     end
   end

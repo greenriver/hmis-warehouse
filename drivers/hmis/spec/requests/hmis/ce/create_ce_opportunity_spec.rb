@@ -15,6 +15,7 @@ RSpec.describe Mutations::Ce::CreateCeOpportunity, type: :request do
         :can_view_clients,
         :can_view_project,
         :can_edit_project_details,
+        :can_manage_units,
       ],
     )
   end
