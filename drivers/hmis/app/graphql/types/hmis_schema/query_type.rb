@@ -308,7 +308,7 @@ module Types
         can_have_assigned_staff: current_user.can_have_assigned_staff?,
         can_have_assigned_referral_tasks: current_user.can_have_assigned_referral_tasks?,
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?, # TODO(#7409) once we have project-level configuration, remove this
       }
     end
 
@@ -558,18 +558,27 @@ module Types
     def ce_referral_step(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+      step = Hmis::WorkflowExecution::Step.find(id)
+
+      # Referral permission governs step viewing permission. If you can view a referral, you can view all its steps.
+      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance: step.instance)
+      access_denied! unless referral
+
+      step
     end
 
-    # Globally available CE opportunities gated by admin permission
+    # All CE opportunities the user can view, resolved on admin page
     ce_opportunities_field
     def ce_opportunities(**args)
-      # TODO(#7506) - gated by admin permission
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
       resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 
     ce_referrals_field
     def ce_referrals(**args)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
   end

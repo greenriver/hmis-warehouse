@@ -33,10 +33,10 @@ module Types
 
       private
 
-      def scoped_ce_opportunities(scope, user: current_user, sort_order: nil, filters: nil)
-        raise unless Hmis::Ce.configuration.enabled? # TODO(#7506) permissions
+      def scoped_ce_opportunities(scope, user: current_user, sort_order: nil, filters: nil, dangerous_skip_permission_check: false)
+        raise unless Hmis::Ce.configuration.enabled?
 
-        scope = scope.viewable_by(user)
+        scope = scope.viewable_by(user) unless dangerous_skip_permission_check
         scope = scope.apply_filters(filters) if filters.present?
 
         sort_order ||= :date_available_earliest_first

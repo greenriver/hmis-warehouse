@@ -135,6 +135,17 @@ class Hmis::User < ApplicationRecord
     end
   end
 
+  def can_perform_referral_step?(step)
+    referral = Hmis::Ce::Referral.find_by(workflow_instance: step.instance)
+    project = referral.target_project
+
+    # User can perform any tasks in this project
+    return true if can_perform_any_referral_tasks_for?(project)
+
+    # User can perform their own tasks, AND this task is assigned to them
+    can_perform_own_referral_tasks_for?(project) && step.assignments.any? { |assignment| assignment.user == self }
+  end
+
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
   end
@@ -261,6 +272,13 @@ class Hmis::User < ApplicationRecord
     else
       'Active Users'
     end
+  end
+
+  def to_pick_list_option
+    {
+      code: id.to_s,
+      label: full_name,
+    }
   end
 
   def self.apply_filters(input)

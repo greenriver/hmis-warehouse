@@ -1265,7 +1265,16 @@ CREATE TABLE public.hmis_roles (
     can_view_units boolean DEFAULT false,
     can_manage_units boolean DEFAULT false,
     can_administrate_config boolean DEFAULT false,
-    can_view_enrollment_location_map boolean DEFAULT false
+    can_view_enrollment_location_map boolean DEFAULT false,
+    can_view_prioritized_client_lists boolean DEFAULT false,
+    can_start_referrals boolean DEFAULT false,
+    can_view_referrals boolean DEFAULT false,
+    can_view_own_referrals boolean DEFAULT false,
+    can_perform_any_referral_tasks boolean DEFAULT false,
+    can_perform_own_referral_tasks boolean DEFAULT false,
+    can_view_client_eligible_opportunities boolean DEFAULT false,
+    can_administrate_coordinated_entry boolean DEFAULT false,
+    can_assign_referral_tasks boolean DEFAULT false
 );
 
 
@@ -2572,7 +2581,6 @@ CREATE TABLE public.roles (
     can_report_on_confidential_projects boolean DEFAULT false,
     can_edit_assigned_project_groups boolean DEFAULT false,
     can_view_chronic_tab boolean DEFAULT false,
-    can_view_confidential_enrollment_details boolean DEFAULT false,
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,
@@ -5122,6 +5130,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250507192058'),
 ('20250501151733'),
 ('20250501135342'),
 ('20250218131829'),
@@ -5146,4 +5155,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240829152856'),
 ('20240710124743'),
 ('20230420195221');
-

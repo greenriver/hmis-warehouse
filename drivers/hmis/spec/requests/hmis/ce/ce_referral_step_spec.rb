@@ -32,11 +32,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let!(:assignee) { referral.workflow_instance.steps.sole.assignments.create(user: hmis_user) }
 
-    it 'returns expected structure with swimlane' do
-      step = referral.workflow_instance.steps.sole
-      variables = {
+    let(:step) { referral.workflow_instance.steps.sole }
+    let(:variables) do
+      {
         id: step.id,
       }
+    end
+
+    it 'returns expected structure with swimlane' do
       response, result = post_graphql(**variables) { query }
       expect(response.status).to eq(200), result.inspect
       step_data = result.dig('data', 'ceReferralStep')
@@ -47,6 +50,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'id' => assignee.user.id.to_s,
         ),
       )
+    end
+
+    it 'returns nil when the user does not have permission' do
+      remove_permissions(ds_access_control, :can_view_referrals)
+      expect_gql_error(post_graphql(**variables) { query }, message: 'access denied')
     end
   end
 end
