@@ -1,4 +1,4 @@
-name: Rails Tests
+name: Todo or Die
 
 on:
   # NOTE: runs on both PRs and pulls. This would normally cause redundant jobs to run but there are conditions on github.event_name in the matrix to avoid this. In particular, we want the system tests to run only on PR so we can use the base_ref to infer the appropriate release branch name in the hmis FE repo (see issue #6566)
@@ -17,23 +17,11 @@ concurrency:
 jobs:
   determine_matrix:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo 'matrix={"test_group":[{"id":"system_tests","system_tests":"true"}]}' >> $GITHUB_OUTPUT
-          else
-            echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
-          fi
 
   # Label of the container job
   tests:
-    needs: determine_matrix
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-22.04
@@ -214,81 +202,11 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
-      # Regenerate the graphql schema and fail if it has changed
-      - name: 'Check HMIS GraphQL schema'
-        if: matrix.test_group.system_tests
-        run: |
-          bundle exec rake driver:hmis:dump_graphql_schema
-
-      - name: Run tests
-        if: matrix.test_group.tag
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          TODO_OR_DIE_LOG_ONLY: true
-        run: |
-          bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
-
-          # capture rspec profiling information
-          # mkdir -p tmp/rspec_profiles
-          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
-
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
-
-      - name: Run okta tests
-        if: matrix.test_group.okta_tests
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          TODO_OR_DIE_LOG_ONLY: true
-        run: |
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
-
-      - name: Run logging tests
-        if: matrix.test_group.logging_tests
+      - name: Check for overdue TODOs
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
-          TODO_OR_DIE_LOG_ONLY: true
+          CI: true
         run: |
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-
-      - name: Build front end and run tests
-        if: matrix.test_group.system_tests
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
-          CHROME_URL: http://chrome:3333
-          TODO_OR_DIE_LOG_ONLY: true
-        run:
-          # Are you looking to run the system tests locally? See:
-          # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
-          bash ./bin/run_hmis_system_tests.sh
-
-      - name: Archive artifacts
-        if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
-        with:
-          if-no-files-found: ignore
-          name: artifacts-${{ matrix.test_group.id}}
-          path: |
-            tmp/rspec_profiles/
-            tmp/capybara/screenshots/
-            var/deprecations/*.yml
+          bundle exec rails test:todo_or_die

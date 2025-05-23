@@ -8,9 +8,10 @@ TodoOrDie.config(
       ". Do it!"
     ].compact.join("")
 
-    if defined?(Rails) && (Rails.env.production? || Rails.env.staging?)
+    if defined?(Rails) && (Rails.env.production? || Rails.env.staging? || ENV['TODO_OR_DIE_LOG_ONLY'] == 'true')
       Rails.logger.warn(error_message)
     else
+      # Raise in development or test where TODO_OR_DIE_LOG_ONLY is false
       raise TodoOrDie::OverdueTodo, error_message, TodoOrDie.__clean_backtrace(caller)
     end
   }

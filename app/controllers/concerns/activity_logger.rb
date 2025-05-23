@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # This concern audits user activity.
 # Place the following in a controller (or ApplicationController)
 #
@@ -28,6 +30,7 @@ module ActivityLogger
 
   included do
     def compose_activity
+      TodoOrDie('ActivityLogger', by: '2025-05-22')
       attrs = {
         user_id: true_user.try(:id),
         controller_name: params[:controller] || controller_name,
