@@ -17,6 +17,8 @@ concurrency:
 jobs:
   todo_or_die_check:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     strategy:
       matrix:
         ruby: ['3.3.7']
@@ -24,31 +26,8 @@ jobs:
 
     container: ruby:3.3.7-alpine3.20
 
-    services:
-      postgres:
-        image: index.docker.io/postgis/postgis@sha256:681931a625df344215e9b8998bf34daf146b6a395ceacee4439eb9c85869239f
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASS: postgres
-          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     env:
       RAILS_ENV: test
-      DATABASE_ADAPTER: postgresql
-      DATABASE_HOST: postgres
-      DATABASE_PASS: postgres
-      DATABASE_USER: postgres
-      DATABASE_DB_TEST: warehouse_test
-      DATABASE_APP_DB_TEST: warehouse_app_test
-      DATABASE_WAREHOUSE_DB_TEST: warehouse_test
       CI: true
 
     steps:
@@ -63,11 +42,6 @@ jobs:
           cp config/secrets.yml.sample config/secrets.yml
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
-
-      - name: Prepare test db
-        run: |
-          pg_isready -h postgres -U postgres
-          bin/db_prep
 
       - name: Check for overdue TODOs
         run: bundle exec rails test:todo_or_die
