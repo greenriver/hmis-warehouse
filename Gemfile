@@ -321,7 +321,7 @@ group :test do
 
   # For Todo or die rake task
   gem 'parser', require: false
-  gem 'unparser', require: false
+  # gem 'unparser', require: false
 end
 
 group :development, :staging, :test do

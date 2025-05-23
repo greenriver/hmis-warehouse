@@ -1,7 +1,15 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 namespace :test do
   desc 'Test generating an Exception'
   task :exception, [] => [:environment] do |_t, _args|
-    raise StandardError.new('An Exception has been raised from within a Rake task.')
+    raise StandardError, 'An Exception has been raised from within a Rake task.'
   end
 
   desc 'Test Sentry'
@@ -71,7 +79,6 @@ namespace :test do
   desc 'Evaluate all TodoOrDie calls in the codebase'
   task todo_or_die: :environment do
     require 'parser/current'
-    require 'unparser'
 
     # Find all Ruby files in the application
     ruby_files = Dir.glob('{app,config,lib,drivers}/**/*.rb')
@@ -81,13 +88,16 @@ namespace :test do
     # Track all TodoOrDie calls
     todo_calls = []
     overdue_todos = []
+    todo_or_die_comment = '# TODO_OR_DIE_'
 
     ruby_files.each do |file|
+      # Read the file content
+      content = File.read(file)
       # Parse the file
-      ast = Parser::CurrentRuby.parse(File.read(file))
+      ast = Parser::CurrentRuby.parse(content)
 
       # Find all TodoOrDie calls
-      find_todo_calls(ast, file, todo_calls)
+      find_todo_calls(ast, file, content, todo_calls)
     rescue Parser::SyntaxError => e
       puts "Syntax error in #{file}: #{e.message}"
     rescue StandardError => e
@@ -96,33 +106,42 @@ namespace :test do
 
     puts "\nFound #{todo_calls.length} TodoOrDie calls"
 
-    # Evaluate each TodoOrDie call
-    todo_calls.each do |call|
-      # Create a new binding to evaluate the call
-      binding = Object.new.instance_eval { binding }
-
-      # Clean up the code by removing extra curly braces around hash arguments
-      code = call[:code].gsub(/TodoOrDie\((.*?),\s*{([^}]+)}\)/, 'TodoOrDie(\1, \2)')
-
-      begin
-        # Evaluate the call
-        result = eval(code, binding)
-
-        # If the result is a TodoOrDie::OverdueTodo, it means the TODO is due
-        if result.is_a?(TodoOrDie::OverdueTodo)
-          message = "Overdue TODO found in #{call[:file]}:#{call[:line]}\nMessage: #{result.message}"
-          puts "\n#{message}"
-          overdue_todos << message
-        end
-      rescue TodoOrDie::OverdueTodo => e
-        # Handle TodoOrDie errors specifically
-        message = "Overdue TODO found in #{call[:file]}:#{call[:line]}\nMessage: #{e.message}"
-        puts "\n#{message}"
-        overdue_todos << message
-      rescue StandardError => e
-        puts "\nError evaluating TodoOrDie in #{call[:file]}:#{call[:line]}"
-        puts "Error: #{e.message}"
+    # Create a temporary file with all TodoOrDie calls
+    require 'tempfile'
+    temp_file = Tempfile.new(['todo_or_die_calls', '.rb'])
+    begin
+      # Write each TodoOrDie call to the temp file with a unique identifier
+      todo_calls.each_with_index do |call, index|
+        temp_file.puts "#{todo_or_die_comment}#{index} #{call[:file]}:#{call[:line]}"
+        temp_file.puts call[:code]
+        temp_file.puts
       end
+      temp_file.close
+
+      # Load the temporary file to evaluate all TodoOrDie calls
+      load temp_file.path
+    rescue TodoOrDie::OverdueTodo => e
+      # Handle TodoOrDie errors specifically
+      # Get the line number from the temp file
+      temp_line = e.backtrace.first.split(':')[1].to_i
+
+      # Read the temp file to find the original location
+      original_location = nil
+      File.foreach(temp_file.path) do |line|
+        if line.start_with?(todo_or_die_comment) && line.include?(':')
+          original_location = line.sub(/#{todo_or_die_comment}\d+ /, '').strip
+          break
+        end
+      end
+
+      message = "Overdue TODO found\nMessage: #{e.message}\nin file: #{original_location}"
+      puts "\n#{message}"
+      overdue_todos << message
+    rescue StandardError => e
+      puts "\nError evaluating TodoOrDie calls"
+      puts "Error: #{e.message}"
+    ensure
+      temp_file.unlink
     end
 
     # If we're in a CI environment and found overdue TODOs, fail the build
@@ -138,7 +157,7 @@ namespace :test do
 
   private
 
-  def find_todo_calls(node, file, todo_calls)
+  def find_todo_calls(node, file, content, todo_calls)
     return unless node.is_a?(Parser::AST::Node)
 
     # Look for TodoOrDie calls
@@ -146,19 +165,21 @@ namespace :test do
       # Get the line number
       line = node.loc.line
 
-      # Convert the node back to Ruby code
-      code = Unparser.unparse(node)
+      # Extract the original code using the node's location
+      code = content[node.loc.expression.begin_pos...node.loc.expression.end_pos]
 
+      # Store the original code for evaluation
       todo_calls << {
         file: file,
         line: line,
         code: code,
+        node: node,
       }
     end
 
     # Recursively check child nodes
     node.children.each do |child|
-      find_todo_calls(child, file, todo_calls) if child.is_a?(Parser::AST::Node)
+      find_todo_calls(child, file, content, todo_calls) if child.is_a?(Parser::AST::Node)
     end
   end
 end
