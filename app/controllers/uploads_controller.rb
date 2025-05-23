@@ -71,7 +71,7 @@ class UploadsController < ApplicationController
     return nil if Date.current >= '2025-10-01'.to_date
     return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging?
 
-    '2026'
+    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
   end
 
   private def dry_run_param
