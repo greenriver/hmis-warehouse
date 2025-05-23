@@ -88,6 +88,7 @@ namespace :test do
     # Track all TodoOrDie calls
     todo_calls = []
     overdue_todos = []
+    todo_or_die_comment = '# TODO_OR_DIE_'
 
     ruby_files.each do |file|
       # Read the file content
@@ -109,9 +110,9 @@ namespace :test do
     require 'tempfile'
     temp_file = Tempfile.new(['todo_or_die_calls', '.rb'])
     begin
-      # Write each TodoOrDie call to the temp file
-      todo_calls.each do |call|
-        temp_file.puts "# #{call[:file]}:#{call[:line]}"
+      # Write each TodoOrDie call to the temp file with a unique identifier
+      todo_calls.each_with_index do |call, index|
+        temp_file.puts "#{todo_or_die_comment}#{index} #{call[:file]}:#{call[:line]}"
         temp_file.puts call[:code]
         temp_file.puts
       end
@@ -121,7 +122,19 @@ namespace :test do
       load temp_file.path
     rescue TodoOrDie::OverdueTodo => e
       # Handle TodoOrDie errors specifically
-      message = "Overdue TODO found\nMessage: #{e.message}"
+      # Get the line number from the temp file
+      temp_line = e.backtrace.first.split(':')[1].to_i
+
+      # Read the temp file to find the original location
+      original_location = nil
+      File.foreach(temp_file.path) do |line|
+        if line.start_with?(todo_or_die_comment) && line.include?(':')
+          original_location = line.sub(/#{todo_or_die_comment}\d+ /, '').strip
+          break
+        end
+      end
+
+      message = "Overdue TODO found\nMessage: #{e.message}\nin file: #{original_location}"
       puts "\n#{message}"
       overdue_todos << message
     rescue StandardError => e
