@@ -12,7 +12,7 @@ module Mutations
     argument :input, Types::HmisSchema::CeOpportunityInput, required: true
     field :opportunity, Types::HmisSchema::CeOpportunity, null: false
 
-    def resolve(project_id:, input:) # TODO(#7522) - remove this mutation
+    def resolve(project_id:, input:) # TODO(#7529) - remove this mutation
       raise unless Hmis::Ce.configuration.enabled?
 
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)

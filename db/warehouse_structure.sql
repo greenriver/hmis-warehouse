@@ -29349,7 +29349,8 @@ CREATE TABLE public.wfd_templates (
     owner_type character varying,
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    data_source_id integer NOT NULL
 );
 
 
@@ -62295,6 +62296,13 @@ CREATE INDEX index_wfd_swimlanes_on_template_id ON public.wfd_swimlanes USING bt
 
 
 --
+-- Name: index_wfd_templates_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wfd_templates_on_data_source_id ON public.wfd_templates USING btree (data_source_id);
+
+
+--
 -- Name: index_wfd_templates_on_owner; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65781,6 +65789,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250522193546'),
 ('20250516141401'),
 ('20250514150515'),
 ('20250512132201'),
