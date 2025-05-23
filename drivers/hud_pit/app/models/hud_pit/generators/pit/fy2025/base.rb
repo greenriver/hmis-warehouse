@@ -364,7 +364,7 @@ module HudPit::Generators::Pit::Fy2025
         },
         chronic_households: {
           title: 'Chronically Homeless: Total number of households',
-          query: a_t[:chronically_homeless].eq(true).and(hoh_clause),
+          query: a_t[:chronically_homeless_household].eq(true).and(hoh_clause),
         },
         chronic_clients: {
           title: 'Chronically Homeless: Total number of persons',
