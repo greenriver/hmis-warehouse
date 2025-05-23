@@ -18,7 +18,8 @@ module Importers::HmisAutoMigrate
       allowed_projects: false,
       file_path: 'tmp/hmis_import',
       project_cleanup: true,
-      stop_version: nil
+      stop_version: nil,
+      dry_run: false
     )
       setup_notifier('HMIS Local AutoMigrate Importer')
       @data_source_id = data_source_id
