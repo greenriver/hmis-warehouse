@@ -15,7 +15,8 @@ module HmisCsvFixtures
     user: User.setup_system_user,
     allowed_projects: nil,
     skip_location_cleanup: false,
-    deidentified: nil
+    deidentified: nil,
+    dry_run: false
   )
     unless data_source
       data_source = GrdaWarehouse::DataSource.where(
