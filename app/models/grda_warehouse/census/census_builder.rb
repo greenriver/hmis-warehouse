@@ -16,16 +16,16 @@ module GrdaWarehouse::Census
       new(...).call
     end
 
-    attr_accessor :start_date, :end_date, :progress
+    attr_accessor :start_date, :end_date
     def initialize(start_date, end_date, progress: false)
       self.start_date = start_date
       self.end_date = end_date
-      self.progress = progress
     end
 
-    def call
-      bar = new_progress_bar(relevant_projects.count) if progress
-      relevant_projects.find_each do |project|
+    def call(project_ids: nil, progress: false)
+      project_scope = relevant_projects(project_ids)
+      bar = new_progress_bar(project_scope.count) if progress
+      project_scope.find_each do |project|
         rows = project_rows(project)
         ByProject.transaction do
           ByProject.where(project: project).delete_all
@@ -42,8 +42,10 @@ module GrdaWarehouse::Census
       @populations ||= GrdaWarehouse::Census.census_populations.map { |p| p[:population] }.uniq
     end
 
-    def relevant_projects
-      GrdaWarehouse::Hud::Project
+    def relevant_projects(project_ids)
+      scope = GrdaWarehouse::Hud::Project
+      scope = scope.where(id: project_ids) if project_ids
+      scope
     end
 
     def project_rows(project)
@@ -54,7 +56,7 @@ module GrdaWarehouse::Census
           merged[date][population] = count
         end
       end
-      inventories = project.inventories.within_range(start_date..end_date)
+      inventories = project.inventories.within_range(start_date..end_date).where.not(beds: nil)
       merged.keys.each do |date|
         inventories.each do |inventory|
           next unless inventory_active_on_date?(inventory, date)
