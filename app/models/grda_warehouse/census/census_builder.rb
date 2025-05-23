@@ -45,7 +45,7 @@ module GrdaWarehouse::Census
     def relevant_projects(project_ids)
       scope = GrdaWarehouse::Hud::Project
       scope = scope.where(id: project_ids) if project_ids
-      scope
+      scope.within_range(start_date..end_date)
     end
 
     def project_rows(project)
