@@ -71,6 +71,7 @@ class UploadsController < ApplicationController
     return nil if Date.current >= '2025-10-01'.to_date
     return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging?
 
+    # Default to the current version, but allow for override in development
     ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
   end
 
