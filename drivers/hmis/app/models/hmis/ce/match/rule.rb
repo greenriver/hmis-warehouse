@@ -29,19 +29,32 @@ module Hmis::Ce::Match
       where(rule_type: PRIORITY_SCHEME)
     end
 
-    def applies_to_opportunity?(opportunity)
+    def applies_to_unit?(unit)
       config = applicability_config.symbolize_keys || {}
-      applicability = OpportunityApplicability.new(
+      applicability = UnitApplicability.new(
         owner: owner,
         project_types: config[:project_types],
         project_funders: config[:project_funders],
       )
-      applicability.call(opportunity)
+
+      applicability.call(unit)
+    end
+
+    def applies_to_opportunity?(opportunity)
+      unit = opportunity.owner
+      raise 'expected opportunity owner to be a Hmis::Unit' unless unit.is_a?(Hmis::Unit)
+
+      applies_to_opportunity?(unit)
     end
 
     def self.for_opportunity(opportunity)
       all_rules = preload(:owner).order(:owner_type, :id).to_a
       all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
+    end
+
+    def self.for_unit(unit)
+      all_rules = preload(:owner).order(:owner_type, :id).to_a
+      all_rules.filter { |rule| rule.applies_to_unit?(unit) }
     end
   end
 end

@@ -34,6 +34,11 @@ module Hmis::WorkflowDefinition
 
     scope :viewable_by, ->(_user) { all }
 
+    scope :latest_versions, -> do
+      # Returns the most recent Template version per identifier
+      one_for_column([:version], source_arel_table: arel_table, group_on: :identifier)
+    end
+
     def graph(preloads: nil) # Caller can optionally pass additional attributes to preload, to avoid n+1s
       Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows, *preloads))
     end

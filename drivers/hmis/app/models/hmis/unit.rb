@@ -6,6 +6,21 @@
 
 # frozen_string_literal: true
 
+# The `Hmis::Unit` model represents a generic unit of capacity in a project.
+# A unit is a resource that can be provided to a household or individual being served by the program.
+# Units can represent physical or virtual resources, and their behavior depends on their `variant`.
+#
+# Note: The term "unit" is intentionally generic and does not exclusively refer to an "apartment unit."
+#
+# There are four fixed unit variants:
+# - **dwelling**: A physical housing unit that may or may not represent a specific dwelling (e.g., a generic "Hotel Room" vs. "Apartment 2B").
+# - **shelter**: A physical shelter unit that may or may not represent a specific shelter bed or family shelter capacity.
+# - **voucher**: A virtual unit representing a voucher (e.g., a housing voucher).
+# - **service_slot**: A virtual unit representing the capacity to provide a service.
+#
+# This model supports tracking the availability, occupancy, and relationships of units within a project.
+# Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
+# Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Occupancy records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
@@ -13,7 +28,9 @@ class Hmis::Unit < Hmis::HmisBase
   has_paper_trail(meta: { project_id: :project_id })
 
   belongs_to :project, class_name: 'Hmis::Hud::Project'
-  # Type of this unit
+  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true
+
+  # Descriptive "type" of this unit (e.g. "3 Bed Room", "Case Management", "Mass Shelter Single")
   belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
   # Periods when this unit has been active
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
@@ -42,6 +59,22 @@ class Hmis::Unit < Hmis::HmisBase
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
+
+  enum variant: {
+    dwelling: 'dwelling',
+    voucher: 'voucher',
+    service_slot: 'service_slot',
+    shelter: 'shelter',
+  }
+  validates :variant, presence: true, inclusion: { in: variants.keys }
+
+  # Scopes for filtering by unit variant
+  scope :dwellings, -> { where(variant: :dwelling) }
+  scope :vouchers, -> { where(variant: :voucher) }
+  scope :service_slots, -> { where(variant: :service_slot) }
+  scope :shelters, -> { where(variant: :shelter) }
+
+  # Scopes for filtering by unit type
 
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
 
@@ -101,16 +134,29 @@ class Hmis::Unit < Hmis::HmisBase
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
   end
 
+  def eligibility_requirements
+    return unless Hmis::Ce.configuration.enabled? # should have a flag on unit for ce?
+
+    Hmis::Ce::Match::Rule.eligibility_requirement.for_unit(self)
+  end
+
+  def priority_scheme
+    return unless Hmis::Ce.configuration.enabled? # should have a flag on unit for ce?
+
+    Hmis::Ce::Match::Rule.priority_scheme.for_unit(self).sole # there should only be 1
+  end
+
   # Class method so can use with data loader
-  def self.display_name(id:, name: nil, unit_type: nil)
+  def self.display_name(id:, name: nil, unit_type: nil, variant: nil)
     return name if name.present?
     return "#{unit_type.description} (ID: #{id})" if unit_type.present?
+    return "#{variant.to_s.humanize} (ID: #{id})" if variant.present?
 
     "Unit #{id}"
   end
 
   def display_name
-    self.class.display_name(id: id, name: name, unit_type: unit_type)
+    self.class.display_name(id: id, name: name, unit_type: unit_type, variant: variant)
   end
 
   def to_pick_list_option

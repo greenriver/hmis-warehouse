@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class CreateUnits < BaseMutation
     argument :input, Types::HmisSchema::UnitInput, required: true
@@ -31,6 +33,7 @@ module Mutations
         Hmis::Unit.new(
           project_id: project.id,
           unit_type_id: unit_type&.id,
+          # TODO: variant, unit_group_id
           **common,
         )
       end

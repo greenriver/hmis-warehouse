@@ -31,6 +31,10 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+
+    # CE fields
+    # field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
+    # field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
