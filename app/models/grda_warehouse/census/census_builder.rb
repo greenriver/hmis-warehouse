@@ -17,7 +17,7 @@ module GrdaWarehouse::Census
     end
 
     attr_accessor :start_date, :end_date
-    def initialize(start_date, end_date, progress: false)
+    def initialize(start_date, end_date)
       self.start_date = start_date
       self.end_date = end_date
     end
@@ -28,7 +28,7 @@ module GrdaWarehouse::Census
       project_scope.find_each do |project|
         rows = project_rows(project)
         ByProject.transaction do
-          ByProject.where(project: project).delete_all
+          ByProject.where(project: project).where(date: start_date..end_date).delete_all
           ByProject.import!(rows) if rows.any?
         end
         # bar&.puts("Project ID #{project.id}, rows: #{rows.size}")
@@ -59,7 +59,7 @@ module GrdaWarehouse::Census
       inventories = project.inventories.within_range(start_date..end_date).where.not(beds: nil)
       merged.keys.each do |date|
         inventories.each do |inventory|
-          next unless inventory_active_on_date?(inventory, date)
+          next unless inventory.active_on_date?(date)
 
           merged[date][:beds] ||= 0
           merged[date][:beds] += inventory.beds
@@ -85,25 +85,6 @@ module GrdaWarehouse::Census
         merge(enrollment_scope).
         group(:date).
         count(:client_id)
-    end
-
-    def inventory_active_on_date?(inventory, date)
-      # Always active if all dates are blank
-      if inventory.InventoryStartDate.blank? &&
-         inventory.InventoryEndDate.blank?
-        return true
-      end
-
-      start_date = inventory.InventoryStartDate
-      end_date = inventory.InventoryEndDate
-
-      # If we have a start date but no end date, active from start onward
-      return true if start_date && !end_date && start_date <= date
-
-      # If we have both start and end dates, check if date is in range (inclusive)
-      return true if start_date && end_date && date.between?(start_date, end_date)
-
-      false
     end
 
     def new_progress_bar(total)
