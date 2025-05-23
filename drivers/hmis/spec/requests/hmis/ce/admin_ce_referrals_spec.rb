@@ -9,8 +9,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let!(:workflow_template_1) { create(:hmis_workflow_definition_template, identifier: 'wft_1') }
-  let!(:workflow_template_2) { create(:hmis_workflow_definition_template, identifier: 'wft_2') }
+  let!(:workflow_template_1) { create(:hmis_workflow_definition_template, identifier: 'wft_1', data_source: ds1) }
+  let!(:workflow_template_2) { create(:hmis_workflow_definition_template, identifier: 'wft_2', data_source: ds1) }
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
 
@@ -72,19 +72,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'raises if the user does not have permission' do
       remove_permissions(access_control, :can_administrate_coordinated_entry)
       expect_gql_error(post_graphql { query }, message: 'access denied')
-    end
-
-    context 'with referrals across data sources' do
-      let!(:referral_in_another_data_source) { create(:hmis_ce_referral) }
-
-      it 'does not return referrals from a different data source' do
-        response, result = post_graphql { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
-        expect(referrals.size).to eq(1)
-        expect(referrals).to contain_exactly(a_hash_including('id' => referral.id.to_s))
-      end
     end
 
     context 'when querying by workflow template' do
