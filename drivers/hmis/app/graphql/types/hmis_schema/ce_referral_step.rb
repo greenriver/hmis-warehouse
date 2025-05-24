@@ -61,7 +61,7 @@ module Types
     end
 
     def referral
-      dataloader.with(Sources::CeStepReferralSource).load(object)
+      dataloader.with(Sources::CeReferralByInstanceIdSource).load(object.instance_id)
     end
 
     def access
