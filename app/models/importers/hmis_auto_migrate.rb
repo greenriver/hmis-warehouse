@@ -7,6 +7,20 @@
 # frozen_string_literal: true
 
 module Importers::HmisAutoMigrate
+  # This method allows us to prevent auto migrating data past a specific version.
+  # Specifically, it allow us to support import of a newer version, but deployment
+  # prior to the release of the new version.
+  # NOTE: There is similar logic in spec/support/hmis_csv_fixtures.rb to control test behavior.
+  TodoOrDie('Update stop_version after FY2026 changeover', by: '2025-11-01')
+  # For now, prevent migrating beyond 2024 version
+  def self.current_stop_version
+    return nil if Date.current >= '2025-10-01'.to_date
+    return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging?
+
+    # Default to the current version, but allow for override in development
+    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
+  end
+
   # available_migrations is a hash of version strings seen in HUD exports to migration classes
   def self.available_migrations
     Rails.application.config.hmis_migrations || {}

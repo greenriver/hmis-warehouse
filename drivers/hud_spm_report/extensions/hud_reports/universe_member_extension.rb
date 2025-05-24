@@ -24,9 +24,14 @@ module HudSpmReport::HudReports
       belongs_to(
         :enrollment,
         -> do
-          TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-09-01')
           TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-10-01')
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
+          if Rails.env.production? && Date.current < '2025-10-01'.to_date
+            where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
+          elsif Rails.env.staging? && Date.current < '2025-09-01'.to_date
+            where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
+          else
+            where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2026::SpmEnrollment'))
+          end
         end,
         class_name: 'HudSpmReport::Fy2024::SpmEnrollment',
         foreign_key: :universe_membership_id,
@@ -36,9 +41,14 @@ module HudSpmReport::HudReports
       belongs_to(
         :return,
         -> do
-          TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Fy2026::Return'", by: '2025-09-01')
           TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::Return'", by: '2025-10-01')
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
+          if Rails.env.production? && Date.current < '2025-10-01'.to_date
+            where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
+          elsif Rails.env.staging? && Date.current < '2025-09-01'.to_date
+            where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
+          else
+            where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2026::Return'))
+          end
         end,
         class_name: 'HudSpmReport::Fy2024::Return',
         foreign_key: :universe_membership_id,

@@ -8,8 +8,13 @@
 
 module HudSpmReport
   def self.current_generator
-    TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Generators::Fy2026::Generator'", by: '2025-09-01')
     TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Generators::Fy2026::Generator'", by: '2025-10-01')
-    HudSpmReport::Generators::Fy2024::Generator
+    if Rails.env.production? && Date.current < '2025-10-01'.to_date
+      return HudSpmReport::Generators::Fy2024::Generator
+    elsif Rails.env.staging? && Date.current < '2025-09-01'.to_date
+      return HudSpmReport::Generators::Fy2024::Generator
+    else
+      HudSpmReport::Generators::Fy2026::Generator
+    end
   end
 end
