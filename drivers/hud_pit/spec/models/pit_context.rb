@@ -6,18 +6,11 @@
 # frozen_string_literal: true
 
 RSpec.shared_context 'datalab pit context', shared_context: :metadata do
-  let(:pit_date) { '2022-09-30'.to_date }
-  let(:user) { User.setup_system_user }
   def shared_filter_spec
     {
-      on: pit_date,
-      start: pit_date.beginning_of_year,
-      end: pit_date.end_of_year,
-      user_id: user.id,
+      on: Date.parse('2022-09-30'),
+      user_id: User.setup_system_user.id,
       coc_codes: ['XX-500', 'XX-501'],
-      coc_codes: ['MA-500'],
-      enforce_one_year_range: false,
-      require_service_during_range: false,
     }.freeze
   end
 

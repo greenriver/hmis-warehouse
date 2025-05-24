@@ -11,6 +11,19 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
   include_context 'datalab pit context'
 
   let(:pit_date) { '2024-01-28'.to_date }
+  let(:user) { User.setup_system_user }
+  let(:pit_filter_spec) do
+    {
+      on: pit_date,
+      start: pit_date.beginning_of_year,
+      end: pit_date.end_of_year,
+      user_id: user.id,
+      coc_codes: ['MA-500'],
+      enforce_one_year_range: false,
+      require_service_during_range: false,
+      project_type_codes: HudUtility2024.homeless_project_type_codes,
+    }
+  end
 
   describe 'Household Chronic Status' do
     context 'with HoH chronically homeless' do

@@ -49,6 +49,7 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       household_id: household_id,
       living_situation: living_situation,
       move_in_date: move_in_date,
+      enrollment_coc: project.project_cocs.min_by(&:id).coc_code,
     )
 
     if exit_date.present?
