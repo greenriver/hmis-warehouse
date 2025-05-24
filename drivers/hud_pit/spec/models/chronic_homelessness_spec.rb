@@ -3,27 +3,10 @@
 # drivers/hud_pit/spec/models/chronic_homelessness_spec.rb
 
 require 'rails_helper'
-require_relative '../../../../spec/shared_contexts/hud_enrollment_builders'
-require_relative 'pit_context'
+require_relative 'hud_pit_context'
 
 RSpec.describe 'Chronic Homelessness Calculations', type: :model do
-  include_context 'HUD enrollment builders'
-  include_context 'datalab pit context'
-
-  let(:pit_date) { '2024-01-28'.to_date }
-  let(:user) { User.setup_system_user }
-  let(:pit_filter_spec) do
-    {
-      on: pit_date,
-      start: pit_date.beginning_of_year,
-      end: pit_date.end_of_year,
-      user_id: user.id,
-      coc_codes: ['MA-500'],
-      enforce_one_year_range: false,
-      require_service_during_range: false,
-      project_type_codes: HudUtility2024.homeless_project_type_codes,
-    }
-  end
+  include_context 'HUD pit context'
 
   describe 'Household Chronic Status' do
     context 'with HoH chronically homeless' do
@@ -75,30 +58,24 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
           relationship_to_ho_h: 2,
           household_id: household_id,
         )
-
-        # Build ServiceHistoryEnrollments
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-        # Calculate chronic status
-        GrdaWarehouse::ChEnrollment.maintain!
-
-        # Run the report
-        run(default_pit_filter, HudPit::Generators::Pit::Fy2025::Generator.questions.keys)
       end
 
       it 'marks entire household as chronically homeless when HoH is chronically homeless' do
         question = 'Adult & Child (at least one adult and one child)'
-        expect(@report_result.universe(question).members.count).to eq(3)
+        report = run_report(questions: [question])
 
-        total_households = @report_result.answer(question: question, cell: 'B2')
+        expect(report.universe(question).members.count).to eq(3)
+
+        total_households = report.answer(question: question, cell: 'B2')
         expect(total_households.value).to eq(1)
 
-        total_persons = @report_result.answer(question: question, cell: 'B3')
+        total_persons = report.answer(question: question, cell: 'B3')
         expect(total_persons.value).to eq(3)
 
-        chronic_households = @report_result.answer(question: question, cell: 'B26')
+        chronic_households = report.answer(question: question, cell: 'B26')
         expect(chronic_households.value).to eq(1)
 
-        chronic_persons = @report_result.answer(question: question, cell: 'B27')
+        chronic_persons = report.answer(question: question, cell: 'B27')
         expect(chronic_persons.value).to eq(3)
       end
     end
@@ -151,30 +128,24 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
           relationship_to_ho_h: 3,
           household_id: household_id,
         )
-
-        # Build ServiceHistoryEnrollments
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-        # Calculate chronic status
-        GrdaWarehouse::ChEnrollment.maintain!
-
-        # Run the report
-        run(default_pit_filter, HudPit::Generators::Pit::Fy2025::Generator.questions.keys)
       end
 
       it 'marks entire household as chronically homeless when any adult is chronically homeless' do
         question = 'Adult & Child (at least one adult and one child)'
-        expect(@report_result.universe(question).members.count).to eq(3)
+        report = run_report(questions: [question])
 
-        total_households = @report_result.answer(question: question, cell: 'B2')
+        expect(report.universe(question).members.count).to eq(3)
+
+        total_households = report.answer(question: question, cell: 'B2')
         expect(total_households.value).to eq(1)
 
-        total_persons = @report_result.answer(question: question, cell: 'B3')
+        total_persons = report.answer(question: question, cell: 'B3')
         expect(total_persons.value).to eq(3)
 
-        chronic_households = @report_result.answer(question: question, cell: 'B26')
+        chronic_households = report.answer(question: question, cell: 'B26')
         expect(chronic_households.value).to eq(1)
 
-        chronic_persons = @report_result.answer(question: question, cell: 'B27')
+        chronic_persons = report.answer(question: question, cell: 'B27')
         expect(chronic_persons.value).to eq(3)
       end
     end
@@ -216,30 +187,23 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
           relationship_to_ho_h: 3,
           household_id: household_id,
         )
-
-        # Build ServiceHistoryEnrollments
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-        # Calculate chronic status
-        GrdaWarehouse::ChEnrollment.maintain!
-
-        # Run the report
-        run(default_pit_filter, HudPit::Generators::Pit::Fy2025::Generator.questions.keys)
       end
 
       it 'children inherit HoH chronic status when HoH status is unknown' do
         question = 'Adult & Child (at least one adult and one child)'
-        expect(@report_result.universe(question).members.count).to eq(2)
+        report = run_report(questions: [question])
+        expect(report.universe(question).members.count).to eq(2)
 
-        total_households = @report_result.answer(question: question, cell: 'B2')
+        total_households = report.answer(question: question, cell: 'B2')
         expect(total_households.value).to eq(1)
 
-        total_persons = @report_result.answer(question: question, cell: 'B3')
+        total_persons = report.answer(question: question, cell: 'B3')
         expect(total_persons.value).to eq(2)
 
-        chronic_households = @report_result.answer(question: question, cell: 'B26')
+        chronic_households = report.answer(question: question, cell: 'B26')
         expect(chronic_households.value).to eq(0)
 
-        chronic_persons = @report_result.answer(question: question, cell: 'B27')
+        chronic_persons = report.answer(question: question, cell: 'B27')
         expect(chronic_persons.value).to eq(0)
       end
     end
