@@ -7,6 +7,7 @@ require_relative 'hud_pit_context'
 
 RSpec.describe 'Chronic Homelessness Calculations', type: :model do
   include_context 'HUD pit context'
+  let(:question) { HudPit::Generators::Pit::Fy2025::AdultAndChild::QUESTION_NUMBER }
 
   describe 'Household Chronic Status' do
     context 'with HoH chronically homeless' do
@@ -61,7 +62,6 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
       end
 
       it 'marks entire household as chronically homeless when HoH is chronically homeless' do
-        question = 'Adult & Child (at least one adult and one child)'
         report = run_report(questions: [question])
 
         expect(report.universe(question).members.count).to eq(3)
@@ -131,7 +131,6 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
       end
 
       it 'marks entire household as chronically homeless when any adult is chronically homeless' do
-        question = 'Adult & Child (at least one adult and one child)'
         report = run_report(questions: [question])
 
         expect(report.universe(question).members.count).to eq(3)
@@ -190,7 +189,6 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
       end
 
       it 'children inherit HoH chronic status when HoH status is unknown' do
-        question = 'Adult & Child (at least one adult and one child)'
         report = run_report(questions: [question])
         expect(report.universe(question).members.count).to eq(2)
 
