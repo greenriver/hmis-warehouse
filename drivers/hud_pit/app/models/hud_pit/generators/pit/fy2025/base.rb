@@ -82,7 +82,7 @@ module HudPit::Generators::Pit::Fy2025
           disabilities_latest = disabilities.select { |d| d.InformationDate == max_disability_date }
 
           dv_record = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @generator.filter.on && !h.DomesticViolenceSurvivor.nil? }.
+            select { |h| h.InformationDate <= @generator.filter.on && h.DomesticViolenceSurvivor&.to_i == 1 }.
             max_by(&:InformationDate)
 
           if processed_source_clients.include?(source_client.id)
