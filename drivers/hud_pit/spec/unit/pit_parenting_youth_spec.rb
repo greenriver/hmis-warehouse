@@ -290,6 +290,28 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         expect(hoh_for_youth_count.value).to eq(0)
       end
     end
+
+    context 'when HoH is 17, spouse is 19, with a child (qualifying PYH with mixed-age parents <25)' do
+      let(:dob_youth_19) { pit_date - 19.years } # Helper for this context
+
+      before do
+        household_id = 'py_hoh_for_youth_mixed_age_parents'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hfy_hoh17_mixed', dob: dob_youth_17)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+
+        spouse_client = create_client_with_warehouse_link(uid: 'py_hfy_spouse19_mixed', dob: dob_youth_19)
+        create_enrollment(client: spouse_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_spouse, household_id: household_id)
+
+        child_client = create_client_with_warehouse_link(uid: 'py_hfy_child_mixed_parents', dob: dob_child_5)
+        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
+      end
+
+      it 'counts both HoH (<18) and spouse (18-24)' do
+        report = run_report(questions: [question])
+        hoh_for_youth_count = report.answer(question: question, cell: 'B4')
+        expect(hoh_for_youth_count.value).to eq(2)
+      end
+    end
   end
 
   describe 'Children in Parenting Youth Households' do
@@ -397,17 +419,17 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
       end
     end
 
-    context 'when HoH is 17 (parent <18), with a child (qualifying PYH)' do
+    context 'when HoH is 17 (parent <18), with a child (HoH <18, no 18+ adult, HH likely filtered)' do
       before do
-        household_id = 'py_children_p1824_hoh_too_young_single_adult'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_c1824p_hoh17_single', dob: dob_youth_17)
+        household_id = 'py_children_p1824_hoh17_no_18plus'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_c1824p_hoh17_no_18plus', dob: dob_youth_17)
         create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
-        child_client = create_client_with_warehouse_link(uid: 'py_c1824p_child_for_hoh17_single', dob: dob_child_5)
+        child_client = create_client_with_warehouse_link(uid: 'py_c1824p_child_hoh17_no_18plus', dob: dob_child_5)
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
-      it 'counts 0 children for this specific sub-calculation (parent wrong age for B9)' do
+      it 'counts 0 children as HH likely filtered (or parent wrong age for B9)' do
         report = run_report(questions: [question])
         children_count = report.answer(question: question, cell: 'B9')
         expect(children_count.value).to eq(0)

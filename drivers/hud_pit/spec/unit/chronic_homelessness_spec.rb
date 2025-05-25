@@ -8,57 +8,60 @@ require_relative 'hud_pit_context'
 RSpec.describe 'Chronic Homelessness Calculations', type: :model do
   include_context 'HUD pit context'
   let(:question) { HudPit::Generators::Pit::Fy2025::AdultAndChild::QUESTION_NUMBER }
+  let(:es_project) { create_project(project_type: 0) } # ES-EE
+  let(:adult_dob) { pit_date - 30.years }
+  let(:child_dob) { pit_date - 5.years } # Standardized child DOB
+
+  # Helper to set up a household member with potential chronic homelessness status
+  def setup_household_member(uid_suffix:, dob:, rel_to_hoh:, household_id:, exit_offset_days:, ch_profile: :default, custom_ch_attrs: {})
+    client = create_client_with_warehouse_link(uid: "client_ch_#{uid_suffix}", dob: dob)
+    enrollment = create_enrollment(
+      client: client,
+      project: es_project,
+      entry_date: pit_date,
+      exit_date: pit_date + exit_offset_days.days,
+      relationship_to_ho_h: rel_to_hoh,
+      household_id: household_id
+    )
+
+    ch_attributes_to_apply = {}
+    case ch_profile
+    when :chronic
+      ch_attributes_to_apply = {
+        DateToStreetESSH: pit_date - 1.year, # Default CH start, ensuring >12 months before pit_date if needed for logic
+        LivingSituation: 116, # Place not meant for habitation
+        MonthsHomelessPastThreeYears: 112, # 12+ months
+        TimesHomelessPastThreeYears: 4, # 4+ times
+        DisablingCondition: 1 # Yes
+      }
+    when :unknown
+      ch_attributes_to_apply = {
+        DateToStreetESSH: nil, LivingSituation: nil, MonthsHomelessPastThreeYears: nil,
+        TimesHomelessPastThreeYears: nil, DisablingCondition: nil
+      }
+    when :explicitly_not_chronic # For members explicitly stated as not CH
+      ch_attributes_to_apply = {
+        DateToStreetESSH: pit_date - 10.days, # Example: Homeless recently but not long-term
+        LivingSituation: 101, # e.g., Emergency shelter
+        MonthsHomelessPastThreeYears: 1, # e.g., 1 month
+        TimesHomelessPastThreeYears: 1, # e.g., 1 time
+        DisablingCondition: 0 # No
+      }
+    # if :default, no attributes are applied, relying on factory/create_enrollment defaults (presumably not chronic)
+    end
+
+    enrollment.update!(ch_attributes_to_apply.merge(custom_ch_attrs)) if ch_attributes_to_apply.present?
+    client
+  end
 
   describe 'Household Chronic Status' do
+    let(:household_id) { 'test_household_ch_123' } # Common household_id for these contexts
+
     context 'with HoH chronically homeless' do
       before do
-        # Create an ES project
-        @es_project = create_project(project_type: 0) # ES-EE
-
-        # Create household members
-        @head_of_household = create_client_with_warehouse_link
-        @child = create_client_with_warehouse_link(dob: '2020-06-01')
-        @adult_member = create_client_with_warehouse_link
-
-        # Create household ID
-        household_id = 'test_household_123'
-
-        # Create head of household enrollment with chronic status
-        create_enrollment(
-          client: @head_of_household,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 1,
-          household_id: household_id,
-        ).update!(
-          # Add chronic status fields
-          DateToStreetESSH: pit_date,
-          LivingSituation: 116, # Place not meant for habitation
-          MonthsHomelessPastThreeYears: 112, # 12+ months
-          TimesHomelessPastThreeYears: 4, # 4+ times
-          DisablingCondition: 1, # Yes
-        )
-
-        # Create child enrollment
-        create_enrollment(
-          client: @child,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 3,
-          household_id: household_id,
-        )
-
-        # Create adult member enrollment
-        create_enrollment(
-          client: @adult_member,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 60.days,
-          relationship_to_ho_h: 2,
-          household_id: household_id,
-        )
+        setup_household_member(uid_suffix: 'hoh_ch', dob: adult_dob, rel_to_hoh: 1, household_id: household_id, exit_offset_days: 75, ch_profile: :chronic)
+        setup_household_member(uid_suffix: 'child_in_hoh_ch_hh', dob: child_dob, rel_to_hoh: 3, household_id: household_id, exit_offset_days: 75)
+        setup_household_member(uid_suffix: 'adult_in_hoh_ch_hh', dob: adult_dob, rel_to_hoh: 2, household_id: household_id, exit_offset_days: 60)
       end
 
       it 'marks entire household as chronically homeless when HoH is chronically homeless' do
@@ -82,52 +85,9 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
 
     context 'with non-HoH adult chronically homeless' do
       before do
-        # Create an ES project
-        @es_project = create_project(project_type: 0) # ES-EE
-
-        # Create household members
-        @head_of_household = create_client_with_warehouse_link
-        @chronic_adult = create_client_with_warehouse_link
-        @child = create_client_with_warehouse_link(dob: '2020-06-01')
-
-        # Create household ID
-        household_id = 'test_household_123'
-
-        # Create head of household enrollment (not chronically homeless)
-        create_enrollment(
-          client: @head_of_household,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 1,
-          household_id: household_id,
-        )
-
-        # Create chronically homeless adult enrollment
-        create_enrollment(
-          client: @chronic_adult,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 2,
-          household_id: household_id,
-        ).update!(
-          DateToStreetESSH: pit_date - 1.year,
-          LivingSituation: 116, # Place not meant for habitation
-          MonthsHomelessPastThreeYears: 112, # 12+ months
-          TimesHomelessPastThreeYears: 4, # 4+ times
-          DisablingCondition: 1, # Yes
-        )
-
-        # Create child enrollment
-        create_enrollment(
-          client: @child,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 3,
-          household_id: household_id,
-        )
+        setup_household_member(uid_suffix: 'hoh_in_non_hoh_ch_hh', dob: adult_dob, rel_to_hoh: 1, household_id: household_id, exit_offset_days: 75, ch_profile: :explicitly_not_chronic) # HoH is not CH
+        setup_household_member(uid_suffix: 'chronic_adult_member', dob: adult_dob, rel_to_hoh: 2, household_id: household_id, exit_offset_days: 75, ch_profile: :chronic)
+        setup_household_member(uid_suffix: 'child_in_non_hoh_ch_hh', dob: child_dob, rel_to_hoh: 3, household_id: household_id, exit_offset_days: 75)
       end
 
       it 'marks entire household as chronically homeless when any adult is chronically homeless' do
@@ -151,44 +111,12 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
 
     context 'with HoH having unknown chronic status' do
       before do
-        # Create an ES project
-        @es_project = create_project(project_type: 0) # ES-EE
-
-        # Create household members
-        @head_of_household = create_client_with_warehouse_link
-        @child = create_client_with_warehouse_link(dob: '2020-06-01')
-
-        # Create household ID
-        household_id = 'test_household_123'
-
-        # Create head of household enrollment with unknown chronic status
-        create_enrollment(
-          client: @head_of_household,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 1,
-          household_id: household_id,
-        ).update!(
-          DateToStreetESSH: nil,
-          LivingSituation: nil,
-          MonthsHomelessPastThreeYears: nil,
-          TimesHomelessPastThreeYears: nil,
-          DisablingCondition: nil,
-        )
-
-        # Create child enrollment
-        create_enrollment(
-          client: @child,
-          project: @es_project,
-          entry_date: pit_date,
-          exit_date: pit_date + 75.days,
-          relationship_to_ho_h: 3,
-          household_id: household_id,
-        )
+        setup_household_member(uid_suffix: 'hoh_unknown_ch', dob: adult_dob, rel_to_hoh: 1, household_id: household_id, exit_offset_days: 75, ch_profile: :unknown)
+        setup_household_member(uid_suffix: 'child_in_hoh_unknown_ch_hh', dob: child_dob, rel_to_hoh: 3, household_id: household_id, exit_offset_days: 75)
       end
 
       it 'children inherit HoH chronic status when HoH status is unknown' do
+        # This expectation implies that if HoH is 'unknown CH', they (and thus household) are NOT CH.
         report = run_report(questions: [question])
         expect(report.universe(question).members.count).to eq(2)
 

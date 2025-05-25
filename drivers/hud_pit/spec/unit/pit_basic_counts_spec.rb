@@ -285,7 +285,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts only persons aged 25-34' do
         report = run_report(questions: [question])
-        # Number of Persons (25 - 34) is B6 for AdultAndChild question
+        # Number of Persons (25 - 34) is cell B5 for the Adults question
         age_25_34_count = report.answer(question: question, cell: 'B5')
         expect(age_25_34_count.value).to eq(3)
       end
@@ -319,7 +319,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts only persons aged 35-44' do
         report = run_report(questions: [question])
-        # Number of Persons (35 - 44) is B7 for AdultAndChild question
+        # Number of Persons (35 - 44) is cell B6 for the Adults question
         age_35_44_count = report.answer(question: question, cell: 'B6')
         expect(age_35_44_count.value).to eq(3)
       end
@@ -353,7 +353,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts only persons aged 45-54' do
         report = run_report(questions: [question])
-        # Number of Persons (45 - 54) is B8 for AdultAndChild question
+        # Number of Persons (45 - 54) is cell B7 for the Adults question
         age_45_54_count = report.answer(question: question, cell: 'B7')
         expect(age_45_54_count.value).to eq(3)
       end
@@ -387,7 +387,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts only persons aged 55-64' do
         report = run_report(questions: [question])
-        # Number of Persons (55 - 64) is B9 for AdultAndChild question
+        # Number of Persons (55 - 64) is cell B8 for the Adults question
         age_55_64_count = report.answer(question: question, cell: 'B8')
         expect(age_55_64_count.value).to eq(3)
       end
@@ -415,7 +415,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts only persons aged 65 and older' do
         report = run_report(questions: [question])
-        # Number of Persons (65 and older) is B10 for AdultAndChild question
+        # Number of Persons (65 and older) is cell B9 for the Adults question
         age_65_plus_count = report.answer(question: question, cell: 'B9')
         expect(age_65_plus_count.value).to eq(2)
       end
