@@ -84,7 +84,7 @@ module GrdaWarehouse::Census
         joins(:client).service_within_date_range(start_date: start_date, end_date: end_date).
         merge(enrollment_scope).
         group(:date).
-        count(:client_id)
+        distinct.count(:client_id)
     end
 
     def new_progress_bar(total)
