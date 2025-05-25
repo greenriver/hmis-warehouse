@@ -18,18 +18,14 @@ RSpec.describe 'PIT Basic Counts', type: :model do
           client: hoh_client,
           project: es_project,
           entry_date: pit_date,
-          relationship_to_ho_h: 1, # Head of household
+          relationship_to_ho_h: rel_hoh, # Head of household
           household_id: household_id,
         )
       end
 
       it 'counts one household' do
-        # This setup technically doesn't fit "Adult & Child" question criteria (needs a child)
-        # but the :households sub_calculation itself should still count any HoH.
-        # We will use a more appropriate question type if this fails or for more precise tests.
         report = run_report(questions: [question])
 
-        # Total Number of Households is B2 for AdultAndChild question
         total_households = report.answer(question: question, cell: 'B2')
         expect(total_households.value).to eq(1)
       end
@@ -45,7 +41,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
           client: hoh_client_1,
           project: es_project,
           entry_date: pit_date,
-          relationship_to_ho_h: 1,
+          relationship_to_ho_h: rel_hoh,
           household_id: household_id_1,
         )
 
@@ -56,7 +52,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
           client: hoh_client_2,
           project: es_project,
           entry_date: pit_date,
-          relationship_to_ho_h: 1,
+          relationship_to_ho_h: rel_hoh,
           household_id: household_id_2,
         )
       end
@@ -82,7 +78,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
           client: hoh_client,
           project: es_project,
           entry_date: pit_date,
-          relationship_to_ho_h: 1,
+          relationship_to_ho_h: rel_hoh,
           household_id: household_id,
         )
 
@@ -92,7 +88,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
           client: adult_member,
           project: es_project,
           entry_date: pit_date,
-          relationship_to_ho_h: 2, # Adult other member
+          relationship_to_ho_h: rel_other_adult, # Adult other member
           household_id: household_id,
         )
 
@@ -102,7 +98,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
           client: child_member,
           project: es_project,
           entry_date: pit_date,
-          relationship_to_ho_h: 3, # Child
+          relationship_to_ho_h: rel_child, # Child
           household_id: household_id,
         )
       end
@@ -125,16 +121,16 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         # Household 1 (1 HoH, 1 Child) -> 2 persons
         hh_id1 = 'hh_total_persons_2a'
         hoh1 = create_client_with_warehouse_link(uid: 'client_tp_2a_hoh', dob: adult_dob)
-        create_enrollment(client: hoh1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: hh_id1)
+        create_enrollment(client: hoh1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: hh_id1)
         child1 = create_client_with_warehouse_link(uid: 'client_tp_2a_child', dob: child_dob_under_18)
-        create_enrollment(client: child1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: hh_id1)
+        create_enrollment(client: child1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: hh_id1)
 
         # Household 2 (1 HoH) -> 1 person
         hh_id2 = 'hh_total_persons_2b'
         hoh2 = create_client_with_warehouse_link(uid: 'client_tp_2b_hoh', dob: adult_dob)
-        create_enrollment(client: hoh2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: hh_id2)
+        create_enrollment(client: hoh2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: hh_id2)
         child2 = create_client_with_warehouse_link(uid: 'client_tp_2b_child', dob: child_dob_under_18)
-        create_enrollment(client: child2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: hh_id2)
+        create_enrollment(client: child2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: hh_id2)
       end
 
       it 'counts total persons across all households' do
@@ -160,17 +156,17 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         household_id = 'hh_children_1'
         # Household with one HoH (adult) and two children (5 and 17 years old)
         hoh_client = create_client_with_warehouse_link(uid: 'client_child_hoh', dob: dob_adult_25)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         child_1 = create_client_with_warehouse_link(uid: 'client_child_c1', dob: dob_child_5)
-        create_enrollment(client: child_1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: child_1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         child_2 = create_client_with_warehouse_link(uid: 'client_child_c2', dob: dob_child_17)
-        create_enrollment(client: child_2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: child_2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         # Add an adult who is not a child to ensure they are not counted
         adult_member = create_client_with_warehouse_link(uid: 'client_child_adult', dob: dob_adult_18)
-        create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons under 18' do
@@ -185,10 +181,10 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       before do
         household_id = 'hh_no_children_1'
         hoh_client = create_client_with_warehouse_link(uid: 'client_nochild_hoh', dob: dob_adult_25)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         adult_member = create_client_with_warehouse_link(uid: 'client_nochild_adult', dob: dob_adult_18)
-        create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts zero children' do
@@ -210,23 +206,23 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         household_id = 'hh_youth_1'
         # Household with one HoH (adult) and three youth (18, 20, 24 years old)
         hoh_client = create_client_with_warehouse_link(uid: 'client_youth_hoh', dob: dob_adult_25) # Non-youth HoH
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         youth_1 = create_client_with_warehouse_link(uid: 'client_youth_y1', dob: dob_youth_18)
-        create_enrollment(client: youth_1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id) # Assuming relationship 3 for simplicity
+        create_enrollment(client: youth_1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id) # Assuming relationship 3 for simplicity
 
         youth_2 = create_client_with_warehouse_link(uid: 'client_youth_y2', dob: dob_youth_20)
-        create_enrollment(client: youth_2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: youth_2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         youth_3 = create_client_with_warehouse_link(uid: 'client_youth_y3', dob: dob_youth_24)
-        create_enrollment(client: youth_3, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: youth_3, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         # Add a child and an older adult to ensure they are not counted
         child_member = create_client_with_warehouse_link(uid: 'client_youth_child', dob: dob_child_17)
-        create_enrollment(client: child_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: child_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         adult_member = create_client_with_warehouse_link(uid: 'client_youth_adult', dob: dob_adult_25)
-        create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons aged 18-24' do
@@ -241,10 +237,10 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       before do
         household_id = 'hh_no_youth_1'
         hoh_client = create_client_with_warehouse_link(uid: 'client_noyouth_hoh', dob: dob_adult_25)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         child_member = create_client_with_warehouse_link(uid: 'client_noyouth_child', dob: dob_child_17)
-        create_enrollment(client: child_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: child_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
       it 'counts zero youth' do
@@ -266,21 +262,21 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         household_id = 'hh_age_25_34_1'
         # HoH (outside this age range for simplicity of member counting)
         hoh_client = create_client_with_warehouse_link(uid: 'client_a2534_hoh', dob: pit_date - 40.years)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         # Members in 25-34 age group
         m1 = create_client_with_warehouse_link(uid: 'client_a2534_m1', dob: dob_age_25)
-        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m2 = create_client_with_warehouse_link(uid: 'client_a2534_m2', dob: dob_age_30)
-        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m3 = create_client_with_warehouse_link(uid: 'client_a2534_m3', dob: dob_age_34)
-        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
 
         # Members outside this age group
         m_young = create_client_with_warehouse_link(uid: 'client_a2534_m_young', dob: dob_age_24)
-        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: 3, household_id: household_id)
+        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
         m_old = create_client_with_warehouse_link(uid: 'client_a2534_m_old', dob: dob_age_35)
-        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons aged 25-34' do
@@ -302,19 +298,19 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       before do
         household_id = 'hh_age_35_44_1'
         hoh_client = create_client_with_warehouse_link(uid: 'client_a3544_hoh', dob: pit_date - 50.years)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         m1 = create_client_with_warehouse_link(uid: 'client_a3544_m1', dob: dob_age_35)
-        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m2 = create_client_with_warehouse_link(uid: 'client_a3544_m2', dob: dob_age_40)
-        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m3 = create_client_with_warehouse_link(uid: 'client_a3544_m3', dob: dob_age_44)
-        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
 
         m_young = create_client_with_warehouse_link(uid: 'client_a3544_m_young', dob: dob_age_34)
-        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m_old = create_client_with_warehouse_link(uid: 'client_a3544_m_old', dob: dob_age_45)
-        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons aged 35-44' do
@@ -336,19 +332,19 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       before do
         household_id = 'hh_age_45_54_1'
         hoh_client = create_client_with_warehouse_link(uid: 'client_a4554_hoh', dob: pit_date - 60.years)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         m1 = create_client_with_warehouse_link(uid: 'client_a4554_m1', dob: dob_age_45)
-        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m2 = create_client_with_warehouse_link(uid: 'client_a4554_m2', dob: dob_age_50)
-        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m3 = create_client_with_warehouse_link(uid: 'client_a4554_m3', dob: dob_age_54)
-        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
 
         m_young = create_client_with_warehouse_link(uid: 'client_a4554_m_young', dob: dob_age_44)
-        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m_old = create_client_with_warehouse_link(uid: 'client_a4554_m_old', dob: dob_age_55)
-        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons aged 45-54' do
@@ -370,19 +366,19 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       before do
         household_id = 'hh_age_55_64_1'
         hoh_client = create_client_with_warehouse_link(uid: 'client_a5564_hoh', dob: pit_date - 70.years)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         m1 = create_client_with_warehouse_link(uid: 'client_a5564_m1', dob: dob_age_55)
-        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m2 = create_client_with_warehouse_link(uid: 'client_a5564_m2', dob: dob_age_60)
-        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m3 = create_client_with_warehouse_link(uid: 'client_a5564_m3', dob: dob_age_64)
-        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m3, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
 
         m_young = create_client_with_warehouse_link(uid: 'client_a5564_m_young', dob: dob_age_54)
-        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m_old = create_client_with_warehouse_link(uid: 'client_a5564_m_old', dob: dob_age_65)
-        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_old, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons aged 55-64' do
@@ -402,15 +398,15 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       before do
         household_id = 'hh_age_65_plus_1'
         hoh_client = create_client_with_warehouse_link(uid: 'client_a65p_hoh', dob: pit_date - 40.years) # Younger HoH for simplicity
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: 1, household_id: household_id)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         m1 = create_client_with_warehouse_link(uid: 'client_a65p_m1', dob: dob_age_65)
-        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
         m2 = create_client_with_warehouse_link(uid: 'client_a65p_m2', dob: dob_age_70)
-        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
 
         m_young = create_client_with_warehouse_link(uid: 'client_a65p_m_young', dob: dob_age_64)
-        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: 2, household_id: household_id)
+        create_enrollment(client: m_young, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
       it 'counts only persons aged 65 and older' do

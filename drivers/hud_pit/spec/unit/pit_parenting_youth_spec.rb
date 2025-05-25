@@ -17,14 +17,6 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
   let(:dob_youth_24) { pit_date - 24.years } # Parenting youth 18-24
   let(:dob_adult_25) { pit_date - 25.years } # Too old for parenting youth household max_age filter
 
-  # RelationshipToHoH codes based on HUD HMIS specifications and sub_calculation logic
-  let(:rel_hoh) { 1 } # Self (Head of Household)
-  let(:rel_spouse) { 3 } # Head of Household's spouse or partner
-  let(:rel_child) { 2 } # Head of Household's child
-  let(:rel_other_adult) { 4 } # Other relation member (adult)
-  # let(:rel_other_child) { 5 } # Other relation member (child) - if needed
-  # let(:rel_unrelated) { 6 } # Other non-relating person - if needed
-
   describe 'Parenting Youth (HoH/Spouse, 18-24)' do
     context 'when HoH is 18-24, with a child, and max household age < 25 (single adult HH)' do
       before do

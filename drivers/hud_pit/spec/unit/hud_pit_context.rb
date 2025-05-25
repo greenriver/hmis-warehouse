@@ -10,6 +10,12 @@ require_relative '../../../../spec/shared_contexts/hud_enrollment_builders'
 RSpec.shared_context 'HUD pit context', shared_context: :metadata do
   include_context 'HUD enrollment builders'
 
+  # RelationshipToHoH codes based on HUD HMIS specifications
+  let(:rel_hoh) { 1 } # Self (Head of Household)
+  let(:rel_spouse) { 3 } # Head of Household's spouse or partner
+  let(:rel_child) { 2 } # Head of Household's child
+  let(:rel_other_adult) { 4 } # Other relation member (adult)
+
   let(:pit_date) { '2024-01-28'.to_date }
   let(:user) { User.setup_system_user }
   let(:filter_params) do
@@ -31,10 +37,9 @@ RSpec.shared_context 'HUD pit context', shared_context: :metadata do
     # Calculate chronic status
     GrdaWarehouse::ChEnrollment.maintain!
 
-    filter = ::Filters::HudFilterBase.new(filter_params)
     klass = HudPit::Generators::Pit::Fy2025::Generator
     report = ::HudReports::ReportInstance.from_filter(
-      filter,
+      ::Filters::HudFilterBase.new(filter),
       klass.title,
       build_for_questions: questions,
     )

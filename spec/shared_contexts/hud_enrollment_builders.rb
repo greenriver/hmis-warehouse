@@ -31,8 +31,8 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
   end
 
   def create_client_with_warehouse_link(uid: nil, dob: '1995-04-05'.to_date)
-    uuid ||= SecureRandom.uuid.gsub(/-/, '')
-    client = create(:hud_client, data_source: data_source, dob: dob)
+    personal_id = uid || SecureRandom.uuid.gsub(/-/, '')
+    client = create(:hud_client, data_source: data_source, dob: dob, personal_id: personal_id)
     destination_client = create(:hud_client, data_source: destination_data_source)
     create(:warehouse_client, destination_id: destination_client.id, source_id: client.id)
     client
