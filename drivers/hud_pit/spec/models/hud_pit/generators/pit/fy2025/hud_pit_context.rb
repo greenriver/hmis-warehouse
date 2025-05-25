@@ -5,7 +5,7 @@
 ###
 # frozen_string_literal: true
 
-require_relative '../../../../spec/shared_contexts/hud_enrollment_builders'
+require 'shared_contexts/hud_enrollment_builders'
 
 RSpec.shared_context 'HUD pit context', shared_context: :metadata do
   include_context 'HUD enrollment builders'
