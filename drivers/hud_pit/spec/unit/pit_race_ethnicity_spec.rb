@@ -10,383 +10,157 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
   let(:es_project) { create_project(project_type: 0) } # ES-EE
   let(:adult_dob) { pit_date - 30.years }
   let(:child_dob) { pit_date - 5.years }
+  let(:all_primary_race_keys) { [:AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIPacific, :White, :MidEastNAfrican] }
 
   # Helper to create a client with specific race/ethnicity flags and enroll them
-  def create_and_enroll_client_for_race_test(uid:, household_id:, race_attrs:, is_hoh: true)
+  def create_and_enroll_client_for_race_test(uid:, household_id:, race_attrs:, is_hoh: true, rel_to_hoh: nil)
     client = create_client_with_warehouse_link(uid: uid, dob: is_hoh ? adult_dob : child_dob)
     client.update!(race_attrs)
     create_enrollment(
       client: client,
       project: es_project,
       entry_date: pit_date,
-      relationship_to_ho_h: is_hoh ? 1 : 3,
+      relationship_to_ho_h: rel_to_hoh || (is_hoh ? 1 : 3),
       household_id: household_id,
     )
     client
   end
 
-  describe 'American Indian, Alaska Native, or Indigenous (only)' do
-    context 'when a client is AmIndAKNative only (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_native_ak_only_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_ak',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 }, # A non-matching HoH
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_ak_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # Not Hispanic/Latino
-          },
-          is_hoh: false
-        )
+  # Helper to build the full race_attrs hash for a client being tested
+  def build_race_attributes(target_race_keys, is_hispanic, all_keys)
+    attrs = { HispanicLatinaeo: (is_hispanic ? 1 : 0) }
+    # Ensure all primary race keys are initialized, defaulting to 0
+    all_keys.each { |key| attrs[key] = 0 }
+    # Set target race(s) to 1
+    Array(target_race_keys).each { |key| attrs[key] = 1 }
+    attrs
+  end
+
+  # Shared examples for testing a single primary race category
+  RSpec.shared_examples 'a single race category test' do |race_key, race_name, cell_non_hisp_only, cell_hisp_only|
+    let(:multi_racial_non_hisp_cell) { 'B25' } # Corresponds to :multi_racial
+    let(:multi_racial_hisp_cell) { 'B24' }     # Corresponds to :multi_racial_latino
+    let(:hoh_race_attrs) { { second_race_for_multi => 1, HispanicLatinaeo: 0 } } # Standard non-interfering HoH
+
+    # Determine a second race for multi-racial tests, ensuring it's different from the primary race_key
+    let(:second_race_for_multi) do
+      sr = :White # Default second race
+      sr = :Asian if race_key == :White # If primary is White, use Asian as second
+      sr
+    end
+
+    # --- Non-Hispanic/Latina/e/o Tests ---
+    describe "#{race_name} (only)" do # This will effectively test the non-Hispanic "only" scenario
+      context "when a client is #{race_name} only (not Hispanic/Latino)" do
+        before do
+          household_id = "race_#{race_key.to_s.downcase}_only_non_hisp"
+          create_and_enroll_client_for_race_test(
+            uid: "hoh_for_#{household_id}", household_id: household_id, race_attrs: hoh_race_attrs, is_hoh: true,
+          )
+          test_client_attrs = build_race_attributes([race_key], false, all_primary_race_keys)
+          create_and_enroll_client_for_race_test(
+            uid: "client_for_#{household_id}", household_id: household_id, race_attrs: test_client_attrs, is_hoh: false,
+          )
+        end
+
+        it "counts the client in #{race_name} (only, not Hispanic/Latina/e/o)" do
+          report = run_report(questions: [question])
+          count = report.answer(question: question, cell: cell_non_hisp_only)
+          expect(count.value).to eq(1)
+        end
       end
 
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :native_ak is cell B11 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B11')
-        expect(count.value).to eq(1)
+      context "when a client is #{race_name} and another race (not Hispanic/Latino)" do
+        before do
+          household_id = "race_#{race_key.to_s.downcase}_multi_non_hisp"
+          create_and_enroll_client_for_race_test(
+            uid: "hoh_for_#{household_id}", household_id: household_id, race_attrs: hoh_race_attrs, is_hoh: true,
+          )
+          test_client_attrs = build_race_attributes([race_key, second_race_for_multi], false, all_primary_race_keys)
+          create_and_enroll_client_for_race_test(
+            uid: "client_for_#{household_id}", household_id: household_id, race_attrs: test_client_attrs, is_hoh: false,
+          )
+        end
+
+        it "counts in Multi-Racial (not Hispanic/Latina/e/o) and not in #{race_name} (only)" do
+          report = run_report(questions: [question])
+          only_count = report.answer(question: question, cell: cell_non_hisp_only)
+          expect(only_count.value).to eq(0)
+
+          multi_count = report.answer(question: question, cell: multi_racial_non_hisp_cell)
+          expect(multi_count.value).to eq(1)
+        end
       end
     end
 
-    context 'when a client is AmIndAKNative and another race (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_native_ak_multi_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_ak_multi',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_ak_white_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0
-          },
-          is_hoh: false
-        )
+    # --- Hispanic/Latina/e/o Tests ---
+    describe "#{race_name} & Hispanic/Latina/e/o" do
+      context "when a client is #{race_name} only and Hispanic/Latino" do
+        before do
+          household_id = "race_#{race_key.to_s.downcase}_only_hisp"
+          create_and_enroll_client_for_race_test(
+            uid: "hoh_for_#{household_id}", household_id: household_id, race_attrs: hoh_race_attrs, is_hoh: true,
+          )
+          test_client_attrs = build_race_attributes([race_key], true, all_primary_race_keys)
+          create_and_enroll_client_for_race_test(
+            uid: "client_for_#{household_id}", household_id: household_id, race_attrs: test_client_attrs, is_hoh: false,
+          )
+        end
+
+        it "counts the client in #{race_name} & Hispanic/Latina/e/o" do
+          report = run_report(questions: [question])
+          count = report.answer(question: question, cell: cell_hisp_only)
+          expect(count.value).to eq(1)
+        end
       end
 
-      it 'does not count in AmIndAKNative (only), but in Multi-Racial (not Hispanic/Latina/e/o)' do
-        report = run_report(questions: [question])
-        native_ak_only_count = report.answer(question: question, cell: 'B11')
-        expect(native_ak_only_count.value).to eq(0)
+      context "when a client is #{race_name}, another race, and Hispanic/Latino" do
+        before do
+          household_id = "race_#{race_key.to_s.downcase}_multi_hisp"
+          create_and_enroll_client_for_race_test(
+            uid: "hoh_for_#{household_id}", household_id: household_id, race_attrs: hoh_race_attrs, is_hoh: true,
+          )
+          test_client_attrs = build_race_attributes([race_key, second_race_for_multi], true, all_primary_race_keys)
+          create_and_enroll_client_for_race_test(
+            uid: "client_for_#{household_id}", household_id: household_id, race_attrs: test_client_attrs, is_hoh: false,
+          )
+        end
 
-        # :multi_racial in AdultAndChild.rb is B25 (title: 'Multi-Racial (all other)')
-        # This corresponds to pit_race = 'Multi-Racial (not Hispanic/Latina/e/o)'
-        multi_racial_not_hispanic_count = report.answer(question: question, cell: 'B25')
-        expect(multi_racial_not_hispanic_count.value).to eq(1)
+        it "counts in Multi-Racial & Hispanic/Latina/e/o and not in #{race_name} & Hispanic/Latina/e/o" do
+          report = run_report(questions: [question])
+          only_hisp_count = report.answer(question: question, cell: cell_hisp_only)
+          expect(only_hisp_count.value).to eq(0)
+
+          multi_hisp_count = report.answer(question: question, cell: multi_racial_hisp_cell)
+          expect(multi_hisp_count.value).to eq(1)
+        end
       end
     end
   end
 
-  describe 'American Indian, Alaska Native, or Indigenous & Hispanic/Latina/e/o' do
-    context 'when a client is AmIndAKNative and Hispanic/Latino' do
-      before do
-        household_id = 'race_native_ak_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_ak_latino',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_ak_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
+  # --- Applying Shared Examples for each primary race ---
+  # Cell mapping from AdultAndChild.rb:
+  # B11: native_ak (AmIndAKNative only, not H/L)
+  # B12: native_ak_latino (AmIndAKNative only, and H/L)
+  # B13: asian (Asian only, not H/L)
+  # B14: asian_latino (Asian only, and H/L)
+  # B15: black_af_american (Black only, not H/L)
+  # B16: black_af_american_latino (Black only, and H/L)
+  # B18: mid_east_na (MENA only, not H/L)
+  # B19: mid_east_na_latino (MENA only, and H/L)
+  # B20: native_pi (Native PI only, not H/L)
+  # B21: native_pi_latino (Native PI only, and H/L)
+  # B22: white (White only, not H/L)
+  # B23: white_latino (White only, and H/L)
 
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :native_ak_latino is cell B12 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B12')
-        expect(count.value).to eq(1)
-      end
-    end
+  it_behaves_like 'a single race category test', :AmIndAKNative, 'American Indian, Alaska Native, or Indigenous', 'B11', 'B12'
+  it_behaves_like 'a single race category test', :Asian, 'Asian or Asian American', 'B13', 'B14'
+  it_behaves_like 'a single race category test', :BlackAfAmerican, 'Black, African American, or African', 'B15', 'B16'
+  it_behaves_like 'a single race category test', :MidEastNAfrican, 'Middle Eastern or North African', 'B18', 'B19'
+  it_behaves_like 'a single race category test', :NativeHIPacific, 'Native Hawaiian or Pacific Islander', 'B20', 'B21'
+  it_behaves_like 'a single race category test', :White, 'White', 'B22', 'B23'
 
-    context 'when a client is AmIndAKNative, White, and Hispanic/Latino' do
-      before do
-        household_id = 'race_native_ak_white_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_ak_white_latino',
-          household_id: household_id,
-          race_attrs: { BlackAfAmerican: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_ak_white_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial & Hispanic/Latina/e/o' do
-        report = run_report(questions: [question])
-        native_ak_latino_count = report.answer(question: question, cell: 'B12')
-        expect(native_ak_latino_count.value).to eq(0)
-
-        # :multi_racial_latino is B24 for AdultAndChild
-        multi_racial_latino_count = report.answer(question: question, cell: 'B24')
-        expect(multi_racial_latino_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Asian or Asian American (only)' do
-    context 'when a client is Asian only (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_asian_only_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_asian',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_asian_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # Not Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :asian is cell B13 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B13')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Asian and another race (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_asian_multi_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_asian_multi',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_asian_white_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial (not Hispanic/Latina/e/o)' do
-        report = run_report(questions: [question])
-        asian_only_count = report.answer(question: question, cell: 'B13')
-        expect(asian_only_count.value).to eq(0)
-
-        multi_racial_not_hispanic_count = report.answer(question: question, cell: 'B25')
-        expect(multi_racial_not_hispanic_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Asian or Asian American & Hispanic/Latina/e/o' do
-    context 'when a client is Asian and Hispanic/Latino' do
-      before do
-        household_id = 'race_asian_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_asian_latino',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_asian_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :asian_latino is cell B14 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B14')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Asian, White, and Hispanic/Latino' do
-      before do
-        household_id = 'race_asian_white_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_asian_white_latino',
-          household_id: household_id,
-          race_attrs: { BlackAfAmerican: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_asian_white_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial & Hispanic/Latina/e/o' do
-        report = run_report(questions: [question])
-        asian_latino_count = report.answer(question: question, cell: 'B14')
-        expect(asian_latino_count.value).to eq(0)
-
-        multi_racial_latino_count = report.answer(question: question, cell: 'B24')
-        expect(multi_racial_latino_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Black, African American, or African (only)' do
-    context 'when a client is Black/African American only (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_black_only_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_black',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_black_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 1, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # Not Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :black_af_american is cell B15 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B15')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Black/African American and another race (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_black_multi_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_black_multi',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_black_white_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 1, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial (not Hispanic/Latina/e/o)' do
-        report = run_report(questions: [question])
-        black_only_count = report.answer(question: question, cell: 'B15')
-        expect(black_only_count.value).to eq(0)
-
-        multi_racial_not_hispanic_count = report.answer(question: question, cell: 'B25')
-        expect(multi_racial_not_hispanic_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Black, African American, or African & Hispanic/Latina/e/o' do
-    context 'when a client is Black/African American and Hispanic/Latino' do
-      before do
-        household_id = 'race_black_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_black_latino',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_black_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 1, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :black_af_american_latino is cell B16 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B16')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Black/African American, White, and Hispanic/Latino' do
-      before do
-        household_id = 'race_black_white_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_black_white_latino',
-          household_id: household_id,
-          race_attrs: { Asian: 1, HispanicLatinaeo: 0 }, # HoH of a different race
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_black_white_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 1, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial & Hispanic/Latina/e/o' do
-        report = run_report(questions: [question])
-        black_latino_count = report.answer(question: question, cell: 'B16')
-        expect(black_latino_count.value).to eq(0)
-
-        multi_racial_latino_count = report.answer(question: question, cell: 'B24')
-        expect(multi_racial_latino_count.value).to eq(1)
-      end
-    end
-  end
+  # --- Retaining Specific Tests for Hispanic (only) and Multi-Racial Categories ---
 
   describe 'Hispanic/Latina/e/o (only)' do
     context 'when a client is Hispanic/Latino only (no other race selected)' do
@@ -396,16 +170,15 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
           uid: 'race_hoh_for_latino_only',
           household_id: household_id,
           race_attrs: { White: 1, HispanicLatinaeo: 0 }, # Non-Hispanic HoH
-          is_hoh: true
+          is_hoh: true,
         )
+        # Client is Hispanic/Latino, and all primary race fields are 0
+        test_client_attrs = build_race_attributes([], true, all_primary_race_keys)
         create_and_enroll_client_for_race_test(
           uid: 'race_latino_only_client',
           household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino, and no other race fields are 1
-          },
-          is_hoh: false
+          race_attrs: test_client_attrs,
+          is_hoh: false,
         )
       end
 
@@ -424,16 +197,14 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
           uid: 'race_hoh_for_latino_plus_white',
           household_id: household_id,
           race_attrs: { AmIndAKNative: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
+          is_hoh: true,
         )
+        test_client_attrs = build_race_attributes([:White], true, all_primary_race_keys)
         create_and_enroll_client_for_race_test(
           uid: 'race_latino_white_client',
           household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino AND White
-          },
-          is_hoh: false
+          race_attrs: test_client_attrs,
+          is_hoh: false,
         )
       end
 
@@ -449,367 +220,6 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
     end
   end
 
-  describe 'Middle Eastern or North African (only)' do
-    context 'when a client is Middle Eastern/North African only (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_mena_only_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_mena',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_mena_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 1,
-            HispanicLatinaeo: 0 # Not Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :mid_east_na is cell B18 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B18')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Middle Eastern/North African and another race (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_mena_multi_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_mena_multi',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_mena_white_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 1,
-            HispanicLatinaeo: 0
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial (not Hispanic/Latina/e/o)' do
-        report = run_report(questions: [question])
-        mena_only_count = report.answer(question: question, cell: 'B18')
-        expect(mena_only_count.value).to eq(0)
-
-        multi_racial_not_hispanic_count = report.answer(question: question, cell: 'B25')
-        expect(multi_racial_not_hispanic_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Middle Eastern or North African & Hispanic/Latina/e/o' do
-    context 'when a client is Middle Eastern/North African and Hispanic/Latino' do
-      before do
-        household_id = 'race_mena_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_mena_latino',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_mena_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 1,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :mid_east_na_latino is cell B19 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B19')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Middle Eastern/North African, White, and Hispanic/Latino' do
-      before do
-        household_id = 'race_mena_white_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_mena_white_latino',
-          household_id: household_id,
-          race_attrs: { Asian: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_mena_white_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 1,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial & Hispanic/Latina/e/o' do
-        report = run_report(questions: [question])
-        mena_latino_count = report.answer(question: question, cell: 'B19')
-        expect(mena_latino_count.value).to eq(0)
-
-        multi_racial_latino_count = report.answer(question: question, cell: 'B24')
-        expect(multi_racial_latino_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Native Hawaiian or Pacific Islander (only)' do
-    context 'when a client is Native Hawaiian/Pacific Islander only (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_native_pi_only_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_pi',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_pi_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 1, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # Not Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :native_pi is cell B20 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B20')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Native Hawaiian/Pacific Islander and another race (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_native_pi_multi_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_pi_multi',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_pi_white_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 1, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial (not Hispanic/Latina/e/o)' do
-        report = run_report(questions: [question])
-        native_pi_only_count = report.answer(question: question, cell: 'B20')
-        expect(native_pi_only_count.value).to eq(0)
-
-        multi_racial_not_hispanic_count = report.answer(question: question, cell: 'B25')
-        expect(multi_racial_not_hispanic_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'Native Hawaiian or Pacific Islander & Hispanic/Latina/e/o' do
-    context 'when a client is Native Hawaiian/Pacific Islander and Hispanic/Latino' do
-      before do
-        household_id = 'race_native_pi_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_pi_latino',
-          household_id: household_id,
-          race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_pi_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 1, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :native_pi_latino is cell B21 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B21')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is Native Hawaiian/Pacific Islander, White, and Hispanic/Latino' do
-      before do
-        household_id = 'race_native_pi_white_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_native_pi_white_latino',
-          household_id: household_id,
-          race_attrs: { Asian: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_native_pi_white_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 1, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial & Hispanic/Latina/e/o' do
-        report = run_report(questions: [question])
-        native_pi_latino_count = report.answer(question: question, cell: 'B21')
-        expect(native_pi_latino_count.value).to eq(0)
-
-        multi_racial_latino_count = report.answer(question: question, cell: 'B24')
-        expect(multi_racial_latino_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'White (only)' do
-    context 'when a client is White only (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_white_only_1'
-        # HoH can be anything for this test, as long as it allows the household to be processed
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_white',
-          household_id: household_id,
-          race_attrs: { Asian: 1, HispanicLatinaeo: 0 }, # Non-white, non-Hispanic HoH
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_white_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # Not Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :white is cell B22 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B22')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is White and another race (e.g., Asian) (not Hispanic/Latino)' do
-      before do
-        household_id = 'race_white_multi_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_white_multi',
-          household_id: household_id,
-          race_attrs: { BlackAfAmerican: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_white_asian_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial (not Hispanic/Latina/e/o)' do
-        report = run_report(questions: [question])
-        white_only_count = report.answer(question: question, cell: 'B22')
-        expect(white_only_count.value).to eq(0)
-
-        multi_racial_not_hispanic_count = report.answer(question: question, cell: 'B25')
-        expect(multi_racial_not_hispanic_count.value).to eq(1)
-      end
-    end
-  end
-
-  describe 'White & Hispanic/Latina/e/o' do
-    context 'when a client is White and Hispanic/Latino' do
-      before do
-        household_id = 'race_white_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_white_latino',
-          household_id: household_id,
-          race_attrs: { Asian: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_white_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts the client in the correct category' do
-        report = run_report(questions: [question])
-        # :white_latino is cell B23 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B23')
-        expect(count.value).to eq(1)
-      end
-    end
-
-    context 'when a client is White, Asian, and Hispanic/Latino' do
-      before do
-        household_id = 'race_white_asian_latino_1'
-        create_and_enroll_client_for_race_test(
-          uid: 'race_hoh_for_white_asian_latino',
-          household_id: household_id,
-          race_attrs: { BlackAfAmerican: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
-        )
-        create_and_enroll_client_for_race_test(
-          uid: 'race_white_asian_latino_client',
-          household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
-        )
-      end
-
-      it 'counts in Multi-Racial & Hispanic/Latina/e/o' do
-        report = run_report(questions: [question])
-        white_latino_count = report.answer(question: question, cell: 'B23')
-        expect(white_latino_count.value).to eq(0)
-
-        multi_racial_latino_count = report.answer(question: question, cell: 'B24')
-        expect(multi_racial_latino_count.value).to eq(1)
-      end
-    end
-  end
-
   describe 'Multi-Racial & Hispanic/Latina/e/o' do
     context 'when a client identifies with two races (e.g., AmIndAKNative and Asian) AND is Hispanic/Latino' do
       before do
@@ -818,16 +228,14 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
           uid: 'race_hoh_for_multi_latino_explicit',
           household_id: household_id,
           race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
+          is_hoh: true,
         )
+        test_client_attrs = build_race_attributes([:AmIndAKNative, :Asian], true, all_primary_race_keys)
         create_and_enroll_client_for_race_test(
           uid: 'race_multi_latino_client_explicit',
           household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 1, BlackAfAmerican: 0, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
+          race_attrs: test_client_attrs,
+          is_hoh: false,
         )
       end
 
@@ -846,16 +254,14 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
           uid: 'race_hoh_for_multi_latino_explicit_2',
           household_id: household_id,
           race_attrs: { White: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
+          is_hoh: true,
         )
+        test_client_attrs = build_race_attributes([:AmIndAKNative, :Asian, :BlackAfAmerican], true, all_primary_race_keys)
         create_and_enroll_client_for_race_test(
           uid: 'race_multi_latino_client_explicit_2',
           household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 1, BlackAfAmerican: 1, NativeHIPacific: 0, White: 0, MidEastNAfrican: 0,
-            HispanicLatinaeo: 1 # Is Hispanic/Latino
-          },
-          is_hoh: false
+          race_attrs: test_client_attrs,
+          is_hoh: false,
         )
       end
 
@@ -875,16 +281,14 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
           uid: 'race_hoh_for_multi_non_hispanic_explicit',
           household_id: household_id,
           race_attrs: { Asian: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
+          is_hoh: true,
         )
+        test_client_attrs = build_race_attributes([:BlackAfAmerican, :White], false, all_primary_race_keys)
         create_and_enroll_client_for_race_test(
           uid: 'race_multi_non_hispanic_client_explicit',
           household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 0, Asian: 0, BlackAfAmerican: 1, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # NOT Hispanic/Latino
-          },
-          is_hoh: false
+          race_attrs: test_client_attrs,
+          is_hoh: false,
         )
       end
 
@@ -903,16 +307,14 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
           uid: 'race_hoh_for_multi_non_hispanic_explicit_2',
           household_id: household_id,
           race_attrs: { Asian: 1, HispanicLatinaeo: 0 },
-          is_hoh: true
+          is_hoh: true,
         )
+        test_client_attrs = build_race_attributes([:AmIndAKNative, :BlackAfAmerican, :White], false, all_primary_race_keys)
         create_and_enroll_client_for_race_test(
           uid: 'race_multi_non_hispanic_client_explicit_2',
           household_id: household_id,
-          race_attrs: {
-            AmIndAKNative: 1, Asian: 0, BlackAfAmerican: 1, NativeHIPacific: 0, White: 1, MidEastNAfrican: 0,
-            HispanicLatinaeo: 0 # NOT Hispanic/Latino
-          },
-          is_hoh: false
+          race_attrs: test_client_attrs,
+          is_hoh: false,
         )
       end
 

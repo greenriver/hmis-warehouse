@@ -13,9 +13,9 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
   let(:young_adult_dob) { pit_report_date - 20.years } # For adult checks
   let(:child_dob) { pit_report_date - 10.years } # To ensure not counted if filter is adult-only
 
-  let(:disability_types) {
+  let(:disability_types) do
     GrdaWarehouse::Hud::Disability.disability_types.invert
-  }
+  end
 
   # Helper to create and enroll a client, then attach condition records
   def create_client_with_conditions(uid:, household_id:, dob:, conditions: {}, is_hoh: true, entry_date_offset: -10)
@@ -25,7 +25,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       project: es_project,
       entry_date: pit_report_date + entry_date_offset.days,
       relationship_to_ho_h: is_hoh ? 1 : 3, # Adjust if testing non-HoH adults
-      household_id: household_id
+      household_id: household_id,
     )
 
     if conditions[:mental_illness]
@@ -33,7 +33,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
         enrollment: enrollment,
         information_date: pit_report_date - 1.day, # Ensure info is current
         disability_type: disability_types[:mental], # Mental Health Problem
-        disability_response: conditions[:mental_illness] # 1 for Yes
+        disability_response: conditions[:mental_illness], # 1 for Yes
       )
     end
 
@@ -43,7 +43,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
         enrollment: enrollment,
         information_date: pit_report_date - 1.day,
         disability_type: disability_types[:substance],
-        disability_response: conditions[:substance_use] # 1 for Yes
+        disability_response: conditions[:substance_use], # 1 for Yes
       )
     end
 
@@ -52,7 +52,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
         enrollment: enrollment,
         information_date: pit_report_date - 1.day,
         disability_type: disability_types[:hiv],
-        disability_response: conditions[:hiv_aids] # 1 for Yes
+        disability_response: conditions[:hiv_aids], # 1 for Yes
       )
     end
 
@@ -74,7 +74,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_mi_yes',
           household_id: 'hh_adult_mi_yes',
           dob: adult_dob,
-          conditions: { mental_illness: 1 } # Yes
+          conditions: { mental_illness: 1 }, # Yes
         )
       end
 
@@ -92,7 +92,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_mi_no',
           household_id: 'hh_adult_mi_no',
           dob: adult_dob,
-          conditions: { mental_illness: 0 } # No
+          conditions: { mental_illness: 0 }, # No
         )
       end
 
@@ -109,7 +109,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'child_mi_yes',
           household_id: 'hh_child_mi_yes',
           dob: child_dob, # Child DOB
-          conditions: { mental_illness: 1 }
+          conditions: { mental_illness: 1 },
         )
       end
 
@@ -129,14 +129,14 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           household_id: household_id,
           dob: adult_dob,
           conditions: { mental_illness: 1 },
-          is_hoh: true
+          is_hoh: true,
         )
         create_client_with_conditions(
           uid: 'adult_mi_yes_2',
           household_id: household_id,
           dob: young_adult_dob, # Another adult
           conditions: { mental_illness: 1 },
-          is_hoh: false
+          is_hoh: false,
         )
       end
 
@@ -155,7 +155,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_su_yes',
           household_id: 'hh_adult_su_yes',
           dob: adult_dob,
-          conditions: { substance_use: 1 } # Yes to substance use
+          conditions: { substance_use: 1 }, # Yes to substance use
         )
       end
 
@@ -173,7 +173,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_su_yes_resp2',
           household_id: 'hh_adult_su_yes_resp2',
           dob: adult_dob,
-          conditions: { substance_use: 2 } # Yes, awaiting documentation
+          conditions: { substance_use: 2 }, # Yes, awaiting documentation
         )
       end
 
@@ -190,7 +190,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_su_no',
           household_id: 'hh_adult_su_no',
           dob: adult_dob,
-          conditions: { substance_use: 0 } # No
+          conditions: { substance_use: 0 }, # No
         )
       end
 
@@ -207,7 +207,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'child_su_yes',
           household_id: 'hh_child_su_yes',
           dob: child_dob, # Child DOB
-          conditions: { substance_use: 1 }
+          conditions: { substance_use: 1 },
         )
       end
 
@@ -226,7 +226,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_hiv_yes',
           household_id: 'hh_adult_hiv_yes',
           dob: adult_dob,
-          conditions: { hiv_aids: 1 } # Yes to HIV/AIDS
+          conditions: { hiv_aids: 1 }, # Yes to HIV/AIDS
         )
       end
 
@@ -244,7 +244,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_hiv_yes_resp3',
           household_id: 'hh_adult_hiv_yes_resp3',
           dob: adult_dob,
-          conditions: { hiv_aids: 3 } # Yes, client self-reported
+          conditions: { hiv_aids: 3 }, # Yes, client self-reported
         )
       end
 
@@ -261,7 +261,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_hiv_no',
           household_id: 'hh_adult_hiv_no',
           dob: adult_dob,
-          conditions: { hiv_aids: 0 } # No
+          conditions: { hiv_aids: 0 }, # No
         )
       end
 
@@ -278,7 +278,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'child_hiv_yes',
           household_id: 'hh_child_hiv_yes',
           dob: child_dob, # Child DOB
-          conditions: { hiv_aids: 1 }
+          conditions: { hiv_aids: 1 },
         )
       end
 
@@ -297,7 +297,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_dv_yes',
           household_id: 'hh_adult_dv_yes',
           dob: adult_dob,
-          conditions: { domestic_violence_survivor: 1 } # Yes
+          conditions: { domestic_violence_survivor: 1 }, # Yes
         )
       end
 
@@ -315,7 +315,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'adult_dv_no',
           household_id: 'hh_adult_dv_no',
           dob: adult_dob,
-          conditions: { domestic_violence_survivor: 0 } # No
+          conditions: { domestic_violence_survivor: 0 }, # No
         )
       end
 
@@ -332,7 +332,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           uid: 'child_dv_yes',
           household_id: 'hh_child_dv_yes',
           dob: child_dob, # Child DOB
-          conditions: { domestic_violence_survivor: 1 }
+          conditions: { domestic_violence_survivor: 1 },
         )
       end
 
@@ -351,12 +351,12 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           project: es_project,
           entry_date: pit_report_date - 10.days,
           relationship_to_ho_h: 1,
-          household_id: 'hh_adult_dv_old_record'
+          household_id: 'hh_adult_dv_old_record',
         )
         create_health_and_dv(
           enrollment: enrollment,
           information_date: pit_report_date + 1.day, # InformationDate is AFTER pit_report_date
-          domestic_violence_victim: 1 # Yes
+          domestic_violence_victim: 1, # Yes
         )
       end
 
@@ -376,12 +376,12 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
           project: es_project,
           entry_date: pit_report_date - 10.days,
           relationship_to_ho_h: 1,
-          household_id: 'hh_adult_dv_nil_value'
+          household_id: 'hh_adult_dv_nil_value',
         )
         create_health_and_dv(
           enrollment: enrollment,
           information_date: pit_report_date - 1.day,
-          domestic_violence_victim: nil # DomesticViolenceSurvivor is nil
+          domestic_violence_victim: nil, # DomesticViolenceSurvivor is nil
         )
       end
 
@@ -393,5 +393,4 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       end
     end
   end
-
 end

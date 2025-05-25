@@ -21,7 +21,7 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
       entry_date: pit_date,
       exit_date: pit_date + exit_offset_days.days,
       relationship_to_ho_h: rel_to_hoh,
-      household_id: household_id
+      household_id: household_id,
     )
 
     ch_attributes_to_apply = {}
@@ -32,7 +32,7 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
         LivingSituation: 116, # Place not meant for habitation
         MonthsHomelessPastThreeYears: 112, # 12+ months
         TimesHomelessPastThreeYears: 4, # 4+ times
-        DisablingCondition: 1 # Yes
+        DisablingCondition: 1, # Yes
       }
     when :unknown
       ch_attributes_to_apply = {
@@ -45,9 +45,9 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
         LivingSituation: 101, # e.g., Emergency shelter
         MonthsHomelessPastThreeYears: 1, # e.g., 1 month
         TimesHomelessPastThreeYears: 1, # e.g., 1 time
-        DisablingCondition: 0 # No
+        DisablingCondition: 0, # No
       }
-    # if :default, no attributes are applied, relying on factory/create_enrollment defaults (presumably not chronic)
+      # if :default, no attributes are applied, relying on factory/create_enrollment defaults (presumably not chronic)
     end
 
     enrollment.update!(ch_attributes_to_apply.merge(custom_ch_attrs)) if ch_attributes_to_apply.present?

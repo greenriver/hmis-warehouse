@@ -35,7 +35,7 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
           project: es_project,
           entry_date: pit_date,
           relationship_to_ho_h: rel_hoh,
-          household_id: household_id
+          household_id: household_id,
         )
         child_client = create_client_with_warehouse_link(uid: 'py_child_5_for_hoh22_single', dob: dob_child_5)
         create_enrollment(
@@ -43,7 +43,7 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
           project: es_project,
           entry_date: pit_date,
           relationship_to_ho_h: rel_child,
-          household_id: household_id
+          household_id: household_id,
         )
       end
 
@@ -138,7 +138,7 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
           project: es_project,
           entry_date: pit_date,
           relationship_to_ho_h: rel_hoh,
-          household_id: household_id
+          household_id: household_id,
         )
         child_client = create_client_with_warehouse_link(uid: 'py_child_5_for_hoh17_no_18plus', dob: dob_child_5)
         create_enrollment(
@@ -146,7 +146,7 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
           project: es_project,
           entry_date: pit_date,
           relationship_to_ho_h: rel_child,
-          household_id: household_id
+          household_id: household_id,
         )
       end
 
@@ -478,7 +478,6 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         expect(children_count.value).to eq(0)
       end
     end
-
   end
 
   # Tests for parenting youth counts
