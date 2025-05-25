@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module LongitudinalSpm
   class Report < GrdaWarehouseBase
     self.table_name = :longitudinal_spms
@@ -168,7 +170,9 @@ module LongitudinalSpm
 
     def spm_measures
       # if we're running the report, return the current version
-      return spm_measures_2024 unless spms.present?
+      return spm_measures_2026 unless spms.present?
+      # If we're looking at the 2026 version
+      return spm_measures_2026 if HudSpmReport::Generators::Fy2026::Generator.title == spms.first.hud_spm.report_name
       # If we're looking at the 2024 version
       return spm_measures_2024 if HudSpmReport::Generators::Fy2024::Generator.title == spms.first.hud_spm.report_name
       # If we're looking at the 2023 version
@@ -179,7 +183,8 @@ module LongitudinalSpm
       raise 'Unknown SPM VERSION'
     end
 
-    private def spm_measures_2024
+    private def spm_measures_2026
+      # SPM 2026 measures currently matches the SPM 2023 measures. If they diverge, updates should be done here.
       # SPM 2024 measures currently matches the SPM 2023 measures. If they diverge, updates should be done here.
       spm_measures_2023
     end

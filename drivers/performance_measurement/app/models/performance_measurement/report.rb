@@ -304,11 +304,11 @@ module PerformanceMeasurement
 
     private def spm_enrollments_from_answer_member(member)
       case member
-      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment
+      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment, HudSpmReport::Fy2026::SpmEnrollment
         [member]
-      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode
+      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode, HudSpmReport::Fy2026::Episode
         member.enrollments
-      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return
+      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return, HudSpmReport::Fy2026::Return
         [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"
@@ -963,11 +963,11 @@ module PerformanceMeasurement
       extras
     end
 
-    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
+    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2026::MeasureSeven::PERMANENT_DESTINATIONS
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [nil]).freeze
     PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
       PERMANENT_DESTINATIONS +
-      HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
+      HudSpmReport::Generators::Fy2026::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
     ).freeze
 
     private def summary_calculations

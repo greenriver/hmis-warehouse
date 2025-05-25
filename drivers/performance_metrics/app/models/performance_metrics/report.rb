@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMetrics
   class Report < SimpleReports::ReportInstance
     include Filter::ControlSections
@@ -602,11 +604,11 @@ module PerformanceMetrics
         # NOTE: SPM has a 2 year look-back so they may not be in the enrolled clients
         spm_report = run_spm
         # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
-        spm_returners = answer_members(spm_report, '2a and 2b', 'I7') # HudSpmReport::Fy2024::Return
+        spm_returners = answer_members(spm_report, '2a and 2b', 'I7') # HudSpmReport::Fy2026::Return
         # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
-        spm_leavers = answer_members(spm_report, '2a and 2b', 'B7') # HudSpmReport::Fy2024::Return
+        spm_leavers = answer_members(spm_report, '2a and 2b', 'B7') # HudSpmReport::Fy2026::Return
         # 1A D2 is Average LOT Experiencing Homelessness ES, SH, and TH
-        spm_episodes = answer_members(spm_report, '1a', 'D2') # HudSpmReport::Fy2024::Episode
+        spm_episodes = answer_members(spm_report, '1a', 'D2') # HudSpmReport::Fy2026::Episode
 
         spm_leavers.each do |client_id, spm_return|
           days_in_es = nil

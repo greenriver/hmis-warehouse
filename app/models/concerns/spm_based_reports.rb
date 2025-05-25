@@ -4,15 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SpmBasedReports
   extend ActiveSupport::Concern
   included do
     def spm_project_types
-      HudUtility2024.spm_project_type_codes
+      HudUtility2026.spm_project_type_codes
     end
 
     def project_type_ids
-      spm_project_types.map { |s| HudUtility2024.performance_reporting[s.to_sym] }.flatten
+      spm_project_types.map { |s| HudUtility2026.performance_reporting[s.to_sym] }.flatten
     end
 
     def project_options_for_select(user)
