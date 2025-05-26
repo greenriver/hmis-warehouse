@@ -364,6 +364,7 @@ module HudPit::Generators::Pit::Fy2025
         },
         chronic_households: {
           title: 'Chronically Homeless: Total number of households',
+          # Count heads of household in chronically homeless households (essentially count the households that are chronically homeless, multiple HoH or lack of HoH, bad data, will cause this to count incorrectly)
           query: a_t[:chronically_homeless_household].eq(true).and(hoh_clause),
         },
         chronic_clients: {
