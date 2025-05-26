@@ -65,14 +65,8 @@ class UploadsController < ApplicationController
     @upload.update(delayed_job_id: job.provider_job_id)
   end
 
-  TodoOrDie('Remove or update stop_version after FY2026 changeover', by: '2025-11-01')
-  # For now, prevent migrating beyond 2024 version
   private def stop_version
-    return nil if Date.current >= '2025-10-01'.to_date
-    return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging?
-
-    # Default to the current version, but allow for override in development
-    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
+    Importers::HmisAutoMigrate.current_stop_version
   end
 
   private def dry_run_param
