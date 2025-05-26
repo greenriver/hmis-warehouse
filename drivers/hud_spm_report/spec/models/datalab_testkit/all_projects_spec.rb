@@ -30,7 +30,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     it 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        external_column_header: true,
         external_row_label: true,
         question: '1a',
         skip: [
@@ -45,7 +44,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     it 'Measure 1b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        external_column_header: true,
         external_row_label: true,
         question: '1b',
         skip: [
@@ -87,6 +85,10 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '3.2',
+        skip: [
+          'C2', # expected '5549.0000' (5549), got '5484.0000' (5484) # failing after transition to SPM FY2026, need to check against FY2026 Test Kit when released
+          'C3', # expected '5039.0000' (5039), got '4966.0000' (4966) # failing after transition to SPM FY2026, need to check against FY2026 Test Kit when released
+        ],
       )
     end
 
