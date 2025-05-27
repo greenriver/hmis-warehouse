@@ -8,16 +8,17 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
   let!(:project1) { create :hmis_hud_project, organization: organization, project_type: 0 }
   let!(:project2) { create :hmis_hud_project, organization: organization, project_type: 5 }
   let!(:project3) { create :hmis_hud_project }
-  let(:opportunity_1a) { create(:hmis_ce_opportunity, workflow_template: template, project: project1) }
-  let(:opportunity_1b) { create(:hmis_ce_opportunity, workflow_template: template, project: project1) }
-  let(:opportunity_2) { create(:hmis_ce_opportunity, workflow_template: template, project: project2) }
-  let(:opportunity_3) { create(:hmis_ce_opportunity, workflow_template: template, project: project3) }
+  let!(:unit_1a) { create(:hmis_unit, project: project1) }
+  let!(:opportunity_1a) { create(:hmis_ce_opportunity, workflow_template: template, project: project1, owner: unit_1a) }
+  let!(:opportunity_1b) { create(:hmis_ce_opportunity, workflow_template: template, project: project1) }
+  let!(:opportunity_2) { create(:hmis_ce_opportunity, workflow_template: template, project: project2) }
+  let!(:opportunity_3) { create(:hmis_ce_opportunity, workflow_template: template, project: project3) }
 
   describe 'for_opportunity scope' do
-    context 'when rule is owned by an opportunity' do
-      let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: opportunity_1a) }
+    context 'when rule is owned by a unit' do
+      let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: unit_1a) }
 
-      it 'returns the rule for that opportunity and queries the db a reasonable amount' do
+      it 'returns the rule for opportunity owned by that unit' do
         rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity_1a)
         expect(rules).to contain_exactly(rule)
       end
@@ -29,6 +30,8 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
         end
       end
     end
+
+    # TODO add: unit group
 
     context 'when rule is owned by a project' do
       let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: project1) }
@@ -111,8 +114,8 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
       end
 
       context 'when there are many rules' do
-        before do
-          20.times { create(:hmis_ce_eligibility_requirement, owner: opportunity_1a) }
+        before(:each) do
+          # 20.times { create(:hmis_ce_eligibility_requirement, owner: opportunity_1a) }
           20.times { create(:hmis_ce_eligibility_requirement, owner: project1) }
           20.times { create(:hmis_ce_eligibility_requirement, owner: organization) }
           20.times do
@@ -138,8 +141,8 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
         it 'queries the db a reasonable amount' do
           expect do
             rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity_1a)
-            expect(rules.length).to eq(101)
-          end.to make_database_queries(count: 5..10)
+            expect(rules.length).to eq(81)
+          end.to make_database_queries(count: 4..10)
         end
       end
     end

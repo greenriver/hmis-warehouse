@@ -57,9 +57,10 @@ class Hmis::Unit < Hmis::HmisBase
   # - Hmis::Ce::Referral's `unique_referral_per_opportunity` validator.
   has_one :active_referral, through: :latest_opportunity, class_name: 'Hmis::Ce::Referral', source: :active_referral
 
-  alias_attribute :date_updated, :updated_at
+  alias_attribute :date_updated, :updated_at # remove?
   alias_attribute :date_created, :created_at
 
+  attribute :variant, :string
   enum variant: {
     dwelling: 'dwelling',
     voucher: 'voucher',
@@ -137,13 +138,13 @@ class Hmis::Unit < Hmis::HmisBase
   def eligibility_requirements
     return unless Hmis::Ce.configuration.enabled? # should have a flag on unit for ce?
 
-    Hmis::Ce::Match::Rule.eligibility_requirement.for_unit(self)
+    Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
   end
 
   def priority_scheme
     return unless Hmis::Ce.configuration.enabled? # should have a flag on unit for ce?
 
-    Hmis::Ce::Match::Rule.priority_scheme.for_unit(self).sole # there should only be 1
+    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).sole # there should only be 1
   end
 
   # Class method so can use with data loader
