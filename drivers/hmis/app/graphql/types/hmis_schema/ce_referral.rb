@@ -56,7 +56,15 @@ module Types
         next nil if node.conditional_inflows? # task is conditional, don't show it yet
 
         # initialize step to display in the UI
-        instance.steps.new(node: node).freeze
+        step = instance.steps.new(node: node).freeze
+
+        # If the step is unpersisted, assignees won't be persisted yet either,
+        # but we know the step's default assignees based on the referral participants, so return them
+        participants_by_swimlane_id[node.swimlane_id]&.each do |p|
+          step.assignments.new(user: p.user)
+        end
+
+        step
       end.compact
     end
 
@@ -65,16 +73,16 @@ module Types
     end
 
     def current_steps
-      load_ar_association(object, :current_steps)
+      load_ar_association(object, :current_steps).sort_by { |step| [step.available_at, step.id] }
     end
 
     def days_on_current_steps
-      # If there are multiple open steps, use the oldest one
-      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:updated_at)
+      # If there are multiple open steps, use the one that has been available longest
+      oldest_open_step = load_ar_association(object, :current_steps).to_a.min_by(&:available_at)
       return nil if oldest_open_step.nil?
 
-      # how many days ago was this step last updated. # TODO(#7647) - use more accurate timestamp field rather than updated_at
-      (Date.current - oldest_open_step.updated_at.to_date).to_i
+      # How many days ago this step was made available
+      (Date.current - oldest_open_step.available_at.to_date).to_i
     end
 
     def updated_by
@@ -123,9 +131,6 @@ module Types
       user_ids = object.participants.map(&:user_id).uniq
       users_by_id = Hmis::User.where(id: user_ids).index_by(&:id)
 
-      # Fetch participants and group them by swimlane
-      participants_by_swimlane_id = object.participants.group_by(&:swimlane_id)
-
       object.swimlanes.map do |swimlane|
         # For this swimlane, get all associated participants, and map to the user objects that were already fetched
         participants = (participants_by_swimlane_id[swimlane.id] || []).filter_map do |participant|
@@ -138,6 +143,12 @@ module Types
           participants: participants,
         )
       end
+    end
+
+    private
+
+    def participants_by_swimlane_id
+      @participants_by_swimlane_id ||= object.participants.group_by(&:swimlane_id)
     end
   end
 end

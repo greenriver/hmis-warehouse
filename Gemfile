@@ -124,7 +124,6 @@ gem 'prometheus-client'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
-gem 'yabeda-http_requests'
 gem 'roda'
 
 gem 'activerecord-session_store'

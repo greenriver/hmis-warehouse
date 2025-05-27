@@ -19,6 +19,8 @@ module Types
     field :submitted_values, JsonObject, null: true
     delegate :name, to: :workflow_task
     field :assignees, [Application::User], null: false, description: 'User(s) currently assigned to this step'
+    field :updated_by, Application::User, null: true
+    field :updated_at, GraphQL::Types::ISO8601DateTime, null: true
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
@@ -30,7 +32,11 @@ module Types
     end
 
     def assignees
-      load_ar_association(object, :assignments)&.map(&:user)
+      if object.persisted?
+        load_ar_association(object, :assignments)&.map(&:user)
+      else
+        object.assignments.map(&:user)
+      end
     end
 
     def form_definition # Don't resolve in batch
@@ -40,6 +46,10 @@ module Types
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
       workflow_task.form_definitions.published.order(version: :desc).first
+    end
+
+    def updated_by
+      load_last_user_from_versions(object)
     end
 
     private

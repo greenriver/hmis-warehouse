@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 BostonHmis::Application.routes.draw do
   get 'hmis/system_status/operational', to: 'system_status#operational'
   get 'hmis/system_status/cache_status', to: 'system_status#cache_status'
@@ -66,6 +68,7 @@ BostonHmis::Application.routes.draw do
       end
       resources :access_controls
       resources :users, only: [:index, :edit, :update]
+      resources :project_groups, only: [:index, :new, :create, :edit, :update, :show, :destroy]
     end
 
     namespace :hmis_client do
