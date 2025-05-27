@@ -95,7 +95,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
       Sentry.capture_message(
         "axlsx handler was a #{current_handler_class.class.name}, expected #{expected_handler_class.name} class. Attempting to re-register.",
       )
-      ActionView::Template.register_template_handler(:axlsx, expected_handler_class)
+      ActionView::Template.register_template_handler(:axlsx, expected_handler_class.new)
 
       Rails.logger.info "Job Renderer ActionView template handlers: #{ActionView::Template.template_handler_extensions.inspect}"
 
