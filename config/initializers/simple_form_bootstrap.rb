@@ -23,7 +23,7 @@ SimpleForm.setup do |config|
   config.boolean_label_class = 'form-check-label'
 
   # How the label text should be generated altogether with the required text.
-  config.label_text = lambda { |label, required, explicit_label| "#{label} #{required}" }
+  config.label_text = lambda { |label, required, _explicit_label| "#{label} #{required}" }
 
   # Define the way to render check boxes / radio buttons with labels.
   config.boolean_style = :inline
@@ -122,7 +122,6 @@ SimpleForm.setup do |config|
     b.use :hint,  wrap_with: { tag: 'p', class: 'form-text' }
   end
 
-
   # vertical input for boolean
   config.wrappers :vertical_boolean, tag: 'fieldset', class: 'form-group', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
     b.use :html5
@@ -194,7 +193,6 @@ SimpleForm.setup do |config|
     b.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
     b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
   end
-
 
   # horizontal forms
   #
@@ -311,7 +309,6 @@ SimpleForm.setup do |config|
     end
   end
 
-
   # inline forms
   #
   # inline default_wrapper
@@ -340,7 +337,6 @@ SimpleForm.setup do |config|
     b.optional :hint, wrap_with: { tag: 'small', class: 'form-text' }
   end
 
-
   # bootstrap custom forms
   #
   # custom input for boolean
@@ -350,7 +346,6 @@ SimpleForm.setup do |config|
     b.wrapper :form_check_wrapper, tag: 'div', class: 'custom-control custom-checkbox' do |bb|
       bb.use :input, class: 'custom-control-input', error_class: 'is-invalid', valid_class: ''
       bb.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback' }
-      bb.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
     end
   end
 
@@ -419,7 +414,7 @@ SimpleForm.setup do |config|
   end
 
   # select two
-  config.wrappers :select_two, tag: 'div', class: 'form-group ready', error_class: 'form-group-invalid', valid_class: 'form-group-valid', wrapper_html: { data: { controller: 'stimulus-select ' }} do |b|
+  config.wrappers :select_two, tag: 'div', class: 'form-group ready', error_class: 'form-group-invalid', valid_class: 'form-group-valid', wrapper_html: { data: { controller: 'stimulus-select ' } } do |b|
     b.use :html5
     b.optional :readonly
     b.wrapper tag: 'div', class: 'select2__label-wrapper' do |bb|
@@ -447,7 +442,6 @@ SimpleForm.setup do |config|
     b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
   end
 
-
   # Input Group - custom component
   # see example app and config at https://github.com/rafaelfranca/simple_form-bootstrap
   # config.wrappers :input_group, tag: 'div', class: 'form-group', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
@@ -467,7 +461,6 @@ SimpleForm.setup do |config|
   #   b.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
   #   b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
   # end
-
 
   # Floating Labels form
   #
@@ -496,21 +489,20 @@ SimpleForm.setup do |config|
     b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
   end
 
-
   # The default wrapper to be used by the FormBuilder.
   config.default_wrapper = :vertical_form
 
   # Custom wrappers for input types. This should be a hash containing an input
   # type as key and the wrapper that will be used for all inputs with specified type.
   config.wrapper_mappings = {
-    boolean:       :vertical_boolean,
-    check_boxes:   :vertical_collection,
-    date:          :vertical_multi_select,
-    datetime:      :vertical_multi_select,
-    file:          :vertical_file,
+    boolean: :vertical_boolean,
+    check_boxes: :vertical_collection,
+    date: :vertical_multi_select,
+    datetime: :vertical_multi_select,
+    file: :vertical_file,
     radio_buttons: :vertical_collection,
-    range:         :vertical_range,
-    time:          :vertical_multi_select,
+    range: :vertical_range,
+    time: :vertical_multi_select,
     pretty_boolean: :custom_boolean,
     select_two: :select_two,
     grouped_select_two: :select_two,

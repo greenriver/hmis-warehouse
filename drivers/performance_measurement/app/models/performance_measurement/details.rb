@@ -97,15 +97,15 @@ module PerformanceMeasurement::Details
     end
 
     def detail_calculation_description_for(key)
-      detail_for(key)[:calculation_description]
+      detail_for(key)&.[](:calculation_description)
     end
 
     def detail_measure_for(key)
-      detail_for(key)[:measure]
+      detail_for(key)&.[](:measure)
     end
 
     def detail_column_for(key)
-      detail_for(key)[:column]
+      detail_for(key)&.[](:column)
     end
 
     def detail_denominator_label_for(key)
@@ -441,6 +441,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_es_bed_in_period,
           detail_columns: [
             'days_in_es_bed_in_period',
+            'days_in_es_bed_details_in_period',
           ],
         },
         sh_average_bed_utilization: {
@@ -459,6 +460,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_sh_bed_in_period,
           detail_columns: [
             'days_in_sh_bed_in_period',
+            'days_in_sh_bed_details_in_period',
           ],
         },
         th_average_bed_utilization: {
@@ -477,6 +479,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_th_bed_in_period,
           detail_columns: [
             'days_in_th_bed_in_period',
+            'days_in_th_bed_details_in_period',
           ],
         },
         rrh_average_bed_utilization: {

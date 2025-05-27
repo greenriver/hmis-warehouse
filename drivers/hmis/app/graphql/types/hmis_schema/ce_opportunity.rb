@@ -14,14 +14,28 @@ module Types
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
+
+    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :project_id, ID, null: false
     field :project_name, String, null: false
+    field :project_type, HmisSchema::Enums::ProjectType, null: false
+    field :organization_name, String, null: false
+
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :categories, [String], null: false
+    field :active, Boolean, null: false, method: :active?
+    field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_available, GraphQL::Types::ISO8601Date, null: false
+    field :unit, HmisSchema::Unit, null: true
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
+      arg :project, [ID]
+      arg :project_type, [HmisSchema::Enums::ProjectType]
+      arg :organization, [ID]
+      arg :available_on_date, GraphQL::Types::ISO8601Date
+      arg :workflow_template, [String]
     end
 
     def candidates
@@ -31,16 +45,33 @@ module Types
     end
 
     def referral
-      load_ar_association(
-        object,
-        :referrals,
-        scope: Hmis::Ce::Referral.viewable_by(current_user).where.not(status: 'rejected').
-          order(created_at: :desc),
-      ).first # there should be at most 1 (enforced in an AR validation but not at the database level)
+      # TODO(#7395): permissions - ensure that user has permission to view referrals at this project
+      # return nil unless current_permission?(permission: :can_view_referrals, entity: project)
+
+      load_ar_association(object, :active_or_accepted_referral)
     end
 
     def project_name
       load_ar_association(object, :project).project_name
+    end
+
+    def project_type
+      load_ar_association(object, :project).project_type
+    end
+
+    def organization_name
+      project = load_ar_association(object, :project)
+      load_ar_association(project, :organization).name
+    end
+
+    def unit
+      owner = load_ar_association(object, :owner)
+      owner if owner.is_a?(Hmis::Unit)
+    end
+
+    def date_available
+      # TODO(#7537) - implement "available after date". Always returns date the referral was created, for now
+      object.created_at
     end
 
     def eligibility_requirements
@@ -54,7 +85,11 @@ module Types
     end
 
     def categories
-      load_ar_association(object, :categories, scope: Hmis::Ce::OpportunityCategory.order(:name)).map(&:name)
+      load_ar_association(object, :categories).to_a.sort_by(&:name).map(&:name)
+    end
+
+    def candidates_generated_at
+      load_ar_association(object, :candidate_pool)&.candidates_generated_at
     end
   end
 end

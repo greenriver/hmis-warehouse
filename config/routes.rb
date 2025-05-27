@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   use_doorkeeper
   get 'oauth/user-data', to: 'oauth#user'
@@ -432,6 +434,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # Client search queries
+  resources :client_searches, only: [:create], controller: 'clients/search_queries', as: :client_search_queries
+  get '/client_searches/:id', to: 'client_access_control/clients#search', as: 'client_search_query'
+
   resources :clients, only: [:create, :update, :edit] do
     member do
       # get :appropriate
@@ -849,7 +855,10 @@ Rails.application.routes.draw do
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
+
+    resource :deprecation, only: [:show]
   end
+
   resource :account, only: [:edit, :update] do
     get :locations, on: :member
   end
@@ -908,6 +917,7 @@ Rails.application.routes.draw do
   end
 
   get 'healthz' => 'system_status#operational'
+  get 'bootz' => 'system_status#details'
 
   root 'root#index'
 end

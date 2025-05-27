@@ -14,12 +14,12 @@
     .row
       .col-sm-8
         %p
-          Search by name, D.O.B. (mm/dd/yyyy), SSN (xxx-yyy-zzzz), Warehouse ID, or PersonalID.  It is often most efficient to search using the first few characters of the first name and last name, e.g. to find
+          Search by name, D.O.B. (mm/dd/yyyy), SSN (xxx-yy-zzzz), Warehouse ID, or PersonalID.  It is often most efficient to search using the first few characters of the first name and last name, e.g. to find
           %em Jane Smith
           you might search for
           %em ja sm.
     .o-page__search
-      = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', aria: { label: 'Client Search' }, data: {placement: 'bottom'}
+      = render_generic_search_form(client_search_queries_path, method: :post, tooltip_title: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', aria_label: 'Client Search', initial_value: @query)
     .o-page__sort
       = render 'client_access_control/clients/search/filter'
       = render 'client_access_control/clients/search/sort'

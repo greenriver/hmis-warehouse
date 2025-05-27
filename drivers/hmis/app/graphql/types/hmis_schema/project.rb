@@ -24,6 +24,8 @@ module Types
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -114,12 +116,8 @@ module Types
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
 
-    field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
-      argument(:filters, Types::HmisSchema::CeOpportunity.filter_options_type, required: false)
-    end
-    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
-      argument(:filters, Types::HmisSchema::CeReferral.filter_options_type, required: false)
-    end
+    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_step_since, :workflow_template], type_name: 'ProjectCeReferral' })
 
     def hud_id
       object.project_id
@@ -259,20 +257,12 @@ module Types
       resolve_external_form_submissions(scope, **args)
     end
 
-    def ce_opportunities(filters: nil) # not for batch
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_opportunities
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-      scope.order(created_at: :desc)
+    def ce_opportunities(**args) # Don't resolve in batch
+      resolve_ce_opportunities(object.ce_opportunities, **args)
     end
 
-    def ce_referrals(filters: nil) # not for batch
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_referrals
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-      scope.order(created_at: :desc)
+    def ce_referrals(**args) # Don't resolve in batch
+      resolve_ce_referrals(object.ce_referrals, **args)
     end
 
     private def check_enrollment_details_access

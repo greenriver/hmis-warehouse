@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+# frozen_string_literal: true
 
 module HmisExternalApis
   class BaseController < ApplicationController
@@ -27,10 +28,12 @@ module HmisExternalApis
       render(status: :unauthorized, json: json)
     end
 
+    # Authorizes API requests by validating the Bearer token in the Authorization header.
+    # Ensures the request includes a valid API key from a properly formatted header.
     def authorize_request
       not_authorized!('No API key provided') unless request.headers['Authorization']
 
-      request.headers['Authorization'].match(/\A *bearer +(.+) *\z/i) do |match|
+      request.headers['Authorization'].match(/\A *bearer +([a-z0-9\-_\.]+) *\z/i) do |match|
         api_key = match[1]
 
         not_authorized!('Authorization header not formatted correctly') unless api_key

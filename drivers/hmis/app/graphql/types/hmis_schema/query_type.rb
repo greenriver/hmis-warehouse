@@ -19,6 +19,8 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -526,33 +528,45 @@ module Types
       end
     end
 
-    field :ce_referral, Types::HmisSchema::CeReferral, null: false do
+    field :ce_referral, Types::HmisSchema::CeReferral, null: true do
       argument :id, ID, required: true
     end
 
     def ce_referral(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::Ce::Referral.viewable_by(current_user).find(id)
+      Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_opportunity, HmisSchema::CeOpportunity, null: false do
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: true do
       argument :id, ID, required: true
     end
 
     def ce_opportunity(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::Ce::Opportunity.viewable_by(current_user).find(id)
+      Hmis::Ce::Opportunity.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_referral_step, HmisSchema::CeReferralStep, null: false do
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
       argument :id, ID, required: true
     end
     def ce_referral_step(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+    end
+
+    # Globally available CE opportunities gated by admin permission
+    ce_opportunities_field
+    def ce_opportunities(**args)
+      # TODO(#7506) - gated by admin permission
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
+    end
+
+    ce_referrals_field
+    def ce_referrals(**args)
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
   end
 end

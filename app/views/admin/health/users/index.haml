@@ -4,7 +4,7 @@
 = render 'menus/health_admin_tabs'
 .row
   .col-sm-6.mt-2.mb-4
-    = render 'search_form'
+    = render_generic_search_form
 %p Use this form to grant access to the healthcare sections of the window into the warehouse to users.
 
 - if @pagy.count.positive?
@@ -38,8 +38,8 @@
                       %td
                         .form-group.check_boxes.optional.user_roles
                           - Role.health.each do |role|
-                            - id = "users[#{user.id}]roles[#{role.id}]"
-                            - name = "users[#{user.id}]roles[]"
+                            - id = "users[#{user.id}][roles][#{role.id}]"
+                            - name = "users[#{user.id}][roles][]"
                             %span.checkbox
                               %label{for: id}
                                 = check_box_tag(id, 1, user.health_roles.where(name: role.name).any?, id: id, class: "check_boxes optional")

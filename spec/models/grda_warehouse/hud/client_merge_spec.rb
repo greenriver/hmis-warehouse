@@ -156,13 +156,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
       describe 'after splitting off a later-edited client' do
+        include ActiveJob::TestHelper
         before do
-          # Ensure the delayed jobs is run
-          Delayed::Worker.delay_jobs = false
-          destination_client.split([source_clients.first.id], nil, nil, user)
-        end
-        after do
-          Delayed::Worker.delay_jobs = true
+          perform_enqueued_jobs do
+            destination_client.split([source_clients.first.id], nil, nil, user)
+          end
         end
         it 'there are two destination clients and one contains only the first source client' do
           expect(destination_client.source_clients).to contain_exactly(*(source_clients - [source_clients.first]))

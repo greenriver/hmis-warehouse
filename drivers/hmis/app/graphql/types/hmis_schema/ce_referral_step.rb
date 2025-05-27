@@ -17,29 +17,46 @@ module Types
     field :status, HmisSchema::Enums::CeReferralStepStatus, null: false
     field :swimlane, String, null: false
     field :submitted_values, JsonObject, null: true
-    delegate :name, to: :workflow_node
+    delegate :name, to: :workflow_task
+    field :assignees, [Application::User], null: false, description: 'User(s) currently assigned to this step'
+    field :updated_by, Application::User, null: true
+    field :updated_at, GraphQL::Types::ISO8601DateTime, null: true
 
     def id
       # the step may not yet be persisted, such as when it isn't yet available in the workflow
       "#{object.node_id}:#{object.instance_id}"
     end
 
-    def workflow_node
-      load_ar_association(object, :node)
-    end
-
     def swimlane
       load_ar_association(object, :swimlane)&.name
     end
 
-    def form_definition
+    def assignees
+      if object.persisted?
+        load_ar_association(object, :assignments)&.map(&:user)
+      else
+        object.assignments.map(&:user)
+      end
+    end
+
+    def form_definition # Don't resolve in batch
       # If the step has been submitted before, it stores a reference to the definition it was submitted with
-      definition = load_ar_association(object, :form_definition)
+      definition = object.form_definition
       return definition if definition.present?
 
       # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      node = load_ar_association(object, :node)
-      load_ar_association(node, :form_definitions, scope: Hmis::Form::Definition.published.order(version: :desc)).first
+      workflow_task.form_definitions.published.order(version: :desc).first
+    end
+
+    def updated_by
+      load_last_user_from_versions(object)
+    end
+
+    private
+
+    # the Hmis::WorkflowDefinition::Task that configures this referral step
+    def workflow_task
+      load_ar_association(object, :task)
     end
   end
 end

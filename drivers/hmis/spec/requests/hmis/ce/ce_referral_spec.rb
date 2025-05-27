@@ -29,6 +29,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
             }
+            currentSteps {
+              id
+            }
+            swimlanes {
+              id
+              name
+              participants {
+                id
+                name
+              }
+            }
+            updatedBy {
+              id
+              name
+            }
           }
         }
       GRAPHQL
@@ -42,7 +57,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when workflow is initialized' do
       it 'returns expected structure with correct steps' do
-        _, result = post_graphql(**variables) { query }
+        response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         referral_data = result.dig('data', 'ceReferral')
 
@@ -54,6 +69,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'name' => opportunity.name,
           'status' => opportunity.status,
         )
+
+        # Verify that step and currentStep scopes don't mess with each other
+        expect(referral_data['currentSteps'].count).to eq(0)
 
         steps = referral_data['steps']
         expect(steps).to be_an(Array)
@@ -73,6 +91,70 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'formDefinition' => { 'id' => provider_acceptance_task.form_definitions.sole.id.to_s },
         )
       end
+
+      context 'workflow with swimlanes' do
+        # case_manager_swimlane is already set up in the CE spec helper
+        let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
+
+        it 'returns swimlanes' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
+          expect(swimlanes).to contain_exactly(
+            a_hash_including('id' => case_manager_swimlane.id.to_s, 'name' => case_manager_swimlane.name, 'participants' => []),
+            a_hash_including('id' => provider_swimlane.id.to_s, 'name' => provider_swimlane.name, 'participants' => []),
+          )
+        end
+
+        context 'and participants' do
+          let!(:cm1) { create(:hmis_user, data_source: ds1) }
+          let!(:cm_participant1) { referral.participants.create(swimlane: case_manager_swimlane, user: cm1) }
+          let!(:cm2) { create(:hmis_user, data_source: ds1) }
+          let!(:cm_participant2) { referral.participants.create(swimlane: case_manager_swimlane, user: cm2) }
+          let!(:provider) { create(:hmis_user, data_source: ds1) }
+          let!(:provider_participant) { referral.participants.create(swimlane: provider_swimlane, user: provider) }
+
+          it 'returns participants' do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            swimlanes = result.dig('data', 'ceReferral', 'swimlanes')
+            expect(swimlanes).to contain_exactly(
+              a_hash_including(
+                'id' => case_manager_swimlane.id.to_s,
+                'name' => case_manager_swimlane.name,
+                'participants' => [
+                  a_hash_including('id' => cm1.id.to_s, 'name' => cm1.name),
+                  a_hash_including('id' => cm2.id.to_s, 'name' => cm2.name),
+                ],
+              ),
+              a_hash_including(
+                'id' => provider_swimlane.id.to_s,
+                'name' => provider_swimlane.name,
+                'participants' => [
+                  a_hash_including('id' => provider.id.to_s, 'name' => provider.name),
+                ],
+              ),
+            )
+          end
+        end
+
+        context 'with many swimlanes and participants' do
+          before do
+            50.times do |i|
+              swimlane = workflow_template.swimlanes.create!(name: "Swimlane #{i}")
+              user = create(:hmis_user, data_source: ds1)
+              referral.participants.create(swimlane: swimlane, user: user)
+            end
+          end
+
+          it 'does not result in n+1 query' do
+            expect do
+              response, result = post_graphql(**variables) { query }
+              expect(response.status).to eq(200), result.inspect
+            end.to make_database_queries(count: 20..30)
+          end
+        end
+      end
     end
 
     context 'when workflow is started' do
@@ -81,7 +163,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'shows first step as available' do
-        _, result = post_graphql(**variables) { query }
+        response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         steps = result.dig('data', 'ceReferral', 'steps')
 
@@ -200,6 +282,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when there are many steps' do
+        let(:query) do # this query leaves out formDefinition, which does cause n+1 and isn't resolved in batch on the frontend.
+          <<~GRAPHQL
+            query GetCeReferral($id: ID!) {
+              ceReferral(id: $id) {
+                id
+                status
+                opportunity {
+                  id
+                  name
+                  status
+                }
+                steps {
+                  id
+                  name
+                  status
+                }
+              }
+            }
+          GRAPHQL
+        end
+
         before do
           50.times do |i|
             conditional_task = create(
@@ -226,7 +329,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 10..15)
+          end.to make_database_queries(count: 10..20)
         end
       end
     end

@@ -18,8 +18,9 @@
         %th Column Name
         %th Description
     %tbody.draggable-list
-      - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}} rescue GrdaWarehouse::Cohort.available_columns
+      - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.active_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}} rescue GrdaWarehouse::Cohort.active_columns
       - ordered_columns.each_with_index do |column, i|
+        - next unless column.active?
         - visibility_class = ''
         - if column.title =~ /^User (Select|Boolean|String|Date|Numeric) \d+/
           - visibility_class = 'hidden'

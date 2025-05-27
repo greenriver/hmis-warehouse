@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'memery'
+require 'singleton'
 
 # app-specific helper methods
 module RackAttackRequestHelpers
@@ -55,25 +56,17 @@ module RackAttackRequestHelpers
   end
 
   def authenticated?
-    warden_user.present?
+    # If we explicitly added a parameter to avoid updating last_request_at, honor it
+    return false if env['QUERY_STRING'].include?('skip_trackable=true')
+
+    rack_session = env['rack.session']
+    return false unless rack_session
+
+    # Check session variable to check if the user is logged in. This avoids db queries
+    rack_session['warden.user.user.key'].present? || rack_session['warden.user.hmis_user.key'].present?
   end
 
   protected
-
-  WARDEN_CHECK_EXCLUDE_URLS = ['/hmis/app_settings', '/hmis/user', '/messages/poll'].to_set.freeze
-  private_constant :WARDEN_CHECK_EXCLUDE_URLS
-  memoize def warden_user
-    # Avoid calling warden for user status endpoints. Calling warden here bumps
-    # last_request_at, regardless of skip_trackable in the controller. This means
-    # sessions may not expire as expected
-    strip_path = path.split('.', 2)[0]
-    return nil if strip_path.in?(WARDEN_CHECK_EXCLUDE_URLS)
-
-    # If we explicitly added a parameter to avoid updating last_request_at, honor it
-    return nil if env['QUERY_STRING'].include?('skip_trackable=true')
-
-    env['warden']&.user.presence || env['warden']&.user(:hmis_user).presence
-  end
 
   def internal_lb_check?
     env['HTTP_USER_AGENT'] == 'ELB-HealthChecker/2.0' && path.include?('status') && trusted_proxy?
@@ -141,7 +134,8 @@ Rack::Attack.tap do |config|
     period: 1.second,
   ) do |request|
     if request.tracking_enabled? && request.anonymous?
-      request.request_ip
+      # there's a more restrictive throttle on the pdf
+      request.request_ip unless request.history_pdf_path?
     end
   end
 
@@ -152,6 +146,28 @@ Rack::Attack.tap do |config|
     period: 5.seconds,
   ) do |request|
     if request.tracking_enabled? && request.authenticated?
+      request.request_ip
+    end
+  end
+
+  # Goal: Prevent excessive creation of search queries
+  config.throttle(
+    'per-ip limit on search query creation',
+    limit: 30,
+    period: 1.minute,
+  ) do |request|
+    if request.tracking_enabled? && request.authenticated? && request.post? && request.path == '/client_searches'
+      request.request_ip
+    end
+  end
+
+  # Goal: Prevent excessive viewing of search results
+  config.throttle(
+    'per-ip limit on search result viewing',
+    limit: 30,
+    period: 1.minute,
+  ) do |request|
+    if request.tracking_enabled? && request.authenticated? && request.get? && request.path =~ /^\/client_searches\/[\w-]+\z/
       request.request_ip
     end
   end
@@ -173,38 +189,29 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-SlackSendMonitorClass = Struct.new(:sends, :last_sent, :throttle_window_seconds, :max_sends, :lifetime_sends, :lifetime_attempts) do
-  def init
-    self.sends = 0
-    self.last_sent = Time.zone.now
-    # Max sends to slack is once every 10 seconds per process
-    self.throttle_window_seconds = 10
-    self.max_sends = 1
-    self.lifetime_sends = 0
-    self.lifetime_attempts = 0
-    self
+# Rate limits Sentry notifications to prevent overwhelming the Sentry API
+# - Uses Rails cache to deduplicate similar notifications within a time window
+# - Thread-safe implementation using cache for concurrent access
+class SentryNotificationRateLimiter
+  include Singleton
+
+  def initialize
+    @cache = ActiveSupport::Cache::MemoryStore.new
   end
 
-  def percent_sent
-    return 0.0 if lifetime_attempts == 0
-
-    (lifetime_sends.to_f / lifetime_attempts * 100).round(1)
+  def notify(data)
+    # the key should be constant; key off the name of matched rule
+    key = data.fetch('rack.attack.matched', 'no-match')
+    @cache.fetch(key, expires_in: 10.seconds) do
+      Sentry.capture_message('Rack attack event', extra: data)
+      true # cached result we don't care about
+    end
   end
 
-  def needs_throttling?
-    (delta < throttle_window_seconds) && sends > max_sends
-  end
-
-  def needs_reset?
-    delta > throttle_window_seconds
-  end
-
-  def delta
-    Time.zone.now - SlackSendMonitor.last_sent
+  def reset
+    @cache.clear
   end
 end
-
-SlackSendMonitor = SlackSendMonitorClass.new.init
 
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish, _request_id, payload|
   request = payload[:request]
@@ -236,39 +243,6 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   # ... get a record on disk
   Rails.logger.warn JSON.generate(data)
 
-  SlackSendMonitor.lifetime_attempts += 1
-  next if SlackSendMonitor.needs_throttling?
-
-  SlackSendMonitor.sends = 0 if SlackSendMonitor.needs_reset?
-
-  Rails.logger.debug { "Slack sending percentage is #{SlackSendMonitor.percent_sent}%" }
-
-  # ... and now try to send to somewhere useful
-  if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
-    notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
-    notifier = Slack::Notifier.new(
-      notifier_config[:webhook_url],
-      channel: notifier_config[:channel],
-      username: 'Rack-Attack',
-    )
-
-    fields = data.map do |k, v|
-      { title: k.to_s, value: v.to_s }
-    end
-    attachment = {
-      fallback: JSON.pretty_generate(data),
-      color: :warning,
-      fields: fields,
-    }
-    notifier.ping(
-      text: '*Rack attack event*',
-      attachments: [attachment],
-      http_options: { open_timeout: 1 },
-    )
-  end
-
-  # mark a send even if it's not enabled above to facilitate testing
-  SlackSendMonitor.last_sent = Time.zone.now
-  SlackSendMonitor.sends += 1
-  SlackSendMonitor.lifetime_sends += 1
+  # Send to Sentry with rate limiting
+  SentryNotificationRateLimiter.instance.notify(data)
 end

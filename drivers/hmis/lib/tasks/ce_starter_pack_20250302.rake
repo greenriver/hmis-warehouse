@@ -193,6 +193,20 @@ task ce_starter_pack_20250302: [:environment] do
   admin_review_gateway.connect_to!(client_acceptance_task, condition: 'review_denial_decision = 0') unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
   admin_review_gateway.connect_to!(reject_workflow_event, condition: 'review_denial_decision = 1') unless admin_review_gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
 
+  puts '- Creating Sequential template, a template with non-conditional tasks that are executed sequentially.'
+  sequential_template = create_template('Sequential', 'sequential')
+  case_managers = sequential_template.swimlanes.find_or_create_by!(name: 'Case Managers')
+  providers = sequential_template.swimlanes.find_or_create_by!(name: 'Providers')
+  start_workflow_event = create_start_event(sequential_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(sequential_template, 'accept referral', 'end_workflow', 'accept_referral')
+
+  task_1 = create_task(client_accepts_form_def, sequential_template,  'Case Manager Confirm', case_managers)
+  task_2 = create_task(review_denial_form_def, sequential_template,  'Provider Confirm', providers)
+
+  start_workflow_event.connect_to!(task_1) unless start_workflow_event.outflows.where(target_node_id: task_1.id).exists?
+  task_1.connect_to!(task_2) unless task_1.outflows.where(target_node_id: task_2.id).exists?
+  task_2.connect_to!(accept_workflow_event) unless task_2.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
   puts '- Creating Enrollment Creator template, a template with tasks that have side effects.'
 
   enrollment_creator_template = create_template('Enrollment Creator', 'enrollment_creator')
@@ -201,6 +215,7 @@ task ce_starter_pack_20250302: [:environment] do
   start_workflow_event = create_start_event(enrollment_creator_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(enrollment_creator_template, 'accept referral', 'end_workflow', 'accept_referral')
 
+  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template,  'Confirm Client Accepts Referral', case_managers)
   create_enrollment_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'ce_create_enrollment',
     status: 'published'
@@ -235,7 +250,9 @@ task ce_starter_pack_20250302: [:environment] do
   create_enrollment_task.save! if create_enrollment_task.changed?
 
   start_workflow_event.connect_to!(create_enrollment_task) unless start_workflow_event.outflows.where(target_node_id: create_enrollment_task.id).exists?
+  start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   create_enrollment_task.connect_to!(accept_workflow_event) unless create_enrollment_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
+  client_acceptance_task.connect_to!(accept_workflow_event) unless client_acceptance_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
 
   # Next, create a new organization and project to use for CE. This isn't strictly necessary -- devs will already have
   # orgs and projects in their local dbs they can use for testing -- but it's helpful for the sake of the starter pack
@@ -271,7 +288,8 @@ task ce_starter_pack_20250302: [:environment] do
   project_coc.user ||= system_user
   project_coc.save! if project_coc.changed?
 
-  ce_project_funder = ce_project.funders.find_or_initialize_by(funder: 20)
+  ce_project_funder = ce_project.funders.find_or_initialize_by(data_source: ce_project.data_source)
+  ce_project_funder.funder = 20
   ce_project_funder.user = system_user
   ce_project_funder.data_source = ce_project.data_source
   ce_project_funder.start_date ||= 3.years.ago
@@ -311,7 +329,8 @@ task ce_starter_pack_20250302: [:environment] do
 
   # Create candidates for opportunities. First create some opportunities using the frontend
   puts 'Building a candidate pool'
-  Hmis::Ce::Match::CandidatePoolBuilder.new.perform
+  opportunities = Hmis::Ce::Opportunity.active
+  Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
 
   puts 'Running the CE match engine'
   clients = Hmis::Hud::Client.hmis.limit(100) # modify this if you want to include different or specific clients

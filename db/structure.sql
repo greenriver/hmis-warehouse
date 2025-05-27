@@ -38,6 +38,20 @@ COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs
 
 
 --
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
 -- Name: prevent_modification(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1099,7 +1113,8 @@ CREATE TABLE public.hmis_activity_logs (
     header_project_id bigint,
     created_at timestamp without time zone NOT NULL,
     processed_at date,
-    resolved_at timestamp without time zone
+    resolved_at timestamp without time zone,
+    request_id character varying
 );
 
 
@@ -5107,27 +5122,28 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20230420195221'),
-('20240710124743'),
-('20240829152856'),
-('20240911201727'),
-('20240911204731'),
-('20241011125827'),
-('20241016202657'),
-('20241018034506'),
-('20241018140929'),
-('20241021194355'),
-('20241028193644'),
-('20241101132053'),
-('20241101132207'),
-('20241203185952'),
-('20241205185449'),
-('20241206145314'),
-('20241211202350'),
-('20250124170335'),
-('20250124171033'),
-('20250208211846'),
+('20250501151733'),
+('20250501135342'),
+('20250218131829'),
 ('20250217181347'),
-('20250218131829');
-
+('20250208211846'),
+('20250124171033'),
+('20250124170335'),
+('20241211202350'),
+('20241206145314'),
+('20241205185449'),
+('20241203185952'),
+('20241101132207'),
+('20241101132053'),
+('20241028193644'),
+('20241021194355'),
+('20241018140929'),
+('20241018034506'),
+('20241016202657'),
+('20241011125827'),
+('20240911204731'),
+('20240911201727'),
+('20240829152856'),
+('20240710124743'),
+('20230420195221');
 

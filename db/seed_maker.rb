@@ -8,55 +8,80 @@
 
 require 'faker'
 
-# To use SeedMaker outside of `db:seed` call `require ./db/seed_maker`
+# To use SeedMaker outside of `db:seed` call `require './db/seed_maker'`
 class SeedMaker
   def setup_fake_user
     return if User.find_by(email: 'noreply@example.com').present?
 
     User.transaction do
-      # Add roles
-      admin = Role.where(name: 'Green River Developer').first_or_create
-      # a role that can edit permissions and create users
-      admin.update(
-        can_edit_users: true,
-        can_edit_roles: true,
-      )
-      coc_staff = Role.where(name: 'CoC Staff').first_or_create
-      # a role with some basic access
-      coc_staff.update(
-        can_edit_data_sources: true,
-        can_upload_hud_zips: true,
-        can_search_window: true,
-        can_view_clients: true,
-        can_view_full_client_dashboard: true,
-        can_view_all_reports: true,
-        can_view_assigned_reports: true,
-        can_view_all_hud_reports: true,
-      )
-
       # Add a user.  This should not be added in production
       return if Rails.env =~ /production|staging/
 
-      agency = Agency.where(name: 'Sample Agency').first_or_create
-      initial_password = Faker::Internet.password(min_length: 16)
-      user = User.new
-      user.email = 'noreply@example.com'
-      user.first_name = 'Sample'
-      user.last_name = 'Admin'
-      user.password = user.password_confirmation = initial_password
-      user.confirmed_at = Time.now
-      user.permission_context = 'acls' # Use `user.permission_context = 'role_based'` for legacy permissions
-      user.agency_id = agency.id
-      user.save!
-      # legacy access
-      admin.add(user)
-      coc_staff.add(user)
-      user_group = UserGroup.where(name: 'Green River Developers').first_or_create
-      user_group.add(user)
-      all_ds_entity_collection = Collection.system_collection(:data_sources)
-      AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)
-      AccessControl.create(role: coc_staff, collection: all_ds_entity_collection, user_group: user_group)
-      puts "Created initial admin email: #{user.email}  password: #{user.password}"
+      production_seed_first_user(email: 'noreply@example.com', first_name: 'Sample', last_name: 'Admin')
+    end
+  end
+
+  # For new deployments, call `production_seed_first_user` to create an initial user and associated access
+  def production_seed_first_user(email:, first_name:, last_name:)
+    raise "User #{email} already exists" if User.exists?(email: email)
+
+    seed_roles
+
+    developer.find_by(name: 'Open Path Developer')
+    agency = Agency.where(name: 'Green River').first_or_create
+
+    # Setup an initial user
+    initial_password = Faker::Internet.password(min_length: 16)
+    user = User.new
+    user.email = email
+    user.first_name = first_name
+    user.last_name = last_name
+    user.password = user.password_confirmation = initial_password
+    user.confirmed_at = Time.now
+    user.permission_context = 'acls'
+    user.agency_id = agency.id
+    user.save!
+
+    # legacy access
+    developer.add(user)
+
+    # Access Control access
+    user_group = UserGroup.where(name: 'Open Path Developers').first_or_create
+    user_group.add(user)
+    all_ds_entity_collection = Collection.system_collection(:data_sources)
+    AccessControl.create(role: developer, collection: all_ds_entity_collection, user_group: user_group)
+
+    puts "Created initial admin email: #{user.email}  password: #{user.password}"
+    user
+  end
+
+  # Not automatically called on deployment, but will be called for new installations
+  # as part of the `production_seed_first_user` setup process
+  # To reset roles to the default values, call `seed_roles(reset_permissions: true)`
+  def seed_roles(reset_permissions: false)
+    YAML.load_file(Rails.root.join('db/seeds/roles.yaml')).each do |default_role|
+      role = Role.where(name: default_role['name']).first_or_initialize
+      # If the role already exists, skip it, we may have adjusted the permissions in the UI
+      next if role.persisted? && !reset_permissions
+
+      # Don't add any roles if you already have more than 3 roles (we can manually override with reset_permissions)
+      next if Role.count > 3 && !reset_permissions
+
+      # ensure all permissions are false if we are resetting
+      if reset_permissions
+        Role.permissions_with_descriptions.each_key do |permission|
+          role[permission] = false
+        end
+      end
+
+      # set the permissions that are in this default role to true
+      default_role['permissions'].each do |permission|
+        raise unless Role.column_names.include?(permission)
+
+        role[permission] = true
+      end
+
+      role.save!
     end
   end
 
@@ -414,5 +439,6 @@ class SeedMaker
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
     Translation.maintain_keys
+    GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
 end

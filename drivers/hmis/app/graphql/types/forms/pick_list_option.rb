@@ -162,11 +162,23 @@ module Types
             { code: other_funder, label: other_funder }
           end
       when 'WORKFLOW_DEFINITION_TEMPLATES'
+        # TODO(#7522) - rename CE_WORKFLOW_TEMPLATE_IDENTIFIERS;
+        #  return identifiers and not IDs; only return published templates; only return CE templates
+        # TODO(#7502) - templates are shared across data sources
+        # Unique ce workflow template identifiers that are currently published.
+        # Used for configuring which template to use for a project/resource/group/etc
         return [] unless Hmis::Ce.configuration.enabled?
 
-        # TODO(#7502) - templates are shared across data sources
         Hmis::WorkflowDefinition::Template.all.map do |template|
           { code: template.id, label: template.name }
+        end
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
+        # Unique CE workflow template identifiers, including retired workflows with no currently published version.
+        # Used for filtering on existing/historical referrals.
+        base_scope = Hmis::WorkflowDefinition::Template.where(template_type: :ce_referral)
+        base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
+          description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
+          { code: identifier, label: description }
         end
       end
     end
@@ -284,27 +296,29 @@ module Types
     end
 
     def self.geocodes_picklist
-      # NOTE: HMIS currently only supports one state installations
-      state = GrdaWarehouse::Config.relevant_state_codes&.first
-      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
-        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
-      end.map do |obj|
-        {
-          code: obj['geocode'],
-          label: "#{obj['geocode']} - #{obj['name']}",
-        }
+      GrdaWarehouse::Config.relevant_state_codes.flat_map do |state|
+        Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+          JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+        end.map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+            group_label: state,
+          }
+        end
       end
     end
 
     def self.state_picklist
+      relevant_states = GrdaWarehouse::Config.relevant_state_codes
+
       Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
         JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
       end.map do |obj|
         {
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
-          # NOTE: HMIS currently only supports one state installations
-          initial_selected: obj['abbreviation'].in?(GrdaWarehouse::Config.relevant_state_codes&.first),
+          initial_selected: relevant_states&.size == 1 && obj['abbreviation'] == relevant_states.first,
         }
       end
     end

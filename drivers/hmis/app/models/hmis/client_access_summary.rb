@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # backed by a db view
 module Hmis
   class ClientAccessSummary < ApplicationRecord
@@ -11,7 +13,7 @@ module Hmis
     self.primary_key = 'id'
 
     belongs_to :user, class_name: 'Hmis::User'
-    belongs_to :client, class_name: 'Hmis::Hud::Client'
+    belongs_to :client, -> { with_deleted }, class_name: 'Hmis::Hud::Client'
 
     def readonly?
       true

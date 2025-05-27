@@ -40,10 +40,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # HUD services
   has_many :services, **hmis_enrollment_relation('Service'), inverse_of: :enrollment, dependent: :destroy
+  has_many :services_ordered_by_date, -> { ordered_by_date }, **hmis_enrollment_relation('Service')
+
   has_many :bed_nights, -> { bed_nights }, **hmis_enrollment_relation('Service')
   # Custom services
   has_many :custom_services, **hmis_enrollment_relation('CustomService'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_services_ordered_by_date, -> { order(:date_provided) }, **hmis_enrollment_relation('CustomService')
+
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_case_notes_with_date_ordered, -> { with_date_ordered }, **hmis_enrollment_relation('CustomCaseNote')
+
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
   has_many(
@@ -58,14 +64,20 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
   has_many :disabilities, **hmis_enrollment_relation('Disability'), inverse_of: :enrollment, dependent: :destroy
   has_many :health_and_dvs, **hmis_enrollment_relation('HealthAndDv'), inverse_of: :enrollment, dependent: :destroy
+
   has_many :current_living_situations, **hmis_enrollment_relation('CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :cls_ordered_by_date, -> { order(:information_date) }, **hmis_enrollment_relation('CurrentLivingSituation')
+
   has_many :employment_educations, **hmis_enrollment_relation('EmploymentEducation'), inverse_of: :enrollment, dependent: :destroy
   has_many :youth_education_statuses, **hmis_enrollment_relation('YouthEducationStatus'), inverse_of: :enrollment, dependent: :destroy
 
   # CE Assessments
   has_many :assessments, **hmis_enrollment_relation('Assessment'), inverse_of: :enrollment, dependent: :destroy
+
   # Custom Assessments
   has_many :custom_assessments, **hmis_enrollment_relation('CustomAssessment'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_assessments_ordered_by_date, -> { order(:assessment_date) }, **hmis_enrollment_relation('CustomAssessment')
+
   has_one :intake_assessment, -> { intakes }, **hmis_enrollment_relation('CustomAssessment')
   has_one :exit_assessment, -> { exits }, **hmis_enrollment_relation('CustomAssessment')
   has_many :update_assessments, -> { updates }, **hmis_enrollment_relation('CustomAssessment')
@@ -76,6 +88,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+  belongs_to :client_including_deleted, -> { with_deleted }, **hmis_relation(:PersonalID, 'Client'), optional: true # Used for auditing user access
+
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
 
@@ -86,7 +100,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
 
-  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], foreign_key: [:data_source_id, :household_id]
+  has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
   has_one :ch_enrollment, class_name: 'Hmis::ChEnrollment', dependent: :destroy
@@ -403,7 +417,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = nil
     save!(validate: false)
   end
-  alias save_in_progress save_in_progress!
+  alias_method :save_in_progress, :save_in_progress!
 
   def save_not_in_progress!
     # If this enrollment is being moved from WIP=>non-WIP, then set the DateCreated to now. This is to get the desired time for timeliness reports.
@@ -412,7 +426,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.project_id = project.project_id
     save!
   end
-  alias save_not_in_progress save_not_in_progress!
+  alias_method :save_not_in_progress, :save_not_in_progress!
 
   def in_progress?
     self.ProjectID.nil?

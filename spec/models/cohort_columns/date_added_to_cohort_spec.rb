@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe CohortColumns::DateAddedToCohort, type: :model do
@@ -19,13 +21,13 @@ RSpec.describe CohortColumns::DateAddedToCohort, type: :model do
 
   it 'Resets the date added to the cohort client when is is removed and re-added' do
     # Add client yesterday
-    Timecop.travel(Date.yesterday)
+    travel_to(Date.yesterday)
     AddCohortClientsJob.new.perform(cohort.id, client.id.to_s, user.id)
     expect(cohort.cohort_clients.count).to eq(1)
     cohort_client = cohort.cohort_clients.first
     expect(cohort_client.cohort_client_changes.count).to eq(1) # Newly created
     expect(cohort_client.date_added_to_cohort).to eq(Date.current)
-    Timecop.return
+    travel_back
 
     # Remove client
     cohort_client.destroy

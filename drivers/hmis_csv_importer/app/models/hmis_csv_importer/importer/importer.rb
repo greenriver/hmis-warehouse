@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
 # The import is authoritative for the projects specified in the Project.csv file
@@ -94,7 +96,7 @@ module HmisCsvImporter::Importer
       ingest!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
-      log_timing :post_process
+      post_process
     end
 
     def resume!
@@ -108,7 +110,7 @@ module HmisCsvImporter::Importer
       ingest!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
-      log_timing :post_process
+      post_process
     end
 
     ##
@@ -1076,26 +1078,42 @@ module HmisCsvImporter::Importer
     end
 
     private def post_process
-      # s_time = Time.current
+      log_timing :project_cleanup
+      log_timing :cleanup_dangling_enrollments
+      log_timing :identify_duplicates
+      log_timing :queue_enrollment_processing
+      log_timing :maintain_ch_enrollments
+    end
+
+    private def project_cleanup
       project_ids = GrdaWarehouse::Hud::Project.
         where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
         pluck(:id)
       GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run! if @project_cleanup
+    end
 
+    private def cleanup_dangling_enrollments
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.
         joins(:warehouse_client_source).
         where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
         pluck(wc_t[:destination_id])
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+    end
 
+    private def queue_enrollment_processing
       # Enrollment.processed_as is cleared if the enrollment changed
       # queue up a rebuild to keep things as in sync as possible
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+    end
+
+    private def maintain_ch_enrollments
       # These need to be updated any time the enrollment changes
       GrdaWarehouse::ChEnrollment.maintain!
-      # puts "Took #{Time.current - s_time} seconds - #{Time.current}"
+    end
+
+    private def identify_duplicates
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     end
 
     private def db_transaction(&block)

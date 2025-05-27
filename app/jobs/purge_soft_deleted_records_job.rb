@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -11,7 +13,7 @@
 # * Maintains referential integrity by properly handling dependent relationships
 # * Enforces a maximum deletion limit as a safety mechanism
 class PurgeSoftDeletedRecordsJob < BaseJob
-  include NotifierConfig
+  queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   # @param retain_at [DateTime] Records deleted before this date will be purged
   # @param max_deleted [Integer] Maximum number of records to delete in one run
@@ -21,6 +23,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   # @return [Integer] Total number of records deleted
   def perform(retain_at: 1.year.ago, max_deleted: 10_000_000, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
+
+    Rails.logger.info "Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})"
 
     with_lock do
       @total_deleted = 0
@@ -37,6 +41,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
         end
       end
     end
+
+    Rails.logger.info "Total records deleted: #{@total_deleted}" unless @dry_run
     @total_deleted
   end
 
@@ -110,6 +116,7 @@ class PurgeSoftDeletedRecordsJob < BaseJob
           end
         end
 
+        # even though this throws, it does not rollback the transaction so we could delete more records than the max
         check_max_deleted(batch.size)
         batch.delete_all unless @dry_run
       end
@@ -118,6 +125,9 @@ class PurgeSoftDeletedRecordsJob < BaseJob
 
   def check_max_deleted(size)
     @total_deleted += size
-    throw :halt if @total_deleted >= @max_deleted
+    return unless @total_deleted >= @max_deleted
+
+    Rails.logger.info "Reached maximum deletion limit of #{@max_deleted} records, halting job."
+    throw :halt
   end
 end

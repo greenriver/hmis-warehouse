@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -12,7 +14,7 @@ module HmisCsvTwentyTwentyTwo::Loader
       belongs_to :loader_log, optional: true
 
       def hmis_data
-        @hmis_data ||= slice(*self.class.hmis_structure.keys)
+        @hmis_data ||= slice(*self.class.hmis_structure.keys & attributes.keys)
       end
     end
   end

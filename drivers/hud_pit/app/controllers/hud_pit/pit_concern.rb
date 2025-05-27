@@ -4,12 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPit::PitConcern
   extend ActiveSupport::Concern
   included do
     def available_report_versions
       {
-        'FY 2024 (current)' => { slug: :fy2024, active: true },
+        'FY 2025 (current)' => { slug: :fy2025, active: true },
+        'FY 2024' => { slug: :fy2024, active: true },
         'FY 2023' => { slug: :fy2023, active: true },
         'FY 2022' => { slug: :fy2022, active: true },
       }.freeze
@@ -17,7 +20,7 @@ module HudPit::PitConcern
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2024
+      :fy2025
     end
 
     private def filter_class
@@ -29,6 +32,7 @@ module HudPit::PitConcern
         fy2022: HudPit::Generators::Pit::Fy2022::Generator,
         fy2023: HudPit::Generators::Pit::Fy2023::Generator,
         fy2024: HudPit::Generators::Pit::Fy2024::Generator,
+        fy2025: HudPit::Generators::Pit::Fy2025::Generator,
       }
     end
 

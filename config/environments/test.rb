@@ -1,24 +1,32 @@
+# frozen_string_literal: true
+
 require 'active_support/core_ext/integer/time'
+
+# The test environment is used exclusively to run your application's
+# test suite. You never need to work with it otherwise. Remember that
+# your test database is "scratch space" for the test suite and is wiped
+# and recreated between test runs. Don't rely on the data there!
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   # enable reloading if we're using spring. Note
-  # note, newer versions of rails replace config.cache_classes with enable_reloading
   if ENV['DISABLE_SPRING'].present?
-    config.cache_classes = true
+    config.enable_reloading = false
   else
     # spring enabled
-    config.cache_classes = false
+    config.enable_reloading = true
   end
 
-  # Do not eager load code on boot. This avoids loading your whole application
-  # just for the purpose of running a single test. If you are using a tool that
-  # preloads Rails for running tests, you may have to set it to true.
+  # Eager loading loads your entire application. When running a single test locally,
+  # this is usually not necessary, and can slow down your test suite. However, it's
+  # recommended that you enable it in continuous integration systems to ensure eager
+  # loading is working properly before deploying your code.
+  # config.eager_load = ENV['CI'].present?
+  # disabling this in an attempt to reduce memory usage in CI
   config.eager_load = false
 
   config.action_view.cache_template_loading = true
-  config.cache_store = :null_store
 
   # Configure public file server for tests with Cache-Control for performance.
   config.public_file_server.enabled = true
@@ -27,14 +35,15 @@ Rails.application.configure do
   }
 
   # Show full error reports and disable caching.
-  config.consider_all_requests_local       = true
+  config.consider_all_requests_local = true
   config.action_controller.perform_caching = false
+  config.cache_store = :null_store
 
   # time zone
   config.time_zone = 'America/New_York'
 
-  # Raise exceptions instead of rendering exception templates.
-  config.action_dispatch.show_exceptions = false
+  # Render exception templates for rescuable exceptions and raise for other exceptions.
+  config.action_dispatch.show_exceptions = :rescuable
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
@@ -51,14 +60,27 @@ Rails.application.configure do
 
   config.active_job.queue_adapter = :test
 
-  # Print deprecation notices to the stderr.
   config.active_support.deprecation = :raise
+
+  # Raise exceptions for disallowed deprecations.
+  # config.active_support.disallowed_deprecation = :raise
+
+  # Tell Active Support which deprecation messages to disallow.
+  # config.active_support.disallowed_deprecation_warnings = []
 
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = false
 
-  # Raises error for missing translations
-  # config.action_view.raise_on_missing_translations = true
+  # Raises error for missing translations.
+  # config.i18n.raise_on_missing_translations = true
+
+  # Annotate rendered view with file names.
+  # config.action_view.annotate_rendered_view_with_filenames = true
+
+  # Raise error when a before_action's only/except options reference missing actions
+  # FIXME: would be nice to enable this but we'd need to fix global before_actions in ApplicationController
+  # config.action_controller.raise_on_missing_callback_actions = true
+  config.action_controller.raise_on_missing_callback_actions = false
 
   # Devise requires a default URL
   config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }

@@ -7,6 +7,9 @@
 # frozen_string_literal: true
 
 module Hmis::Hud::Concerns::WithStrictAttributes
+  # Add validations on ALL numerical columns (int/decimal) on HUD models,
+  # to prevent the default Rails/Postgres behavior of silently casting non-numeric strings to 0.
+
   extend ActiveSupport::Concern
 
   included do
@@ -14,14 +17,10 @@ module Hmis::Hud::Concerns::WithStrictAttributes
 
     columns.each do |column|
       case column.type
-      when :integer
-        attribute column.name, Hmis::StrictInteger.new
-      when :bigint
-        attribute column.name, Hmis::StrictInteger.new
-      when :decimal
-        attribute column.name, Hmis::StrictDecimal.new
-      when :float
-        attribute column.name, Hmis::StrictDecimal.new
+      when :integer, :bigint
+        validates column.name, hud_numericality: { integer: true }
+      when :decimal, :float
+        validates column.name, hud_numericality: { integer: false }
       end
     end
   end

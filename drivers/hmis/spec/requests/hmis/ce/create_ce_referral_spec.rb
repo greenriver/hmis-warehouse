@@ -7,6 +7,10 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   let!(:ds_access_control) do
     create_access_control(
       hmis_user,
@@ -24,17 +28,17 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
     hmis_login(user)
   end
 
-  let(:project) { create :hmis_hud_project, data_source: ds1 }
-  let(:template) { create :hmis_workflow_definition_template, status: 'published' }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: template }
-  let(:client) { create :hmis_hud_client, data_source: ds1 }
-  let(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
+  let!(:project) { create :hmis_hud_project, data_source: ds1 }
+  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: template }
+  let!(:client) { create :hmis_hud_client, data_source: ds1 }
+  let!(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
 
   describe 'create referral mutation' do
     let(:mutation) do
       <<~GRAPHQL
-        mutation CreateReferral($opportunityId: ID!, $clientId: ID!, $input: CeReferralInput!) {
-          createCeReferral(opportunityId: $opportunityId, clientId: $clientId, input: $input) {
+        mutation CreateReferral($opportunityId: ID!, $clientId: ID!) {
+          createCeReferral(opportunityId: $opportunityId, clientId: $clientId) {
             errors {
               message
               attribute
@@ -62,12 +66,6 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
       {
         opportunityId: opportunity.id,
         clientId: client.id,
-        input: {
-          participants: {
-            userId: hmis_user.id,
-            swimlaneId: swimlane.id,
-          },
-        },
       }
     end
 
@@ -90,16 +88,6 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
         expect(referral_data['steps']).to be_an(Array)
       end
 
-      it 'creates referral participants' do
-        expect do
-          post_graphql(**variables) { mutation }
-        end.to change(Hmis::Ce::ReferralParticipant, :count).by(1)
-
-        participant = Hmis::Ce::ReferralParticipant.last
-        expect(participant.user).to eq(hmis_user)
-        expect(participant.swimlane).to eq(swimlane)
-      end
-
       it 'creates a workflow instance' do
         expect do
           post_graphql(**variables) { mutation }
@@ -112,7 +100,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
 
     context 'if the client is in a different data source' do
       let!(:ds2) { create :hmis_data_source }
-      let(:client) { create :hmis_hud_client, data_source: ds2 }
+      let!(:client) { create :hmis_hud_client, data_source: ds2 }
 
       it 'raises an error' do
         expect do

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class WarehouseReport::Outcomes::Base
   include ArelHelper
 
@@ -1230,6 +1232,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   class Support < OpenStruct
+    include ::PiiDisplay
     # rows must contain client_id in the first column
     # clients array must be in the format [[id, FirstName, LastName]]
     def initialize(clients:, rows:, headers:)
@@ -1247,6 +1250,22 @@ class WarehouseReport::Outcomes::Base
     end
 
     attr_reader :headers
+
+    def display_value(header:, value:, project_id:, client_id:, user:)
+      # For performance, we'll default to the project pii policy.
+      # If the project_id is not present, we'll use the destination client policy.
+      # If neither are present, we'll use the Allow Policy for consistency with how the report worked prior to this change.
+      pii_policy = if project_id.present?
+        user.policy_for(project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+      elsif client_id.present?
+        client = GrdaWarehouse::Hud::Client.find(client_id)
+        user.policy_for(client, policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
+      else
+        GrdaWarehouse::AuthPolicies::AllowPolicy.new(user: user, resource: nil)
+      end
+
+      pii_value(col: header, raw_value: value, pii_policy: pii_policy)
+    end
 
     def headers_for_export
       return headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
@@ -1272,7 +1291,7 @@ class WarehouseReport::Outcomes::Base
         format_support(hashed)
       end
     end
-    alias to_h support_rows
+    alias_method :to_h, :support_rows
 
     private def format_support(row)
       row.each do |header, value|

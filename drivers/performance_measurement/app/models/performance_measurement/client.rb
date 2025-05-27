@@ -14,7 +14,7 @@ module PerformanceMeasurement
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
-    has_many :client_projects, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
+    has_many :client_projects, primary_key: [:client_id, :report_id], query_constraints: [:client_id, :report_id]
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', optional: true, foreign_key: :client_id
 
     # Gender scopes
@@ -210,10 +210,10 @@ module PerformanceMeasurement
         "#{period}_days_in_th_bed_in_period" => 'TH Days in Period',
         # "#{period}_days_referral_to_ph_entry" => '',
         "#{period}_days_homeless_before_move_in" => 'Days Before Move-In',
-        "#{period}_days_in_es_bed_details_in_period" => 'ES Details in Period',
-        "#{period}_days_in_sh_bed_details_in_period" => 'SH Details in Period',
-        "#{period}_days_in_so_bed_details_in_period" => 'SO Details in Period',
-        "#{period}_days_in_th_bed_details_in_period" => 'TH Details in Period',
+        "#{period}_days_in_es_bed_details_in_period" => 'ES Details in Period for Project',
+        "#{period}_days_in_sh_bed_details_in_period" => 'SH Details in Period for Project',
+        "#{period}_days_in_so_bed_details_in_period" => 'SO Details in Period for Project',
+        "#{period}_days_in_th_bed_details_in_period" => 'TH Details in Period for Project',
         "#{period}_days_in_homeless_bed" => 'Homeless Days',
         "#{period}_days_in_homeless_bed_details" => 'Homeless Days Details',
         "#{period}_days_in_homeless_bed_in_period" => 'Homeless Days in Period',

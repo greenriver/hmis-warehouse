@@ -527,6 +527,16 @@ module ApplicationHelper
     end
   end
 
+  # page title with optional block
+  # = render_display_title "New Report" do
+  #   = render 'type_warning'
+  def render_display_title(title, &block)
+    content_tag(:div, class: 'o-page__title') do
+      concat(content_tag(:h1, title))
+      concat(capture(&block)) if block_given?
+    end
+  end
+
   # Provides a generic mechanism to show an action menu if there is more than one item, button, if only one
   # Expects an array of objects called items in the following format
   # [{ link_to: { path: '/hud_reports/aprs/new?filter%5Bactive_roi%5D=false...'}, icon: :copy, label: 'Clone report' }, { link_to: { path: '/hud_reports/aprs/111', method: :delete }, icon: :cross, label: 'Delete' }]
@@ -535,5 +545,38 @@ module ApplicationHelper
     return render('/common/action_menu', items: items) if items.many?
 
     render('/common/action_button', item: items.sole)
+  end
+
+  def render_generic_search_form(
+    url_for_options = nil,
+    method: 'get',
+    prompt: nil,
+    initial_value: params[:q],
+    tooltip_title: nil,
+    aria_label: nil,
+    autofocus: true,
+    input_type: 'search',
+    input_name: 'q'
+  )
+    raise ArgumentError, "Method must be 'get' or 'post'" unless ['get', 'post'].include?(method.to_s)
+
+    form_options = { method: method }
+    input_data = { toggle: 'tooltip', title: tooltip_title, placement: 'bottom' } if tooltip_title
+    input_attrs = {
+      name: input_name,
+      autofocus: autofocus,
+      type: input_type,
+      placeholder: prompt,
+      value: initial_value,
+      data: input_data,
+    }
+    input_attrs[:aria] = { label: aria_label } if aria_label
+
+    render(
+      '/common/generic_search_form',
+      url_for_options: url_for_options,
+      form_options: form_options,
+      input_attrs: input_attrs,
+    )
   end
 end

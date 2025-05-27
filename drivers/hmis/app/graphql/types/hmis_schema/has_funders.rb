@@ -22,10 +22,6 @@ module Types
         end
       end
 
-      def resolve_funders_with_loader(association_name = :funders, **args)
-        load_ar_association(object, association_name, scope: scoped_funders(Hmis::Hud::Funder, **args))
-      end
-
       def resolve_funders(scope = object.funders, **args)
         scoped_funders(scope, **args)
       end

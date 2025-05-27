@@ -4,7 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ClientsController < ApplicationController
+  before_action :handle_unused_search, only: [:index]
+
   include AjaxModalRails::Controller
   include ClientController
   include ClientShowPages
@@ -176,7 +180,7 @@ class ClientsController < ApplicationController
   # Create new warehouse_clients to link source and destination
   # Queue update to service history
   def unmerge
-    to_unmerge = client_params['unmerge']&.reject(&:empty?)
+    to_unmerge = client_params['unmerge']&.reject(&:empty?) # Set of source client ids
     redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
 
     hmis_receiver = client_params['hmis_receiver']
@@ -298,4 +302,9 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+
+  protected def handle_unused_search
+    # We keep this old action because we may need it some day
+    raise 'This action is unused; the search is actually in client_access_control/clients_controller'
+  end
 end
