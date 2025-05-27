@@ -34,9 +34,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'ce_assigned_steps query' do
     let(:query) do
       <<~GRAPHQL
-        query GetCeAssignedSteps($id: ID!) {
-          user(id: $id) {
-            ceAssignedSteps {
+        query GetCeAssignedSteps {
+          userDashboard {
+            ceReferralSteps {
               nodesCount
               nodes {
                 stepId
@@ -54,7 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'resolves CE steps assigned to the user' do
       response, result = post_graphql(id: hmis_user.id) { query }
       expect(response.status).to eq(200), result.inspect
-      steps = result.dig('data', 'user', 'ceAssignedSteps', 'nodes')
+      steps = result.dig('data', 'userDashboard', 'ceReferralSteps', 'nodes')
       expect(steps.count).to eq(2)
       expect(steps).to contain_exactly(
         a_hash_including(
@@ -78,7 +78,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       remove_permissions(access_control, :can_view_project, :can_view_referrals)
       response, result = post_graphql(id: hmis_user.id) { query }
       expect(response.status).to eq(200), result.inspect
-      steps = result.dig('data', 'user', 'ceAssignedSteps', 'nodes')
+      steps = result.dig('data', 'userDashboard', 'ceReferralSteps', 'nodes')
       expect(steps.count).to eq(0)
     end
 
@@ -95,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect do
           response, result = post_graphql(id: hmis_user.id) { query }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'user', 'ceAssignedSteps', 'nodesCount')).to eq(52)
+          expect(result.dig('data', 'userDashboard', 'ceReferralSteps', 'nodesCount')).to eq(52)
         end.to make_database_queries(count: 15..25)
       end
     end
