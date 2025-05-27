@@ -1,6 +1,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -23249,6 +23250,35 @@ ALTER SEQUENCE public.hmis_group_viewable_entities_id_seq OWNED BY public.hmis_g
 
 
 --
+-- Name: hmis_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_groups (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    data_source_id bigint NOT NULL,
+    inclusion_criteria jsonb NOT NULL,
+    exclusion_criteria jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_project_groups (
+    id bigint NOT NULL,
+    hmis_project_group_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: hmis_group_viewable_entity_projects; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -23266,6 +23296,14 @@ UNION
      JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = hmis_group_viewable_entities.entity_id))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
   WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
+    NULL::integer AS organization_id,
+    hmis_project_project_groups.project_id
+   FROM ((public.hmis_group_viewable_entities
+     JOIN public.hmis_project_groups ON (((hmis_project_groups.deleted_at IS NULL) AND (hmis_project_groups.id = hmis_group_viewable_entities.entity_id))))
+     JOIN public.hmis_project_project_groups ON ((hmis_project_project_groups.hmis_project_group_id = hmis_project_groups.id)))
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::ProjectGroup'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
 UNION
  SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     "Organization".id AS organization_id,
@@ -23415,6 +23453,44 @@ CREATE SEQUENCE public.hmis_project_configs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_configs_id_seq OWNED BY public.hmis_project_configs.id;
+
+
+--
+-- Name: hmis_project_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_project_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_project_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_project_groups_id_seq OWNED BY public.hmis_project_groups.id;
+
+
+--
+-- Name: hmis_project_project_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_project_project_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_project_project_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_project_project_groups_id_seq OWNED BY public.hmis_project_project_groups.id;
 
 
 --
@@ -32054,12 +32130,12 @@ CREATE TABLE public.wfe_steps (
     form_definition_id bigint,
     reversible boolean DEFAULT true NOT NULL,
     status character varying NOT NULL,
-    assigned_to_id bigint,
     started_at timestamp(6) without time zone,
     completed_at timestamp(6) without time zone,
     submitted_values json,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    available_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -35495,6 +35571,20 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 --
 
 ALTER TABLE ONLY public.hmis_project_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_configs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_project_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_groups_id_seq'::regclass);
+
+
+--
+-- Name: hmis_project_project_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_project_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_project_groups_id_seq'::regclass);
 
 
 --
@@ -39810,6 +39900,22 @@ ALTER TABLE ONLY public.hmis_import_configs
 
 ALTER TABLE ONLY public.hmis_project_configs
     ADD CONSTRAINT hmis_project_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_project_groups hmis_project_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_groups
+    ADD CONSTRAINT hmis_project_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_project_project_groups hmis_project_project_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_project_groups
+    ADD CONSTRAINT hmis_project_project_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -64839,6 +64945,27 @@ CREATE INDEX index_hmis_project_configs_on_project_id ON public.hmis_project_con
 
 
 --
+-- Name: index_hmis_project_groups_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_groups_on_data_source_id ON public.hmis_project_groups USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_project_project_groups_on_hmis_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_project_groups_on_hmis_project_group_id ON public.hmis_project_project_groups USING btree (hmis_project_group_id);
+
+
+--
+-- Name: index_hmis_project_project_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_project_groups_on_project_id ON public.hmis_project_project_groups USING btree (project_id);
+
+
+--
 -- Name: index_hmis_project_unit_type_mappings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -70299,13 +70426,6 @@ CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.
 
 
 --
--- Name: index_wfe_steps_on_assigned_to_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_wfe_steps_on_assigned_to_id ON public.wfe_steps USING btree (assigned_to_id);
-
-
---
 -- Name: index_wfe_steps_on_form_definition_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -70793,6 +70913,13 @@ CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_draft_per_identifier ON publi
 --
 
 CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_published_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
+
+
+--
+-- Name: uidx_hmis_project_groups_on_data_source_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_project_groups_on_data_source_and_name ON public.hmis_project_groups USING btree (data_source_id, name) WHERE (deleted_at IS NULL);
 
 
 --
@@ -72846,6 +72973,14 @@ ALTER TABLE ONLY public.service_history_services_2021
 
 
 --
+-- Name: hmis_project_project_groups fk_rails_0eea11553a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_project_groups
+    ADD CONSTRAINT fk_rails_0eea11553a FOREIGN KEY (hmis_project_group_id) REFERENCES public.hmis_project_groups(id);
+
+
+--
 -- Name: EnrollmentCoC fk_rails_10c0c54102; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -73758,8 +73893,12 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250520185619'),
 ('20250516193728'),
+('20250516141401'),
+('20250514150515'),
 ('20250513134455'),
 ('20250513132551'),
+('20250512132201'),
+('20250509170726'),
 ('20250505000700'),
 ('20250502193442'),
 ('20250424193430'),

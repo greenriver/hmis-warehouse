@@ -41,11 +41,22 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
     acceptance_gateway.connect_to!(accept_referral, condition: 'client_accepted = 1')
   end
 
+  let!(:ds_access_control) do
+    create_access_control(
+      hmis_user,
+      ds1,
+      with_permission: [:can_view_project, :can_view_referrals, :can_perform_any_referral_tasks],
+    )
+  end
+
   describe 'submit step mutation' do
+    let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
+    let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
+
     before(:each) do
-      engine.start_workflow!(user: hmis_user)
+      engine.start_workflow!(user: other_hmis_user)
       step = engine.active_steps.first
-      engine.start_step!(step, user: hmis_user)
+      engine.start_step!(step, user: other_hmis_user)
     end
 
     let(:mutation) do
@@ -104,15 +115,53 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
         }
       end
 
-      it 'submits the step' do
-        response, result = post_graphql(**variables) { mutation }
-        expect(response.status).to eq(200), result&.inspect
-        step_data = result.dig('data', 'submitCeReferralStep', 'step')
-        expect(step_data['name']).to eq('Client Acceptance')
-        expect(step_data['status']).to eq('completed')
-        expect(step_data['swimlane']).to eq(case_manager_swimlane.name)
-        expect(step.reload.status).to eq('completed')
-        expect(referral.reload.status).to eq('accepted')
+      context 'with permission' do
+        it 'submits the step' do
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result&.inspect
+            step_data = result.dig('data', 'submitCeReferralStep', 'step')
+            expect(step_data['name']).to eq('Client Acceptance')
+            expect(step_data['status']).to eq('completed')
+            expect(step_data['swimlane']).to eq(case_manager_swimlane.name)
+            step.reload
+            referral.reload
+          end.to change(step, :status).to('completed').
+            and change(step, :completed_at).from(nil).
+            and change(referral, :status).to('accepted')
+        end
+      end
+
+      context 'without permission' do
+        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_view_project]) }
+
+        it 'raises an error' do
+          expect do
+            expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
+          end.to not_change(step, :status)
+        end
+      end
+
+      context 'with permission on own tasks' do
+        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_own_referral_tasks, :can_view_project]) }
+
+        it 'raises an error' do
+          expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
+        end
+
+        context 'and task assignment' do
+          before do
+            step.assignments.create!(user: hmis_user)
+          end
+
+          it 'submits the step' do
+            expect do
+              response, result = post_graphql(**variables) { mutation }
+              expect(response.status).to eq(200), result.inspect
+              step.reload
+            end.to change(step, :status).to('completed')
+          end
+        end
       end
     end
 

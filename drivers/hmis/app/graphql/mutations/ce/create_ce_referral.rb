@@ -16,6 +16,8 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
+      access_denied! unless current_permission?(permission: :can_start_referrals, entity: opportunity.project)
+
       client = Hmis::Hud::Client.find(client_id) # Doesn't need to be viewable by the current user
       access_denied! unless client.data_source_id == current_user.hmis_data_source_id # Needs to be in the same data source, though
 

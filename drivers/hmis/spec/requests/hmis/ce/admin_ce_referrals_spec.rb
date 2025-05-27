@@ -12,6 +12,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:workflow_template_1) { create(:hmis_workflow_definition_template, identifier: 'wft_1') }
   let!(:workflow_template_2) { create(:hmis_workflow_definition_template, identifier: 'wft_2') }
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
+
   describe 'admin ceReferrals query' do
     let(:query) do
       <<~GRAPHQL
@@ -67,6 +69,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
+    it 'raises if the user does not have permission' do
+      remove_permissions(access_control, :can_administrate_coordinated_entry)
+      expect_gql_error(post_graphql { query }, message: 'access denied')
+    end
+
     context 'with referrals across data sources' do
       let!(:referral_in_another_data_source) { create(:hmis_ce_referral) }
 
@@ -116,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         referral.workflow_engine.start_workflow!(user: hmis_user)
         step = referral.steps
-        step.update_all(updated_at: 4.days.ago) # fake time on the current steps so they show up in the filter
+        step.update_all(available_at: 4.days.ago) # fake time on the current steps so they show up in the filter
 
         referral2.workflow_engine.start_workflow!(user: hmis_user)
         referral3.workflow_engine.start_workflow!(user: hmis_user)
@@ -152,7 +159,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceReferrals', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 15..25)
+        end.to make_database_queries(count: 25..30)
       end
     end
   end
