@@ -81,8 +81,9 @@ module HudPit::Generators::Pit::Fy2025
             map(&:InformationDate).max
           disabilities_latest = disabilities.select { |d| d.InformationDate == max_disability_date }
 
-          dv_record = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @generator.filter.on && h.DomesticViolenceSurvivor&.to_i == 1 }.
+          # find the most recent health and dv record with a DomesticViolenceSurvivor answer
+          last_dv_record = enrollment.health_and_dvs.
+            select { |h| h.InformationDate <= @generator.filter.on && h.DomesticViolenceSurvivor.present? }.
             max_by(&:InformationDate)
 
           if processed_source_clients.include?(source_client.id)
@@ -134,8 +135,8 @@ module HudPit::Generators::Pit::Fy2025
             chronically_homeless_household: pit_household_chronic_status(hh_id).try(:[], :pit_chronic_status) || false,
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
-            domestic_violence: dv_record&.DomesticViolenceSurvivor,
-            domestic_violence_currently_fleeing: dv_record&.CurrentlyFleeing,
+            domestic_violence: last_dv_record&.DomesticViolenceSurvivor,
+            domestic_violence_currently_fleeing: last_dv_record&.CurrentlyFleeing,
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,

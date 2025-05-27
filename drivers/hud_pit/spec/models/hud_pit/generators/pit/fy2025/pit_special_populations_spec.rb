@@ -61,7 +61,7 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
         enrollment: enrollment,
         information_date: pit_report_date - 1.day,
         domestic_violence_survivor: conditions[:domestic_violence_survivor], # 1 for Yes
-        currently_fleeing: true,
+        currently_fleeing: conditions[:domestic_violence_survivor] == 1,
       )
     end
     client
