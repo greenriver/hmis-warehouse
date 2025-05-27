@@ -32,7 +32,7 @@ module Types
         order(created_at: :desc, id: :desc)
     end
 
-    def ce_assigned_steps
+    def ce_referral_steps
       step_scope = Hmis::WorkflowExecution::Step.
         joins(:assignments).
         merge(object.workflow_step_assignments).
