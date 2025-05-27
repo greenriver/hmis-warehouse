@@ -41,8 +41,7 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     field :manage_account_url, String, null: false
 
-    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
-    field :ce_assigned_steps, HmisSchema::CeReferralStep.page_type, null: true
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true, deprecation_reason: 'Replaced with new UserDashboard type'
 
     # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
@@ -113,23 +112,6 @@ module Types
         viewable_by(current_user).
         open_on_date. # This will include households that exited today
         order(created_at: :desc, id: :desc)
-    end
-
-    def ce_assigned_steps # don't resolve in batch
-      step_scope = Hmis::WorkflowExecution::Step.
-        joins(:assignments).
-        merge(object.workflow_step_assignments).
-        open.
-        order(available_at: :desc, id: :desc)
-
-      # Join to referrals for
-      # - permission checking
-      # - ensuring we only resolve CE steps and not other workflow types
-      # For performance, rely on assumption that only active referrals have active steps.
-      referral_scope = Hmis::Ce::Referral.active.viewable_by(current_user)
-      instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
-
-      step_scope.where(instance_id: instance_ids)
     end
 
     def manage_account_url

@@ -290,6 +290,7 @@ module Types
     end
 
     field :current_user, Application::User, null: true
+    field :user_dashboard, Types::Application::UserDashboard, null: false
 
     access_field do
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
@@ -580,6 +581,10 @@ module Types
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
+    end
+
+    def user_dashboard
+      current_user
     end
   end
 end

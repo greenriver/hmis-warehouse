@@ -193,7 +193,6 @@ User account for a user of the system
 type ApplicationUser {
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
   auditHistory(filters: UserAuditEventFilterOptions, limit: Int, offset: Int): ApplicationUserAuditEventsPaginated!
-  ceAssignedSteps(limit: Int, offset: Int): CeReferralStepsPaginated
   clientAccessSummaries(filters: ClientAccessSummaryFilterOptions, limit: Int, offset: Int): ClientAccessSummariesPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -207,7 +206,7 @@ type ApplicationUser {
   manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
-  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated @deprecated(reason: "Replaced with new UserDashboard type")
 }
 
 type ApplicationUserAuditEvent {
@@ -9568,6 +9567,7 @@ type Query {
   User lookup
   """
   user(id: ID!): ApplicationUser
+  userDashboard: UserDashboard!
 }
 
 type QueryAccess {
@@ -12291,6 +12291,22 @@ type UpdateUnitsPayload {
 input UserAuditEventFilterOptions {
   clientRecordType: [ID!]
   enrollmentRecordType: [ID!]
+}
+
+"""
+Resolves everything that is needed on the user dashboard
+"""
+type UserDashboard {
+  ceReferralSteps(limit: Int, offset: Int): CeReferralStepsPaginated
+  id: ID!
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
+  userDashboardConfig: UserDashboardConfig!
+}
+
+type UserDashboardConfig {
+  id: ID!
+  showReferrals: Boolean!
+  showStaffAssignment: Boolean!
 }
 
 type ValidationError {
