@@ -9590,8 +9590,6 @@ type QueryAccess {
   canEditProjectDetails: Boolean!
   canEditUsersInWarehouse: Boolean!
   canEnrollClients: Boolean!
-  canHaveAssignedReferralTasks: Boolean!
-  canHaveAssignedStaff: Boolean!
   canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageClientAlerts: Boolean!
@@ -9624,7 +9622,7 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
-  canViewMyDashboard: Boolean!
+  canViewMyDashboard: Boolean! @deprecated(reason: "Replaced with new UserDashboard type")
   canViewOpenEnrollmentSummary: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
