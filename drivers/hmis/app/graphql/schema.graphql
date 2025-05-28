@@ -790,7 +790,7 @@ input CeOpportunityFilterOptions {
 
 input CeOpportunityInput {
   name: String!
-  templateId: ID!
+  templateIdentifier: String!
 }
 
 """

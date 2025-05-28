@@ -53,7 +53,7 @@ RSpec.describe Mutations::Ce::CreateCeOpportunity, type: :request do
         projectId: project.id,
         input: {
           name: 'Housing Opportunity #1',
-          templateId: workflow_template.id,
+          templateIdentifier: workflow_template.identifier,
         },
       }
     end

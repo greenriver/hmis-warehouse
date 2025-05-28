@@ -18,7 +18,10 @@ module Mutations
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
       access_denied! unless current_permission?(permission: :can_manage_units, entity: project)
 
-      template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).find(input.template_id)
+      template = Hmis::WorkflowDefinition::Template.
+        published.viewable_by(current_user).
+        find_by(identifier: input.template_identifier)
+
       opportunity = nil
       project.with_lock do
         opportunity = Hmis::Ce::Opportunity.new(project: project)
