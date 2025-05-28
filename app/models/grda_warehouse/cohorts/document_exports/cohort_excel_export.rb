@@ -84,6 +84,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
       self.mime_type = EXCEL_MIME_TYPE
     end
 
+    # additional instrumentation that we should take out in the future once we resolve #7751
     private def preflight_checks
       expected_handler_class = AxlsxRails::TemplateHandler
       current_handler_class = ActionView::Template.handler_for_extension('axlsx')
