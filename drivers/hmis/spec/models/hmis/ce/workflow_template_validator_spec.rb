@@ -31,7 +31,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
     start&.connect_to!(task)
     task.connect_to!(gateway)
     gateway.connect_to!(accept, condition: 'client_accepted = true') if accept.present?
-    gateway.connect_to!(reject, condition: 'client_accepted = false') if reject.present?
+    gateway.connect_to!(reject) if reject.present?
     template.reload
   end
 
@@ -140,6 +140,20 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
     it 'is not valid' do
       template.validate
       expect(template.errors[:base]).to include('The following nodes must have at least one inflow and one outflow: Gateway')
+    end
+  end
+
+  describe 'Workflow with gateway that does not have a default outflow' do
+    before do
+      gateway.outflows.destroy_all
+      gateway.connect_to!(accept, condition: 'client_accepted = true')
+      gateway.connect_to!(reject, condition: 'client_accepted = false')
+      template.reload
+    end
+
+    it 'is not valid' do
+      template.validate
+      expect(template.errors[:base]).to include("Gateway 'Gateway' must have at least one non-conditional (default) outflow.")
     end
   end
 end

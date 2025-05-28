@@ -123,7 +123,7 @@ module Hmis::WorkflowExecution
         return unless node.inflows.all? { |flow| evaluate_condition(flow.condition) }
       end
 
-      outflows = node.outflows.sort_by(&:position)
+      outflows = node.outflows.sort_by { |f| [f.condition ? 0 : 1, f.position] } # evaluate outflows with conditions first
       if node.exclusive_outflows?
         outflows = Array(outflows.detect { |flow| evaluate_condition(flow.condition) })
       else

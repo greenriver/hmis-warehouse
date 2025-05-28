@@ -130,7 +130,8 @@ task ce_starter_pack_20250302: [:environment] do
 
   start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   client_acceptance_task.connect_to!(gateway) unless client_acceptance_task.outflows.where(target_node_id: gateway.id).exists?
-  gateway.connect_to!(reject_workflow_event, condition: 'client_accepted = 0') unless gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
+  gateway.outflows.destroy_all
+  gateway.connect_to!(reject_workflow_event) unless gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
   gateway.connect_to!(accept_workflow_event, condition: 'client_accepted = 1') unless gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
 
   one_task_template.validate!
@@ -190,10 +191,12 @@ task ce_starter_pack_20250302: [:environment] do
 
   start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   client_acceptance_task.connect_to!(client_acceptance_gateway) unless client_acceptance_task.outflows.where(target_node_id: client_acceptance_gateway.id).exists?
-  client_acceptance_gateway.connect_to!(accept_workflow_event, condition: 'client_accepted = 1') unless client_acceptance_gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
+  client_acceptance_gateway.outflows.destroy_all
+  client_acceptance_gateway.connect_to!(accept_workflow_event) unless client_acceptance_gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
   client_acceptance_gateway.connect_to!(admin_acceptance_task, condition: 'client_accepted = 0') unless client_acceptance_gateway.outflows.where(target_node_id: admin_acceptance_task.id).exists?
   admin_acceptance_task.connect_to!(admin_review_gateway) unless admin_acceptance_task.outflows.where(target_node_id: admin_review_gateway.id).exists?
-  admin_review_gateway.connect_to!(client_acceptance_task, condition: 'review_denial_decision = 0') unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
+  admin_review_gateway.outflows.destroy_all
+  admin_review_gateway.connect_to!(client_acceptance_task) unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
   admin_review_gateway.connect_to!(reject_workflow_event, condition: 'review_denial_decision = 1') unless admin_review_gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
 
   admin_approval_template.validate!
