@@ -12,12 +12,11 @@ FactoryBot.define do
     status { 'available' }
     available_at { Time.current }
 
-    after(:create) do |step, evaluator|
-      if step.node.template != step.instance.template
-        step.node.template = step.instance.template
-        step.node.save!
-      end
+    after(:build) do |step|
+      step.node.template = step.instance.template if step.node.template != step.instance.template
+    end
 
+    after(:create) do |step, evaluator|
       if evaluator.assignees.present?
         evaluator.assignees.each do |assignee|
           step.assignments.create(user: assignee)
