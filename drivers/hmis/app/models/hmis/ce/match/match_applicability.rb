@@ -23,18 +23,11 @@
 #   rules for each entity type.
 # - Global and Data Source-level rules are not yet supported (e.g. "all PSH projects in a data source")
 #
-# Example Use Case:
-# - Determine whether a CE rule applies to a given Opportunity based on its associated Project and Organization.
-# - Determine which rules apply to a specific Project, to display them on the Project's detail page.
-###
-
+#
 #
 # @attr [Object] owner Entity that owns/manages this applicability rule
 # @attr [Array<String>] project_types List of valid project types
 # @attr [Array<String>] project_funders List of valid project funder IDs
-
-# This evaluates against Unit instead of Opportunity b/c should be able to view Eligibility rules for a Unit even if it doesn't have an active opportunity.
-# Note: Does not yet support global or DataSource-level rules, for example "all PSH projects in data source"
 module Hmis::Ce::Match
   MatchApplicability = Struct.new(:owner, :project_types, :project_funders, keyword_init: true) do
     def call(entity) # Opportunity, Unit, Unit Group, Project, or Organization
