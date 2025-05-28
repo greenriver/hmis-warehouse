@@ -29350,7 +29350,7 @@ CREATE TABLE public.wfd_templates (
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id integer NOT NULL
+    data_source_id bigint
 );
 
 
@@ -65052,6 +65052,14 @@ ALTER TABLE ONLY public.ce_referrals
 
 ALTER TABLE ONLY public.hmis_external_referral_postings
     ADD CONSTRAINT fk_rails_41274b755e FOREIGN KEY (referral_request_id) REFERENCES public.hmis_external_referral_requests(id);
+
+
+--
+-- Name: wfd_templates fk_rails_43a090fe14; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wfd_templates
+    ADD CONSTRAINT fk_rails_43a090fe14 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
 
 
 --
