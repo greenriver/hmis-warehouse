@@ -142,30 +142,46 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         )
       end
 
-      it 'counts 0 because the household is likely filtered out (e.g. as children_only)' do
+      it 'counts HoH as Number of parenting youth (under age 18)' do
         report = run_report(questions: [question])
         parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
-        expect(parenting_youth_under_18_count.value).to eq(0)
+        expect(parenting_youth_under_18_count.value).to eq(1)
+        children_in_parenting_youth_under_18_count = report.answer(question: question, cell: 'B7')
+        expect(children_in_parenting_youth_under_18_count.value).to eq(1)
       end
     end
 
     context 'when HoH (<18) and Spouse (<18) are present with a child (no 18+ adult in HH)' do
       before do
         household_id = 'py_multi_adult_under_18_no_18plus_adult'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_17_multi_no_18plus', dob: dob_youth_17)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        spouse_client = create_client_with_warehouse_link(uid: 'py_spouse_16_multi_no_18plus', dob: pit_date - 16.years)
-        create_enrollment(client: spouse_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_spouse, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_child_2_for_multi_no_18plus', dob: pit_date - 2.years)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
+        # HoH, age 17
+        create_enrollment(
+          client: create_client_with_warehouse_link(uid: 'py_hoh_17_multi_no_18plus', dob: dob_youth_17),
+          project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id
+        )
+        # Spouse, age 16
+        create_enrollment(
+          client: create_client_with_warehouse_link(uid: 'py_spouse_16_multi_no_18plus', dob: pit_date - 16.years),
+          project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_spouse, household_id: household_id
+        )
+        # Child 1, age 2
+        create_enrollment(
+          client: create_client_with_warehouse_link(uid: 'py_child_2_for_multi_no_18plus', dob: pit_date - 2.years),
+          project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id
+        )
+        # Child 2, age 4
+        create_enrollment(
+          client: create_client_with_warehouse_link(uid: 'py_child_4_for_multi_no_18plus', dob: pit_date - 4.years),
+          project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id
+        )
       end
 
-      it 'counts 0 because the household is likely filtered out (e.g. as children_only)' do
+      it 'counts HoH and spouse as Number of parenting youth (under age 18)' do
         report = run_report(questions: [question])
         parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
-        expect(parenting_youth_under_18_count.value).to eq(0)
+        expect(parenting_youth_under_18_count.value).to eq(2)
+        children_in_parenting_youth_under_18_count = report.answer(question: question, cell: 'B7')
+        expect(children_in_parenting_youth_under_18_count.value).to eq(2)
       end
     end
 
@@ -302,6 +318,15 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         report = run_report(questions: [question])
         hoh_for_youth_count = report.answer(question: question, cell: 'B4')
         expect(hoh_for_youth_count.value).to eq(2)
+
+        # Children should be counted based on the household's max_age (which is 19 here, due to the spouse)
+        # So, they fall under 'Children with Parents 18-24' (B9)
+        # and NOT under 'Children with Parents <18' (B7)
+        children_with_parents_under_18_count = report.answer(question: question, cell: 'B7')
+        expect(children_with_parents_under_18_count.value).to eq(0)
+
+        children_with_parents_18_to_24_count = report.answer(question: question, cell: 'B9')
+        expect(children_with_parents_18_to_24_count.value).to eq(1)
       end
     end
   end

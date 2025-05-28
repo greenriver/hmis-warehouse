@@ -105,6 +105,10 @@ module HudPit::Generators::Pit::Fy2025
             member['veteran_status'] == 1 && member['relationship_to_hoh'] == 1
           end.present?
 
+          household_has_minor_children = household_members_for(hh_id).any? do |hm|
+            hm[:relationship_to_hoh] == 2 && hm[:age] <= 18
+          end
+
           options = {
             client_id: source_client.id,
             destination_client_id: last_service_history_enrollment.client_id,
@@ -122,6 +126,7 @@ module HudPit::Generators::Pit::Fy2025
             hoh_veteran: hoh_veteran,
             head_of_household: enrollment.RelationshipToHoH == 1,
             relationship_to_hoh: enrollment.RelationshipToHoH,
+            household_has_minor_children: household_has_minor_children,
             pit_race: pit_race,
             am_ind_ak_native: source_client.AmIndAKNative,
             asian: source_client.Asian,
@@ -234,6 +239,7 @@ module HudPit::Generators::Pit::Fy2025
     end
 
     private def sub_calculations
+      child_of_hoh_clause = a_t[:relationship_to_hoh].eq(2)
       {
         households: {
           title: 'Total Number of Households',
@@ -293,15 +299,29 @@ module HudPit::Generators::Pit::Fy2025
         },
         children_of_youth_parents: {
           title: 'Total Children in Parenting Youth Households',
-          query: a_t[:head_of_household].eq(false).and(child_clause),
+          query: [
+            child_of_hoh_clause,
+            child_clause,
+          ].reduce(&:and),
         },
         children_of_18_to_24_parents: {
+          # https://www.hudexchange.info/faqs/3470/how-should-two-parent-parenting-youth-households-be-reported-in-the-pit/
+          # count children under oldest parent (aged 18-24)
           title: 'Children in households with parenting youth age 18 to 24 (children under age 18 with parents age 18 to 24)',
-          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(18..24)),
+          query: [
+            child_of_hoh_clause,
+            child_clause,
+            a_t[:max_age].in(18..24),
+          ].reduce(&:and),
         },
         children_of_0_to_18_parents: {
+          # https://www.hudexchange.info/faqs/3470/how-should-two-parent-parenting-youth-households-be-reported-in-the-pit/
           title: 'Children in households with parenting youth under age 18 (children under age 18 with parents under 18)',
-          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(0..17)),
+          query: [
+            child_of_hoh_clause,
+            child_clause,
+            a_t[:max_age].lt(18),
+          ].reduce(&:and),
         },
         native_ak: {
           title: 'American Indian, Alaska Native, or Indigenous (only)',

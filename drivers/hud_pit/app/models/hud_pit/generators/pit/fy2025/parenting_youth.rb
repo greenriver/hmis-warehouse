@@ -11,8 +11,11 @@ module HudPit::Generators::Pit::Fy2025
     QUESTION_NUMBER = 'Parenting Youth Households'
 
     def self.filter_pending_associations(pending_associations)
-      # when the entire household is under 18, we don't include it
-      pending_associations.select { |_, row| row[:max_age].present? && row[:max_age] < 25 && row[:household_type].to_s == 'adults_and_children' }
+      pending_associations.filter do |_, row|
+        row[:hoh_age]&.between?(12, 24) && # HoH is between 12 and 24
+        row[:max_age]&.<(25) && # No one over the age of 24
+        row[:household_has_minor_children] # a minor has a child relationship to the HoH
+      end
     end
 
     def run_question!
