@@ -7,7 +7,7 @@
           valid HMIS CSV format, and must include at a minimum valid
           %strong
             Export.csv, Organization.csv, and Project.csv
-           files. If the files are not in the current HUD-specified format, an attempt will be made to convert the files using the HUD data migration rules.
+          files. If the files are not in the current HUD-specified format, an attempt will be made to convert the files using the HUD data migration rules.
         = simple_form_for @upload, url: data_source_uploads_path(@data_source) do |f|
           = f.error_notification
           .form-inputs
