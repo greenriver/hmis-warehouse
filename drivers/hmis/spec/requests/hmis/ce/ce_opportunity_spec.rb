@@ -275,7 +275,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has some candidates the current user lacks permission to view' do
-      let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
+      let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool, priority_expression: '1' } # overwrite priority expression with a different dummy value to avoid duplicate key
       let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool_with_anonymous }
 
       let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
