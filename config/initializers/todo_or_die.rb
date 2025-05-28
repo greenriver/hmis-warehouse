@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 TodoOrDie.config(
   die: ->(message, due_at, condition) {
     error_message = [
