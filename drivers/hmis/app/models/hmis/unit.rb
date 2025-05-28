@@ -136,15 +136,11 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   def eligibility_requirements
-    return unless Hmis::Ce.configuration.enabled? # should have a flag on unit for ce?
-
     Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
   end
 
   def priority_scheme
-    return unless Hmis::Ce.configuration.enabled? # should have a flag on unit for ce?
-
-    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).sole # there should only be 1
+    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
   end
 
   # Class method so can use with data loader

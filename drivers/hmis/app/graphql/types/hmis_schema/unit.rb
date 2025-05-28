@@ -31,6 +31,7 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :unit_group, HmisSchema::UnitGroup, null: true
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
@@ -64,16 +65,8 @@ module Types
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
     end
 
-    # N+1, don't use in batch
-    def eligibility_requirements
-      # All eligibility requirements for this Unit, including those inherited from parent records (like Project)
-      Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(object)
-    end
-
-    # N+1, don't use in batch
-    def priority_scheme
-      # Single priority scheme, not sure if we enforce there being exactly 1?
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(object).first
+    def unit_group
+      load_ar_association(object, :unit_group)
     end
 
     def latest_opportunity

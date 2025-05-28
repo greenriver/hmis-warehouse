@@ -33,8 +33,8 @@ module Mutations
         Hmis::Unit.new(
           project_id: project.id,
           unit_type_id: unit_type&.id,
-          variant: :dwelling, # TODO accept as input
-          # unit_group: nil, # TODO accept as input
+          variant: :dwelling, # TODO(#7753) accept as input
+          # unit_group: nil, # TODO(#7753) accept as input
           **common,
         )
       end
