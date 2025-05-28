@@ -45,9 +45,10 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   end
 
   def on_current_step_since(scope)
-    # TODO(#7647) - use available_at
     with_filter(scope, :on_current_step_since) do
-      scope.joins(:current_steps).where(wfe_step_t[:updated_at].lt(input.on_current_step_since)).distinct
+      scope.joins(:current_steps).
+        where(wfe_step_t[:available_at].lt(input.on_current_step_since)).
+        distinct
     end
   end
 end

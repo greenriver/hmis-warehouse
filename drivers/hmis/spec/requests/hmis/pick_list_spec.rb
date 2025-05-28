@@ -171,6 +171,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(options.first['groupLabel']).to eq('VT')
       expect(options.last['groupLabel']).to eq('MA')
     end
+
+    it 'returns states with no state auto-selected' do
+      response, result = post_graphql(pick_list_type: 'STATE') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.none? { |o| o['initialSelected'] }).to be_truthy
+    end
   end
 
   it 'returns grouped service type pick list' do
