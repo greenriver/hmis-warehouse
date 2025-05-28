@@ -23,7 +23,7 @@ module Types
     # TODO(#7538) resolve default contacts for workflow template
 
     def workflow_template_name
-      workflow_template&.name
+      object.workflow_template&.name
     end
 
     def units(**args)

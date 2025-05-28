@@ -13,7 +13,7 @@ module Hmis
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
 
-    # Which workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
+    # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
     belongs_to :workflow_template,
                -> { latest_versions }, # choose the most recent version of the template
                foreign_key: :workflow_template_identifier,

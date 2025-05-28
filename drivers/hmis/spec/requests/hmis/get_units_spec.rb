@@ -35,6 +35,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodesCount
             nodes {
               id
+              unitGroup {
+                name
+              }
               latestOpportunity {
                 id
                 referral {
@@ -88,6 +91,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_present
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
+      end
+    end
+
+    context 'when the unit belongs to a unit group' do
+      let!(:unit) { create(:hmis_unit_in_group, project: project) }
+
+      it 'returns the unit with its group name' do
+        response, result = post_graphql(id: project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'unitGroup', 'name')).to eq(unit.unit_group.name)
       end
     end
 

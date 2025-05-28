@@ -740,9 +740,24 @@ type CeCandidatesPaginated {
 }
 
 type CeMatchRule {
+  expression: String!
+
+  """
+  Rule applicability is limited to projects with these active funders
+  """
+  funders: [FundingSource!]
   id: ID!
   name: String!
+
+  """
+  Rule applies to all projects within this related entity (eg a Data Source, Project, Organization)
+  """
   ownerType: String!
+
+  """
+  Rule applicability is limited to projects with these types
+  """
+  projectTypes: [ProjectType!]!
 }
 
 type CeOpportunitiesPaginated {
@@ -9087,6 +9102,7 @@ type Project {
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   staffAssignmentsEnabled: Boolean!
   targetPopulation: TargetPopulation
+  unitGroups(limit: Int, offset: Int): UnitGroupsPaginated!
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   user: ApplicationUser
@@ -12068,6 +12084,7 @@ type Unit {
   occupants: [Enrollment!]!
   priorityScheme: CeMatchRule
   project: Project
+  unitGroup: UnitGroup
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
@@ -12088,6 +12105,26 @@ enum UnitFilterOptionStatus {
 input UnitFilterOptions {
   status: [UnitFilterOptionStatus!]
   unitType: [ID!]
+}
+
+type UnitGroup {
+  eligibilityRequirements: [CeMatchRule!]
+  id: ID!
+  name: String!
+  priorityScheme: CeMatchRule
+  units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
+  workflowTemplateIdentifier: String
+  workflowTemplateName: String
+}
+
+type UnitGroupsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [UnitGroup!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 input UnitInput {

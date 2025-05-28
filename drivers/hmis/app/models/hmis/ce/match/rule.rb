@@ -2,6 +2,25 @@
 
 # requirement configuration for opportunities
 
+# This model represents a Rule for Coordinated Entry (CE) matching, such as eligibility requirements
+# and priority schemes.
+#
+# Rules are associated with an "owner" (e.g., a unit, project, or organization),
+# which determines the scope of applicability. The `applicability_config` can further refine this
+# scope by specifying conditions like project types or funders.
+#
+# Examples:
+#
+#    Rule Applies to All Emergency Shelter (ES) Projects in HMIS:
+#      { owner: hmis_data_source, applicability_config: { project_types: [0, 1] } }
+#
+#    Rule Applies to All Projects in Organization Y:
+#      { owner: organization_y, applicability_config: {} }
+#
+#    Rule Applies to All VA-funded Projects in Organization Y:
+#      { owner: organization_y, applicability_config: { project_funders: [37, 38, 39] } }
+#
+# The `for_entity` and `for_opportunity` methods allow querying rules that apply to specific entities or opportunities.
 module Hmis::Ce::Match
   class Rule < GrdaWarehouseBase
     self.table_name = 'ce_match_rules'

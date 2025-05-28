@@ -57,7 +57,7 @@ class Hmis::Unit < Hmis::HmisBase
   # - Hmis::Ce::Referral's `unique_referral_per_opportunity` validator.
   has_one :active_referral, through: :latest_opportunity, class_name: 'Hmis::Ce::Referral', source: :active_referral
 
-  alias_attribute :date_updated, :updated_at # remove?
+  alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
 
   attribute :variant, :string
