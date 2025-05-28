@@ -82,9 +82,14 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
       end
 
       it 'counts 0 due to household_type filter (adults_only)' do
-        report = run_report(questions: [question])
+        adult_question = HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER
+        report = run_report(questions: [question, adult_question])
         parenting_youth_18_24_count = report.answer(question: question, cell: 'B8')
         expect(parenting_youth_18_24_count.value).to eq(0)
+
+        # Verify household is counted in adult-only category
+        adult_only_count = report.answer(question: adult_question, cell: 'B2')
+        expect(adult_only_count.value).to eq(1)
       end
     end
 
@@ -118,10 +123,18 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
-      it 'counts 0 for the 18-24 parenting youth category (HoH wrong age)' do
+      it 'counts 0 for 18-24 PY, but HoH in <18 PY and child in its category' do
         report = run_report(questions: [question])
         parenting_youth_18_24_count = report.answer(question: question, cell: 'B8')
         expect(parenting_youth_18_24_count.value).to eq(0)
+
+        # Verify HoH (<18) is counted in the <18 PY category
+        parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
+        expect(parenting_youth_under_18_count.value).to eq(1)
+
+        # Verify child is counted with <18 PY
+        children_with_parents_under_18_count = report.answer(question: question, cell: 'B7')
+        expect(children_with_parents_under_18_count.value).to eq(1)
       end
     end
   end
@@ -191,17 +204,22 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
       end
     end
 
-    context 'when HoH is <18, but no child present (household is adults_only)' do
+    context 'when HoH is <18, and no other child present (household is child_only)' do
       before do
         household_id = 'py_child_hoh_under_18_no_child'
         hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_17_no_child_u18', dob: dob_youth_17)
         create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
       end
 
-      it 'counts 0 due to household_type filter (adults_only)' do
-        report = run_report(questions: [question])
+      it 'counts 0 for <18 PY, and household counted in child-only category' do
+        child_question = HudPit::Generators::Pit::Fy2025::Children::QUESTION_NUMBER
+        report = run_report(questions: [question, child_question])
         parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
         expect(parenting_youth_under_18_count.value).to eq(0)
+
+        # Verify household is counted in child-only category (HoH is the only member)
+        child_only_count = report.answer(question: child_question, cell: 'B2')
+        expect(child_only_count.value).to eq(1)
       end
     end
 
@@ -218,10 +236,15 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         create_enrollment(client: older_adult, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
-      it 'counts 0 due to max_age filter' do
-        report = run_report(questions: [question])
+      it 'counts 0 for <18 PY due to max_age, but HH counted in general Adults+Children' do
+        adult_child_question = HudPit::Generators::Pit::Fy2025::AdultAndChild::QUESTION_NUMBER
+        report = run_report(questions: [question, adult_child_question])
         parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
         expect(parenting_youth_under_18_count.value).to eq(0)
+
+        # Verify household is counted in the general Households with Adults and Children category
+        adult_and_child_hh_count = report.answer(question: adult_child_question, cell: 'B2') # Assuming B2 is the relevant cell for total households
+        expect(adult_and_child_hh_count.value).to eq(1)
       end
     end
 
@@ -235,10 +258,18 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
-      it 'counts 0 for the <18 parenting youth category (HoH wrong age)' do
+      it 'counts 0 for <18 PY, but HoH in 18-24 PY and child in its category' do
         report = run_report(questions: [question])
         parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
         expect(parenting_youth_under_18_count.value).to eq(0)
+
+        # Verify HoH (18-24) is counted in the 18-24 PY category
+        parenting_youth_18_24_count = report.answer(question: question, cell: 'B8')
+        expect(parenting_youth_18_24_count.value).to eq(1)
+
+        # Verify child is counted with 18-24 PY
+        children_with_parents_18_to_24_count = report.answer(question: question, cell: 'B9')
+        expect(children_with_parents_18_to_24_count.value).to eq(1)
       end
     end
   end
@@ -452,10 +483,18 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
-      it 'counts 0 children as HH likely filtered (or parent wrong age for B9)' do
+      it 'counts 0 children for B9, but parent in <18 PY and child in its category' do
         report = run_report(questions: [question])
-        children_count = report.answer(question: question, cell: 'B9')
-        expect(children_count.value).to eq(0)
+        children_with_parents_18_to_24_count = report.answer(question: question, cell: 'B9')
+        expect(children_with_parents_18_to_24_count.value).to eq(0)
+
+        # Verify parent (<18) is counted in the <18 PY category
+        parenting_youth_under_18_count = report.answer(question: question, cell: 'B6')
+        expect(parenting_youth_under_18_count.value).to eq(1)
+
+        # Verify child is counted with <18 PY
+        children_with_parents_under_18_count = report.answer(question: question, cell: 'B7')
+        expect(children_with_parents_under_18_count.value).to eq(1)
       end
     end
 
@@ -495,10 +534,18 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
-      it 'counts 0 children for this specific sub-calculation (parent wrong age for B7)' do
+      it 'counts 0 children for B7, but parent in 18-24 PY and child in its category' do
         report = run_report(questions: [question])
-        children_count = report.answer(question: question, cell: 'B7')
-        expect(children_count.value).to eq(0)
+        children_with_parents_under_18_count = report.answer(question: question, cell: 'B7')
+        expect(children_with_parents_under_18_count.value).to eq(0)
+
+        # Verify parent (18-24) is counted in the 18-24 PY category
+        parenting_youth_18_24_count = report.answer(question: question, cell: 'B8')
+        expect(parenting_youth_18_24_count.value).to eq(1)
+
+        # Verify child is counted with 18-24 PY
+        children_with_parents_18_to_24_count = report.answer(question: question, cell: 'B9')
+        expect(children_with_parents_18_to_24_count.value).to eq(1)
       end
     end
   end

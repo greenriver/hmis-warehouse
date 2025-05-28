@@ -131,7 +131,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         child1 = create_client_with_warehouse_link(uid: 'client_tp_2a_child', dob: child_dob_under_18)
         create_enrollment(client: child1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: hh_id1)
 
-        # Household 2 (1 HoH) -> 1 person
+        # Household 2 (1 HoH, 1 Child) -> 2 persons
         hh_id2 = 'hh_total_persons_2b'
         hoh2 = create_client_with_warehouse_link(uid: 'client_tp_2b_hoh', dob: adult_dob)
         create_enrollment(client: hoh2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: hh_id2)
@@ -171,7 +171,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         create_enrollment(client: child_2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         # Add an adult who is not a child to ensure they are not counted
-        adult_member = create_client_with_warehouse_link(uid: 'client_child_adult', dob: dob_adult_18)
+        adult_member = create_client_with_warehouse_link(uid: 'client_adult', dob: dob_adult_18)
         create_enrollment(client: adult_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
       end
 
