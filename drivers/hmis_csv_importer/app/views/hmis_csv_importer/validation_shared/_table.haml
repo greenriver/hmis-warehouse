@@ -6,6 +6,7 @@
       .col.mt-2
         = f.submit value: 'Update View', class: 'btn btn-primary'
 
+- inferred_cols = validations.detect(&:source)&.source&.class&.hmis_structure&.keys || []
 - if @pagy.count.positive?
   - entry_name = File.basename(@filename, '.csv')
   = render 'common/pagination_top', item_name: entry_name
@@ -15,14 +16,15 @@
         %thead.thead-dark
           %tr
             %th Message
-            - validations.first.source.class.hmis_structure.each_key do |header|
+            - inferred_cols.each do |header|
               %th= header
         %tbody
           - validations.each do |error|
             %tr
               %td= error.status
-              - source = error.source
-              - source.hmis_data.each do |key, value|
+              - source_data = error.source&.hmis_data || {}
+              - inferred_cols.each do |key|
+                - value = source_data[key]
                 - validation_class = if key.to_s == error.validated_column then 'bg-warning' else '' end
                 %td{class: validation_class}
                   - if key == 'PersonalID' && can_search_own_clients?

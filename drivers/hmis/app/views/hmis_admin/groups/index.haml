@@ -30,7 +30,7 @@
             %td= link_to group.name, hmis_admin_group_path(group)
             %td= group.description
             -# %td= group.summary_descriptions.join(', ')
-            %td= "#{group.overall_project_count} projects"
+            %td= "#{pluralize(group.overall_project_count, 'project')}"
             %td
               - unless group.access_controls.count.positive?
                 = link_to hmis_admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
