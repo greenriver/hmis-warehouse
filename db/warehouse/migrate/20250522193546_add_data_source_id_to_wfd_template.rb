@@ -20,9 +20,9 @@ class AddDataSourceIdToWfdTemplate < ActiveRecord::Migration[7.0]
       reversible do |dir|
         dir.up do
           execute <<~SQL
-          UPDATE wfd_templates
-          SET data_source_id = 0
-        SQL
+            UPDATE wfd_templates
+            SET data_source_id = 0
+          SQL
         end
       end
 
