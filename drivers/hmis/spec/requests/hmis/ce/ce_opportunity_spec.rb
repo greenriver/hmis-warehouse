@@ -7,6 +7,10 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
