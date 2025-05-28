@@ -35,8 +35,8 @@ RSpec.describe 'PIT Veteran Counts', type: :model do
       it 'counts one veteran' do
         report = run_report(questions: [question])
         # Total Number of Veterans is B4 for VeteranAdults question
-        total_veterans = report.answer(question: question, cell: 'B4')
-        expect(total_veterans.value).to eq(1)
+        total_veterans_val = report_value(report, question: question, row: :total_veterans)
+        expect(total_veterans_val).to eq(1)
       end
     end
 
@@ -69,12 +69,12 @@ RSpec.describe 'PIT Veteran Counts', type: :model do
         # The question 'Adult Only Veteran Households' filters for households where HoH is a veteran.
         # The sub_calculation for :veterans counts individuals with VeteranStatus = 1.
         report = run_report(questions: [question])
-        total_veterans = report.answer(question: question, cell: 'B4')
-        expect(total_veterans.value).to eq(1) # Only the HoH is a veteran
+        total_veterans_val = report_value(report, question: question, row: :total_veterans)
+        expect(total_veterans_val).to eq(1) # Only the HoH is a veteran
 
         # Check total persons in such households for context (B3 for this question type)
-        total_persons_in_vet_hh = report.answer(question: question, cell: 'B3')
-        expect(total_persons_in_vet_hh.value).to eq(2) # Both HoH and other member
+        total_persons_val = report_value(report, question: question, row: :total_persons)
+        expect(total_persons_val).to eq(2) # Both HoH and other member
       end
     end
 
@@ -106,11 +106,11 @@ RSpec.describe 'PIT Veteran Counts', type: :model do
       it 'does not count the household or persons for this specific question type' do
         # This household won't be included by VeteranAdults::filter_pending_associations (needs HoH to be veteran)
         report = run_report(questions: [question])
-        total_veterans = report.answer(question: question, cell: 'B4')
-        expect(total_veterans.value).to eq(0)
+        total_veterans_val = report_value(report, question: question, row: :total_veterans)
+        expect(total_veterans_val).to eq(0)
 
-        total_persons_in_vet_hh = report.answer(question: question, cell: 'B3')
-        expect(total_persons_in_vet_hh.value).to eq(0)
+        total_persons_val = report_value(report, question: question, row: :total_persons)
+        expect(total_persons_val).to eq(0)
       end
     end
 
@@ -134,8 +134,8 @@ RSpec.describe 'PIT Veteran Counts', type: :model do
 
       it 'counts all veterans from qualifying households' do
         report = run_report(questions: [question])
-        total_veterans = report.answer(question: question, cell: 'B4')
-        expect(total_veterans.value).to eq(3) # 1 from hh1 + 2 from hh2
+        total_veterans_val = report_value(report, question: question, row: :total_veterans)
+        expect(total_veterans_val).to eq(3) # 1 from hh1 + 2 from hh2
       end
     end
   end

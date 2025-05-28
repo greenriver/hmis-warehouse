@@ -43,9 +43,9 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
   end
 
   # Shared examples for testing a single primary race category
-  RSpec.shared_examples 'a single race category test' do |race_key, race_name, cell_non_hisp_only, cell_hisp_only|
-    let(:multi_racial_non_hisp_cell) { 'B25' } # Corresponds to :multi_racial
-    let(:multi_racial_hisp_cell) { 'B24' }     # Corresponds to :multi_racial_latino
+  RSpec.shared_examples 'a single race category test' do |race_key, race_name, cell_key_non_hisp_only, cell_key_hisp_only|
+    let(:multi_racial_non_hisp_key) { :multi_racial_non_hisp } # Corresponds to B25
+    let(:multi_racial_hisp_key) { :multi_racial_hisp }         # Corresponds to B24
     let(:hoh_race_attrs) { { second_race_for_multi => 1, HispanicLatinaeo: 0 } } # Standard non-interfering HoH
 
     # Determine a second race for multi-racial tests, ensuring it's different from the primary race_key
@@ -71,8 +71,8 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
         it "counts the client in #{race_name} (only, not Hispanic/Latina/e/o)" do
           report = run_report(questions: [question])
-          count = report.answer(question: question, cell: cell_non_hisp_only)
-          expect(count.value).to eq(1)
+          count = report_value(report, question: question, row: cell_key_non_hisp_only)
+          expect(count).to eq(1)
         end
       end
 
@@ -90,11 +90,11 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
         it "counts in Multi-Racial (not Hispanic/Latina/e/o) and not in #{race_name} (only)" do
           report = run_report(questions: [question])
-          only_count = report.answer(question: question, cell: cell_non_hisp_only)
-          expect(only_count.value).to eq(0)
+          only_count = report_value(report, question: question, row: cell_key_non_hisp_only)
+          expect(only_count).to eq(0)
 
-          multi_count = report.answer(question: question, cell: multi_racial_non_hisp_cell)
-          expect(multi_count.value).to eq(1)
+          multi_count = report_value(report, question: question, row: multi_racial_non_hisp_key)
+          expect(multi_count).to eq(1)
         end
       end
     end
@@ -115,8 +115,8 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
         it "counts the client in #{race_name} & Hispanic/Latina/e/o" do
           report = run_report(questions: [question])
-          count = report.answer(question: question, cell: cell_hisp_only)
-          expect(count.value).to eq(1)
+          count = report_value(report, question: question, row: cell_key_hisp_only)
+          expect(count).to eq(1)
         end
       end
 
@@ -134,37 +134,37 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
         it "counts in Multi-Racial & Hispanic/Latina/e/o and not in #{race_name} & Hispanic/Latina/e/o" do
           report = run_report(questions: [question])
-          only_hisp_count = report.answer(question: question, cell: cell_hisp_only)
-          expect(only_hisp_count.value).to eq(0)
+          only_hisp_count = report_value(report, question: question, row: cell_key_hisp_only)
+          expect(only_hisp_count).to eq(0)
 
-          multi_hisp_count = report.answer(question: question, cell: multi_racial_hisp_cell)
-          expect(multi_hisp_count.value).to eq(1)
+          multi_hisp_count = report_value(report, question: question, row: multi_racial_hisp_key)
+          expect(multi_hisp_count).to eq(1)
         end
       end
     end
   end
 
   # --- Applying Shared Examples for each primary race ---
-  # Cell mapping from AdultAndChild.rb:
-  # B11: native_ak (AmIndAKNative only, not H/L)
-  # B12: native_ak_latino (AmIndAKNative only, and H/L)
-  # B13: asian (Asian only, not H/L)
-  # B14: asian_latino (Asian only, and H/L)
-  # B15: black_af_american (Black only, not H/L)
-  # B16: black_af_american_latino (Black only, and H/L)
-  # B18: mid_east_na (MENA only, not H/L)
-  # B19: mid_east_na_latino (MENA only, and H/L)
-  # B20: native_pi (Native PI only, not H/L)
-  # B21: native_pi_latino (Native PI only, and H/L)
-  # B22: white (White only, not H/L)
-  # B23: white_latino (White only, and H/L)
+  # Row mapping from PIT_ROW_DEFINITIONS_FY2025 for AdultAndChild question:
+  # 11: :am_ind_ak_native_only_non_hisp
+  # 12: :am_ind_ak_native_only_hisp
+  # 13: :asian_only_non_hisp
+  # 14: :asian_only_hisp
+  # 15: :black_only_non_hisp
+  # 16: :black_only_hisp
+  # 18: :middle_eastern_north_african_only_non_hisp
+  # 19: :middle_eastern_north_african_only_hisp
+  # 20: :native_hawaiian_pacific_islander_only_non_hisp
+  # 21: :native_hawaiian_pacific_islander_only_hisp
+  # 22: :white_only_non_hisp
+  # 23: :white_only_hisp
 
-  it_behaves_like 'a single race category test', :AmIndAKNative, 'American Indian, Alaska Native, or Indigenous', 'B11', 'B12'
-  it_behaves_like 'a single race category test', :Asian, 'Asian or Asian American', 'B13', 'B14'
-  it_behaves_like 'a single race category test', :BlackAfAmerican, 'Black, African American, or African', 'B15', 'B16'
-  it_behaves_like 'a single race category test', :MidEastNAfrican, 'Middle Eastern or North African', 'B18', 'B19'
-  it_behaves_like 'a single race category test', :NativeHIPacific, 'Native Hawaiian or Pacific Islander', 'B20', 'B21'
-  it_behaves_like 'a single race category test', :White, 'White', 'B22', 'B23'
+  it_behaves_like 'a single race category test', :AmIndAKNative, 'American Indian, Alaska Native, or Indigenous', :am_ind_ak_native_only_non_hisp, :am_ind_ak_native_only_hisp
+  it_behaves_like 'a single race category test', :Asian, 'Asian or Asian American', :asian_only_non_hisp, :asian_only_hisp
+  it_behaves_like 'a single race category test', :BlackAfAmerican, 'Black, African American, or African', :black_only_non_hisp, :black_only_hisp
+  it_behaves_like 'a single race category test', :MidEastNAfrican, 'Middle Eastern or North African', :middle_eastern_north_african_only_non_hisp, :middle_eastern_north_african_only_hisp
+  it_behaves_like 'a single race category test', :NativeHIPacific, 'Native Hawaiian or Pacific Islander', :native_hawaiian_pacific_islander_only_non_hisp, :native_hawaiian_pacific_islander_only_hisp
+  it_behaves_like 'a single race category test', :White, 'White', :white_only_non_hisp, :white_only_hisp
 
   # --- Retaining Specific Tests for Hispanic (only) and Multi-Racial Categories ---
 
@@ -190,9 +190,9 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
       it 'counts the client in the correct category' do
         report = run_report(questions: [question])
-        # :latino_only is cell B17 for AdultAndChild question
-        count = report.answer(question: question, cell: 'B17')
-        expect(count.value).to eq(1)
+        # :hispanic_latino_only is row 17 for AdultAndChild question
+        count = report_value(report, question: question, row: :hispanic_latino_only)
+        expect(count).to eq(1)
       end
     end
 
@@ -202,7 +202,7 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
         create_and_enroll_client_for_race_test(
           uid: 'race_hoh_for_latino_plus_white',
           household_id: household_id,
-          race_attrs: { AmIndAKNative: 1, HispanicLatinaeo: 0 },
+          race_attrs: { AmIndAKNative: 1, HispanicLatinaeo: 0 }, # HoH has a different race and is not Hispanic
           is_hoh: true,
         )
         test_client_attrs = build_race_attributes([:White], true, all_primary_race_keys)
@@ -216,12 +216,12 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
       it 'does NOT count in Hispanic/Latina/e/o (only), but in White & Hispanic/Latina/e/o' do
         report = run_report(questions: [question])
-        latino_only_count = report.answer(question: question, cell: 'B17')
-        expect(latino_only_count.value).to eq(0)
+        latino_only_count = report_value(report, question: question, row: :hispanic_latino_only)
+        expect(latino_only_count).to eq(0)
 
-        # :white_latino is cell B23 for AdultAndChild question
-        white_latino_count = report.answer(question: question, cell: 'B23')
-        expect(white_latino_count.value).to eq(1)
+        # :white_only_hisp is row 23 for AdultAndChild question
+        white_latino_count = report_value(report, question: question, row: :white_only_hisp)
+        expect(white_latino_count).to eq(1)
       end
     end
   end
@@ -247,9 +247,9 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
       it 'counts the client in Multi-Racial & Hispanic/Latina/e/o' do
         report = run_report(questions: [question])
-        # :multi_racial_latino is cell B24
-        count = report.answer(question: question, cell: 'B24')
-        expect(count.value).to eq(1)
+        # :multi_racial_hisp is row 24
+        count = report_value(report, question: question, row: :multi_racial_hisp)
+        expect(count).to eq(1)
       end
     end
 
@@ -273,8 +273,8 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
       it 'counts the client in Multi-Racial & Hispanic/Latina/e/o' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B24')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :multi_racial_hisp)
+        expect(count).to eq(1)
       end
     end
   end
@@ -300,9 +300,9 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
       it 'counts the client in Multi-Racial (all other)' do
         report = run_report(questions: [question])
-        # :multi_racial is cell B25
-        count = report.answer(question: question, cell: 'B25')
-        expect(count.value).to eq(1)
+        # :multi_racial_non_hisp is row 25
+        count = report_value(report, question: question, row: :multi_racial_non_hisp)
+        expect(count).to eq(1)
       end
     end
 
@@ -326,8 +326,8 @@ RSpec.describe 'PIT Race and Ethnicity Counts', type: :model do
 
       it 'counts the client in Multi-Racial (all other)' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B25')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :multi_racial_non_hisp)
+        expect(count).to eq(1)
       end
     end
   end

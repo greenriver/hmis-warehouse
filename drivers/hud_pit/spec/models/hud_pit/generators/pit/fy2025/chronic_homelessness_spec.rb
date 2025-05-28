@@ -73,17 +73,10 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
 
         expect(report.universe(question).members.count).to eq(3)
 
-        total_households = report.answer(question: question, cell: 'B2')
-        expect(total_households.value).to eq(1)
-
-        total_persons = report.answer(question: question, cell: 'B3')
-        expect(total_persons.value).to eq(3)
-
-        chronic_households = report.answer(question: question, cell: 'B26')
-        expect(chronic_households.value).to eq(1)
-
-        chronic_persons = report.answer(question: question, cell: 'B27')
-        expect(chronic_persons.value).to eq(3)
+        expect(report_value(report, question: question, row: :total_households)).to eq(1)
+        expect(report_value(report, question: question, row: :total_persons)).to eq(3)
+        expect(report_value(report, question: question, row: :chronically_homeless_households)).to eq(1)
+        expect(report_value(report, question: question, row: :chronically_homeless_persons)).to eq(3)
       end
     end
 
@@ -99,17 +92,10 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
 
         expect(report.universe(question).members.count).to eq(3)
 
-        total_households = report.answer(question: question, cell: 'B2')
-        expect(total_households.value).to eq(1)
-
-        total_persons = report.answer(question: question, cell: 'B3')
-        expect(total_persons.value).to eq(3)
-
-        chronic_households = report.answer(question: question, cell: 'B26')
-        expect(chronic_households.value).to eq(1)
-
-        chronic_persons = report.answer(question: question, cell: 'B27')
-        expect(chronic_persons.value).to eq(3)
+        expect(report_value(report, question: question, row: :total_households)).to eq(1)
+        expect(report_value(report, question: question, row: :total_persons)).to eq(3)
+        expect(report_value(report, question: question, row: :chronically_homeless_households)).to eq(1)
+        expect(report_value(report, question: question, row: :chronically_homeless_persons)).to eq(3)
       end
     end
 
@@ -124,17 +110,10 @@ RSpec.describe 'Chronic Homelessness Calculations', type: :model do
         report = run_report(questions: [question])
         expect(report.universe(question).members.count).to eq(2)
 
-        total_households = report.answer(question: question, cell: 'B2')
-        expect(total_households.value).to eq(1)
-
-        total_persons = report.answer(question: question, cell: 'B3')
-        expect(total_persons.value).to eq(2)
-
-        chronic_households = report.answer(question: question, cell: 'B26')
-        expect(chronic_households.value).to eq(0)
-
-        chronic_persons = report.answer(question: question, cell: 'B27')
-        expect(chronic_persons.value).to eq(0)
+        expect(report_value(report, question: question, row: :total_households)).to eq(1)
+        expect(report_value(report, question: question, row: :total_persons)).to eq(2)
+        expect(report_value(report, question: question, row: :chronically_homeless_households)).to eq(0)
+        expect(report_value(report, question: question, row: :chronically_homeless_persons)).to eq(0)
       end
     end
   end

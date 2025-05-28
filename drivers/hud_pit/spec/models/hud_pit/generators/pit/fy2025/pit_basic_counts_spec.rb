@@ -32,8 +32,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts one household' do
         report = run_report(questions: [question])
 
-        total_households = report.answer(question: question, cell: 'B2')
-        expect(total_households.value).to eq(1)
+        total_households_val = report_value(report, question: question, row: :total_households)
+        expect(total_households_val).to eq(1)
       end
     end
 
@@ -65,8 +65,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts two households' do
         report = run_report(questions: [question])
-        total_households = report.answer(question: question, cell: 'B2')
-        expect(total_households.value).to eq(2)
+        total_households_val = report_value(report, question: question, row: :total_households)
+        expect(total_households_val).to eq(2)
       end
     end
 
@@ -99,7 +99,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         )
 
         # Child member
-        child_member = create_client_with_warehouse_link(uid: 'client_tp_child', dob: child_dob_under_18) # dob ensuring child
+        child_member = create_client_with_warehouse_link(uid: 'client_tp_child', dob: child_dob_under_18)
         create_enrollment(
           client: child_member,
           project: es_project,
@@ -113,8 +113,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         report = run_report(questions: [question])
 
         # Total Number of Persons is B3 for AdultAndChild question
-        total_persons = report.answer(question: question, cell: 'B3')
-        expect(total_persons.value).to eq(3)
+        total_persons_val = report_value(report, question: question, row: :total_persons)
+        expect(total_persons_val).to eq(3)
       end
     end
 
@@ -141,8 +141,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts total persons across all households' do
         report = run_report(questions: [question])
-        total_persons = report.answer(question: question, cell: 'B3')
-        expect(total_persons.value).to eq(4) # 2 from hh1 + 2 from hh2
+        total_persons_val = report_value(report, question: question, row: :total_persons)
+        expect(total_persons_val).to eq(4) # 2 from hh1 + 2 from hh2
       end
     end
   end
@@ -178,8 +178,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts only persons under 18' do
         report = run_report(questions: [question])
         # Number of Persons (under age 18) is B4 for AdultAndChild question
-        children_count = report.answer(question: question, cell: 'B4')
-        expect(children_count.value).to eq(2)
+        children_count_val = report_value(report, question: question, row: :persons_under_18)
+        expect(children_count_val).to eq(2)
       end
     end
 
@@ -195,8 +195,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts zero children' do
         report = run_report(questions: [question])
-        children_count = report.answer(question: question, cell: 'B4')
-        expect(children_count.value).to eq(0)
+        children_count_val = report_value(report, question: question, row: :persons_under_18)
+        expect(children_count_val).to eq(0)
       end
     end
 
@@ -215,7 +215,7 @@ RSpec.describe 'PIT Basic Counts', type: :model do
         create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
 
         youth_1 = create_client_with_warehouse_link(uid: 'client_youth_y1', dob: dob_youth_18)
-        create_enrollment(client: youth_1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id) # Assuming relationship 3 for simplicity
+        create_enrollment(client: youth_1, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
 
         youth_2 = create_client_with_warehouse_link(uid: 'client_youth_y2', dob: dob_youth_20)
         create_enrollment(client: youth_2, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
@@ -233,9 +233,15 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts only persons aged 18-24' do
         report = run_report(questions: [question])
-        # Number of Persons (18 - 24) is B5 for AdultAndChild question
-        youth_count = report.answer(question: question, cell: 'B5')
-        expect(youth_count.value).to eq(3)
+        youth_count_val = report_value(report, question: question, row: :persons_18_24)
+        expect(youth_count_val).to eq(3)
+
+        children_count_val = report_value(report, question: question, row: :persons_under_18)
+        expect(children_count_val).to eq(1) # The one child_member
+        adult_youth_val = report_value(report, question: question, row: :persons_18_24)
+        expect(adult_youth_val).to eq(3)
+        adult_25_34 = report_value(report, question: question, row: :persons_25_34)
+        expect(adult_25_34).to eq(2) # The HoH and the adult_member
       end
     end
 
@@ -251,8 +257,43 @@ RSpec.describe 'PIT Basic Counts', type: :model do
 
       it 'counts zero youth' do
         report = run_report(questions: [question])
-        youth_count = report.answer(question: question, cell: 'B5')
-        expect(youth_count.value).to eq(0)
+        youth_count_val = report_value(report, question: question, row: :persons_18_24)
+        expect(youth_count_val).to eq(0)
+      end
+    end
+
+    context 'when a household has members with unknown DOB (age)' do
+      let(:questions) do
+        [
+          HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER,
+          HudPit::Generators::Pit::Fy2025::Projects::QUESTION_NUMBER,
+        ]
+      end
+      before do
+        household_id = 'hh_unknown_dob_1'
+        # Head of Household (known age)
+        hoh_client = create_client_with_warehouse_link(uid: 'client_unknowndob_hoh', dob: dob_adult_25)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+
+        # Member with unknown DOB
+        unknown_dob_member = create_client_with_warehouse_link(uid: 'client_unknowndob_member', dob: nil)
+        create_enrollment(client: unknown_dob_member, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
+      end
+
+      it 'counts them in project counts but not in specific age groups' do
+        report = run_report(questions: questions)
+
+        expect(
+          report_value(report, question: HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER, row: :total_persons),
+        ).to eq(0)
+        expect(
+          report_value(report, question: HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER, row: :persons_25_34),
+        ).to eq(0)
+
+        # still counted in projects
+        expect(
+          report.answer(question: HudPit::Generators::Pit::Fy2025::Projects::QUESTION_NUMBER, cell: 'C2').value,
+        ).to eq(2)
       end
     end
 
@@ -288,8 +329,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts only persons aged 25-34' do
         report = run_report(questions: [question])
         # Number of Persons (25 - 34) is cell B5 for the Adults question
-        age_25_34_count = report.answer(question: question, cell: 'B5')
-        expect(age_25_34_count.value).to eq(3)
+        age_25_34_count_val = report_value(report, question: question, row: :persons_25_34)
+        expect(age_25_34_count_val).to eq(3)
       end
     end
 
@@ -322,8 +363,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts only persons aged 35-44' do
         report = run_report(questions: [question])
         # Number of Persons (35 - 44) is cell B6 for the Adults question
-        age_35_44_count = report.answer(question: question, cell: 'B6')
-        expect(age_35_44_count.value).to eq(3)
+        age_35_44_count_val = report_value(report, question: question, row: :persons_35_44)
+        expect(age_35_44_count_val).to eq(3)
       end
     end
 
@@ -356,8 +397,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts only persons aged 45-54' do
         report = run_report(questions: [question])
         # Number of Persons (45 - 54) is cell B7 for the Adults question
-        age_45_54_count = report.answer(question: question, cell: 'B7')
-        expect(age_45_54_count.value).to eq(3)
+        age_45_54_count_val = report_value(report, question: question, row: :persons_45_54)
+        expect(age_45_54_count_val).to eq(3)
       end
     end
 
@@ -390,8 +431,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts only persons aged 55-64' do
         report = run_report(questions: [question])
         # Number of Persons (55 - 64) is cell B8 for the Adults question
-        age_55_64_count = report.answer(question: question, cell: 'B8')
-        expect(age_55_64_count.value).to eq(3)
+        age_55_64_count_val = report_value(report, question: question, row: :persons_55_64)
+        expect(age_55_64_count_val).to eq(3)
       end
     end
 
@@ -418,8 +459,8 @@ RSpec.describe 'PIT Basic Counts', type: :model do
       it 'counts only persons aged 65 and older' do
         report = run_report(questions: [question])
         # Number of Persons (65 and older) is cell B9 for the Adults question
-        age_65_plus_count = report.answer(question: question, cell: 'B9')
-        expect(age_65_plus_count.value).to eq(2)
+        age_65_plus_count_val = report_value(report, question: question, row: :persons_65_plus)
+        expect(age_65_plus_count_val).to eq(2)
       end
     end
   end

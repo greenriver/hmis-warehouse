@@ -44,7 +44,6 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
     end
 
     if conditions[:substance_use]
-      # Assuming type 4 (Alcohol) for simplicity, sub_calculation checks any substance type
       create_disability(
         enrollment: enrollment,
         information_date: pit_report_date - 1.day,
@@ -87,8 +86,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'counts the client' do
         report = run_report(questions: [question])
         # :adults_with_mental_illness is B2 for AdditionalHomelessPopulations
-        count = report.answer(question: question, cell: 'B2')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :adults_with_mental_illness)
+        expect(count).to eq(1)
       end
     end
 
@@ -104,8 +103,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B2')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adults_with_mental_illness)
+        expect(count).to eq(0)
       end
     end
 
@@ -122,8 +121,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'does not count the client (due to age filter in AdditionalHomelessPopulations)' do
         # AdditionalHomelessPopulations.filter_pending_associations filters for age >= 18
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B2')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adults_with_mental_illness)
+        expect(count).to eq(0)
       end
     end
 
@@ -148,8 +147,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'counts both adult clients' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B2')
-        expect(count.value).to eq(2)
+        count = report_value(report, question: question, row: :adults_with_mental_illness)
+        expect(count).to eq(2)
       end
     end
   end
@@ -168,8 +167,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'counts the client' do
         report = run_report(questions: [question])
         # :adults_with_substance_use is B3 for AdditionalHomelessPopulations
-        count = report.answer(question: question, cell: 'B3')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :adults_with_substance_use)
+        expect(count).to eq(1)
       end
     end
 
@@ -185,8 +184,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'counts the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B3')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :adults_with_substance_use)
+        expect(count).to eq(1)
       end
     end
 
@@ -202,8 +201,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B3')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adults_with_substance_use)
+        expect(count).to eq(0)
       end
     end
 
@@ -219,8 +218,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B3')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adults_with_substance_use)
+        expect(count).to eq(0)
       end
     end
   end
@@ -239,8 +238,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'counts the client' do
         report = run_report(questions: [question])
         # :adults_with_hiv is B4 for AdditionalHomelessPopulations
-        count = report.answer(question: question, cell: 'B4')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :adults_with_hiv)
+        expect(count).to eq(1)
       end
     end
 
@@ -256,8 +255,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'counts the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B4')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :adults_with_hiv)
+        expect(count).to eq(1)
       end
     end
 
@@ -273,8 +272,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B4')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adults_with_hiv)
+        expect(count).to eq(0)
       end
     end
 
@@ -290,8 +289,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B4')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adults_with_hiv)
+        expect(count).to eq(0)
       end
     end
   end
@@ -310,8 +309,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'counts the client' do
         report = run_report(questions: [question])
         # :adult_dv_survivors is B5 for AdditionalHomelessPopulations
-        count = report.answer(question: question, cell: 'B5')
-        expect(count.value).to eq(1)
+        count = report_value(report, question: question, row: :adult_dv_survivors)
+        expect(count).to eq(1)
       end
     end
 
@@ -327,8 +326,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B5')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adult_dv_survivors)
+        expect(count).to eq(0)
       end
     end
 
@@ -344,8 +343,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
 
       it 'does not count the client' do
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B5')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adult_dv_survivors)
+        expect(count).to eq(0)
       end
     end
 
@@ -369,8 +368,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'does not count the client as DV survivor for the PIT date' do
         # The dv_record in Base.rb selects HealthAndDV where InformationDate <= @generator.filter.on
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B5')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adult_dv_survivors)
+        expect(count).to eq(0)
       end
     end
 
@@ -394,8 +393,8 @@ RSpec.describe 'PIT Special Population Counts', type: :model do
       it 'does not count the client as DV survivor' do
         # The dv_record in Base.rb filters for !DomesticViolenceSurvivor.nil?
         report = run_report(questions: [question])
-        count = report.answer(question: question, cell: 'B5')
-        expect(count.value).to eq(0)
+        count = report_value(report, question: question, row: :adult_dv_survivors)
+        expect(count).to eq(0)
       end
     end
   end
