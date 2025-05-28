@@ -11,7 +11,7 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
 
   # Shared context for a standard project with services
   shared_context 'with a standard project and services' do
-    let!(:project) { create_project(project_type: 0) } # Default project type
+    let!(:project) { create_project(project_type: 0) } # ES Entry/Exit
     let!(:client) { create_client_with_warehouse_link }
     let!(:enrollment) do
       create_enrollment(
@@ -22,10 +22,6 @@ RSpec.describe GrdaWarehouse::Census::CensusBuilder, type: :model do
     end
 
     before(:each) do
-      # Uses start_date and end_date from the outer scope
-      (start_date..end_date).each do |date|
-        create_bed_night_service(enrollment: enrollment, date: date)
-      end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
     end
   end
