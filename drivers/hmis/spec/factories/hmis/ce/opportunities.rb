@@ -5,9 +5,9 @@ FactoryBot.define do
     sequence(:name) { |n| "Opportunity #{n}" }
     association(:project, factory: :hmis_hud_project)
     association(:workflow_template, factory: :hmis_workflow_definition_template)
-    # If owner not specified, stub a unit in the same project
+    # If owner not specified, build a unit in the same project
     after(:build) do |opportunity, _evaluator|
-      opportunity.owner ||= build_stubbed(:hmis_unit, project: opportunity.project)
+      opportunity.owner ||= build(:hmis_unit, project: opportunity.project)
     end
   end
 end

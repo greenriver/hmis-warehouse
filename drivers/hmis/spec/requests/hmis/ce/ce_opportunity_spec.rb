@@ -15,7 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # Basic setup
   let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
 
   let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
@@ -65,7 +65,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has rules' do
-      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: opportunity) }
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: opportunity.owner) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
@@ -78,7 +78,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
-          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Opportunity'),
+          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Unit'),
           a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'Project'),
           a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'Project Type'),
           a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'Funder'),

@@ -70,7 +70,7 @@ module Hmis::Ce::Match
 
     def determine_project(entity)
       case entity
-      when Hmis::Ce::Opportunity, Hmis::Unit
+      when Hmis::Ce::Opportunity, Hmis::Unit, Hmis::UnitGroup
         entity.project
       when Hmis::Hud::Project
         entity
@@ -81,17 +81,18 @@ module Hmis::Ce::Match
       end
     end
 
-    # Find all ancestor records that would cause this rule to apply to this Entity.
-    # These should be preloaded.
+    # Find all ancestor records. If the Rule's "owner" is any of these records, then the rule applies to this entity.
     def gather_parents(entity)
       parents = case entity
       when Hmis::Ce::Opportunity
         unit = entity.owner
-        raise 'Expected opportunity owner to be a Unit' unless unit.is_a?(Hmis::Unit)
+        raise "Expected opportunity owner to be a Unit, but found #{unit.class.name}" unless unit.is_a?(Hmis::Unit)
 
         [unit, unit.unit_group, unit.project, unit.project.organization]
       when Hmis::Unit
         [entity, entity.unit_group, entity.project, entity.project.organization]
+      when Hmis::UnitGroup
+        [entity, entity.project, entity.project.organization]
       when Hmis::Hud::Project
         [entity, entity.organization]
       when Hmis::Hud::Organization

@@ -28,7 +28,7 @@ class Hmis::Unit < Hmis::HmisBase
   has_paper_trail(meta: { project_id: :project_id })
 
   belongs_to :project, class_name: 'Hmis::Hud::Project'
-  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true
+  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true, inverse_of: :units, foreign_key: :hmis_unit_group_id
 
   # Descriptive "type" of this unit (e.g. "3 Bed Room", "Case Management", "Mass Shelter Single")
   belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true

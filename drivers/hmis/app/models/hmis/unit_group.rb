@@ -11,14 +11,17 @@ module Hmis
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
-    has_many :units, class_name: 'Hmis::Unit', dependent: :destroy
+    has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
+
+    # The workflow template identifier is used to determine which
 
     # workflow template to use to fill resources in this group
     belongs_to :workflow_template,
                -> { latest_versions }, # choose the most recent version of the template
                foreign_key: :workflow_template_identifier,
                primary_key: :identifier,
-               class_name: 'Hmis::WorkflowDefinition::Template'
+               class_name: 'Hmis::WorkflowDefinition::Template',
+               optional: true
 
     validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false }
     validate :workflow_template_is_valid

@@ -20,11 +20,16 @@ FactoryBot.define do
   end
 
   factory :hmis_unit, class: 'Hmis::Unit' do
-    name { 'Unit A' }
+    sequence(:name) { |n| "Unit #{n}" }
     variant { :dwelling }
     user { association :hmis_user }
-    # active_ranges { [association(:hmis_active_range)] }
     project { association :hmis_hud_project }
+
+    trait :in_unit_group do
+      unit_group { association :hmis_unit_group, project: project }
+    end
+
+    factory :hmis_unit_in_group, traits: [:in_unit_group]
   end
 
   factory :hmis_unit_occupancy, class: 'Hmis::UnitOccupancy' do
