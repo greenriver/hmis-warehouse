@@ -20,13 +20,13 @@ class AddHmisUnitGroups < ActiveRecord::Migration[7.1]
     safety_assured do
       add_reference :hmis_units, :hmis_unit_group, foreign_key: true, null: true
     end
-    add_column :hmis_units, :variant, :string, null: false, default: "dwelling"  # one of: dwelling, voucher, service slot, bed/shelter (confirming labels TBD)
+    add_column :hmis_units, :variant, :string, null: false, default: 'dwelling' # one of: dwelling, voucher, service slot, bed/shelter (confirming labels TBD)
 
     # Populate the variant column. We can adjust this to fill the "variant" column from existing mapped Unit Types, for example:
-    #   '3  Bed Room'=>dwelling,
-    #   'Case Management'=>service_slot
-    #   'Mass Shelter Single'=>shelter)
-        # Backfill existing rows with "dwelling"
+    # '3  Bed Room'=>dwelling,
+    # 'Case Management'=>service_slot
+    # 'Mass Shelter Single'=>shelter)
+    # Backfill existing rows with "dwelling"
     safety_assured do
       reversible do |dir|
         dir.up do
