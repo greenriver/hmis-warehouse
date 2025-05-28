@@ -12057,6 +12057,7 @@ type Unit {
   acceptingCeReferrals: Boolean!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
+  eligibilityRequirements: [CeMatchRule!]
   id: ID!
 
   """
@@ -12065,6 +12066,7 @@ type Unit {
   latestOpportunity: CeOpportunity
   name: String!
   occupants: [Enrollment!]!
+  priorityScheme: CeMatchRule
   project: Project
   unitSize: Int
   unitType: UnitTypeObject

@@ -19,6 +19,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
+  # TODO: adjust this test to test the unit query, since unit will back the "opportunity page"
+  # ```
+  # unit(id: $id) {
+  #    id
+  #    eligibilityRequirements # eligibility requirements independent of opportunity existence
+  #    latestOpportunity {
+  #       referral {}
+  #       candidates {}
+  #    }
+  #    opportunities # history of all opportunities (and referrals) for this unit (maybe later)
+  # }
+  # ```
   describe 'ce_opportunity query' do
     let(:query) do
       <<~GRAPHQL

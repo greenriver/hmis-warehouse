@@ -33,8 +33,8 @@ module Types
     field :unit_size, Integer, null: true
 
     # CE fields
-    # field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    # field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
@@ -62,6 +62,18 @@ module Types
 
     def name
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
+    end
+
+    # N+1, don't use in batch
+    def eligibility_requirements
+      # All eligibility requirements for this Unit, including those inherited from parent records (like Project)
+      Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(object)
+    end
+
+    # N+1, don't use in batch
+    def priority_scheme
+      # Single priority scheme, not sure if we enforce there being exactly 1?
+      Hmis::Ce::Match::Rule.priority_scheme.for_entity(object).first
     end
 
     def latest_opportunity
