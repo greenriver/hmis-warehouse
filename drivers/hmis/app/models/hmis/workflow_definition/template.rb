@@ -33,6 +33,7 @@ module Hmis::WorkflowDefinition
       end
     end
 
+    scope :viewable_by, ->(user) { where(data_source_id: user.hmis_data_source_id) }
     scope :ce, -> { where(template_type: 'ce_referral') }
     scope :published, -> { where(status: 'published') }
 

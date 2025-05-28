@@ -26,7 +26,7 @@ RSpec.describe Mutations::Ce::CreateCeOpportunity, type: :request do
   end
 
   let(:project) { create :hmis_hud_project, data_source: ds1 }
-  let(:workflow_template) { create :hmis_workflow_definition_template, status: 'published' }
+  let(:workflow_template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
 
   describe 'create opportunity mutation' do
     let(:mutation) do
@@ -59,29 +59,23 @@ RSpec.describe Mutations::Ce::CreateCeOpportunity, type: :request do
     end
 
     context 'with valid input' do
-      it 'creates a new opportunity' do
-        expect do
-          post_graphql(**variables) { mutation }
-        end.to change(Hmis::Ce::Opportunity, :count).by(1)
-      end
-
       it 'returns the created opportunity' do
-        _, result = post_graphql(**variables) { mutation }
-        opportunity_data = result.dig('data', 'createCeOpportunity', 'opportunity')
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          opportunity_data = result.dig('data', 'createCeOpportunity', 'opportunity')
 
-        expect(opportunity_data).to include(
-          'name' => 'Housing Opportunity #1',
-          'status' => 'open',
-        )
-      end
+          expect(opportunity_data).to include(
+            'name' => 'Housing Opportunity #1',
+            'status' => 'open',
+          )
 
-      it 'associates opportunity with correct project and template' do
-        _, result = post_graphql(**variables) { mutation }
-        opportunity_id = result.dig('data', 'createCeOpportunity', 'opportunity', 'id')
-        opportunity = Hmis::Ce::Opportunity.find(opportunity_id)
+          opportunity_id = result.dig('data', 'createCeOpportunity', 'opportunity', 'id')
+          opportunity = Hmis::Ce::Opportunity.find(opportunity_id)
 
-        expect(opportunity.project).to eq(project)
-        expect(opportunity.workflow_template).to eq(workflow_template)
+          expect(opportunity.project).to eq(project)
+          expect(opportunity.workflow_template).to eq(workflow_template)
+        end.to change(Hmis::Ce::Opportunity, :count).by(1)
       end
     end
   end

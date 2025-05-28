@@ -168,8 +168,7 @@ module Types
         # Used for configuring which template to use for a resource group
         return [] unless Hmis::Ce.configuration.enabled?
 
-        Hmis::WorkflowDefinition::Template.published.ce.
-          where(data_source_id: user.hmis_data_source_id).
+        Hmis::WorkflowDefinition::Template.published.ce.viewable_by(user).
           map do |template|
             { code: template.identifier, label: template.name }
           end
@@ -178,7 +177,7 @@ module Types
         # Used for filtering on existing/historical referrals.
         return [] unless Hmis::Ce.configuration.enabled?
 
-        base_scope = Hmis::WorkflowDefinition::Template.ce.where(data_source_id: user.hmis_data_source_id)
+        base_scope = Hmis::WorkflowDefinition::Template.ce.viewable_by(user)
         base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
           description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
           { code: identifier, label: description }
