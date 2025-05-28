@@ -26,6 +26,7 @@ module Mutations
 
       # TODO(#7522) - template should be determined by context (project, unit type, ...)
       # For now, if you are using the "starter pack," this picks the template that creates an enrollment
+      # TODO if units belong to unit group, pick the wfd from that group
       template = Hmis::WorkflowDefinition::Template.last
       raise unless template.present?
 
