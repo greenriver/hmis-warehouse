@@ -83,8 +83,8 @@ module HudPit::Generators::Pit::Fy2025
 
           # find the most recent health and dv record with a DomesticViolenceSurvivor answer
           last_dv_record = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @generator.filter.on && h.DomesticViolenceSurvivor.present? }.
-            max_by(&:InformationDate)
+            select { |h| h.information_date <= @generator.filter.on && h.domestic_violence_survivor.present? }.
+            max_by { |h| [h.information_date, h.id] }
 
           if processed_source_clients.include?(source_client.id)
             @notifier.ping "Duplicate source client: #{source_client.id} for destination client: #{client.id} in enrollment: #{enrollment.id}" if @send_notifications
