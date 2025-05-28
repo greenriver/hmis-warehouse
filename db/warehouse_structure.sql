@@ -29350,7 +29350,7 @@ CREATE TABLE public.wfd_templates (
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint
+    data_source_id bigint NOT NULL
 );
 
 
@@ -65797,6 +65797,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250528205252'),
 ('20250522193546'),
 ('20250516141401'),
 ('20250514150515'),
