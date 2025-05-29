@@ -107,4 +107,29 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       record_type: 200, # bed night
     )
   end
+
+  def create_disability(enrollment:, information_date:, disability_type:, disability_response:, indefinite_and_impairs: nil)
+    create(
+      :hud_disability,
+      enrollment: enrollment,
+      data_source: data_source,
+      information_date: information_date,
+      disability_type: disability_type,
+      disability_response: disability_response,
+      indefinite_and_impairs: indefinite_and_impairs,
+    )
+  end
+
+  def create_health_and_dv(enrollment:, information_date:, domestic_violence_survivor: nil, domestic_violence_victim: nil, when_occurred: nil, currently_fleeing: nil)
+    create(
+      :hud_health_and_dv,
+      enrollment: enrollment,
+      data_source: data_source,
+      information_date: information_date,
+      domestic_violence_victim: domestic_violence_victim,
+      domestic_violence_survivor: domestic_violence_survivor,
+      when_occurred: when_occurred,
+      currently_fleeing: currently_fleeing,
+    )
+  end
 end
