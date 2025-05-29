@@ -106,7 +106,7 @@ module HudPit::Generators::Pit::Fy2025
           end.present?
 
           household_has_minor_children = household_members_for(hh_id).any? do |hm|
-            hm[:relationship_to_hoh] == 2 && hm[:age] <= 18
+            hm[:relationship_to_hoh] == 2 && hm[:age]&.<=(18)
           end
 
           options = {
