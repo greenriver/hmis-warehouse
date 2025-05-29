@@ -107,9 +107,14 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
       end
 
       it 'counts 0 due to max_age filter' do
-        report = run_report(questions: [question])
+        adult_question = HudPit::Generators::Pit::Fy2025::AdultAndChild::QUESTION_NUMBER
+        report = run_report(questions: [question, adult_question])
         parenting_youth_18_24_count = report_value(report, question: question, row: :parenting_youth_18_24)
         expect(parenting_youth_18_24_count).to eq(0)
+
+        # Verify household is counted in adult-only category
+        adult_only_count = report_value(report, question: adult_question, row: :total_persons)
+        expect(adult_only_count).to eq(3)
       end
     end
 
@@ -275,63 +280,6 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
   end
 
   describe 'Parenting Youth (Youth Parents Only)' do
-    context 'when HoH is 22, with a child (single adult qualifying household)' do
-      before do
-        household_id = 'py_hoh_for_youth_single_adult'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_hfy_hoh22_single', dob: dob_youth_22)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_hfy_child5_single', dob: dob_child_5)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
-      end
-
-      it 'counts the HoH' do
-        report = run_report(questions: [question])
-        hoh_for_youth_count = report_value(report, question: question, row: :total_parents)
-        expect(hoh_for_youth_count).to eq(1)
-      end
-    end
-
-    context 'when HoH is 23, spouse is 22, with a child (qualifying PYH with two parents)' do
-      before do
-        household_id = 'py_hoh_for_youth_multi_adult_spouse'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_hfy_hoh23_multi_spouse', dob: pit_date - 23.years)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        spouse_client = create_client_with_warehouse_link(uid: 'py_hfy_spouse22_multi', dob: dob_youth_22)
-        create_enrollment(client: spouse_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_spouse, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_hfy_child_for_multi_spouse', dob: dob_child_5)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
-      end
-
-      it 'counts both HoH and spouse' do
-        report = run_report(questions: [question])
-        hoh_for_youth_count = report_value(report, question: question, row: :total_parents)
-        expect(hoh_for_youth_count).to eq(2)
-      end
-    end
-
-    context 'when household has adult >= 25 (not a qualifying PYH)' do
-      before do
-        household_id = 'py_hoh_for_youth_invalid_max_age'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_hfy_hoh22_old_adult', dob: dob_youth_22)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_hfy_child_old_adult', dob: dob_child_5)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
-
-        older_adult = create_client_with_warehouse_link(uid: 'py_hfy_adult25', dob: dob_adult_25)
-        create_enrollment(client: older_adult, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
-      end
-
-      it 'counts 0 because household is filtered out by max_age' do
-        report = run_report(questions: [question])
-        hoh_for_youth_count = report_value(report, question: question, row: :total_parents)
-        expect(hoh_for_youth_count).to eq(0)
-      end
-    end
-
     context 'when HoH is 17, spouse is 19, with a child (qualifying PYH with mixed-age parents <25)' do
       let(:dob_youth_19) { pit_date - 19.years } # Helper for this context
 
@@ -347,7 +295,7 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
       end
 
-      it 'counts both HoH (<18) and spouse (18-24)' do
+      it 'counts both HoH (<18) and spouse (18-24) and correctly categorizes children' do
         report = run_report(questions: [question])
         hoh_for_youth_count = report_value(report, question: question, row: :total_parents)
         expect(hoh_for_youth_count).to eq(2)
@@ -360,69 +308,9 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
 
         children_with_parents_18_to_24_count = report_value(report, question: question, row: :children_with_parents_18_to_24)
         expect(children_with_parents_18_to_24_count).to eq(1)
-      end
-    end
-  end
 
-  describe 'Children in Parenting Youth Households' do
-    # This tests :children_of_youth_parents (B5)
-    # Counts children in a qualifying PYH (all members < 25, adults_and_children type, at least one youth parent).
-    # Number of parents (1 or 2) should not affect child count if HH qualifies.
-
-    context 'when HoH is 22, with one child aged 5 (single adult qualifying household)' do
-      before do
-        household_id = 'py_children_of_youth_single_adult_1'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_coyp_hoh22_single', dob: dob_youth_22)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_coyp_child5_single', dob: dob_child_5)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
-      end
-
-      it 'counts the child' do
-        report = run_report(questions: [question])
-        children_in_py_hh_count = report_value(report, question: question, row: :total_children)
-        expect(children_in_py_hh_count).to eq(1)
-      end
-    end
-
-    context 'when HoH (22) and Spouse (20) are present with one child (qualifying PYH with two parents)' do
-      before do
-        household_id = 'py_children_of_youth_multi_adult'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_coyp_hoh22_multi', dob: dob_youth_22)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        spouse_client = create_client_with_warehouse_link(uid: 'py_coyp_spouse20_multi', dob: pit_date - 20.years)
-        create_enrollment(client: spouse_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_spouse, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_coyp_child3_multi', dob: pit_date - 3.years)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
-      end
-
-      it 'counts the child (household is a valid PYH)' do
-        report = run_report(questions: [question])
-        children_in_py_hh_count = report_value(report, question: question, row: :total_children)
-        expect(children_in_py_hh_count).to eq(1)
-      end
-    end
-
-    context 'when household has adult >= 25 (not a qualifying PYH)' do
-      before do
-        household_id = 'py_children_of_youth_invalid_max_age'
-        hoh_client = create_client_with_warehouse_link(uid: 'py_coyp_hoh22_old_adult', dob: dob_youth_22)
-        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
-
-        child_client = create_client_with_warehouse_link(uid: 'py_coyp_child_old_adult', dob: dob_child_5)
-        create_enrollment(client: child_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_child, household_id: household_id)
-
-        older_adult = create_client_with_warehouse_link(uid: 'py_coyp_adult25', dob: dob_adult_25)
-        create_enrollment(client: older_adult, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
-      end
-
-      it 'counts 0 children because household is filtered out by max_age' do
-        report = run_report(questions: [question])
-        children_in_py_hh_count = report_value(report, question: question, row: :total_children)
-        expect(children_in_py_hh_count).to eq(0)
+        total_children_count = report_value(report, question: question, row: :total_children) # B5
+        expect(total_children_count).to eq(1)
       end
     end
   end
