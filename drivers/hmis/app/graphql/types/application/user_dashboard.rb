@@ -32,7 +32,7 @@ module Types
     end
 
     def staff_assignments
-      return unless show_staff_assignment
+      return Hmis::StaffAssignment.none unless show_staff_assignment
 
       object.staff_assignments.
         viewable_by(current_user). # Only resolve assignments where the user has access to view the household
@@ -41,7 +41,7 @@ module Types
     end
 
     def ce_referral_steps
-      return unless show_referrals
+      return Hmis::WorkflowExecution::Step.none unless show_referrals
 
       step_scope = Hmis::WorkflowExecution::Step.
         joins(:assignments).

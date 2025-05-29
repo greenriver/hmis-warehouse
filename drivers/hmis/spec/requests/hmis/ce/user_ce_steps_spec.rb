@@ -28,10 +28,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_view_referrals, :can_perform_own_referral_tasks]) }
 
   before(:each) do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
   end
 
-  describe 'ce_assigned_steps query' do
+  describe 'user dashboard CE steps query' do
     let(:query) do
       <<~GRAPHQL
         query GetCeAssignedSteps {
