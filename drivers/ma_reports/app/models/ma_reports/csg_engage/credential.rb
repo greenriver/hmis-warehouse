@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -10,8 +12,14 @@ require 'net/http/post/multipart'
 module MaReports::CsgEngage
   class Credential < ::GrdaWarehouse::RemoteCredential
     # Docs: TODO
-    alias_attribute :apikey, :password
     alias_attribute :options, :additional_headers
+
+    # Can't use alias_method here due to RemoteCredential's use of attr_encrypted(:password)
+    def apikey = password
+
+    def apikey=(value)
+      self.password = value
+    end
 
     DEFAULT_HOUR = 4
     DEFAULT_READ_TIMEOUT = 7_200 # 2 hours

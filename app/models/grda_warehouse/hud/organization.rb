@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -24,7 +26,7 @@ module GrdaWarehouse::Hud
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :organizations
 
-    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
+    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', query_constraints: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
     has_many :contacts, class_name: 'GrdaWarehouse::Contact::Organization', foreign_key: :entity_id
 
     accepts_nested_attributes_for :projects

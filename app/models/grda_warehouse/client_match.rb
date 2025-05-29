@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -11,7 +13,7 @@ module GrdaWarehouse
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :updated_by, class_name: 'User', optional: true
-    serialize :score_details, Hash
+    serialize :score_details, type: Hash
     validates :status, inclusion: { in: ['candidate', 'accepted', 'rejected', 'processed_sources'] }
 
     # To keep track so we don't re-run create_candidates for a given destination client

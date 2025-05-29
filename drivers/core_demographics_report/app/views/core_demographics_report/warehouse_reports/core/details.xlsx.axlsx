@@ -14,9 +14,11 @@ wb.add_worksheet name: title[0..30] do |sheet|
   ]
   sheet.add_row(summary, style: title_style)
   sheet.add_row(headers, style: title_style)
+  project_id_index = headers.index('_project_id')
   scope.pluck(*@report.detail_columns_for_export(@key)).each do |row|
+    project_id = row[project_id_index] if project_id_index.present?
     values = row.each_with_index.map do |col, i|
-      @report.detail_column_display(header: headers[i], column: col)
+      @report.detail_column_display(header: headers[i], column: col, project_id: project_id)
     end
     sheet.add_row values
   end

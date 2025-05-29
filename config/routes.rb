@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   use_doorkeeper
   get 'oauth/user-data', to: 'oauth#user'
@@ -849,7 +851,10 @@ Rails.application.routes.draw do
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
+
+    resource :deprecation, only: [:show]
   end
+
   resource :account, only: [:edit, :update] do
     get :locations, on: :member
   end

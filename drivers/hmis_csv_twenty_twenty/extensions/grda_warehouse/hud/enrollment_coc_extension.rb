@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -9,8 +11,8 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2020, class_name: 'HmisCsvTwentyTwenty::Importer::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], foreign_key: [:EnrollmentCoCID, :data_source_id]
-      has_many :loaded_items_2020, class_name: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], foreign_key: [:EnrollmentCoCID, :data_source_id]
+      has_many :imported_items_2020, class_name: 'HmisCsvTwentyTwenty::Importer::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], query_constraints: [:EnrollmentCoCID, :data_source_id]
+      has_many :loaded_items_2020, class_name: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc', primary_key: [:EnrollmentCoCID, :data_source_id], query_constraints: [:EnrollmentCoCID, :data_source_id]
     end
   end
 end

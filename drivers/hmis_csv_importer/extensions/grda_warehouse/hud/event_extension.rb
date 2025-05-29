@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -9,8 +11,8 @@ module HmisCsvImporter::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Importer::Event', primary_key: [:EventID, :data_source_id], foreign_key: [:EventID, :data_source_id]
-      has_many :loaded_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Loader::Event', primary_key: [:EventID, :data_source_id], foreign_key: [:EventID, :data_source_id]
+      has_many :imported_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Importer::Event', primary_key: [:EventID, :data_source_id], query_constraints: [:EventID, :data_source_id]
+      has_many :loaded_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Loader::Event', primary_key: [:EventID, :data_source_id], query_constraints: [:EventID, :data_source_id]
     end
   end
 end

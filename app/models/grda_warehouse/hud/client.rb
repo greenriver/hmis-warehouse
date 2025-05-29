@@ -17,7 +17,6 @@ module GrdaWarehouse::Hud
     include RandomScope
     include ArelHelper
     include HealthCharts
-    include ApplicationHelper
     include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
@@ -133,7 +132,7 @@ module GrdaWarehouse::Hud
       ongoing
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client
@@ -1311,6 +1310,17 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # extracted from ApplicationHelper
+    private def dates_overlap(d_1_start, d_1_end, d_2_start, d_2_end)
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+
+      d_1_start < d_2_end && d_1_end > d_2_start
+    rescue StandardError
+      true
+      # this catches empty
+    end
+
     def policy_class
       if destination?(strict: true)
         GrdaWarehouse::AuthPolicies::DestinationClientPolicy
@@ -1870,7 +1880,7 @@ module GrdaWarehouse::Hud
       dob = attributes['DOB'].to_date
       self.class.age(date: date, dob: dob)
     end
-    alias age_on age
+    alias_method :age_on, :age
 
     def youth_on?(date = Date.current)
       (18..24).cover?(age(date))
@@ -2105,7 +2115,7 @@ module GrdaWarehouse::Hud
         nicks = Nickname.for(self.FirstName).map(&:name)
 
         if nicks.any?
-          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
+          nicks_for_search = nicks.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
           ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
@@ -2117,7 +2127,7 @@ module GrdaWarehouse::Hud
         alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
         alt_names = alt_first_names + alt_last_names
         if alt_names.any?
-          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
+          alt_names_for_search = alt_names.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
               and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -48,7 +50,7 @@ module GraphqlApplicationHelper
   #   load_ar_association(object, :foo_bar, scope: FooBar.where(bar: object.bar))
   #
   def load_ar_association(object, association_name, scope: nil)
-    raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
+    raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(ActiveRecord::Base)
 
     # if we already have preloaded association, just return it
     return object.public_send(association_name) if scope.nil? && object.association(association_name).loaded?

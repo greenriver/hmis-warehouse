@@ -476,7 +476,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def homeless?(date)
       return true if HudUtility2024.homeless_project_types.include?(project.project_type)
       return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
-        (self.MoveInDate.present? && date > self.MoveInDate)
+        self.MoveInDate.present? && date > self.MoveInDate
 
       nil
     end
@@ -487,7 +487,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def literally_homeless? date
       return true if HudUtility2024.chronic_project_types.include?(project.project_type)
       return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
-        (self.MoveInDate.present? && date > self.MoveInDate)
+        self.MoveInDate.present? && date > self.MoveInDate
       return false if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(project.project_type)
 
       nil

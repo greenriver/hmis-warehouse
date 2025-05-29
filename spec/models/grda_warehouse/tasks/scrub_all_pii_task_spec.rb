@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
@@ -39,7 +41,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   end
 
   def perform_task(...)
-    Timecop.travel(today) do
+    travel_to(today) do
       described_class.new.perform(...)
     end
     reload_records

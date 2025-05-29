@@ -1,12 +1,11 @@
-- title = "New VISPDAT for #{@client.pii_provider(user: current_user).full_name}"
+- title = "New VISPDAT"
 - content_for :title, title
 .o-page
   = render 'clients/breadcrumbs'
   = render 'clients/aliases'
 
 .o-page__header
-  .o-page__title
-    %h1= title
+  = render_display_title("New VISPDAT for #{@client.pii_provider(user: current_user).full_name}") do
     %small VI-SPDAT
     = render 'type_warning'
   .o-page__action

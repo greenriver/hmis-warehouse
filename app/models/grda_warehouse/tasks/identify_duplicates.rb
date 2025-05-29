@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -57,6 +59,11 @@ module GrdaWarehouse::Tasks
       Rails.logger.info "Matching #{unprocessed_count} unprocessed clients"
       matched = 0
       new_created = 0
+      # ===========================================================================
+      # IMPORTANT: This is where destination clients are created and updated
+      # The system creates new destination clients for unprocessed source clients
+      # and updates existing destination clients with new SSN/DOB information
+      # ===========================================================================
 
       # Find all potential matches
       more_than_one_match = find_merge_candidates_for_unprocessed.sort

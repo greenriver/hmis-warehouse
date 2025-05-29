@@ -104,11 +104,11 @@ module Health
       where(signable_documents: { primary: true })
     end, class_name: 'Health::SignableDocument', as: :signable
 
-    serialize :service_archive, Array
-    serialize :equipment_archive, Array
-    serialize :team_members_archive, Array
-    serialize :goals_archive, Array
-    serialize :backup_plan_archive, Array
+    serialize :service_archive, type: Array
+    serialize :equipment_archive, type: Array
+    serialize :team_members_archive, type: Array
+    serialize :goals_archive, type: Array
+    serialize :backup_plan_archive, type: Array
 
     # validates_presence_of :provider_id, if: -> { provider_signed_on.present? }
     # We are not collecting patient signature mode yet, so don't enforce this

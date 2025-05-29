@@ -20,8 +20,10 @@ module Hmis::Ce
     belongs_to :owner, polymorphic: true, optional: true # Hmis::Unit, ...
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
+    has_many :swimlanes, through: :workflow_template, class_name: 'Hmis::WorkflowDefinition::Swimlane'
 
     validates :name, presence: true
+    validate :unique_opportunity_per_unit
 
     state_machine_config column: 'status' do
       state :open, initial: true
@@ -67,8 +69,31 @@ module Hmis::Ce
       scope
     }
 
+    scope :actives_first, -> {
+      o_t = Hmis::Ce::Opportunity.arel_table
+      order(
+        o_t[:status].when('closed').then(1).else(0).asc,
+        o_t[:created_at].desc,
+        o_t[:id].desc,
+      )
+    }
+
     def active?
       !closed?
+    end
+
+    private
+
+    def unique_opportunity_per_unit
+      return if status.to_sym == :closed || owner.nil?
+
+      # This validator expects that owner's opportunities are preloaded, to avoid n+1 on save
+      conflicting_opportunity_exists = owner.opportunities.to_a.select do |existing_opp|
+        existing_opp.status.to_sym != :closed && existing_opp.id != id
+      end.any?
+      return unless conflicting_opportunity_exists
+
+      errors.add(:owner, 'can only have one opportunity')
     end
   end
 end
