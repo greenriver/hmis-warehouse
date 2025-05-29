@@ -22748,7 +22748,9 @@ CREATE TABLE public.hud_report_pit_clients (
     different_identity integer,
     non_binary integer,
     more_than_one_gender boolean,
-    mid_east_n_african integer
+    mid_east_n_african integer,
+    household_has_minor_children boolean,
+    household_max_age_of_parents integer
 );
 
 
@@ -65782,6 +65784,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250528000208'),
 ('20250516141401'),
 ('20250514150515'),
 ('20250509170726'),
@@ -67150,3 +67153,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20160729183141'),
 ('20160729135359'),
 ('20160727190957');
+

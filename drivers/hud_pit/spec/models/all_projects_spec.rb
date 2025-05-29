@@ -7,7 +7,7 @@
 
 require 'rails_helper'
 require_relative '../../../datalab_testkit/spec/models/datalab_testkit_context'
-require_relative 'pit_context'
+require_relative 'datalab_pit_context'
 
 require_relative 'questions/additional_homeless_population'
 require_relative 'questions/adult_and_child'
