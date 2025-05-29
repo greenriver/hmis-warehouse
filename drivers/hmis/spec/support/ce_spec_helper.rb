@@ -24,11 +24,11 @@ RSpec.shared_context 'ce spec helper' do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
   end
 
-  let(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
-  let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project }
-  let(:workflow_template) { opportunity.workflow_template }
-  let(:workflow_instance) { workflow_template.instances.create! }
+  let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
+  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+  let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+  let!(:workflow_instance) { workflow_template.instances.create! }
 
   let!(:start_event) do
     create(

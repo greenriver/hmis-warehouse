@@ -11,16 +11,23 @@ FactoryBot.define do
     association(:client, factory: :hmis_hud_client)
     association(:referred_by, factory: :hmis_user)
     status { 'in_progress' }
-    after(:create) do |instance, evaluator|
-      instance.opportunity.project = evaluator.project if evaluator.project.present?
 
-      if evaluator.workflow_template.present?
-        instance.opportunity.workflow_template = evaluator.workflow_template
-        instance.workflow_instance.template = evaluator.workflow_template
+    after(:create) do |referral, evaluator|
+      if evaluator.project.present?
+        referral.opportunity.project = evaluator.project
+        # Update the workflow template data source to match, unless a workflow template has also been explicitly passed
+        referral.opportunity.workflow_template.data_source = evaluator.project.data_source unless evaluator.workflow_template.present?
       end
 
-      instance.opportunity.save! if instance.opportunity.changed?
-      instance.workflow_instance.save! if instance.workflow_instance.changed?
+      if evaluator.workflow_template.present?
+        referral.opportunity.workflow_template = evaluator.workflow_template
+        referral.workflow_instance.template = evaluator.workflow_template
+        # Update the project data source to match, unless a project has also been explicitly passed
+        referral.opportunity.project.data_source = evaluator.workflow_template.data_source unless evaluator.project.present?
+      end
+
+      referral.opportunity.save! if referral.opportunity.changed?
+      referral.workflow_instance.save! if referral.workflow_instance.changed?
     end
   end
 end

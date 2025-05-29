@@ -24,9 +24,9 @@ module Mutations
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
       access_denied! unless current_user.permissions_for?(project, :can_manage_units)
 
-      # TODO(#7522) - template should be determined by context (project, unit type, ...)
+      # TODO(#7529) - template should be determined by context (project, unit type, ...)
       # For now, if you are using the "starter pack," this picks the template that creates an enrollment
-      template = Hmis::WorkflowDefinition::Template.last
+      template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).last
       raise unless template.present?
 
       candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new

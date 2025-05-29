@@ -636,7 +636,6 @@ CREATE TABLE public.collections (
     id bigint NOT NULL,
     name character varying,
     user_id bigint,
-    coc_codes jsonb DEFAULT '{}'::jsonb,
     system jsonb DEFAULT '[]'::jsonb,
     must_exist boolean DEFAULT false NOT NULL,
     deleted_at timestamp without time zone,
@@ -5130,6 +5129,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250523175114'),
 ('20250507192058'),
 ('20250501151733'),
 ('20250501135342'),
