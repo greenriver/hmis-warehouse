@@ -24,16 +24,25 @@ module Mutations
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
       access_denied! unless current_user.permissions_for?(project, :can_manage_units)
 
-      # TODO(#7529) - template should be determined by context (project, unit type, ...)
-      # For now, if you are using the "starter pack," this picks the template that creates an enrollment
-      # TODO if units belong to unit group, pick the wfd from that group
-      template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).last
-      raise unless template.present?
+      # Determine which template to use for each unit based on Unit Group configuration.
+      # TODO(#7753) Once we finalize the frontend and adjust this mutation, we may want to:
+      # - Raise if unit doesn't belong to a unit group
+      # - Raise if unit group doesn't specify a workflow template
+      # - Raise if called for units belonging to several unit groups (maybe allowed, tbd?)
+      unit_to_template = units.preload(:unit_group).map do |unit|
+        workflow_template = unit.unit_group&.workflow_template
+        [unit.id, workflow_template]
+      end.to_h
+
+      # TODO(#7529) Remove this fallback to a random template.
+      random_template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).last
+      raise 'no available template' unless random_template.present?
 
       candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
 
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|
+          template = unit_to_template[unit.id] || random_template
           build_opportunity_for_unit(unit, template, candidate_pool_resolver)
         end
 
