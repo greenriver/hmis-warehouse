@@ -59,6 +59,6 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   end
 
   private def valid_file_name?(name)
-    name.end_with?('.zip') || name.end_with?('.7z')
+    name =~ /\.(zip|7z)\z/i
   end
 end
