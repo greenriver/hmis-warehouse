@@ -23,11 +23,16 @@ module Hmis
     has_many :projects, through: :group_viewable_entity_projects, source: :project
 
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
+    scope :project_groups, -> { where(entity_type: Hmis::ProjectGroup.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
 
     scope :includes_project, ->(project) do
       joins(:projects).where(p_t[:id].eq(project.id))
+    end
+
+    scope :includes_project_group, ->(project_group) do
+      where(entity: project_group)
     end
 
     scope :includes_organization, ->(organization) do
@@ -42,6 +47,8 @@ module Hmis
       case entity.class.name
       when Hmis::Hud::Project.name
         includes_project(entity)
+      when Hmis::ProjectGroup.name
+        includes_project_group(entity)
       when Hmis::Hud::Organization.name
         includes_organization(entity)
       when ::GrdaWarehouse::DataSource.name

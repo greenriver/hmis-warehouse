@@ -21,6 +21,7 @@ FactoryBot.define do
         instance.inclusion_criteria = {
           project_ids: evaluator.with_projects.map(&:id).map(&:to_s),
         }.to_json
+        instance.save!
       end
 
       # Maintain project group to populate `project_groups.projects` association
