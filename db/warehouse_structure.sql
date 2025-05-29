@@ -21204,7 +21204,7 @@ CREATE TABLE public.hmis_units (
     unit_type_id integer,
     unit_size integer,
     project_id integer NOT NULL,
-    hmis_unit_group_id bigint,
+    hmis_unit_group_id integer,
     variant character varying NOT NULL
 );
 
@@ -57041,13 +57041,6 @@ CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy 
 
 
 --
--- Name: index_hmis_units_on_hmis_unit_group_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_units_on_hmis_unit_group_id ON public.hmis_units USING btree (hmis_unit_group_id);
-
-
---
 -- Name: index_homeless_summary_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65048,14 +65041,6 @@ ALTER TABLE ONLY public.ce_opportunity_categorizations
 
 ALTER TABLE ONLY public."Exit"
     ADD CONSTRAINT fk_rails_2338303c55 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
-
-
---
--- Name: hmis_units fk_rails_24dd859335; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_units
-    ADD CONSTRAINT fk_rails_24dd859335 FOREIGN KEY (hmis_unit_group_id) REFERENCES public.hmis_unit_groups(id);
 
 
 --

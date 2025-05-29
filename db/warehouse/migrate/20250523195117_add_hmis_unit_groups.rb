@@ -16,10 +16,7 @@ class AddHmisUnitGroups < ActiveRecord::Migration[7.1]
       t.timestamp :deleted_at
     end
 
-    # is safety really assured?
-    safety_assured do
-      add_reference :hmis_units, :hmis_unit_group, foreign_key: true, null: true
-    end
+    add_column :hmis_units, :hmis_unit_group_id, :integer, null: true # safer han adding fk reference
     add_column :hmis_units, :variant, :string, null: false, default: 'dwelling' # one of: dwelling, voucher, service slot, bed/shelter (confirming labels TBD)
 
     # Populate the variant column. We can adjust this to fill the "variant" column from existing mapped Unit Types, for example:
@@ -40,7 +37,7 @@ class AddHmisUnitGroups < ActiveRecord::Migration[7.1]
     end
 
     # remove the default
-    change_column_default :hmis_units, :variant, nil
+    change_column_default :hmis_units, :variant, from: 'dwelling', to: nil
   end
 end
 
