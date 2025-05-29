@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::CeOpportunityInput < Types::BaseInputObject
-    argument :template_id, ID, required: true
+    argument :template_identifier, String, required: true
     argument :name, String, required: true
     # TBD
     # expiration

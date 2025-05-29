@@ -126,7 +126,7 @@ module Types
     field :unit_groups, Types::HmisSchema::UnitGroup.page_type, null: false
 
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
-    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_step_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
 
     def hud_id
       object.project_id

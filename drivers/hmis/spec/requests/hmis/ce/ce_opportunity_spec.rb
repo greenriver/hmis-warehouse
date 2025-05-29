@@ -7,14 +7,18 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
   end
 
   # Basic setup
-  let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
+  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+  let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let!(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
 
   let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }

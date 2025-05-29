@@ -22745,8 +22745,24 @@ CREATE TABLE public.hud_report_pit_clients (
     different_identity integer,
     non_binary integer,
     more_than_one_gender boolean,
-    mid_east_n_african integer
+    mid_east_n_african integer,
+    household_has_minor_children boolean,
+    household_max_age_of_parents integer
 );
+
+
+--
+-- Name: COLUMN hud_report_pit_clients.household_has_minor_children; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hud_report_pit_clients.household_has_minor_children IS 'only counts minor children (rel 2, age < 18)';
+
+
+--
+-- Name: COLUMN hud_report_pit_clients.household_max_age_of_parents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hud_report_pit_clients.household_max_age_of_parents IS 'max age of hoh or spouse (rel 1, 3)';
 
 
 --
@@ -29346,7 +29362,8 @@ CREATE TABLE public.wfd_templates (
     owner_type character varying,
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    data_source_id bigint
 );
 
 
@@ -62379,6 +62396,13 @@ CREATE INDEX index_wfd_swimlanes_on_template_id ON public.wfd_swimlanes USING bt
 
 
 --
+-- Name: index_wfd_templates_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wfd_templates_on_data_source_id ON public.wfd_templates USING btree (data_source_id);
+
+
+--
 -- Name: index_wfd_templates_on_owner; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -65139,6 +65163,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 
 --
+-- Name: wfd_templates fk_rails_43a090fe14; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wfd_templates
+    ADD CONSTRAINT fk_rails_43a090fe14 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
 -- Name: ce_opportunity_categorizations fk_rails_4400f9df2f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -65905,7 +65937,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250528000208'),
 ('20250523195117'),
+('20250522193546'),
 ('20250522185321'),
 ('20250516141401'),
 ('20250514150515'),

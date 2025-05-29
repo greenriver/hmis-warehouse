@@ -23,12 +23,6 @@ class Collection < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
-  # Remove this column well after this code gets to production (just add a migration remove_column(:collections, :coc_codes))
-  TodoOrDie('Remove coc_codes column from the collections table well after release 157 goes to production', by: '2025-06-01')
-  self.ignored_columns = [
-    :coc_codes,
-  ]
-
   after_save :invalidate_user_permission_cache
 
   has_many :access_controls
@@ -579,29 +573,5 @@ class Collection < ApplicationRecord
       cohorts: 'GrdaWarehouse::Cohort',
       supplemental_data_sets: 'HmisSupplemental::DataSet',
     }.freeze
-  end
-
-  # This method should be removed after all installations have been migrated.
-  # This can't be done in a migration as it touches multiple databases
-  def self.migrate_from_local_coc_codes
-    TodoOrDie('Remove migrate_from_local_coc_codes, it is only needed during the transition period', by: '2025-06-01')
-    lookups = GrdaWarehouse::Lookups::CocCode.all.index_by(&:coc_code)
-    batch = []
-    Collection.all.pluck(:id, :coc_codes).each do |id, coc_codes|
-      next if coc_codes.blank?
-
-      coc_codes.each do |coc|
-        entity_id = lookups[coc]&.id
-        next unless entity_id
-
-        batch << GrdaWarehouse::GroupViewableEntity.new(
-          collection_id: id,
-          access_group_id: 0,
-          entity_type: 'GrdaWarehouse::Lookups::CocCode',
-          entity_id: entity_id,
-        )
-      end
-    end
-    GrdaWarehouse::GroupViewableEntity.import!(batch)
   end
 end
