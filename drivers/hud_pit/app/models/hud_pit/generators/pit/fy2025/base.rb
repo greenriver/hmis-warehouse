@@ -101,7 +101,7 @@ module HudPit::Generators::Pit::Fy2025
           end
 
           # calculate household (hh) stats.
-          # Note these should be the same across all households and could be cached
+          # Note these should be the same across all household members and could be cached
           hh_id = get_hh_id(last_service_history_enrollment)
           household_type = household_types[hh_id]
           hh_member_count = 0
