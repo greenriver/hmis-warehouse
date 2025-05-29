@@ -22749,7 +22749,8 @@ CREATE TABLE public.hud_report_pit_clients (
     non_binary integer,
     more_than_one_gender boolean,
     mid_east_n_african integer,
-    household_has_minor_children boolean
+    household_has_minor_children boolean,
+    household_max_age_of_parents integer
 );
 
 

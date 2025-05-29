@@ -142,6 +142,131 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         expect(children_with_parents_under_18_count).to eq(1)
       end
     end
+
+    context 'when HoH is >18 with a child, and another non-parenting youth adult (18-24) is present' do
+      let(:adult_child_question) { HudPit::Generators::Pit::Fy2025::AdultAndChild::QUESTION_NUMBER }
+      before do
+        household_id = 'py_youth_hoh_18_24_with_other_adult_and_child'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_22_no_child', dob: dob_youth_17)
+        create_enrollment(client: hoh_client, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_hoh, household_id: household_id)
+
+        other_youth_adult = create_client_with_warehouse_link(uid: 'py_other_youth_no_child_adult', dob: dob_youth_18)
+        create_enrollment(client: other_youth_adult, project: es_project, entry_date: pit_date, relationship_to_ho_h: rel_other_adult, household_id: household_id)
+
+        child_client = create_client_with_warehouse_link(uid: 'py_child_for_hoh_with_other_adult', dob: dob_child_5)
+        create_enrollment(
+          client: child_client,
+          project: es_project,
+          entry_date: pit_date,
+          relationship_to_ho_h: rel_child,
+          household_id: household_id,
+        )
+      end
+
+      it 'counts only the HoH as a parenting youth, not the other youth adult' do
+        report = run_report(questions: [question, adult_child_question])
+
+        expect(
+          report_value(report, question: question, row: :total_parents),
+        ).to eq(1)
+        expect(
+          report_value(report, question: question, row: :parenting_youth_under_18),
+        ).to eq(1)
+        expect(
+          report_value(report, question: question, row: :parenting_youth_18_24),
+        ).to eq(0)
+        expect(
+          report_value(report, question: question, row: :children_with_parents_under_18),
+        ).to eq(1)
+        expect(
+          report_value(report, question: question, row: :children_with_parents_18_to_24),
+        ).to eq(0)
+      end
+    end
+
+    context 'when HoH (18-24) has a child enrolled AFTER the PIT date' do
+      let(:adult_question) { HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER }
+      before do
+        household_id = 'py_hoh_18_24_child_enrolled_late'
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh_20_child_late', dob: pit_date - 20.years)
+        create_enrollment(
+          client: hoh_client,
+          project: es_project,
+          entry_date: pit_date - 1.day, # HoH present on PIT date
+          relationship_to_ho_h: rel_hoh,
+          household_id: household_id,
+        )
+
+        # Child enrolled *after* PIT date
+        child_client = create_client_with_warehouse_link(uid: 'py_child_late_enrollment', dob: dob_child_5)
+        create_enrollment(
+          client: child_client,
+          project: es_project,
+          entry_date: pit_date + 1.day, # Enrolled after PIT date
+          relationship_to_ho_h: rel_child,
+          household_id: household_id,
+        )
+      end
+
+      it 'does not count HoH as parenting youth, HoH is in adult-only household' do
+        report = run_report(questions: [question, adult_question])
+
+        # Verify HoH is NOT counted as a parenting youth
+        total_parent_count = report_value(report, question: question, row: :total_parents)
+        expect(total_parent_count).to eq(0)
+
+        # Verify HoH is counted in the adult-only household category
+        adult_only_persons_count = report_value(report, question: adult_question, row: :total_persons)
+        expect(adult_only_persons_count).to eq(1) # Only the HoH
+      end
+    end
+
+    context 'when HoH (18yo) is enrolled with a child, but child exits BEFORE PIT date' do
+      let(:adult_question) { HudPit::Generators::Pit::Fy2025::Adults::QUESTION_NUMBER }
+      before do
+        household_id = 'py_hoh18_child_exited_early'
+
+        # HoH, 18 years old, present on PIT date
+        hoh_client = create_client_with_warehouse_link(uid: 'py_hoh18_child_exited', dob: dob_youth_18)
+        create_enrollment(
+          client: hoh_client,
+          project: es_project,
+          entry_date: pit_date - 10.days, # Enrolled before PIT date
+          exit_date: nil, # Still present
+          relationship_to_ho_h: rel_hoh,
+          household_id: household_id,
+        )
+
+        # Child, enrolled with HoH but exited BEFORE PIT date
+        child_client = create_client_with_warehouse_link(uid: 'py_child_exited_early', dob: dob_child_5)
+        create_enrollment(
+          client: child_client,
+          project: es_project,
+          entry_date: pit_date - 10.days, # Enrolled with HoH
+          exit_date: pit_date - 1.day, # Exited before PIT date
+          relationship_to_ho_h: rel_child,
+          household_id: household_id,
+        )
+      end
+
+      it 'counts HoH in adult-only household, not as parenting youth' do
+        report = run_report(questions: [question, adult_question])
+
+        # Verify HoH is NOT counted as a parenting youth
+        expect(report_value(report, question: question, row: :total_parents)).to eq(0)
+        expect(report_value(report, question: question, row: :parenting_youth_18_24)).to eq(0)
+        expect(report_value(report, question: question, row: :parenting_youth_under_18)).to eq(0)
+
+        # Verify no children are counted in parenting youth categories
+        expect(report_value(report, question: question, row: :total_children)).to eq(0)
+        expect(report_value(report, question: question, row: :children_with_parents_under_18)).to eq(0)
+        expect(report_value(report, question: question, row: :children_with_parents_18_to_24)).to eq(0)
+
+        # Verify HoH is counted in the adult-only household category
+        expect(report_value(report, question: adult_question, row: :total_persons)).to eq(1) # Only the HoH
+        expect(report_value(report, question: adult_question, row: :persons_18_24)).to eq(1) # HoH is 18
+      end
+    end
   end
 
   describe 'Parenting Youth (HoH/Spouse, <18)' do
@@ -275,6 +400,127 @@ RSpec.describe 'PIT Parenting Youth Counts', type: :model do
         # Verify child is counted with 18-24 PY
         children_with_parents_18_to_24_count = report_value(report, question: question, row: :children_with_parents_18_to_24)
         expect(children_with_parents_18_to_24_count).to eq(1)
+      end
+    end
+
+    context 'when HoH (<18) has a child, and an older spouse (>18) is enrolled AFTER PIT date' do
+      before do
+        household_id = 'py_child_u18p_older_spouse_late'
+        # Minor HoH, present on PIT date
+        hoh_client = create_client_with_warehouse_link(uid: 'py_cu18p_hoh17_spouse_late', dob: dob_youth_17)
+        create_enrollment(
+          client: hoh_client,
+          project: es_project,
+          entry_date: pit_date,
+          relationship_to_ho_h: rel_hoh,
+          household_id: household_id,
+        )
+
+        # Child, present on PIT date
+        child_client = create_client_with_warehouse_link(uid: 'py_cu18p_child_spouse_late', dob: dob_child_5)
+        create_enrollment(
+          client: child_client,
+          project: es_project,
+          entry_date: pit_date,
+          relationship_to_ho_h: rel_child,
+          household_id: household_id,
+        )
+
+        # Older spouse, enrolled AFTER PIT date
+        spouse_client = create_client_with_warehouse_link(uid: 'py_cu18p_spouse22_late', dob: dob_youth_22)
+        create_enrollment(
+          client: spouse_client,
+          project: es_project,
+          entry_date: pit_date + 1.day, # Enrolled after PIT date
+          relationship_to_ho_h: rel_spouse,
+          household_id: household_id,
+        )
+      end
+
+      it 'counts child with <18 parent, and late spouse does not affect parent age bucket for child' do
+        report = run_report(questions: [question])
+
+        # Verify child is counted with the <18 parent
+        children_with_under_18_parents = report_value(report, question: question, row: :children_with_parents_under_18)
+        expect(children_with_under_18_parents).to eq(1)
+
+        # Verify child is NOT counted with 18-24 parents (due to late spouse)
+        children_with_18_to_24_parents = report_value(report, question: question, row: :children_with_parents_18_to_24)
+        expect(children_with_18_to_24_parents).to eq(0)
+
+        # Verify the minor HoH is counted as a parenting youth < 18
+        parenting_youth_under_18 = report_value(report, question: question, row: :parenting_youth_under_18)
+        expect(parenting_youth_under_18).to eq(1)
+
+        # Verify the older, late-enrolled spouse is NOT counted as parenting youth 18-24
+        parenting_youth_18_24 = report_value(report, question: question, row: :parenting_youth_18_24)
+        expect(parenting_youth_18_24).to eq(0)
+
+        # Verify total parents counted is 1 (only the HoH on PIT date)
+        total_parents = report_value(report, question: question, row: :total_parents)
+        expect(total_parents).to eq(1)
+      end
+    end
+
+    context 'when HoH (<18) has a child, and an older spouse (>18) was enrolled but EXITED BEFORE PIT date' do
+      before do
+        household_id = 'py_child_u18p_older_spouse_exited_early'
+        # Minor HoH, present on PIT date
+        hoh_client = create_client_with_warehouse_link(uid: 'py_cu18p_hoh17_spouse_early_exit', dob: dob_youth_17)
+        create_enrollment(
+          client: hoh_client,
+          project: es_project,
+          entry_date: pit_date - 5.days, # Present before and on PIT date
+          exit_date: nil,
+          relationship_to_ho_h: rel_hoh,
+          household_id: household_id,
+        )
+
+        # Child, present on PIT date
+        child_client = create_client_with_warehouse_link(uid: 'py_cu18p_child_spouse_early_exit', dob: dob_child_5)
+        create_enrollment(
+          client: child_client,
+          project: es_project,
+          entry_date: pit_date - 5.days, # Present before and on PIT date
+          exit_date: nil,
+          relationship_to_ho_h: rel_child,
+          household_id: household_id,
+        )
+
+        # Older spouse, enrolled AND exited BEFORE PIT date
+        spouse_client = create_client_with_warehouse_link(uid: 'py_cu18p_spouse22_early_exit', dob: dob_youth_22)
+        create_enrollment(
+          client: spouse_client,
+          project: es_project,
+          entry_date: pit_date - 5.days, # Enrolled before PIT date
+          exit_date: pit_date - 1.day,   # Exited before PIT date
+          relationship_to_ho_h: rel_spouse,
+          household_id: household_id,
+        )
+      end
+
+      it 'counts child with <18 parent; early-exiting spouse does not affect parent age bucket for child' do
+        report = run_report(questions: [question])
+
+        # Verify child is counted with the <18 parent
+        children_with_under_18_parents = report_value(report, question: question, row: :children_with_parents_under_18)
+        expect(children_with_under_18_parents).to eq(1)
+
+        # Verify child is NOT counted with 18-24 parents
+        children_with_18_to_24_parents = report_value(report, question: question, row: :children_with_parents_18_to_24)
+        expect(children_with_18_to_24_parents).to eq(0)
+
+        # Verify the minor HoH is counted as a parenting youth < 18
+        parenting_youth_under_18 = report_value(report, question: question, row: :parenting_youth_under_18)
+        expect(parenting_youth_under_18).to eq(1)
+
+        # Verify the older, early-exiting spouse is NOT counted as parenting youth 18-24
+        parenting_youth_18_24 = report_value(report, question: question, row: :parenting_youth_18_24)
+        expect(parenting_youth_18_24).to eq(0)
+
+        # Verify total parents counted is 1 (only the HoH on PIT date)
+        total_parents = report_value(report, question: question, row: :total_parents)
+        expect(total_parents).to eq(1)
       end
     end
   end
