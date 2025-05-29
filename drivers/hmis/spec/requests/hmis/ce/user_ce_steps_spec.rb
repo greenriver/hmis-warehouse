@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
   let!(:project) { create(:hmis_hud_project, data_source: ds1) }
-  let!(:referral) { create :hmis_ce_referral, target_project: project }
+  let!(:referral) { create :hmis_ce_referral, project: project }
   let!(:step1) { create :hmis_wfe_step, instance: referral.workflow_instance, assignees: [hmis_user] }
   let!(:step2) { create :hmis_wfe_step, instance: referral.workflow_instance, assignees: [hmis_user] }
 
@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:hmis_user2) { create(:hmis_user) }
   let!(:other_user_step) { create :hmis_wfe_step, instance: referral.workflow_instance, assignees: [hmis_user2] }
   let!(:closed_step) { create :hmis_wfe_step, instance: referral.workflow_instance, assignees: [hmis_user], status: 'completed' }
-  let!(:non_ce_template) { create(:hmis_workflow_definition_template, template_type: 'not_ce') }
+  let!(:non_ce_template) { create(:hmis_workflow_definition_template, template_type: 'not_ce', data_source: ds1) }
   let!(:non_ce_instance) { create(:hmis_workflow_execution_instance, template: non_ce_template) }
   let!(:non_ce_step) { create :hmis_wfe_step, instance: non_ce_instance, assignees: [hmis_user] }
 
@@ -87,7 +87,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before do
         50.times do
           project = create :hmis_hud_project, data_source: ds1
-          new_referral = create :hmis_ce_referral, target_project: project
+          new_referral = create :hmis_ce_referral, project: project
           create :hmis_wfe_step, instance: new_referral.workflow_instance, assignees: [hmis_user]
         end
       end
