@@ -790,7 +790,7 @@ input CeOpportunityFilterOptions {
 
 input CeOpportunityInput {
   name: String!
-  templateId: ID!
+  templateIdentifier: String!
 }
 
 """
@@ -7114,6 +7114,11 @@ enum PickListType {
   CE_EVENTS
 
   """
+  Templates for CE workflow definitions
+  """
+  CE_WORKFLOW_TEMPLATE_IDENTIFIERS
+
+  """
   Templates for CE workflow definitions, including fully retired workflows
   """
   CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED
@@ -7215,11 +7220,6 @@ enum PickListType {
   User accounts. Deprecated in favor of AUDITABLE_USERS
   """
   USERS
-
-  """
-  Templates for CE workflow definitions
-  """
-  WORKFLOW_DEFINITION_TEMPLATES
 }
 
 """
