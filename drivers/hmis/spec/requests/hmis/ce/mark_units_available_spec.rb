@@ -15,7 +15,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
+  let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
   let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
 

@@ -12,6 +12,7 @@ module Hmis::WorkflowDefinition
     has_many :instances, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :restrict_with_exception, foreign_key: 'template_id'
     has_many :swimlanes, class_name: 'Hmis::WorkflowDefinition::Swimlane', dependent: :restrict_with_exception, foreign_key: 'template_id'
     has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     validates :name, presence: true
     validates :status, presence: true
@@ -32,7 +33,9 @@ module Hmis::WorkflowDefinition
       end
     end
 
-    scope :viewable_by, ->(_user) { all }
+    scope :viewable_by, ->(user) { where(data_source_id: user.hmis_data_source_id) }
+    scope :ce, -> { where(template_type: 'ce_referral') }
+    scope :published, -> { where(status: 'published') }
 
     def graph(preloads: nil) # Caller can optionally pass additional attributes to preload, to avoid n+1s
       Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows, *preloads))

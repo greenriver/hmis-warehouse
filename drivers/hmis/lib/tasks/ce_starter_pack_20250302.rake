@@ -7,6 +7,7 @@ def create_template(name, identifier)
   template.template_type = 'ce_referral'
   template.name = name
   template.version = 0
+  template.data_source = GrdaWarehouse::DataSource.hmis.first
   template.save! if template.changed?
   template
 end
