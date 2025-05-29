@@ -1,4 +1,4 @@
-- if GrdaWarehouse::DataSource.available_for_new_clients.any? && params[:q].present? && can_create_clients?
+- if GrdaWarehouse::DataSource.available_for_new_clients.any? && @query.present? && can_create_clients?
   .slab
     .row
       .col-sm-6.pt-2.pb-4
