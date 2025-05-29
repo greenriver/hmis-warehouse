@@ -26,17 +26,13 @@ module Mutations
 
       # Determine which template to use for each unit based on Unit Group configuration.
       # TODO(#7753) Once we finalize the frontend and adjust this mutation, we may want to:
-      # - Raise if unit doesn't belong to a unit group
-      # - Raise if unit group doesn't specify a workflow template
       # - Raise if called for units belonging to several unit groups (maybe allowed, tbd?)
       unit_to_template = units.preload(:unit_group).map do |unit|
         workflow_template = unit.unit_group&.workflow_template
+        raise 'Unable to mark unit available because there is no associated workflow template' unless workflow_template.present?
+
         [unit.id, workflow_template]
       end.to_h
-
-      # TODO(#7529) Remove this fallback to a random template.
-      random_template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).last
-      raise 'no available template' unless random_template.present?
 
       candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
 

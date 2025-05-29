@@ -12089,6 +12089,7 @@ type Unit {
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
+  workflowTemplateName: String
 }
 
 enum UnitFilterOptionStatus {
