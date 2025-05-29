@@ -874,7 +874,7 @@ type CeReferral {
 }
 
 input CeReferralFilterOptions {
-  onCurrentStepSince: ISO8601Date
+  onCurrentTaskSince: ISO8601Date
   organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]

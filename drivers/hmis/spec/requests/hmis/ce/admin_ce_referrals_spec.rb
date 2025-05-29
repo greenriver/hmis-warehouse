@@ -119,7 +119,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:variables) do
         {
           filters: {
-            onCurrentStepSince: 3.days.ago,
+            onCurrentTaskSince: 3.days.ago,
           },
         }
       end
