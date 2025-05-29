@@ -190,6 +190,10 @@ class Hmis::User < ApplicationRecord
     viewable Hmis::Hud::Organization
   end
 
+  def viewable_project_groups
+    viewable Hmis::ProjectGroup
+  end
+
   def viewable_projects
     viewable Hmis::Hud::Project
   end

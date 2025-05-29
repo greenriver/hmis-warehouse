@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 
@@ -70,6 +72,23 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     it 'excludes projects where I dont have can_view_project, even if I have other permissions there' do
       viewable_projects = Hmis::Hud::Project.viewable_by(user_with_limited_access)
       expect(viewable_projects).to be_empty
+    end
+  end
+
+  context 'when access is granted via project group' do
+    let!(:project_group) { create(:hmis_project_group, data_source: ds1, with_projects: [p2]) }
+    let!(:pg_collection) { create(:hmis_access_group, name: 'project group collection', with_entities: project_group) }
+    let!(:user_with_pg_access) do
+      user = create(:hmis_user, data_source: ds1)
+      create(:hmis_access_control, role: project_viewer, access_group: pg_collection, with_users: user)
+      user
+    end
+
+    it 'projects in project group are viewable' do
+      expect(project_group.projects).to contain_exactly(p2) # confirm project group setup
+
+      viewable_projects = Hmis::Hud::Project.viewable_by(user_with_pg_access)
+      expect(viewable_projects).to contain_exactly(p2)
     end
   end
 end
