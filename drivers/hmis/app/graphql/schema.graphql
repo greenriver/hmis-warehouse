@@ -886,6 +886,7 @@ type CeReferral {
   targetProjectName: String!
   targetProjectType: ProjectType!
   updatedBy: ApplicationUser
+  workflowTemplateName: String
 }
 
 input CeReferralFilterOptions {
