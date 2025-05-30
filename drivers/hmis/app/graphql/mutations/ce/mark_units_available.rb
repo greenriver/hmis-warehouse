@@ -66,7 +66,7 @@ module Mutations
         owner: unit,
         project: unit.project,
         name: opportunity_name,
-        workflow_template: template,
+        workflow_template_identifier: template.identifier,
       )
 
       opportunity.candidate_pool = candidate_pool_resolver.candidate_pool_for_opportunity(opportunity: opportunity)

@@ -17,7 +17,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
   let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
-  let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
+  let!(:unit_group) { create :hmis_unit_group, project: project, workflow_template: template }
+  let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -59,6 +60,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
         expect(unit.latest_opportunity).to be_present
         expect(unit.latest_opportunity.candidate_pool).to be_present
+        expect(unit.latest_opportunity.workflow_template).to eq(template)
       end
 
       context 'when the candidate pool already exists' do
@@ -72,6 +74,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
             expect(response.status).to eq(200), result.inspect
             unit.reload
             expect(unit.latest_opportunity.candidate_pool).to be_present
+            expect(unit.latest_opportunity.workflow_template).to eq(template)
           end
         end
 
@@ -87,6 +90,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
               end
             end.to change(pool, :candidates_generated_at)
             expect(unit.reload.latest_opportunity.candidate_pool).to eq(pool)
+            expect(unit.latest_opportunity.workflow_template).to eq(template)
           end
         end
       end
@@ -146,7 +150,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     context 'with many units' do
       let!(:unit_ids) do
         50.times.map do
-          create(:hmis_unit, project: project, unit_type: unit_type).id
+          create(:hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group).id
         end
       end
 
@@ -158,7 +162,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-        end.to make_database_queries(count: 20..30)
+        end.to make_database_queries(count: 20..35)
         expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(unit_ids.count)
       end
     end
