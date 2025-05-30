@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # exported data from ACHMIS that describes the unit types and capacity for each project (called program)
 class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   self.table_name = :hmis_project_unit_type_mappings
@@ -35,6 +37,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
           unit_type_id: unit_type.id,
           unit_size: unit_type.unit_size,
           user_id: user.id,
+          variant: :dwelling, # Not populating it because this wil go away
         }
       end
     end
