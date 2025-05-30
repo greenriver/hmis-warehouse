@@ -136,9 +136,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'with many referrals' do
       before do
-        40.times do
-          create(:hmis_ce_referral, project: project)
-        end
+        create_list(:hmis_ce_referral, 40, project: project, data_source: ds1)
       end
 
       it 'queries the db a reasonable amount' do
@@ -147,6 +145,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceReferrals', 'nodesCount')).to eq(41)
         end.to make_database_queries(count: 25..30)
+
+        # regression test to check that factories aren't creating extra data sources
+        expect(GrdaWarehouse::DataSource.hmis.count).to eq(1)
       end
     end
   end
