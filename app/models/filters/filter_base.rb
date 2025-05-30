@@ -157,7 +157,7 @@ module Filters
 
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
       # Exclude HIV/AIDS from disabilities unless the user can view HIV/AIDS status
-      self.disabilities = disabilities.reject { |id| id == 8 && !user.can_view_hiv_status? } if disabilities.include?(8)
+      self.disabilities = disabilities.select { |id| available_disabilities.values.include?(id) } if disabilities.present?
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map(&:to_i).presence || dv_status
       self.currently_fleeing = filters.dig(:currently_fleeing)&.reject(&:blank?)&.map(&:to_i).presence || currently_fleeing

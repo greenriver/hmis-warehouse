@@ -117,9 +117,10 @@ RSpec.describe Filters::Criteria::FilterForDisabilities do
   end
 
   describe 'HIV/AIDS visibility' do
+    let!(:hiv_status_viewer_role) { create :role, can_view_hiv_status: true }
     context 'when user has permission to view HIV/AIDS status' do
       before do
-        allow(user).to receive(:can_view_hiv_status?).and_return(true)
+        setup_access_control(user, hiv_status_viewer_role, Collection.system_collection(:data_sources))
       end
 
       it 'includes HIV/AIDS in available disabilities' do
@@ -127,7 +128,7 @@ RSpec.describe Filters::Criteria::FilterForDisabilities do
       end
 
       it 'applies HIV/AIDS filter correctly' do
-        filter.disabilities = [8] # HIV/AIDS
+        filter.update(disabilities: [8]) # HIV/AIDS
         result = criteria.apply(scope)
         expect(result.pluck(:id)).to contain_exactly(enrollments[4].id)
       end
@@ -143,14 +144,14 @@ RSpec.describe Filters::Criteria::FilterForDisabilities do
       end
 
       it 'removes HIV/AIDS from selected disabilities' do
-        filter.disabilities = [8] # HIV/AIDS
+        filter.update(disabilities: disabilities + [8]) # add HIV/AIDS
         expect(filter.disabilities).not_to include(8)
       end
 
       it 'does not filter by HIV/AIDS status' do
-        filter.disabilities = [8] # HIV/AIDS
+        filter.update(disabilities: disabilities + [8]) # add HIV/AIDS
         result = criteria.apply(scope)
-        expect(result.pluck(:id)).to be_empty
+        expect(result.pluck(:id)).to contain_exactly(enrollments[0].id, enrollments[1].id)
       end
     end
   end

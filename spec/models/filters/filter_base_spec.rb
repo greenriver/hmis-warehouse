@@ -153,10 +153,11 @@ RSpec.describe Filters::FilterBase, type: :model do
     let(:filter) { Filters::FilterBase.new(user_id: user.id) }
     let(:hiv_aids_id) { 8 }
     let(:physical_disability_id) { 5 }
+    let!(:hiv_status_viewer_role) { create :role, can_view_hiv_status: true }
 
     context 'when user has HIV/AIDS viewing permission' do
       before do
-        allow(user).to receive(:can_view_hiv_status?).and_return(true)
+        setup_access_control(user, hiv_status_viewer_role, ds_entity_group)
       end
 
       it 'includes HIV/AIDS in available disabilities' do
