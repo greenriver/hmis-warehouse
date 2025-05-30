@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   # Basic setup
-  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 1 }
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let!(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
 
@@ -67,6 +67,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               name
               ownerType
+              expression
+              projectTypes
+              funders
             }
             candidatesGeneratedAt
           }
@@ -96,8 +99,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(rules).to contain_exactly(
           a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Unit'),
           a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'Project'),
-          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'Project Type'),
-          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'Funder'),
+          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'Organization', 'projectTypes' => ['ES_NBN']),
+          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'Organization', 'funders' => ['HUD_HUD_VASH']),
         )
       end
     end
