@@ -75,9 +75,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when querying by workflow template' do
-      let!(:referral) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template_1) }
-      let!(:referral2) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template_1) }
-      let!(:referral3) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template_2) }
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
+      let!(:referral3) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_2) }
 
       let(:variables) do
         {
@@ -98,9 +98,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when querying by time on current step' do
-      let!(:referral) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template) }
-      let!(:referral2) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template) }
-      let!(:referral3) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template) }
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
+      let!(:referral3) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
 
       let!(:simultaneous_task) { create(:hmis_workflow_definition_task, template: workflow_template, name: 'Simultaneous task') }
 

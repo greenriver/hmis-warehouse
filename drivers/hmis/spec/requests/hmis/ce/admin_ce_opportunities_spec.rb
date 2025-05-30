@@ -43,9 +43,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when querying for opportunities' do
       let(:today) { Date.current }
-      let!(:opportunity) { create :hmis_ce_opportunity, project: project, created_at: today }
-      let!(:opportunity2) { create :hmis_ce_opportunity, project: project, created_at: today - 1.day }
-      let!(:opportunity3) { create :hmis_ce_opportunity, project: project, created_at: today - 2.days }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, created_at: today }
+      let!(:opportunity2) { create :hmis_ce_opportunity, project: project, data_source: ds1, created_at: today - 1.day }
+      let!(:opportunity3) { create :hmis_ce_opportunity, project: project, data_source: ds1, created_at: today - 2.days }
 
       it 'default sorts by date available' do
         response, result = post_graphql { query }
@@ -80,7 +80,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         20.times do
           project = create :hmis_hud_project, data_source: ds1
           2.times do
-            create :hmis_ce_opportunity, project: project
+            create :hmis_ce_opportunity, project: project, data_source: ds1
           end
         end
       end

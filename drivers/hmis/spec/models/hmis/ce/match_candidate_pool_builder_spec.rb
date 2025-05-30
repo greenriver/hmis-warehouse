@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
   let!(:organization) { create :hmis_hud_organization }
   let!(:project) { create :hmis_hud_project, organization: organization }
-  let!(:opportunity) { create(:hmis_ce_opportunity, project: project) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, project: project, data_source: ds1) }
   let(:builder) { described_class.new(Hmis::Ce::Opportunity.active) }
 
   describe '#perform' do
@@ -43,7 +43,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'when passed specific opportunities' do
-      let!(:opportunity2) { create(:hmis_ce_opportunity, project: project) }
+      let!(:opportunity2) { create(:hmis_ce_opportunity, project: project, data_source: ds1) }
       let(:builder) { described_class.new(Hmis::Ce::Opportunity.where(id: [opportunity2.id])) }
 
       it 'does not impact the non-included opportunity' do

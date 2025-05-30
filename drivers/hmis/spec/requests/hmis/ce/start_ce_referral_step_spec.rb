@@ -55,6 +55,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
       :hmis_ce_referral,
       opportunity: opportunity,
       workflow_instance: workflow_instance,
+      data_source: ds1,
       client: client,
       referred_by: hmis_user,
     )

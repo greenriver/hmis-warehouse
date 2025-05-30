@@ -19,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:other_project) { create(:hmis_hud_project, data_source: ds1, project_type: 2) }
-  let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, client: client) }
+  let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, data_source: ds1, client: client) }
 
   describe 'project ceReferrals query' do
     let(:query) do

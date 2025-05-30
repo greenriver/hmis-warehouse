@@ -112,32 +112,32 @@ RSpec.describe Hmis::Unit, type: :model do
     let!(:unit) { create(:hmis_unit, project: project) }
 
     context 'when there is an existing open opportunity' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :open) }
 
       it 'disallows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, data_source: ds1, status: :open)
         expect(new_opportunity).not_to be_valid
         expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
       end
     end
 
     context 'when there is an existing locked opportunity' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :locked) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
 
       it 'disallows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, data_source: ds1, status: :open)
         expect(new_opportunity).not_to be_valid
         expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
       end
     end
 
     context 'when there is an existing closed opportunity' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
 
       it 'allows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, data_source: ds1, status: :open)
         expect(new_opportunity).to be_valid
       end
     end
@@ -149,12 +149,12 @@ RSpec.describe Hmis::Unit, type: :model do
     let!(:yesterday) { today - 1.day }
 
     context 'when there are many opportunities' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked, created_at: today - 3.days) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: project.data_source, status: :locked, created_at: today - 3.days) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress, created_at: today - 2.days) }
 
       before do
         3.times do
-          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed, created_at: yesterday)
+          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, data_source: project.data_source, status: :closed, created_at: yesterday)
           create(:hmis_ce_referral, opportunity: opportunity, status: :rejected, created_at: yesterday)
         end
       end
