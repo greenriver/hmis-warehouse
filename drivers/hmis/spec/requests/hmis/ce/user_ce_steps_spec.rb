@@ -12,8 +12,6 @@ require_relative '../login_and_permissions'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
-  before(:all) { cleanup_test_environment }
-
   let!(:project) { create(:hmis_hud_project, data_source: ds1) }
   let!(:referral) { create :hmis_ce_referral, project: project }
   let!(:step1) { create :hmis_wfe_step, instance: referral.workflow_instance, assignees: [hmis_user] }
