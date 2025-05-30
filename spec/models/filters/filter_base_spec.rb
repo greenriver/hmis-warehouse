@@ -148,4 +148,51 @@ RSpec.describe Filters::FilterBase, type: :model do
       expect(base.on).to eq(today)
     end
   end
+
+  describe 'disabilities filtering' do
+    let(:filter) { Filters::FilterBase.new(user_id: user.id) }
+    let(:hiv_aids_id) { 8 }
+    let(:physical_disability_id) { 5 }
+
+    context 'when user has HIV/AIDS viewing permission' do
+      before do
+        allow(user).to receive(:can_view_hiv_status?).and_return(true)
+      end
+
+      it 'includes HIV/AIDS in available disabilities' do
+        expect(filter.available_disabilities).to include('HIV/AIDS')
+      end
+
+      it 'allows setting HIV/AIDS as a disability filter' do
+        filter.update(disabilities: [hiv_aids_id])
+        expect(filter.disabilities).to include(hiv_aids_id)
+      end
+
+      it 'allows setting multiple disabilities including HIV/AIDS' do
+        filter.update(disabilities: [hiv_aids_id, physical_disability_id])
+        expect(filter.disabilities).to include(hiv_aids_id, physical_disability_id)
+      end
+    end
+
+    context 'when user does not have HIV/AIDS viewing permission' do
+      before do
+        allow(user).to receive(:can_view_hiv_status?).and_return(false)
+      end
+
+      it 'excludes HIV/AIDS from available disabilities' do
+        expect(filter.available_disabilities).not_to include('HIV/AIDS')
+      end
+
+      it 'removes HIV/AIDS from disabilities when set' do
+        filter.update(disabilities: [hiv_aids_id])
+        expect(filter.disabilities).not_to include(hiv_aids_id)
+      end
+
+      it 'keeps other disabilities when HIV/AIDS is included' do
+        filter.update(disabilities: [hiv_aids_id, physical_disability_id])
+        expect(filter.disabilities).to include(physical_disability_id)
+        expect(filter.disabilities).not_to include(hiv_aids_id)
+      end
+    end
+  end
 end
