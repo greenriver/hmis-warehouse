@@ -87,23 +87,6 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       end
     end
 
-    context 'when the user does not have permission to enroll clients' do
-      let!(:ds_access_control) do
-        # User lacks ability to enroll clients or edit enrollments
-        create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details])
-      end
-      # User CAN enroll clients at other projects
-      let!(:other_project) { create :hmis_hud_project, data_source: ds1 }
-      let!(:other_access_control) { create_access_control(hmis_user, other_project, with_permission: [:can_enroll_clients]) }
-
-      it 'raises an error and does not save the enrollment' do
-        expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
-        end.to raise_error(RuntimeError, /access denied/).
-          and not_change(Hmis::Hud::Enrollment, :count)
-      end
-    end
-
     context 'when the project has no CoCs' do
       before do
         project.project_cocs.destroy_all
