@@ -4,10 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_data_source, class: 'GrdaWarehouse::DataSource' do
     sequence(:authoritative, &:zero?)
-    hmis { GraphqlHelpers::HMIS_HOSTNAME }
+    sequence(:hmis) { |n| "#{GraphqlHelpers::HMIS_HOSTNAME}.#{n}" }
     name { 'HMIS' }
     short_name { 'HMIS' }
     # association :client, factory: :hmis_hud_client
