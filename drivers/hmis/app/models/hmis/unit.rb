@@ -8,17 +8,10 @@
 
 # The `Hmis::Unit` model represents a generic unit of capacity in a project.
 # A unit is a resource that can be provided to a household or individual being served by the program.
-# Units can represent physical or virtual resources, and their behavior depends on their `variant`.
+# Units can represent physical or virtual resources.
 #
 # Note: The term "unit" is intentionally generic and does not exclusively refer to an "apartment unit."
-#
-# There are four fixed unit variants:
-# - **dwelling**: A physical housing unit that may or may not represent a specific dwelling (e.g., a generic "Hotel Room" vs. "Apartment 2B").
-# - **shelter**: A physical shelter unit that may or may not represent a specific shelter bed or family shelter capacity.
-# - **voucher**: A virtual unit representing a voucher (e.g., a housing voucher).
-# - **service_slot**: A virtual unit representing the capacity to provide a service.
-#
-# This model supports tracking the availability, occupancy, and relationships of units within a project.
+# It may represent a unit of housing, a shelter bed, a shelter room, a voucher, a unit of service capacity, etc.
 # Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
 # Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Occupancy records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
@@ -59,21 +52,6 @@ class Hmis::Unit < Hmis::HmisBase
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
-
-  attribute :variant, :string
-  enum variant: {
-    dwelling: 'dwelling',
-    voucher: 'voucher',
-    service_slot: 'service_slot',
-    shelter: 'shelter',
-  }
-  validates :variant, presence: true, inclusion: { in: variants.keys }
-
-  # Scopes for filtering by unit variant
-  scope :dwellings, -> { where(variant: :dwelling) }
-  scope :vouchers, -> { where(variant: :voucher) }
-  scope :service_slots, -> { where(variant: :service_slot) }
-  scope :shelters, -> { where(variant: :shelter) }
 
   # Scopes for filtering by unit type
 
@@ -144,16 +122,15 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   # Class method so can use with data loader
-  def self.display_name(id:, name: nil, unit_type: nil, variant: nil)
+  def self.display_name(id:, name: nil, unit_type: nil)
     return name if name.present?
     return "#{unit_type.description} (ID: #{id})" if unit_type.present?
-    return "#{variant.to_s.humanize} (ID: #{id})" if variant.present?
 
     "Unit #{id}"
   end
 
   def display_name
-    self.class.display_name(id: id, name: name, unit_type: unit_type, variant: variant)
+    self.class.display_name(id: id, name: name, unit_type: unit_type)
   end
 
   def to_pick_list_option

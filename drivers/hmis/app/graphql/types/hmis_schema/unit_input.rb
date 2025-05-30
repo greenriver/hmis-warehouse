@@ -12,8 +12,7 @@ module Types
     argument :count, Integer, 'Number of units to create', required: false
     argument :prefix, String, 'Prefix for unit names', required: false
     argument :unit_type_id, ID, required: false
-    # TODO(#7753) accept input for variant and unit group
-    # argument :variant, todo enum
+    # TODO(#7753) accept input for unit group
     # argument :unit_group_id, ID, required: false
   end
 end

@@ -21,7 +21,6 @@ FactoryBot.define do
 
   factory :hmis_unit, class: 'Hmis::Unit' do
     sequence(:name) { |n| "Unit #{n}" }
-    variant { :dwelling }
     user { association :hmis_user }
     project { association :hmis_hud_project }
 

@@ -37,7 +37,6 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
           unit_type_id: unit_type.id,
           unit_size: unit_type.unit_size,
           user_id: user.id,
-          variant: :dwelling, # Not populating it because this wil go away
         }
       end
     end

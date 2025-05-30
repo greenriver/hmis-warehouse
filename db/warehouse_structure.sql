@@ -21204,8 +21204,7 @@ CREATE TABLE public.hmis_units (
     unit_type_id integer,
     unit_size integer,
     project_id integer NOT NULL,
-    hmis_unit_group_id integer,
-    variant character varying NOT NULL
+    hmis_unit_group_id integer
 );
 
 
