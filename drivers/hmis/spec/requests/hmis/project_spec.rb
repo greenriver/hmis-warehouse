@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -20,7 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
-  let!(:ds1) { create :hmis_data_source }
+  let!(:ds1) { create :authenticated_hmis_data_source }
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let(:hmis_user) { user.related_hmis_user(ds1) }
   let(:u1) { create :hmis_hud_user, data_source: ds1 }

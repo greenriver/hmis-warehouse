@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 
@@ -15,7 +17,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :hmis_data_source }
+  let!(:ds1) { create :authenticated_hmis_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }

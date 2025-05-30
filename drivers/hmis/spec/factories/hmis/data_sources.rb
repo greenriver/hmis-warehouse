@@ -15,6 +15,10 @@ FactoryBot.define do
     # association :client, factory: :hmis_hud_client
     source_type { :sftp }
   end
+
+  factory :authenticated_hmis_data_source, parent: :hmis_data_source do
+    hmis { GraphqlHelpers::HMIS_HOSTNAME }
+  end
 end
 
 RSpec.configure do |c|

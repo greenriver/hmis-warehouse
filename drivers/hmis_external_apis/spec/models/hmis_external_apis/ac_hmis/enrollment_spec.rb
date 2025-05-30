@@ -4,10 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Hmis::Hud::Enrollment, type: :model do
-  let!(:ds1) { create :hmis_data_source }
+  let!(:ds1) { create :authenticated_hmis_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
   let!(:rrh) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 13 }
   let!(:nbn) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 1  }

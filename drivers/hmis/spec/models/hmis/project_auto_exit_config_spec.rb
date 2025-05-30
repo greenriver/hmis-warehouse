@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
@@ -14,7 +16,7 @@ RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :hmis_data_source }
+  let!(:ds1) { create :authenticated_hmis_data_source }
   let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }
   let(:u1) { create :hmis_hud_user, data_source: ds1 }
