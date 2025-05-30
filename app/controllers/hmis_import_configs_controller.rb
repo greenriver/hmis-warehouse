@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisImportConfigsController < ApplicationController
   before_action :require_can_edit_data_sources!
   before_action :require_can_manage_config!
@@ -19,7 +21,7 @@ class HmisImportConfigsController < ApplicationController
     @bucket_objects_list = []
     @error = false
     begin
-      @bucket_objects_list = @config.s3.list_objects(25, prefix: @config.s3_path)
+      @bucket_objects_list = @config.relevant_object_list(25)
     rescue Aws::S3::Errors::InvalidAccessKeyId,
            Aws::S3::Errors::AccessDenied,
            Aws::S3::Errors::SignatureDoesNotMatch,

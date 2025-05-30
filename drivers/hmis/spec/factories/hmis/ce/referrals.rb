@@ -10,6 +10,7 @@ FactoryBot.define do
     association(:workflow_instance, factory: :hmis_workflow_execution_instance)
     association(:client, factory: :hmis_hud_client)
     association(:referred_by, factory: :hmis_user)
+    status { 'in_progress' }
 
     after(:create) do |referral, evaluator|
       if evaluator.project.present?

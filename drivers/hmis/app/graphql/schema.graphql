@@ -206,7 +206,7 @@ type ApplicationUser {
   manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
-  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated @deprecated(reason: "Replaced with new UserDashboard type")
 }
 
 type ApplicationUserAuditEvent {
@@ -916,6 +916,7 @@ type CeReferralStep {
   User(s) currently assigned to this step
   """
   assignees: [ApplicationUser!]!
+  availableAt: ISO8601DateTime
   formDefinition: FormDefinition!
 
   """
@@ -923,6 +924,7 @@ type CeReferralStep {
   """
   id: ID!
   name: String!
+  referral: CeReferral!
   status: CeReferralStepStatus!
 
   """
@@ -960,6 +962,16 @@ enum CeReferralStepStatus {
   Unavailable
   """
   unavailable
+}
+
+type CeReferralStepsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferralStep!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeReferralSwimlane {
@@ -9555,6 +9567,7 @@ type Query {
   User lookup
   """
   user(id: ID!): ApplicationUser
+  userDashboard: UserDashboard!
 }
 
 type QueryAccess {
@@ -9609,7 +9622,7 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
-  canViewMyDashboard: Boolean!
+  canViewMyDashboard: Boolean! @deprecated(reason: "Replaced with new UserDashboard type")
   canViewOpenEnrollmentSummary: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
@@ -12276,6 +12289,22 @@ type UpdateUnitsPayload {
 input UserAuditEventFilterOptions {
   clientRecordType: [ID!]
   enrollmentRecordType: [ID!]
+}
+
+"""
+Resolves everything that is needed on the user dashboard
+"""
+type UserDashboard {
+  ceReferralSteps(limit: Int, offset: Int): CeReferralStepsPaginated
+  id: ID!
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
+  userDashboardConfig: UserDashboardConfig!
+}
+
+type UserDashboardConfig {
+  id: ID!
+  showReferrals: Boolean!
+  showStaffAssignment: Boolean!
 }
 
 type ValidationError {
