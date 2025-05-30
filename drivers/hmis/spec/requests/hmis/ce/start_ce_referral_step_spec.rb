@@ -14,7 +14,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
 
   # Setup workflow template with nodes
   let(:project) { create :hmis_hud_project, data_source: ds1 }
-  let(:template) { create :hmis_workflow_definition_template, status: 'published' }
+  let(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
 
   # Create workflow nodes
