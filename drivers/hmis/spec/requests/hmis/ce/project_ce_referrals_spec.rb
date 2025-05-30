@@ -11,7 +11,6 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
-  before(:all) { cleanup_test_environment }
   before(:each) do
     hmis_login(user)
   end
