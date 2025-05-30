@@ -7,10 +7,6 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
   include_context 'hmis base setup'
 
-  before(:all) do
-    cleanup_test_environment
-  end
-
   let!(:ds_access_control) do
     create_access_control(
       hmis_user,
