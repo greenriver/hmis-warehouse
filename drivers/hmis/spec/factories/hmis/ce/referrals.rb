@@ -20,5 +20,6 @@ FactoryBot.define do
     workflow_instance { association :hmis_workflow_execution_instance, template: workflow_template }
     client { association :hmis_hud_client, data_source: data_source }
     referred_by { association :hmis_user, data_source: data_source }
+    status { 'in_progress' }
   end
 end
