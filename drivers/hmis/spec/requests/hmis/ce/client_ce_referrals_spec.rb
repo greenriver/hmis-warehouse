@@ -100,7 +100,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before do
         50.times do
           project = create(:hmis_hud_project, data_source: ds1)
-          create(:hmis_ce_referral, project: project, client: client)
+          create(:hmis_ce_referral, project: project, client: client, data_source: ds1)
         end
       end
 
