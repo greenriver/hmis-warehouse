@@ -41,7 +41,7 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     field :manage_account_url, String, null: false
 
-    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true, deprecation_reason: 'Replaced with new UserDashboard type'
 
     # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
