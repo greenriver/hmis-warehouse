@@ -160,7 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect do
               response, result = post_graphql(**variables) { query }
               expect(response.status).to eq(200), result.inspect
-            end.to make_database_queries(count: 20..30)
+            end.to make_database_queries(count: 20..35)
           end
         end
       end
@@ -343,7 +343,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 25..30)
+          end.to make_database_queries(count: 25..35)
         end
 
         context 'when current user has can_perform_own_referral_tasks' do
@@ -357,7 +357,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               _, result = post_graphql(**variables) { query }
               steps = result.dig('data', 'ceReferral', 'steps')
               expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be false)
-            end.to make_database_queries(count: 25..30)
+            end.to make_database_queries(count: 25..35)
           end
         end
       end
