@@ -35,17 +35,23 @@ runs:
 
         # Install NodeJS and Yarn repositories
         curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+        curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
         echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 
         # Install dependencies
         sudo apt-get update
         sudo apt-get install -y postgresql-17 postgresql-client-17 postgresql-17-postgis-3 \
-          awscli build-essential imagemagick chromium-browser \
+          build-essential imagemagick chromium-browser \
           nodejs yarn freetds-dev libicu-dev libcurl4-openssl-dev \
           libmagic-dev libxml2-dev libxslt1-dev libpq-dev \
           libgeos-dev libheif1 fonts-dejavu fonts-freefont-ttf \
           lftp tmux poppler-utils libyaml-dev libffi-dev
+
+        # Install AWS CLI v2
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        rm -rf aws awscliv2.zip
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass

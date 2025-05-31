@@ -89,7 +89,8 @@ RUN apt-get update && apt-get upgrade -y \
   libx11-6 libglib2.0-0 libxrender1 libxext6 \
   fonts-dejavu fonts-droid-fallback fonts-freefont-ttf fonts-liberation \
   chromium chromium-common libfreetype6 libfreetype-dev libharfbuzz-dev ca-certificates \
-  lftp postgresql-16 postgresql-client-16 tmux libgeos-dev proj-bin libproj-dev zip expect \
+  lftp postgresql-16 postgresql-client-16 postgresql-17 postgresql-client-17 postgresql-17-postgis-3 \
+  tmux libgeos-dev proj-bin libproj-dev zip expect \
   shared-mime-info libyaml-dev libffi-dev \
   tar p7zip-full vim gpg gnupg-agent poppler-utils \
   && rm -rf /var/lib/apt/lists/* \
