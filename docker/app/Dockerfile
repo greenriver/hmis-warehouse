@@ -6,6 +6,8 @@
 ARG BUILD_TAG
 FROM ruby:${BUILD_TAG} AS cert
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
   openssl \
@@ -60,7 +62,7 @@ COPY docker/app/us-east-1-bundle.pem  /etc/ssl/certs/us-east-1-bundle.pem
 COPY docker/app/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 RUN groupadd -g ${GROUP_ID} app-user \
-  && useradd -u ${USER_ID} -g app-user -s /bin/bash -d /home/app-user -m app-user \
+  && useradd -l -u ${USER_ID} -g app-user -s /bin/bash -d /home/app-user -m app-user \
   && mkdir /app /bundle \
   && chown app-user:app-user /bundle /app
 

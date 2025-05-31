@@ -7,16 +7,21 @@
 
 name: "Container Setup"
 description: "Reusable action to DRY up CI"
+inputs:
+  shell:
+    description: 'Shell to use for commands (default: bash)'
+    required: false
+    default: 'bash'
 runs:
   using: 'composite'
   steps:
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
     - name: Set up dependencies
-      shell: bash
+      shell: ${{ inputs.shell }}
       env:
         DATABASE_APP_DB_TEST: warehouse_app_test
         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
@@ -50,7 +55,7 @@ runs:
         # Install AWS CLI v2
         curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
-        sudo ./aws/install --update
+        sudo ./aws/install --quiet
         rm -rf aws awscliv2.zip
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
@@ -69,5 +74,5 @@ runs:
         key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
 
     - name: Install Node.js modules
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: yarn install --frozen-lockfile

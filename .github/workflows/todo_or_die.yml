@@ -25,7 +25,7 @@ jobs:
         ruby: ['3.3.7']
       fail-fast: false
 
-    container: ruby:3.3.7-alpine3.20
+    container: ruby:3.3.7-slim
 
     env:
       RAILS_ENV: test
