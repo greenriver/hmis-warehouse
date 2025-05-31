@@ -26,6 +26,9 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 
 ARG BUILD_TAG
 FROM ruby:${BUILD_TAG} AS base
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG USER_ID=10000
 ARG GROUP_ID=10000
 ARG BUNDLER_VERSION=2.6.3
