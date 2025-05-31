@@ -104,7 +104,8 @@ RUN apt-get update && apt-get upgrade -y \
        ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
      else \
        ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     fi
+     fi \
+  && ln -s /usr/bin/yarnpkg /usr/bin/yarn
 
 WORKDIR /app
 
