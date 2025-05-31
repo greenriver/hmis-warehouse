@@ -14,11 +14,7 @@ module Hmis::WorkflowExecution
     belongs_to :task, class_name: 'Hmis::WorkflowDefinition::Task', foreign_key: 'node_id'
     belongs_to :form_definition, class_name: 'Hmis::Form::Definition', optional: true # The form definition that was (last) used to submit the step, if it has been submitted
     has_one :swimlane, through: :task, class_name: 'Hmis::WorkflowDefinition::Swimlane'
-
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
-
-    # TODO(#7395): permissions
-    scope :viewable_by, ->(_user) { all }
 
     scope :open, -> { where(status: ['available', 'in_progress']) }
 

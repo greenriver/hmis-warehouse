@@ -318,6 +318,10 @@ group :test do
   gem 'simplecov', require: false
   # gem 'simplecov-console'
   gem 'spring-commands-rspec'
+
+  # For Todo or die rake task
+  gem 'parser', require: false
+  # gem 'unparser', require: false
 end
 
 group :development, :staging, :test do

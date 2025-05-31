@@ -15,7 +15,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
+  let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
   let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
 
@@ -160,6 +160,20 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           expect(response.status).to eq(200), result.inspect
         end.to make_database_queries(count: 20..30)
         expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(unit_ids.count)
+      end
+    end
+
+    context 'when user lacks permission' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: :can_view_units) }
+
+      it 'raises access denied' do
+        expect do
+          expect_gql_error(
+            post_graphql(**variables) { mutation },
+            message: 'access denied',
+          )
+          unit.reload
+        end.to not_change(Hmis::Ce::Opportunity, :count)
       end
     end
   end

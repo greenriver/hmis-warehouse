@@ -7,16 +7,21 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
   end
 
   # Basic setup
-  let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
-  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project]) }
+  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+  let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
+
+  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
   describe 'ce_opportunity query' do
     let(:query) do
@@ -94,6 +99,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             :can_view_clients,
             :can_view_project,
             :can_view_enrollment_details,
+            :can_view_referrals,
           ],
         )
       end
@@ -206,6 +212,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'id' => active_referral.id.to_s,
             'status' => 'in_progress',
           )
+        end
+
+        it 'returns no candidates when user lacks permission to see prioritized client lists' do
+          remove_permissions(access_control, :can_view_prioritized_client_lists)
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodes')).to be_empty
         end
       end
     end
@@ -330,6 +343,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'does not throw, but returns no opportunity' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceOpportunity')).to be_nil
+      end
+    end
+
+    describe 'without permission' do
+      before do
+        remove_permissions(access_control, :can_view_units)
+      end
+
+      it 'does not return the opportunity' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'ceOpportunity')).to be_nil

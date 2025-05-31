@@ -16,7 +16,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_projects)).
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_workflow_template_identifiers)).
-      yield_self(&method(:on_current_step_since)).
+      yield_self(&method(:on_current_task_since)).
       yield_self(&method(:clean_scope))
   end
 
@@ -44,10 +44,10 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
     end
   end
 
-  def on_current_step_since(scope)
-    with_filter(scope, :on_current_step_since) do
+  def on_current_task_since(scope)
+    with_filter(scope, :on_current_task_since) do
       scope.joins(:current_steps).
-        where(wfe_step_t[:available_at].lt(input.on_current_step_since)).
+        where(wfe_step_t[:available_at].lt(input.on_current_task_since)).
         distinct
     end
   end

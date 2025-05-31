@@ -24,6 +24,7 @@ module Hmis::Ce
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit
+    validate :consistent_data_source
 
     state_machine_config column: 'status' do
       state :open, initial: true
@@ -42,9 +43,8 @@ module Hmis::Ce
       end
     end
 
-    # TODO(#7395): permissions
     scope :viewable_by, ->(user) do
-      joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
+      joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
     end
 
     scope :active, -> { where.not(status: 'closed') }
@@ -122,6 +122,12 @@ module Hmis::Ce
       return unless conflicting_opportunity_exists
 
       errors.add(:owner, 'can only have one opportunity')
+    end
+
+    def consistent_data_source
+      return if project.data_source == workflow_template.data_source
+
+      errors.add(:project, 'must be in same data source as workflow template')
     end
   end
 end

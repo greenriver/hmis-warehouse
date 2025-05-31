@@ -14,6 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         :can_view_clients,
         :can_view_project,
         :can_view_enrollment_details,
+        :can_view_client_eligible_opportunities,
+        :can_view_prioritized_client_lists,
       ]
     )
   end
@@ -215,6 +217,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(opportunities).to be_empty
       end
     end
+
+    context 'when user lacks permission' do
+      before do
+        remove_permissions(ds_access_control, :can_view_client_eligible_opportunities)
+      end
+
+      it 'raises an error' do
+        expect_gql_error(post_graphql(**variables) { query }, message: 'access denied')
+      end
+    end
   end
 
   describe 'client eligible CE opportunities query with filters' do
@@ -302,7 +314,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             count = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodesCount')
             expect(count).to eq(32)
-          end.to make_database_queries(count: 15..20)
+          end.to make_database_queries(count: 15..25)
         end
       end
     end

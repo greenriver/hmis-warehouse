@@ -9,6 +9,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
+
   describe 'admin ceOpportunities query' do
     let(:query) do
       <<~GRAPHQL
@@ -54,6 +56,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(opportunities.dig(1, 'id')).to eq(opportunity2.id.to_s)
         expect(opportunities.dig(2, 'id')).to eq(opportunity.id.to_s)
       end
+
+      it 'raises if the user does not have permission' do
+        remove_permissions(access_control, :can_administrate_coordinated_entry)
+        expect_gql_error(post_graphql { query }, message: 'access denied')
+      end
     end
 
     context 'with opportunities in multiple data sources' do
@@ -83,7 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunities', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 10..15)
+        end.to make_database_queries(count: 15..20)
       end
     end
   end

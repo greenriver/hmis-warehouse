@@ -11,6 +11,7 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
+  before(:all) { cleanup_test_environment }
   before(:each) do
     hmis_login(user)
   end
@@ -73,6 +74,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(returned_referral['targetProjectId']).to eq(project.id.to_s)
     end
 
+    it 'returns empty when user lacks permission' do
+      remove_permissions(ds_access_control, :can_view_referrals)
+      response, result = post_graphql(**variables) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'project', 'ceReferrals', 'nodes')).to be_empty
+    end
+
     context 'when filtering for active referrals' do
       let(:variables) do
         {
@@ -114,7 +122,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
-          end.to make_database_queries(count: 20..25)
+          end.to make_database_queries(count: 25..35)
         end
       end
     end

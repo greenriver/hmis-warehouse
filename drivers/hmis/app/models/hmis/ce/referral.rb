@@ -27,15 +27,37 @@ module Hmis::Ce
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :steps
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
 
-    # TODO(#7395): permissions
     scope :viewable_by, ->(user) do
-      joins(:target_project).merge(Hmis::Hud::Project.viewable_by(user))
+      # What makes a referral viewable by a user?
+      # - If they have can_view_referrals at the target project, OR
+      # - If they have can_view_own_referrals, AND are assigned a step in the referral.
+
+      # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
+      base_scope = joins(:target_project).left_outer_joins(steps: :assignments)
+
+      # Projects in which the user can_view_referrals
+      access_through_project = base_scope.
+        merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_referrals))
+
+      # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
+      # Note that the user does *not* need can_view_project in this case
+      own_referrals = base_scope.
+        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
+        merge(
+          Hmis::WorkflowExecution::Step.
+            where(Hmis::WorkflowExecution::StepAssignment.arel_table[:user_id].eq(user.id)).
+            where.not(status: 'unavailable'),
+        )
+
+      access_through_project.or(own_referrals).distinct
     end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
     scope :active_or_accepted, -> { where.not(status: 'rejected') }
 
+    validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity
+    validate :ce_template
 
     state_machine_config column: 'status' do
       state :initialized, initial: true
@@ -87,6 +109,12 @@ module Hmis::Ce
       return unless conflicting_referral_exists
 
       errors.add(:opportunity, 'can only have one active or accepted referral')
+    end
+
+    def ce_template
+      return if workflow_instance.template.template_type == 'ce_referral'
+
+      errors.add(:workflow_instance, 'must be a CE template')
     end
   end
 end

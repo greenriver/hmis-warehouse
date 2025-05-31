@@ -84,6 +84,8 @@ module Types
         staff_assignment_relationships(project)
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
         eligible_staff_assignment_user_picklist(project)
+      when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
+        eligible_referral_step_assignment_user_picklist(project)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -161,21 +163,21 @@ module Types
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
           end
-      when 'WORKFLOW_DEFINITION_TEMPLATES'
-        # TODO(#7522) - rename CE_WORKFLOW_TEMPLATE_IDENTIFIERS;
-        #  return identifiers and not IDs; only return published templates; only return CE templates
-        # TODO(#7502) - templates are shared across data sources
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS'
         # Unique ce workflow template identifiers that are currently published.
-        # Used for configuring which template to use for a project/resource/group/etc
+        # Used for configuring which template to use for a resource group
         return [] unless Hmis::Ce.configuration.enabled?
 
-        Hmis::WorkflowDefinition::Template.all.map do |template|
-          { code: template.id, label: template.name }
-        end
+        Hmis::WorkflowDefinition::Template.published.ce.viewable_by(user).
+          map do |template|
+            { code: template.identifier, label: template.name }
+          end
       when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
         # Unique CE workflow template identifiers, including retired workflows with no currently published version.
         # Used for filtering on existing/historical referrals.
-        base_scope = Hmis::WorkflowDefinition::Template.where(template_type: :ce_referral)
+        return [] unless Hmis::Ce.configuration.enabled?
+
+        base_scope = Hmis::WorkflowDefinition::Template.ce.viewable_by(user)
         base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
           description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
           { code: identifier, label: description }
@@ -186,12 +188,21 @@ module Types
     def self.eligible_staff_assignment_user_picklist(project)
       return [] unless project&.staff_assignments_enabled?
 
-      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
-        {
-          code: user.id.to_s,
-          label: user.full_name,
-        }
-      end
+      Hmis::User.can_edit_enrollments_for(project).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_option)
+    end
+
+    def self.eligible_referral_step_assignment_user_picklist(project)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
+
+      user_scope = Hmis::User.active
+
+      user_scope.can_perform_any_referral_tasks_for(project).
+        or(user_scope.can_perform_own_referral_tasks_for(project)).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_option).uniq
     end
 
     def self.user_picklist(current_user)

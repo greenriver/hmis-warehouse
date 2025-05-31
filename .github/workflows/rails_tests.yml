@@ -228,6 +228,7 @@ jobs:
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
@@ -246,6 +247,7 @@ jobs:
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
@@ -255,6 +257,7 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
@@ -272,6 +275,7 @@ jobs:
           RUN_SYSTEM_TESTS: true
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROME_URL: http://chrome:3333
+          TODO_OR_DIE_LOG_ONLY: true
         run:
           # Are you looking to run the system tests locally? See:
           # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
