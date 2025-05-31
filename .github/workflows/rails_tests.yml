@@ -44,7 +44,7 @@ jobs:
     # Service containers to run with job
     services:
       postgres:
-        image: index.docker.io/postgis/postgis@sha256:681931a625df344215e9b8998bf34daf146b6a395ceacee4439eb9c85869239f # 16-3.4-alpine
+        image: index.docker.io/postgis/postgis@sha256:1d7869b7f4dc799835cc8106061f10bcde94377da4704cd508511b78b9005c02 # 17-3.5-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
@@ -153,20 +153,7 @@ jobs:
 
       - name: Prepare test db
         run: |
-          # pg_isready -h postgres -U postgres # previous method (restore if needed)
-          # Wait for postgres to be ready with retries
-          for i in {1..30}; do
-            if pg_isready -h postgres -U postgres; then
-              break
-            fi
-            if [ $i -eq 30 ]; then
-              echo "PostgreSQL never became ready"
-              exit 1
-            fi
-            echo "Waiting for PostgreSQL to be ready... attempt $i"
-            sleep 2
-          done
-
+          pg_isready -h postgres -U postgres
           bin/db_prep
 
           echo "Setting up .pgpass"
