@@ -20,4 +20,21 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates_with Hmis::Hud::Validators::IncomeBenefitValidator
+
+  # income_fields = Hmis::Hud::IncomeBenefit.hmis_structure(version: '2024').grep(/Amount/)
+  INCOME_FIELDS = [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount].freeze
+  def admin_review_and_normalization
+    calculated_income = INCOME_FIELDS.filter_map { |field| public_send(field)&.to_i }.sum
+    return if calculated_income&.round(2) == total_monthly_income&.round(2)
+
+    handle_normalization_issue("Total monthly income does not match calculated income. Expected #{total_monthly_income} to equal calculated: #{calculated_income} (auto-corrected)")
+    self.total_monthly_income = calculated_income
+  end
+
+  def handle_normalization_issue(message)
+    message = "#{self.class.name}##{id}: #{message}"
+    raise message if Rails.env.development?
+
+    Sentry.capture_message(message)
+  end
 end
