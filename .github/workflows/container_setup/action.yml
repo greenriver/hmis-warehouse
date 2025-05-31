@@ -1,6 +1,3 @@
-name: "Container Setup"
-description: "Reusable action to DRY up CI"
-
 ## Call from the caller workflow like so:
 # - name: Checkout
 #     uses: actions/checkout@v4
@@ -10,7 +7,6 @@ description: "Reusable action to DRY up CI"
 
 name: "Container Setup"
 description: "Reusable action to DRY up CI"
-
 runs:
   using: 'composite'
   steps:
@@ -31,7 +27,7 @@ runs:
         PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
         PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       run: |
-        # Add PostgreSQL 16 repository
+        # Add PostgreSQL 17 repository
         sudo apt-get update
         sudo apt-get install -y curl ca-certificates gnupg
         curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
@@ -44,7 +40,7 @@ runs:
 
         # Install dependencies
         sudo apt-get update
-        sudo apt-get install -y postgresql-16 postgresql-client-16 postgresql-16-postgis-3 \
+        sudo apt-get install -y postgresql-17 postgresql-client-17 postgresql-17-postgis-3 \
           awscli build-essential imagemagick chromium-browser \
           nodejs yarn freetds-dev libicu-dev libcurl4-openssl-dev \
           libmagic-dev libxml2-dev libxslt1-dev libpq-dev \

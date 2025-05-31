@@ -2,9 +2,9 @@ name: Make Service Images
 
 on:
   push:
-    branches:
-      # Just enable this for your branch as needed
-      # - tb/client-export/185190925
+    # Just enable this for your branch as needed
+#     branches:
+#       - tb/client-export/185190925
 
 # Branch pushes will cancel any running jobs to the same branch
 concurrency:
