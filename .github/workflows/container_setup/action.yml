@@ -73,6 +73,13 @@ runs:
         ruby-version: 3.3
         bundler-cache: true
 
+    - name: Install gems
+      shell: bash
+      run: |
+        gem install bundler --version=2.6.3
+        bundle config set --local without 'production staging'
+        bundle install --jobs 10 --retry 3
+
     - name: Cache Node.js modules
       uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
       with:
