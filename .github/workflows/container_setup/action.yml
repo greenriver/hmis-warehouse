@@ -45,7 +45,7 @@ runs:
 
         # Install dependencies
         sudo apt-get update
-        sudo apt-get install -y postgresql-17 postgresql-client-17 postgresql-17-postgis-3 \
+        sudo apt-get install -y git postgresql-17 postgresql-client-17 postgresql-17-postgis-3 \
           build-essential imagemagick chromium-browser \
           nodejs yarn freetds-dev libicu-dev libcurl4-openssl-dev \
           libmagic-dev libxml2-dev libxslt1-dev libpq-dev \
