@@ -25,6 +25,7 @@ jobs:
     # Supports OIDC to fetch/push images from/to ECR
     permissions:
       contents: read
+      packages: read
       id-token: write
       pull-requests: write
 
