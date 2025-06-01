@@ -57,7 +57,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
           --name postgres
-          --network-alias postgres
+          --hostname postgres
         ports:
           - 5432:5432
 
@@ -155,7 +155,7 @@ jobs:
           docker ps -a
 
           echo "\n=== PostgreSQL Container Logs ==="
-          POSTGRES_CONTAINER=$(docker ps -q -f name=postgis)
+          POSTGRES_CONTAINER=$(docker ps -q -f name=postgres)
           if [ ! -z "$POSTGRES_CONTAINER" ]; then
             echo "Found PostgreSQL container: $POSTGRES_CONTAINER"
             docker logs $POSTGRES_CONTAINER || true
@@ -201,6 +201,13 @@ jobs:
           echo "\n=== Active Networks ==="
           docker network ls --filter "type=custom" || true
 
+          echo "\n=== GitHub Actions Network ==="
+          GITHUB_NETWORK=$(docker network ls --filter "type=custom" --format "{{.Name}}")
+          if [ ! -z "$GITHUB_NETWORK" ]; then
+            echo "Inspecting network: $GITHUB_NETWORK"
+            docker network inspect $GITHUB_NETWORK || true
+          fi
+
       - name: 'App setup'
         run: |
           cp config/secrets.yml.sample config/secrets.yml
@@ -211,11 +218,11 @@ jobs:
 
       - name: Prepare test db
         run: |
-          pg_isready -h postgres -U postgres
+          pg_isready -h localhost -U postgres
           bin/db_prep
 
           echo "Setting up .pgpass"
-          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
+          echo "localhost:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
       - name: Precompile assets
