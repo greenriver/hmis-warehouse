@@ -128,6 +128,8 @@ runs:
         sudo chown -R $USER:$USER /usr/local/bundle
         sudo chmod -R 755 /usr/local/bundle
 
+        # Install pg gem with correct configuration
+        gem install pg -- --with-pg-config=/usr/bin/pg_config
         gem install bundler --version=2.6.3
         bundle config set --local without 'production staging'
         bundle install --jobs 10 --retry 3
