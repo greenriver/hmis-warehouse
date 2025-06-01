@@ -35,6 +35,11 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
 
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: read
+
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
 
