@@ -143,6 +143,28 @@ jobs:
         id: container-setup
         uses: ./.github/workflows/container_setup
 
+      - name: Debug PostgreSQL Service
+        run: |
+          echo "=== Docker Network Info ==="
+          docker network ls
+          docker network inspect bridge
+
+          echo "\n=== Docker Containers ==="
+          docker ps -a
+
+          echo "\n=== PostgreSQL Container Logs ==="
+          docker logs $(docker ps -q -f name=postgres)
+
+          echo "\n=== Network Connectivity ==="
+          ping -c 3 postgres || true
+          nc -zv postgres 5432 || true
+
+          echo "\n=== PostgreSQL Service Status ==="
+          pg_isready -h postgres -U postgres -d postgres -p 5432 -t 30 || true
+
+          echo "\n=== Environment Variables ==="
+          env | grep -i postgres
+
       - name: 'App setup'
         run: |
           cp config/secrets.yml.sample config/secrets.yml
