@@ -21,11 +21,6 @@ RSpec.describe Hmis::Hud::DataIntegrity::TotalIncomeReconciler, type: :model do
   let!(:income_benefit) { build(:hmis_income_benefit, **base_attributes) }
 
   describe '.call' do
-    it 'returns an empty array if the record is nil' do
-      messages = described_class.call(nil)
-      expect(messages).to be_empty
-    end
-
     it 'corrects total monthly income when it does not match sum of income fields' do
       income_benefit.total_monthly_income = 250 # Incorrect total
 

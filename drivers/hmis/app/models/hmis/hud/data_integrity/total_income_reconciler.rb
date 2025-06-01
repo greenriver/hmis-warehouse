@@ -18,7 +18,6 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler
   # @param [Hmis::Hud::IncomeBenefit] record
   def call(record)
     messages = []
-    return [] unless record
 
     calculated_income = 0
     INCOME_SOURCES.each_pair do |source_field, amount_field|
