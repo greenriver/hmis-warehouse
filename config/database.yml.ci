@@ -1,7 +1,7 @@
 test:
   primary:
     adapter: postgresql
-    host: postgres
+    host: localhost
     pool: 5
     timeout: 5000
     username: postgres
@@ -9,7 +9,7 @@ test:
     database: warehouse_app_test
   warehouse:
     adapter: postgis
-    host: postgres
+    host: localhost
     pool: 5
     timeout: 5000
     username: postgres
@@ -18,7 +18,7 @@ test:
     migrations_paths: db/warehouse/migrate
   health:
     adapter: postgresql
-    host: postgres
+    host: localhost
     pool: 5
     timeout: 5000
     username: postgres
@@ -27,7 +27,7 @@ test:
     migrations_paths: db/health/migrate
   reporting:
     adapter: postgresql
-    host: postgres
+    host: localhost
     pool: 5
     timeout: 5000
     username: postgres
@@ -36,7 +36,7 @@ test:
     migrations_paths: db/reporting/migrate
   cas:
     adapter: postgresql
-    host: postgres
+    host: localhost
     pool: 5
     timeout: 5000
     username: postgres
