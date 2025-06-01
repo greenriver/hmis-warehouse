@@ -153,7 +153,12 @@ jobs:
           docker ps -a
 
           echo "\n=== PostgreSQL Container Logs ==="
-          docker logs $(docker ps -q -f name=postgres)
+          POSTGRES_CONTAINER=$(docker ps -q -f name=postgis/postgis)
+          if [ ! -z "$POSTGRES_CONTAINER" ]; then
+            docker logs $POSTGRES_CONTAINER || true
+          else
+            echo "PostgreSQL container not found"
+          fi
 
           echo "\n=== Network Connectivity ==="
           ping -c 3 postgres || true
@@ -164,6 +169,17 @@ jobs:
 
           echo "\n=== Environment Variables ==="
           env | grep -i postgres
+
+          echo "\n=== DNS Resolution ==="
+          getent hosts postgres || true
+          cat /etc/hosts || true
+
+          echo "\n=== Container Network ==="
+          if [ ! -z "$POSTGRES_CONTAINER" ]; then
+            docker inspect $POSTGRES_CONTAINER | grep -A 20 "NetworkSettings" || true
+          else
+            echo "PostgreSQL container not found"
+          fi
 
       - name: 'App setup'
         run: |
