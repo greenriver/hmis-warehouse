@@ -10,13 +10,15 @@ module Types
   class HmisSchema::Unit < Types::BaseObject
     available_filter_options do
       arg :unit_type, [ID]
+      arg :unit_group, [ID]
+      arg :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus
       arg :status, [
         Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
           # FIXME standardize names "Assigned/Empty"
-          value 'AVAILABLE', description: 'Available'
-          value 'FILLED', description: 'Filled'
+          value 'AVAILABLE', description: 'Available' # Vacant
+          value 'FILLED', description: 'Filled' # Occupied
         end,
-      ]
+      ], deprecation_reason: 'Use `occupancy_status` instead. This will be removed in a future version.'
     end
 
     field :id, ID, null: false
@@ -28,10 +30,12 @@ module Types
     field :project, Types::HmisSchema::Project, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus, null: false
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
     field :unit_group, HmisSchema::UnitGroup, null: true
+    field :deletable, Boolean, null: false
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
@@ -52,6 +56,17 @@ module Types
       return object.unit_size if object.unit_size.present?
 
       object.unit_type&.unit_size
+    end
+
+    def occupancy_status
+      occupants.any? ? 'OCCUPIED' : 'VACANT'
+    end
+
+    def deletable
+      return false if occupants.any? # cannot delete unit with occupants
+      return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
+
+      true
     end
 
     def occupants

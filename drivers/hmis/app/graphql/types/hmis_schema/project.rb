@@ -61,7 +61,6 @@ module Types
     project_cocs_field
     funders_field
     units_field
-    # add: unit_groups
     external_form_submissions_field do
       argument :form_definition_identifier, ID, required: true
     end

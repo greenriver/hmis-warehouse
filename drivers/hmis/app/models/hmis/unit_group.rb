@@ -24,6 +24,10 @@ module Hmis
     validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false }
     validate :workflow_template_is_valid
 
+    scope :viewable_by, ->(user) do
+      joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
+    end
+
     def eligibility_requirements
       Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
     end

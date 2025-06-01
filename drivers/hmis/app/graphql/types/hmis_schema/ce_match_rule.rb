@@ -12,6 +12,7 @@ module Types
 
     field :id, ID, null: false
     field :name, String, null: false
+    # TODO: Ce Match Rule Owner Enum
     field :owner_type, String, null: false, description: 'Rule applies to all projects within this related entity (eg a Data Source, Project, Organization)'
     field :expression, String, null: false
     field :project_types, [Types::HmisSchema::Enums::ProjectType], null: false, description: 'Rule applicability is limited to projects with these types'
