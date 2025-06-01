@@ -153,19 +153,25 @@ jobs:
           docker ps -a
 
           echo "\n=== PostgreSQL Container Logs ==="
-          POSTGRES_CONTAINER=$(docker ps -q -f name=postgis/postgis)
+          POSTGRES_CONTAINER=$(docker ps -q -f ancestor=postgis/postgis)
           if [ ! -z "$POSTGRES_CONTAINER" ]; then
+            echo "Found PostgreSQL container: $POSTGRES_CONTAINER"
             docker logs $POSTGRES_CONTAINER || true
           else
             echo "PostgreSQL container not found"
           fi
 
           echo "\n=== Network Connectivity ==="
-          ping -c 3 postgres || true
-          nc -zv postgres 5432 || true
+          echo "Testing localhost:5432"
+          nc -zv localhost 5432 || true
+          echo "\nTesting 127.0.0.1:5432"
+          nc -zv 127.0.0.1 5432 || true
 
           echo "\n=== PostgreSQL Service Status ==="
-          pg_isready -h postgres -U postgres -d postgres -p 5432 -t 30 || true
+          echo "Testing localhost"
+          pg_isready -h localhost -U postgres -d postgres -p 5432 -t 30 || true
+          echo "\nTesting 127.0.0.1"
+          pg_isready -h 127.0.0.1 -U postgres -d postgres -p 5432 -t 30 || true
 
           echo "\n=== Environment Variables ==="
           env | grep -i postgres
@@ -176,6 +182,9 @@ jobs:
 
           echo "\n=== Container Network ==="
           if [ ! -z "$POSTGRES_CONTAINER" ]; then
+            echo "Container IP:"
+            docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $POSTGRES_CONTAINER || true
+            echo "\nContainer Network Settings:"
             docker inspect $POSTGRES_CONTAINER | grep -A 20 "NetworkSettings" || true
           else
             echo "PostgreSQL container not found"
