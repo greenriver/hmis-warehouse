@@ -29,7 +29,6 @@ runs:
           nodejs \
           npm \
           postgresql-client \
-          postgresql-server-dev-17 \
           python3 \
           python3-pip \
           python3-venv \
