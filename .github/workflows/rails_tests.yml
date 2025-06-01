@@ -144,6 +144,8 @@ jobs:
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
+        with:
+          additional_packages: libpq-dev
 
       - name: Debug PostgreSQL Service
         run: |
