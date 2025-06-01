@@ -12138,12 +12138,8 @@ type UnitGroup {
   id: ID!
   name: String!
   priorityScheme: CeMatchRule
+  unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
-
-  """
-  Percentage of units in this group that are currently occupied
-  """
-  utilization: Float
   workflowTemplateIdentifier: String
   workflowTemplateName: String
 }

@@ -15,7 +15,7 @@ module Types
     field :name, String, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
-    field :utilization, Float, null: true, description: 'Percentage of units in this group that are currently occupied'
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     units_field
 
     # CE fields
@@ -35,18 +35,27 @@ module Types
       resolve_units(**args)
     end
 
+    # Keeping this from Project, to support displaying availability by unit types. Don't resolve in batch.
+    def unit_types
+      capacity = object.units.group(:unit_type_id).count
+      unoccupied = object.units.unoccupied_on.group(:unit_type_id).count
+
+      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
+        OpenStruct.new(
+          id: unit_type.id,
+          unit_type: unit_type.description,
+          capacity: capacity[unit_type.id] || 0,
+          availability: unoccupied[unit_type.id] || 0,
+        )
+      end
+    end
+
     def capacity
       object.units.count
     end
 
     def availability
       object.units.unoccupied_on.count
-    end
-
-    def utilization
-      return nil if capacity.zero?
-
-      ((capacity - availability).to_f / capacity * 100).round(2)
     end
   end
 end
