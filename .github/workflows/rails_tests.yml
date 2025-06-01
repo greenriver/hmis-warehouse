@@ -56,6 +56,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --name postgres
+          --network-alias postgres
         ports:
           - 5432:5432
 
@@ -153,7 +155,7 @@ jobs:
           docker ps -a
 
           echo "\n=== PostgreSQL Container Logs ==="
-          POSTGRES_CONTAINER=$(docker ps -q -f ancestor=postgis/postgis)
+          POSTGRES_CONTAINER=$(docker ps -q -f name=postgis)
           if [ ! -z "$POSTGRES_CONTAINER" ]; then
             echo "Found PostgreSQL container: $POSTGRES_CONTAINER"
             docker logs $POSTGRES_CONTAINER || true
@@ -166,12 +168,16 @@ jobs:
           nc -zv localhost 5432 || true
           echo "\nTesting 127.0.0.1:5432"
           nc -zv 127.0.0.1 5432 || true
+          echo "\nTesting postgres:5432"
+          nc -zv postgres 5432 || true
 
           echo "\n=== PostgreSQL Service Status ==="
           echo "Testing localhost"
           pg_isready -h localhost -U postgres -d postgres -p 5432 -t 30 || true
           echo "\nTesting 127.0.0.1"
           pg_isready -h 127.0.0.1 -U postgres -d postgres -p 5432 -t 30 || true
+          echo "\nTesting postgres"
+          pg_isready -h postgres -U postgres -d postgres -p 5432 -t 30 || true
 
           echo "\n=== Environment Variables ==="
           env | grep -i postgres
@@ -186,9 +192,14 @@ jobs:
             docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $POSTGRES_CONTAINER || true
             echo "\nContainer Network Settings:"
             docker inspect $POSTGRES_CONTAINER | grep -A 20 "NetworkSettings" || true
+            echo "\nContainer Network Aliases:"
+            docker inspect -f '{{range .NetworkSettings.Networks}}{{.Aliases}}{{end}}' $POSTGRES_CONTAINER || true
           else
             echo "PostgreSQL container not found"
           fi
+
+          echo "\n=== Active Networks ==="
+          docker network ls --filter "type=custom" || true
 
       - name: 'App setup'
         run: |
