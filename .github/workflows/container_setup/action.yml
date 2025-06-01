@@ -29,6 +29,7 @@ runs:
           nodejs \
           npm \
           postgresql-client \
+          postgresql-server-dev-17 \
           python3 \
           python3-pip \
           python3-venv \
@@ -63,6 +64,7 @@ runs:
         sudo chown -R $USER:$USER /var/lib/gems/3.2.0
         sudo chmod -R 755 /var/lib/gems/3.2.0
         gem install bundler
+        gem install pg -- --with-pg-config=/usr/bin/pg_config
 
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
