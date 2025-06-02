@@ -64,6 +64,7 @@ jobs:
           --health-retries 5
           --name postgres
           --hostname postgres
+          --network test-network
           --network-alias postgres
         ports:
           - 5432:5432
@@ -73,6 +74,7 @@ jobs:
         options: >-
           --name redis
           --hostname redis
+          --network test-network
           --network-alias redis
         ports:
           - 6379:6379
@@ -129,7 +131,7 @@ jobs:
       USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
-      REDIS_URL: redis://redis:6379/1
+      CACHE_HOST: localhost
       REPORTING_DATABASE_ADAPTER: postgresql
       REPORTING_DATABASE_DB_TEST: reporting_test
       REPORTING_DATABASE_HOST: postgres
@@ -153,13 +155,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
+      - name: Create Docker Network
+        run: |
+          docker network create test-network || true
+
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
           additional_packages: libpq-dev
 
-      - name: Debug PostgreSQL Service
+      - name: Debug Docker Network
         run: |
           echo "=== Docker Network Info ==="
           docker network ls
@@ -212,16 +218,6 @@ jobs:
             echo "PostgreSQL container not found"
           fi
 
-          echo "\n=== Active Networks ==="
-          docker network ls --filter "type=custom" || true
-
-          echo "\n=== GitHub Actions Network ==="
-          GITHUB_NETWORK=$(docker network ls --filter "type=custom" --format "{{.Name}}")
-          if [ ! -z "$GITHUB_NETWORK" ]; then
-            echo "Inspecting network: $GITHUB_NETWORK"
-            docker network inspect $GITHUB_NETWORK || true
-          fi
-
       - name: 'App setup'
         run: |
           cp config/secrets.yml.sample config/secrets.yml
@@ -232,11 +228,11 @@ jobs:
 
       - name: Prepare test db
         run: |
-          pg_isready -h localhost -U postgres
+          pg_isready -h postgres -U postgres
           bin/db_prep
 
           echo "Setting up .pgpass"
-          echo "localhost:*:*:postgres:postgres" > ~/.pgpass
+          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
       - name: Precompile assets
