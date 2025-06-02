@@ -21,7 +21,6 @@ jobs:
     name: Build
 
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-bullseye
 
     # Supports OIDC to fetch/push images from/to ECR
     permissions:
@@ -42,7 +41,7 @@ jobs:
             hadolint_ignore: DL3008
             trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
-              BUILD_TAG=3.3.7-slim-bookworm
+              BUILD_TAG=3.3.7-bullseye
               BUNDLER_VERSION=2.6.3
             tags: |
               type=sha,prefix=githash-
