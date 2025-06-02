@@ -97,7 +97,7 @@ runs:
         echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
 
         # Install NodeJS and Yarn repositories
-        curl -sL https://deb.nodesource.com/setup_18.x | -E bash -
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
         curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
         echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
