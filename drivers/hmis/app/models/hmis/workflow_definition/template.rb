@@ -50,5 +50,16 @@ module Hmis::WorkflowDefinition
 
       errors.add(:base, "There can only be one #{status} template for the identifier #{identifier}.")
     end
+
+    def validate
+      # Run validations that don't run on lifecycle hooks. (See comments in WorkflowTemplateValidator)
+      Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator.new.validate(self)
+    end
+
+    def validate!
+      # Run validations that don't run on lifecycle hooks, and raise if they result in any errors.
+      validate
+      raise ActiveRecord::RecordInvalid, self if errors.any?
+    end
   end
 end
