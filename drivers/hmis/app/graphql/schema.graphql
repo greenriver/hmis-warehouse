@@ -750,7 +750,8 @@ type CeMatchRule {
   name: String!
 
   """
-  Rule applies to all projects within this related entity (eg a Data Source, Project, Organization)
+  Rule applies to projects within this related entity (eg a Data Source,
+  Project, Organization), possibly limited by project type or funder
   """
   ownerType: String!
 
