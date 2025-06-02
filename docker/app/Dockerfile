@@ -75,8 +75,6 @@ RUN apt-get update \
   && sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
   && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
   && curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y \
-  && curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg \
-  && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get update \
   && apt-get remove -y nodejs \
   && rm -rf /var/lib/apt/lists/*
@@ -125,14 +123,13 @@ RUN apt-get update && apt-get upgrade -y \
   tar \
   tzdata \
   vim \
-  yarnpkg \
   && rm -rf /var/lib/apt/lists/* \
   && if [ "$(uname -m)" = "aarch64" ]; then \
        ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
      else \
        ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
      fi \
-  && ln -s /usr/bin/yarnpkg /usr/bin/yarn
+  && npm install -g yarn@1.22.19
 
 WORKDIR /app
 
