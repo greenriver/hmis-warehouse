@@ -110,7 +110,7 @@ jobs:
       DATABASE_APP_DB_TEST: warehouse_app_test
       DATABASE_DB_TEST: warehouse_test
       DATABASE_APP_DB: warehouse_app_test
-      DATABASE_HOST: postgres
+      DATABASE_HOST: localhost
       DATABASE_PASS: postgres
       DATABASE_USER: postgres
       DATABASE_WAREHOUSE_DB_TEST: warehouse_test
@@ -120,7 +120,7 @@ jobs:
       FQDN: openpath.host
       HEALTH_DATABASE_ADAPTER: postgresql
       HEALTH_DATABASE_DB_TEST: health_test
-      HEALTH_DATABASE_HOST: postgres
+      HEALTH_DATABASE_HOST: localhost
       HEALTH_DATABASE_PASS: postgres
       HEALTH_DATABASE_USER: postgres
       HEALTH_FROM: greenriver.testing@mailinator.com
@@ -134,12 +134,12 @@ jobs:
       CACHE_DB: 1
       REPORTING_DATABASE_ADAPTER: postgresql
       REPORTING_DATABASE_DB_TEST: reporting_test
-      REPORTING_DATABASE_HOST: postgres
+      REPORTING_DATABASE_HOST: localhost
       REPORTING_DATABASE_PASS: postgres
       REPORTING_DATABASE_USER: postgres
       WAREHOUSE_DATABASE_ADAPTER: postgis
       WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-      WAREHOUSE_DATABASE_HOST: postgres
+      WAREHOUSE_DATABASE_HOST: localhost
       WAREHOUSE_DATABASE_PASS: postgres
       WAREHOUSE_DATABASE_USER: postgres
       WAREHOUSE_DATABASE_DB: warehouse_test
@@ -175,7 +175,7 @@ jobs:
           bin/db_prep
 
           echo "Setting up .pgpass"
-          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
+          echo "localhost:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
       - name: Precompile assets

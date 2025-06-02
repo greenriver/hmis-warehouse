@@ -110,7 +110,7 @@ runs:
           libgeos-dev libheif1 fonts-dejavu fonts-freefont-ttf \
           lftp tmux poppler-utils libyaml-dev libffi-dev
 
-        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+        echo "localhost:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
 
     - name: ruby setup
