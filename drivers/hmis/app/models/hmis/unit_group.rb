@@ -39,7 +39,7 @@ module Hmis
 
       errors.add(:workflow_template_identifier, 'must be published') unless workflow_template.published?
       errors.add(:workflow_template_identifier, 'must belong to the same data source') if workflow_template.data_source_id != project.data_source_id
-      errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') if workflow_template.template_type == :ce_referral
+      errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') unless workflow_template.template_type&.to_s == 'ce_referral'
     end
   end
 end
