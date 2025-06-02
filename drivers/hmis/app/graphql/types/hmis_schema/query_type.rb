@@ -543,7 +543,6 @@ module Types
       Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
     end
 
-    # TODO(#7753) deprecate, replace with Unit lookup to support the Unit page (with or without CE)
     field :ce_opportunity, HmisSchema::CeOpportunity, null: true do
       argument :id, ID, required: true
     end
@@ -570,7 +569,6 @@ module Types
     end
 
     # All CE opportunities the user can view, resolved on admin page
-    # TODO(#7753): I think we keep this for the admin page. but consider if we should be resolving a global unit list instead.
     ce_opportunities_field
     def ce_opportunities(**args)
       access_denied! unless current_user.can_administrate_coordinated_entry?

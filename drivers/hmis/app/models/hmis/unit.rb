@@ -53,8 +53,6 @@ class Hmis::Unit < Hmis::HmisBase
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
 
-  # Scopes for filtering by unit type
-
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
 
   scope :occupied_on, ->(date = Date.current) do

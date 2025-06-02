@@ -12,7 +12,7 @@ module Types
 
     field :id, ID, null: false
     field :name, String, null: false
-    field :owner_type, String, null: false, description: 'Rule applies to all projects within this related entity (eg a Data Source, Project, Organization)'
+    field :owner_type, String, null: false, description: 'Rule applies to projects within this related entity (eg a Data Source, Project, Organization), possibly limited by project type or funder'
     field :expression, String, null: false
     field :project_types, [Types::HmisSchema::Enums::ProjectType], null: false, description: 'Rule applicability is limited to projects with these types'
     field :funders, [Types::HmisSchema::Enums::Hud::FundingSource], null: true, description: 'Rule applicability is limited to projects with these active funders'
