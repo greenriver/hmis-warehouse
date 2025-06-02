@@ -78,6 +78,7 @@ RUN apt-get update \
   && curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg \
   && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get update \
+  && apt-get remove -y nodejs \
   && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get upgrade -y \
