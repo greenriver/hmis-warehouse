@@ -64,7 +64,6 @@ jobs:
           --health-retries 5
           --name postgres
           --hostname postgres
-          --network test-network
           --network-alias postgres
         ports:
           - 5432:5432
@@ -74,7 +73,6 @@ jobs:
         options: >-
           --name redis
           --hostname redis
-          --network test-network
           --network-alias redis
         ports:
           - 6379:6379
@@ -132,6 +130,8 @@ jobs:
       PORT: 80
       RAILS_ENV: test
       CACHE_HOST: localhost
+      CACHE_PORT: 6379
+      CACHE_DB: 1
       REPORTING_DATABASE_ADAPTER: postgresql
       REPORTING_DATABASE_DB_TEST: reporting_test
       REPORTING_DATABASE_HOST: postgres
@@ -155,68 +155,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Create Docker Network
-        run: |
-          docker network create test-network || true
-
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
           additional_packages: libpq-dev
-
-      - name: Debug Docker Network
-        run: |
-          echo "=== Docker Network Info ==="
-          docker network ls
-          docker network inspect bridge
-
-          echo "\n=== Docker Containers ==="
-          docker ps -a
-
-          echo "\n=== PostgreSQL Container Logs ==="
-          POSTGRES_CONTAINER=$(docker ps -q -f name=postgres)
-          if [ ! -z "$POSTGRES_CONTAINER" ]; then
-            echo "Found PostgreSQL container: $POSTGRES_CONTAINER"
-            docker logs $POSTGRES_CONTAINER || true
-          else
-            echo "PostgreSQL container not found"
-          fi
-
-          echo "\n=== Network Connectivity ==="
-          echo "Testing localhost:5432"
-          nc -zv localhost 5432 || true
-          echo "\nTesting 127.0.0.1:5432"
-          nc -zv 127.0.0.1 5432 || true
-          echo "\nTesting postgres:5432"
-          nc -zv postgres 5432 || true
-
-          echo "\n=== PostgreSQL Service Status ==="
-          echo "Testing localhost"
-          pg_isready -h localhost -U postgres -d postgres -p 5432 -t 30 || true
-          echo "\nTesting 127.0.0.1"
-          pg_isready -h 127.0.0.1 -U postgres -d postgres -p 5432 -t 30 || true
-          echo "\nTesting postgres"
-          pg_isready -h postgres -U postgres -d postgres -p 5432 -t 30 || true
-
-          echo "\n=== Environment Variables ==="
-          env | grep -i postgres
-
-          echo "\n=== DNS Resolution ==="
-          getent hosts postgres || true
-          cat /etc/hosts || true
-
-          echo "\n=== Container Network ==="
-          if [ ! -z "$POSTGRES_CONTAINER" ]; then
-            echo "Container IP:"
-            docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $POSTGRES_CONTAINER || true
-            echo "\nContainer Network Settings:"
-            docker inspect $POSTGRES_CONTAINER | grep -A 20 "NetworkSettings" || true
-            echo "\nContainer Network Aliases:"
-            docker inspect -f '{{range .NetworkSettings.Networks}}{{.Aliases}}{{end}}' $POSTGRES_CONTAINER || true
-          else
-            echo "PostgreSQL container not found"
-          fi
 
       - name: 'App setup'
         run: |
