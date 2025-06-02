@@ -45,15 +45,17 @@ runs:
           freetds-dev \
           git \
           lftp \
+          libcurl4-openssl-dev \
           libffi-dev \
           libgeos-dev \
           libheif1 \
-          libicu-dev libcurl4-openssl-dev \
-          libmagic-dev libxml2-dev libxslt1-dev \
+          libicu-dev \
+          libmagic-dev \
           libpq-dev \
+          libxml2-dev \
+          libxslt1-dev \
           libyaml-dev \
           nodejs \
-          npm \
           poppler-utils \
           postgresql-client-16 \
           postgresql-client-17 \
