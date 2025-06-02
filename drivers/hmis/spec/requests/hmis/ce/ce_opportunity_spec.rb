@@ -15,7 +15,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # Basic setup
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 1 }
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
-  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool }
+  let!(:unit) { create(:hmis_unit_in_group, project: project) }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, owner: unit }
 
   let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
@@ -80,7 +81,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has rules' do
-      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: opportunity.owner) }
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
