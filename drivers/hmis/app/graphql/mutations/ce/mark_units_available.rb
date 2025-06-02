@@ -25,8 +25,8 @@ module Mutations
       access_denied! unless current_user.permissions_for?(project, :can_manage_units)
 
       # Determine which template to use for each unit based on Unit Group configuration.
-      unit_to_template = units.preload(:unit_group).map do |unit|
-        workflow_template = unit.unit_group&.workflow_template
+      unit_to_template = units.preload(unit_group: :workflow_template).map do |unit|
+        workflow_template = unit.unit_group&.workflow_template # load Workflow Template record to validate it exists
         raise 'Unable to mark unit available because there is no associated workflow template' unless workflow_template.present?
 
         [unit.id, workflow_template]
