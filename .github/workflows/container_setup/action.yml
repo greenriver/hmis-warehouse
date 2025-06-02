@@ -34,6 +34,7 @@ runs:
         apt-get install -y --no-install-recommends \
           build-essential \
           curl \
+          freetds-dev \
           git \
           libpq-dev \
           nodejs \
