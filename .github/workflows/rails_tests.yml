@@ -132,7 +132,7 @@ jobs:
       USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
-      CACHE_HOST: postgres
+      CACHE_HOST: redis
       CACHE_PORT: 6379
       CACHE_DB: 1
       REPORTING_DATABASE_ADAPTER: postgresql
