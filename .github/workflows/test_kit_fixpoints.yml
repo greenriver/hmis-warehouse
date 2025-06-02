@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
+  rebuild_fixpoints:
     runs-on: ubuntu-24.04
     container: ruby:3.3.8-bullseye
     if: contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]')
@@ -143,7 +143,7 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
+          CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
