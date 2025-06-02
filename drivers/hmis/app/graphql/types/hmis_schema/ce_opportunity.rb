@@ -38,17 +38,22 @@ module Types
       arg :workflow_template, [String]
     end
 
-    def candidates
+    def candidates # not for batch
+      permission_from_project = current_permission?(permission: :can_view_prioritized_client_lists, entity: object.project)
+      return Hmis::Ce::Match::Candidate.none unless permission_from_project
+
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).
         order(priority_score: :desc, client_id: :desc)
     end
 
     def referral
-      # TODO(#7395): permissions - ensure that user has permission to view referrals at this project
-      # return nil unless current_permission?(permission: :can_view_referrals, entity: project)
+      referral = load_ar_association(object, :active_or_accepted_referral)
+      return if referral.nil?
 
-      load_ar_association(object, :active_or_accepted_referral)
+      # Permission logic lives on the viewable_by scope, so just reuse that here
+      # (even though this field doesn't need to be resolved in batch)
+      load_ar_scope(scope: Hmis::Ce::Referral.viewable_by(current_user), id: referral.id)
     end
 
     def project_name

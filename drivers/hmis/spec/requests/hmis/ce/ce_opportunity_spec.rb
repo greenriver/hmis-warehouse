@@ -13,10 +13,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   # Basic setup
-  let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
-  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project]) }
+  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
+  let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool }
+
+  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
   describe 'ce_opportunity query' do
     let(:query) do
@@ -94,6 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             :can_view_clients,
             :can_view_project,
             :can_view_enrollment_details,
+            :can_view_referrals,
           ],
         )
       end
@@ -142,6 +144,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(
           :hmis_ce_referral,
           opportunity: opportunity,
+          data_source: ds1,
           client: client_with_active_referral,
           status: 'in_progress',
         )
@@ -207,19 +210,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => 'in_progress',
           )
         end
+
+        it 'returns no candidates when user lacks permission to see prioritized client lists' do
+          remove_permissions(access_control, :can_view_prioritized_client_lists)
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodes')).to be_empty
+        end
       end
     end
 
     describe 'when the opportunity has several referrals' do
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
-      let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
-      let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
-      let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
 
       ['initialized', 'in_progress', 'accepted'].each do |status|
         it "returns the #{status} referral" do
           # it should return this referral even if it was created less recently than the rejected referrals (which should not happen)
-          referral = create(:hmis_ce_referral, opportunity: opportunity, status: status, created_at: 2.days.ago)
+          referral = create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: status, created_at: 2.days.ago)
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           referral_data = result.dig('data', 'ceOpportunity', 'referral')
@@ -229,7 +239,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has no candidates' do
-      let(:empty_pool_opportunity) { create :hmis_ce_opportunity, project: project }
+      let(:empty_pool_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1 }
 
       let(:empty_pool_variables) do
         {
@@ -267,7 +277,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has some candidates the current user lacks permission to view' do
       let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
-      let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool_with_anonymous }
+      let(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool_with_anonymous }
 
       let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
       let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
@@ -330,6 +340,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'does not throw, but returns no opportunity' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceOpportunity')).to be_nil
+      end
+    end
+
+    describe 'without permission' do
+      before do
+        remove_permissions(access_control, :can_view_units)
+      end
+
+      it 'does not return the opportunity' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'ceOpportunity')).to be_nil

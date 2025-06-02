@@ -108,6 +108,13 @@ module Types
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
+      can :view_referrals
+      can :view_own_referrals
+      can :start_referrals
+      can :perform_any_referral_tasks
+      can :perform_own_referral_tasks
+      can :assign_referral_tasks
+      can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
@@ -117,7 +124,7 @@ module Types
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
 
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
-    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_step_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
 
     def hud_id
       object.project_id

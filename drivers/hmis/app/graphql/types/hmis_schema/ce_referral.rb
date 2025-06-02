@@ -32,13 +32,17 @@ module Types
     field :referred_by, Application::User, null: true
     field :active, Boolean, null: false, method: :active?
 
+    access_field do
+      field :can_view_target_project, Boolean, null: false
+    end
+
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
       arg :project, [ID]
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]
-      arg :on_current_step_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
+      arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
     def steps # Don't resolve in batch
@@ -143,6 +147,15 @@ module Types
           participants: participants,
         )
       end
+    end
+
+    def access
+      project_id = load_ar_association(object, :opportunity).project_id
+      project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
+
+      {
+        can_view_target_project: project.present?,
+      }
     end
 
     private

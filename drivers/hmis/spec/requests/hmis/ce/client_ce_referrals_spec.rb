@@ -11,17 +11,14 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
-  before(:all) do
-    cleanup_test_environment
-  end
   before(:each) do
     hmis_login(user)
   end
 
   let!(:other_project) { create(:hmis_hud_project, data_source: ds1, project_type: 2) }
-  let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, client: client) }
+  let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, data_source: ds1, client: client) }
 
-  describe 'project ceReferrals query' do
+  describe 'client ceReferrals query' do
     let(:query) do
       <<~GRAPHQL
         query GetClientCeReferrals($id: ID!, $limit: Int = 25, $offset: Int = 0, $filters: ClientCeReferralFilterOptions = null) {
@@ -31,6 +28,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodesCount
               nodes {
                 id
+                access {
+                  canViewTargetProject
+                }
               }
             }
           }
@@ -93,6 +93,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = result.dig('data', 'client', 'ceReferrals', 'nodes')
         expect(referrals.count).to eq(1)
         expect(referrals).to contain_exactly(a_hash_including('id' => referral.id.to_s))
+      end
+    end
+
+    context 'with many referrals' do
+      before do
+        50.times do
+          project = create(:hmis_hud_project, data_source: ds1)
+          create(:hmis_ce_referral, project: project, client: client, data_source: ds1)
+        end
+      end
+
+      it 'minimizes n+1' do
+        expect do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'client', 'ceReferrals', 'nodesCount')).to eq(52)
+        end.to make_database_queries(count: 20..30)
       end
     end
   end

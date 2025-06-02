@@ -9,6 +9,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
+
   describe 'admin ceOpportunities query' do
     let(:query) do
       <<~GRAPHQL
@@ -41,9 +43,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when querying for opportunities' do
       let(:today) { Date.current }
-      let!(:opportunity) { create :hmis_ce_opportunity, project: project, created_at: today }
-      let!(:opportunity2) { create :hmis_ce_opportunity, project: project, created_at: today - 1.day }
-      let!(:opportunity3) { create :hmis_ce_opportunity, project: project, created_at: today - 2.days }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, created_at: today }
+      let!(:opportunity2) { create :hmis_ce_opportunity, project: project, data_source: ds1, created_at: today - 1.day }
+      let!(:opportunity3) { create :hmis_ce_opportunity, project: project, data_source: ds1, created_at: today - 2.days }
 
       it 'default sorts by date available' do
         response, result = post_graphql { query }
@@ -53,6 +55,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(opportunities.dig(0, 'id')).to eq(opportunity3.id.to_s)
         expect(opportunities.dig(1, 'id')).to eq(opportunity2.id.to_s)
         expect(opportunities.dig(2, 'id')).to eq(opportunity.id.to_s)
+      end
+
+      it 'raises if the user does not have permission' do
+        remove_permissions(access_control, :can_administrate_coordinated_entry)
+        expect_gql_error(post_graphql { query }, message: 'access denied')
       end
     end
 
@@ -73,7 +80,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         20.times do
           project = create :hmis_hud_project, data_source: ds1
           2.times do
-            create :hmis_ce_opportunity, project: project
+            create :hmis_ce_opportunity, project: project, data_source: ds1
           end
         end
       end
@@ -83,7 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunities', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 10..15)
+        end.to make_database_queries(count: 15..20)
       end
     end
   end

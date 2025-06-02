@@ -9,8 +9,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let!(:workflow_template_1) { create(:hmis_workflow_definition_template, identifier: 'wft_1') }
-  let!(:workflow_template_2) { create(:hmis_workflow_definition_template, identifier: 'wft_2') }
+  let!(:workflow_template_1) { create(:hmis_workflow_definition_template, identifier: 'wft_1', data_source: ds1) }
+  let!(:workflow_template_2) { create(:hmis_workflow_definition_template, identifier: 'wft_2', data_source: ds1) }
+
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
 
   describe 'admin ceReferrals query' do
     let(:query) do
@@ -67,23 +69,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    context 'with referrals across data sources' do
-      let!(:referral_in_another_data_source) { create(:hmis_ce_referral) }
-
-      it 'does not return referrals from a different data source' do
-        response, result = post_graphql { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referrals = result.dig('data', 'ceReferrals', 'nodes')
-        expect(referrals.size).to eq(1)
-        expect(referrals).to contain_exactly(a_hash_including('id' => referral.id.to_s))
-      end
+    it 'raises if the user does not have permission' do
+      remove_permissions(access_control, :can_administrate_coordinated_entry)
+      expect_gql_error(post_graphql { query }, message: 'access denied')
     end
 
     context 'when querying by workflow template' do
-      let!(:referral) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template_1) }
-      let!(:referral2) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template_1) }
-      let!(:referral3) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template_2) }
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
+      let!(:referral3) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_2) }
 
       let(:variables) do
         {
@@ -104,9 +98,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when querying by time on current step' do
-      let!(:referral) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template) }
-      let!(:referral2) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template) }
-      let!(:referral3) { create(:hmis_ce_referral, project: project, workflow_template: workflow_template) }
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
+      let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
+      let!(:referral3) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
 
       let!(:simultaneous_task) { create(:hmis_workflow_definition_task, template: workflow_template, name: 'Simultaneous task') }
 
@@ -125,7 +119,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:variables) do
         {
           filters: {
-            onCurrentStepSince: 3.days.ago,
+            onCurrentTaskSince: 3.days.ago,
           },
         }
       end
@@ -142,9 +136,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'with many referrals' do
       before do
-        40.times do
-          create(:hmis_ce_referral, project: project)
-        end
+        create_list(:hmis_ce_referral, 40, project: project, data_source: ds1)
       end
 
       it 'queries the db a reasonable amount' do
@@ -152,7 +144,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceReferrals', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 15..25)
+        end.to make_database_queries(count: 25..30)
+
+        # regression test to check that factories aren't creating extra data sources
+        expect(GrdaWarehouse::DataSource.hmis.count).to eq(1)
       end
     end
   end

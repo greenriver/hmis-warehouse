@@ -53,6 +53,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(returned_opportunity['id']).to eq(opportunity.id.to_s)
     end
 
+    it 'returns empty when user lacks permission' do
+      remove_permissions(ds_access_control, :can_view_units)
+      response, result = post_graphql(**variables) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'project', 'ceOpportunities', 'nodes')).to be_empty
+    end
+
     context 'when filtering for open referrals' do
       let(:variables) do
         {
@@ -63,9 +70,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      let(:opportunity) { create :hmis_ce_opportunity, project: project }
-      let(:closed_opportunity) { create :hmis_ce_opportunity, project: project, status: :closed }
-      let(:locked_opportunity) { create :hmis_ce_opportunity, project: project, status: :locked }
+      let(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1 }
+      let(:closed_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :closed }
+      let(:locked_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :locked }
 
       it 'returns only active referrals' do
         response, result = post_graphql(**variables) { query }
@@ -82,7 +89,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'with many opportunities' do
         before do
           40.times do
-            create :hmis_ce_opportunity, project: project
+            create :hmis_ce_opportunity, project: project, data_source: ds1
           end
         end
 

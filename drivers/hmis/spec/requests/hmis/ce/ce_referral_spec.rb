@@ -92,6 +92,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         )
       end
 
+      it 'returns no referral when user lacks permission' do
+        # see additional permission logic testing in the Referral model spec
+        remove_permissions(ds_access_control, :can_view_referrals)
+
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceReferral')).to be_nil
+      end
+
       context 'workflow with swimlanes' do
         # case_manager_swimlane is already set up in the CE spec helper
         let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
@@ -151,7 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect do
               response, result = post_graphql(**variables) { query }
               expect(response.status).to eq(200), result.inspect
-            end.to make_database_queries(count: 20..30)
+            end.to make_database_queries(count: 20..35)
           end
         end
       end
@@ -297,6 +306,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   id
                   name
                   status
+                  access {
+                    canPerformStep
+                  }
                 }
               }
             }
@@ -321,6 +333,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             )
             start_event.connect_to!(non_conditional_task)
           end
+
+          referral.workflow_engine.start_workflow!(user: hmis_user)
         end
 
         it 'does not result in n+1 query' do
@@ -329,7 +343,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 10..20)
+          end.to make_database_queries(count: 25..35)
+        end
+
+        context 'when current user has can_perform_own_referral_tasks' do
+          before do
+            remove_permissions(ds_access_control, :can_perform_any_referral_tasks)
+            add_permissions(ds_access_control, :can_perform_own_referral_tasks)
+          end
+
+          it 'still does not cause n+1' do
+            expect do
+              _, result = post_graphql(**variables) { query }
+              steps = result.dig('data', 'ceReferral', 'steps')
+              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be false)
+            end.to make_database_queries(count: 25..35)
+          end
         end
       end
     end
