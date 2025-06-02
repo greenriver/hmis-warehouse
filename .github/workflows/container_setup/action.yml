@@ -21,14 +21,14 @@ runs:
       shell: bash
       run: |
         # Add PostgreSQL repository
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8
-        sudo add-apt-repository -y "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main"
-        sudo apt-get update
+        apt-get update
+        apt-get install -y software-properties-common
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8
+        add-apt-repository -y "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main"
+        apt-get update
 
         # Install packages
-        sudo apt-get install -y --no-install-recommends \
+        apt-get install -y --no-install-recommends \
           build-essential \
           curl \
           git \
@@ -42,16 +42,16 @@ runs:
           python3-venv \
           unzip \
           ${{ inputs.additional_packages }}
-        sudo apt-get clean
-        sudo rm -rf /var/lib/apt/lists/*
+        apt-get clean
+        rm -rf /var/lib/apt/lists/*
 
     - name: Install AWS CLI
       shell: bash
       run: |
-        sudo curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        sudo unzip -q awscliv2.zip
-        sudo ./aws/install --update
-        sudo rm -rf aws awscliv2.zip
+        curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -q awscliv2.zip
+        ./aws/install --update
+        rm -rf aws awscliv2.zip
 
     - name: Install Node.js dependencies
       shell: bash
@@ -67,9 +67,9 @@ runs:
       shell: bash
       run: |
         # Fix permissions for Ruby gems
-        sudo mkdir -p /var/lib/gems/3.2.0
-        sudo chown -R $USER:$USER /var/lib/gems/3.2.0
-        sudo chmod -R 755 /var/lib/gems/3.2.0
+        mkdir -p /var/lib/gems/3.2.0
+        chown -R $USER:$USER /var/lib/gems/3.2.0
+        chmod -R 755 /var/lib/gems/3.2.0
         gem install bundler
         gem install pg -- --with-pg-config=/usr/bin/pg_config
 
@@ -91,19 +91,19 @@ runs:
         PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       run: |
         # Add PostgreSQL 17 repository
-        sudo apt-get update
-        sudo apt-get install -y curl ca-certificates gnupg
-        curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
-        echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+        apt-get update
+        apt-get install -y curl ca-certificates gnupg
+        curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+        echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
 
         # Install NodeJS and Yarn repositories
-        curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-        curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+        curl -sL https://deb.nodesource.com/setup_18.x | -E bash -
+        curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
+        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
         # Install dependencies
-        sudo apt-get update
-        sudo apt-get install -y build-essential imagemagick chromium-browser \
+        apt-get update
+        apt-get install -y build-essential imagemagick chromium-browser \
           postgresql-client-16 postgresql-client-17 \
           nodejs yarn freetds-dev libicu-dev libcurl4-openssl-dev \
           libmagic-dev libxml2-dev libxslt1-dev libpq-dev \
@@ -124,9 +124,9 @@ runs:
       shell: bash
       run: |
         # Ensure we have write permissions
-        sudo mkdir -p /usr/local/bundle
-        sudo chown -R $USER:$USER /usr/local/bundle
-        sudo chmod -R 755 /usr/local/bundle
+        mkdir -p /usr/local/bundle
+        chown -R $USER:$USER /usr/local/bundle
+        chmod -R 755 /usr/local/bundle
 
         # Install pg gem with correct configuration
         gem install pg -- --with-pg-config=/usr/bin/pg_config
