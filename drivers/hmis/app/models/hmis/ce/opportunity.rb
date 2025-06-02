@@ -24,6 +24,7 @@ module Hmis::Ce
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit
+    validates :owner_type, inclusion: { in: ['Hmis::Unit'] } # decided to always use Unit as opportunity owner
     validate :consistent_data_source
 
     state_machine_config column: 'status' do
