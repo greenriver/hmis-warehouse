@@ -124,7 +124,10 @@ module Types
     end
 
     def target_enrollment
-      load_ar_association(object, :target_enrollment)
+      enrollment = load_ar_association(object, :target_enrollment)
+      return nil unless enrollment.present?
+
+      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: enrollment.id)
     end
 
     def referred_by

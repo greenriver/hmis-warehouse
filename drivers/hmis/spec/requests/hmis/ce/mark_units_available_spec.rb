@@ -115,8 +115,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit has an in-progress referral' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :locked) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
       it 'does not create a new opportunity' do
         expect do
@@ -131,8 +131,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit was marked available in the past, and opportunity was filled' do
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, created_at: 2.years.ago, status: :closed) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, created_at: 2.years.ago, status: :accepted) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       it 'creates a new opportunity' do
         expect(unit.opportunities).to include(past_opportunity)
