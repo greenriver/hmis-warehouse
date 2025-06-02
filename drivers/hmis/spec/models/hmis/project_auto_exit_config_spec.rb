@@ -16,7 +16,7 @@ RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :authenticated_hmis_data_source }
+  let!(:ds1) { create :hmis_primary_data_source }
   let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }
   let(:u1) { create :hmis_hud_user, data_source: ds1 }

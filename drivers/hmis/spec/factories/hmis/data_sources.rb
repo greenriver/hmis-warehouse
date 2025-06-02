@@ -16,7 +16,10 @@ FactoryBot.define do
     source_type { :sftp }
   end
 
-  factory :authenticated_hmis_data_source, parent: :hmis_data_source do
+  # Data source with HMIS hostname matching the one in GraphqlHelpers.
+  # This is the one that should be used in almost all of our spec tests,
+  # except when we are testing multi-hmis-data-source scenarios.
+  factory :hmis_primary_data_source, parent: :hmis_data_source do
     hmis { GraphqlHelpers::HMIS_HOSTNAME }
   end
 end

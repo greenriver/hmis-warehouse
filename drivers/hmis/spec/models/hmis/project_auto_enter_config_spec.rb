@@ -16,7 +16,7 @@ RSpec.describe Hmis::ProjectAutoEnterConfig, type: :model do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :authenticated_hmis_data_source }
+  let!(:ds1) { create :hmis_primary_data_source }
   let!(:u1) { create :hmis_hud_user, data_source: ds1 }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }

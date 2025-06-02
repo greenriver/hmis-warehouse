@@ -11,7 +11,7 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let!(:ds1) { create :authenticated_hmis_data_source }
+  let!(:ds1) { create :hmis_primary_data_source }
 
   # current user
   let!(:user) { create(:user) }

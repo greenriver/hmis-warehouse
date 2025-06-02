@@ -12,7 +12,7 @@ RSpec.describe HmisExternalApis::AcHmis::Migration::InitialMciUniqueIdCreationJo
   let(:job) { HmisExternalApis::AcHmis::Migration::InitialMciUniqueIdCreationJob.new }
   let!(:remote_credential) { create(:ac_hmis_warehouse_credential) }
 
-  let!(:ds1) { create :authenticated_hmis_data_source }
+  let!(:ds1) { create :hmis_primary_data_source }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, personal_id: Hmis::Hud::Base.generate_uuid }
   let!(:umci1) { create(:mci_unique_id_external_id, source: c1, value: '100', remote_credential: remote_credential) }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, personal_id: '123abc' }
