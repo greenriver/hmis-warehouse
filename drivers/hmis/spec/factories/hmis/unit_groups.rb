@@ -10,6 +10,6 @@ FactoryBot.define do
   factory :hmis_unit_group, class: 'Hmis::UnitGroup' do
     sequence(:name) { |n| "Unit Group #{n}" }
     project { association :hmis_hud_project }
-    association(:workflow_template, factory: :hmis_workflow_definition_template)
+    workflow_template { association :hmis_workflow_definition_template, data_source: project.data_source }
   end
 end
