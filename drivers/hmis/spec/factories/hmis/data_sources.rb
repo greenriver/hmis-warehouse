@@ -21,6 +21,11 @@ FactoryBot.define do
   # except when we are testing multi-hmis-data-source scenarios.
   factory :hmis_primary_data_source, parent: :hmis_data_source do
     hmis { GraphqlHelpers::HMIS_HOSTNAME }
+
+    # if data source exists with this hmis hostname, return it instead of building a new one
+    initialize_with do
+      GrdaWarehouse::DataSource.find_or_create_by(hmis: hmis)
+    end
   end
 end
 

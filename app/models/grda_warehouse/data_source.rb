@@ -19,6 +19,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   acts_as_paranoid
   validates :name, presence: true
   validates :short_name, presence: true
+  validates :hmis, uniqueness: true
 
   after_create :maintain_system_group
   after_create :clear_ds_id_cache
