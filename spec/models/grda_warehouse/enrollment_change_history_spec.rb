@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
@@ -37,7 +35,7 @@ RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
       expect do
         described_class.create_for_clients_on_date!(client_ids: destination_clients.map(&:id), date: today)
       end.to change(described_class, :count).by(3).
-        and make_database_queries(count: 20..70)
+        and make_database_queries(count: 20..60)
 
       # destination_clients.map(&:reload)
       destination_clients.each do |client|
