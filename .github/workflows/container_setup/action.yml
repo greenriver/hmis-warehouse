@@ -20,24 +20,49 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
+        # Function to retry commands
+        retry() {
+          local max_attempts=3
+          local delay=5
+          local attempt=1
+          local exitcode=0
+
+          while (( attempt <= max_attempts ))
+          do
+            if "$@"
+            then
+              exitcode=0
+              break
+            else
+              exitcode=$?
+              echo "Command failed (attempt $attempt/$max_attempts). Retrying in $delay seconds..."
+              sleep $delay
+              attempt=$(( attempt + 1 ))
+              delay=$(( delay * 2 ))
+            fi
+          done
+
+          return $exitcode
+        }
+
         # Add PostgreSQL repository
-        apt-get update
-        apt-get install -y software-properties-common
+        retry apt-get update
+        retry apt-get install -y software-properties-common
         # From https://www.postgresql.org/download/linux/debian/
         install -d /usr/share/postgresql-common/pgdg
-        curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        retry curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
         . /etc/os-release
         sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
         # Install NodeJS and Yarn repositories
-        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
-        curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
+        retry curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
+        retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
         echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
-        apt-get update
+        retry apt-get update
 
-        # Install packages
-        apt-get install -y --no-install-recommends \
+        # Install packages with retry
+        retry apt-get install -y --no-install-recommends \
           build-essential \
           curl \
           fonts-dejavu \
