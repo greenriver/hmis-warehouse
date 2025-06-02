@@ -1,0 +1,47 @@
+name: Todo or Die
+
+on:
+  # NOTE: runs on both PRs and pulls. This would normally cause redundant jobs to run but there are conditions on github.event_name in the matrix to avoid this. In particular, we want the system tests to run only on PR so we can use the base_ref to infer the appropriate release branch name in the hmis FE repo (see issue #6566)
+  push:
+    branches:
+      - '*'
+      - '**/*'
+  pull_request:
+    branches:
+      - '*'
+      - '**/*'
+concurrency:
+  group: ${{ github.ref }}-todo-or-die
+  cancel-in-progress: true
+
+jobs:
+  todo_or_die_check:
+    runs-on: ubuntu-24.04
+    container: ruby:3.3.8-bullseye
+    permissions:
+      contents: read
+      pull-requests: read
+    strategy:
+      matrix:
+        ruby: ['3.3.7']
+      fail-fast: false
+
+    env:
+      RAILS_ENV: test
+      CI: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: 'Container Setup'
+        uses: ./.github/workflows/container_setup
+
+      - name: 'App setup'
+        run: |
+          cp config/secrets.yml.sample config/secrets.yml
+          cp .rspec.sample .rspec
+          cp config/database.yml.ci config/database.yml
+
+      - name: Check for overdue TODOs
+        run: bundle exec rails test:todo_or_die
