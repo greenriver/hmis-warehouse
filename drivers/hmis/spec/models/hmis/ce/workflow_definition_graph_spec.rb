@@ -31,7 +31,7 @@ RSpec.describe Hmis::WorkflowDefinition::Graph, type: :model do
   before do
     start_event.connect_to!(gateway)
     gateway.connect_to!(task1, condition: 'foo = 1')
-    gateway.connect_to!(task2, condition: 'foo = 0')
+    gateway.connect_to!(task2)
     task1.connect_to!(end1)
     task2.connect_to!(task2a)
     task2a.connect_to!(end2)
@@ -58,7 +58,7 @@ RSpec.describe Hmis::WorkflowDefinition::Graph, type: :model do
     end
 
     it 'stops after a stop condition' do
-      nodes = template.graph.walk(stop_when: lambda(&:conditional_inflows?)).to_a
+      nodes = template.graph.walk(stop_when: lambda(&:task?)).to_a
       expect(nodes.count).to eq(4)
       expect(nodes[0]).to eq(start_event)
       expect(nodes[1]).to eq(gateway)

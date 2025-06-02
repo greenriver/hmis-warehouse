@@ -11,6 +11,7 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
+  before(:all) { cleanup_test_environment }
   before(:each) do
     hmis_login(user)
   end
@@ -90,10 +91,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      let!(:referral) { create(:hmis_ce_referral, project: project) }
-      let!(:in_progress_referral) { create(:hmis_ce_referral, status: :in_progress, project: project) }
-      let!(:accepted_referral) { create(:hmis_ce_referral, status: :accepted, project: project) }
-      let!(:rejected_referral) { create(:hmis_ce_referral, status: :rejected, project: project) }
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+      let!(:in_progress_referral) { create(:hmis_ce_referral, status: :in_progress, project: project, data_source: ds1) }
+      let!(:accepted_referral) { create(:hmis_ce_referral, status: :accepted, project: project, data_source: ds1) }
+      let!(:rejected_referral) { create(:hmis_ce_referral, status: :rejected, project: project, data_source: ds1) }
 
       it 'returns only active referrals' do
         response, result = post_graphql(**variables) { query }
@@ -111,7 +112,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'with many referrals' do
         before do
           30.times do
-            in_progress_referral = create(:hmis_ce_referral, project: project, workflow_template: workflow_template)
+            in_progress_referral = create(:hmis_ce_referral, project: project, workflow_template: workflow_template, data_source: ds1)
             in_progress_referral.workflow_engine.start_workflow!(user: hmis_user) # start workflow so that it has a step in progress
           end
         end

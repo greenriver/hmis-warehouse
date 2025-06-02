@@ -12,6 +12,7 @@ RSpec.shared_context 'ce spec helper' do
       ds1,
       with_permission: [
         :can_view_clients,
+        :can_view_client_name,
         :can_view_project,
         :can_view_enrollment_details,
         :can_view_referrals,
@@ -96,6 +97,7 @@ RSpec.shared_context 'ce spec helper' do
       workflow_instance: workflow_instance,
       client: client,
       referred_by: hmis_user,
+      status: 'initialized',
     )
   end
 

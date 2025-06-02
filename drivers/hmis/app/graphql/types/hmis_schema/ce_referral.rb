@@ -33,6 +33,10 @@ module Types
     field :referred_by, Application::User, null: true
     field :active, Boolean, null: false, method: :active?
 
+    access_field do
+      field :can_view_target_project, Boolean, null: false
+    end
+
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
       arg :project, [ID]
@@ -120,7 +124,10 @@ module Types
     end
 
     def target_enrollment
-      load_ar_association(object, :target_enrollment)
+      enrollment = load_ar_association(object, :target_enrollment)
+      return nil unless enrollment.present?
+
+      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: enrollment.id)
     end
 
     def referred_by
@@ -148,6 +155,15 @@ module Types
 
     def workflow_template_name
       load_ar_association(object, :workflow_template)&.name
+    end
+
+    def access
+      project_id = load_ar_association(object, :opportunity).project_id
+      project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
+
+      {
+        can_view_target_project: project.present?,
+      }
     end
 
     private
