@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'datalab_apr/multiple_projects'
@@ -18,6 +20,10 @@ require_relative 'datalab_caper/organization_j_hp'
 require_relative 'datalab_caper/organization_m_es'
 require_relative 'datalab_caper/organization_m_rrh'
 require_relative 'datalab_caper/organization_s_es'
+
+# This is here because it is easier to run an APR with results using the testkit context
+# This set of tests is not particular to the test kit
+require_relative 'gender_filter_tests'
 
 require_relative 'datalab_ce_apr/systemwide'
 
@@ -47,6 +53,7 @@ RSpec.describe 'Datalab 2024', type: :model do
     include_context 'datalab organization o th apr'
     include_context 'datalab organization s rrh apr'
     include_context 'datalab organization t psh apr'
+    include_context 'gender filter tests apr'
 
     include_context 'datalab organization a so caper'
     include_context 'datalab organization j hp caper'

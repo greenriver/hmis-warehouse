@@ -17,7 +17,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :hmis_data_source }
+  let!(:ds1) { create :hmis_primary_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }

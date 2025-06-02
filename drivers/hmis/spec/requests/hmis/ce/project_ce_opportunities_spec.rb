@@ -70,9 +70,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      let(:opportunity) { create :hmis_ce_opportunity, project: project }
-      let(:closed_opportunity) { create :hmis_ce_opportunity, project: project, status: :closed }
-      let(:locked_opportunity) { create :hmis_ce_opportunity, project: project, status: :locked }
+      let(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1 }
+      let(:closed_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :closed }
+      let(:locked_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :locked }
 
       it 'returns only active referrals' do
         response, result = post_graphql(**variables) { query }
@@ -89,7 +89,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'with many opportunities' do
         before do
           40.times do
-            create :hmis_ce_opportunity, project: project
+            create :hmis_ce_opportunity, project: project, data_source: ds1
           end
         end
 

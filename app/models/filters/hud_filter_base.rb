@@ -96,7 +96,7 @@ module Filters
 
     # Caution: this overrides base class signature
     def apply(scope, except: [])
-      apply_criteria(scope, tags: [:hud], except: except)
+      apply_criteria(scope, report_scope_source: report_scope_source, tags: [:hud], except: except)
     end
 
     private def report_scope_source
