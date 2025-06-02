@@ -69,36 +69,62 @@ RUN groupadd -g ${GROUP_ID} app-user \
   && mkdir /app /bundle \
   && chown app-user:app-user /bundle /app
 
-# Add PostgreSQL official repository
+# Add PostgreSQL official repository, NodeJS and Yarn repositories
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl ca-certificates lsb-release gnupg \
   && sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
   && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
+  && curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y \
+  && curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg \
+  && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
   && apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
-  locales-all \
-  nodejs yarnpkg \
   awscli \
-  tzdata \
-  git \
   bash \
   build-essential \
+  ca-certificates \
+  chromium \
+  chromium-common \
+  file \
+  fonts-dejavu \
+  fonts-droid-fallback \
+  fonts-freefont-ttf \
+  fonts-liberation \
   freetds-dev \
-  libicu-dev \
-  libcurl4 libcurl4-openssl-dev \
+  git \
+  gnupg-agent \
+  gpg \
   imagemagick \
-  libmagic1 libheif1 libmagic-dev file \
-  libxml2-dev libxslt1-dev libpq-dev \
-  libx11-6 libglib2.0-0 libxrender1 libxext6 \
-  fonts-dejavu fonts-droid-fallback fonts-freefont-ttf fonts-liberation \
-  chromium chromium-common libfreetype6 libfreetype-dev libharfbuzz-dev ca-certificates \
-  lftp postgresql-16 postgresql-client-16 postgresql-17 postgresql-client-17 postgresql-17-postgis-3 \
-  tmux libgeos-dev proj-bin libproj-dev zip expect \
-  shared-mime-info libyaml-dev libffi-dev \
-  tar p7zip-full vim gpg gnupg-agent poppler-utils \
+  libcurl4 \
+  libcurl4-openssl-dev \
+  libffi-dev \
+  libfreetype-dev \
+  libfreetype6 \
+  libglib2.0-0 \
+  libharfbuzz-dev \
+  libheif1 \
+  libicu-dev \
+  libmagic-dev \
+  libmagic1 \
+  libpq-dev \
+  libx11-6 \
+  libxext6 \
+  libxml2-dev \
+  libxrender1 \
+  libxslt1-dev \
+  libyaml-dev \
+  locales-all \
+  nodejs \
+  p7zip-full \
+  poppler-utils \
+  shared-mime-info \
+  tar \
+  tzdata \
+  vim \
+  yarnpkg \
   && rm -rf /var/lib/apt/lists/* \
   && if [ "$(uname -m)" = "aarch64" ]; then \
        ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
