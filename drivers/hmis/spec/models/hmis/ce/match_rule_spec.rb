@@ -3,11 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Rule, type: :model do
-  let!(:template) { create(:hmis_workflow_definition_template) }
   let!(:organization) { create :hmis_hud_organization }
+  let!(:template) { create(:hmis_workflow_definition_template, data_source: organization.data_source) }
   let!(:project1) { create :hmis_hud_project, organization: organization, project_type: 0 }
   let!(:project2) { create :hmis_hud_project, organization: organization, project_type: 5 }
-  let!(:project3) { create :hmis_hud_project }
+  let!(:project3) { create :hmis_hud_project, data_source: organization.data_source }
   let(:opportunity_1a) { create(:hmis_ce_opportunity, workflow_template: template, project: project1) }
   let(:opportunity_1b) { create(:hmis_ce_opportunity, workflow_template: template, project: project1) }
   let(:opportunity_2) { create(:hmis_ce_opportunity, workflow_template: template, project: project2) }
