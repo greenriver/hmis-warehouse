@@ -7,7 +7,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:user) { create(:hmis_user) }
-  let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template) }
+  let(:opportunity) { create(:hmis_ce_opportunity, workflow_template: template, data_source: template.data_source) }
   let(:instance) { opportunity.workflow_template.instances.create! }
   let(:referral) { create(:hmis_ce_referral, opportunity: opportunity, workflow_instance: instance, referred_by: user) }
   let(:engine) { referral.workflow_engine }

@@ -4,14 +4,23 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_data_source, class: 'GrdaWarehouse::DataSource' do
     sequence(:authoritative, &:zero?)
-    hmis { GraphqlHelpers::HMIS_HOSTNAME }
+    sequence(:hmis) { |n| "#{GraphqlHelpers::HMIS_HOSTNAME}.#{n}" }
     name { 'HMIS' }
     short_name { 'HMIS' }
     # association :client, factory: :hmis_hud_client
     source_type { :sftp }
+  end
+
+  # Data source with HMIS hostname matching the one in GraphqlHelpers.
+  # This is the one that should be used in almost all of our spec tests,
+  # except when we are testing multi-hmis-data-source scenarios.
+  factory :hmis_primary_data_source, parent: :hmis_data_source do
+    hmis { GraphqlHelpers::HMIS_HOSTNAME }
   end
 end
 

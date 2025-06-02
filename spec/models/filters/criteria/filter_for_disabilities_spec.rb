@@ -28,6 +28,8 @@ RSpec.describe Filters::Criteria::FilterForDisabilities do
       create_enrollment_for_client(create(:hud_client)),
       # Client with no disabilities
       create_enrollment_for_client(create(:hud_client)),
+      # Client with HIV/AIDS
+      create_enrollment_for_client(create(:hud_client)),
     ]
   end
 
@@ -46,6 +48,17 @@ RSpec.describe Filters::Criteria::FilterForDisabilities do
         DisabilityResponse: 1, # Yes
       )
     end
+
+    # Create HIV/AIDS disability record
+    create(
+      :hud_disability,
+      PersonalID: enrollments[4].client.PersonalID,
+      EnrollmentID: enrollments[4].enrollment_group_id,
+      data_source_id: data_source.id,
+      InformationDate: start_date + 5.days,
+      DisabilityType: 8, # HIV/AIDS
+      DisabilityResponse: 1, # Yes
+    )
 
     # The fourth client has no disability record
   end
@@ -99,6 +112,46 @@ RSpec.describe Filters::Criteria::FilterForDisabilities do
       it 'only considers disability records within the date range' do
         result = criteria.apply(scope)
         expect(result.pluck(:id)).not_to include(enrollments[3].id)
+      end
+    end
+  end
+
+  describe 'HIV/AIDS visibility' do
+    let!(:hiv_status_viewer_role) { create :role, can_view_hiv_status: true }
+    context 'when user has permission to view HIV/AIDS status' do
+      before do
+        setup_access_control(user, hiv_status_viewer_role, Collection.system_collection(:data_sources))
+      end
+
+      it 'includes HIV/AIDS in available disabilities' do
+        expect(filter.available_disabilities).to include('HIV/AIDS')
+      end
+
+      it 'applies HIV/AIDS filter correctly' do
+        filter.update(disabilities: [8]) # HIV/AIDS
+        result = criteria.apply(scope)
+        expect(result.pluck(:id)).to contain_exactly(enrollments[4].id)
+      end
+    end
+
+    context 'when user does not have permission to view HIV/AIDS status' do
+      before do
+        allow(user).to receive(:can_view_hiv_status?).and_return(false)
+      end
+
+      it 'excludes HIV/AIDS from available disabilities' do
+        expect(filter.available_disabilities).not_to include('HIV/AIDS')
+      end
+
+      it 'removes HIV/AIDS from selected disabilities' do
+        filter.update(disabilities: disabilities + [8]) # add HIV/AIDS
+        expect(filter.disabilities).not_to include(8)
+      end
+
+      it 'does not filter by HIV/AIDS status' do
+        filter.update(disabilities: disabilities + [8]) # add HIV/AIDS
+        result = criteria.apply(scope)
+        expect(result.pluck(:id)).to contain_exactly(enrollments[0].id, enrollments[1].id)
       end
     end
   end
