@@ -110,23 +110,12 @@ runs:
     #     echo "localhost:5432:*:postgres:postgres" > ~/.pgpass
     #     chmod 600 ~/.pgpass
 
-    - name: ruby setup
-      uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # v1
-      with:
-        ruby-version: 3.3
-        bundler-cache: true
-        working-directory: .
 
     - name: Install gems
       shell: bash
       run: |
-        # Ensure we have write permissions
-        # mkdir -p /usr/local/bundle
-        # chown -R $USER:$USER /usr/local/bundle
-        # chmod -R 755 /usr/local/bundle
-
         # Install pg gem with correct configuration
-        gem install pg -- --with-pg-config=/usr/bin/pg_config
+        # gem install pg -- --with-pg-config=/usr/bin/pg_config
         gem install bundler --version=2.6.3
         bundle config set --local without 'production staging'
         bundle install --jobs 10 --retry 3
