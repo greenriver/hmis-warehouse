@@ -13,7 +13,7 @@
 # Note: The term "unit" is intentionally generic and does not exclusively refer to an "apartment unit."
 # It may represent a unit of housing, a shelter bed, a shelter room, a voucher, a unit of service capacity, etc.
 # Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
-# Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Occupancy records which are "single-use")
+# Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
