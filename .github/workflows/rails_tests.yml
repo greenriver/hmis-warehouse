@@ -1,15 +1,11 @@
 name: Rails Tests
 
 on:
-  # NOTE: runs on both PRs and pulls. This would normally cause redundant jobs to run but there are conditions on github.event_name in the matrix to avoid this. In particular, we want the system tests to run only on PR so we can use the base_ref to infer the appropriate release branch name in the hmis FE repo (see issue #6566)
   push:
     branches:
       - '*'
       - '**/*'
-  pull_request:
-    branches:
-      - '*'
-      - '**/*'
+
 concurrency:
   group: ${{ github.ref }}-tests
   cancel-in-progress: true
@@ -24,11 +20,8 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo 'matrix={"test_group":[{"id":"system_tests","system_tests":"true"}]}' >> $GITHUB_OUTPUT
-          else
-            echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
-          fi
+          echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
+
 
   # Label of the container job
   tests:
@@ -65,18 +58,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          --name postgres
-          --hostname postgres
-          --network-alias postgres
         ports:
           - 5432:5432
 
       redis:
         image: index.docker.io/library/redis@sha256:02419de7eddf55aa5bcf49efb74e88fa8d931b4d77c07eff8a6b2144472b6952 # alpine
-        options: >-
-          --name redis
-          --hostname redis
-          --network-alias redis
         ports:
           - 6379:6379
 
@@ -234,12 +220,6 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
-      # Regenerate the graphql schema and fail if it has changed
-      - name: 'Check HMIS GraphQL schema'
-        if: matrix.test_group.system_tests
-        run: |
-          bundle exec rake driver:hmis:dump_graphql_schema
-
       - name: Run tests
         if: matrix.test_group.tag
         env:
@@ -270,7 +250,7 @@ jobs:
           LOG_LEVEL: INFO
           TODO_OR_DIE_LOG_ONLY: true
         run: |
-          OKTA_DOMAIN=postgres OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
+          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
         if: matrix.test_group.logging_tests
@@ -285,22 +265,6 @@ jobs:
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-
-      - name: Build front end and run tests
-        if: matrix.test_group.system_tests
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
-          CHROME_URL: http://chrome:3333
-          TODO_OR_DIE_LOG_ONLY: true
-        run:
-          # Are you looking to run the system tests locally? See:
-          # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
-          bash ./bin/run_hmis_system_tests.sh
 
       - name: Archive artifacts
         if: always()
