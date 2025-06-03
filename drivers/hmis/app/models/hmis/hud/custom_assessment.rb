@@ -152,7 +152,24 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     title
   end
 
+  def data_integrity_reconciliation
+    [
+      [Hmis::Hud::DataIntegrity::TotalIncomeReconciler, form_processor.income_benefit],
+      # add other reconcilers as needed
+    ].each do |command, record|
+      next unless record
+
+      command.call(record).each do |message|
+        # surface issues in development
+        raise message if Rails.env.development?
+
+        Sentry.capture_message(message)
+      end
+    end
+  end
+
   def save_submitted_assessment!(current_user:, as_wip: false)
+    data_integrity_reconciliation
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
       form_processor.save! # Not passing validation context because records have already been validated
