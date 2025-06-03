@@ -47,7 +47,7 @@ runs:
 
         # Add PostgreSQL repository
         retry apt-get update
-        retry apt-get install -y software-properties-common
+        retry apt-get install -y software-properties-common curl ca-certificates lsb-release gnupg
         # From https://www.postgresql.org/download/linux/debian/
         install -d /usr/share/postgresql-common/pgdg
         retry curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
@@ -63,61 +63,36 @@ runs:
 
         # Install packages with retry
         retry apt-get install -y --no-install-recommends \
-          bash \
           build-essential \
-          ca-certificates \
           curl \
           dbus \
-          dbus-user-session \
-          file \
+          packagekit \
+          packagekit-tools \
           fonts-dejavu \
-          fonts-droid-fallback \
           fonts-freefont-ttf \
-          fonts-liberation \
           freetds-dev \
           git \
-          gnupg-agent \
-          gpg \
-          imagemagick \
           lftp \
-          libcurl4 \
           libcurl4-openssl-dev \
           libffi-dev \
-          libfreetype-dev \
-          libfreetype6 \
           libgeos-dev \
-          libglib2.0-0 \
-          libharfbuzz-dev \
           libheif1 \
           libicu-dev \
           libmagic-dev \
-          libmagic1 \
           libpq-dev \
-          libx11-6 \
-          libxext6 \
           libxml2-dev \
-          libxrender1 \
           libxslt1-dev \
           libyaml-dev \
-          locales-all \
           nodejs \
-          p7zip-full \
-          packagekit \
-          packagekit-tools \
-          policykit-1 \
           poppler-utils \
           postgresql-client-16 \
           postgresql-client-17 \
           python3 \
           python3-pip \
           python3-venv \
-          shared-mime-info \
           software-properties-common \
-          tar \
           tmux \
-          tzdata \
           unzip \
-          vim \
           ${{ inputs.additional_packages }}
         apt-get clean
 

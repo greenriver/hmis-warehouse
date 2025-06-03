@@ -84,10 +84,8 @@ RUN apt-get update && apt-get upgrade -y \
   awscli \
   bash \
   build-essential \
-  ca-certificates \
   chromium \
   chromium-common \
-  curl \
   dbus \
   dbus-user-session \
   file \
