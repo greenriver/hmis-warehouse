@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]
-  def change
+  def up
     StrongMigrations.disable_check(:add_index) # Indexes are created inside hmis_table_create_indices!, so don't complain about them
 
     spec_version = '2026'
@@ -14,9 +14,9 @@ class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]
 
     HmisCsvTwentyTwentySix.loadable_files.each_value do |klass|
       column_names = klass.column_names
-      add_column klass.table_name, :data_source_id, :integer, null: false
+      add_reference klass.table_name, :data_source, null: false, index: false
       add_column klass.table_name, :loaded_at, :datetime, null: false
-      add_column klass.table_name, :loader_id, :integer, null: false
+      add_reference klass.table_name, :loader, null: false, index: false
 
       add_index klass.table_name, :data_source_id
       add_index klass.table_name, :loader_id
@@ -40,11 +40,11 @@ class CreateFy2026LoadingAndImportTables < ActiveRecord::Migration[7.1]
 
     HmisCsvTwentyTwentySix.importable_files.each_value do |klass|
       column_names = klass.column_names
-      add_column klass.table_name, :data_source_id, :integer, null: false
-      add_column klass.table_name, :importer_log_id, :integer, null: false
+      add_reference klass.table_name, :data_source, null: false, index: false
+      add_reference klass.table_name, :importer_log, null: false, index: false
       add_column klass.table_name, :pre_processed_at, :datetime, null: false
       add_column klass.table_name, :source_hash, :string
-      add_column klass.table_name, :source_id, :integer, null: false
+      add_reference klass.table_name, :source, null: false, index: false
       add_column klass.table_name, :source_type, :string, null: false
 
       add_column klass.table_name, :dirty_at, :timestamp

@@ -15201,11 +15201,11 @@ CREATE TABLE public.hmis_2026_affiliations (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15251,11 +15251,11 @@ CREATE TABLE public.hmis_2026_assessment_questions (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15299,11 +15299,11 @@ CREATE TABLE public.hmis_2026_assessment_results (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15349,11 +15349,11 @@ CREATE TABLE public.hmis_2026_assessments (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15401,11 +15401,11 @@ CREATE TABLE public.hmis_2026_ce_participations (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15476,11 +15476,11 @@ CREATE TABLE public.hmis_2026_clients (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15531,11 +15531,11 @@ CREATE TABLE public.hmis_2026_current_living_situations (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15588,11 +15588,11 @@ CREATE TABLE public.hmis_2026_disabilities (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15640,11 +15640,11 @@ CREATE TABLE public.hmis_2026_employment_educations (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15747,11 +15747,11 @@ CREATE TABLE public.hmis_2026_enrollments (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15799,11 +15799,11 @@ CREATE TABLE public.hmis_2026_events (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15880,11 +15880,11 @@ CREATE TABLE public.hmis_2026_exits (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15936,11 +15936,11 @@ CREATE TABLE public.hmis_2026_exports (
     "ExportDirective" integer,
     "HashStatus" integer,
     "ImplementationID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -15985,11 +15985,11 @@ CREATE TABLE public.hmis_2026_funders (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16040,11 +16040,11 @@ CREATE TABLE public.hmis_2026_health_and_dvs (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16087,11 +16087,11 @@ CREATE TABLE public.hmis_2026_hmis_participations (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16201,11 +16201,11 @@ CREATE TABLE public.hmis_2026_income_benefits (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16260,11 +16260,11 @@ CREATE TABLE public.hmis_2026_inventories (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16306,11 +16306,11 @@ CREATE TABLE public.hmis_2026_organizations (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16358,11 +16358,11 @@ CREATE TABLE public.hmis_2026_project_cocs (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16414,11 +16414,11 @@ CREATE TABLE public.hmis_2026_projects (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16470,11 +16470,11 @@ CREATE TABLE public.hmis_2026_services (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16517,11 +16517,11 @@ CREATE TABLE public.hmis_2026_users (
     "DateUpdated" timestamp(6) without time zone,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -16567,11 +16567,11 @@ CREATE TABLE public.hmis_2026_youth_education_statuses (
     "UserID" character varying,
     "DateDeleted" timestamp(6) without time zone,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
-    importer_log_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
     pre_processed_at timestamp(6) without time zone NOT NULL,
     source_hash character varying,
-    source_id integer NOT NULL,
+    source_id bigint NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
@@ -20873,9 +20873,9 @@ CREATE TABLE public.hmis_csv_2026_affiliations (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -20917,9 +20917,9 @@ CREATE TABLE public.hmis_csv_2026_assessment_questions (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -20959,9 +20959,9 @@ CREATE TABLE public.hmis_csv_2026_assessment_results (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21003,9 +21003,9 @@ CREATE TABLE public.hmis_csv_2026_assessments (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21049,9 +21049,9 @@ CREATE TABLE public.hmis_csv_2026_ce_participations (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21118,9 +21118,9 @@ CREATE TABLE public.hmis_csv_2026_clients (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21167,9 +21167,9 @@ CREATE TABLE public.hmis_csv_2026_current_living_situations (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21218,9 +21218,9 @@ CREATE TABLE public.hmis_csv_2026_disabilities (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21264,9 +21264,9 @@ CREATE TABLE public.hmis_csv_2026_employment_educations (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21365,9 +21365,9 @@ CREATE TABLE public.hmis_csv_2026_enrollments (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21411,9 +21411,9 @@ CREATE TABLE public.hmis_csv_2026_events (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21486,9 +21486,9 @@ CREATE TABLE public.hmis_csv_2026_exits (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21536,9 +21536,9 @@ CREATE TABLE public.hmis_csv_2026_exports (
     "ExportDirective" character varying,
     "HashStatus" character varying,
     "ImplementationID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21579,9 +21579,9 @@ CREATE TABLE public.hmis_csv_2026_funders (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21628,9 +21628,9 @@ CREATE TABLE public.hmis_csv_2026_health_and_dvs (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21669,9 +21669,9 @@ CREATE TABLE public.hmis_csv_2026_hmis_participations (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21777,9 +21777,9 @@ CREATE TABLE public.hmis_csv_2026_income_benefits (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21830,9 +21830,9 @@ CREATE TABLE public.hmis_csv_2026_inventories (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21870,9 +21870,9 @@ CREATE TABLE public.hmis_csv_2026_organizations (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21916,9 +21916,9 @@ CREATE TABLE public.hmis_csv_2026_project_cocs (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -21966,9 +21966,9 @@ CREATE TABLE public.hmis_csv_2026_projects (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -22016,9 +22016,9 @@ CREATE TABLE public.hmis_csv_2026_services (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -22057,9 +22057,9 @@ CREATE TABLE public.hmis_csv_2026_users (
     "DateUpdated" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -22101,9 +22101,9 @@ CREATE TABLE public.hmis_csv_2026_youth_education_statuses (
     "UserID" character varying,
     "DateDeleted" character varying,
     "ExportID" character varying,
-    data_source_id integer NOT NULL,
+    data_source_id bigint NOT NULL,
     loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id bigint NOT NULL
 );
 
 
@@ -25381,8 +25381,24 @@ CREATE TABLE public.hud_report_pit_clients (
     different_identity integer,
     non_binary integer,
     more_than_one_gender boolean,
-    mid_east_n_african integer
+    mid_east_n_african integer,
+    household_has_minor_children boolean,
+    household_max_age_of_parents integer
 );
+
+
+--
+-- Name: COLUMN hud_report_pit_clients.household_has_minor_children; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hud_report_pit_clients.household_has_minor_children IS 'only counts minor children (rel 2, age < 18)';
+
+
+--
+-- Name: COLUMN hud_report_pit_clients.household_max_age_of_parents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hud_report_pit_clients.household_max_age_of_parents IS 'max age of hoh or spouse (rel 1, 3)';
 
 
 --
@@ -31997,7 +32013,8 @@ CREATE TABLE public.wfd_templates (
     owner_type character varying,
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    data_source_id bigint NOT NULL
 );
 
 
@@ -70383,6 +70400,13 @@ CREATE INDEX index_wfd_swimlanes_on_template_id ON public.wfd_swimlanes USING bt
 
 
 --
+-- Name: index_wfd_templates_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wfd_templates_on_data_source_id ON public.wfd_templates USING btree (data_source_id);
+
+
+--
 -- Name: index_wfd_templates_on_owner; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -73156,6 +73180,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 
 --
+-- Name: wfd_templates fk_rails_43a090fe14; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wfd_templates
+    ADD CONSTRAINT fk_rails_43a090fe14 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
 -- Name: ce_opportunity_categorizations fk_rails_4400f9df2f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -73890,6 +73922,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250528205252'),
+('20250528000208'),
+('20250522193546'),
 ('20250520185619'),
 ('20250516193728'),
 ('20250516141401'),
