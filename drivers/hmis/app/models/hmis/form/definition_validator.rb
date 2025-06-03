@@ -173,21 +173,38 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_condition(condition, item_hash, link_id)
-    return unless condition.key?('question')
+    return unless condition.key?('question') # Not currently validating conditions with local constants; see below
 
+    # Find the referenced question. It should exist, but don't raise if not; that's checked elsewhere
     referenced_question = item_hash[condition['question']]
-    return unless referenced_question['pick_list_options'] # TODO: validate pick_list_reference?
+    return if referenced_question.nil?
+
+    return unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference']
+
+    if referenced_question['pick_list_reference']
+      begin
+        options = Types::Forms::PickListOption.
+          options_for_type(referenced_question['pick_list_reference'], user: nil).
+          map(&:deep_stringify_keys)
+      rescue ArgumentError
+        # TODO - discuss, likely not worth it?
+        puts(referenced_question['pick_list_reference'])
+        return
+      end
+    else
+      options = referenced_question['pick_list_options']
+    end
 
     answer_codes = condition.values_at('answer_code', 'answer_codes').compact.uniq
     if answer_codes.any?
-      valid_answer_codes = referenced_question['pick_list_options'].map { |opt| opt['code'] }
+      valid_answer_codes = options.map { |opt| opt['code'].to_s }
       (answer_codes - valid_answer_codes).each do |code|
         add_issue("Invalid answer code: #{code} in 'enable_when' prop of #{link_id}")
       end
     end
 
     if condition.key?('answer_group_code') # rubocop:disable Style/GuardClause
-      valid_codes = referenced_question['pick_list_options'].map { |opt| opt['group_code'] }.compact.uniq
+      valid_codes = options.map { |opt| opt['group_code'].to_s }.compact.uniq
       code = condition['answer_group_code']
       add_issue("Invalid answer group code: #{code} in 'enable_when' prop of #{link_id}") unless valid_codes.include?(code)
     end

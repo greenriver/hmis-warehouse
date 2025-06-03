@@ -189,6 +189,22 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       ]
       expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
     end
+
+    it 'succeeds with valid pick_list_reference' do
+      definition['item'][0].delete('pick_list_options')
+      definition['item'][0]['pick_list_reference'] = 'PRIOR_LIVING_SITUATION'
+      definition['item'][1]['enable_when'][0]['answer_code'] = 'RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY'
+
+      expect_validation_errors(definition: definition, expected_errors: [])
+    end
+
+    it 'fails with invalid pick_list_reference' do
+      definition['item'][0].delete('pick_list_options')
+      definition['item'][0]['pick_list_reference'] = 'PRIOR_LIVING_SITUATION'
+      definition['item'][1]['enable_when'][0]['answer_code'] = 'NOOO'
+
+      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
+    end
   end
 
   context 'mutually exclusive attribute validation' do

@@ -87,7 +87,7 @@ module Types
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
       else
-        raise "Unknown pick list type: #{pick_list_type}"
+        raise ArgumentError, "Unknown pick list type: #{pick_list_type}"
       end
     end
 
