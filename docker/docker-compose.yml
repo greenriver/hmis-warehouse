@@ -39,6 +39,7 @@ x-backend: &backend
   stdin_open: true
   tty: true
   volumes:
+    # NOTE: you may need to run `docker-compose run -u 0 shell chown -R app-user:app-user /bundle /app /node_modules` to fix permission issues
     - .:/app:cached
     - rails_cache_bookworm:/app/tmp/cache
     - bundle_bookworm:/bundle

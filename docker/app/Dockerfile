@@ -103,6 +103,7 @@ RUN apt-get update && apt-get upgrade -y \
   libffi-dev \
   libfreetype-dev \
   libfreetype6 \
+  libgeos-dev \
   libglib2.0-0 \
   libharfbuzz-dev \
   libheif1 \
@@ -123,6 +124,7 @@ RUN apt-get update && apt-get upgrade -y \
   packagekit-tools \
   policykit-1 \
   poppler-utils \
+  postgresql-client \
   shared-mime-info \
   software-properties-common \
   tar \
