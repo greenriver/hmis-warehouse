@@ -16,10 +16,6 @@ jobs:
     runs-on: ubuntu-24.04
     container: ruby:3.3.8-bullseye
 
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
-
     permissions:
       contents: read
       packages: read
