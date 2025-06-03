@@ -76,6 +76,7 @@ RUN apt-get update \
   && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
   && curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y \
   && apt-get update \
+  && apt-get remove -y nodejs || true \
   && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get upgrade -y \
