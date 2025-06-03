@@ -1096,6 +1096,9 @@ class WarehouseReport::Outcomes::Base
           row[:race],
         ]
       end
+    else
+      rows = []
+      Rails.logger.warn("Unknown metric passed to support_for: #{metric}")
     end
 
     clients = client_source.where(id: rows.map(&:first)).
