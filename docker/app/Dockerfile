@@ -87,6 +87,9 @@ RUN apt-get update && apt-get upgrade -y \
   ca-certificates \
   chromium \
   chromium-common \
+  curl \
+  dbus \
+  dbus-user-session \
   file \
   fonts-dejavu \
   fonts-droid-fallback \
@@ -118,8 +121,12 @@ RUN apt-get update && apt-get upgrade -y \
   locales-all \
   nodejs \
   p7zip-full \
+  packagekit \
+  packagekit-tools \
+  policykit-1 \
   poppler-utils \
   shared-mime-info \
+  software-properties-common \
   tar \
   tzdata \
   vim \
