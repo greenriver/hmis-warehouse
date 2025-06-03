@@ -4,15 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :model do
-  FIXTURES = 'drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures'.freeze
-  FIXTURES_IN = File.join(FIXTURES, 'in').freeze
-  FIXTURES_OUT = File.join(FIXTURES, 'out').freeze
-  TEST_DIR = 'tmp/test'.freeze
-  SOURCE_DIR = File.join(TEST_DIR, 'in/merged/source').freeze
-  DEST_DIR = File.join(TEST_DIR, 'out').freeze
+  FIXTURES = 'drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures'
+  FIXTURES_IN = File.join(FIXTURES, 'in')
+  FIXTURES_OUT = File.join(FIXTURES, 'out')
+  TEST_DIR = 'tmp/test'
+  SOURCE_DIR = File.join(TEST_DIR, 'in/merged/source')
+  DEST_DIR = File.join(TEST_DIR, 'out')
 
   before(:each) do
     create_test_dir

@@ -10,6 +10,14 @@ module HmisCsvController
   extend ActiveSupport::Concern
 
   included do
+    private def importable_file(version:, filename:)
+      importable_files(version: version)[filename]
+    end
+
+    private def importable_files(version:)
+      HmisCsvImporter::Importer::Importer.importable_files(version)[filename]
+    end
+
     # If we have the version stored on the import, use it, if not, we'll introspect a bit on the
     # import log.
     # Prior to 2026 we didn't store the version

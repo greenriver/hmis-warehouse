@@ -16,7 +16,7 @@ class HmisCsvImporter::ImporterValidationsController < ApplicationController
       find_by(importer_log_id: importer_log.id)
 
     @filename = detect_filename
-    @klass = HmisCsvImporter::Importer::Importer.importable_files(version(importer_log, @import))[@filename]
+    @klass = importable_file(version: version(importer_log, @import), filename: @filename)
     @data_source = @import.data_source
 
     @validations = importer_log.import_validations.

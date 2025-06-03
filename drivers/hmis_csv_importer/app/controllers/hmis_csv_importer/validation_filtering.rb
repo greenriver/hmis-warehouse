@@ -12,11 +12,11 @@ module HmisCsvImporter::ValidationFiltering
   included do
     private def detect_filename
       filename = params[:file] + '.csv'
-      HmisCsvImporter::Importer::Importer.importable_files_map(version(importer_log, @import)).keys.detect { |v| v == filename }
+      importable_files(version: version(importer_log, @import)).keys.detect { |v| v == filename }
     end
 
     private def pattern
-      '%::' + HmisCsvImporter::Importer::Importer.importable_files_map(version(importer_log, @import))[@filename].downcase
+      importable_file(version: version(importer_log, @import), filename: @filename).downcase
     end
 
     private def filter_setup

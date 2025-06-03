@@ -50,8 +50,8 @@ module Importers::HmisAutoMigrate
     # Don't allow migrating to 2026 on production before 10/1/2025
     # Don't allow migrating to 2026 on staging before 9/1/2025
     TodoOrDie('Remove the next lines to enable migration to 2026', by: '2025-11-01')
-    return version if version.in?(['2024', '2026']) && Date.current >= '2025-10-01'.to_date && Rails.env.production?
-    return version if version.in?(['2024', '2026']) && Date.current >= '2025-09-01'.to_date && Rails.env.staging?
+    return version if version.in?(['2024', '2026']) && Date.current < '2025-10-01'.to_date && Rails.env.production?
+    return version if version.in?(['2024', '2026']) && Date.current < '2025-09-01'.to_date && Rails.env.staging?
 
     return version unless available_migrations.keys.include?(version)
 
