@@ -310,6 +310,17 @@ task ce_starter_pack_20250302: [:environment] do
   ce_project_funder.grant_id = 'grant ID'
   ce_project_funder.save! if ce_project_funder.changed?
 
+  # create a UnitGroup in ce project
+  unit_group = Hmis::UnitGroup.find_or_create_by(
+    project: ce_project,
+    name: 'Admin Approve Denial Unit Group',
+    workflow_template: admin_approval_template,
+  )
+  # if there are any units in the project that don't have a unit group, assign them to this one
+  ce_project.units.where(unit_group: nil).each { |u| u.update!(unit_group: unit_group) }
+  # clean up any dangling opportunities that don't have an owner
+  Hmis::Ce::Opportunity.all.filter { |o| o.owner.nil? }.each { |u| u.referrals.each(&:destroy!) }.map(&:destroy!)
+
   # Set up match rules in this project
   puts 'Creating match rules'
   age_requirement = Hmis::Ce::Match::Rule.find_or_initialize_by(

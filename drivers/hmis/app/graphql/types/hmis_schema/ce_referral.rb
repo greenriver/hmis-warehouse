@@ -22,6 +22,7 @@ module Types
     field :updated_by, Application::User, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
+    field :workflow_template_name, String, null: true
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -150,6 +151,10 @@ module Types
           participants: participants,
         )
       end
+    end
+
+    def workflow_template_name
+      load_ar_association(object, :workflow_template)&.name
     end
 
     def access

@@ -6,6 +6,14 @@
 
 # frozen_string_literal: true
 
+# The `Hmis::Unit` model represents a generic unit of capacity in a project.
+# A unit is a resource that can be provided to a household or individual being served by the program.
+# Units can represent physical or virtual resources.
+#
+# Note: The term "unit" is intentionally generic and does not exclusively refer to an "apartment unit."
+# It may represent a unit of housing, a shelter bed, a shelter room, a voucher, a unit of service capacity, etc.
+# Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
+# Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
@@ -13,7 +21,9 @@ class Hmis::Unit < Hmis::HmisBase
   has_paper_trail(meta: { project_id: :project_id })
 
   belongs_to :project, class_name: 'Hmis::Hud::Project'
-  # Type of this unit
+  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true, inverse_of: :units, foreign_key: :hmis_unit_group_id
+
+  # Descriptive "type" of this unit (e.g. "3 Bed Room", "Case Management", "Mass Shelter Single")
   belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
   # Periods when this unit has been active
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
@@ -99,6 +109,14 @@ class Hmis::Unit < Hmis::HmisBase
 
   def end_date
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
+  end
+
+  def eligibility_requirements
+    Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
+  end
+
+  def priority_scheme
+    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
   end
 
   # Class method so can use with data loader
