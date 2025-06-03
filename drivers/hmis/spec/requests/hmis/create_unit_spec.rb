@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -36,8 +38,8 @@ RSpec.describe 'Create Units Mutation', type: :request do
     versions = GrdaWarehouse.paper_trail_versions.where(project_id: p1.id, item_type: 'Hmis::Unit')
     units = Hmis::Unit.where(unit_type: unit_type, project: p1)
     expect do
-      response, = post_graphql(input) { mutation }
-      expect(response.status).to eq 200
+      response, result = post_graphql(input) { mutation }
+      expect(response.status).to eq(200), result.inspect
     end.to change(versions, :count).by(1).
       and change(units, :count).by(1)
   end

@@ -14,7 +14,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:rule2) { create(:hmis_ce_priority_scheme, owner: organization) }
 
       before do
-        allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:applies_to_opportunity?).and_return(true)
+        allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:applies_to_entity?).and_return(true)
       end
 
       it 'creates pools based on unique rule combinations' do
