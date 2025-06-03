@@ -495,18 +495,23 @@ module HmisDataCleanup
 
     # Sum MonthlyTotalIncome where it is null but there are Income values
     def self.fix_missing_monthly_total_income!
-      count = Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil).size
+      scope = Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil)
+      count = scope.count
       Rails.logger.info "#{count} income records to clean"
 
-      amount_fields = [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount]
-
-      Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil).in_batches do |batch|
+      scope.in_batches do |batch|
         Rails.logger.info('Processing batch...')
         values = []
         batch.each do |record|
-          calculated_total = amount_fields.map { |f| record.send(f) }.compact.sum
-          values << [record.id, calculated_total]
+          Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
+
+          # Only add to import if the total_monthly_income was updated
+          next unless record.total_monthly_income_changed?
+
+          values << [record.id, record.total_monthly_income]
         end
+        next if values.empty?
+
         without_papertrail_or_timestamps do
           cols = [:id, :TotalMonthlyIncome]
           result = Hmis::Hud::IncomeBenefit.import(cols, values, validate: false, on_duplicate_key_update: { conflict_target: [:id], columns: [:TotalMonthlyIncome] })
@@ -514,6 +519,37 @@ module HmisDataCleanup
         end
       end
       Rails.logger.info 'Done'
+    end
+
+    # similar to fix_missing_monthly_total_income! but with logging and transactional safety
+    # added for one-time use, can probably be removed once the "TaskQueue" has completed
+    def correct_total_income_records!
+      return unless HmisEnforcement.hmis_enabled?
+
+      data_sources = GrdaWarehouse::DataSource.hmis
+      return if data_sources.empty?
+
+      scope = Hmis::Form::FormProcessor.
+        joins(income_benefit: :data_source).
+        merge(data_sources).
+        preload(:income_benefit)
+
+      Hmis::Hud::IncomeBenefit.transaction do
+        scope.find_each do |fp|
+          record = fp.income_benefit
+          raise unless record
+
+          messages = Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
+          messages.each do |message|
+            if Rails.env.development?
+              puts message
+            else
+              Sentry.capture_message(message)
+            end
+          end
+          record.save! if record.changed?
+        end
+      end
     end
 
     # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
