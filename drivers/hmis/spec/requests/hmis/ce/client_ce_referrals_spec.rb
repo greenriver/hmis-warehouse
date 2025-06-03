@@ -11,15 +11,12 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'ce spec helper'
 
-  before(:all) do
-    cleanup_test_environment
-  end
   before(:each) do
     hmis_login(user)
   end
 
   let!(:other_project) { create(:hmis_hud_project, data_source: ds1, project_type: 2) }
-  let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, client: client) }
+  let!(:other_project_referral) { create(:hmis_ce_referral, project: other_project, data_source: ds1, client: client) }
 
   describe 'client ceReferrals query' do
     let(:query) do
@@ -103,7 +100,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before do
         50.times do
           project = create(:hmis_hud_project, data_source: ds1)
-          create(:hmis_ce_referral, project: project, client: client)
+          create(:hmis_ce_referral, project: project, client: client, data_source: ds1)
         end
       end
 

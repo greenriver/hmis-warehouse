@@ -65,7 +65,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the unit has an open opportunity' do
       let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :open) }
 
       it 'returns the unit with the opportunity' do
         response, result = post_graphql(id: project.id) { query }
@@ -78,7 +78,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the unit has an opportunity with a referral in progress' do
       let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :locked) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
 
       it 'returns the unit with the opportunity and referral' do
@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when the unit has an open opportunity' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :open) }
 
         it 'acceptingCeReferrals is true' do
           _, result = post_graphql(id: project.id) { query }
@@ -115,7 +115,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when the unit has an opportunity with referrals in progress' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :locked) }
         let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
 
         it 'acceptingCeReferrals is false' do
@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when the unit has a closed opportunity, but no open one' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :closed) }
         let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
 
         it 'acceptingCeReferrals is false' do
@@ -143,7 +143,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before do
         50.times do
           unit = create :hmis_unit, project: project
-          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked)
+          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :locked)
           create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress)
         end
       end
