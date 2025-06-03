@@ -44,7 +44,6 @@ RSpec.describe Hmis::AccessControl, type: :model do
 
     it 'should apply correctly when attached to a project group' do
       create_access_control(hmis_user, pg1)
-      # binding.pry
       expect(hmis_user.can_view_full_ssn_for?(p1)).to eq(false)
       expect(hmis_user.can_view_full_ssn_for?(p2)).to eq(true)
       expect(hmis_user.can_view_full_ssn_for?(p3)).to eq(true)

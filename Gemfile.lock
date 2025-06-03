@@ -1270,6 +1270,7 @@ DEPENDENCIES
   paper_trail (~> 15)
   parallel
   paranoia
+  parser
   pdfunite
   pg
   pg_fixtures!

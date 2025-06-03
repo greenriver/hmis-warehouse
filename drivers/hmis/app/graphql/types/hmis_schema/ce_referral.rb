@@ -22,6 +22,7 @@ module Types
     field :updated_by, Application::User, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
+    field :workflow_template_name, String, null: true
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -32,13 +33,17 @@ module Types
     field :referred_by, Application::User, null: true
     field :active, Boolean, null: false, method: :active?
 
+    access_field do
+      field :can_view_target_project, Boolean, null: false
+    end
+
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeReferralStatus]
       arg :project, [ID]
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]
-      arg :on_current_step_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
+      arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
     def steps # Don't resolve in batch
@@ -119,7 +124,10 @@ module Types
     end
 
     def target_enrollment
-      load_ar_association(object, :target_enrollment)
+      enrollment = load_ar_association(object, :target_enrollment)
+      return nil unless enrollment.present?
+
+      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: enrollment.id)
     end
 
     def referred_by
@@ -143,6 +151,19 @@ module Types
           participants: participants,
         )
       end
+    end
+
+    def workflow_template_name
+      load_ar_association(object, :workflow_template)&.name
+    end
+
+    def access
+      project_id = load_ar_association(object, :opportunity).project_id
+      project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
+
+      {
+        can_view_target_project: project.present?,
+      }
     end
 
     private

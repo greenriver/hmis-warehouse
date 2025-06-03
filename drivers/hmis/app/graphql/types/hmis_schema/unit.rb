@@ -31,6 +31,12 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :unit_group, HmisSchema::UnitGroup, null: true
+
+    # CE fields
+    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :workflow_template_name, String, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
@@ -58,6 +64,14 @@ module Types
 
     def name
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
+    end
+
+    def unit_group
+      load_ar_association(object, :unit_group)
+    end
+
+    def workflow_template_name
+      unit_group&.workflow_template&.name
     end
 
     def latest_opportunity

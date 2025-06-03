@@ -21,7 +21,6 @@ module Hmis::Ce
 
     def create_enrollment(message)
       project = referral.target_project
-      raise 'access denied' unless message.user.can_enroll_clients_for?(project)
 
       # Step form may specify CoC code. This is required if the Project serves multiple CoCs.
       coc_code_arg = message.step&.submitted_values&.fetch('coc_code', nil)

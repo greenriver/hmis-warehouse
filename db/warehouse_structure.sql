@@ -23765,6 +23765,40 @@ ALTER SEQUENCE public.hmis_supplemental_field_values_id_seq OWNED BY public.hmis
 
 
 --
+-- Name: hmis_unit_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_unit_groups (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    project_id bigint NOT NULL,
+    workflow_template_identifier character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_unit_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_unit_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_unit_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_unit_groups_id_seq OWNED BY public.hmis_unit_groups.id;
+
+
+--
 -- Name: hmis_unit_occupancy; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23841,7 +23875,8 @@ CREATE TABLE public.hmis_units (
     user_id character varying NOT NULL,
     unit_type_id integer,
     unit_size integer,
-    project_id integer NOT NULL
+    project_id integer NOT NULL,
+    hmis_unit_group_id integer
 );
 
 
@@ -35660,6 +35695,13 @@ ALTER TABLE ONLY public.hmis_supplemental_field_values ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: hmis_unit_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_unit_groups_id_seq'::regclass);
+
+
+--
 -- Name: hmis_unit_occupancy id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -39996,6 +40038,14 @@ ALTER TABLE ONLY public.hmis_supplemental_data_sets
 
 ALTER TABLE ONLY public.hmis_supplemental_field_values
     ADD CONSTRAINT hmis_supplemental_field_values_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_unit_groups hmis_unit_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT hmis_unit_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -65059,6 +65109,13 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public
 
 
 --
+-- Name: index_hmis_unit_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_project_id ON public.hmis_unit_groups USING btree (project_id);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -73564,6 +73621,14 @@ ALTER TABLE ONLY public.wfe_audit_events
 
 
 --
+-- Name: hmis_unit_groups fk_rails_99106cda65; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_99106cda65 FOREIGN KEY (project_id) REFERENCES public."Project"(id);
+
+
+--
 -- Name: hmis_external_referral_household_members fk_rails_993d7f8d95; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -73924,6 +73989,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250528205252'),
 ('20250528000208'),
+('20250523195117'),
 ('20250522193546'),
 ('20250520185619'),
 ('20250516193728'),

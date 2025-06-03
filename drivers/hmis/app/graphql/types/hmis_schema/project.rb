@@ -122,9 +122,10 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
+    field :unit_groups, Types::HmisSchema::UnitGroup.page_type, null: false
 
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
-    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_step_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
 
     def hud_id
       object.project_id
@@ -192,11 +193,16 @@ module Types
       end
     end
 
-    # TODO use dataloader
     def units(**args)
       return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
 
       resolve_units(**args)
+    end
+
+    def unit_groups
+      return Hmis::UnitGroup.none unless current_permission?(entity: object, permission: :can_view_units)
+
+      object.unit_groups.order(:name, :id)
     end
 
     def has_units # rubocop:disable Naming/PredicateName

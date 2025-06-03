@@ -9,8 +9,8 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Referral, type: :model do
-  let!(:template) { create(:hmis_workflow_definition_template) }
   let!(:data_source) { create(:hmis_data_source) }
+  let!(:template) { create(:hmis_workflow_definition_template, data_source: data_source) }
   let!(:project) { create(:hmis_hud_project, data_source: data_source) }
   let!(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }

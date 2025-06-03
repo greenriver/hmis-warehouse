@@ -206,7 +206,7 @@ type ApplicationUser {
   manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
-  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated @deprecated(reason: "Replaced with new UserDashboard type")
 }
 
 type ApplicationUserAuditEvent {
@@ -740,9 +740,25 @@ type CeCandidatesPaginated {
 }
 
 type CeMatchRule {
+  expression: String!
+
+  """
+  Rule applicability is limited to projects with these active funders
+  """
+  funders: [FundingSource!]
   id: ID!
   name: String!
+
+  """
+  Rule applies to projects within this related entity (eg a Data Source,
+  Project, Organization), possibly limited by project type or funder
+  """
   ownerType: String!
+
+  """
+  Rule applicability is limited to projects with these types
+  """
+  projectTypes: [ProjectType!]!
 }
 
 type CeOpportunitiesPaginated {
@@ -790,7 +806,7 @@ input CeOpportunityFilterOptions {
 
 input CeOpportunityInput {
   name: String!
-  templateId: ID!
+  templateIdentifier: String!
 }
 
 """
@@ -853,6 +869,7 @@ type CeParticipationsPaginated {
 }
 
 type CeReferral {
+  access: CeReferralAccess!
   active: Boolean!
   client: Client
   clientId: ID!
@@ -871,10 +888,16 @@ type CeReferral {
   targetProjectName: String!
   targetProjectType: ProjectType!
   updatedBy: ApplicationUser
+  workflowTemplateName: String
+}
+
+type CeReferralAccess {
+  canViewTargetProject: Boolean!
+  id: ID!
 }
 
 input CeReferralFilterOptions {
-  onCurrentStepSince: ISO8601Date
+  onCurrentTaskSince: ISO8601Date
   organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
@@ -916,6 +939,7 @@ type CeReferralStep {
   User(s) currently assigned to this step
   """
   assignees: [ApplicationUser!]!
+  availableAt: ISO8601DateTime
   formDefinition: FormDefinition!
 
   """
@@ -923,6 +947,7 @@ type CeReferralStep {
   """
   id: ID!
   name: String!
+  referral: CeReferral!
   status: CeReferralStepStatus!
 
   """
@@ -960,6 +985,16 @@ enum CeReferralStepStatus {
   Unavailable
   """
   unavailable
+}
+
+type CeReferralStepsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferralStep!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeReferralSwimlane {
@@ -7114,6 +7149,11 @@ enum PickListType {
   CE_EVENTS
 
   """
+  Templates for CE workflow definitions
+  """
+  CE_WORKFLOW_TEMPLATE_IDENTIFIERS
+
+  """
   Templates for CE workflow definitions, including fully retired workflows
   """
   CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED
@@ -7215,11 +7255,6 @@ enum PickListType {
   User accounts. Deprecated in favor of AUDITABLE_USERS
   """
   USERS
-
-  """
-  Templates for CE workflow definitions
-  """
-  WORKFLOW_DEFINITION_TEMPLATES
 }
 
 """
@@ -9087,6 +9122,7 @@ type Project {
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   staffAssignmentsEnabled: Boolean!
   targetPopulation: TargetPopulation
+  unitGroups(limit: Int, offset: Int): UnitGroupsPaginated!
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   user: ApplicationUser
@@ -9555,6 +9591,7 @@ type Query {
   User lookup
   """
   user(id: ID!): ApplicationUser
+  userDashboard: UserDashboard!
 }
 
 type QueryAccess {
@@ -9609,7 +9646,7 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
-  canViewMyDashboard: Boolean!
+  canViewMyDashboard: Boolean! @deprecated(reason: "Replaced with new UserDashboard type")
   canViewOpenEnrollmentSummary: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
@@ -12057,6 +12094,7 @@ type Unit {
   acceptingCeReferrals: Boolean!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
+  eligibilityRequirements: [CeMatchRule!]
   id: ID!
 
   """
@@ -12065,10 +12103,13 @@ type Unit {
   latestOpportunity: CeOpportunity
   name: String!
   occupants: [Enrollment!]!
+  priorityScheme: CeMatchRule
   project: Project
+  unitGroup: UnitGroup
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
+  workflowTemplateName: String
 }
 
 enum UnitFilterOptionStatus {
@@ -12086,6 +12127,26 @@ enum UnitFilterOptionStatus {
 input UnitFilterOptions {
   status: [UnitFilterOptionStatus!]
   unitType: [ID!]
+}
+
+type UnitGroup {
+  eligibilityRequirements: [CeMatchRule!]
+  id: ID!
+  name: String!
+  priorityScheme: CeMatchRule
+  units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
+  workflowTemplateIdentifier: String
+  workflowTemplateName: String
+}
+
+type UnitGroupsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [UnitGroup!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 input UnitInput {
@@ -12276,6 +12337,22 @@ type UpdateUnitsPayload {
 input UserAuditEventFilterOptions {
   clientRecordType: [ID!]
   enrollmentRecordType: [ID!]
+}
+
+"""
+Resolves everything that is needed on the user dashboard
+"""
+type UserDashboard {
+  ceReferralSteps(limit: Int, offset: Int): CeReferralStepsPaginated
+  id: ID!
+  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated
+  userDashboardConfig: UserDashboardConfig!
+}
+
+type UserDashboardConfig {
+  id: ID!
+  showReferrals: Boolean!
+  showStaffAssignment: Boolean!
 }
 
 type ValidationError {

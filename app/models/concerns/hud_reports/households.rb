@@ -46,6 +46,10 @@ module HudReports::Households
       households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
     end
 
+    def household_members_for(household_id)
+      households[household_id] || []
+    end
+
     def hoh_age(household_id, date)
       return unless households[household_id]
 

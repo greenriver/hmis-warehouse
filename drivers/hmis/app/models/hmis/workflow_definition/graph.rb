@@ -44,6 +44,9 @@ module Hmis::WorkflowDefinition
       end
     end
 
-    # could add helpers for validation such as graph.acyclic?
+    def unreachable_nodes
+      reachable = walk.to_a # Walk the whole graph to find all reachable nodes
+      @nodes - reachable # all nodes minus reachable nodes = unreachable nodes
+    end
   end
 end

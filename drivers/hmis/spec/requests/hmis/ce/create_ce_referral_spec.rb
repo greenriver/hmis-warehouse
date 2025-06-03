@@ -7,10 +7,6 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
   include_context 'hmis base setup'
 
-  before(:all) do
-    cleanup_test_environment
-  end
-
   let!(:ds_access_control) do
     create_access_control(
       hmis_user,
@@ -29,7 +25,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
   end
 
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
+  let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: template }
   let!(:client) { create :hmis_hud_client, data_source: ds1 }
   let!(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }

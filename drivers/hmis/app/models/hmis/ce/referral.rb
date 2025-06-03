@@ -15,8 +15,9 @@ module Hmis::Ce
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
+    has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
-    has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant'
+    has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant', dependent: :destroy
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
@@ -57,6 +58,7 @@ module Hmis::Ce
 
     validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity
+    validate :ce_template
 
     state_machine_config column: 'status' do
       state :initialized, initial: true
@@ -108,6 +110,12 @@ module Hmis::Ce
       return unless conflicting_referral_exists
 
       errors.add(:opportunity, 'can only have one active or accepted referral')
+    end
+
+    def ce_template
+      return if workflow_instance.template.template_type == 'ce_referral'
+
+      errors.add(:workflow_instance, 'must be a CE template')
     end
   end
 end
