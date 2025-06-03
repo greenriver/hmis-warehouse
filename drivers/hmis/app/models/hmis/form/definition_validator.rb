@@ -204,6 +204,7 @@ class Hmis::Form::DefinitionValidator
     item_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
+        next if link_id.in?(KNOWN_BAD_REFS)
 
         enable_conditions = child_item.fetch('enable_when', [])
         autofill_conditions = child_item.fetch('autofill_values', []).flat_map { |autofill| autofill.fetch('autofill_when', []) }
