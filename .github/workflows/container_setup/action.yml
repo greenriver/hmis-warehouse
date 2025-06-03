@@ -64,7 +64,6 @@ runs:
         # Install packages with retry
         retry apt-get install -y --no-install-recommends \
           build-essential \
-          curl \
           dbus \
           packagekit \
           packagekit-tools \
