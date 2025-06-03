@@ -25,6 +25,12 @@ class Hmis::Form::DefinitionValidator
     check_references(document, all_ids)
     # Check mutually exclusive attributes ("one of" on conditional objects)
     check_mutually_exclusive_attributes(document)
+
+    # Check conditions like enable_when and autofill_when.
+    # First initialize a FormDefinition to use the logic for generating an item hash, but don't persist it.
+    item_hash = Hmis::Form::Definition.new(definition: document).link_id_item_hash
+    check_conditions(document, item_hash)
+
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
 
@@ -144,12 +150,6 @@ class Hmis::Form::DefinitionValidator
             msg = "EnableWhen #{idx + 1} on Link ID #{link_id}"
             validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
             validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
-            # TODO: validate that the {source}{operator}{answer} are all compatible. We attempt to ensure this validity in the form property editor,
-            # but we do not validate it here. For example:
-            # - if source is a question, the answer field should be compatible with the question type (eg shouldn't compare STRING=DATE)
-            # - if source is a local constant, the answer field should be compatible local constant type (eg shouldn't compare STRING=DATE)
-            # - if operator is special boolean operator (EXISTS/ENABLED), then the answer type should always be boolean
-            # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
           end
         end
 
@@ -170,6 +170,52 @@ class Hmis::Form::DefinitionValidator
       end
     end
     link_check.call(document)
+  end
+
+  def check_condition(condition, item_hash, link_id)
+    return unless condition.key?('question')
+
+    referenced_question = item_hash[condition['question']]
+    return unless referenced_question['pick_list_options'] # TODO: validate pick_list_reference?
+
+    answer_codes = condition.values_at('answer_code', 'answer_codes').compact.uniq
+    if answer_codes.any?
+      valid_answer_codes = referenced_question['pick_list_options'].map { |opt| opt['code'] }
+      (answer_codes - valid_answer_codes).each do |code|
+        add_issue("Invalid answer code: #{code} in 'enable_when' prop of #{link_id}")
+      end
+    end
+
+    if condition.key?('answer_group_code') # rubocop:disable Style/GuardClause
+      valid_codes = referenced_question['pick_list_options'].map { |opt| opt['group_code'] }.compact.uniq
+      code = condition['answer_group_code']
+      add_issue("Invalid answer group code: #{code} in 'enable_when' prop of #{link_id}") unless valid_codes.include?(code)
+    end
+
+    # TODO: Additional validations. We attempt to ensure this validity in the form property editor,
+    # but we do not validate it here. For example:
+    # - if source is a question, the answer field should be compatible with the question type (eg shouldn't compare STRING=DATE)
+    # - if source is a local constant, the answer field should be compatible local constant type (eg shouldn't compare STRING=DATE)
+    # - if operator is special boolean operator (EXISTS/ENABLED), then the answer type should always be boolean
+    # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
+  end
+
+  def check_conditions(document, item_hash)
+    item_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        link_id = child_item['link_id']
+
+        enable_conditions = child_item.fetch('enable_when', [])
+        autofill_conditions = child_item.fetch('autofill_values', []).flat_map { |autofill| autofill.fetch('autofill_when', []) }
+        (enable_conditions + autofill_conditions).each do |condition|
+          check_condition(condition, item_hash, link_id)
+        end
+
+        item_check.call(child_item)
+      end
+    end
+
+    item_check.call(document)
   end
 
   # Fail if there are link_ids that are required for this role that aren't present in the form,

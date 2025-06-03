@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
@@ -95,6 +97,97 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     end
     it 'should error' do
       expect_validation_errors(definition: definition, expected_errors: [/Invalid pick list/])
+    end
+  end
+
+  context 'condition validation (enable_when and autofill_when)' do
+    let(:definition) do
+      {
+        "item": [
+          {
+            "link_id": 'item1',
+            "text": 'y/n?',
+            "type": 'CHOICE',
+            "pick_list_options": [
+              {
+                'code': 'Sure',
+                'group_code': 'group 1',
+              },
+              {
+                'code': 'Nope',
+                'group_code': 'group 2',
+              },
+            ],
+          },
+          {
+            "link_id": 'item2',
+            "type": 'TEXT',
+            "text": 'text here',
+            "enable_when": [
+              {
+                "operator": 'EQUAL',
+                "question": 'item1',
+                "answer_code": 'Sure',
+              },
+            ],
+          },
+        ],
+      }.deep_stringify_keys
+    end
+
+    it 'should succeed with valid answer code' do
+      expect_validation_errors(definition: definition, expected_errors: [])
+    end
+
+    it 'should error with an invalid answer code' do
+      definition['item'][1]['enable_when'][0]['answer_code'] = 'Nooo'
+      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
+    end
+
+    it 'should succeed with a valid answer group code' do
+      definition['item'][1]['enable_when'][0].delete('answer_code')
+      definition['item'][1]['enable_when'][0]['answer_group_code'] = 'group 1'
+      expect_validation_errors(definition: definition, expected_errors: [])
+    end
+
+    it 'should error with an invalid answer group code' do
+      definition['item'][1]['enable_when'][0].delete('answer_code')
+      definition['item'][1]['enable_when'][0]['answer_group_code'] = 'bad group'
+      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer group code/])
+    end
+
+    it 'should succeed with valid autofill' do
+      definition['item'][1].delete('enable_when')
+      definition['item'][1]['autofill_values'] = [
+        {
+          'value_code': 'yes',
+          'autofill_when': [
+            {
+              'question': 'item1',
+              'operator': 'EQUAL',
+              'answer_code': 'Sure',
+            },
+          ],
+        }.deep_stringify_keys,
+      ]
+      expect_validation_errors(definition: definition, expected_errors: [])
+    end
+
+    it 'should fail with invalid autofill' do
+      definition['item'][1].delete('enable_when')
+      definition['item'][1]['autofill_values'] = [
+        {
+          'value_code': 'yes',
+          'autofill_when': [
+            {
+              'question': 'item1',
+              'operator': 'EQUAL',
+              'answer_code': 'Nooo',
+            },
+          ],
+        }.deep_stringify_keys,
+      ]
+      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
     end
   end
 
