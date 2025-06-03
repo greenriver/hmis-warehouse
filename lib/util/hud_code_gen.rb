@@ -46,7 +46,9 @@ module HudCodeGen
 
   module_function
 
-  def generate_hud_lists(year = '2024')
+  def generate_hud_lists(year)
+    raise ArgumentError, 'Year is required' unless year
+
     source = File.read("lib/data/#{year}_hud_lists.json")
     all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
     skipped = []
@@ -91,7 +93,9 @@ module HudCodeGen
     filename
   end
 
-  def generate_graphql_enums(year = '2024')
+  def generate_graphql_enums(year)
+    raise ArgumentError, 'Year is required' unless year
+
     source = File.read("lib/data/#{year}_hud_lists.json")
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
@@ -103,6 +107,7 @@ module HudCodeGen
     arr.push ::Code.copywright_header
     arr.push "
       # frozen_string_literal: true
+      #{CODEGEN_FILE_HEADER}
 
       module Types::HmisSchema::Enums::Hud
     "

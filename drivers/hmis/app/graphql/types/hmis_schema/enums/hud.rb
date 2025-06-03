@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
+
 module Types::HmisSchema::Enums::Hud
   class ExportPeriodType < Types::BaseEnum
     description 'HUD ExportPeriodType (1.1)'
@@ -1381,7 +1383,7 @@ module Types::HmisSchema::Enums::Hud
   end
 
   class HOPWAFinancialAssistance < Types::BaseEnum
-    description 'HUD HOPWAFinancialAssistance (V2.3)'
+    description 'HUD HOPWAFinancialAssistance (W2.2)'
     graphql_name 'HOPWAFinancialAssistance'
     value 'RENTAL_ASSISTANCE', '(1) Rental assistance', value: 1
     value 'SECURITY_DEPOSITS', '(2) Security deposits', value: 2
