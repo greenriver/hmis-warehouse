@@ -233,7 +233,7 @@ services:
       - ./tmp/dumps:/tmp/dumps
       - ./db:/mnt
     ports:
-      - 5432
+      - "${DBPORT:-15432}:5432"
     expose:
       - 5432
     stop_grace_period: 30s
