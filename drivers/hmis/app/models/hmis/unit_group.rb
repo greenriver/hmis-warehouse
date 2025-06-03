@@ -6,6 +6,13 @@
 
 # frozen_string_literal: true
 
+# Represents a logical grouping of Hmis::Units within a specific Hmis::Hud::Project.
+#
+# - Supports Coordinated Entry (CE) Configuration:
+#   - Associates a specific `workflow_template` (Hmis::WorkflowDefinition::Template)
+#     to be used for CE Opportunities created for units within this group.
+#   - Enables the definition of CE `eligibility_requirements` and `priority_scheme`
+#     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
 module Hmis
   class UnitGroup < HmisBase
     has_paper_trail(meta: { project_id: :project_id })

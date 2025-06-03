@@ -27,7 +27,7 @@ module Mutations
       # Determine which template to use for each unit based on Unit Group configuration.
       unit_to_template = units.preload(unit_group: :workflow_template).map do |unit|
         workflow_template = unit.unit_group&.workflow_template # load Workflow Template record to validate it exists
-        raise 'Unable to mark unit available because there is no associated workflow template' unless workflow_template.present?
+        raise 'Unable to mark unit available because there is no associated workflow template' unless workflow_template
 
         [unit.id, workflow_template]
       end.to_h
@@ -36,7 +36,7 @@ module Mutations
 
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|
-          template = unit_to_template[unit.id]
+          template = unit_to_template.fetch(unit.id)
           build_opportunity_for_unit(unit, template, candidate_pool_resolver)
         end
 
