@@ -13,7 +13,7 @@ concurrency:
 jobs:
   determine_matrix:
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-bullseye
+    container: ruby:3.3.8-slim-bookworm
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -38,7 +38,7 @@ jobs:
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-bullseye
+    container: ruby:3.3.8-slim-bookworm
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION

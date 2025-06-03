@@ -40,11 +40,11 @@ x-backend: &backend
   tty: true
   volumes:
     - .:/app:cached
-    - rails_cache_alpine:/app/tmp/cache
-    - bundle_alpine:/bundle
+    - rails_cache_bookworm:/app/tmp/cache
+    - bundle_bookworm:/bundle
     - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
     - /etc/ssl/certs:/etc/ssl/certs
-    - node_modules_alpine:/node_modules
+    - node_modules_bookworm:/node_modules
 
 services:
   shell:
@@ -299,15 +299,14 @@ services:
       - traefik.http.routers.minio.middlewares=op_https
 
 volumes:
-  bundle_alpine:
-  node_modules_alpine:
-  rails_cache_alpine:
+  bundle_bookworm:
+  node_modules_bookworm:
+  rails_cache_bookworm:
   dbdata:
   dbdata_pg13:
   dbdata_pg16:
   redis:
   ngrok:
-
 networks:
   default:
     name: traefik

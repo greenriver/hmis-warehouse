@@ -12,7 +12,7 @@ concurrency:
 jobs:
   todo_or_die_check:
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-bullseye
+    container: ruby:3.3.8-slim-bookworm
     permissions:
       contents: read
       pull-requests: read
