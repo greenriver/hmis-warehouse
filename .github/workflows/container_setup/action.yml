@@ -110,41 +110,6 @@ runs:
       shell: ${{ inputs.shell }}
       run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
-    # - name: Set up dependencies
-    #   shell: ${{ inputs.shell }}
-    #   env:
-    #     DATABASE_APP_DB_TEST: warehouse_app_test
-    #     WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-    #     HEALTH_DATABASE_DB_TEST: health_test
-    #     DATABASE_DB_TEST: cas_test
-    #     REPORTING_DATABASE_DB_TEST: reporting_test
-    #     # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-    #     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-    #     PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
-    #   run: |
-    #     # # Add PostgreSQL 17 repository
-    #     # apt-get update
-    #     # apt-get install -y curl ca-certificates gnupg
-    #     # curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
-    #     # echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
-
-    #     # # Install NodeJS and Yarn repositories
-    #     # curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
-    #     # curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
-    #     # echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
-    #     # Install dependencies
-    #     apt-get update
-    #     apt-get install -y build-essential imagemagick chromium-browser \
-    #       postgresql-client-16 postgresql-client-17 \
-    #       nodejs yarn freetds-dev libicu-dev libcurl4-openssl-dev \
-    #       libmagic-dev libxml2-dev libxslt1-dev libpq-dev \
-    #       libgeos-dev libheif1 fonts-dejavu fonts-freefont-ttf \
-    #       lftp tmux poppler-utils libyaml-dev libffi-dev
-
-    #     echo "localhost:5432:*:postgres:postgres" > ~/.pgpass
-    #     chmod 600 ~/.pgpass
-
     - name: Install gems
       shell: bash
       run: |
