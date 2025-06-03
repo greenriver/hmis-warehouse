@@ -65,6 +65,10 @@ runs:
         retry apt-get install -y --no-install-recommends \
           build-essential \
           curl \
+          curl \
+          dbus \
+          packagekit \
+          packagekit-tools \
           fonts-dejavu \
           fonts-freefont-ttf \
           freetds-dev \
