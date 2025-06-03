@@ -6,6 +6,13 @@
 
 # frozen_string_literal: true
 
+# Represents a logical grouping of Hmis::Units within a specific Hmis::Hud::Project.
+#
+# - Supports Coordinated Entry (CE) Configuration:
+#   - Associates a specific `workflow_template` (Hmis::WorkflowDefinition::Template)
+#     to be used for CE Opportunities created for units within this group.
+#   - Enables the definition of CE `eligibility_requirements` and `priority_scheme`
+#     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
 module Hmis
   class UnitGroup < HmisBase
     has_paper_trail(meta: { project_id: :project_id })
@@ -43,7 +50,7 @@ module Hmis
 
       errors.add(:workflow_template_identifier, 'must be published') unless workflow_template.published?
       errors.add(:workflow_template_identifier, 'must belong to the same data source') if workflow_template.data_source_id != project.data_source_id
-      errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') if workflow_template.template_type == :ce_referral
+      errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') unless workflow_template.template_type&.to_s == 'ce_referral'
     end
   end
 end

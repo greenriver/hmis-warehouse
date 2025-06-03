@@ -30,8 +30,7 @@ module Types
     end
 
     def units(**args)
-      return Hmis::Unit.none unless current_permission?(entity: object.project, permission: :can_view_units)
-
+      # No need for permission check here. If user can view the Unit Group, they can view its units.
       resolve_units(**args)
     end
 

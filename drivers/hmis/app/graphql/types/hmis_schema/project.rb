@@ -200,7 +200,7 @@ module Types
     end
 
     def unit_groups
-      return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
+      return Hmis::UnitGroup.none unless current_permission?(entity: object, permission: :can_view_units)
 
       object.unit_groups.order(:name, :id)
     end

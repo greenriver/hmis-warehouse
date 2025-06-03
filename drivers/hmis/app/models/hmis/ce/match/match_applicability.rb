@@ -9,8 +9,6 @@
 # The `MatchApplicability` class determines whether a Coordinated Entry (CE) rule applies to a given entity
 # (e.g., Opportunity, Unit, Unit Group, Project, or Organization) based on project criteria.
 #
-# This is NOT determining client is eligibility itself; rather it determines which rules to use for eligibility/priority.
-#
 # This class evaluates applicability rules for entities by checking:
 # - Whether the rule's owner matches the entity or one of its parent entities.
 # - Whether the entity's project type matches the rule's allowed project types.
@@ -25,9 +23,9 @@
 #
 #
 #
-# @attr [Object] owner Entity that owns/manages this applicability rule
-# @attr [Array<String>] project_types List of valid project types
-# @attr [Array<String>] project_funders List of valid project funder IDs
+# @attr [Object] owner Entity that determines the applicability scope for this rule
+# @attr [Array<String>] project_types List of project types for which this rule applies
+# @attr [Array<String>] project_funders List of funders for which this rule applies
 module Hmis::Ce::Match
   MatchApplicability = Struct.new(:owner, :project_types, :project_funders, keyword_init: true) do
     def call(entity) # Opportunity, Unit, Unit Group, Project, or Organization
@@ -78,9 +76,7 @@ module Hmis::Ce::Match
     def gather_parents(entity)
       parents = case entity
       when Hmis::Ce::Opportunity
-        unit = entity.owner
-        raise "Expected opportunity owner to be a Unit, but found #{unit.class.name}" unless unit.is_a?(Hmis::Unit)
-
+        unit = entity.unit
         [unit, unit.unit_group, unit.project, unit.project.organization]
       when Hmis::Unit
         [entity, entity.unit_group, entity.project, entity.project.organization]

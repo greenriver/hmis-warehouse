@@ -70,8 +70,7 @@ module Types
     end
 
     def unit
-      owner = load_ar_association(object, :owner)
-      owner if owner.is_a?(Hmis::Unit)
+      load_ar_association(object, :unit)
     end
 
     def date_available

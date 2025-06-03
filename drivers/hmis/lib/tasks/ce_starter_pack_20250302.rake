@@ -319,7 +319,7 @@ task ce_starter_pack_20250302: [:environment] do
   # if there are any units in the project that don't have a unit group, assign them to this one
   ce_project.units.where(unit_group: nil).each { |u| u.update!(unit_group: unit_group) }
   # clean up any dangling opportunities that don't have an owner
-  Hmis::Ce::Opportunity.all.filter { |o| o.owner.nil? }.each { |u| u.referrals.each(&:destroy!) }.map(&:destroy!)
+  Hmis::Ce::Opportunity.all.filter { |o| o.unit.nil? }.each { |u| u.referrals.each(&:destroy!) }.map(&:destroy!)
 
   # Set up match rules in this project
   puts 'Creating match rules'
