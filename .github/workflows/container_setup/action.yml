@@ -93,6 +93,7 @@ runs:
           software-properties-common \
           tmux \
           unzip \
+          zlib1g-dev \
           ${{ inputs.additional_packages }}
         apt-get clean
 
