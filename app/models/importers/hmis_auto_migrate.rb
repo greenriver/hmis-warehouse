@@ -55,7 +55,6 @@ module Importers::HmisAutoMigrate
 
     return version unless available_migrations.keys.include?(version)
 
-    puts "Migrating format from #{version}"
     notifier&.ping "Migrating format from #{version}"
     # Apply available migrations
     Dir.mktmpdir do |source_dir|
