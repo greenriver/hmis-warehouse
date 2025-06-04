@@ -28,7 +28,10 @@
         - editable = @column_state.find{|m| m.class == column.class}&.editable
         %tr.draggable-list__item{id: "sorted-col-#{column.column}", class: visibility_class}
           %td
-            %span.icon-move
+            .d-flex.align-items-center
+              %span.icon-move
+              %button.btn.btn-sm.btn-link.move-to-top{type: 'button', title: 'Move to top'}
+                %i.icon-arrow-up
           %td
             %input{type: 'checkbox', value: '1', checked: visible, name: "column_state[visible][#{column.column}]", id: "column_state_visible_#{column.column}"}
           %td
@@ -38,12 +41,19 @@
             = column.title
           %td
             = if column.show_description? then column.description else '' end
+
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 - content_for :page_js do
   :javascript
     $(function() {
       $('.draggable-list').sortable({axis: 'y', containment: "parent"});
+
+      // Add move to top functionality
+      $('.move-to-top').on('click', function() {
+        var $item = $(this).closest('.draggable-list__item');
+        $('.draggable-list').prepend($item);
+      });
 
       $(document).on('submit', '#edit_column_state', function(event) {
         var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
