@@ -1096,6 +1096,10 @@ class WarehouseReport::Outcomes::Base
           row[:race],
         ]
       end
+    else
+      # This is unexpected. Set rows to an empty array for a more graceful handling of the error, but log it to Sentry.
+      rows = []
+      Sentry.capture_message("Outcomes Report: Unknown metric passed to support_for: #{metric}")
     end
 
     clients = client_source.where(id: rows.map(&:first)).

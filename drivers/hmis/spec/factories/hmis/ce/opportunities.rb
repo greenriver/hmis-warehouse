@@ -15,5 +15,6 @@ FactoryBot.define do
     sequence(:name) { |n| "Opportunity #{n}" }
     project { association :hmis_hud_project, data_source: data_source }
     workflow_template { association :hmis_workflow_definition_template, data_source: data_source }
+    unit { association :hmis_unit, project: project }
   end
 end
