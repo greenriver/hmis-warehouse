@@ -28,6 +28,7 @@ class Hmis::Form::DefinitionValidator
 
     # Check conditions like enable_when and autofill_when.
     # First initialize a FormDefinition to use the logic for generating an item hash, but don't persist it.
+    # item_hash's limitiation is that it does not include groups; see comments below in check_condition.
     item_hash = Hmis::Form::Definition.new(definition: document).link_id_item_hash
     check_conditions(document, item_hash)
 
@@ -175,7 +176,10 @@ class Hmis::Form::DefinitionValidator
   def check_condition(condition, item_hash, link_id)
     return unless condition.key?('question') # Not currently validating conditions with local constants; see below
 
-    # Find the referenced question. It should exist, but don't raise if not; that's checked elsewhere
+    # Find the referenced question.
+    # item_hash does not contain groups, and the referenced question could be a group (with an EXISTS condition, for instance).
+    # But for now we are only validating against pick_list_options and pick_list_reference (which groups won't have).
+    # Therefore, if item_hash doesn't contain the referenced question, just return without raising an error.
     referenced_question = item_hash[condition['question']]
     return if referenced_question.nil?
 
