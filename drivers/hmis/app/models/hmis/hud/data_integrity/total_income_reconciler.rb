@@ -56,10 +56,10 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler
       source = record.public_send(source_field)&.to_i
       amount = record.public_send(amount_field)&.to_f
 
-      # we do not respect the source field when calculating total value
+      # we ignore the source field when calculating total value
       result += amount if amount&.positive?
 
-      # report inconsistencies
+      # report inconsistencies if the source was set to true
       if source == 1
         report(record, "Expected #{amount_field} to be provided but was #{amount.inspect}") if amount.nil? || amount&.negative? || amount&.zero?
       end
