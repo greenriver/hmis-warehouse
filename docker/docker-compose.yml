@@ -179,12 +179,12 @@ services:
       yarn:
         condition: service_started
 
-  # To transition from a previous major version to pg16, run ./docker/pg16/upgrade.sh
+  # To transition from a previous major version to pg17, run `bash ./docker/pg17/upgrade.sh`
   db_previous:
     build:
-      context: docker/pg13
+      context: docker/pg16
     container_name: db_previous
-    image: warehousepg:13
+    image: warehousepg:16
     profiles:
       - manual
     environment:
@@ -199,7 +199,7 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg13}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg16}:/var/lib/postgresql/data
     ports:
       - 5432
     expose:
@@ -208,10 +208,10 @@ services:
   # This should no longer need to be overridden for ARM processors
   db:
     build:
-      context: docker/pg16
+      context: docker/pg17
       shm_size: 1g
     container_name: hmis-warehouse-db
-    image: warehousepg:16
+    image: warehousepg:17
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -229,11 +229,11 @@ services:
       # to do that, set DB_DATA_VOLUME in your env or use a docker override file
       # For example:
       #   DB_DATA_VOLUME=./dev/db_data
-      - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME:-dbdata_pg17}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
       - ./db:/mnt
     ports:
-      - 5432
+      - "${DBPORT:-15432}:5432"
     expose:
       - 5432
     stop_grace_period: 30s
