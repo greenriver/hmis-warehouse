@@ -34,7 +34,7 @@ module Types
       resolve_units(**args)
     end
 
-    # Keeping this from Project, to support displaying availability by unit types. Don't resolve in batch.
+    # Similar to `Project.unit_types`, this supports displaying availability by unit types. Don't resolve in batch.
     def unit_types
       capacity = object.units.group(:unit_type_id).count
       unoccupied = object.units.unoccupied_on.group(:unit_type_id).count
