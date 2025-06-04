@@ -753,12 +753,39 @@ type CeMatchRule {
   Rule applies to projects within this related entity (eg a Data Source,
   Project, Organization), possibly limited by project type or funder
   """
-  ownerType: String!
+  ownerType: CeMatchRuleOwner!
 
   """
   Rule applicability is limited to projects with these types
   """
   projectTypes: [ProjectType!]!
+}
+
+enum CeMatchRuleOwner {
+  """
+  Data Source
+  """
+  DATA_SOURCE
+
+  """
+  Organization
+  """
+  ORGANIZATION
+
+  """
+  Project
+  """
+  PROJECT
+
+  """
+  Unit
+  """
+  UNIT
+
+  """
+  Unit Group
+  """
+  UNIT_GROUP
 }
 
 type CeOpportunitiesPaginated {
@@ -12139,7 +12166,7 @@ enum UnitFilterOptionStatus {
 
 input UnitFilterOptions {
   occupancyStatus: UnitOccupancyStatus
-  status: [UnitFilterOptionStatus!] @deprecated(reason: "Use `occupancy_status` instead. This will be removed in a future version.")
+  status: [UnitFilterOptionStatus!] @deprecated(reason: "Use `occupancyStatus` instead")
   unitGroup: [ID!]
   unitType: [ID!]
 }

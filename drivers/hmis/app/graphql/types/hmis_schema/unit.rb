@@ -18,7 +18,7 @@ module Types
           value 'AVAILABLE', description: 'Available' # Vacant
           value 'FILLED', description: 'Filled' # Occupied
         end,
-      ], deprecation_reason: 'Use `occupancy_status` instead. This will be removed in a future version.'
+      ], deprecation_reason: 'Use `occupancyStatus` instead'
     end
 
     field :id, ID, null: false
