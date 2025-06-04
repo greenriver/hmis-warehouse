@@ -35,6 +35,7 @@ module Mutations
         Hmis::Unit.new(
           project_id: project.id,
           unit_type_id: unit_type&.id,
+          # TODO: place unit into new or existing unit group if not specified
           hmis_unit_group_id: unit_group&.id, # optional
           **common,
         )

@@ -37,6 +37,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
           unit_type_id: unit_type.id,
           unit_size: unit_type.unit_size,
           user_id: user.id,
+          # TODO: place unit into new or existing unit group
         }
       end
     end

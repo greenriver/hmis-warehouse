@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Used to enqueue tasks that should be run once.
 # The pattern is something like:
 #
@@ -11,6 +13,7 @@
 # iterate over the list in the cron job
 # If there is a record for that class in the table with no queued_at, then queue a job (and mark it queued)
 # To re-run a task, insert a new row with a blank queued_at value
+# TODO: enqueue TaskQueue for migrating all existing Units into generated UnitGroups
 class TaskQueue < ApplicationRecord
   # Marking something as inactive indicates that it should be re-queued
   scope :active, -> do
