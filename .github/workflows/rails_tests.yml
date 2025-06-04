@@ -33,7 +33,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-      id-token: write
       pull-requests: read
 
     # Containers must run in Linux based operating systems

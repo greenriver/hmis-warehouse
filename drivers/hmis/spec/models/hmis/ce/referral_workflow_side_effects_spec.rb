@@ -124,7 +124,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       let!(:unit) { create :hmis_unit, project: project }
 
       before do
-        opportunity.update!(owner: unit)
+        opportunity.update!(unit: unit)
       end
 
       it 'marks the unit as occupied' do

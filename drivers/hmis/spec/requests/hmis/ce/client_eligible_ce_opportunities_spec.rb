@@ -310,7 +310,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           opportunities = 30.times.map do
             build(:hmis_ce_opportunity, project: p1, data_source: ds1, candidate_pool: pool_veterans)
           end
-          Hmis::Ce::Opportunity.import!(opportunities)
+          opportunities.map(&:save!)
         end
 
         it 'makes a reasonable number of db queries' do
