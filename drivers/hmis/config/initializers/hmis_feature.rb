@@ -27,8 +27,6 @@ end
 TodoOrDie('Remove one-time job', by: '2025-07-01')
 if ENV['ENABLE_HMIS_API'] == 'true'
   Rails.application.config.queued_tasks[:hmis_correct_total_income_20250602] = -> do
-    Hmis::Hud::IncomeBenefit.transaction do
-      HmisDataCleanup::Util.correct_total_income_records!
-    end
+    HmisDataCleanup::Util.correct_total_income_records!
   end
 end

@@ -523,7 +523,7 @@ module HmisDataCleanup
 
     # Similar to fix_missing_monthly_total_income! but with logging and transactional safety.
     # Added for one-time use, can be removed once the corresponding"TaskQueue" is completed
-    def correct_total_income_records!
+    def self.correct_total_income_records!
       return unless HmisEnforcement.hmis_enabled?
 
       data_sources = GrdaWarehouse::DataSource.hmis
@@ -535,6 +535,7 @@ module HmisDataCleanup
         preload(:income_benefit)
 
       system_hud_user = Hmis::Hud::User.from_user(Hmis::User.system_user)
+      messages = []
       Hmis::Hud::IncomeBenefit.transaction do
         scope.find_each do |fp|
           record = fp.income_benefit
@@ -543,15 +544,15 @@ module HmisDataCleanup
           # skip records that were likely created by migrations
           next if record.user_id.nil? || record.user_id == system_hud_user.user_id
 
-          messages = Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
-          messages.each do |message|
-            if Rails.env.development?
-              puts message
-            else
-              Sentry.capture_message(message)
-            end
-          end
+          messages += Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
           record.save! if record.changed?
+        end
+      end
+      messages.each do |message|
+        if Rails.env.development?
+          puts message
+        else
+          Sentry.capture_message(message)
         end
       end
     end
