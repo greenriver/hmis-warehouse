@@ -55,12 +55,12 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.cache_key }}
 
-      - name: Log in to ghcr.io
-        env:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo $password | docker login ghcr.io -u $username --password-stdin
+      # - name: Log in to ghcr.io
+      #   env:
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     echo $password | docker login ghcr.io -u $username --password-stdin
 
       # https://github.com/docker/build-push-action
       - name: Build image

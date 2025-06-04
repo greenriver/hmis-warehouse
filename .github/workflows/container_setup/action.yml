@@ -87,7 +87,6 @@ runs:
           python3 \
           python3-pip \
           python3-venv \
-          tmux \
           unzip \
           ${{ inputs.additional_packages }}
         apt-get clean
@@ -107,7 +106,7 @@ runs:
 
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
-      shell: ${{ inputs.shell }}
+      shell: bash
       run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
     - name: Install gems
@@ -126,5 +125,5 @@ runs:
         key: ${{ runner.os }}-node_modules-${{ hashFiles('**/yarn.lock') }}
 
     - name: Install Node.js modules
-      shell: ${{ inputs.shell }}
+      shell: bash
       run: yarn install --frozen-lockfile
