@@ -13,18 +13,25 @@ RSpec.describe Importers::HmisAutoMigrate do
     let(:csv_dir_2022) { 'spec/fixtures/files/importers/twenty_twenty_two/baseline' }
     let(:csv_dir_2024) { 'spec/fixtures/files/importers/twenty_twenty_four/baseline' }
     let(:csv_dir_2026) { 'spec/fixtures/files/importers/twenty_twenty_six/baseline' }
-
+    let(:csv_tmp_dir) { 'tmp/test' }
     let(:notifier) { nil }
 
     before(:each) do
       allow(Rails.env).to receive(:production?).and_return(false)
       allow(Rails.env).to receive(:staging?).and_return(false)
+      FileUtils.rm_rf(csv_tmp_dir)
+      FileUtils.mkdir_p(csv_tmp_dir)
+    end
+
+    after(:each) do
+      FileUtils.rm_rf(csv_tmp_dir)
     end
 
     context 'in development and testing environments' do
       it 'returns 2026 for any version' do
+        FileUtils.cp_r(csv_dir_2022, csv_tmp_dir)
         allow(described_class).to receive(:calculate_current_version).and_return('2022')
-        expect(described_class.apply_migrations(csv_dir_2022, notifier)).to eq('2026')
+        expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
       end
     end
 
@@ -35,46 +42,52 @@ RSpec.describe Importers::HmisAutoMigrate do
 
       context 'before October 1st, 2025' do
         it 'returns 2024 for version 2022' do
+          FileUtils.cp_r(csv_dir_2022, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2022')
           travel_to '2025-09-30' do
-            expect(described_class.apply_migrations(csv_dir_2022, notifier)).to eq('2024')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2024')
           end
         end
 
         it 'returns provided version for 2024' do
+          FileUtils.cp_r(csv_dir_2024, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2024')
           travel_to '2025-09-30' do
-            expect(described_class.apply_migrations(csv_dir_2024, notifier)).to eq('2024')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2024')
           end
         end
 
         it 'returns provided version for 2026' do
+          FileUtils.cp_r(csv_dir_2026, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2026')
           travel_to '2025-09-30' do
-            expect(described_class.apply_migrations(csv_dir_2026, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
       end
 
       context 'on or after October 1st, 2025' do
         it 'returns 2026 for version 2022' do
+          FileUtils.cp_r(csv_dir_2022, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2022')
           travel_to '2025-10-01' do
-            expect(described_class.apply_migrations(csv_dir_2022, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
 
         it 'returns 2026 for version 2024' do
+          FileUtils.cp_r(csv_dir_2024, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2024')
           travel_to '2025-10-01' do
-            expect(described_class.apply_migrations(csv_dir_2024, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
 
         it 'returns 2026 for version 2026' do
+          FileUtils.cp_r(csv_dir_2026, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2026')
           travel_to '2025-10-01' do
-            expect(described_class.apply_migrations(csv_dir_2026, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
       end
@@ -87,46 +100,52 @@ RSpec.describe Importers::HmisAutoMigrate do
 
       context 'before September 1st, 2025' do
         it 'returns 2024 for version 2022' do
+          FileUtils.cp_r(csv_dir_2022, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2022')
           travel_to '2025-08-31' do
-            expect(described_class.apply_migrations(csv_dir_2022, notifier)).to eq('2024')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2024')
           end
         end
 
         it 'returns provided version for 2024' do
+          FileUtils.cp_r(csv_dir_2024, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2024')
           travel_to '2025-08-31' do
-            expect(described_class.apply_migrations(csv_dir_2024, notifier)).to eq('2024')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2024')
           end
         end
 
         it 'returns provided version for 2026' do
+          FileUtils.cp_r(csv_dir_2026, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2026')
           travel_to '2025-08-31' do
-            expect(described_class.apply_migrations(csv_dir_2026, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
       end
 
       context 'on or after September 1st, 2025' do
         it 'returns 2026 for version 2022' do
+          FileUtils.cp_r(csv_dir_2022, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2022')
           travel_to '2025-09-01' do
-            expect(described_class.apply_migrations(csv_dir_2022, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
 
         it 'returns 2026 for version 2024' do
+          FileUtils.cp_r(csv_dir_2024, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2024')
           travel_to '2025-09-01' do
-            expect(described_class.apply_migrations(csv_dir_2024, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
 
         it 'returns 2026 for version 2026' do
+          FileUtils.cp_r(csv_dir_2026, csv_tmp_dir)
           allow(described_class).to receive(:calculate_current_version).and_return('2026')
           travel_to '2025-09-01' do
-            expect(described_class.apply_migrations(csv_dir_2026, notifier)).to eq('2026')
+            expect(described_class.apply_migrations(csv_tmp_dir, notifier)).to eq('2026')
           end
         end
       end
