@@ -16,7 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 1 }
   let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
   let!(:unit) { create(:hmis_unit_in_group, project: project) }
-  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, owner: unit }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit }
 
   let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
 
