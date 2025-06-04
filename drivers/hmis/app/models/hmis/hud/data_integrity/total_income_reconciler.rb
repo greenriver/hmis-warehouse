@@ -35,15 +35,15 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler
 
   def check_no_income_fields(record)
     total = record.total_monthly_income
-    report(record, "Expected total_monthly_income to be zero or nil, was #{total}") if total.to_f > 0
+    report(record, "Expected total_monthly_income to be zero or nil, was #{total}") if total.to_f.positive?
   end
 
   def reconcile_total_income(record)
     calculated_income = calculate_total_income(record)
     # Normalize nil total_monthly_income to 0 for comparison
     total_income = record.total_monthly_income.to_f
-    # do nothing if total income matches calculated
-    return if calculated_income.round(2) == total_income.round(2)
+    # do nothing if total income matches calculated within tolerance
+    return if (calculated_income - total_income).abs < 0.01
 
     # report and correct value
     report(record, "Total monthly income does not match calculated income. Expected #{record.total_monthly_income&.to_f.inspect} to equal calculated: #{calculated_income.inspect} (auto-corrected)")
