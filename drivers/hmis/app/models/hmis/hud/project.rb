@@ -43,6 +43,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
+  has_many :unit_groups, dependent: :destroy, class_name: 'Hmis::UnitGroup'
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
 
   has_many :group_viewable_entity_projects
