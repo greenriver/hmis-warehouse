@@ -19,7 +19,9 @@ Rails.application.config.queued_tasks[:hmis_check_constraints] = -> do
   Hmis::Tasks::CheckConstraints.check_hud_constraints
 end
 
-Rails.application.config.queued_tasks[:hmis_disabling_condition_and_race_cleanup_2_2025] = -> do
-  HmisDataCleanup::Util.fix_disabling_condition_nils!
-  HmisDataCleanup::Util.fix_race_gender_99s!
+TodoOrDie('Remove one-time job', by: '2025-07-01')
+if ENV['ENABLE_HMIS_API'] == 'true'
+  Rails.application.config.queued_tasks[:hmis_migrate_unit_groups] = -> do
+    MigrateUnitGroups20250604.new.perform
+  end
 end
