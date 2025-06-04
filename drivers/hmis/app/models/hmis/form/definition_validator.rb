@@ -173,6 +173,8 @@ class Hmis::Form::DefinitionValidator
     link_check.call(document)
   end
 
+  # todo @martha have to figure out what is going on with this!
+  KNOWN_WONKY = Set.new(['ProjectType', 'ProjectCompletionStatus'])
   def check_condition(condition, item_hash, link_id)
     return unless condition.key?('question') # Not currently validating conditions with local constants; see below
 
@@ -182,35 +184,31 @@ class Hmis::Form::DefinitionValidator
     # Therefore, if item_hash doesn't contain the referenced question, just return without raising an error.
     referenced_question = item_hash[condition['question']]
     return if referenced_question.nil?
-
     return unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference']
 
     if referenced_question['pick_list_reference']
-      begin
-        options = Types::Forms::PickListOption.
-          options_for_type(referenced_question['pick_list_reference'], user: nil).
-          map(&:deep_stringify_keys)
-      rescue ArgumentError
-        # TODO - discuss, likely not worth it?
-        puts(referenced_question['pick_list_reference'])
-        return
-      end
+      return if KNOWN_WONKY.include?(referenced_question['pick_list_reference'])
+
+      valid_answer_codes = pick_list_reference_to_allowed_values[referenced_question['pick_list_reference']]
+
+      # See comments on pick_list_reference_to_allowed_values.
+      # If options is nil, this picklist falls under case #1, and we don't attempt to validate its dependent questions.
+      return if valid_answer_codes.nil?
     else
-      options = referenced_question['pick_list_options']
+      valid_answer_codes = referenced_question['pick_list_options'].map { |opt| opt['code'].to_s }
+      valid_answer_group_codes = referenced_question['pick_list_options'].map { |opt| opt['group_code'].to_s }.uniq
     end
 
-    answer_codes = condition.values_at('answer_code', 'answer_codes').compact.uniq
+    answer_codes = condition.values_at('answer_code', 'answer_codes').flatten.compact.uniq
     if answer_codes.any?
-      valid_answer_codes = options.map { |opt| opt['code'].to_s }
       (answer_codes - valid_answer_codes).each do |code|
         add_issue("Invalid answer code: #{code} in 'enable_when' prop of #{link_id}")
       end
     end
 
-    if condition.key?('answer_group_code') # rubocop:disable Style/GuardClause
-      valid_codes = options.map { |opt| opt['group_code'].to_s }.compact.uniq
+    if condition.key?('answer_group_code') && valid_answer_group_codes # rubocop:disable Style/GuardClause
       code = condition['answer_group_code']
-      add_issue("Invalid answer group code: #{code} in 'enable_when' prop of #{link_id}") unless valid_codes.include?(code)
+      add_issue("Invalid answer group code: #{code} in 'enable_when' prop of #{link_id}") unless valid_answer_group_codes.include?(code)
     end
 
     # TODO: Additional validations. We attempt to ensure this validity in the form property editor,
@@ -254,17 +252,29 @@ class Hmis::Form::DefinitionValidator
     add_issue("Missing required link IDs for role #{role}: #{missing_link_ids.join(', ')}") if missing_link_ids.any?
   end
 
+  # See comments below on pick_list_reference_to_allowed_values
+  def allowed_pick_list_references
+    pick_list_reference_to_allowed_values.keys.to_set
+  end
+
   # Introspect on GraphQL schema to get a superset of allowed values for `pick_list_reference`.
   # This list includes ALL enums in the HUD schema, so it includes some enums
   # that don't make sense as pick lists.
-  def allowed_pick_list_references
-    @allowed_pick_list_references ||= begin
+  # Map them to their allowed values, where possible. There are 2 things pick_list_reference can refer to:
+  # 1. one of Types::Forms::Enums::PickListType.values.keys, which are resolved on the backend by PickListType.
+  # Many of these require additional context (project id, user, enrollment id, etc), so here, we don't attempt to resolve their allowed values.
+  # 2. any GraphQL Enum, which are resolved against the code-generated HmisEnums class on the frontend.
+  # These are the ones we resolve allowed values for below.
+  def pick_list_reference_to_allowed_values
+    @pick_list_reference_to_allowed_values ||= begin
       enums = []
       collect_enums = ->(parent) {
         parent.constants.each do |name|
           child = parent.const_get(name)
           if child.is_a? Class
-            enums << child.graphql_name if child < Types::BaseEnum
+            graphql_name = child.graphql_name # graphql_name is the string referenced by form item, such as 'Race'
+            class_name = child.name.constantize # class name, such as 'Types::HmisSchema::Enums::Race'
+            enums << [graphql_name, class_name] if child < Types::BaseEnum
           elsif child.is_a? Module
             collect_enums.call(child)
           end
@@ -276,8 +286,11 @@ class Hmis::Form::DefinitionValidator
       # Include all enums in Types::Forms::Enums namespace
       collect_enums.call(Types::Forms::Enums)
       # Include all pick list types
-      enums += Types::Forms::Enums::PickListType.values.keys
-      enums.to_set
+      enums += Types::Forms::Enums::PickListType.values.keys.map { |name| [name, nil] } # nil because these represent case #1 above
+
+      # return a hash mapping the enum name to a list of allowed values.
+      # for example, { "Race" => ["AM_IND_AK_NATIVE", "ASIAN", ...] }
+      enums.to_h.map { |str, klass| [str, klass&.values&.keys] }.to_h
     end
   end
 
