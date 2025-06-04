@@ -34,7 +34,7 @@ ARG GROUP_ID=10000
 ARG BUNDLER_VERSION=2.6.3
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.3.7
+LABEL "ruby-version"=3.3.8
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -84,9 +84,10 @@ RUN apt-get update && apt-get upgrade -y \
   awscli \
   bash \
   build-essential \
-  ca-certificates \
   chromium \
   chromium-common \
+  dbus \
+  dbus-user-session \
   file \
   fonts-dejavu \
   fonts-droid-fallback \
@@ -102,6 +103,7 @@ RUN apt-get update && apt-get upgrade -y \
   libffi-dev \
   libfreetype-dev \
   libfreetype6 \
+  libgeos-dev \
   libglib2.0-0 \
   libharfbuzz-dev \
   libheif1 \
@@ -118,8 +120,13 @@ RUN apt-get update && apt-get upgrade -y \
   locales-all \
   nodejs \
   p7zip-full \
+  packagekit \
+  packagekit-tools \
+  policykit-1 \
   poppler-utils \
+  postgresql-client \
   shared-mime-info \
+  software-properties-common \
   tar \
   tzdata \
   vim \

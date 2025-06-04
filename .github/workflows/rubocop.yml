@@ -13,7 +13,7 @@ jobs:
     name: Rubocop
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.3.8-bullseye
+    container: ruby:3.3.8-slim-bookworm
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
