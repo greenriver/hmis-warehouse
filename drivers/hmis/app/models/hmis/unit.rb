@@ -53,6 +53,10 @@ class Hmis::Unit < Hmis::HmisBase
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
 
+  scope :viewable_by, ->(user) do
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
+  end
+
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
 
   scope :occupied_on, ->(date = Date.current) do
