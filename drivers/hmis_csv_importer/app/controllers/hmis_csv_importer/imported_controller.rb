@@ -16,7 +16,7 @@ class HmisCsvImporter::ImportedController < ApplicationController
     @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
       find_by(importer_log_id: log.id)
     @filename = @import.files.detect { |_, v| v == params[:file] }&.last
-    @klass = importable_file(version: version(log, @import), filename: @filename)
+    @klass = importable_file_class(version: version(log, @import), filename: @filename)
     @data = @klass.where(importer_log_id: log.id).
       order(@klass.hud_key => :asc)
     @pagy, @data = pagy(@data, items: 500)
