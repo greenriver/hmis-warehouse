@@ -6938,8 +6938,7 @@ CREATE TABLE public.ce_opportunities (
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    owner_type character varying,
-    owner_id bigint
+    unit_id bigint NOT NULL
 );
 
 
@@ -60881,17 +60880,17 @@ CREATE INDEX index_ce_opportunities_on_candidate_pool_id ON public.ce_opportunit
 
 
 --
--- Name: index_ce_opportunities_on_owner; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_ce_opportunities_on_owner ON public.ce_opportunities USING btree (owner_type, owner_id);
-
-
---
 -- Name: index_ce_opportunities_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_ce_opportunities_on_project_id ON public.ce_opportunities USING btree (project_id);
+
+
+--
+-- Name: index_ce_opportunities_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_opportunities_on_unit_id ON public.ce_opportunities USING btree (unit_id);
 
 
 --
@@ -73261,6 +73260,14 @@ ALTER TABLE ONLY public.inbound_api_configurations
 
 
 --
+-- Name: ce_opportunities fk_rails_45bb402412; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_opportunities
+    ADD CONSTRAINT fk_rails_45bb402412 FOREIGN KEY (unit_id) REFERENCES public.hmis_units(id);
+
+
+--
 -- Name: wfd_nodes fk_rails_46be86d658; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -73987,6 +73994,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250603132106'),
 ('20250528205252'),
 ('20250528000208'),
 ('20250523195117'),

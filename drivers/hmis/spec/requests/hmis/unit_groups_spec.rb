@@ -69,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'eligibilityRequirements' => [
               a_hash_including(
                 'id' => eligibility_requirement.id.to_s,
-                'ownerType' => 'Unit Group',
+                'ownerType' => 'UNIT_GROUP',
                 'projectTypes' => ['ES_NBN'],
               ),
             ],

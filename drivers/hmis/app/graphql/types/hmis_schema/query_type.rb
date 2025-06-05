@@ -582,5 +582,19 @@ module Types
 
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
+
+    field :unit_group, HmisSchema::UnitGroup, null: true do
+      argument :id, ID, required: true
+    end
+    def unit_group(id:)
+      Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :unit, HmisSchema::Unit, null: true do
+      argument :id, ID, required: true
+    end
+    def unit(id:)
+      Hmis::Unit.viewable_by(current_user).find_by(id: id)
+    end
   end
 end

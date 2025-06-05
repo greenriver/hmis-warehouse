@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# TODO remove this opportunity, deprecated
+# TODO remove this mutation, deprecated
 module Mutations
   class Ce::CreateCeOpportunity < CleanBaseMutation
     argument :project_id, ID, required: true
@@ -27,7 +27,7 @@ module Mutations
       project.with_lock do
         unit_group = project.unit_groups.last
         unit = Hmis::Unit.create!(name: input.name, project: project, user_id: current_user.id, unit_group: unit_group)
-        opportunity = Hmis::Ce::Opportunity.new(project: project, owner: unit)
+        opportunity = Hmis::Ce::Opportunity.new(project: project, unit: unit)
         opportunity.name = input.name
         opportunity.workflow_template = template
         opportunity.save!
