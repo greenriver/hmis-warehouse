@@ -39,8 +39,8 @@ module HmisStructure::Base
     # Set the default version
     # NOTE: this needs to be updated with each FY change
     def hud_csv_version
-      # Move to 2026 in production after 2026-10-01
-      @hud_csv_version ||= if Rails.env.production? && Date.current < Date.new(2026, 10, 1)
+      # Move to 2026 in production after 2025-10-01
+      @hud_csv_version ||= if Rails.env.production? && Date.current < Date.new(2025, 10, 1)
         '2024'
         # move to 2026 everywhere else after 2025-09-01
       elsif Date.current < Date.new(2025, 9, 1)
