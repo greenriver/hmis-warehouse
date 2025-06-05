@@ -1,9 +1,9 @@
 filter = Filters::FilterBase.new(user_id: @report.user_id).update(@report.options.with_indifferent_access)
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Summary') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row([@report.report_name], style: title)
-  filter.describe_filter.uniq.each do |(k, v)|
+  filter.describe_filter(@generator.allowed_options(@report)).uniq.each do |(k, v)|
     v = v.join(', ') if v.is_a?(Array)
     sheet.add_row([k, v])
   end
