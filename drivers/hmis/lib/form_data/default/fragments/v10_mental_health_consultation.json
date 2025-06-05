@@ -1,0 +1,19 @@
+{
+  "type": "GROUP",
+  "link_id": "V10",
+  "text": "Mental Health Consultation",
+  "data_collected_about": "HOH",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "V10_1",
+      "required": false,
+      "text": "Mental Health Consultation Status",
+      "pick_list_reference": "MentalHeathConsultation",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "MentalHealthConsultation"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "type": "GROUP",
+  "link_id": "q_4_21",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "q_4_21_1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Sex",
+      "pick_list_reference": "Sex",
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "sex"
+      }
+    }
+  ]
+}

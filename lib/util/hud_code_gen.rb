@@ -30,6 +30,7 @@ module HudCodeGen
     voucher_trackings: :voucher_tracking_options,
     moving_on_assistances: :moving_on_assistance_options,
     races: :race_field_name_to_description,
+    sexual_orientation: :sexual_orientation_options,
   }.stringify_keys.freeze
 
   LOOKUP_FN_OVERRIDES = {
@@ -37,6 +38,7 @@ module HudCodeGen
     when_dv_occurred: :when_d_v_occurred,
     event_type: :event,
     dependent_under6: :dependent_under_6,
+    funding_sources: :funding_source,
   }.stringify_keys.freeze
 
   GRAPHQL_NAME_OVERRIDES = {
@@ -50,7 +52,14 @@ module HudCodeGen
     raise ArgumentError, 'Year is required' unless year
 
     source = File.read("lib/data/#{year}_hud_lists.json")
-    all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
+    all_lists = JSON.parse(source)
+
+    deprecations_file = "lib/data/#{year}_hud_deprecations.json"
+    if File.exist?(deprecations_file)
+      all_lists.concat(JSON.parse(File.read(deprecations_file)))
+    end
+
+    all_lists = all_lists.sort_by { |hash| hash['code'] }
     skipped = []
     filename = "lib/util/concerns/hud_lists_#{year}.rb"
     arr = []
@@ -97,6 +106,16 @@ module HudCodeGen
     raise ArgumentError, 'Year is required' unless year
 
     source = File.read("lib/data/#{year}_hud_lists.json")
+    all_lists = JSON.parse(source)
+
+    deprecations_file = "lib/data/#{year}_hud_deprecations.json"
+    if File.exist?(deprecations_file)
+      all_lists.concat(JSON.parse(File.read(deprecations_file)))
+    end
+
+    # ideally we would sort by code, but this causes a lot of churn
+    # all_lists = all_lists.sort_by { |hash| hash['code'] }
+
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
     hud_utility_class = year == '2022' ? 'HudUtility' : "HudUtility#{year}"
@@ -111,7 +130,7 @@ module HudCodeGen
 
       module Types::HmisSchema::Enums::Hud
     "
-    JSON.parse(source).each do |element|
+    all_lists.each do |element|
       next if skipped.include?(element['code'].to_s)
 
       name = element['name']

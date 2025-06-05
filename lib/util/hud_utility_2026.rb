@@ -24,9 +24,6 @@ module HudUtility2026
     def ssvf_financial_assistance(id, reverse = false, raise_on_missing: false)
       _translate(ssvf_financial_assistance_options_current, id, reverse, raise_on_missing: raise_on_missing)
     end
-
-    # bring in deprecated fields and options from previous years
-    include HudUtility2026Deprecations
   end
 
   ##

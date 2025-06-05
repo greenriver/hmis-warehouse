@@ -224,8 +224,8 @@ module Types::HmisSchema::Enums::Hud
     value 'HUD_COC_JOINT_COMPONENT_TH_RRH', '(44) HUD: CoC - Joint Component TH/RRH', value: 44
     value 'VA_GRANT_PER_DIEM_CASE_MANAGEMENT_HOUSING_RETENTION', '(45) VA: Grant Per Diem - Case Management/Housing Retention', value: 45
     value 'LOCAL_OR_OTHER_FUNDING_SOURCE', '(46) Local or Other Funding Source', value: 46
-    value 'HUD_ESG_CV', '(47) HUD: ESG - CV', value: 47
-    value 'HUD_HOPWA_CV', '(48) HUD: HOPWA - CV', value: 48
+    value 'HUD_ESG_CV_DEPRECATED', '(47) HUD: ESG - CV [Deprecated]', value: 47
+    value 'HUD_HOPWA_CV_DEPRECATED', '(48) HUD: HOPWA - CV [Deprecated]', value: 48
     value 'HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED', '(49) HUD: CoC - Joint Component RRH/PSH [Deprecated]', value: 49
     value 'HUD_HOME', '(50) HUD: HOME', value: 50
     value 'HUD_HOME_ARP', '(51) HUD: HOME (ARP)', value: 51
@@ -233,6 +233,7 @@ module Types::HmisSchema::Enums::Hud
     value 'HUD_ESG_RUSH', '(53) HUD: ESG - RUSH', value: 53
     value 'HUD_UNSHELTERED_SPECIAL_NOFO', '(54) HUD: Unsheltered Special NOFO', value: 54
     value 'HUD_RURAL_SPECIAL_NOFO', '(55) HUD: Rural Special NOFO', value: 55
+    value 'HUD_COC_BUILDS', '(56) HUD: CoC Builds', value: 56
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -927,6 +928,14 @@ module Types::HmisSchema::Enums::Hud
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
+  class Sex < Types::BaseEnum
+    description 'HUD Sex (4.21)'
+    graphql_name 'Sex'
+    value 'FEMALE', '(0) Female', value: 0
+    value 'MALE', '(1) Male', value: 1
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
   class RHYServices < Types::BaseEnum
     description 'HUD RHYServices (R14.2)'
     graphql_name 'RHYServices'
@@ -959,7 +968,6 @@ module Types::HmisSchema::Enums::Hud
     value 'TRANSPORTATION_SERVICES_TOKENS_VOUCHERS', '(8) Transportation services: tokens/vouchers', value: 8
     value 'TRANSPORTATION_SERVICES_VEHICLE_REPAIR_MAINTENANCE', '(9) Transportation services: vehicle repair/maintenance', value: 9
     value 'CHILD_CARE', '(10) Child care', value: 10
-    value 'GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED', '(11) General housing stability assistance - emergency supplies [Deprecated]', value: 11
     value 'GENERAL_HOUSING_STABILITY_ASSISTANCE', '(12) General housing stability assistance', value: 12
     value 'EMERGENCY_HOUSING_ASSISTANCE', '(14) Emergency housing assistance', value: 14
     value 'SHALLOW_SUBSIDY_FINANCIAL_ASSISTANCE', '(15) Shallow Subsidy - Financial Assistance', value: 15
@@ -1251,21 +1259,6 @@ module Types::HmisSchema::Enums::Hud
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
-  class SexualOrientation < Types::BaseEnum
-    description 'HUD SexualOrientation (R3.1)'
-    graphql_name 'SexualOrientation'
-    value 'HETEROSEXUAL', '(1) Heterosexual', value: 1
-    value 'GAY', '(2) Gay', value: 2
-    value 'LESBIAN', '(3) Lesbian', value: 3
-    value 'BISEXUAL', '(4) Bisexual', value: 4
-    value 'QUESTIONING_UNSURE', '(5) Questioning / unsure', value: 5
-    value 'OTHER', '(6) Other', value: 6
-    value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
-    value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
-    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
-    value 'INVALID', 'Invalid Value', value: -999999
-  end
-
   class LastGradeCompleted < Types::BaseEnum
     description 'HUD LastGradeCompleted (R4.1)'
     graphql_name 'LastGradeCompleted'
@@ -1379,11 +1372,12 @@ module Types::HmisSchema::Enums::Hud
     value 'SHALLOW_SUBSIDY', '(7) Shallow Subsidy', value: 7
     value 'RETURNING_HOME', '(8) Returning Home', value: 8
     value 'RAPID_RESOLUTION', '(9) Rapid Resolution', value: 9
+    value 'HEALTHCARE_NAVIGATION', '(10) Healthcare Navigation', value: 10
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
   class HOPWAFinancialAssistance < Types::BaseEnum
-    description 'HUD HOPWAFinancialAssistance (W2.2)'
+    description 'HUD HOPWAFinancialAssistance (V2.3)'
     graphql_name 'HOPWAFinancialAssistance'
     value 'RENTAL_ASSISTANCE', '(1) Rental assistance', value: 1
     value 'SECURITY_DEPOSITS', '(2) Security deposits', value: 2
@@ -1704,6 +1698,16 @@ module Types::HmisSchema::Enums::Hud
     value 'VETERAN_IS_INCARCERATED', '(11) Veteran is incarcerated', value: 11
     value 'VETERAN_IS_DECEASED', '(12) Veteran is deceased', value: 12
     value 'OTHER', '(13) Other', value: 13
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
+  class MentalHeathConsultation < Types::BaseEnum
+    description 'HUD MentalHeathConsultation (V10)'
+    graphql_name 'MentalHeathConsultation'
+    value 'MENTAL_HEALTH_CONSULTATION_COMPLETED', '(1) Mental health consultation completed', value: 1
+    value 'MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER', '(2) Mental health consultation being coordinated/arranged with VA provider', value: 2
+    value 'MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_OTHER_PROVIDER', '(3) Mental health consultation being coordinated/arranged with other provider', value: 3
+    value 'OFFER_DECLINED', '(4) Offer declined', value: 4
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -2150,6 +2154,80 @@ module Types::HmisSchema::Enums::Hud
     value 'ZUNI', '(425) Zuni', value: 425
     value 'ZYPHE', '(426) Zyphe', value: 426
     value 'DIFFERENT_PREFERRED_LANGUAGE', '(21) Different preferred language', value: 21
+    value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
+    value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
+    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
+  class FundingSources < Types::BaseEnum
+    description 'HUD FundingSources (2.06.1)'
+    graphql_name 'FundingSources'
+    value 'HUD_COC_HOMELESSNESS_PREVENTION', '(1) HUD: CoC - Homelessness Prevention (High Performing Communities Only)', value: 1
+    value 'HUD_COC_PERMANENT_SUPPORTIVE_HOUSING', '(2) HUD: CoC - Permanent Supportive Housing', value: 2
+    value 'HUD_COC_RAPID_RE_HOUSING', '(3) HUD: CoC - Rapid Re-Housing', value: 3
+    value 'HUD_COC_SUPPORTIVE_SERVICES_ONLY', '(4) HUD: CoC - Supportive Services Only', value: 4
+    value 'HUD_COC_TRANSITIONAL_HOUSING', '(5) HUD: CoC - Transitional Housing', value: 5
+    value 'HUD_COC_SAFE_HAVEN', '(6) HUD: CoC - Safe Haven', value: 6
+    value 'HUD_COC_SINGLE_ROOM_OCCUPANCY_SRO', '(7) HUD: CoC - Single Room Occupancy (SRO)', value: 7
+    value 'HUD_ESG_EMERGENCY_SHELTER', '(8) HUD: ESG - Emergency Shelter (operating and/or essential services)', value: 8
+    value 'HUD_ESG_HOMELESSNESS_PREVENTION', '(9) HUD: ESG - Homelessness Prevention', value: 9
+    value 'HUD_ESG_RAPID_REHOUSING', '(10) HUD: ESG - Rapid Rehousing', value: 10
+    value 'HUD_ESG_STREET_OUTREACH', '(11) HUD: ESG - Street Outreach', value: 11
+    value 'HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_DEPRECATED', '(12) HUD: Rural Housing Stability Assistance Program [Deprecated]', value: 12
+    value 'HUD_HOPWA_HOTEL_MOTEL_VOUCHERS', '(13) HUD: HOPWA - Hotel/Motel Vouchers', value: 13
+    value 'HUD_HOPWA_HOUSING_INFORMATION', '(14) HUD: HOPWA - Housing Information', value: 14
+    value 'HUD_HOPWA_PERMANENT_HOUSING', '(15) HUD: HOPWA - Permanent Housing (facility based or TBRA)', value: 15
+    value 'HUD_HOPWA_PERMANENT_HOUSING_PLACEMENT', '(16) HUD: HOPWA - Permanent Housing Placement', value: 16
+    value 'HUD_HOPWA_SHORT_TERM_RENT_MORTGAGE_UTILITY_ASSISTANCE', '(17) HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance', value: 17
+    value 'HUD_HOPWA_SHORT_TERM_SUPPORTIVE_FACILITY', '(18) HUD: HOPWA - Short-Term Supportive Facility', value: 18
+    value 'HUD_HOPWA_TRANSITIONAL_HOUSING', '(19) HUD: HOPWA - Transitional Housing (facility based or TBRA)', value: 19
+    value 'HUD_HUD_VASH', '(20) HUD: HUD/VASH', value: 20
+    value 'HHS_PATH_STREET_OUTREACH_SUPPORTIVE_SERVICES_ONLY', '(21) HHS: PATH - Street Outreach & Supportive Services Only', value: 21
+    value 'HHS_RHY_BASIC_CENTER_PROGRAM', '(22) HHS: RHY - Basic Center Program (prevention and shelter)', value: 22
+    value 'HHS_RHY_MATERNITY_GROUP_HOME_FOR_PREGNANT_AND_PARENTING_YOUTH', '(23) HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth', value: 23
+    value 'HHS_RHY_TRANSITIONAL_LIVING_PROGRAM', '(24) HHS: RHY - Transitional Living Program', value: 24
+    value 'HHS_RHY_STREET_OUTREACH_PROJECT', '(25) HHS: RHY - Street Outreach Project', value: 25
+    value 'HHS_RHY_DEMONSTRATION_PROJECT', '(26) HHS: RHY - Demonstration Project', value: 26
+    value 'VA_CRS_CONTRACT_RESIDENTIAL_SERVICES', '(27) VA: CRS Contract Residential Services', value: 27
+    value 'VA_COMMUNITY_CONTRACT_SAFE_HAVEN_PROGRAM', '(30) VA: Community Contract Safe Haven Program', value: 30
+    value 'VA_COMPENSATED_WORK_THERAPY_TRANSITIONAL_RESIDENCE', '(32) VA: Compensated Work Therapy Transitional Residence', value: 32
+    value 'VA_SUPPORTIVE_SERVICES_FOR_VETERAN_FAMILIES', '(33) VA: Supportive Services for Veteran Families', value: 33
+    value 'N_A', '(34) N/A', value: 34
+    value 'HUD_PAY_FOR_SUCCESS', '(35) HUD: Pay for Success', value: 35
+    value 'HUD_PUBLIC_AND_INDIAN_HOUSING_PIH_PROGRAMS', '(36) HUD: Public and Indian Housing (PIH) Programs', value: 36
+    value 'VA_GRANT_PER_DIEM_BRIDGE_HOUSING', '(37) VA: Grant Per Diem - Bridge Housing', value: 37
+    value 'VA_GRANT_PER_DIEM_LOW_DEMAND', '(38) VA: Grant Per Diem - Low Demand', value: 38
+    value 'VA_GRANT_PER_DIEM_HOSPITAL_TO_HOUSING', '(39) VA: Grant Per Diem - Hospital to Housing', value: 39
+    value 'VA_GRANT_PER_DIEM_CLINICAL_TREATMENT', '(40) VA: Grant Per Diem - Clinical Treatment', value: 40
+    value 'VA_GRANT_PER_DIEM_SERVICE_INTENSIVE_TRANSITIONAL_HOUSING', '(41) VA: Grant Per Diem - Service Intensive Transitional Housing', value: 41
+    value 'VA_GRANT_PER_DIEM_TRANSITION_IN_PLACE', '(42) VA: Grant Per Diem - Transition in Place', value: 42
+    value 'HUD_COC_YOUTH_HOMELESS_DEMONSTRATION_PROGRAM_YHDP', '(43) HUD: CoC - Youth Homeless Demonstration Program (YHDP)', value: 43
+    value 'HUD_COC_JOINT_COMPONENT_TH_RRH', '(44) HUD: CoC - Joint Component TH/RRH', value: 44
+    value 'VA_GRANT_PER_DIEM_CASE_MANAGEMENT_HOUSING_RETENTION', '(45) VA: Grant Per Diem - Case Management/Housing Retention', value: 45
+    value 'LOCAL_OR_OTHER_FUNDING_SOURCE', '(46) Local or Other Funding Source', value: 46
+    value 'HUD_ESG_CV_DEPRECATED', '(47) HUD: ESG - CV [Deprecated]', value: 47
+    value 'HUD_HOPWA_CV_DEPRECATED', '(48) HUD: HOPWA - CV [Deprecated]', value: 48
+    value 'HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED', '(49) HUD: CoC - Joint Component RRH/PSH [Deprecated]', value: 49
+    value 'HUD_HOME', '(50) HUD: HOME', value: 50
+    value 'HUD_HOME_ARP', '(51) HUD: HOME (ARP)', value: 51
+    value 'HUD_PIH', '(52) HUD: PIH (Emergency Housing Voucher)', value: 52
+    value 'HUD_ESG_RUSH', '(53) HUD: ESG - RUSH', value: 53
+    value 'HUD_UNSHELTERED_SPECIAL_NOFO', '(54) HUD: Unsheltered Special NOFO', value: 54
+    value 'HUD_RURAL_SPECIAL_NOFO', '(55) HUD: Rural Special NOFO', value: 55
+    value 'HUD_COC_BUILDS', '(56) HUD: CoC Builds', value: 56
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
+  class SexualOrientation < Types::BaseEnum
+    description 'HUD SexualOrientation (R3.1)'
+    graphql_name 'SexualOrientation'
+    value 'HETEROSEXUAL', '(1) Heterosexual', value: 1
+    value 'GAY', '(2) Gay', value: 2
+    value 'LESBIAN', '(3) Lesbian', value: 3
+    value 'BISEXUAL', '(4) Bisexual', value: 4
+    value 'QUESTIONING_UNSURE', '(5) Questioning / unsure', value: 5
+    value 'OTHER', '(6) Other', value: 6
     value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
     value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
     value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
