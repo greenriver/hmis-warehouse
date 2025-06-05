@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
@@ -49,12 +49,12 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         external_row_label: true,
         question: '1b',
         skip: [
-          'B1', # expected '5685.0000' (5685), got '5736.0000' (5736)
-          'D1', # expected '259.7900' (259.79), got '267.4500' (267.45)
-          'G1', # expected '71.0000' (71), got '74.0000' (74)
-          'B2', # expected '6178.0000' (6178), got '6221.0000' (6221)
-          'D2', # expected '265.7600' (265.76), got '273.5400' (273.54)
-          'G2', # expected '80.0000' (80), got '83.0000' (83)
+          'B1', # expected '5685.0000' (5685), got '6220.0000' (6220)
+          'D1', # expected '259.7900' (259.79), got '267.9400' (267.94)
+          'G1', # expected '71.0000' (71), got '82.0000' (82.0)
+          'B2', # expected '6178.0000' (6178), got '0.0000' ()
+          'D2', # expected '265.7600' (265.76), got '0.0000' ()
+          'G2', # expected '80.0000' (80), got '0.0000' ()
         ],
       )
     end
