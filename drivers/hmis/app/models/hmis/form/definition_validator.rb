@@ -173,8 +173,6 @@ class Hmis::Form::DefinitionValidator
     link_check.call(document)
   end
 
-  # todo @martha have to figure out what is going on with this!
-  KNOWN_WONKY = Set.new(['ProjectType', 'ProjectCompletionStatus'])
   def check_condition(condition, item_hash, link_id)
     return unless condition.key?('question') # Not currently validating conditions with local constants; see below
 
@@ -187,8 +185,6 @@ class Hmis::Form::DefinitionValidator
     return unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference']
 
     if referenced_question['pick_list_reference']
-      return if KNOWN_WONKY.include?(referenced_question['pick_list_reference'])
-
       valid_answer_codes = pick_list_reference_to_allowed_values[referenced_question['pick_list_reference']]
 
       # See comments on pick_list_reference_to_allowed_values.
@@ -265,6 +261,9 @@ class Hmis::Form::DefinitionValidator
   # Many of these require additional context (project id, user, enrollment id, etc), so here, we don't attempt to resolve their allowed values.
   # 2. any GraphQL Enum, which are resolved against the code-generated HmisEnums class on the frontend.
   # These are the ones we resolve allowed values for below.
+
+  # Special case: exclude Types::HmisSchema::Enums::Hud::ProjectType in favor of Types::HmisSchema::Enums::ProjectType
+  EXCLUDED = Set.new([Types::HmisSchema::Enums::Hud::ProjectType])
   def pick_list_reference_to_allowed_values
     @pick_list_reference_to_allowed_values ||= begin
       enums = []
@@ -274,7 +273,7 @@ class Hmis::Form::DefinitionValidator
           if child.is_a? Class
             graphql_name = child.graphql_name # graphql_name is the string referenced by form item, such as 'Race'
             class_name = child.name.constantize # class name, such as 'Types::HmisSchema::Enums::Race'
-            enums << [graphql_name, class_name] if child < Types::BaseEnum
+            enums << [graphql_name, class_name] if child < Types::BaseEnum && EXCLUDED.exclude?(child)
           elsif child.is_a? Module
             collect_enums.call(child)
           end
