@@ -114,18 +114,62 @@ module GrdaWarehouse::Hud
       self.InventoryEndDate
     end
 
-    # field is usually :UnitInventory or :BedInventory
-    # range must be of type Filters::DateRange
+    # Calculates the average daily inventory over a given date range
+    # @param range [Filters::DateRange] The date range to calculate the average over
+    # @param field [Symbol] The field to use for calculation (:UnitInventory or :BedInventory)
+    # @return [Float] The average daily inventory, rounded to 2 decimal places if less than 1, otherwise rounded to nearest integer
+    # @note Returns 0 if:
+    #   - The inventory count is blank or less than 1
+    #   - The date range is invalid (negative or zero days)
+    #   - The range length is zero
+    #   - If the range extends beyond the inventory start or end date, the range is truncated to fit within the inventory date range
     def average_daily_inventory(range:, field:)
       count = self[field]
       return 0 if count.blank? || count < 1
 
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, computed_end_date].compact.min
+      puts "start_date: #{start_date}, end_date: #{end_date} count: #{count} range: #{range.length}"
       days = (end_date - start_date).to_i
       return 0 if days.negative? || days.zero? || range.length.zero? # rubocop:disable Style/ZeroLengthPredicate
 
-      (days.to_f * count / range.length).to_i
+      un_rounded = (days.to_f * count / range.length)
+      # If we have an average of less than 1, round to 2 decimal places so we don't report 0
+      return un_rounded.round(2) if un_rounded.positive? && un_rounded < 1
+
+      un_rounded.round
+    end
+
+    def inventory_by_date(range:, field:)
+      count = self[field]
+      return 0 if count.blank? || count < 1
+
+      start_date = [range.start, computed_start_date].compact.max
+      end_date = [range.end, computed_end_date].compact.min
+      days = {}
+      (start_date..end_date).each do |date|
+        days[date] = count
+      end
+      days
+    end
+
+    def active_on_date?(date)
+      # Always active if all dates are blank
+      if inventory_start_date.blank? &&
+         inventory_end_date.blank?
+        return true
+      end
+
+      start_date = inventory_start_date
+      end_date = inventory_end_date
+
+      # If we have a start date but no end date, active from start onward
+      return true if start_date && !end_date && start_date <= date
+
+      # If we have both start and end dates, check if date is in range (inclusive)
+      return true if start_date && end_date && date.between?(start_date, end_date)
+
+      false
     end
   end
 end

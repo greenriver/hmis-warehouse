@@ -7,9 +7,6 @@ module Hmis::Ce::Match
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
-    # TODO(#7395): permissions
-    scope :viewable_by, ->(_user) { all }
-
     # order by descending priority, NULL values last. Use id as a tie-breaker
     scope :prioritized, -> {
       order(
@@ -29,7 +26,7 @@ module Hmis::Ce::Match
       # do we need to allow a referral to be re-started for the same client/opportunity?
       scope = scope.where.not(client_id: opportunity.referrals.select(:client_id))
 
-      # clients with active referrals to other opportunities who's categories overlap with this opportunity
+      # clients with active referrals to other opportunities whose categories overlap with this opportunity
       exclude_client_ids = Hmis::Ce::Referral.active.
         joins(opportunity: :categories).
         where.not(opportunity: { id: opportunity.id }). # not this opportunity

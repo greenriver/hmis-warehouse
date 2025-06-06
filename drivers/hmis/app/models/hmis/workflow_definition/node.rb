@@ -11,6 +11,9 @@ module Hmis::WorkflowDefinition
     validate :check_trigger_config_format
 
     scope :entrypoints, -> { where(type: 'Hmis::WorkflowDefinition::StartEvent') }
+    scope :endpoints, -> { where(type: 'Hmis::WorkflowDefinition::EndEvent') }
+    scope :gateways, -> { where(type: 'Hmis::WorkflowDefinition::Gateway') }
+    scope :tasks, -> { where(type: 'Hmis::WorkflowDefinition::Task') }
 
     # helpers to avoid node.is_a?(WidgetType)
     def entrypoint? = false

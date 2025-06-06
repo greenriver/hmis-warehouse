@@ -42,7 +42,7 @@ RSpec.describe Rack::Attack, type: :request do
     begin
       (requests_to_send + 1).times do |cnt|
         # travel to hour boundary so we always start at 00:00, manually advancing time every loop
-        travel_to(Time.current.beginning_of_hour + (cnt * time_advance).seconds)
+        travel_to(Time.current.beginning_of_hour + (cnt * time_advance).seconds) unless time_advance.zero?
         block.arity == 1 ? yield(cnt) : yield
         requests_sent += 1
         status_encountered = response.status == throttled_status
@@ -119,6 +119,33 @@ RSpec.describe Rack::Attack, type: :request do
       sign_in user
     end
 
+    describe 'status endpoints' do
+      let(:excluded_paths) { ['/messages/poll'] }
+      let(:session_timeout) { Devise.timeout_in }
+
+      it 'does not extend session lifetime for excluded paths' do
+        excluded_paths.each do |path|
+          # First request to establish session
+          get path, xhr: true
+          expect(response).to be_successful
+
+          # Move time forward
+          travel(session_timeout - 1.minutes)
+
+          # Should still be logged in
+          get path, xhr: true
+          expect(response).to be_successful
+
+          # Move time forward 2 more minutes (past the timeout)
+          travel 2.minutes
+
+          # Should be logged out
+          get path, xhr: true
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
+
     describe 'and hitting the homepage' do
       let(:path) { root_path }
 
@@ -140,6 +167,31 @@ RSpec.describe Rack::Attack, type: :request do
         expect(requests_sent).to eq(throttled_at)
       end
     end
+
+    describe 'and creating search queries' do
+      let(:path) { client_search_queries_path }
+
+      it 'throttles excessive search query creation' do
+        throttled_at = 30
+        requests_sent = till_throttled(requests_to_send: throttled_at, mode: :slow) do |i|
+          post(path, params: { q: "test search #{i}" })
+        end
+        expect(requests_sent).to eq(throttled_at)
+      end
+    end
+
+    describe 'and viewing search results' do
+      let(:search_query) { create(:grda_warehouse_client_search_query, created_by: user) }
+      let(:path) { client_search_query_path(id: search_query.id) }
+
+      it 'throttles excessive search result viewing' do
+        throttled_at = 30
+        requests_sent = till_throttled(requests_to_send: throttled_at) do
+          get(path)
+        end
+        expect(requests_sent).to eq(throttled_at)
+      end
+    end
   end
 
   context 'system_status_requests' do
@@ -155,15 +207,22 @@ RSpec.describe Rack::Attack, type: :request do
     end
   end
 
-  context 'being kind to the sentry api' do
+  context 'sentry notification rate limiting' do
     let(:path) { '/' }
 
-    it 'does not send api requests to sentry for every throttle event' do
-      throttled_at = 50
+    before do
+      SentryNotificationRateLimiter.instance.reset
+    end
+
+    it 'rate limits notifications to Sentry' do
+      throttled_at = 20 # throttled at 10 currently
+      allow(Sentry).to receive(:capture_message)
+
+      # Send multiple requests in quick succession
       till_throttled(requests_to_send: throttled_at, throttled_status: -999) { get(path, headers: headers) }
-      expect(SlackSendMonitor.lifetime_attempts).to be > 20
-      expect(SlackSendMonitor.lifetime_sends).to be > 1
-      expect(SlackSendMonitor.percent_sent).to be < 11
+
+      # Verify that Sentry was called only once for similar events
+      expect(Sentry).to have_received(:capture_message).once
     end
   end
 end

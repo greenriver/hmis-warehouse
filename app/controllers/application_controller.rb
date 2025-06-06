@@ -4,16 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'application_responder'
 
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
   impersonates :user
-
-  # Don't start in development if you have pending migrations
-  # moved to top for dockerization
-  prepend_before_action :check_all_db_migrations
 
   include ActivityLogger
   include LogRagePayloadBehavior
@@ -135,7 +133,7 @@ class ApplicationController < ActionController::Base
   def info_for_paper_trail
     {
       user_id: warden&.user&.id,
-      session_id: request.env['rack.session.record']&.session_id,
+      session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
@@ -237,16 +235,6 @@ class ApplicationController < ActionController::Base
     return unless lms.any_training_required?
 
     redirect_to user_training_path
-  end
-
-  # NOTE: if this gets merged, this may not be necessary
-  # https://github.com/rails/rails/pull/39750/files
-  def check_all_db_migrations
-    return true unless Rails.env.development?
-    raise ActiveRecord::MigrationError, "App Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:primary RAILS_ENV=#{::Rails.env}" if ApplicationRecord.needs_migration?
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:warehouse RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:health RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:reporting RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
   end
 
   def health_emergency?

@@ -16,6 +16,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ceReferral(id: $id) {
             id
             status
+            clientId
+            client {
+              id
+              firstName
+            }
+            targetProjectName
+            access {
+              canViewTargetProject
+            }
+            targetEnrollment {
+              id
+            }
             opportunity {
               id
               name
@@ -29,6 +41,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
             }
+            currentSteps {
+              id
+            }
             swimlanes {
               id
               name
@@ -36,6 +51,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
                 name
               }
+            }
+            updatedBy {
+              id
+              name
             }
           }
         }
@@ -56,12 +75,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         expect(referral_data['id']).to eq(referral.id.to_s)
         expect(referral_data['status']).to eq('initialized')
+        expect(referral_data['client']['firstName']).to eq(referral.client.first_name)
 
         expect(referral_data['opportunity']).to include(
           'id' => opportunity.id.to_s,
           'name' => opportunity.name,
           'status' => opportunity.status,
         )
+
+        # Verify that step and currentStep scopes don't mess with each other
+        expect(referral_data['currentSteps'].count).to eq(0)
 
         steps = referral_data['steps']
         expect(steps).to be_an(Array)
@@ -80,6 +103,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'status' => 'unavailable',
           'formDefinition' => { 'id' => provider_acceptance_task.form_definitions.sole.id.to_s },
         )
+      end
+
+      it 'returns no referral when user lacks permission' do
+        # see additional permission logic testing in the model spec referral_permission_spec
+        remove_permissions(ds_access_control, :can_view_referrals)
+
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceReferral')).to be_nil
+      end
+
+      it 'returns the referral with anonymized client when user cannot view clients' do
+        remove_permissions(ds_access_control, :can_view_clients)
+
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceReferral', 'client')).to be_nil
+        expect(result.dig('data', 'ceReferral', 'clientId')).to eq(referral.client.id.to_s) # Client ID is still returned so the UI can display an anonymized client
       end
 
       context 'workflow with swimlanes' do
@@ -141,7 +182,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect do
               response, result = post_graphql(**variables) { query }
               expect(response.status).to eq(200), result.inspect
-            end.to make_database_queries(count: 15..20)
+            end.to make_database_queries(count: 30..40)
           end
         end
       end
@@ -159,6 +200,48 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         expect(steps[0]['status']).to eq('available')
         expect(steps[1]['status']).to eq('unavailable')
+      end
+
+      context 'when the user can view the referral but not the project' do
+        before do
+          remove_permissions(ds_access_control, :can_view_project)
+          add_permissions(ds_access_control, :can_view_own_referrals)
+
+          step = referral.workflow_engine.active_steps.first
+          step.assignments.create!(user: hmis_user)
+        end
+
+        it 'returns the referral with project name, but not canViewTargetProject access' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceReferral', 'targetProjectName')).to eq(referral.target_project.project_name)
+          expect(result.dig('data', 'ceReferral', 'access', 'canViewTargetProject')).to eq(false)
+        end
+      end
+
+      context 'when the workflow has a target enrollment' do
+        let!(:enrollment) { create(:hmis_hud_enrollment, project: referral.target_project, client: referral.client) }
+        before do
+          referral.update!(target_enrollment: enrollment)
+        end
+
+        it 'returns the referral with enrollment' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceReferral', 'targetEnrollment', 'id')).to eq(enrollment.id.to_s)
+        end
+
+        context 'when the user does not have permission to see the enrollment' do
+          before do
+            remove_permissions(ds_access_control, :can_view_enrollment_details)
+          end
+
+          it 'does not return the enrollment' do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceReferral', 'targetEnrollment')).to be_nil
+          end
+        end
       end
     end
 
@@ -287,6 +370,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   id
                   name
                   status
+                  access {
+                    canPerformStep
+                  }
                 }
               }
             }
@@ -311,6 +397,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             )
             start_event.connect_to!(non_conditional_task)
           end
+
+          referral.workflow_engine.start_workflow!(user: hmis_user)
         end
 
         it 'does not result in n+1 query' do
@@ -319,7 +407,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             steps = result.dig('data', 'ceReferral', 'steps')
             expect(steps.length).to eq(51)
-          end.to make_database_queries(count: 10..20)
+          end.to make_database_queries(count: 25..35)
+        end
+
+        context 'when current user has can_perform_own_referral_tasks' do
+          before do
+            remove_permissions(ds_access_control, :can_perform_any_referral_tasks)
+            add_permissions(ds_access_control, :can_perform_own_referral_tasks)
+          end
+
+          it 'still does not cause n+1' do
+            expect do
+              _, result = post_graphql(**variables) { query }
+              steps = result.dig('data', 'ceReferral', 'steps')
+              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be false)
+            end.to make_database_queries(count: 30..40)
+          end
         end
       end
     end

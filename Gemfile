@@ -124,7 +124,6 @@ gem 'prometheus-client'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
-gem 'yabeda-http_requests'
 gem 'roda'
 
 gem 'activerecord-session_store'
@@ -245,7 +244,7 @@ gem 'todo_or_die'
 gem 'dentaku', require: false
 gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '= 2.5.4'
+gem 'graphql', '~> 2.5.4'
 gem 'sentry-rails', '~> 5.5'
 gem 'sentry-ruby'
 gem 'sentry-delayed_job'
@@ -319,6 +318,10 @@ group :test do
   gem 'simplecov', require: false
   # gem 'simplecov-console'
   gem 'spring-commands-rspec'
+
+  # For Todo or die rake task
+  gem 'parser', require: false
+  # gem 'unparser', require: false
 end
 
 group :development, :staging, :test do

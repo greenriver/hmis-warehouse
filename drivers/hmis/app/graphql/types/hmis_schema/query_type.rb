@@ -19,6 +19,8 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -289,11 +291,16 @@ module Types
 
     field :current_user, Application::User, null: true
 
+    field :user_dashboard, Types::Application::UserDashboard, null: false
+    def user_dashboard
+      current_user
+    end
+
     access_field do
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
-      field :can_view_my_dashboard, Boolean, null: false
+      field :can_view_my_dashboard, Boolean, null: false, deprecation_reason: 'Replaced with new UserDashboard type'
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
       field :can_view_coordinated_entry, Boolean, null: false
     end
@@ -302,7 +309,7 @@ module Types
       {
         can_view_my_dashboard: current_user.can_view_my_dashboard?,
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?, # TODO(#7409) once we have project-level configuration, remove this
       }
     end
 
@@ -552,7 +559,42 @@ module Types
     def ce_referral_step(id:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      Hmis::WorkflowExecution::Step.viewable_by(current_user).find(id)
+      step = Hmis::WorkflowExecution::Step.find(id)
+
+      # Referral permission governs step viewing permission. If you can view a referral, you can view all its steps.
+      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance: step.instance)
+      access_denied! unless referral
+
+      step
+    end
+
+    # All CE opportunities the user can view, resolved on admin page
+    ce_opportunities_field
+    def ce_opportunities(**args)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
+    end
+
+    ce_referrals_field
+    def ce_referrals(**args)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
+    end
+
+    field :unit_group, HmisSchema::UnitGroup, null: true do
+      argument :id, ID, required: true
+    end
+    def unit_group(id:)
+      Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :unit, HmisSchema::Unit, null: true do
+      argument :id, ID, required: true
+    end
+    def unit(id:)
+      Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
   end
 end

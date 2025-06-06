@@ -84,6 +84,8 @@ module Types
         staff_assignment_relationships(project)
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
         eligible_staff_assignment_user_picklist(project)
+      when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
+        eligible_referral_step_assignment_user_picklist(project)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -161,12 +163,24 @@ module Types
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
           end
-      when 'WORKFLOW_DEFINITION_TEMPLATES'
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS'
+        # Unique ce workflow template identifiers that are currently published.
+        # Used for configuring which template to use for a resource group
         return [] unless Hmis::Ce.configuration.enabled?
 
-        # TODO(#7502) - templates are shared across data sources
-        Hmis::WorkflowDefinition::Template.all.map do |template|
-          { code: template.id, label: template.name }
+        Hmis::WorkflowDefinition::Template.published.ce.viewable_by(user).
+          map do |template|
+            { code: template.identifier, label: template.name }
+          end
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
+        # Unique CE workflow template identifiers, including retired workflows with no currently published version.
+        # Used for filtering on existing/historical referrals.
+        return [] unless Hmis::Ce.configuration.enabled?
+
+        base_scope = Hmis::WorkflowDefinition::Template.ce.viewable_by(user)
+        base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
+          description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
+          { code: identifier, label: description }
         end
       end
     end
@@ -174,12 +188,21 @@ module Types
     def self.eligible_staff_assignment_user_picklist(project)
       return [] unless project&.staff_assignments_enabled?
 
-      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
-        {
-          code: user.id.to_s,
-          label: user.full_name,
-        }
-      end
+      Hmis::User.can_edit_enrollments_for(project).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_option)
+    end
+
+    def self.eligible_referral_step_assignment_user_picklist(project)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
+
+      user_scope = Hmis::User.active
+
+      user_scope.can_perform_any_referral_tasks_for(project).
+        or(user_scope.can_perform_own_referral_tasks_for(project)).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_option).uniq
     end
 
     def self.user_picklist(current_user)
@@ -284,27 +307,29 @@ module Types
     end
 
     def self.geocodes_picklist
-      # NOTE: HMIS currently only supports one state installations
-      state = GrdaWarehouse::Config.relevant_state_codes&.first
-      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
-        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
-      end.map do |obj|
-        {
-          code: obj['geocode'],
-          label: "#{obj['geocode']} - #{obj['name']}",
-        }
+      GrdaWarehouse::Config.relevant_state_codes.flat_map do |state|
+        Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+          JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+        end.map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+            group_label: state,
+          }
+        end
       end
     end
 
     def self.state_picklist
+      relevant_states = GrdaWarehouse::Config.relevant_state_codes
+
       Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
         JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
       end.map do |obj|
         {
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
-          # NOTE: HMIS currently only supports one state installations
-          initial_selected: obj['abbreviation'].in?(GrdaWarehouse::Config.relevant_state_codes&.first),
+          initial_selected: relevant_states&.size == 1 && obj['abbreviation'] == relevant_states.first,
         }
       end
     end

@@ -30,6 +30,11 @@ module Types
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits
     field :delete_units, mutation: Mutations::DeleteUnits
+    field :create_unit_group, mutation: Mutations::CreateUnitGroup
+    # TODO support renaming/updating unit group
+    # field :update_unit_group, mutation: Mutations::UpdateUnitGroup
+    # TODO(#7781) support deleting unit group
+    # field :delete_unit_group, mutation: Mutations::DeleteUnitGroup
 
     field :delete_service, mutation: Mutations::DeleteService
     field :bulk_assign_service, mutation: Mutations::BulkAssignService

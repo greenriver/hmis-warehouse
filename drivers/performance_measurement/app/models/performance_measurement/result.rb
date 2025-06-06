@@ -220,7 +220,7 @@ module PerformanceMeasurement
           count = result[:primary_value].round
           if count.positive?
             project_intermediate << [
-              "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})",
+              result.hud_project.name(user, include_project_type: true),
               count,
             ]
           end
@@ -232,7 +232,7 @@ module PerformanceMeasurement
           where(report_id: report_id).find_each do |result|
             count = result[:primary_value].round
             if count.positive?
-              project_name = "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})"
+              project_name = result.hud_project.name(user, include_project_type: true)
               median_intermediate[project_name] = count
             end
           end

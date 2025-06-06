@@ -35,6 +35,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodesCount
             nodes {
               id
+              unitGroup {
+                name
+              }
               latestOpportunity {
                 id
                 referral {
@@ -65,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the unit has an open opportunity' do
       let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
 
       it 'returns the unit with the opportunity' do
         response, result = post_graphql(id: project.id) { query }
@@ -78,7 +81,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the unit has an opportunity with a referral in progress' do
       let!(:unit) { create(:hmis_unit, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
 
       it 'returns the unit with the opportunity and referral' do
@@ -88,6 +91,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_present
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
         expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
+      end
+    end
+
+    context 'when the unit belongs to a unit group' do
+      let!(:unit) { create(:hmis_unit_in_group, project: project) }
+
+      it 'returns the unit with its group name' do
+        response, result = post_graphql(id: project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'project', 'units', 'nodes', 0, 'unitGroup', 'name')).to eq(unit.unit_group.name)
       end
     end
 
@@ -104,7 +118,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when the unit has an open opportunity' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
 
         it 'acceptingCeReferrals is true' do
           _, result = post_graphql(id: project.id) { query }
@@ -115,7 +129,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when the unit has an opportunity with referrals in progress' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
         let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
 
         it 'acceptingCeReferrals is false' do
@@ -127,7 +141,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when the unit has a closed opportunity, but no open one' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :closed) }
         let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
 
         it 'acceptingCeReferrals is false' do
@@ -143,7 +157,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before do
         50.times do
           unit = create :hmis_unit, project: project
-          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked)
+          opportunity = create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked)
           create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress)
         end
       end
@@ -155,7 +169,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(50)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
-        end.to make_database_queries(count: 18..22)
+        end.to make_database_queries(count: 20..25)
       end
     end
   end

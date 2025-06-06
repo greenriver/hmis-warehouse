@@ -156,6 +156,8 @@ module Filters
       self.cohort_column_matched_date = filters.dig(:cohort_column_matched_date)&.presence || cohort_column_matched_date
 
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
+      # Exclude HIV/AIDS from disabilities unless the user can view HIV/AIDS status
+      self.disabilities = disabilities.select { |id| available_disabilities.values.include?(id) } if disabilities.present?
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map(&:to_i).presence || dv_status
       self.currently_fleeing = filters.dig(:currently_fleeing)&.reject(&:blank?)&.map(&:to_i).presence || currently_fleeing
@@ -191,7 +193,7 @@ module Filters
       ensure_dates_work if valid?
       self
     end
-    alias set_from_params update
+    alias_method :set_from_params, :update
 
     private def safe_to_date(val)
       case val.presence
@@ -277,7 +279,7 @@ module Filters
     def to_h
       for_params[:filters]
     end
-    alias inspect to_h
+    alias_method :inspect, :to_h
 
     def known_params
       [
@@ -955,6 +957,13 @@ module Filters
       }.invert.freeze
     end
 
+    def self.age_range(key)
+      age_ranges = ::Filters::Criteria::FilterForAge::AGE_RANGES
+      return age_ranges.fetch(key) if age_ranges.key?(key)
+
+      raise ArgumentError, "Unknown age range key: #{key}"
+    end
+
     def self.available_census_age_ranges
       {
         zero_to_four: '0 - 4',
@@ -1580,7 +1589,14 @@ module Filters
     end
 
     def available_disabilities
-      HudUtility2024.disability_types.invert
+      @available_disabilities ||= {}.tap do |disabilities|
+        HudUtility2024.disability_types.each do |id, title|
+          next if id == 8 && !user.can_view_hiv_status? # HIV/AIDS
+
+          # Invert for select input
+          disabilities[title] = id
+        end
+      end
     end
 
     def available_indefinite_disabilities

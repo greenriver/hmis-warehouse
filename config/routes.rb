@@ -434,6 +434,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # Client search queries
+  resources :client_searches, only: [:create], controller: 'clients/search_queries', as: :client_search_queries
+  get '/client_searches/:id', to: 'client_access_control/clients#search', as: 'client_search_query'
+
   resources :clients, only: [:create, :update, :edit] do
     member do
       # get :appropriate
@@ -913,6 +917,7 @@ Rails.application.routes.draw do
   end
 
   get 'healthz' => 'system_status#operational'
+  get 'bootz' => 'system_status#details'
 
   root 'root#index'
 end

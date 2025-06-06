@@ -21,7 +21,6 @@ module Hmis::Ce
 
     def create_enrollment(message)
       project = referral.target_project
-      raise 'access denied' unless message.user.can_enroll_clients_for?(project)
 
       # Step form may specify CoC code. This is required if the Project serves multiple CoCs.
       coc_code_arg = message.step&.submitted_values&.fetch('coc_code', nil)
@@ -47,7 +46,7 @@ module Hmis::Ce
       error_out(entry_date_errors.map(&:full_message).join(', ')) unless entry_date_errors.empty?
 
       # TODO(#7537) - prevent conflicting unit occupancy
-      unit = referral.opportunity.owner
+      unit = referral.opportunity.unit
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: message.user) if unit.is_a? Hmis::Unit
 
       enrollment.save_new_enrollment! # Saves as WIP or non-WIP, depending on auto-enter rules in the project

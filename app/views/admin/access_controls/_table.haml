@@ -27,7 +27,7 @@
             %td
               - if acl.collection
                 = link_to_if can_edit_collections? && !acl.collection.system?, acl.collection.name, edit_admin_collection_path(acl.collection), target: :_blank
-
+                %i (#{acl.collection&.describe_type})
             %td.nobr
               = link_to edit_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
                 %span.icon-pencil

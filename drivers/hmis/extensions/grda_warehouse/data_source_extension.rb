@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::GrdaWarehouse
   module DataSourceExtension
     extend ActiveSupport::Concern
@@ -11,6 +13,7 @@ module Hmis::GrdaWarehouse
     included do
       has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition'
       has_many :custom_service_types, class_name: 'Hmis::Hud::CustomServiceType'
+      has_many :hmis_project_groups, class_name: 'Hmis::ProjectGroup'
     end
   end
 end

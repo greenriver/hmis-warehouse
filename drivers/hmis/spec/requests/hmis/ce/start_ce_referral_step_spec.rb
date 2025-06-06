@@ -7,18 +7,6 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
   include_context 'hmis base setup'
 
-  let!(:ds_access_control) do
-    create_access_control(
-      hmis_user,
-      ds1,
-      with_permission: [
-        :can_view_clients,
-        :can_view_project,
-        :can_edit_project_details,
-      ],
-    )
-  end
-
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
@@ -26,7 +14,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
 
   # Setup workflow template with nodes
   let(:project) { create :hmis_hud_project, data_source: ds1 }
-  let(:template) { create :hmis_workflow_definition_template, status: 'published' }
+  let(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
 
   # Create workflow nodes
@@ -67,6 +55,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
       :hmis_ce_referral,
       opportunity: opportunity,
       workflow_instance: workflow_instance,
+      data_source: ds1,
       client: client,
       referred_by: hmis_user,
     )
@@ -100,58 +89,92 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
       GRAPHQL
     end
 
-    context 'with a workflow that has been started' do
-      before do
-        # Start the workflow to make the first step available
-        referral.workflow_engine.start_workflow!(user: hmis_user)
+    before do
+      # Start the workflow to make the first step available
+      referral.workflow_engine.start_workflow!(user: hmis_user)
+    end
+
+    let(:step) { referral.workflow_engine.active_steps.first }
+
+    let(:variables) do
+      {
+        referralId: referral.id,
+        stepId: step.id,
+      }
+    end
+
+    context 'when the user has access' do
+      let!(:ds_access_control) do
+        create_access_control(
+          hmis_user,
+          ds1,
+          with_permission: [
+            :can_view_project,
+            :can_view_referrals,
+            :can_perform_any_referral_tasks,
+          ],
+        )
       end
 
-      let(:step) { referral.workflow_engine.active_steps.first }
+      it 'starts the step' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
 
-      let(:variables) do
-        {
-          referralId: referral.id,
-          stepId: step.id,
-        }
-      end
-
-      context 'with valid input' do
-        it 'starts the step' do
-          _, result = post_graphql(**variables) { mutation }
           step_data = result.dig('data', 'startCeReferralStep', 'step')
-
           expect(step_data['status']).to eq('in_progress')
           expect(step_data['name']).to eq('Client Acceptance')
           expect(step_data.dig('swimlane')).to eq(swimlane.name)
-          expect(step.reload.status).to eq('in_progress')
-        end
-
-        it 'assigns the user and returns the assignee' do
-          _, result = post_graphql(**variables) { mutation }
-          step_data = result.dig('data', 'startCeReferralStep', 'step')
-
           expect(step_data['assignees']).to contain_exactly(
             a_hash_including('id' => hmis_user.id.to_s, 'name' => hmis_user.name),
           )
-          expect(step.reload.assignments.sole.user).to eq(hmis_user)
-        end
-
-        it 'includes form definition in response' do
-          _, result = post_graphql(**variables) { mutation }
-          step_data = result.dig('data', 'startCeReferralStep', 'step')
-
           expect(step_data['formDefinition']['id']).to eq(client_acceptance_task.form_definitions.sole.id.to_s)
+
+          step.reload
+        end.to change(step, :status).to('in_progress').
+          and change(step, :started_at).from(nil).
+          and change(Hmis::WorkflowExecution::AuditEvent, :count).by(1).
+          and change(step.assignments, :count).by(1)
+
+        audit_event = Hmis::WorkflowExecution::AuditEvent.last
+        expect(audit_event.event_type).to eq('start_step')
+        expect(audit_event.user).to eq(hmis_user)
+        expect(audit_event.step).to eq(step)
+      end
+    end
+
+    context 'when the user does not have access' do
+      let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_view_project]) }
+
+      it 'raises an error' do
+        expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
+      end
+
+      context 'when the user has can_perform_own_referral_tasks' do
+        let!(:ds_access_control) do
+          create_access_control(
+            hmis_user,
+            ds1,
+            with_permission: [:can_view_referrals, :can_perform_own_referral_tasks, :can_view_project],
+          )
         end
 
-        it 'creates an audit event' do
-          expect do
-            post_graphql(**variables) { mutation }
-          end.to change(Hmis::WorkflowExecution::AuditEvent, :count).by(1)
+        it 'raises an error if the user is not assigned the task' do
+          expect_gql_error(post_graphql(**variables) { mutation }, message: 'access denied')
+        end
 
-          audit_event = Hmis::WorkflowExecution::AuditEvent.last
-          expect(audit_event.event_type).to eq('start_step')
-          expect(audit_event.user).to eq(hmis_user)
-          expect(audit_event.step).to eq(step)
+        context 'when the user is assigned to the task' do
+          before do
+            step.assignments.create!(user: hmis_user)
+          end
+
+          it 'starts the step' do
+            expect do
+              response, result = post_graphql(**variables) { mutation }
+              expect(response.status).to eq(200), result.inspect
+              step.reload
+            end.to change(step, :status).to('in_progress')
+          end
         end
       end
     end
