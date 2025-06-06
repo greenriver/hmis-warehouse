@@ -17,14 +17,6 @@ module ClientDocumentsReport::DocumentExports
       @report ||= report_class.new(filter)
     end
 
-    protected def view_assigns
-      {
-        report: report,
-        filter: filter,
-        pdf: false,
-      }
-    end
-
     def perform
       with_status_progression do
         self.filename = "Client Documents - #{Time.current.to_fs(:db)}"
