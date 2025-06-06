@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool::DocumentExports
   class ReportByClientExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -15,55 +17,103 @@ module HmisDataQualityTool::DocumentExports
       @report ||= report_class.find(params['id'])
     end
 
-    protected def view_assigns
-      {
-        report: report,
-        pivot_details: report.pivot_details,
-        clients: @report.clients.order(:last_name, :first_name),
-        filter: filter,
-        title: Translation.translate('HMIS Data Quality Tool'),
-        pdf: false,
-      }
+    protected def pivot_details
+      @pivot_details ||= report.pivot_details
+    end
+
+    protected def clients
+      @clients ||= report.clients.order(:last_name, :first_name)
     end
 
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
-
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
-        )
-
-        write_tmp_file(
-          renderer.render(
-            action: :by_client,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "HMIS Data Quality Tool - By-Client - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
-        end
+        self.filename = "#{Translation.translate('HMIS Data Quality Tool')} - By-Client - #{Time.current.to_fs(:db)}"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
       end
     end
 
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
+    private def excel_package
+      Axlsx::Package.new do |package|
+        wb = package.workbook
 
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
+        wb.add_worksheet(name: 'test') do |sheet|
+          groups = [
+            ['', '', '', ''],
+          ]
+          merges = [
+            [0, 3],
+          ]
+          pivot_details.groups.each do |(title, group)|
+            group = Array.new(group.size).map.with_index do |_, i|
+              i == 0 ? title : ''
+            end
+            merge_index_start = merges.last.last + 1
+            merge_index_end = merge_index_start + group.size - 1
+            merges.push([merge_index_start, merge_index_end])
+            groups.push(group)
+          end
+          sheet.add_row(groups.flatten)
+
+          letters = ('A'..'Z').to_a
+          letter_size = letters.size
+          merges = merges.map do |merge|
+            merge.map do |i|
+              if i < letter_size
+                "#{letters[i]}1"
+              else
+                "#{letters[(i / letter_size) - 1]}#{letters[(i % letter_size)]}1"
+              end
+            end
+          end
+
+          merges.each do |merge|
+            sheet.merge_cells(merge.join(':'))
+          end
+
+          header = if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            [
+              '',
+              'Personal ID',
+              'Last Name',
+              'First Name',
+            ]
+          else
+            [
+              '',
+              'Personal ID',
+            ]
+          end
+
+          pivot_details.groups.values.map(&:keys).flatten.each do |key|
+            header.push(pivot_details.lookup[key])
+          end
+          sheet.add_row(header)
+
+          clients.each do |client|
+            row = []
+            if pivot_details.clients_with_flags.include?([client.personal_id, client.data_source_id])
+              row.push('⚠')
+            else
+              row.push('')
+            end
+            row += if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+              [client.personal_id, client.last_name, client.first_name]
+            else
+              [client.personal_id]
+            end
+            pivot_details.groups.values.map(&:keys).flatten.each do |key|
+              marked = pivot_details.flags[pivot_details.lookup[key]].include?([client.personal_id, client.data_source_id])
+              if marked
+                row.push('✕')
+              else
+                row.push('')
+              end
+            end
+            sheet.add_row(row)
+          end
+        end
       end
-      true
     end
 
     protected def report_class

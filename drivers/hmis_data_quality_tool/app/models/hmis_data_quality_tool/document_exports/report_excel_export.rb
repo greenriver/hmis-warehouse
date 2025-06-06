@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool::DocumentExports
   class ReportExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -15,53 +17,226 @@ module HmisDataQualityTool::DocumentExports
       @report ||= report_class.find(params['id'])
     end
 
-    protected def view_assigns
-      {
-        report: report,
-        filter: filter,
-        title: Translation.translate('HMIS Data Quality Tool'),
-        pdf: false,
-      }
-    end
-
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
+        self.filename = "#{Translation.translate('HMIS Data Quality Tool')} - #{Time.current.to_fs(:db)}"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
+      end
+    end
+
+    private def excel_package # rubocop:disable Metrics/AbcSize
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        wb_styles = wb.styles
+        goal_config = report.goal_config
+
+        wb.add_worksheet(name: 'Summary') do |sheet|
+          overall_percent_invalid = report.percent(report.results.map(&:total).sum, report.results.map(&:invalid_count).sum)
+
+          overall_percent_valid = 100 - overall_percent_invalid
+
+          if goal_config.present? && goal_config.active?
+            background_color = goal_config.color_for(overall_percent_valid.to_i).to_s[1..]
+
+            name_cell_style = wb_styles.add_style(
+              {
+                bg_color: background_color,
+                border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+              },
+            )
+            value_cell_style = wb_styles.add_style(
+              {
+                bg_color: background_color,
+                border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+                format_code: '0.0%',
+              },
+            )
+
+            name = goal_config.name_for(overall_percent_valid.to_i)
+            sheet.add_row(['Overall', name, overall_percent_valid / 100.0], style: [nil, name_cell_style, value_cell_style])
+          else
+            value_cell_style = wb_styles.add_style({ format_code: '0.0%' })
+
+            sheet.add_row(['Overall', overall_percent_valid / 100.0], style: [nil, value_cell_style])
+          end
+
+          report.results.group_by(&:category).each do |category, results|
+            category_percent_valid = report.category_percent_valid(results)
+
+            if goal_config.present? && goal_config.active?
+              name = goal_config.name_for(category_percent_valid.to_i)
+              if name.present?
+                background_color = goal_config.color_for(category_percent_valid.to_i).to_s[1..]
+
+                name_cell_style = wb_styles.add_style(
+                  {
+                    bg_color: background_color,
+                    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+                  },
+                )
+                value_cell_style = wb_styles.add_style(
+                  {
+                    bg_color: background_color,
+                    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+                    format_code: '0.0%',
+                  },
+                )
+
+                sheet.add_row([category, name, category_percent_valid / 100.0], style: [nil, name_cell_style, value_cell_style])
+              end
+            else
+              value_cell_style = wb_styles.add_style({ format_code: '0.0%' })
+
+              sheet.add_row([category, category_percent_valid / 100.0], style: [nil, value_cell_style])
+            end
+          end
         end
 
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
+        report.results.group_by(&:category).each do |category, results|
+          wb.add_worksheet(name: category) do |sheet|
+            sheet.add_row(['Section', 'Description', 'Required for', 'Overall Number in Universe', 'Number of Invalid Values', 'Percent Valid'])
+
+            results.each do |result|
+              value_cell_style = { format_code: '0.0%' }
+              if goal_config.present? && goal_config.active?
+                value_cell_style.merge!(
+                  {
+                    bg_color: goal_config.color_for(result.percent_valid.to_i).to_s[1..],
+                    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+                  },
+                )
+              end
+              sheet.add_row(
+                [
+                  result.title,
+                  result.description,
+                  result.required_for,
+                  ActionController::Base.helpers.number_with_delimiter(result.total),
+                  ActionController::Base.helpers.number_with_delimiter(result.invalid_count),
+                  result.percent_valid / 100.0,
+                ], style: [nil, nil, nil, nil, nil, wb_styles.add_style(value_cell_style)]
+              )
+            end
+          end
+        end
+
+        if goal_config.expose_ch_calculations
+          wb.add_worksheet(name: 'Informational') do |sheet|
+            sheet.add_row(['Title', 'Description', 'Value'])
+            info_table = HmisDataQualityTool::InformationalTable.new(report, :xlsx)
+            info_table.rows.each do |row|
+              if row[:xlsx_styles].present?
+                row_style = wb_styles.add_style(row[:xlsx_styles])
+                sheet.add_row([row[:title], row[:description], row[:value]], style: [nil, nil, row_style])
+              else
+                sheet.add_row([row[:title], row[:description], row[:value]])
+              end
+            end
+          end
+        end
+
+        wb.add_worksheet(name: 'Projects') do |sheet|
+          sheet.add_row(['Project'] + report.categories)
+          report.per_project_results.each do |project_id, data|
+            project = report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
+
+            next unless project.present?
+
+            row = [project.name(user)]
+            style = [nil]
+            report.categories.each do |cat|
+              valid_count = data[cat][:total] - data[cat][:invalid_count]
+              valid_percent =  report.percent(data[cat][:total], valid_count).round(1)
+              background_color = goal_config.color_for(valid_percent.to_i).to_s[1..]
+
+              if goal_config.present? && goal_config.active?
+                name = goal_config.name_for(valid_percent.to_i)
+                if name.present?
+                  row.push(valid_percent / 100.0)
+                  style.push(
+                    wb_styles.add_style(
+                      {
+                        bg_color: background_color,
+                        border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+                        format_code: '0.0%',
+                      },
+                    ),
+                  )
+                end
+              else
+                row.push(valid_percent / 100.0)
+                style.push(wb_styles.add_style({ format_code: '0.0%' }))
+              end
+            end
+            sheet.add_row(row, style: style)
+          end
+        end
+
+        wb.add_worksheet(name: 'Project Types') do |sheet|
+          sheet.add_row(['Project Types'] + report.categories)
+          report.per_project_type.each do |project_type_id, data|
+            project_type = HudUtility2024.project_type(project_type_id.to_s.to_i)
+
+            row = [project_type]
+            style = [nil]
+            report.categories.each do |cat|
+              valid_count = data[cat][:total] - data[cat][:invalid_count]
+              valid_percent =  report.percent(data[cat][:total], valid_count).round(1)
+              background_color = goal_config.color_for(valid_percent.to_i).to_s[1..]
+
+              if goal_config.present? && goal_config.active?
+                name = goal_config.name_for(valid_percent.to_i)
+                if name.present?
+                  row.push(valid_percent / 100)
+                  style.push(
+                    wb_styles.add_style(
+                      {
+                        bg_color: background_color,
+                        border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+                        format_code: '0.0%',
+                      },
+                    ),
+                  )
+                end
+              else
+                row.push(valid_percent / 100)
+                style.push(wb_styles.add_style({ format_code: '0.0%' }))
+              end
+            end
+            sheet.add_row(row, style: style)
+          end
+        end
+
+        header_style = wb_styles.add_style({ sz: 14 })
+        th_style = wb_styles.add_style(
+          {
+            bg_color: '81adb9',
+            b: true,
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+          },
         )
 
-        write_tmp_file(
-          renderer.render(
-            action: :show,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "HMIS Data Quality Tool - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
+        wb.add_worksheet(name: 'Report Info') do |sheet|
+          sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+          sheet.add_row(
+            [
+              'HMIS Data Quality Tool',
+            ],
+            style: header_style,
+          )
+          report.describe_filter(report.known_params).each do |title, value|
+            value = value.join(', ') if value.is_a?(Array)
+            sheet.add_row(
+              [
+                "#{title}:",
+                value,
+              ],
+              style: [th_style, nil],
+            )
+          end
         end
       end
-    end
-
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
-
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
-      end
-      true
     end
 
     protected def report_class
