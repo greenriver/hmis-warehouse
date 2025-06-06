@@ -40,14 +40,11 @@ module HmisStructure::Base
     # NOTE: this needs to be updated with each FY change
     def hud_csv_version
       # Move to 2026 in production after 2025-10-01
-      @hud_csv_version ||= if Rails.env.production? && Date.current < Date.new(2025, 10, 1)
-        '2024'
-        # move to 2026 everywhere else after 2025-09-01
-      elsif Date.current < Date.new(2025, 9, 1)
-        '2024'
-      else
-        '2026'
-      end
+      # Move to 2026 in staging after 2025-09-01
+      cutoff_date = Rails.env.production? ? Date.new(2025, 10, 1) : Date.new(2025, 9, 1)
+      return '2024' if Date.current < cutoff_date
+
+      '2026'
     end
 
     # default name for a CSV file
