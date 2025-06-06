@@ -46,6 +46,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 }
               }
               acceptingCeReferrals
+              deletable
+              canBeMarkedAvailable
+              canBeMarkedAvailableToday
+              canBeMarkedUnavailable
             }
           }
         }
@@ -106,7 +110,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'acceptingCeReferrals logic' do
-      let!(:unit) { create(:hmis_unit, project: project) }
+      let!(:unit) { create(:hmis_unit_in_group, project: project) }
+      before(:each) do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      end
 
       context 'when the unit has no opportunities' do
         it 'acceptingCeReferrals is false' do
@@ -114,6 +121,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity')).to be_nil
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'deletable')).to be_truthy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedAvailable')).to be_truthy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedUnavailable')).to be_falsy
         end
       end
 
@@ -125,6 +135,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_truthy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'deletable')).to be_truthy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedAvailable')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedUnavailable')).to be_truthy
         end
       end
 
@@ -137,6 +150,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'deletable')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedAvailable')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedUnavailable')).to be_falsy
         end
       end
 
@@ -149,6 +165,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'deletable')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedAvailable')).to be_truthy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedUnavailable')).to be_falsy
         end
       end
     end
@@ -169,7 +188,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(result.dig('data', 'project', 'units', 'nodesCount')).to eq(50)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
-        end.to make_database_queries(count: 20..25)
+        end.to make_database_queries(count: 25..30)
       end
     end
   end
