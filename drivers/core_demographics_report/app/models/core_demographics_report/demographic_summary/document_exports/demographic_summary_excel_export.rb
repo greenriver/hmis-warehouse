@@ -36,6 +36,8 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
     private def excel_package
       Axlsx::Package.new do |package|
         wb = package.workbook
+        # Only allow breakdowns of CoC codes for download since it isn't displayed otherwise
+        report.should_calculate_coc_breakdowns = true
         reports = [report]
         coc_count = report.available_coc_codes.count
         reports << comparison if report.include_comparison?
