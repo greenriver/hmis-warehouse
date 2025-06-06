@@ -4,10 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class FiltersController < ApplicationController
   include AjaxModalRails::Controller
   def show
-    @filter = filter.update(filter_params)
+    @filter = filter
+    # The Project Type Codes can be set by default, we don't want to show them if they were not selected by the user
+    @filter.project_type_codes = []
+    filter.update(filter_params)
     selected_keys
   end
 
