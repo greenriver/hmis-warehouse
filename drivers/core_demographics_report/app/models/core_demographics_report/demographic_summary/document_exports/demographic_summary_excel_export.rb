@@ -119,7 +119,8 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
                 style = [th_style, nil]
               end
               if title.starts_with?('*')
-                title = title.sub('*', '')
+                # Remove only the first character since we know it's an asterisk
+                title = title[1..]
                 style = Array.new(12 + (coc_count * 3), th_style)
               elsif title.starts_with?('_')
                 if title.include?('_data_')
