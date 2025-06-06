@@ -36,6 +36,9 @@ module Types
     field :unit_size, Integer, null: true
     field :unit_group, HmisSchema::UnitGroup, null: true
     field :deletable, Boolean, null: false
+    field :can_be_marked_available_today, Boolean, null: false
+    field :can_be_marked_available, Boolean, null: false
+    field :can_be_marked_unavailable, Boolean, null: false
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
@@ -64,7 +67,32 @@ module Types
 
     def deletable
       return false if occupants.any? # cannot delete unit with occupants
-      return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
+      return false if load_ar_association(object, :referrals).any? # cannot delete unit with any referrals (past or present)
+
+      true
+    end
+
+    def can_be_marked_available_today
+      return false unless can_be_marked_available
+      return false if occupants.any? # Must not have any current occupants.
+
+      true
+    end
+
+    def can_be_marked_available
+      return false unless Hmis::Ce.configuration.enabled? # CE must be enabled
+      return false unless unit_group&.workflow_template&.present? # Must have a workflow template
+      return false if latest_opportunity&.active? # Must not have an active opportunity
+
+      # MAY have current occupants; see #7537
+
+      true
+    end
+
+    def can_be_marked_unavailable
+      return false unless Hmis::Ce.configuration.enabled?
+      return false unless latest_opportunity&.active? # Must have an active opportunity
+      return false if latest_opportunity.status.to_sym == :locked # Opportunity must be accepting referrals
 
       true
     end
