@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ZipCodeReport::DocumentExports
   class ReportExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -15,52 +17,43 @@ module ZipCodeReport::DocumentExports
       @report ||= report_class.new(filter)
     end
 
-    protected def view_assigns
-      {
-        report: report,
-        filter: filter,
-        pdf: false,
-      }
-    end
-
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
+        self.filename = "Zip Code Report - #{Time.current.to_fs(:db)}"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
+      end
+    end
 
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
+    private def excel_package
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        wb_styles = wb.styles
+        header_style = wb_styles.add_style({ sz: 14 })
+        wb_styles.add_style(
+          {
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+          },
         )
-
-        write_tmp_file(
-          renderer.render(
-            action: :index,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "Zip Code Report - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
+        wb.add_worksheet(name: 'Zip Codes') do |sheet|
+          sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+          row = [
+            'Zip Codes',
+            'Clients',
+            'Households',
+          ]
+          sheet.add_row(row, style: header_style)
+          report.zip_code_data.map do |k, _|
+            [
+              k.to_s,
+              report.clients_count(k),
+              report.households_count(k),
+            ]
+          end.sort_by(&:first).each do |r|
+            sheet.add_row(r, types: [:string, nil, nil])
+          end
         end
       end
-    end
-
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
-
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
-      end
-      true
     end
 
     protected def report_class
