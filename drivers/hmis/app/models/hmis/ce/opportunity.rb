@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# An opportunity is the availability of a resource (housing or other services)
+# An opportunity is the availability of a unit (housing or other services)
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
@@ -15,9 +15,9 @@ module Hmis::Ce
                class_name: 'Hmis::WorkflowDefinition::Template'
 
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
-    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id
+    has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
     has_many :categories, through: :categorizations
-    belongs_to :owner, polymorphic: true, optional: true # Hmis::Unit, ...
+    belongs_to :unit, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_many :swimlanes, through: :workflow_template, class_name: 'Hmis::WorkflowDefinition::Swimlane'
@@ -113,15 +113,15 @@ module Hmis::Ce
     private
 
     def unique_opportunity_per_unit
-      return if status.to_sym == :closed || owner.nil?
+      return if status.to_sym == :closed || unit.nil?
 
-      # This validator expects that owner's opportunities are preloaded, to avoid n+1 on save
-      conflicting_opportunity_exists = owner.opportunities.to_a.select do |existing_opp|
+      # This validator expects that unit's opportunities are preloaded, to avoid n+1 on save
+      conflicting_opportunity_exists = unit.opportunities.to_a.select do |existing_opp|
         existing_opp.status.to_sym != :closed && existing_opp.id != id
       end.any?
       return unless conflicting_opportunity_exists
 
-      errors.add(:owner, 'can only have one opportunity')
+      errors.add(:unit, 'can only have one open or locked opportunity')
     end
 
     def consistent_data_source

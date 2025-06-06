@@ -24,15 +24,19 @@ module Mutations
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
       access_denied! unless current_user.permissions_for?(project, :can_manage_units)
 
-      # TODO(#7529) - template should be determined by context (project, unit type, ...)
-      # For now, if you are using the "starter pack," this picks the template that creates an enrollment
-      template = Hmis::WorkflowDefinition::Template.viewable_by(current_user).last
-      raise unless template.present?
+      # Determine which template to use for each unit based on Unit Group configuration.
+      unit_to_template = units.preload(unit_group: :workflow_template).map do |unit|
+        workflow_template = unit.unit_group&.workflow_template # load Workflow Template record to validate it exists
+        raise 'Unable to mark unit available because there is no associated workflow template' unless workflow_template
+
+        [unit.id, workflow_template]
+      end.to_h
 
       candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
 
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|
+          template = unit_to_template.fetch(unit.id)
           build_opportunity_for_unit(unit, template, candidate_pool_resolver)
         end
 
@@ -57,10 +61,10 @@ module Mutations
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
 
       opportunity = Hmis::Ce::Opportunity.new(
-        owner: unit,
+        unit: unit,
         project: unit.project,
         name: opportunity_name,
-        workflow_template: template,
+        workflow_template_identifier: template.identifier,
       )
 
       opportunity.candidate_pool = candidate_pool_resolver.candidate_pool_for_opportunity(opportunity: opportunity)

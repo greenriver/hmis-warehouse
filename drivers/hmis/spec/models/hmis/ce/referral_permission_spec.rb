@@ -13,8 +13,16 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::Ce::Referral, type: :model do
   include_context 'ce spec helper'
 
-  let!(:other_referral) { create(:hmis_ce_referral) }
+  # Test primarily tests visibility of the `referral` defined in CE Spec Helper
 
+  # Create referral in another project in the same data source
+  let!(:other_project) { create :hmis_hud_project, data_source: ds1 }
+  let!(:other_referral) do
+    opportunity = create(:hmis_ce_opportunity, data_source: ds1, project: other_project, workflow_template: workflow_template)
+    create(:hmis_ce_referral, opportunity: opportunity)
+  end
+
+  # Grant user access to view all projects, but not view any referrals
   let!(:ds_access_control) do # overwrite the access control included with the CE spec helper
     create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details])
   end
@@ -24,16 +32,24 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty
     end
 
-    context 'user can_view_referrals' do
+    context 'user can_view_referrals in data source' do
       let!(:acl) { create_access_control(hmis_user, ds1, with_permission: :can_view_referrals) }
+
+      it 'includes all referrals in data source' do
+        expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral, other_referral)
+      end
+    end
+
+    context 'user can_view_referrals in project' do
+      let!(:acl) { create_access_control(hmis_user, project, with_permission: :can_view_referrals) }
 
       it 'includes referral in permissioned project' do
         expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
       end
     end
 
-    context 'user can_view_own_referrals' do
-      let!(:acl) { create_access_control(hmis_user, ds1, with_permission: :can_view_own_referrals) }
+    context 'user can_view_own_referrals in project' do
+      let!(:acl) { create_access_control(hmis_user, project, with_permission: :can_view_own_referrals) }
 
       it 'does not include any referrals when user has no assigned steps' do
         expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty
@@ -90,6 +106,22 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
             expect(referral.steps.second.assignments.sole.user).to eq(hmis_user)
             expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
           end
+        end
+      end
+
+      context 'and user has assigned step on referral in a different project' do
+        # override acl to point to other_project instead
+        let!(:acl) { create_access_control(hmis_user, other_project, with_permission: :can_view_own_referrals) }
+
+        before do
+          engine.start_workflow!(user: hmis_user)
+          step = referral.steps.first
+          referral.participants.create!(user: hmis_user, swimlane: step.swimlane)
+          engine.assign_task!(step)
+        end
+
+        it 'does not include the assigned referral' do
+          expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty
         end
       end
     end
