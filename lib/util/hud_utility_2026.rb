@@ -683,7 +683,7 @@ module HudUtility2026
   # These are used by assessment Form Definition to specify funder applicability rules.
   def funder_components
     {
-      'HUD: CoC' => [1, 2, 3, 4, 5, 6, 7, 43, 44, 49], # Includes YHDP
+      'HUD: CoC' => [1, 2, 3, 4, 5, 6, 7, 43, 44, 49, 56], # Includes YHDP
       'HUD: ESG' => [8, 9, 10, 11, 47], # Excludes ESG RUSH
       'HUD: ESG RUSH' => [53], # Even though it has the same "HUD ESG" prefix, HUD Data Dictionary treats it as a separate component
       'HUD: HOPWA' => [13, 14, 15, 16, 17, 18, 19, 48],

@@ -682,7 +682,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def set_hud_requirements
     changed = [] # list of Link IDs that were changed
-    rule_module = HmisUtil::HudAssessmentFormRules2024.new
+    rule_module = HmisUtil.current_assessment_form_rules
 
     walk_definition_nodes do |item|
       link_id = item['link_id']
