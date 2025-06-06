@@ -92,7 +92,7 @@ module Types
     def can_be_marked_unavailable
       return false unless Hmis::Ce.configuration.enabled?
       return false unless latest_opportunity&.active? # Must have an active opportunity
-      return false if latest_opportunity.status.to_sym == :locked # Opportunity must be accepting referrals
+      return false if latest_opportunity.active_referral.present? # If there is already a referral, trying to mark unavailable will fail
 
       true
     end
