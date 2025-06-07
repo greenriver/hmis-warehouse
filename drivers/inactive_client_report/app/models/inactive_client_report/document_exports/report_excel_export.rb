@@ -78,9 +78,5 @@ module InactiveClientReport::DocumentExports
     protected def report_class
       InactiveClientReport::Report
     end
-
-    private def controller_class
-      InactiveClientReport::WarehouseReports::ReportsController
-    end
   end
 end

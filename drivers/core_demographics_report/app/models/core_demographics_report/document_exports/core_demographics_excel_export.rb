@@ -138,9 +138,5 @@ module CoreDemographicsReport::DocumentExports
     protected def report_class
       CoreDemographicsReport::Core
     end
-
-    private def controller_class
-      CoreDemographicsReport::WarehouseReports::CoreController
-    end
   end
 end

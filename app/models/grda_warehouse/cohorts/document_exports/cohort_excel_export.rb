@@ -89,9 +89,5 @@ module GrdaWarehouse::Cohorts::DocumentExports
     def generator_url
       cohort_path(cohort)
     end
-
-    private def controller_class
-      CohortsController
-    end
   end
 end

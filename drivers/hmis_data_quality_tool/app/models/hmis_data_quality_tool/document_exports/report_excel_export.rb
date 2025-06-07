@@ -242,9 +242,5 @@ module HmisDataQualityTool::DocumentExports
     protected def report_class
       HmisDataQualityTool::Report
     end
-
-    private def controller_class
-      HmisDataQualityTool::WarehouseReports::ReportsController
-    end
   end
 end

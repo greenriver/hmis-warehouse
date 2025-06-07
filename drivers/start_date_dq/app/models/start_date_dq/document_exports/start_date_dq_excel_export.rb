@@ -50,9 +50,5 @@ module StartDateDq::DocumentExports
     protected def report_class
       StartDateDq::Report
     end
-
-    private def controller_class
-      StartDateDq::WarehouseReports::ReportsController
-    end
   end
 end

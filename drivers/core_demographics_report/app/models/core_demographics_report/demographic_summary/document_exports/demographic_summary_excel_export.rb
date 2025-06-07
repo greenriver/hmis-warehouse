@@ -146,9 +146,5 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
     protected def report_class
       CoreDemographicsReport::DemographicSummary::Report
     end
-
-    private def controller_class
-      CoreDemographicsReport::WarehouseReports::DemographicSummaryController
-    end
   end
 end

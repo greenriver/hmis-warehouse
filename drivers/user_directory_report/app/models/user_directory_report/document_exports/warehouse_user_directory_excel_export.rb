@@ -65,9 +65,5 @@ module UserDirectoryReport::DocumentExports
         end
       end
     end
-
-    private def controller_class
-      UserDirectoryReport::WarehouseReports::UsersController
-    end
   end
 end

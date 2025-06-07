@@ -86,9 +86,5 @@ module ClientDocumentsReport::DocumentExports
     protected def report_class
       ClientDocumentsReport::Report
     end
-
-    private def controller_class
-      ClientDocumentsReport::WarehouseReports::ReportsController
-    end
   end
 end

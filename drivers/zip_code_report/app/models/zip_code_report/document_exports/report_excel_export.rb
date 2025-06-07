@@ -59,9 +59,5 @@ module ZipCodeReport::DocumentExports
     protected def report_class
       ZipCodeReport::Report
     end
-
-    private def controller_class
-      ZipCodeReport::WarehouseReports::ReportsController
-    end
   end
 end
