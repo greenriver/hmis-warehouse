@@ -11,10 +11,10 @@ module HudPit::PitConcern
   included do
     def available_report_versions
       {
-        'FY 2025 (current)' => { slug: :fy2025, active: true },
-        'FY 2024' => { slug: :fy2024, active: true },
-        'FY 2023' => { slug: :fy2023, active: true },
         'FY 2022' => { slug: :fy2022, active: true },
+        'FY 2023' => { slug: :fy2023, active: true },
+        'FY 2024' => { slug: :fy2024, active: true },
+        'FY 2025 (current)' => { slug: :fy2025, active: true },
       }.freeze
     end
     helper_method :available_report_versions

@@ -94,10 +94,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
-          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Unit'),
-          a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'Project'),
-          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'Organization', 'projectTypes' => ['ES_NBN']),
-          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'Organization', 'funders' => ['HUD_HUD_VASH']),
+          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'UNIT'),
+          a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'PROJECT'),
+          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
+          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
         )
       end
     end
