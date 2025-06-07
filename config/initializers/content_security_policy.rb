@@ -26,7 +26,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.img_src(
     :self,
     :data,
-    'https://tile.openstreetmap.org',
+    'https://*.openstreetmap.org',
   )
   policy.script_src(
     :self,
