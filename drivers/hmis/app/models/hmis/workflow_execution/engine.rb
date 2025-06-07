@@ -34,6 +34,7 @@ module Hmis::WorkflowExecution
 
     def start_step!(step, user:)
       step.assignments.find_or_create_by!(user: user)
+      step.started_at = Time.current
       step.start!
       process_triggers(node: step.node, event_type: 'start_step', user: user, step: step)
       log_event('start_step', user: user, step: step)
@@ -46,6 +47,7 @@ module Hmis::WorkflowExecution
 
     def complete_step!(step, user:, submitted_values:)
       step.submitted_values = submitted_values
+      step.completed_at = Time.current
       step.complete!
       process_triggers(node: step.node, event_type: 'complete_step', user: user, step: step)
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
@@ -121,7 +123,7 @@ module Hmis::WorkflowExecution
         return unless node.inflows.all? { |flow| evaluate_condition(flow.condition) }
       end
 
-      outflows = node.outflows.sort_by(&:position)
+      outflows = node.outflows.sort_by { |f| [f.condition ? 0 : 1, f.position] } # evaluate outflows with conditions first
       if node.exclusive_outflows?
         outflows = Array(outflows.detect { |flow| evaluate_condition(flow.condition) })
       else
@@ -144,6 +146,7 @@ module Hmis::WorkflowExecution
           raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
         end
 
+        step.available_at = Time.current
         step.enable!
         assign_task!(step)
       when Hmis::WorkflowDefinition::Gateway

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -19,19 +21,13 @@ module Admin
     require 'active_support/core_ext/string/inflections'
 
     def index
-      # search
-      @users = if params[:q].present?
-        user_scope.text_search(params[:q])
-      else
-        user_scope
-      end
+      # TODO: START_ACL replace when ACL transition complete
+      # preload(:access_controls, :oauth_identities).
+      @users = user_scope.preload(:access_controls, :roles, :oauth_identities)
+      # END_ACL
 
-      @users = @users.
-        # TODO: START_ACL replace when ACL transition complete
-        # preload(:access_controls, :oauth_identities).
-        preload(:access_controls, :roles, :oauth_identities).
-        # END_ACL
-        order(sort_column => sort_direction)
+      @users = @users.text_search(params[:q], sort_by_best_match: !manually_sorted?) if params[:q].present?
+      @users = @users.order(sort_column => sort_direction) if manually_sorted?
 
       @pagy, @users = pagy(@users)
     end
@@ -162,9 +158,9 @@ module Admin
     def title_for_show
       @user.name
     end
-    alias title_for_edit title_for_show
-    alias title_for_destroy title_for_show
-    alias title_for_update title_for_show
+    alias_method :title_for_edit, :title_for_show
+    alias_method :title_for_destroy, :title_for_show
+    alias_method :title_for_update, :title_for_show
 
     def title_for_index
       'User List'
@@ -295,12 +291,16 @@ module Admin
       )
     end
 
+    private def manually_sorted?
+      params[:sort].present?
+    end
+
     private def sort_column
-      user_scope.column_names.include?(params[:sort]) ? params[:sort] : 'last_name'
+      params[:sort].presence_in(['email', 'first_name', 'last_name']) || 'last_name'
     end
 
     private def sort_direction
-      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
+      params[:direction].presence_in(['asc', 'desc']) || 'asc'
     end
 
     private def set_user

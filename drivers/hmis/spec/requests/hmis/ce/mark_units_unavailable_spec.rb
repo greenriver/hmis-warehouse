@@ -18,7 +18,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
   let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
   let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
   let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
-  let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -70,6 +70,14 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       end
     end
 
+    context 'when user lacks permission' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: :can_view_units) }
+
+      it 'does not allow' do
+        expect_failure('access denied')
+      end
+    end
+
     context 'when unit is already not available' do
       let!(:opportunity) { create(:hmis_ce_opportunity) } # overwrite opportunity fixture with an opportunity that's not associated with this unit
 
@@ -79,7 +87,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
     end
 
     context 'when opportunity has active referral' do
-      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1) }
 
       it 'does not allow marking unavailable' do
         expect_failure('Cannot mark opportunity unavailable if it has an active referral')
@@ -87,8 +95,8 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
     end
 
     context 'when unit had an opportunity in the past that is now closed' do
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, created_at: 2.years.ago, status: :closed) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, created_at: 2.years.ago, status: :accepted) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       it 'destroys the active opportunity and not the past opportunity' do
         expect do
@@ -105,7 +113,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       let!(:units) do
         10.times.map do
           unit = create(:hmis_unit, project: project, unit_type: unit_type)
-          create(:hmis_ce_opportunity, owner: unit, project: project, status: :open)
+          create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open)
           unit
         end
       end

@@ -13,10 +13,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   # Basic setup
-  let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:candidate_pool) { create :hmis_ce_match_candidate_pool }
-  let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool }
+  let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 1 }
+  let!(:candidate_pool) { create :hmis_ce_match_candidate_pool }
+  let!(:unit) { create(:hmis_unit_in_group, project: project) }
+  let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit }
 
+  let!(:access_control) { create_access_control(hmis_user, project, with_permission: [:can_view_project, :can_view_units, :can_view_prioritized_client_lists, :can_view_referrals]) }
+
+  # TODO: adjust this test to test the unit query, since unit will back the "opportunity page"
+  # ```
+  # unit(id: $id) {
+  #    id
+  #    eligibilityRequirements # eligibility requirements independent of opportunity existence
+  #    latestOpportunity {
+  #       referral {}
+  #       candidates {}
+  #    }
+  #    opportunities # history of all opportunities (and referrals) for this unit (maybe later)
+  # }
+  # ```
   describe 'ce_opportunity query' do
     let(:query) do
       <<~GRAPHQL
@@ -49,6 +64,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               name
               ownerType
+              expression
+              projectTypes
+              funders
             }
             candidatesGeneratedAt
           }
@@ -63,7 +81,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has rules' do
-      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: opportunity) }
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
@@ -76,10 +94,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
-          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'Opportunity'),
-          a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'Project'),
-          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'Project Type'),
-          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'Funder'),
+          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'UNIT'),
+          a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'PROJECT'),
+          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
+          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
         )
       end
     end
@@ -93,6 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             :can_view_clients,
             :can_view_project,
             :can_view_enrollment_details,
+            :can_view_referrals,
           ],
         )
       end
@@ -141,6 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(
           :hmis_ce_referral,
           opportunity: opportunity,
+          data_source: ds1,
           client: client_with_active_referral,
           status: 'in_progress',
         )
@@ -163,7 +183,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
           expect(candidates).to be_an(Array)
-          expect(candidates.length).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
+          expect(candidates.size).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
 
           # Verify candidates are ordered by priority score
           expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
@@ -206,19 +226,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => 'in_progress',
           )
         end
+
+        it 'returns no candidates when user lacks permission to see prioritized client lists' do
+          remove_permissions(access_control, :can_view_prioritized_client_lists)
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodes')).to be_empty
+        end
       end
     end
 
     describe 'when the opportunity has several referrals' do
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
-      let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
-      let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
-      let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
+      let!(:rejected3) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
 
       ['initialized', 'in_progress', 'accepted'].each do |status|
         it "returns the #{status} referral" do
           # it should return this referral even if it was created less recently than the rejected referrals (which should not happen)
-          referral = create(:hmis_ce_referral, opportunity: opportunity, status: status, created_at: 2.days.ago)
+          referral = create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: status, created_at: 2.days.ago)
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           referral_data = result.dig('data', 'ceOpportunity', 'referral')
@@ -228,7 +255,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has no candidates' do
-      let(:empty_pool_opportunity) { create :hmis_ce_opportunity, project: project }
+      let(:empty_pool_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1 }
 
       let(:empty_pool_variables) do
         {
@@ -260,13 +287,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
-        end.to make_database_queries(count: 30..40)
+        end.to make_database_queries(count: 25..35)
       end
     end
 
     context 'when the opportunity has some candidates the current user lacks permission to view' do
       let(:candidate_pool_with_anonymous) { create :hmis_ce_match_candidate_pool }
-      let(:opportunity) { create :hmis_ce_opportunity, project: project, candidate_pool: candidate_pool_with_anonymous }
+      let(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool_with_anonymous }
 
       let!(:permissioned_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
       let!(:other_project) { create :hmis_hud_project, data_source: ds1, user: u1 }
@@ -308,7 +335,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
 
         candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
-        expect(candidates.length).to eq(2)
+        expect(candidates.size).to eq(2)
 
         candidate1 = candidates.first
         candidate2 = candidates.second
@@ -329,6 +356,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'does not throw, but returns no opportunity' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceOpportunity')).to be_nil
+      end
+    end
+
+    describe 'without permission' do
+      before do
+        remove_permissions(access_control, :can_view_units)
+      end
+
+      it 'does not return the opportunity' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'ceOpportunity')).to be_nil

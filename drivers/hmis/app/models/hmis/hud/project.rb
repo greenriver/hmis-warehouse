@@ -43,6 +43,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
+  has_many :unit_groups, dependent: :destroy, class_name: 'Hmis::UnitGroup'
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
 
   has_many :group_viewable_entity_projects
@@ -74,6 +75,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
+    ids += user.viewable_project_groups.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
@@ -86,6 +88,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   scope :with_access, ->(user, *permissions, **kwargs) do
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
+    ids += user.entities_with_permissions(Hmis::ProjectGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
     ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)

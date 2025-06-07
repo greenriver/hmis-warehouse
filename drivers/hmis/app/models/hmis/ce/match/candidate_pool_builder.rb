@@ -4,6 +4,11 @@
 
 module Hmis::Ce::Match
   class CandidatePoolBuilder
+    def initialize(opportunities)
+      @opportunities = opportunities
+      @candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
+    end
+
     # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
     def perform
       with_lock do
@@ -21,43 +26,26 @@ module Hmis::Ce::Match
     end
 
     def _perform
-      grouped = {}
-
-      all_rules = Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
-      # group opportunities by unique priority and eligibility rules
-      active_opportunities.preload(project: [:organization, :funders]).each do |opportunity|
-        rules = all_rules.filter { |rule| rule.applies_to_opportunity?(opportunity) }
-        key = []
-        key << (rules.filter(&:priority_scheme?).first&.expression || '0')
-        key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')
-
-        grouped[key] ||= []
-        grouped[key] << opportunity
-      end
-
+      grouped = @candidate_pool_resolver.opportunities_by_key(opportunity_scope: @opportunities)
       update_pools!(grouped.keys)
       update_opportunity_pools!(grouped)
       cleanup_orphan_pools
     end
 
+    # Update the opportunity records with their candidate pools
     def update_opportunity_pools!(grouped)
-      current_pools = Hmis::Ce::Match::CandidatePool.order(:id).to_a.index_by do |pool|
-        [pool.priority_expression, pool.requirement_expression]
-      end
+      current_pools = @candidate_pool_resolver.reload_candidate_pools_by_key
       grouped.each do |key, opportunities|
         pool = current_pools.fetch(key)
-        active_opportunities.where(id: opportunities.map(&:id)).update_all(candidate_pool_id: pool.id)
+        @opportunities.where(id: opportunities.map(&:id)).update_all(candidate_pool_id: pool.id)
       end
-    end
-
-    def active_opportunities
-      Hmis::Ce::Opportunity.active
     end
 
     def now
       @now ||= Time.current
     end
 
+    # Create candidate pools, if they don't exist, for the given [priority, requirement] keys
     def update_pools!(values)
       attrs = values.map do |priority_expression, requirement_expression|
         {
@@ -76,7 +64,7 @@ module Hmis::Ce::Match
       raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
     end
 
-    # delete pools that haven't been used in a while
+    # Delete pools that haven't been used in a while
     def cleanup_orphan_pools
       duration = Hmis::Ce.configuration.days_to_retain_orphan_candidate_pools
       return unless duration

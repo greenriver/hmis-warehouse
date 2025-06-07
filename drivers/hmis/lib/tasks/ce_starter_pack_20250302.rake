@@ -7,6 +7,7 @@ def create_template(name, identifier)
   template.template_type = 'ce_referral'
   template.name = name
   template.version = 0
+  template.data_source = GrdaWarehouse::DataSource.hmis.first
   template.save! if template.changed?
   template
 end
@@ -72,6 +73,7 @@ task ce_starter_pack_20250302: [:environment] do
   start_workflow_event = create_start_event(no_task_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(no_task_template, 'accept referral', 'end_workflow', 'accept_referral')
   start_workflow_event.connect_to!(accept_workflow_event) unless start_workflow_event.outflows.where(target_node_id: accept_workflow_event.id).exists?
+  no_task_template.validate!
 
   puts '- Creating One Task template, another simple template that has 1 task, which can cause the referral to either succeed or fail.'
   one_task_template = create_template('One Task', 'one_task')
@@ -129,8 +131,11 @@ task ce_starter_pack_20250302: [:environment] do
 
   start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   client_acceptance_task.connect_to!(gateway) unless client_acceptance_task.outflows.where(target_node_id: gateway.id).exists?
-  gateway.connect_to!(reject_workflow_event, condition: 'client_accepted = 0') unless gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
+  gateway.outflows.destroy_all
+  gateway.connect_to!(reject_workflow_event) unless gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
   gateway.connect_to!(accept_workflow_event, condition: 'client_accepted = 1') unless gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
+  one_task_template.validate!
 
   puts '- Creating Admin Approve Denial template, a slightly more complicated template with multiple swimlanes.'
   # Start workflow -> Client Approval task (Case Manager) -> Client Approval Gateway...
@@ -187,20 +192,42 @@ task ce_starter_pack_20250302: [:environment] do
 
   start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   client_acceptance_task.connect_to!(client_acceptance_gateway) unless client_acceptance_task.outflows.where(target_node_id: client_acceptance_gateway.id).exists?
-  client_acceptance_gateway.connect_to!(accept_workflow_event, condition: 'client_accepted = 1') unless client_acceptance_gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
+  client_acceptance_gateway.outflows.destroy_all
+  client_acceptance_gateway.connect_to!(accept_workflow_event) unless client_acceptance_gateway.outflows.where(target_node_id: accept_workflow_event.id).exists?
   client_acceptance_gateway.connect_to!(admin_acceptance_task, condition: 'client_accepted = 0') unless client_acceptance_gateway.outflows.where(target_node_id: admin_acceptance_task.id).exists?
   admin_acceptance_task.connect_to!(admin_review_gateway) unless admin_acceptance_task.outflows.where(target_node_id: admin_review_gateway.id).exists?
-  admin_review_gateway.connect_to!(client_acceptance_task, condition: 'review_denial_decision = 0') unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
+  admin_review_gateway.outflows.destroy_all
+  admin_review_gateway.connect_to!(client_acceptance_task) unless admin_review_gateway.outflows.where(target_node_id: client_acceptance_task.id).exists?
   admin_review_gateway.connect_to!(reject_workflow_event, condition: 'review_denial_decision = 1') unless admin_review_gateway.outflows.where(target_node_id: reject_workflow_event.id).exists?
+
+  admin_approval_template.validate!
+
+  puts '- Creating Sequential template, a template with non-conditional tasks that are executed sequentially.'
+  sequential_template = create_template('Sequential', 'sequential')
+  case_managers = sequential_template.swimlanes.find_or_create_by!(name: 'Case Managers')
+  providers = sequential_template.swimlanes.find_or_create_by!(name: 'Providers')
+  start_workflow_event = create_start_event(sequential_template, 'start referral', 'start_workflow', 'start_referral')
+  accept_workflow_event = create_end_event(sequential_template, 'accept referral', 'end_workflow', 'accept_referral')
+
+  task_1 = create_task(client_accepts_form_def, sequential_template,  'Case Manager Confirm', case_managers)
+  task_2 = create_task(review_denial_form_def, sequential_template,  'Provider Confirm', providers)
+
+  start_workflow_event.connect_to!(task_1) unless start_workflow_event.outflows.where(target_node_id: task_1.id).exists?
+  task_1.connect_to!(task_2) unless task_1.outflows.where(target_node_id: task_2.id).exists?
+  task_2.connect_to!(accept_workflow_event) unless task_2.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
+  sequential_template.validate!
 
   puts '- Creating Enrollment Creator template, a template with tasks that have side effects.'
 
   enrollment_creator_template = create_template('Enrollment Creator', 'enrollment_creator')
   case_managers = enrollment_creator_template.swimlanes.find_or_create_by!(name: 'Case Managers')
+  providers = enrollment_creator_template.swimlanes.find_or_create_by!(name: 'Providers')
 
   start_workflow_event = create_start_event(enrollment_creator_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(enrollment_creator_template, 'accept referral', 'end_workflow', 'accept_referral')
 
+  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template,  'Confirm Client Accepts Referral', providers)
   create_enrollment_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'ce_create_enrollment',
     status: 'published'
@@ -235,7 +262,11 @@ task ce_starter_pack_20250302: [:environment] do
   create_enrollment_task.save! if create_enrollment_task.changed?
 
   start_workflow_event.connect_to!(create_enrollment_task) unless start_workflow_event.outflows.where(target_node_id: create_enrollment_task.id).exists?
+  start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
   create_enrollment_task.connect_to!(accept_workflow_event) unless create_enrollment_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
+  client_acceptance_task.connect_to!(accept_workflow_event) unless client_acceptance_task.outflows.where(target_node_id: accept_workflow_event.id).exists?
+
+  enrollment_creator_template.validate!
 
   # Next, create a new organization and project to use for CE. This isn't strictly necessary -- devs will already have
   # orgs and projects in their local dbs they can use for testing -- but it's helpful for the sake of the starter pack
@@ -279,6 +310,17 @@ task ce_starter_pack_20250302: [:environment] do
   ce_project_funder.grant_id = 'grant ID'
   ce_project_funder.save! if ce_project_funder.changed?
 
+  # create a UnitGroup in ce project
+  unit_group = Hmis::UnitGroup.find_or_create_by(
+    project: ce_project,
+    name: 'Admin Approve Denial Unit Group',
+    workflow_template: admin_approval_template,
+  )
+  # if there are any units in the project that don't have a unit group, assign them to this one
+  ce_project.units.where(unit_group: nil).each { |u| u.update!(unit_group: unit_group) }
+  # clean up any dangling opportunities that don't have an owner
+  Hmis::Ce::Opportunity.all.filter { |o| o.unit.nil? }.each { |u| u.referrals.each(&:destroy!) }.map(&:destroy!)
+
   # Set up match rules in this project
   puts 'Creating match rules'
   age_requirement = Hmis::Ce::Match::Rule.find_or_initialize_by(
@@ -312,7 +354,8 @@ task ce_starter_pack_20250302: [:environment] do
 
   # Create candidates for opportunities. First create some opportunities using the frontend
   puts 'Building a candidate pool'
-  Hmis::Ce::Match::CandidatePoolBuilder.new.perform
+  opportunities = Hmis::Ce::Opportunity.active
+  Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
 
   puts 'Running the CE match engine'
   clients = Hmis::Hud::Client.hmis.limit(100) # modify this if you want to include different or specific clients

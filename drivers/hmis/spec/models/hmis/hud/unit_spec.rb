@@ -19,7 +19,6 @@ RSpec.describe Hmis::Unit, type: :model do
 
   include_context 'hmis base setup'
   include_context 'hmis service setup'
-  let!(:project) { create :hmis_hud_project }
   let!(:unit_type) { create :hmis_unit_type }
   let!(:unit1) { create :hmis_unit, project: p1 }
 
@@ -109,53 +108,53 @@ RSpec.describe Hmis::Unit, type: :model do
   end
 
   describe 'opportunity uniqueness validator' do
-    let!(:unit) { create(:hmis_unit, project: project) }
+    let!(:unit) { create(:hmis_unit, project: p1) }
 
     context 'when there is an existing open opportunity' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :open) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
 
       it 'disallows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, unit: unit.reload, project: p1, data_source: ds1, status: :open)
         expect(new_opportunity).not_to be_valid
-        expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
+        expect(new_opportunity.errors[:unit]).to include('can only have one open or locked opportunity')
       end
     end
 
     context 'when there is an existing locked opportunity' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
       it 'disallows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, unit: unit.reload, project: p1, data_source: ds1, status: :open)
         expect(new_opportunity).not_to be_valid
-        expect(new_opportunity.errors[:owner]).to include('can only have one opportunity')
+        expect(new_opportunity.errors[:unit]).to include('can only have one open or locked opportunity')
       end
     end
 
     context 'when there is an existing closed opportunity' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :closed) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :accepted) }
 
       it 'allows saving a new opportunity' do
-        new_opportunity = build(:hmis_ce_opportunity, owner: unit.reload, project: project, status: :open)
+        new_opportunity = build(:hmis_ce_opportunity, unit: unit.reload, project: p1, data_source: ds1, status: :open)
         expect(new_opportunity).to be_valid
       end
     end
   end
 
   describe 'latest_opportunity and active_referral scopes' do
-    let!(:unit) { create(:hmis_unit, project: project) }
+    let!(:unit) { create(:hmis_unit, project: p1) }
     let!(:today) { Date.current }
     let!(:yesterday) { today - 1.day }
 
     context 'when there are many opportunities' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, status: :locked, created_at: today - 3.days) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress, created_at: today - 2.days) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked, created_at: today - 3.days) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress, created_at: today - 2.days) }
 
       before do
         3.times do
-          opportunity = create(:hmis_ce_opportunity, owner: unit, project: project, status: :closed, created_at: yesterday)
-          create(:hmis_ce_referral, opportunity: opportunity, status: :rejected, created_at: yesterday)
+          opportunity = create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :closed, created_at: yesterday)
+          create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :rejected, created_at: yesterday)
         end
       end
 

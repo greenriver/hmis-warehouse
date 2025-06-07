@@ -24,6 +24,8 @@ module Types
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -106,6 +108,13 @@ module Types
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
+      can :view_referrals
+      can :view_own_referrals
+      can :start_referrals
+      can :perform_any_referral_tasks
+      can :perform_own_referral_tasks
+      can :assign_referral_tasks
+      can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
@@ -113,13 +122,10 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
+    field :unit_groups, Types::HmisSchema::UnitGroup.page_type, null: false
 
-    field :ce_opportunities, Types::HmisSchema::CeOpportunity.page_type, null: false do
-      filters_argument Types::HmisSchema::CeOpportunity, omit: [:project, :project_type], type_name: 'ProjectCeOpportunity'
-    end
-    field :ce_referrals, Types::HmisSchema::CeReferral.page_type, null: false do
-      filters_argument Types::HmisSchema::CeReferral, omit: [:project, :project_type], type_name: 'ProjectCeReferral'
-    end
+    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
 
     def hud_id
       object.project_id
@@ -187,11 +193,16 @@ module Types
       end
     end
 
-    # TODO use dataloader
     def units(**args)
       return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
 
       resolve_units(**args)
+    end
+
+    def unit_groups
+      return Hmis::UnitGroup.none unless current_permission?(entity: object, permission: :can_view_units)
+
+      object.unit_groups.order(:name, :id)
     end
 
     def has_units # rubocop:disable Naming/PredicateName
@@ -259,20 +270,12 @@ module Types
       resolve_external_form_submissions(scope, **args)
     end
 
-    def ce_opportunities(filters: nil) # not for batch
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_opportunities
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-      scope.order(created_at: :desc)
+    def ce_opportunities(**args) # Don't resolve in batch
+      resolve_ce_opportunities(object.ce_opportunities, **args)
     end
 
-    def ce_referrals(filters: nil) # not for batch
-      raise unless Hmis::Ce.configuration.enabled?
-
-      scope = object.ce_referrals
-      scope = scope.where(status: filters&.status) if filters&.status.present?
-      scope.order(created_at: :desc)
+    def ce_referrals(**args) # Don't resolve in batch
+      resolve_ce_referrals(object.ce_referrals, **args)
     end
 
     private def check_enrollment_details_access

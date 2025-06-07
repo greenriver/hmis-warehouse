@@ -44,6 +44,7 @@ module HudPit::Generators::Pit::Fy2025
     end
 
     private def add
+      pit_date = @generator.filter.on
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
         services_by_client_id = services_on_pit_date(batch)
@@ -55,7 +56,7 @@ module HudPit::Generators::Pit::Fy2025
           next unless last_service_history_enrollment
 
           hh_id = get_hh_id(last_service_history_enrollment)
-          household_types[hh_id] = household_makeup(hh_id, @generator.filter.on)
+          household_types[hh_id] = household_makeup(hh_id, pit_date)
         end
 
         pending_associations = {}
@@ -77,32 +78,48 @@ module HudPit::Generators::Pit::Fy2025
           next unless source_client
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
-          max_disability_date = disabilities.select { |d| d.InformationDate <= @generator.filter.on }.
+          max_disability_date = disabilities.select { |d| d.InformationDate <= pit_date }.
             map(&:InformationDate).max
           disabilities_latest = disabilities.select { |d| d.InformationDate == max_disability_date }
 
-          dv_record = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @generator.filter.on && !h.DomesticViolenceSurvivor.nil? }.
-            max_by(&:InformationDate)
+          # find the most recent health and dv record with a DomesticViolenceSurvivor answer
+          last_dv_record = enrollment.health_and_dvs.
+            select { |h| h.information_date <= pit_date && h.domestic_violence_survivor.present? }.
+            max_by { |h| [h.information_date, h.id] }
 
           if processed_source_clients.include?(source_client.id)
             @notifier.ping "Duplicate source client: #{source_client.id} for destination client: #{client.id} in enrollment: #{enrollment.id}" if @send_notifications
             next
           end
 
-          age = source_client.age_on(@generator.filter.on)
-          hh_id = get_hh_id(last_service_history_enrollment)
-          household_ages = ages_for(hh_id, @generator.filter.on)
-          household_type = household_types[hh_id]
           # Only count clients once (where one category is Multiple Races)
           pit_race = source_client.pit_race
           processed_source_clients << source_client.id
           # NOTE: member is a hash with string keys
-          hoh_veteran = household_member_data(last_service_history_enrollment).detect do |member|
-            next unless member
-
+          hoh_veteran = household_member_data(last_service_history_enrollment).any? do |member|
             member['veteran_status'] == 1 && member['relationship_to_hoh'] == 1
-          end.present?
+          end
+
+          # calculate household (hh) stats.
+          # Note these should be the same across all household members and could be cached
+          hh_id = get_hh_id(last_service_history_enrollment)
+          household_type = household_types[hh_id]
+          hh_member_count = 0
+          hh_max_age = 0
+          hh_has_minor_children = false
+          hh_max_age_of_parents = 0
+          households[hh_id]&.each do |member|
+            hh_member_count += 1
+
+            # age related hh calculations
+            member_relationship_to_hoh = member['relationship_to_hoh']
+            member_age = GrdaWarehouse::Hud::Client.age(date: pit_date, dob: member['dob'])
+            next unless member_age
+
+            hh_max_age = member_age if member_age > hh_max_age
+            hh_has_minor_children = true if member_relationship_to_hoh == 2 && member_age < 18
+            hh_max_age_of_parents = member_age if member_relationship_to_hoh.in?([1, 3]) && member_age > hh_max_age_of_parents
+          end
 
           options = {
             client_id: source_client.id,
@@ -110,17 +127,19 @@ module HudPit::Generators::Pit::Fy2025
             data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
 
-            age: age,
+            age: source_client.age_on(pit_date),
             dob: source_client.DOB,
             first_name: source_client.FirstName,
             last_name: source_client.LastName,
             household_type: household_type,
-            max_age: household_ages.compact&.max,
-            household_member_count: household_ages.count,
-            hoh_age: hoh_age(hh_id, @generator.filter.on),
+            max_age: hh_max_age,
+            household_member_count: hh_member_count,
+            hoh_age: hoh_age(hh_id, pit_date),
             hoh_veteran: hoh_veteran,
             head_of_household: enrollment.RelationshipToHoH == 1,
             relationship_to_hoh: enrollment.RelationshipToHoH,
+            household_has_minor_children: hh_has_minor_children,
+            household_max_age_of_parents: hh_max_age_of_parents,
             pit_race: pit_race,
             am_ind_ak_native: source_client.AmIndAKNative,
             asian: source_client.Asian,
@@ -130,12 +149,12 @@ module HudPit::Generators::Pit::Fy2025
             mid_east_n_african: source_client.MidEastNAfrican,
             race_none: source_client.RaceNone,
             veteran: source_client.VeteranStatus,
-            chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
-            chronically_homeless_household: household_chronic_status(hh_id, client.id).try(:[], :chronic_status) || false,
+            chronically_homeless: enrollment.chronically_homeless_at_start?(date: pit_date),
+            chronically_homeless_household: pit_household_chronic_status(hh_id).try(:[], :pit_chronic_status) || false,
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
-            domestic_violence: dv_record&.DomesticViolenceSurvivor,
-            domestic_violence_currently_fleeing: dv_record&.CurrentlyFleeing,
+            domestic_violence: last_dv_record&.domestic_violence_survivor,
+            domestic_violence_currently_fleeing: last_dv_record&.currently_fleeing,
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,
@@ -233,6 +252,7 @@ module HudPit::Generators::Pit::Fy2025
     end
 
     private def sub_calculations
+      child_of_hoh_clause = a_t[:relationship_to_hoh].eq(2)
       {
         households: {
           title: 'Total Number of Households',
@@ -292,15 +312,29 @@ module HudPit::Generators::Pit::Fy2025
         },
         children_of_youth_parents: {
           title: 'Total Children in Parenting Youth Households',
-          query: a_t[:head_of_household].eq(false).and(child_clause),
+          query: [
+            child_of_hoh_clause,
+            child_clause,
+          ].reduce(&:and),
         },
         children_of_18_to_24_parents: {
+          # https://www.hudexchange.info/faqs/3470/how-should-two-parent-parenting-youth-households-be-reported-in-the-pit/
+          # count children under oldest parent (aged 18-24)
           title: 'Children in households with parenting youth age 18 to 24 (children under age 18 with parents age 18 to 24)',
-          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(18..24)),
+          query: [
+            child_of_hoh_clause,
+            child_clause,
+            a_t[:household_max_age_of_parents].in(18..24),
+          ].reduce(&:and),
         },
         children_of_0_to_18_parents: {
+          # https://www.hudexchange.info/faqs/3470/how-should-two-parent-parenting-youth-households-be-reported-in-the-pit/
           title: 'Children in households with parenting youth under age 18 (children under age 18 with parents under 18)',
-          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(0..17)),
+          query: [
+            child_of_hoh_clause,
+            child_clause,
+            a_t[:household_max_age_of_parents].lt(18),
+          ].reduce(&:and),
         },
         native_ak: {
           title: 'American Indian, Alaska Native, or Indigenous (only)',
@@ -364,7 +398,8 @@ module HudPit::Generators::Pit::Fy2025
         },
         chronic_households: {
           title: 'Chronically Homeless: Total number of households',
-          query: a_t[:chronically_homeless].eq(true).and(hoh_clause),
+          # Count heads of household in chronically homeless households (essentially count the households that are chronically homeless, multiple HoH or lack of HoH, bad data, will cause this to count incorrectly)
+          query: a_t[:chronically_homeless_household].eq(true).and(hoh_clause),
         },
         chronic_clients: {
           title: 'Chronically Homeless: Total number of persons',

@@ -24,6 +24,7 @@ class Hmis::AccessGroup < ApplicationRecord
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::Hud::Organization'
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::Hud::Project'
+  has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::ProjectGroup'
 
   validates_presence_of :name
 
@@ -77,6 +78,7 @@ class Hmis::AccessGroup < ApplicationRecord
       list = [
         :data_sources,
         :organizations,
+        :project_groups,
         :projects,
       ]
       list.each do |type|
@@ -109,32 +111,6 @@ class Hmis::AccessGroup < ApplicationRecord
     ).destroy_all
   end
 
-  # Provides a means of showing projects associated through other entities
-  def associated_by(associations:)
-    return [] unless associations.present?
-
-    associations.flat_map do |association|
-      case association
-      when :organization
-        organizations.preload(:projects).map do |org|
-          [
-            org.OrganizationName,
-            org.projects.map(&:ProjectName),
-          ]
-        end
-      when :data_source
-        data_sources.preload(:projects).map do |ds|
-          [
-            ds.name,
-            ds.projects.map(&:ProjectName),
-          ]
-        end
-      else
-        []
-      end
-    end
-  end
-
   def clean_entity_type(key)
     entity_types.keys.detect { |e| e == key.to_sym } || entity_types.keys.first
   end
@@ -152,6 +128,7 @@ class Hmis::AccessGroup < ApplicationRecord
       data_sources: 'Data Sources',
       organizations: 'Organizations',
       projects: 'Projects',
+      project_groups: 'Project Groups',
     }.freeze
   end
 
@@ -161,6 +138,7 @@ class Hmis::AccessGroup < ApplicationRecord
     relevant_types = [
       :data_sources,
       :organizations,
+      :project_groups,
       :projects,
     ]
     entity_types.slice(*relevant_types)
@@ -174,6 +152,9 @@ class Hmis::AccessGroup < ApplicationRecord
       end
       organizations.each do |o|
         ids.merge o.projects.pluck(:id)
+      end
+      project_groups.each do |pg|
+        ids.merge pg.projects.pluck(:id)
       end
     end.count
   end
@@ -194,25 +175,32 @@ class Hmis::AccessGroup < ApplicationRecord
       data_sources: data_sources.map(&:name),
       organizations: organizations.map(&:OrganizationName),
       projects: projects.map(&:ProjectName),
+      project_groups: project_groups.map(&:name),
     }
   end
   private def project_overlap
     @project_overlap ||= {}.tap do |po|
       data_sources.each do |entity|
         entity.projects.pluck(:id).each do |p_id|
-          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id] ||= { data_sources: [], organizations: [], project_groups: [], coc_codes: [], projects: [] }
           po[p_id][:data_sources] << entity.name
         end
       end
       organizations.each do |entity|
         entity.projects.pluck(:id).each do |p_id|
-          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id] ||= { data_sources: [], organizations: [], project_groups: [], coc_codes: [], projects: [] }
           po[p_id][:organizations] << entity.name
+        end
+      end
+      project_groups.each do |entity|
+        entity.projects.pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:project_groups] << entity.name
         end
       end
       projects.each do |entity|
         p_id = entity.id
-        po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+        po[p_id] ||= { data_sources: [], organizations: [], project_groups: [], coc_codes: [], projects: [] }
         po[p_id][:projects] << entity.name
       end
     end
@@ -220,7 +208,7 @@ class Hmis::AccessGroup < ApplicationRecord
 
   def project_count_from(type)
     case type.to_sym
-    when :data_sources, :organizations, :project_access_groups
+    when :data_sources, :organizations, :project_groups
       public_send(type).map { |entity_type| entity_type.projects.size }.sum
     when :projects
       projects.count
@@ -232,13 +220,15 @@ class Hmis::AccessGroup < ApplicationRecord
   end
 
   def summary_descriptions
-    data_sources = self.data_sources&.count || 0
-    organizations = self.organizations&.count || 0
-    projects = self.projects&.count || 0
+    num_data_sources = data_sources&.count || 0
+    num_organizations = organizations&.count || 0
+    num_project_groups = project_groups&.count || 0
+    num_projects = projects&.count || 0
     descriptions = []
-    descriptions << "#{data_sources} #{'Data Source'.pluralize(data_sources)}" unless data_sources.zero?
-    descriptions << "#{organizations} #{'Organization'.pluralize(organizations)}" unless organizations.zero?
-    descriptions << "#{projects} #{'Project'.pluralize(projects)}" unless projects.zero?
+    descriptions << "#{num_data_sources} #{'Data Source'.pluralize(num_data_sources)}" unless num_data_sources.zero?
+    descriptions << "#{num_organizations} #{'Organization'.pluralize(num_organizations)}" unless num_organizations.zero?
+    descriptions << "#{num_project_groups} #{'Project Group'.pluralize(num_project_groups)}" unless num_project_groups.zero?
+    descriptions << "#{num_projects} #{'Project'.pluralize(num_projects)}" unless num_projects.zero?
     descriptions
   end
 
@@ -246,6 +236,7 @@ class Hmis::AccessGroup < ApplicationRecord
     @viewable_types ||= {
       data_sources: 'GrdaWarehouse::DataSource',
       organizations: 'Hmis::Hud::Organization',
+      project_groups: 'Hmis::ProjectGroup',
       projects: 'Hmis::Hud::Project',
     }.freeze
   end

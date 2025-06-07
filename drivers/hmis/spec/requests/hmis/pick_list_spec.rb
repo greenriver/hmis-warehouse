@@ -151,6 +151,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq('509001')
+    expected_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-VT.json')).size
+    expect(options.size).to eq(expected_size)
+  end
+
+  context 'when there are multiple relevant states' do
+    before do
+      GrdaWarehouse::Config.instance_variable_set(:@relevant_state_codes, nil) # reset the cached instance variable
+      allow(GrdaWarehouse::Config).to receive(:get).with(:relevant_state_codes).and_return('VT,MA')
+    end
+
+    it 'returns geocodes grouped by state' do
+      response, result = post_graphql(pick_list_type: 'GEOCODE') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      vt_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-VT.json')).size
+      ma_size = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/geocodes/geocodes-MA.json')).size
+      expect(options.size).to eq(vt_size + ma_size)
+      expect(options.first['groupLabel']).to eq('VT')
+      expect(options.last['groupLabel']).to eq('MA')
+    end
+
+    it 'returns states with no state auto-selected' do
+      response, result = post_graphql(pick_list_type: 'STATE') { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.none? { |o| o['initialSelected'] }).to be_truthy
+    end
   end
 
   it 'returns grouped service type pick list' do
@@ -404,6 +431,73 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       options = result.dig('data', 'pickList')
       expect(options.size).to eq(1)
       expect(options.first['code']).to eq(referral_dest_project.id.to_s)
+    end
+  end
+
+  describe 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS' do
+    let!(:apples_retired) { create(:hmis_workflow_definition_template, identifier: 'apples', name: 'Apples 1', version: 0, status: :retired, data_source: ds1) }
+    let!(:apples_published) { create(:hmis_workflow_definition_template, identifier: 'apples', name: 'Apples 2', version: 1, status: :published, data_source: ds1) }
+    let!(:bananas_retired1) { create(:hmis_workflow_definition_template, identifier: 'bananas', name: 'Bananas 1', version: 0, status: :retired, data_source: ds1) }
+    let!(:bananas_retired2) { create(:hmis_workflow_definition_template, identifier: 'bananas', name: 'Bananas 2', version: 1, status: :retired, data_source: ds1) }
+    let!(:broccoli_not_ce) { create(:hmis_workflow_definition_template, identifier: 'broccoli', template_type: 'not_ce', data_source: ds1) }
+    let!(:beans_retired_not_ce) { create(:hmis_workflow_definition_template, identifier: 'beans', status: :retired, template_type: 'not_ce', data_source: ds1) }
+    let!(:coconut_wrong_data_source) { create(:hmis_workflow_definition_template, identifier: 'coconut', status: :published) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    context 'published only' do
+      let(:pick_list_type) { 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS' }
+
+      it 'should return all published templates, and not return non-ce or unpublished templates' do
+        response, result = post_graphql(pick_list_type: pick_list_type) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.size).to eq(1)
+        expect(options).to contain_exactly(a_hash_including('code' => 'apples', 'label' => 'Apples 2'))
+      end
+    end
+
+    context '_INCLUDING_RETIRED' do
+      let(:pick_list_type) { 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED' }
+
+      it 'should return all templates including fully retired workflows, and not return non-ce templates' do
+        response, result = post_graphql(pick_list_type: pick_list_type) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.size).to eq(2)
+        expect(options).to contain_exactly(
+          a_hash_including('code' => 'apples', 'label' => 'Apples 2'),
+          a_hash_including('code' => 'bananas', 'label' => 'Bananas 2'),
+        )
+      end
+    end
+  end
+
+  describe 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS' do
+    let!(:project) { create(:hmis_hud_project, data_source: ds1) }
+
+    let!(:admin_user) { hmis_user }
+    let!(:ac1) { create_access_control(admin_user, project, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+    let!(:user_who_can_perform_own_tasks) { create(:hmis_user, data_source: ds1) }
+    let!(:ac2) { create_access_control(user_who_can_perform_own_tasks, project, with_permission: [:can_perform_own_referral_tasks]) }
+    let!(:inactive_user_with_permission) { create(:hmis_user, data_source: ds1, active: false) }
+    let!(:ac3) { create_access_control(inactive_user_with_permission, project, with_permission: [:can_view_project, :can_perform_any_referral_tasks]) }
+    let!(:user_without_permission) { create(:hmis_user, data_source: ds1) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    it 'returns eligible users and not ineligible users' do
+      response, result = post_graphql(pick_list_type: 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', project_id: project.id.to_s) { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options).to contain_exactly(
+        a_hash_including('code' => hmis_user.id.to_s),
+        a_hash_including('code' => user_who_can_perform_own_tasks.id.to_s),
+      )
     end
   end
 end

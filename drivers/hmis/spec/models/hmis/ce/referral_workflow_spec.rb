@@ -9,8 +9,8 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Referral, type: :model do
-  let!(:template) { create(:hmis_workflow_definition_template) }
   let!(:data_source) { create(:hmis_data_source) }
+  let!(:template) { create(:hmis_workflow_definition_template, data_source: data_source) }
   let!(:project) { create(:hmis_hud_project, data_source: data_source) }
   let!(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
@@ -109,6 +109,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         current_step = engine.active_steps.sole
         expect(current_step.node).to eq(client_acceptance_task)
         expect(current_step.assignments.sole&.user).to eq(case_manager)
+        expect(current_step.available_at).not_to be_nil
 
         engine.start_step!(current_step, user: user)
         expect(current_step).to be_in_progress
@@ -298,6 +299,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
         client_step.reload
         admin_step.reload
       end.to change(client_step, :status).from('completed').to('available').
+        and change(client_step, :available_at).
         and not_change(instance.steps, :count)
 
       expect do

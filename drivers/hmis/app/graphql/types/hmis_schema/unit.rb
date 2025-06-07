@@ -10,13 +10,15 @@ module Types
   class HmisSchema::Unit < Types::BaseObject
     available_filter_options do
       arg :unit_type, [ID]
+      arg :unit_group, [ID]
+      arg :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus
       arg :status, [
         Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
           # FIXME standardize names "Assigned/Empty"
-          value 'AVAILABLE', description: 'Available'
-          value 'FILLED', description: 'Filled'
+          value 'AVAILABLE', description: 'Available' # Vacant
+          value 'FILLED', description: 'Filled' # Occupied
         end,
-      ]
+      ], deprecation_reason: 'Use `occupancyStatus` instead'
     end
 
     field :id, ID, null: false
@@ -28,9 +30,17 @@ module Types
     field :project, Types::HmisSchema::Project, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus, null: false
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :unit_group, HmisSchema::UnitGroup, null: true
+    field :deletable, Boolean, null: false
+
+    # CE fields
+    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :workflow_template_name, String, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
@@ -48,6 +58,17 @@ module Types
       object.unit_type&.unit_size
     end
 
+    def occupancy_status
+      occupants.any? ? 'OCCUPIED' : 'VACANT'
+    end
+
+    def deletable
+      return false if occupants.any? # cannot delete unit with occupants
+      return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
+
+      true
+    end
+
     def occupants
       load_ar_association(object, :current_occupants)
     end
@@ -60,11 +81,24 @@ module Types
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
     end
 
+    def unit_group
+      load_ar_association(object, :unit_group)
+    end
+
+    def workflow_template_name
+      unit_group&.workflow_template&.name
+    end
+
     def latest_opportunity
+      # No additional permission check. If the user can view this unit, they can view the opportunity
       load_ar_association(object, :latest_opportunity)
     end
 
     def accepting_ce_referrals
+      # No additional permission check. If the user can view this unit, they can view the opportunity.
+      # They may _not_ be able to view the referral; but the referral object is not actually resolved here,
+      # just used to determine whether the unit is currently accepting referrals.
+
       # First check for an existing opportunity. If there is none, or it's already closed, then this unit isn't accepting referrals
       latest_opportunity = load_ar_association(object, :latest_opportunity)
       return false if latest_opportunity.nil? || latest_opportunity.closed?

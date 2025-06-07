@@ -327,13 +327,36 @@ namespace :grda_warehouse do
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
-    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
-      Hmis::AutoExitJob.perform_now
+    begin
+      Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
+    rescue StandardError => e # rescue and report error, for example from incorrectly formatted criteria
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
     end
 
-    # Purge old soft-deleted records. Enable on production when we have confidence job is correct
-    PurgeSoftDeletedRecordsJob.perform_now(dry_run: false) if DateTime.current.hour == 5 && !Rails.env.production?
+    # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
+    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
+      begin
+        Hmis::AutoExitJob.perform_now
+      rescue StandardError => e
+        Sentry.capture_exception(e)
+        Rails.logger.error(e.message)
+      end
+    end
+
+    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
+      # Generate CE candidate pools and run the match engine daily in the early morning
+      Hmis::MatchCandidatesJob.perform_later
+    end
+
+    # Purge old soft-deleted records
+    begin
+      enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
+      PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
 
     # Run CSG Engage export if ready
     MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
@@ -380,6 +403,13 @@ namespace :grda_warehouse do
 
     begin
       GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
+    end
+
+    begin
+      GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask.perform
     rescue StandardError => e
       Sentry.capture_exception(e)
       Rails.logger.error(e.message)
