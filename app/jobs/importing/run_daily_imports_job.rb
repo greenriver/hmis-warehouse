@@ -116,7 +116,7 @@ module Importing
         @notifier.ping('Updated service history summaries')
       end
 
-      register_maintenance_task('Populate nicknames', notify: 'Nicknames updated') do
+      register_maintenance_task('Populate nicknames') do
         Nickname.populate!
         @notifier.ping('Nicknames updated')
       end
@@ -220,7 +220,7 @@ module Importing
 
     def run_maintenance_tasks
       @maintenance_task_configs.each do |config|
-        task, block = config.value_at(:task, :block)
+        task, block = config.values_at(:task, :block)
         task.call(&block)
       end
     end
@@ -228,42 +228,46 @@ module Importing
     def handle_maintenance_tasks_lifecycle
       active_tasks_ids = []
       @maintenance_task_configs.each do |config|
-        task, new_record = config.value_at(:task, new_record)
-        # skip newly registered tasks
-        next if new_record
-
-        # alert on tasks that have not been completed
-        task.process_alerts
-        # track task as active
+        task, new_record = config.values_at(:task, :new_record)
         active_tasks_ids << task.id
+
+        # alert on tasks that have not been completed except for newly registered tasks
+        task.process_alerts unless new_record
       end
 
       # deactivate any tasks that are no longer registered
       maintenance_task_scope.active.
         where.not(id: active_tasks_ids).
         update_all(active: false)
+
+      # delete expired runs
+      GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.
+        joins(:system_maintenance_task).
+        merge(maintenance_task_scope).
+        expired.
+        delete_all
     end
 
     def register_maintenance_task(name, alert_threshold_minutes: (60 * 36), &block)
       # register the record if it doesn't yet exist
       task_record = maintenance_task_scope.where(name: name).first_or_initialize
-      # if task is new, don't alert if it's hasn't been run initially
-      new_record = task.new_record?
+      # if task is new, don't alert if it hasn't been run initially
+      new_record = task_record.new_record?
       task_record.active = true
       task_record.alert_threshold_minutes = alert_threshold_minutes
-      task_record.save! if task_record.dirty?
+      task_record.save! if task_record.changed?
 
       @maintenance_task_configs << { task: task_record, block: block, new_record: new_record }
     end
 
     def maintenance_task_scope
-      GrdaWarehouse::Tasks::SystemMaintenanceTask.where(register: self.class.name)
+      GrdaWarehouse::Tasks::SystemMaintenanceTask.where(registration: self.class.name)
     end
 
     def with_lock
       lock_name = 'run_daily_imports_job'
       did_run = false
-      Hmis::ActivityLog.with_advisory_lock(lock_name, timeout_seconds: 1) do
+      GrdaWarehouse::DataSource.with_advisory_lock(lock_name, timeout_seconds: 1) do
         yield
         did_run = true
       end
@@ -277,7 +281,8 @@ module Importing
     def settle_imports
       klass = GrdaWarehouse::DataSource
       4.times do
-        break if klass.importable.any? { |ds| klass.advisory_lock_exists?("hud_import_#{ds.id}") }
+        #  break if no imports are active
+        break if klass.importable.none? { |ds| klass.advisory_lock_exists?("hud_import_#{ds.id}") }
 
         sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
       end

@@ -8,12 +8,13 @@ class CreateTaskRuns < ActiveRecord::Migration[7.1]
       t.string :name, null: false
       t.integer :alert_threshold_minutes
       t.boolean :active, null: false
+      t.datetime :alert_sent_at
       t.index [:registration, :name], unique: true
     end
     create_table :system_maintenance_task_runs do |t|
-      t.references :system_maintenance_task
-      t.date_time :started_at, null: false
-      t.date_time :completed_at
+      t.references :system_maintenance_task, foreign_key: true
+      t.datetime :started_at, null: false
+      t.datetime :completed_at
     end
   end
 end
