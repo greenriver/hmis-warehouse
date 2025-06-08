@@ -5,11 +5,9 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
 
   has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun'
 
-  scope :active, -> { where(active: true) }
-
   def call
     run = system_maintenance_task_runs.create!(started_at: Time.current)
-    yield if block_given?
+    yield
     run.update!(completed_at: Time.current)
   end
 
@@ -22,12 +20,25 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
   end
 
   def process_alerts(now: Time.current)
+    return unless should_send_alert?(now)
+
     alerts = []
-    alerts << "Exceeded threshold, task has not completed in #{alert_threshold_minutes} minutes" if threshold_exceeded?
+    alerts << "Exceeded threshold, task has not completed in #{alert_threshold_minutes} minutes" if threshold_exceeded?(now: now)
     return if alerts.empty?
 
     tag = "#{self.class.name.demodulize}# \"#{name}\""
     alerts.each { |m| Sentry.capture_message("#{tag}: #{m}") }
     update!(alert_sent_at: now)
+  end
+
+  private
+
+  def should_send_alert?(now)
+    # Only send alert once
+    return false if alert_sent_at
+    return false unless threshold_exceeded?(now: now)
+
+    # we could debounce by checking alert_sent if it becomes too noisy
+    true
   end
 end

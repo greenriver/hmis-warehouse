@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,10 @@
 ###
 
 class PruneDocumentExportsJob < BaseJob
+  include MaintenanceTaskInstrumentation
+
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+  around_perform { |job, block| instrument_as_maintenance_task(job: job, name: 'perform', &block) }
 
   def perform
     GrdaWarehouse::DocumentExport.with_advisory_lock(

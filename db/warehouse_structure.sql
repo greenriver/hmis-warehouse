@@ -28132,10 +28132,9 @@ CREATE TABLE public.system_maintenance_tasks (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    registration character varying NOT NULL,
+    job_type character varying NOT NULL,
     name character varying NOT NULL,
     alert_threshold_minutes integer,
-    active boolean NOT NULL,
     alert_sent_at timestamp(6) without time zone
 );
 
@@ -61979,10 +61978,10 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
--- Name: index_system_maintenance_tasks_on_registration_and_name; Type: INDEX; Schema: public; Owner: -
+-- Name: index_system_maintenance_tasks_on_job_type_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_system_maintenance_tasks_on_registration_and_name ON public.system_maintenance_tasks USING btree (registration, name);
+CREATE UNIQUE INDEX index_system_maintenance_tasks_on_job_type_and_name ON public.system_maintenance_tasks USING btree (job_type, name);
 
 
 --

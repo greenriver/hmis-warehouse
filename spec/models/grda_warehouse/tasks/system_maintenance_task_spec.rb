@@ -11,7 +11,6 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
 
   describe '#call' do
     let!(:task) { create(:system_maintenance_task) }
-    let(:block_executed) { false }
 
     it 'creates a task run record' do
       expect do
@@ -122,7 +121,7 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
       end
     end
 
-    context 'when threshold is exceeded' do
+    context 'when threshold is exceeded and no alert has been sent' do
       before do
         allow(task).to receive(:threshold_exceeded?).and_return(true)
       end
@@ -141,6 +140,19 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
           task.process_alerts
           expect(task.reload.alert_sent_at).to eq(Time.current)
         end
+      end
+    end
+
+    context 'when threshold is exceeded but alert has already been sent' do
+      before do
+        allow(task).to receive(:threshold_exceeded?).and_return(true)
+        task.update!(alert_sent_at: 1.hour.ago)
+      end
+
+      it 'does not send another alert' do
+        task.process_alerts
+
+        expect(Sentry).not_to have_received(:capture_message)
       end
     end
   end

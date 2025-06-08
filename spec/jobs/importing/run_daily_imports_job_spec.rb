@@ -80,17 +80,17 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         allow(GrdaWarehouse::DataSource).to receive(:with_advisory_lock).and_yield
       end
 
-      it 'registers maintenance tasks' do
+      it 'creates maintenance tasks' do
         expect do
           job.perform
-        end.to change(GrdaWarehouse::Tasks::SystemMaintenanceTask, :count).by_at_least(10)
+        end.to change(GrdaWarehouse::Tasks::SystemMaintenanceTask, :count).by_at_least(15)
       end
 
-      it 'creates task records with correct registration' do
+      it 'creates task records with correct job_type' do
         job.perform
 
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(registration: 'Importing::RunDailyImportsJob')
-        expect(tasks.count).to be > 10
+        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
+        expect(tasks.count).to be >= 15
         expect(tasks.pluck(:name)).to include(
           'Revoke expired consent',
           'Identify Duplicates',
@@ -99,24 +99,17 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         )
       end
 
-      it 'sets tasks as active' do
-        job.perform
-
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(registration: 'Importing::RunDailyImportsJob')
-        expect(tasks.all?(&:active)).to be true
-      end
-
       it 'sets default alert threshold for tasks' do
         job.perform
 
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(registration: 'Importing::RunDailyImportsJob')
+        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
         expect(tasks.first.alert_threshold_minutes).to eq(60 * 36) # 36 hours default
       end
 
-      it 'invokes each registered task' do
+      it 'invokes each task and creates task runs' do
         job.perform
 
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(registration: 'Importing::RunDailyImportsJob')
+        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
         tasks.each do |task|
           expect(task.system_maintenance_task_runs.count).to be >= 1
           run = task.system_maintenance_task_runs.last # Get the most recent run
@@ -134,61 +127,55 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
   end
 
   describe 'task lifecycle management' do
-    let!(:existing_active_task) { create(:system_maintenance_task, registration: 'Importing::RunDailyImportsJob', name: 'Revoke expired consent', active: true) }
-    let!(:existing_inactive_task) { create(:system_maintenance_task, registration: 'Importing::RunDailyImportsJob', name: 'Should Be Deactivated', active: true) }
-    let!(:other_job_task) { create(:system_maintenance_task, registration: 'SomeOtherJob', name: 'Other Job Task', active: true) }
+    let!(:existing_task) { create(:system_maintenance_task, job_type: 'Importing::RunDailyImportsJob', name: 'Revoke expired consent') }
+    let!(:other_job_task) { create(:system_maintenance_task, job_type: 'SomeOtherJob', name: 'Other Job Task') }
 
     before do
       allow(GrdaWarehouse::DataSource).to receive(:with_advisory_lock).and_yield
     end
 
-    it 'deactivates tasks that are no longer registered' do
-      job.perform
+    it 'processes alerts for all existing tasks' do
+      # Update both tasks to have short thresholds and old runs
+      existing_task.update!(alert_threshold_minutes: 60)
+      other_job_task.update!(alert_threshold_minutes: 60)
 
-      expect(existing_active_task.reload).to be_active
-      expect(existing_inactive_task.reload).not_to be_active
-      expect(other_job_task.reload).to be_active # Should not affect other jobs
-    end
-
-    it 'processes alerts for existing tasks' do
-      # Update the existing task to have a short threshold and old run
-      existing_active_task.update!(alert_threshold_minutes: 60)
-
-      # Create an old run that exceeds the threshold
+      # Create old runs that exceed the threshold for both tasks
       create(:system_maintenance_task_run,
-             system_maintenance_task: existing_active_task,
+             system_maintenance_task: existing_task,
+             started_at: 2.hours.ago,
+             completed_at: 2.hours.ago)
+      create(:system_maintenance_task_run,
+             system_maintenance_task: other_job_task,
              started_at: 2.hours.ago,
              completed_at: 2.hours.ago)
 
-      # Mock Sentry to verify alert is sent
+      # Mock Sentry to verify alerts are sent
       allow(Sentry).to receive(:capture_message)
 
       job.perform
 
-      # Verify that an alert was sent (which means process_alerts was called)
-      expect(Sentry).to have_received(:capture_message).with(a_string_matching(/Exceeded threshold/))
+      # Verify that alerts were sent for both tasks (which means process_alerts was called on all tasks)
+      expect(Sentry).to have_received(:capture_message).with(a_string_matching(/Exceeded threshold/)).at_least(2).times
     end
   end
 
   describe 'expired task run cleanup' do
-    let!(:task) { create(:system_maintenance_task, registration: 'Importing::RunDailyImportsJob', name: 'Revoke expired consent') }
+    let!(:task) { create(:system_maintenance_task, job_type: 'Importing::RunDailyImportsJob', name: 'Test Task') }
     let!(:recent_run) { create(:system_maintenance_task_run, system_maintenance_task: task, started_at: 1.month.ago) }
     let!(:expired_run) { create(:system_maintenance_task_run, system_maintenance_task: task, started_at: 7.months.ago) }
-    let!(:other_job_task) { create(:system_maintenance_task, registration: 'SomeOtherJob', name: 'Other Task') }
+    let!(:other_job_task) { create(:system_maintenance_task, job_type: 'SomeOtherJob', name: 'Other Task') }
     let!(:other_job_run) { create(:system_maintenance_task_run, system_maintenance_task: other_job_task, started_at: 7.months.ago) }
 
     before do
       allow(GrdaWarehouse::DataSource).to receive(:with_advisory_lock).and_yield
     end
 
-    it 'deletes expired task runs for this job only' do
-      expect do
-        job.perform
-      end.to change { task.system_maintenance_task_runs.count }.by(0) # expired_run deleted, new run added = net 0
+    it 'deletes expired task runs for all jobs' do
+      job.perform
 
       expect(GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.exists?(recent_run.id)).to be true
       expect(GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.exists?(expired_run.id)).to be false
-      expect(GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.exists?(other_job_run.id)).to be true
+      expect(GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.exists?(other_job_run.id)).to be false # Now cleaned up for all jobs
     end
   end
 end

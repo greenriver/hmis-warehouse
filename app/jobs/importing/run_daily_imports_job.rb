@@ -11,6 +11,7 @@ module Importing
     include ActionView::Helpers::DateHelper
     include NotifierConfig
     include ArelHelper
+    include MaintenanceTaskInstrumentation
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -24,23 +25,18 @@ module Importing
         @start_time = Time.current
         settle_imports
 
-        # collect defined tasks
-        @maintenance_task_configs = []
-        collect_and_register_maintenance_tasks
-
-        # handle task lifecycle
+        # first perform lifecycle events, generating alerts for missing jobs
         handle_maintenance_tasks_lifecycle
-
-        # run tasks
-        run_maintenance_tasks
+        # now run this jobs tasks
+        _perform
         finish_processing
       end
     end
 
     protected
 
-    def collect_and_register_maintenance_tasks
-      register_maintenance_task('Revoke expired consent') do
+    def _perform
+      run_maintenance_task('Revoke expired consent') do
         # expire client consent form if past 1 year
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         @notifier.ping('Revoked expired client consent if appropriate')
@@ -48,23 +44,27 @@ module Importing
 
       if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
         # Update consent if it comes from HMIS Client
-        register_maintenance_task('Maintain client consent') do
+        run_maintenance_task('Maintain client consent') do
           GrdaWarehouse::HmisClient.maintain_client_consent
           @notifier.ping('Set client consent if appropriate')
         end
       end
 
-      register_maintenance_task('Update from HMIS forms') { update_from_hmis_forms }
-      register_maintenance_task('Sync with CAS') { sync_with_cas }
+      run_maintenance_task('Update from HMIS forms') do
+        update_from_hmis_forms
+      end
+      run_maintenance_task('Sync with CAS') do
+        sync_with_cas
+      end
 
-      register_maintenance_task('Identify Duplicates') do
+      run_maintenance_task('Identify Duplicates') do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
         GrdaWarehouse::ClientMatch.auto_process!
         @notifier.ping('Duplicates identified')
       end
 
-      register_maintenance_task('Clean projects') do
+      run_maintenance_task('Clean projects') do
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
         # on large data operations, and any other project data cleanup
@@ -72,14 +72,14 @@ module Importing
         @notifier.ping('Projects cleaned')
       end
 
-      register_maintenance_task('Clean clients') do
+      run_maintenance_task('Clean clients') do
         # This fixes any unused destination clients that can
         # bungle up the service history generation, among other things
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned')
       end
 
-      register_maintenance_task('Generate service history') do
+      run_maintenance_task('Generate service history') do
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments
@@ -87,19 +87,19 @@ module Importing
         @notifier.ping('Service history generated')
       end
 
-      register_maintenance_task('Full sanity check') do
+      run_maintenance_task('Full sanity check') do
         # Fix anyone who received a new exit or entry added prior to the last year
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: destination_client_ids).run!
         @notifier.ping('Full sanity check complete')
       end
 
-      register_maintenance_task('Rebuild residential first dates') do
+      run_maintenance_task('Rebuild residential first dates') do
         # Rebuild residential first dates
         GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
         @notifier.ping('Earliest residential services generated')
       end
 
-      register_maintenance_task('Refreshing Service History Materialized View') do
+      run_maintenance_task('Refreshing Service History Materialized View') do
         # Update the materialized view that we use to search by client_id and project_type
         @notifier.ping('Refreshing Service History Materialized View')
         GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
@@ -107,7 +107,7 @@ module Importing
         @notifier.ping('Done Refreshing Service History Materialized View')
       end
 
-      register_maintenance_task('Updating service history summaries') do
+      run_maintenance_task('Updating service history summaries') do
         # Maintain some summary data to speed up searches and history display and other things
         # To keep this manageable, we'll just deal with clients we've seen in the past year
         # When we sanity check and rebuild using the per-client method, this gets correctly maintained
@@ -116,29 +116,29 @@ module Importing
         @notifier.ping('Updated service history summaries')
       end
 
-      register_maintenance_task('Populate nicknames') do
+      run_maintenance_task('Populate nicknames') do
         Nickname.populate!
         @notifier.ping('Nicknames updated')
       end
 
-      register_maintenance_task('Generate unique names') do
+      run_maintenance_task('Generate unique names') do
         UniqueName.update!
         @notifier.ping('Unique names generated')
       end
 
-      register_maintenance_task('Import Census') do
+      run_maintenance_task('Import Census') do
         GrdaWarehouse::Tasks::CensusImport.new.run!
         @notifier.ping('Census imported')
       end
 
-      register_maintenance_task('Pre-calculate Chronically Homeless at Entry') do
+      run_maintenance_task('Pre-calculate Chronically Homeless at Entry') do
         # Pre-calculate Chronically Homeless at Entry
         @notifier.ping('Pre-calculating Chronically Homeless at Entry')
         GrdaWarehouse::ChEnrollment.maintain!
         @notifier.ping('Done Pre-calculating Chronically Homeless at Entry')
       end
 
-      register_maintenance_task('Calculate chronically homeless') do
+      run_maintenance_task('Calculate chronically homeless') do
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
         if @start_time.to_date.day.in?([1, 15])
@@ -159,12 +159,12 @@ module Importing
         end
       end
 
-      register_maintenance_task('Clean clients') do
+      run_maintenance_task('Clean clients') do
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned (again)')
       end
 
-      register_maintenance_task('Sanity check service history') do
+      run_maintenance_task('Sanity check service history') do
         # The sanity check should always be last
         # It has the potential to run for a long time since it
         # self-heals the warehouse for anyone it finds that is broken
@@ -175,7 +175,7 @@ module Importing
         @notifier.ping('Sanity checked')
       end
 
-      register_maintenance_task('Warm cache') do
+      run_maintenance_task('Warm cache') do
         # pre-populate the cache for data source date spans
         # GrdaWarehouse::DataSource.data_spans_by_id()
         # @notifier.ping('Data source date spans set')
@@ -183,7 +183,7 @@ module Importing
         warm_cache
       end
 
-      register_maintenance_task('Reporting setup') do
+      run_maintenance_task('Reporting setup') do
         ReportingSetupJob.set(priority: 15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
 
         @notifier.ping('Rebuilding reporting tables...')
@@ -197,7 +197,7 @@ module Importing
         end
       end
 
-      register_maintenance_task('System maintenance') do
+      run_maintenance_task('System maintenance') do
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
         Health::PruneDocumentExportsJob.perform_later
@@ -218,50 +218,16 @@ module Importing
       @destination_client_ids ||= GrdaWarehouse::Hud::Client.destination.pluck(:id)
     end
 
-    def run_maintenance_tasks
-      @maintenance_task_configs.each do |config|
-        task, block = config.values_at(:task, :block)
-        task.call(&block)
-      end
-    end
-
+    # Process ALL maintenance tasks, not just this job's tasks
     def handle_maintenance_tasks_lifecycle
-      active_tasks_ids = []
-      @maintenance_task_configs.each do |config|
-        task, new_record = config.values_at(:task, :new_record)
-        active_tasks_ids << task.id
+      GrdaWarehouse::Tasks::SystemMaintenanceTask.find_each(&:process_alerts)
 
-        # alert on tasks that have not been completed except for newly registered tasks
-        task.process_alerts unless new_record
-      end
-
-      # deactivate any tasks that are no longer registered
-      maintenance_task_scope.active.
-        where.not(id: active_tasks_ids).
-        update_all(active: false)
-
-      # delete expired runs
-      GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.
-        joins(:system_maintenance_task).
-        merge(maintenance_task_scope).
-        expired.
-        delete_all
+      # Clean up expired runs for ALL tasks
+      GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.expired.delete_all
     end
 
-    def register_maintenance_task(name, alert_threshold_minutes: (60 * 36), &block)
-      # register the record if it doesn't yet exist
-      task_record = maintenance_task_scope.where(name: name).first_or_initialize
-      # if task is new, don't alert if it hasn't been run initially
-      new_record = task_record.new_record?
-      task_record.active = true
-      task_record.alert_threshold_minutes = alert_threshold_minutes
-      task_record.save! if task_record.changed?
-
-      @maintenance_task_configs << { task: task_record, block: block, new_record: new_record }
-    end
-
-    def maintenance_task_scope
-      GrdaWarehouse::Tasks::SystemMaintenanceTask.where(registration: self.class.name)
+    def run_maintenance_task(name, &block)
+      instrument_as_maintenance_task(job: self, name: name, &block)
     end
 
     def with_lock
