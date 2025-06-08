@@ -11,9 +11,15 @@ class ReportingSetupJob < BaseJob
   include MaintenanceTaskInstrumentation
 
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-  around_perform { |job, block| instrument_as_maintenance_task(job: job, name: 'perform', &block) }
 
   def perform
+    instrument_as_maintenance_task(name: 'perform') do |run|
+      _perform
+      run.record_success!
+    end
+  end
+
+  def _perform
     setup_notifier('ReportingSetupJob')
     started_at = Time.current
     @notifier.ping('Reporting database updating') if @send_notifications

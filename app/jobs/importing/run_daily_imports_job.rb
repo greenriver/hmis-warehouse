@@ -227,7 +227,10 @@ module Importing
     end
 
     def run_maintenance_task(name, &block)
-      instrument_as_maintenance_task(job: self, name: name, &block)
+      instrument_as_maintenance_task(job: self, name: name) do |run|
+        block.call
+        run.record_success!
+      end
     end
 
     def with_lock

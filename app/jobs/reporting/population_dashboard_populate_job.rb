@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,6 +9,7 @@
 module Reporting
   class PopulationDashboardPopulateJob < BaseJob
     include ActionView::Helpers::DateHelper
+    include MaintenanceTaskInstrumentation
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -14,8 +17,17 @@ module Reporting
       1
     end
 
-    def perform(sub_population:)
+    def perform(...)
+      instrument_as_maintenance_task(name: 'perform') do |run|
+        run.record_success! if _perform(...)
+      end
+    end
+
+    protected
+
+    def _perform(sub_population:)
       advisory_lock_name = "population_dashboard_populate_job_#{sub_population}"
+      did_run = false
       Reporting::MonthlyReports::Base.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
         if sub_population == 'all'
           setup_notifier('PopulationDashboardProcessor')
@@ -35,7 +47,9 @@ module Reporting
 
           @report.new.populate!
         end
+        did_run = true
       end
+      did_run
     end
 
     def send_and_log(msg)

@@ -10,4 +10,8 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
     expiration_threshold = now - 6.months
     where(started_at: ..expiration_threshold)
   }
+
+  def record_success!
+    update!(completed_at: Time.current)
+  end
 end

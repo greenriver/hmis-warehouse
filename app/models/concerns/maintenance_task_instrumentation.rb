@@ -8,8 +8,7 @@ module MaintenanceTaskInstrumentation
   def instrument_as_maintenance_task(job:, name:, alert_threshold_minutes: (60 * 36), &block)
     task = find_or_create_maintenance_task(job: job, name: name, alert_threshold_minutes: alert_threshold_minutes)
     run = task.system_maintenance_task_runs.create!(started_at: Time.current)
-    block.call
-    run.update!(completed_at: Time.current)
+    block.call(run)
   end
 
   def find_or_create_maintenance_task(job:, name:, alert_threshold_minutes: (60 * 36))

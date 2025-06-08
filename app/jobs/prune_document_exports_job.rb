@@ -10,14 +10,16 @@ class PruneDocumentExportsJob < BaseJob
   include MaintenanceTaskInstrumentation
 
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-  around_perform { |job, block| instrument_as_maintenance_task(job: job, name: 'perform', &block) }
 
   def perform
-    GrdaWarehouse::DocumentExport.with_advisory_lock(
-      'prune_document_exports_job',
-      timeout_seconds: 0,
-    ) do
-      GrdaWarehouse::DocumentExport.expired.diet_select.destroy_all
+    instrument_as_maintenance_task(name: 'perform') do |run|
+      GrdaWarehouse::DocumentExport.with_advisory_lock(
+        'prune_document_exports_job',
+        timeout_seconds: 0,
+      ) do
+        GrdaWarehouse::DocumentExport.expired.diet_select.each(&:destroy!)
+        run.record_success!
+      end
     end
   end
 end
