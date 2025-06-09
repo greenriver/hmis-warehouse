@@ -102,6 +102,7 @@ module HmisUtil
                                    rule: { 'operator' => 'ALL',
                                            '_comment' => 'YHDP-funded program should collect this instead of R5',
                                            'parts' => [{ 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 }] } },
+      # translation
       C4_group: { stages: ['INTAKE'],
                   data_collected_about: 'HOH',
                   rule: { 'operator' => 'ANY',
