@@ -1,6 +1,3 @@
-name: "Container Setup"
-description: "Reusable action to DRY up CI"
-
 ## Call from the caller workflow like so:
 # - name: Checkout
 #     uses: actions/checkout@v4
@@ -8,56 +5,119 @@ description: "Reusable action to DRY up CI"
 #   id: container-setup
 #   uses: ./.github/workflows/container_setup
 
+name: 'Container Setup'
+description: 'Sets up the container for running tests'
+
+inputs:
+  additional_packages:
+    description: 'Additional packages to install'
+    required: false
+    default: ''
+
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Install git
-      shell: sh
+    - name: Install dependencies
+      shell: bash
       run: |
-        apk add --no-cache git
+        # Function to retry commands
+        retry() {
+          local max_attempts=3
+          local delay=5
+          local attempt=1
+          local exitcode=0
+
+          while (( attempt <= max_attempts ))
+          do
+            if "$@"
+            then
+              exitcode=0
+              break
+            else
+              exitcode=$?
+              echo "Command failed (attempt $attempt/$max_attempts). Retrying in $delay seconds..."
+              sleep $delay
+              attempt=$(( attempt + 1 ))
+              delay=$(( delay * 2 ))
+            fi
+          done
+
+          return $exitcode
+        }
+
+        # Add PostgreSQL repository
+        retry apt-get update
+        retry apt-get install -y software-properties-common curl ca-certificates lsb-release gnupg
+        # From https://www.postgresql.org/download/linux/debian/
+        install -d /usr/share/postgresql-common/pgdg
+        retry curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        . /etc/os-release
+        sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+
+        # Install NodeJS and Yarn repositories
+        retry curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
+        retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
+        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+        retry apt-get update
+
+        # Install packages with retry
+        retry apt-get install -y --no-install-recommends \
+          build-essential \
+          dbus \
+          packagekit \
+          packagekit-tools \
+          fonts-dejavu \
+          fonts-freefont-ttf \
+          freetds-dev \
+          git \
+          lftp \
+          libcurl4-openssl-dev \
+          libffi-dev \
+          libgeos-dev \
+          libheif1 \
+          libicu-dev \
+          libmagic-dev \
+          libpq-dev \
+          libxml2-dev \
+          libxslt1-dev \
+          libyaml-dev \
+          nodejs \
+          poppler-utils \
+          postgresql-client-16 \
+          postgresql-client-17 \
+          python3 \
+          python3-pip \
+          python3-venv \
+          software-properties-common \
+          unzip \
+          zlib1g-dev \
+          ${{ inputs.additional_packages }}
+        apt-get clean
+
+    - name: Install AWS CLI
+      shell: bash
+      run: |
+        curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -q awscliv2.zip
+        ./aws/install --update
+        rm -rf aws awscliv2.zip
+
+    - name: Install Node.js dependencies
+      shell: bash
+      run: |
+        npm install -g yarn
 
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
-      shell: sh
+      shell: bash
       run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
-
-    - name: Install GNU tar (required by cache step and checksumming)
-      shell: sh
-      run: |
-        apk add --no-cache tar
-
-    - name: Set up dependencies
-      shell: sh
-      env:
-        DATABASE_APP_DB_TEST: warehouse_app_test
-        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-        HEALTH_DATABASE_DB_TEST: health_test
-        DATABASE_DB_TEST: cas_test
-        REPORTING_DATABASE_DB_TEST: reporting_test
-        # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-        PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
-      run: |
-        apk add --no-cache $(cat .github/dependencies.txt)
-
-        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-        chmod 600 ~/.pgpass
-
-    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
-    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
-    # isn't supported on Alpine.
-    - name: cache gems
-      uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
-      id: gemcache
-      with:
-        path: |
-          vendor/bundle
-          /usr/local/bundle/
-        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
 
     - name: Install gems
       shell: bash
       run: |
+        # Install pg gem with correct configuration
+        # gem install pg -- --with-pg-config=/usr/bin/pg_config
         gem install bundler --version=2.6.3
         bundle config set --local without 'production staging'
         bundle install --jobs 10 --retry 3
