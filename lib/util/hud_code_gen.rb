@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,7 +8,7 @@
 
 require 'roo'
 module HudCodeGen
-  CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'.freeze
+  CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'
 
   MAP_NAME_OVERRIDES = {
     export_period_types: :period_types,
@@ -55,9 +57,7 @@ module HudCodeGen
     all_lists = JSON.parse(source)
 
     deprecations_file = "lib/data/#{year}_hud_deprecations.json"
-    if File.exist?(deprecations_file)
-      all_lists.concat(JSON.parse(File.read(deprecations_file)))
-    end
+    all_lists.concat(JSON.parse(File.read(deprecations_file))) if File.exist?(deprecations_file)
 
     all_lists = all_lists.sort_by { |hash| hash['code'] }
     skipped = []
@@ -109,9 +109,7 @@ module HudCodeGen
     all_lists = JSON.parse(source)
 
     deprecations_file = "lib/data/#{year}_hud_deprecations.json"
-    if File.exist?(deprecations_file)
-      all_lists.concat(JSON.parse(File.read(deprecations_file)))
-    end
+    all_lists.concat(JSON.parse(File.read(deprecations_file))) if File.exist?(deprecations_file)
 
     # ideally we would sort by code, but this causes a lot of churn
     # all_lists = all_lists.sort_by { |hash| hash['code'] }

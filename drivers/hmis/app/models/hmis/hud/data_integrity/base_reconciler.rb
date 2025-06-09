@@ -9,9 +9,7 @@
 # Set service information date (new in 2026). It's not a nullable field
 #
 class Hmis::Hud::DataIntegrity::BaseReconciler
-
   def self.call(...) = new.call(...)
-
 
   protected
 

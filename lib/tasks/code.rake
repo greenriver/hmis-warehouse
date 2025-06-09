@@ -24,9 +24,9 @@ namespace :code do
   desc 'Generate HUD list mapping module'
   task :generate_hud_lists, [:year, :csv_file_path] => [:environment, 'log:info_to_stdout'] do |_task, args|
     filenames = []
-    %w[2022 2024 2026]
-      .filter { |year| args.year.nil? || args.year == year}
-      .each { |year| filenames << HudCodeGen.generate_hud_lists(year) }
+    ['2022', '2024', '2026'].
+      filter { |year| args.year.nil? || args.year == year }.
+      each { |year| filenames << HudCodeGen.generate_hud_lists(year) }
     exec("bundle exec rubocop -A --format simple #{filenames.join(' ')} > /dev/null")
   end
 
