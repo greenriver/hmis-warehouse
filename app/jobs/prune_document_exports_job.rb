@@ -17,7 +17,7 @@ class PruneDocumentExportsJob < BaseJob
         'prune_document_exports_job',
         timeout_seconds: 0,
       ) do
-        GrdaWarehouse::DocumentExport.expired.diet_select.each(&:destroy!)
+        GrdaWarehouse::DocumentExport.expired.diet_select.find_each(&:destroy!)
         run.record_success!
       end
     end

@@ -9,6 +9,8 @@ module MaintenanceTaskInstrumentation
     task = find_or_create_maintenance_task(job: job, name: name, alert_threshold_minutes: alert_threshold_minutes)
     run = task.system_maintenance_task_runs.create!(started_at: Time.current)
     block.call(run)
+    # if the run completed, clear alert-sent to it will trigger in the future
+    task.update!(alert_sent_at: nil) if run.completed?
   end
 
   def find_or_create_maintenance_task(job:, name:, alert_threshold_minutes: (60 * 36))

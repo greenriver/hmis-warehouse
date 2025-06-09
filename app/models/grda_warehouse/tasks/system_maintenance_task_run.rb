@@ -14,4 +14,8 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
   def record_success!
     update!(completed_at: Time.current)
   end
+
+  def completed?
+    completed_at.present?
+  end
 end

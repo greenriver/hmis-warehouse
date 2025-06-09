@@ -5,12 +5,6 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
 
   has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun'
 
-  def call
-    run = system_maintenance_task_runs.create!(started_at: Time.current)
-    yield
-    run.update!(completed_at: Time.current)
-  end
-
   def threshold_exceeded?(now: Time.current)
     return false unless alert_threshold_minutes&.positive?
 

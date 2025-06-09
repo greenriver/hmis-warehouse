@@ -36,15 +36,12 @@ module Importing
     protected
 
     def _perform
-      run_maintenance_task('Revoke expired consent') do
+      run_maintenance_task('Update Client ROIs') do
         # expire client consent form if past 1 year
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         @notifier.ping('Revoked expired client consent if appropriate')
-      end
-
-      if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
         # Update consent if it comes from HMIS Client
-        run_maintenance_task('Maintain client consent') do
+        if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
           GrdaWarehouse::HmisClient.maintain_client_consent
           @notifier.ping('Set client consent if appropriate')
         end
@@ -53,6 +50,7 @@ module Importing
       run_maintenance_task('Update from HMIS forms') do
         update_from_hmis_forms
       end
+
       run_maintenance_task('Sync with CAS') do
         sync_with_cas
       end
@@ -64,50 +62,40 @@ module Importing
         @notifier.ping('Duplicates identified')
       end
 
-      run_maintenance_task('Clean projects') do
+      run_maintenance_task('Clean projects & clients') do
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
         # on large data operations, and any other project data cleanup
         GrdaWarehouse::Tasks::ProjectCleanup.new.run!
         @notifier.ping('Projects cleaned')
-      end
 
-      run_maintenance_task('Clean clients') do
         # This fixes any unused destination clients that can
         # bungle up the service history generation, among other things
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned')
       end
 
-      run_maintenance_task('Generate service history') do
+      run_maintenance_task('Generate service history and related records') do
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
         @notifier.ping('Service history generated')
-      end
 
-      run_maintenance_task('Full sanity check') do
         # Fix anyone who received a new exit or entry added prior to the last year
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: destination_client_ids).run!
         @notifier.ping('Full sanity check complete')
-      end
 
-      run_maintenance_task('Rebuild residential first dates') do
         # Rebuild residential first dates
         GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
         @notifier.ping('Earliest residential services generated')
-      end
 
-      run_maintenance_task('Refreshing Service History Materialized View') do
         # Update the materialized view that we use to search by client_id and project_type
         @notifier.ping('Refreshing Service History Materialized View')
         GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
         GrdaWarehouse::ServiceHistoryServiceMaterialized.new.double_check_materialized_view(destination_client_ids.sample(500))
         @notifier.ping('Done Refreshing Service History Materialized View')
-      end
 
-      run_maintenance_task('Updating service history summaries') do
         # Maintain some summary data to speed up searches and history display and other things
         # To keep this manageable, we'll just deal with clients we've seen in the past year
         # When we sanity check and rebuild using the per-client method, this gets correctly maintained
@@ -116,12 +104,10 @@ module Importing
         @notifier.ping('Updated service history summaries')
       end
 
-      run_maintenance_task('Populate nicknames') do
+      run_maintenance_task('Maintain name search maintenance') do
         Nickname.populate!
         @notifier.ping('Nicknames updated')
-      end
 
-      run_maintenance_task('Generate unique names') do
         UniqueName.update!
         @notifier.ping('Unique names generated')
       end
@@ -131,14 +117,12 @@ module Importing
         @notifier.ping('Census imported')
       end
 
-      run_maintenance_task('Pre-calculate Chronically Homeless at Entry') do
+      run_maintenance_task('Chronically Homeless at Entry') do
         # Pre-calculate Chronically Homeless at Entry
         @notifier.ping('Pre-calculating Chronically Homeless at Entry')
         GrdaWarehouse::ChEnrollment.maintain!
         @notifier.ping('Done Pre-calculating Chronically Homeless at Entry')
-      end
 
-      run_maintenance_task('Calculate chronically homeless') do
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
         if @start_time.to_date.day.in?([1, 15])
@@ -159,12 +143,10 @@ module Importing
         end
       end
 
-      run_maintenance_task('Clean clients') do
+      run_maintenance_task('Finalize client history') do
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned (again)')
-      end
 
-      run_maintenance_task('Sanity check service history') do
         # The sanity check should always be last
         # It has the potential to run for a long time since it
         # self-heals the warehouse for anyone it finds that is broken
@@ -173,9 +155,7 @@ module Importing
         # entries or exits that were added or removed.
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: destination_client_ids).run!
         @notifier.ping('Sanity checked')
-      end
 
-      run_maintenance_task('Warm cache') do
         # pre-populate the cache for data source date spans
         # GrdaWarehouse::DataSource.data_spans_by_id()
         # @notifier.ping('Data source date spans set')
@@ -183,7 +163,7 @@ module Importing
         warm_cache
       end
 
-      run_maintenance_task('Reporting setup') do
+      run_maintenance_task('Legacy reporting setup') do
         ReportingSetupJob.set(priority: 15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
 
         @notifier.ping('Rebuilding reporting tables...')
@@ -272,6 +252,7 @@ module Importing
       # take snapshots of client enrollments
       GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
+      # FIXME - refactor the 'queue_batch' pattern to support task monitoring
       @notifier.ping('Potentially queuing confidence generation')
       GrdaWarehouse::Confidence::DaysHomeless.queue_batch
       GrdaWarehouse::Confidence::SourceEnrollments.queue_batch

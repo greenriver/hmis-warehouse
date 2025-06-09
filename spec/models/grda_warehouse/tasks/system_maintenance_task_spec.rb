@@ -9,49 +9,6 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
     it { is_expected.to have_many(:system_maintenance_task_runs) }
   end
 
-  describe '#call' do
-    let!(:task) { create(:system_maintenance_task) }
-
-    it 'creates a task run record' do
-      expect do
-        task.call { true }
-      end.to change(GrdaWarehouse::Tasks::SystemMaintenanceTaskRun, :count).by(1)
-    end
-
-    it 'sets started_at timestamp' do
-      freeze_time do
-        task.call { puts 'test' }
-        run = task.system_maintenance_task_runs.last
-        expect(run.started_at).to eq(Time.current)
-      end
-    end
-
-    it 'sets completed_at timestamp after execution' do
-      freeze_time do
-        task.call { puts 'test' }
-        run = task.system_maintenance_task_runs.last
-        expect(run.completed_at).to eq(Time.current)
-      end
-    end
-
-    it 'executes the provided block' do
-      executed = false
-      task.call { executed = true }
-      expect(executed).to be true
-    end
-
-    it 'does not set completed_at if block raises an exception' do
-      freeze_time do
-        expect do
-          task.call { raise StandardError, 'test error' }
-        end.to raise_error(StandardError, 'test error')
-
-        run = task.system_maintenance_task_runs.last
-        expect(run.completed_at).to be_nil
-      end
-    end
-  end
-
   describe '#threshold_exceeded?' do
     let(:task) { create(:system_maintenance_task, alert_threshold_minutes: 60) }
 

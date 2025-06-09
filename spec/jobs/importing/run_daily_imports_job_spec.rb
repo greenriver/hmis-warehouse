@@ -83,19 +83,17 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
       it 'creates maintenance tasks' do
         expect do
           job.perform
-        end.to change(GrdaWarehouse::Tasks::SystemMaintenanceTask, :count).by_at_least(15)
+        end.to change(GrdaWarehouse::Tasks::SystemMaintenanceTask, :count).by_at_least(12)
       end
 
       it 'creates task records with correct job_type' do
         job.perform
 
         tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
-        expect(tasks.count).to be >= 15
+        expect(tasks.count).to be >= 12
         expect(tasks.pluck(:name)).to include(
-          'Revoke expired consent',
+          'Update Client ROIs',
           'Identify Duplicates',
-          'Clean projects',
-          'Generate service history',
         )
       end
 
