@@ -9,11 +9,9 @@
 # Reconciles total monthly income discrepancies that may occur despite front-end validations.
 # Calculates expected total from individual income sources and auto-corrects mismatches.
 #
-class Hmis::Hud::DataIntegrity::TotalIncomeReconciler
+class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity::BaseReconciler
   # [[:Alimony, :AlimonyAmount], ...]
   INCOME_SOURCES = GrdaWarehouse::Hud::IncomeBenefit::SOURCES
-
-  def self.call(...) = new.call(...)
 
   # @param [Hmis::Hud::IncomeBenefit] record
   def call(record)
@@ -39,8 +37,6 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler
       record.total_monthly_income = calculated_income
     end
 
-    # report activity
-    tag = "#{record.class.name}##{record.id}"
-    return messages.map { |msg| "#{tag}: #{msg}" }
+    format_messages(record, messages)
   end
 end
