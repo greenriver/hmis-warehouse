@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter, type: :model do
@@ -240,7 +242,7 @@ RSpec.describe HmisCsvImporter, type: :model do
     describe 'after second import with allowing deletion' do
       # Projects are filtered to only those included in the import files. Due to this logic, no projects will be
       # deleted, regardless of the flag. At this point, the import test files with the project deleted will resolve
-      # the same regardless of the `prevent_import_deletions?` flag. These tests are included to catch any divergance
+      # the same regardless of the `prevent_import_deletions?` flag. These tests are included to catch any divergence
       # from this in the future.
       before(:each) do
         allow(HmisCsvTwentyTwentyFour::Importer::Project).to receive(:prevent_import_deletions?).and_return(false)
@@ -413,7 +415,7 @@ RSpec.describe HmisCsvImporter, type: :model do
     end
 
     it 'will clean up the pending deletes' do
-      HmisCsvImporter::Importer::Importer.soft_deletable_sources.each do |source|
+      HmisCsvImporter::Importer::Importer.soft_deletable_sources('2024').each do |source|
         expect(source.where.not(pending_date_deleted: nil).count).to eq 0
       end
     end
@@ -614,6 +616,33 @@ RSpec.describe HmisCsvImporter, type: :model do
           expect(log.summary['Client.csv']['unchanged']).to eq(0)
         end
       end
+    end
+  end
+
+  describe 'When running with dry_run option' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+    end
+
+    it 'pauses the import when dry_run is true' do
+      loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        dry_run: true,
+      )
+      expect(loader.importer_log.status).to eq('paused')
+    end
+
+    it 'completes the import when dry_run is false' do
+      loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        dry_run: false,
+      )
+      expect(loader.importer_log.status).to eq('complete')
     end
   end
 end

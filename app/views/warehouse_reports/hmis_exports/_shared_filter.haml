@@ -32,6 +32,8 @@
     .col-sm-3
       = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
     .col-sm-3
+      = f.input :source_type, collection: ::Filters::HmisExport.available_source_types, include_blank: false, as: :select_two
+    .col-sm-3
       %label.control-label
         Export Directive
       %p Full Refresh
@@ -41,7 +43,6 @@
         = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, as: :select_two
     .col-sm-3
       = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, as: :select_two
-  .row
     .col-sm-3
       = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
     - if current_user.can_view_confidential_project_names?

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe 'Date and Time Cleanup', type: :model do
@@ -169,6 +171,6 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
   end
 
   def importable_file_class(name)
-    HmisCsvImporter::Importer::Importer.importable_file_class(name)
+    HmisCsvTwentyTwentySix.importable_file_class(name)
   end
 end

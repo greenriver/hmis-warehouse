@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter, type: :model do
@@ -60,10 +62,10 @@ RSpec.describe HmisCsvImporter, type: :model do
   end
 
   def loadable_file_class(name)
-    HmisCsvImporter::Loader::Loader.loadable_file_class(name)
+    HmisCsvTwentyTwentyFour.loadable_file_class(name)
   end
 
   def importable_file_class(name)
-    HmisCsvImporter::Importer::Importer.importable_file_class(name)
+    HmisCsvTwentyTwentyFour.importable_file_class(name)
   end
 end
