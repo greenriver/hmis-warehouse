@@ -1,5 +1,5 @@
 x-app: &app
-  image: hmis-warehouse:4.4
+  image: hmis-warehouse:5.1
   build:
     context: .
     dockerfile: docker/app/Dockerfile
