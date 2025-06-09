@@ -15,10 +15,6 @@ FactoryBot.define do
     sequence(:name) { |n| "Opportunity #{n}" }
     project { association :hmis_hud_project, data_source: data_source }
     workflow_template { association :hmis_workflow_definition_template, data_source: data_source }
-
-    after(:build) do |opportunity|
-      # If owner not specified, build a unit in the same project
-      opportunity.owner ||= build(:hmis_unit, project: opportunity.project)
-    end
+    unit { association :hmis_unit, project: project }
   end
 end

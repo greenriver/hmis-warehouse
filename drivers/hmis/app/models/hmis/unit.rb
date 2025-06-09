@@ -36,12 +36,12 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 
   # A unit may have many historical opportunities (which represent past times when this unit was available and then filled)...
-  has_many :opportunities, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner, dependent: :destroy
+  has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit, dependent: :destroy
   # ...but it only has one "latest" opportunity, which could be either:
   # - active and accepting referrals (open),
   # - active with a referral in-progress (locked), or
   # - closed with an accepted referral. This would be prioritized last, after any active opportunity.
-  has_one :latest_opportunity, -> { actives_first }, as: :owner, class_name: 'Hmis::Ce::Opportunity', inverse_of: :owner
+  has_one :latest_opportunity, -> { actives_first }, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
 
   # Similarly, a unit may have many historical referrals,
   has_many :referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral'
@@ -52,6 +52,10 @@ class Hmis::Unit < Hmis::HmisBase
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
+
+  scope :viewable_by, ->(user) do
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
+  end
 
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
 

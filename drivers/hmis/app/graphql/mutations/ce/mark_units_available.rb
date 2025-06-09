@@ -61,7 +61,7 @@ module Mutations
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
 
       opportunity = Hmis::Ce::Opportunity.new(
-        owner: unit,
+        unit: unit,
         project: unit.project,
         name: opportunity_name,
         workflow_template_identifier: template.identifier,
