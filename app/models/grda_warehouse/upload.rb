@@ -4,11 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class Upload < GrdaWarehouseBase
     require 'csv'
     include ActionView::Helpers::DateHelper
     acts_as_paranoid
+
+    # Used for uploaded files, not stored on the upload, but passed to the job to indicate
+    # if the import should be paused before overwriting the existing warehouse data
+    attr_accessor :dry_run
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :user, optional: true

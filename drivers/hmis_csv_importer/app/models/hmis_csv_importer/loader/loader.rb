@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
@@ -23,7 +25,7 @@ module HmisCsvImporter::Loader
     include HmisCsvImporter::HmisCsv
     include ExternalFileUtils
 
-    attr_accessor :import, :range, :data_source, :loader_log, :limit_projects
+    attr_accessor :import, :range, :data_source, :loader_log, :limit_projects, :current_version
 
     # Prepare a loader for HmisCsvImporter CSVs
     # in the directory `file_path`
@@ -40,7 +42,9 @@ module HmisCsvImporter::Loader
       deidentified: false,
       limit_projects: false,
       post_processor: nil,
-      project_cleanup: true
+      project_cleanup: true,
+      stop_version: nil,
+      dry_run: false
     )
       raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
 
@@ -54,9 +58,10 @@ module HmisCsvImporter::Loader
       @limit_projects = limit_projects
       @post_processor = post_processor
       @project_cleanup = project_cleanup
-      loadable_files.each_key do |file_name|
-        setup_summary(file_name)
-      end
+      @current_version = Importers::HmisAutoMigrate.calculate_current_version(@file_path)
+      @stop_version = stop_version
+      @loader_log.version = @current_version
+      @dry_run = dry_run
     end
 
     def load!(import_log = nil)
@@ -71,6 +76,8 @@ module HmisCsvImporter::Loader
         complete_load(status: :loaded)
       rescue StandardError => e
         complete_load(status: :failed, err: e)
+        # Make sure we see these in CI
+        raise e if Rails.env.test?
       ensure
         remove_import_files if @remove_files
       end
@@ -83,13 +90,13 @@ module HmisCsvImporter::Loader
       return unless @loader_log.successfully_loaded?
 
       # puts summary_as_log_str(@loader_log.summary)
-
-      @importer = HmisCsvImporter::Importer::Importer.new(
+      @importer = importer_class.new(
         loader_id: @loader_log.id,
         data_source_id: data_source.id,
         debug: @debug,
         deidentified: @deidentified,
         project_cleanup: @project_cleanup,
+        dry_run: @dry_run,
       )
 
       @importer.import!(import_log)
@@ -157,7 +164,14 @@ module HmisCsvImporter::Loader
     private def load_source_files!
       @loader_log.update(status: :loading)
 
-      Importers::HmisAutoMigrate.apply_migrations(@file_path, @notifier)
+      @current_version = Importers::HmisAutoMigrate.apply_migrations(@file_path, @notifier, stop_version: @stop_version)
+      @loader_log.version = @current_version
+
+      # Summary needs to reflect the final version
+      loadable_files.each_key do |file_name|
+        setup_summary(file_name)
+      end
+
       ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
       loadable_files.each do |file_name, klass|
@@ -170,6 +184,10 @@ module HmisCsvImporter::Loader
           load_source_file_pg(read_from: file, klass: klass, original_file_path: source_file_path)
         end
       end
+    end
+
+    private def importer_class
+      HmisCsvImporter::Importer::Importer
     end
 
     private def load_source_file_pg(read_from:, klass:, original_file_path:)
@@ -196,7 +214,6 @@ module HmisCsvImporter::Loader
       # to have only the columns we expect
       # in a known order
       mapping_status, col_mapping = *clean_header_row(header_row, klass, file_name)
-
       if mapping_status == :ok
         pg_cols = col_mapping + meta_data_names
       elsif mapping_status == :mapped
@@ -241,7 +258,6 @@ module HmisCsvImporter::Loader
                 row
               end
               values += (parser.lineno == 1 ? meta_data_names : meta_data)
-
               # There were excess columns, probably due to an unquoted comma
               if values.size > expect_col_count
                 row_errors << {
@@ -323,7 +339,6 @@ module HmisCsvImporter::Loader
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return [:missing]
       end
-
       csv_header_names = klass.hud_csv_headers
       valid_headers = source_headers.map(&HEADER_NORMALIZER) == csv_header_names.map(&HEADER_NORMALIZER)
 
@@ -347,14 +362,6 @@ module HmisCsvImporter::Loader
       return [:mapped, mapping]
     end
     HEADER_NORMALIZER = ->(s) { s.to_s.downcase }
-
-    def loadable_files
-      self.class.loadable_files
-    end
-
-    def self.loadable_file_class(name)
-      data_lake_file_class(name, 'Loader')
-    end
 
     private def remove_import_files
       Rails.logger.info "Removing #{@file_path}"
@@ -421,8 +428,7 @@ module HmisCsvImporter::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status}", summary_as_log_str(loader_log.summary))
-      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status} #{summary_as_log_str(@loader_log.summary)}")
       @import_log&.update(
         loader_log: loader_log,
         files: loadable_files.transform_values(&:name).invert.to_a,

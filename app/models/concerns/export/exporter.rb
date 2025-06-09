@@ -78,6 +78,19 @@ module Export::Exporter
       end
     end
 
+    def setup_enforce_project_date_scope
+      setup_export
+      @export.update(options: { enforce_project_date_scope: true })
+    end
+
+    def hmis_class_for(klass)
+      exportable_files[klass][:hmis_class]
+    end
+
+    def self.hmis_class_for(klass)
+      class_mappings[klass][:hmis_class]
+    end
+
     def remove_export_files
       FileUtils.rmtree(@file_path) if File.exist? @file_path
     end
