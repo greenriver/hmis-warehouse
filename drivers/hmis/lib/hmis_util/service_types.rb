@@ -135,7 +135,7 @@ module HmisUtil
               custom_service_category_id: custom_service_category&.id,
               project_type: project_type,
               funder: funder,
-              system: false, # Thesea aren't system records, they can be deleted.
+              system: false, # These aren't system records, they can be deleted.
               active: true,
             ).first_or_create
           end
