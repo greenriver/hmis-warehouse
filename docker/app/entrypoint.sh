@@ -11,7 +11,7 @@ cd /app
 echo 'Commenting out pg_fixtures which bundler tries to load in production and staging for some reason'
 sed -i.bak '/pg_fixtures/d' Gemfile
 
-if [[ "${EKS}" != "true" ]]
+if [ "${EKS}" != "true" ]
 then
   echo Getting Role Info
   curl --connect-timeout 2 --silent 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > role.info.log
@@ -27,7 +27,7 @@ then
   echo "...secrets took $(expr $T2 - $T1) seconds"
 
   echo Sourcing environment
-  . .env
+  . /app/.env
 else
   echo Not sourcing environment variables from secretsmanager
 fi
@@ -42,8 +42,8 @@ echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
-if [ "$CONTAINER_VARIANT" == "dj" ]; then
-  if [[ "${ENABLE_DJ_METRICS}" == "true" ]]; then
+if [ "$CONTAINER_VARIANT" = "dj" ]; then
+  if [ "${ENABLE_DJ_METRICS}" = "true" ]; then
     echo "Starting metrics server"
     # Not in cluster mode but with 5 threads
     bundle exec puma --no-config -w 0 -t 1:5 /app/dj-metrics/config.ru &
@@ -73,7 +73,7 @@ echo "Using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 echo 'Pulling down the compiled assets...' # Using ASSETS_PREFIX from .env and ASSET_CHECKSUM from above.
 cd ./public/assets
 
-if [ "$CONTAINER_VARIANT" == "deploy" ]; then
+if [ "$CONTAINER_VARIANT" = "deploy" ]; then
   bundle exec /app/bin/wait_for_compiled_assets.rb || exit 1
 fi
 

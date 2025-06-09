@@ -1,15 +1,15 @@
 x-app: &app
-  image: hmis-warehouse:4.4
+  image: hmis-warehouse:5.1
   build:
     context: .
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.3.7
+      RUBY_VERSION: 3.3.8
       BUNDLER_VERSION: '2.6.3'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.3.7-alpine3.20
+      BUILD_TAG: 3.3.8-slim-bookworm
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -39,12 +39,13 @@ x-backend: &backend
   stdin_open: true
   tty: true
   volumes:
+    # NOTE: you may need to run `docker-compose run -u 0 shell chown -R app-user:app-user /bundle /app /node_modules` to fix permission issues
     - .:/app:cached
-    - rails_cache_alpine:/app/tmp/cache
-    - bundle_alpine:/bundle
+    - rails_cache_bookworm:/app/tmp/cache
+    - bundle_bookworm:/bundle
     - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
     - /etc/ssl/certs:/etc/ssl/certs
-    - node_modules_alpine:/node_modules
+    - node_modules_bookworm:/node_modules
 
 services:
   shell:
@@ -178,12 +179,12 @@ services:
       yarn:
         condition: service_started
 
-  # To transition from a previous major version to pg16, run ./docker/pg16/upgrade.sh
+  # To transition from a previous major version to pg17, run `bash ./docker/pg17/upgrade.sh`
   db_previous:
     build:
-      context: docker/pg13
+      context: docker/pg16
     container_name: db_previous
-    image: warehousepg:13
+    image: warehousepg:16
     profiles:
       - manual
     environment:
@@ -198,7 +199,7 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg13}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME_PREVIOUS:-dbdata_pg16}:/var/lib/postgresql/data
     ports:
       - 5432
     expose:
@@ -207,10 +208,10 @@ services:
   # This should no longer need to be overridden for ARM processors
   db:
     build:
-      context: docker/pg16
+      context: docker/pg17
       shm_size: 1g
     container_name: hmis-warehouse-db
-    image: warehousepg:16
+    image: warehousepg:17
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -228,11 +229,11 @@ services:
       # to do that, set DB_DATA_VOLUME in your env or use a docker override file
       # For example:
       #   DB_DATA_VOLUME=./dev/db_data
-      - ${DB_DATA_VOLUME:-dbdata_pg16}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME:-dbdata_pg17}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
       - ./db:/mnt
     ports:
-      - 5432
+      - "${DBPORT:-15432}:5432"
     expose:
       - 5432
     stop_grace_period: 30s
@@ -299,15 +300,15 @@ services:
       - traefik.http.routers.minio.middlewares=op_https
 
 volumes:
-  bundle_alpine:
-  node_modules_alpine:
-  rails_cache_alpine:
+  bundle_bookworm:
+  node_modules_bookworm:
+  rails_cache_bookworm:
   dbdata:
   dbdata_pg13:
   dbdata_pg16:
+  dbdata_pg17:
   redis:
   ngrok:
-
 networks:
   default:
     name: traefik
