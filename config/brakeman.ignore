@@ -3,29 +3,6 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
-      "fingerprint": "00ff2f7749bdb57cc01b973f02c57dcf6666cbbf0b2f15667bae7db5a56713bd",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/dba/partition_all.rb",
-      "line": 26,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"sed -i -e \\\"/self.table_name/a\\\\    self.primary_key = 'id'\\\" #{`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Dba::PartitionAll",
-        "method": "add_explicit_primary_key!"
-      },
-      "user_input": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
       "fingerprint": "023c724508b4c341ebb8aae1c407e91e113c05bccffe0dca58702f276fbe1dd0",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -133,7 +110,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 370,
+      "line": 375,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -249,7 +226,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 47,
+      "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"INSERT INTO analytics.app_users (id, first_name, last_name, email)\\nVALUES\\n#{batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")}\\nON CONFLICT (id) DO UPDATE SET\\n  first_name = EXCLUDED.first_name,\\n  last_name = EXCLUDED.last_name,\\n  email = EXCLUDED.email\\n\")",
       "render_path": null,
@@ -894,29 +871,6 @@
       "note": ""
     },
     {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "4e32d94cd0b8fcac6d4712e6929fe5a68f0bd56e687fb670d5174063895c443e",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called on model attribute",
-      "file": "app/models/importers/hmis_auto_migrate.rb",
-      "line": 33,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "available_migrations[((AutoEncodingCsv.read(\"#{csv_dir}/Export.csv\", :headers => true).first.to_h or {})[\"csvversion\"] or \"2020\")].constantize",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Importers::HmisAutoMigrate",
-        "method": "Importers::HmisAutoMigrate.apply_migrations"
-      },
-      "user_input": "AutoEncodingCsv.read(\"#{csv_dir}/Export.csv\", :headers => true).first",
-      "confidence": "Medium",
-      "cwe_id": [
-        470
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "4e848abe8f3b8e81eef1a3d217902eb95d9161fb33ffbe5b7b93920d5a837f63",
@@ -1197,7 +1151,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 60,
+      "line": 61,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"DELETE FROM analytics.app_users\\nWHERE id NOT IN (#{User.with_deleted.pluck(:id).map do\n connection.quote(id)\n end.join(\",\")})\\n\")",
       "render_path": null,
@@ -2245,7 +2199,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 93,
+      "line": 89,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2314,7 +2268,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/access_group.rb",
-      "line": 75,
+      "line": 77,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{quoted_table_name}.coc_codes @> #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
       "render_path": null,
@@ -2406,7 +2360,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/hmis_structure/base.rb",
-      "line": 161,
+      "line": 175,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
       "render_path": null,
@@ -2442,29 +2396,6 @@
       "confidence": "Medium",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "ea3c1a87820e41e4d8e27cdf51aacff4da749f07d72fd29c2386ddc5c7cad731",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/dba/partition_all.rb",
-      "line": 21,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Dba::PartitionAll",
-        "method": "add_explicit_primary_key!"
-      },
-      "user_input": "t",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -2544,7 +2475,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/dba/partition_all.rb",
-      "line": 79,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DROP TABLE IF EXSITS \\\"#{table}_saved\\\"\\n\")",
       "render_path": null,

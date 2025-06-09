@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
-require_relative 'export_helper'
+require_relative '../../support/export_helper_2024'
 require_relative './multi_project_tests'
 require_relative './multi_enrollment_tests'
 
@@ -16,23 +18,24 @@ end
 RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
   before(:all) do
     cleanup_test_environment
-    setup_data
+    ExportHelper2024.setup_data
 
-    @involved_project_ids = @data_source.project_ids.first(3)
+    # Only use the first 3 projects from the data source
+    @involved_project_ids = ExportHelper2024.projects.first(3).map(&:id)
     @exporter = HmisCsvTwentyTwentyFour::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
       projects: @involved_project_ids,
       period_type: 3,
       directive: 3,
-      user_id: @user.id,
+      user_id: ExportHelper2024.user.id,
     )
+    ExportHelper2024.instance_variable_set(:@exporter, @exporter)
     @exporter.export!(cleanup: false, zip: false, upload: false)
   end
 
   after(:all) do
-    @exporter.remove_export_files
-    cleanup_test_environment
+    ExportHelper2024.cleanup
   end
 
   include_context '2024 multi-project tests'

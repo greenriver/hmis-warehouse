@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::Disability
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
@@ -96,7 +98,7 @@ module HmisStructure::Disability
             null: false,
           },
         }.freeze
-      when '2022', '2024'
+      when '2022', '2024', '2026'
         {
           DisabilitiesID: {
             type: :string,

@@ -134,7 +134,7 @@ module BostonHmis
     config.synthetic_youth_education_status_types = []
     config.patient_dashboards = []
     config.hmis_migrations = {}
-    config.hmis_data_lake = nil
+    config.hmis_data_lakes = {}
     config.custom_imports = []
     config.supplemental_enrollment_importers = {}
     config.help_links = []
