@@ -300,6 +300,12 @@ namespace :grda_warehouse do
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     begin
+      MaintenanceTasksLifecycleJob.new.perform
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+    end
+
+    begin
       Rake::Task['jobs:check_queue'].invoke
     rescue StandardError => e
       puts e.message

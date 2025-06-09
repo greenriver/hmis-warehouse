@@ -18,7 +18,7 @@ module Health
           timeout_seconds: 0,
         ) do
           Health::DocumentExport.expired.diet_select.find_each(&:destroy!)
-          run.record_success!
+          run.complete!
         end
       end
     end

@@ -25,8 +25,6 @@ module Importing
         @start_time = Time.current
         settle_imports
 
-        # first perform lifecycle events, generating alerts for missing jobs
-        handle_maintenance_tasks_lifecycle
         # now run this jobs tasks
         _perform
         finish_processing
@@ -198,18 +196,10 @@ module Importing
       @destination_client_ids ||= GrdaWarehouse::Hud::Client.destination.pluck(:id)
     end
 
-    # Process ALL maintenance tasks, not just this job's tasks
-    def handle_maintenance_tasks_lifecycle
-      GrdaWarehouse::Tasks::SystemMaintenanceTask.find_each(&:process_alerts)
-
-      # Clean up expired runs for ALL tasks
-      GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.expired.delete_all
-    end
-
     def run_maintenance_task(name, &block)
       instrument_as_maintenance_task(job: self, name: name) do |run|
         block.call
-        run.record_success!
+        run.complete!
       end
     end
 

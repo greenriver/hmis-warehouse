@@ -19,7 +19,7 @@ class YouthFollowUpsJob < BaseJob
   def perform(...)
     instrument_as_maintenance_task(name: 'perform') do |run|
       _perform
-      run.record_success!
+      run.complete!
     end
   end
 

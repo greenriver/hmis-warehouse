@@ -16,7 +16,7 @@ RSpec.describe MaintenanceTaskInstrumentation, type: :job do
         instrument_as_maintenance_task(job: self, name: 'perform') do |run|
           raise StandardError, 'Test failure' if should_fail
 
-          run.record_success!
+          run.complete!
         end
       end
     end
