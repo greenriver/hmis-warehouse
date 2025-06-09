@@ -14,9 +14,13 @@ class Hmis::Hud::DataIntegrity::ServiceInformationDateReconciler < Hmis::Hud::Da
     messages = []
 
     # SSVF FA uses form input. Other services use start date s information date
-    record.service_information_date = record.fa_start_date if record.record_type != RecordType::SSVF_FINANCIAL_ASSISTANCE
+    record.information_date = record.fa_start_date if record.record_type != ssvf_financial_assistance
     messages << 'information_date should be present' if record.information_date.nil?
 
     format_messages(record, messages)
+  end
+
+  def ssvf_financial_assistance
+    HudUtility2026.record_type('SSVF Financial Assistance', true, raise_on_missing: true)
   end
 end
