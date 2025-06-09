@@ -1,22 +1,25 @@
-name: Rebuild Test Kit Fixpoints
+name: Rails System Tests
+
 on:
-  push:
+  pull_request:
     branches:
-      - "*"
-      - "**/*"
+      - '*'
+      - '**/*'
 concurrency:
-  group: ${{ github.ref }}-test_kit_fixpoints
+  group: ${{ github.ref }}-system-tests
   cancel-in-progress: true
 
 jobs:
-  rebuild_fixpoints:
+  system_tests:
+    name: Rails System Tests
+
     runs-on: ubuntu-24.04
     container: ruby:3.3.8-slim-bookworm
-    if: contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]')
 
     permissions:
       contents: read
       packages: read
+      id-token: write
       pull-requests: read
 
     # Service containers to run with job
@@ -32,7 +35,7 @@ jobs:
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
-          --health-timeout 15s
+          --health-timeout 5s
           --health-retries 5
         ports:
           - 5432:5432
@@ -60,6 +63,14 @@ jobs:
           MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
+      chrome:
+        image: index.docker.io/browserless/chrome@sha256:efac47cfff3830d9a50b27d29f8bbb61949058ae336c823fbe9bd3c0d1debcc8 # 1-chrome-stable
+        ports:
+          - 3333:3333
+        env:
+          TZ: "America/New_York"
+          PORT: 3333
+          CONNECTION_TIMEOUT: 600000
 
     env:
       CLIENT: test
@@ -72,6 +83,7 @@ jobs:
       DATABASE_USER: postgres
       DATABASE_WAREHOUSE_DB_TEST: warehouse_test
       DEFAULT_FROM: greenriver.testing@mailinator.com
+      DISABLE_SPRING: 1
       ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
       FQDN: openpath.host
       HEALTH_DATABASE_ADAPTER: postgresql
@@ -85,6 +97,9 @@ jobs:
       USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
+      CACHE_HOST: redis
+      CACHE_PORT: 6379
+      CACHE_DB: 1
       REPORTING_DATABASE_ADAPTER: postgresql
       REPORTING_DATABASE_DB_TEST: reporting_test
       REPORTING_DATABASE_HOST: postgres
@@ -100,7 +115,9 @@ jobs:
       REPORTING_DATABASE_DB: reporting_test
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+      FERRUM_PROCESS_TIMEOUT: 45
+      FERRUM_DEFAULT_TIMEOUT: 45
 
     steps:
       - name: Checkout
@@ -109,6 +126,8 @@ jobs:
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
+        with:
+          additional_packages: libpq-dev chromium chromium-common
 
       - name: 'App setup'
         run: |
@@ -126,47 +145,37 @@ jobs:
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
-      # fetch some closed source files
-      - name: 'Fetch testkit source files'
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
-      - name: Generate new fixpoint files
+
+      - name: Precompile assets
+        run: bundle exec rails assets:precompile
+
+      # Regenerate the graphql schema and fail if it has changed
+      - name: 'Check HMIS GraphQL schema'
+        run: |
+          bundle exec rake driver:hmis:dump_graphql_schema
+
+      - name: Build front end and run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
-        run: |
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "drivers/datalab_testkit/spec/empty_spec.rb"
-      - name: Get current date
-        id: date
-        run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-      - name: 'Copy old fixpoints to previous folder'
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
+          RUN_SYSTEM_TESTS: true
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          CHROME_URL: http://chrome:3333
+          TODO_OR_DIE_LOG_ONLY: true
+        run:
+          # Are you looking to run the system tests locally? See:
+          # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
+          bash ./bin/run_hmis_system_tests.sh
+
+      - name: Archive artifacts
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
-          destination: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_PREVIOUS_FIXPOINT_PATH_FY_2024 }}${{ env.today }}/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
-      - name: 'Copy new fixpoint files to current folder'
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ./drivers/datalab_testkit/spec/fixpoints/
-          destination: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
+          if-no-files-found: ignore
+          name: artifacts-${{ matrix.test_group.id}}
+          path: |
+            tmp/rspec_profiles/
+            tmp/capybara/screenshots/
+            var/deprecations/*.yml
