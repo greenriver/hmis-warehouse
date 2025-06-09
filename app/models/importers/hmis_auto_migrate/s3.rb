@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'aws-sdk-rails'
 require 'zip'
 module Importers::HmisAutoMigrate
@@ -21,13 +23,14 @@ module Importers::HmisAutoMigrate
       s3_role_arn: nil,
       s3_external_id: nil,
       file_password: nil,
-      file_name: nil
+      file_name: nil,
+      dry_run: false
     )
       setup_notifier('HMIS S3 AutoMigrate Importer')
       @data_source_id = data_source_id
       @deidentified = deidentified
       @allowed_projects = allowed_projects
-
+      @dry_run = dry_run
       @s3 = if secret_access_key.present? && secret_access_key != 'unknown'
         AwsS3.new(
           region: region,
@@ -74,6 +77,7 @@ module Importers::HmisAutoMigrate
         allowed_projects: @allowed_projects,
         file_path: @file_path,
         file_password: @file_password,
+        dry_run: @dry_run,
       ).pre_process
     end
 

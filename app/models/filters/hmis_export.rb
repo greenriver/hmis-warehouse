@@ -15,6 +15,7 @@ module Filters
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
     attribute :version, String, default: '2024'
+    attribute :source_type, Integer, default: 3 # data warehouse
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
@@ -53,7 +54,8 @@ module Filters
 
       self.start_date = filters.dig(:start_date)&.to_date || start_date
       self.end_date = filters.dig(:end_date)&.to_date || end_date
-      self.version = filters.dig(:version) if self.class.available_versions&.include?(filters.dig(:version))
+      self.version = filters.dig(:version) if self.class.available_versions&.map { |m| m[:version_str] }&.uniq&.include?(filters.dig(:version))
+      self.source_type = filters.dig(:source_type).to_i unless filters.dig(:source_type).nil?
       self.hash_status = filters.dig(:hash_status).to_i unless filters.dig(:hash_status).nil?
       self.period_type = filters.dig(:period_type).to_i unless filters.dig(:period_type).nil?
       self.directive = filters.dig(:directive).to_i unless filters.dig(:directive).nil?
@@ -82,6 +84,7 @@ module Filters
           start_date: start_date,
           end_date: end_date,
           version: version,
+          source_type: source_type,
           hash_status: hash_status,
           period_type: period_type,
           directive: directive,
@@ -114,6 +117,11 @@ module Filters
     def self.available_versions
       # this needs to be something that is not reloaded
       Rails.application.config.hmis_exporters ||= []
+    end
+
+    def self.available_source_types
+      # Note, source type hasn't changed, so using FY2026
+      HudUtility2026.source_types.invert
     end
 
     def self.job_classes

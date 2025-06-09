@@ -1,0 +1,5 @@
+"AssessmentResultID","AssessmentID","EnrollmentID","PersonalID","AssessmentResultType","AssessmentResult","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","VALID","Result type","Results of the result","2016-09-02 15:51:30","2016-09-02 15:51:30","3","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","VALIDATION","Result type","Results of the result","2015-09-02 15:51:30","2015-09-02 15:51:30","3","","b6585c2320f69a2b920adb507cc9d82f"
+"ERROR","","","","Result type","Results of the result","2015-09-02 15:51:30","2015-09-02 15:51:30","3","","b6585c2320f69a2b920adb507cc9d82f"
+"FAILURE","FAILURE","FAILURE","FAILURE","Result type","2015-09-02 15:51:30","2015-09-02 15:51:30","3","","b6585c2320f69a2b920adb507cc9d82f"

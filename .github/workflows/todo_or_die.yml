@@ -1,12 +1,7 @@
 name: Todo or Die
 
 on:
-  # NOTE: runs on both PRs and pulls. This would normally cause redundant jobs to run but there are conditions on github.event_name in the matrix to avoid this. In particular, we want the system tests to run only on PR so we can use the base_ref to infer the appropriate release branch name in the hmis FE repo (see issue #6566)
   push:
-    branches:
-      - '*'
-      - '**/*'
-  pull_request:
     branches:
       - '*'
       - '**/*'
@@ -16,16 +11,15 @@ concurrency:
 
 jobs:
   todo_or_die_check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    container: ruby:3.3.8-slim-bookworm
     permissions:
       contents: read
       pull-requests: read
     strategy:
       matrix:
-        ruby: ['3.3.7']
+        ruby: ['3.3.8']
       fail-fast: false
-
-    container: ruby:3.3.7-alpine3.20
 
     env:
       RAILS_ENV: test

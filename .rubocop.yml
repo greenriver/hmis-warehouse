@@ -20,6 +20,7 @@ AllCops:
     - "drivers/**/*.rb"
     - "lib/**/*.rb"
     - "config/deploy/docker/lib/*.rb"
+    - "db/**/migrate/*.rb"
 
   NewCops: disable
 

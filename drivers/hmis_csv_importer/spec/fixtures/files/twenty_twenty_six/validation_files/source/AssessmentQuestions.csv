@@ -1,0 +1,5 @@
+"AssessmentQuestionID","AssessmentID","EnrollmentID","PersonalID","AssessmentQuestionGroup","AssessmentQuestionOrder","AssessmentQuestion","AssessmentAnswer","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","VALID","Detail","0","The question is","The answer was interesting.","2016-09-02 15:49:17","2016-09-02 15:49:17","3","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","VALIDATION","Detail","1","The second question is","The answer was interesting.","2016-09-02 15:49:17","2016-09-02 15:49:17","3","","b6585c2320f69a2b920adb507cc9d82f"
+"ERROR","","","","Detail","0","The question is","The answer was interesting.","2015-09-02 15:49:17","2015-09-02 15:49:17","3","","b6585c2320f69a2b920adb507cc9d82f"
+"FAILURE","FAILURE","FAILURE","FAILURE","Detail","1",,"2015-09-02 15:49:17","2015-09-02 15:49:17","3","","b6585c2320f69a2b920adb507cc9d82f"

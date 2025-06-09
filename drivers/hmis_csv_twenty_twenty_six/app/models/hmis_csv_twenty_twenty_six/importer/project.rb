@@ -1,0 +1,110 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module HmisCsvTwentyTwentySix::Importer
+  class Project < GrdaWarehouse::Hud::Base
+    include ::HmisStructure::Project
+    include ImportConcern
+
+    # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
+    self.table_name = 'hmis_2026_projects'
+
+    has_one :destination_record, **hud_assoc(:ProjectID, 'Project')
+
+    HudUtility2026.residential_project_type_numbers_by_code.each do |k, v|
+      scope k, -> { where(ProjectType: v) }
+      define_method "#{k}?" do
+        v.include? self[ProjectType]
+      end
+    end
+
+    scope :residential, -> do
+      where(
+        arel_table[:ProjectType].in(HudUtility2026.residential_project_type_ids - [13]).
+        or(
+          arel_table[:ProjectType].eq(13).
+          # NOTE: officially, only RRHSubType 2 count as residential, but old data won't always have
+          # the RRHSubType, assume those are residential as well
+          and(arel_table[:RRHSubType].eq(2).or(arel_table[:RRHSubType].eq(nil))),
+        ),
+      )
+    end
+
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
+      return none unless project_ids.present?
+
+      warehouse_class.importable.where(data_source_id: data_source_id, ProjectID: project_ids)
+    end
+
+    # Projects are inherantly not being deleted due to how the import is filtering to only use projects included in the import file.
+    # This override is added as a redundancy and also to make it easier to identify import file types disallowing deletions.
+    def self.prevent_import_deletions?
+      true
+    end
+
+    def self.warehouse_class
+      GrdaWarehouse::Hud::Project
+    end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
+        ],
+        OrganizationID: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
+        ],
+        ProjectName: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
+        ],
+        OperatingStartDate: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+        ],
+        ContinuumProject: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2026.yes_no_missing_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        ProjectType: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2026.project_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        HousingType: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2026.housing_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        ResidentialAffiliation: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2026.yes_no_missing_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        TargetPopulation: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2026.target_populations.keys.map(&:to_s).freeze },
+          },
+        ],
+        HOPWAMedAssistedLivingFac: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2026.hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
+    end
+  end
+end
