@@ -82,23 +82,36 @@ module HudApr::Generators::CeApr::Fy2026
       household_ids = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:assessments, :project] }).
-        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        merge(
+          GrdaWarehouse::Hud::Project.continuum_project. # step 1.a	[Continuum Project] (2.02.5) = yes (1)
+          in_coc(coc_code: @report.coc_codes), # step 2 Operates in the chosen CoC
+        ).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
-        merge(GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date)).
+        merge(
+          GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date). # step 3.a.	All CE Assessments where the [date of assessment] (4.19.1) is on or after the [report start date] and on or before the [report end date]
+          within_ce_participation_range, # step 4.a. and 4.b .The relevant date is within the time the project was participating in CE
+        ).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
         select(:household_id)
 
       client_ids_from_events = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:events, :project] }).
-        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        merge(
+          GrdaWarehouse::Hud::Project.continuum_project. # step 1.a	[Continuum Project] (2.02.5) = yes (1)
+          in_coc(coc_code: @report.coc_codes), # step 2 Operates in the chosen CoC
+        ).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
-        merge(GrdaWarehouse::Hud::Event.within_range(start_date..end_date)).
+        merge(
+          GrdaWarehouse::Hud::Event.within_range(start_date..end_date + 90.days). # step 3.b.	All CE Events where the [date of event] (4.20.1) is on or after the [report start date] and on or before ([report end date] + 90 days)
+          within_ce_participation_range, # step 4.a. and 4.b .The relevant date is within the time the project was participating in CE
+        ).
         select(:client_id)
 
       scope = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: :project }).
+        preload(service_history_enrollments: { enrollment: { project: :project_cocs } }).
         where(
           she_t[:household_id].in(household_ids.arel).
           or(she_t[:client_id].in(client_ids_from_events.arel)),
@@ -125,20 +138,26 @@ module HudApr::Generators::CeApr::Fy2026
       project_ids = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:assessments, project: :ce_participations] }).
-        merge(GrdaWarehouse::Hud::Project.continuum_project).
+        merge(
+          GrdaWarehouse::Hud::Project.continuum_project. # step 1.a	[Continuum Project] (2.02.5) = yes (1)
+          in_coc(coc_code: @report.coc_codes), # step 2 Operates in the chosen CoC
+        ).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
         merge(GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date)).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
-        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..end_date).ce_participating).
+        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..end_date).ce_participating). # step 1.b.	There is at least one [CE Participation Status] (2.09) record with [Project is a Coordinated Entry Access Point] (2.09.1) = yes (1) that overlaps with the report period, according to the following logic:
         pluck(p_t[:id])
 
       project_ids += client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:events, project: :ce_participations] }).
-        merge(GrdaWarehouse::Hud::Project.continuum_project).
+        merge(
+          GrdaWarehouse::Hud::Project.continuum_project. # step 1.a	[Continuum Project] (2.02.5) = yes (1)
+          in_coc(coc_code: @report.coc_codes), # step 2 Operates in the chosen CoC
+        ).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
         merge(GrdaWarehouse::Hud::Event.within_range(start_date..event_end_date)).
-        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..event_end_date).ce_participating).
+        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..event_end_date).ce_participating). # step 1.b.	There is at least one [CE Participation Status] (2.09) record with [Project is a Coordinated Entry Access Point] (2.09.1) = yes (1) that overlaps with the report period, according to the following logic:
         pluck(p_t[:id])
 
       project_ids & @report.project_ids

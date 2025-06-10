@@ -41,17 +41,40 @@ module HudApr::Generators::Shared::Fy2026
       }.freeze
     end
 
+    # 5.	Column G should show the response to 2.09.1 effective as of the project's [operating end date] if [operating end date] >= [report start date] and [operating end date] < [report end date]. If the [operating end date] does not meet that criteria, use the response to 2.09.1 effective as of the [report end date]. This element is a transactional data element, and only the most recent value for the report period is displayed.
     def detect_ce_participation(project)
-      # Column G should show the response to 2.09.1 effective as of the [report end date]. This element is a transactional data element, and only the most recent value for the report period is displayed.
+      # Determine the effective date based on project's operating end date
+      effective_date = if project.operating_end_date.present? &&
+                          project.operating_end_date >= @report.start_date &&
+                          project.operating_end_date < @report.end_date
+        project.operating_end_date
+      else
+        @report.end_date
+      end
+
+      # Find all records that were active at the effective date
       records = project.ce_participations.filter do |record|
-        start = record.CEParticipationStatusStartDate || 100.years.ago
-        stop = record.CEParticipationStatusEndDate || Date.current
-        @report.end_date.between?(start, stop)
+        start = record.CEParticipationStatusStartDate || @report.start_date
+        stop = record.CEParticipationStatusEndDate || @report.end_date
+        effective_date.between?(start, stop)
       end
+
+      # Sort by:
+      # 1. Most recent CEParticipationStatusEndDate (primary)
+      # 2. Most recent CEParticipationStatusStartDate (secondary)
+      # 3. Most recent DateUpdated (tertiary)
+      # 4. Record ID (quaternary)
       records = records.sort_by do |record|
-        [record.DateUpdated, record.id]
+        # NOTE: converting to time so we can compare integers, but using safe navigation to avoid nil errors
+        # and nil.to_i returns 0
+        [
+          -record.CEParticipationStatusEndDate&.to_time.to_i, # Negative for descending order
+          -record.CEParticipationStatusStartDate&.to_time.to_i,
+          -record.DateUpdated.to_i,
+          record.id,
+        ]
       end
-      records.last
+      records.first
     end
 
     private def q4_project_identifiers

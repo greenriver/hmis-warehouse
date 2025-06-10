@@ -89,6 +89,7 @@ module HudApr::Dq::DqConcern
     private def possible_generator_classes
       {
         fy2024: HudApr::Generators::Dq::Fy2024::Generator,
+        fy2026: HudApr::Generators::Dq::Fy2026::Generator,
       }
     end
 

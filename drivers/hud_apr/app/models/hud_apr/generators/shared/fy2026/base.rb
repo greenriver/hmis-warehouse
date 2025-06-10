@@ -137,6 +137,18 @@ module HudApr::Generators::Shared::Fy2026
           source_client = enrollment.client
           next unless source_client
 
+          # ensure enrollment is in the correct CoC (step 6 of report universe for the CE APR)
+          # If the enrolment is in a project that only operates in one CoC, use the project's CoC
+          # Use the HoH's CoC (as CoC is only collected for the HoH)
+          enrollment.enrollment_coc = if enrollment.project.project_cocs.one?
+            enrollment.project.project_cocs.first.coc_code
+          else
+            hoh_enrollment&.enrollment_coc
+          end
+          # Ignore any enrollment where the CoC is not in the chosen set
+          # Step 7. of the CE APR, but really all APR related should work this way.  Filter the assessments/events, keeping only those where the CoC code assigned in step 6 matches the CoC on which the report is being run.
+          next unless enrollment.enrollment_coc.in?(@report.coc_codes)
+
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
           exit_date = last_service_history_enrollment.last_date_in_program
@@ -266,7 +278,7 @@ module HudApr::Generators::Shared::Fy2026
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            enrollment_coc: enrollment.EnrollmentCoC,
+            enrollment_coc: enrollment.enrollment_coc,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             ethnicity: source_client.Ethnicity,
             exit_created: exit_record&.exit&.DateCreated,
@@ -579,11 +591,6 @@ module HudApr::Generators::Shared::Fy2026
       pit_dates = [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
       pit_dates.map do |pit_date|
         enrollments_for_date = enrollments.select do |enrollment|
-          # FIXME: where did this instruction come from?
-          # hh_id = get_hh_id(enrollment)
-          # hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
-          # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
-          # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
           enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
             # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
             move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)

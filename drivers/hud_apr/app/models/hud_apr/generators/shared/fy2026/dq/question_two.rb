@@ -25,13 +25,12 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionTwo
           'Social Security Number (3.02)',
           'Date of Birth (3.03)',
           'Race/Ethnicity (3.04)',
-          'Gender (3.06)',
           'Overall Score',
         ],
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 7,
+        last_row: 6,
       }
       @report.answer(question: table_name).update(metadata: metadata)
       universe_members = universe.members.where(engaged_clause)
