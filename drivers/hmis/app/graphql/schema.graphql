@@ -9105,11 +9105,31 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+
+  """
+  Whether auto-enter is enabled in this project
+  """
+  autoEnterEnabled: Boolean!
+
+  """
+  The number of days of inactivity after which a client will be auto-exited from this project
+  """
+  autoExitDaysThreshold: Int
+
+  """
+  Whether auto-exit is enabled in this project
+  """
+  autoExitEnabled: Boolean!
   ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactInformation: String
   continuumProject: NoYes
+
+  """
+  Whether Coordinated Entry is enabled in this project
+  """
+  coordinatedEntryEnabled: Boolean!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
@@ -9156,6 +9176,10 @@ type Project {
   """
   serviceTypes: [ServiceType!]!
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+
+  """
+  Whether staff assignment is enabled in this project
+  """
   staffAssignmentsEnabled: Boolean!
   targetPopulation: TargetPopulation
   unitGroups(limit: Int, offset: Int): UnitGroupsPaginated!
@@ -9258,12 +9282,14 @@ Project Config
 type ProjectConfig {
   configOptions: JSON
   configType: ProjectConfigType!
+  createdAt: ISO8601DateTime!
   id: ID!
   organization: Organization
   organizationId: ID
   project: Project
   projectId: ID
   projectType: ProjectType
+  updatedAt: ISO8601DateTime!
 }
 
 input ProjectConfigFilterOptions {
