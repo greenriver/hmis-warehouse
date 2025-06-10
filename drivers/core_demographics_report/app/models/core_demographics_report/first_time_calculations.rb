@@ -10,6 +10,9 @@ module
   CoreDemographicsReport::FirstTimeCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for clients with no recent homelessness history
+    # Each report includes title, headers, columns, and a scope to fetch the relevant data
+    # @return [Hash] A hash containing report configurations for different homelessness categories
     def no_recent_homelessness_detail_hash
       {}.tap do |hashes|
         available_no_recent_homelessness_types.invert.each do |key, title|
@@ -23,10 +26,18 @@ module
       end
     end
 
+    # Counts the number of clients with no recent homelessness history for a specific type and CoC
+    # @param type [Symbol] The type of homelessness category to count
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Integer] The count of clients, masked if population is small
     def no_recent_homelessness_count(type, coc_code = base_count_sym)
       mask_small_population(no_recent_homelessness_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with no recent homelessness history
+    # @param type [Symbol] The type of homelessness category to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Float] The percentage of clients with no recent homelessness history
     def no_recent_homelessness_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
@@ -37,6 +48,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares data for export, organizing it into rows with counts and percentages
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with export data
     def no_recent_homelessness_data_for_export(rows)
       rows['_Newly Entering Homelessness'] ||= []
       rows['*Newly Entering Homelessness'] ||= []
@@ -65,6 +79,10 @@ module
       rows
     end
 
+    # Retrieves client IDs for a specific homelessness category and CoC
+    # @param key [Symbol] The type of homelessness category
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Array] Array of client IDs for the specified category
     private def no_recent_homelessness_client_ids(key, coc_code = base_count_sym)
       # These are stored as Set[[enrollment_id, client_id]]
       if key.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
@@ -75,6 +93,8 @@ module
       end
     end
 
+    # Defines the available types of homelessness categories for reporting
+    # @return [Hash] A hash mapping display names to category symbols
     def available_no_recent_homelessness_types
       {
         'Client' => :client,
@@ -89,7 +109,9 @@ module
       }
     end
 
-    # inactivity period (default is 24 months).
+    # Identifies clients who have had prior homelessness experience
+    # Uses an inactivity period (default is 24 months) to determine prior homelessness
+    # @return [Set] Set of client IDs with prior homelessness experience
     private def client_ids_with_prior_homelessness
       @client_ids_with_prior_homelessness ||= begin
         # This report uses `filter.project_type_codes` `filter.project_type_ids` will convert those to the number equivalents
@@ -106,44 +128,68 @@ module
       end
     end
 
+    # Retrieves client IDs for heads of households
+    # @return [Array] Array of client IDs who are heads of households
     private def hoh_client_ids
       @hoh_client_ids ||= hoh_scope.pluck(:client_id)
     end
 
+    # Retrieves enrollment IDs for adult and child households
+    # @return [Array] Array of enrollment IDs for households with adults and children
     private def adult_and_child_ids
       @adult_and_child_ids ||= enrollment_ids_in_household_type(:with_children)
     end
 
+    # Retrieves enrollment IDs for heads of households with adults and children
+    # @return [Array] Array of enrollment IDs for heads of households with adults and children
     private def hoh_adult_and_child_ids
       @hoh_adult_and_child_ids ||= hoh_enrollment_ids_in_household_type(:with_children)
     end
 
+    # Retrieves enrollment IDs for unaccompanied youth
+    # @return [Array] Array of enrollment IDs for unaccompanied youth
     private def unaccompanied_youth_ids
       @unaccompanied_youth_ids ||= enrollment_ids_in_household_type(:unaccompanied_youth)
     end
 
+    # Retrieves client IDs for chronically homeless clients
+    # @return [Array] Array of client IDs for chronically homeless clients
     private def chronic_ids
       @chronic_ids ||= chronic_client_ids(:client)
     end
 
+    # Retrieves client IDs for heads of chronically homeless households
+    # @return [Array] Array of client IDs for heads of chronically homeless households
     private def hoh_chronic_ids
       @hoh_chronic_ids ||= chronic_client_ids(:household)
     end
 
+    # Retrieves client IDs for high acuity clients
+    # @return [Array] Array of client IDs for high acuity clients
     private def high_acuity_ids
       @high_acuity_ids ||= high_acuity_client_ids(:client)
     end
 
+    # Retrieves client IDs for heads of high acuity households
+    # @return [Array] Array of client IDs for heads of high acuity households
     private def hoh_high_acuity_ids
       @hoh_high_acuity_ids ||= high_acuity_client_ids(:household)
     end
 
+    # Initializes the data structure for tracking recently homeless clients
+    # @param clients [Hash] The hash to store client data
+    # @param coc_code [Symbol] The CoC code to initialize for (defaults to base_count_sym)
     private def initialize_recently_homeless_client_counts(clients, coc_code = base_count_sym)
       available_no_recent_homelessness_types.invert.each do |id, _|
         clients[id][coc_code] = Set.new
       end
     end
 
+    # Updates the counts of recently homeless clients for various categories
+    # @param clients [Hash] The hash storing client data
+    # @param client_id [Integer] The ID of the client to process
+    # @param enrollment_id [Integer] The ID of the enrollment to process
+    # @param coc_code [Symbol] The CoC code to update for (defaults to base_count_sym)
     private def set_recently_homeless_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
       # Only count them in one category.
       if !clients[:client][coc_code].include?(client_id)
@@ -161,6 +207,8 @@ module
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
     end
 
+    # Retrieves and caches the set of clients with no recent homelessness history
+    # @return [Hash] A hash containing sets of client IDs for different homelessness categories
     private def no_recent_homelessness_clients
       @no_recent_homelessness_clients ||= Rails.cache.fetch(no_recent_homelessness_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
@@ -199,6 +247,8 @@ module
       end
     end
 
+    # Generates the cache key for no recent homelessness clients
+    # @return [Array] The cache key components
     private def no_recent_homelessness_cache_key
       [self.class.name, cache_slug, 'no_recent_homelessness_clients']
     end
