@@ -9,7 +9,6 @@
 module Health
   class PruneDocumentExportsJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-    include MaintenanceTaskInstrumentation
 
     def perform
       instrument_as_maintenance_task(name: 'perform') do |run|

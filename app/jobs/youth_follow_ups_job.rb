@@ -8,7 +8,6 @@
 
 class YouthFollowUpsJob < BaseJob
   include NotifierConfig
-  include MaintenanceTaskInstrumentation
   attr_accessor :send_notifications
 
   def initialize

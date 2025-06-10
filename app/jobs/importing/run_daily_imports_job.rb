@@ -11,7 +11,6 @@ module Importing
     include ActionView::Helpers::DateHelper
     include NotifierConfig
     include ArelHelper
-    include MaintenanceTaskInstrumentation
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -242,7 +241,7 @@ module Importing
       # take snapshots of client enrollments
       GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
-      # FIXME - refactor the 'queue_batch' pattern to support task monitoring
+      # FIXME - refactor the 'queue_batch' pattern to support task monitoring #7815
       @notifier.ping('Potentially queuing confidence generation')
       GrdaWarehouse::Confidence::DaysHomeless.queue_batch
       GrdaWarehouse::Confidence::SourceEnrollments.queue_batch

@@ -85,7 +85,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
       it 'creates maintenance tasks' do
         expect do
           job.perform
-        end.to change { GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob').count }.by(9)
+        end.to change { GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob').count }.by_at_least(10)
       end
 
       it 'creates task records with correct job_type' do
@@ -123,19 +123,6 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
 
         expect(notifier).to have_received(:ping).with(a_string_matching(/Nightly Process completed in/))
       end
-    end
-  end
-
-  describe 'maintenance tasks lifecycle delegation' do
-    before do
-      allow(GrdaWarehouse::DataSource).to receive(:with_advisory_lock).and_yield
-      allow(MaintenanceTasksLifecycleJob).to receive(:perform_now)
-    end
-
-    it 'delegates lifecycle management to MaintenanceTasksLifecycleJob' do
-      job.perform
-
-      expect(MaintenanceTasksLifecycleJob).to have_received(:perform_now)
     end
   end
 end

@@ -100,4 +100,8 @@ class BaseJob < ApplicationJob
   def calculated_attempts
     0
   end
+
+  def instrument_as_maintenance_task(...)
+    GrdaWarehouse::Tasks::TaskInstrumentation.instance.call(...)
+  end
 end

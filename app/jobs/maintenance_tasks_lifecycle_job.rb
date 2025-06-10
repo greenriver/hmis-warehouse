@@ -7,8 +7,6 @@
 ###
 
 class MaintenanceTasksLifecycleJob < BaseJob
-  include MaintenanceTaskInstrumentation
-
   def perform
     GrdaWarehouse::Tasks::SystemMaintenanceTask.find_each(&:process_alerts)
 

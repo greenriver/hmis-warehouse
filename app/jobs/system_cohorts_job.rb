@@ -8,7 +8,6 @@
 
 class SystemCohortsJob < BaseJob
   include NotifierConfig
-  include MaintenanceTaskInstrumentation
 
   attr_accessor :send_notifications
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)

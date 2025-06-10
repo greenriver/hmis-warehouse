@@ -7,8 +7,6 @@
 ###
 
 class PruneDocumentExportsJob < BaseJob
-  include MaintenanceTaskInstrumentation
-
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   def perform

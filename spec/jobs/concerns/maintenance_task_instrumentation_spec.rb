@@ -2,12 +2,10 @@
 
 require 'rails_helper'
 
-RSpec.describe MaintenanceTaskInstrumentation, type: :job do
+RSpec.describe GrdaWarehouse::Tasks::TaskInstrumentation, type: :job do
   # Create a test job class that includes the concern
   let(:test_job_class) do
     Class.new(BaseJob) do
-      include MaintenanceTaskInstrumentation
-
       def self.name
         'TestInstrumentedJob'
       end

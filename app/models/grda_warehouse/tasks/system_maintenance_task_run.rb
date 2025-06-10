@@ -11,11 +11,11 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
     where(started_at: ..expiration_threshold)
   }
 
-  def record_success!
-    update!(completed_at: Time.current)
-  end
-
   def completed?
     completed_at.present?
+  end
+
+  def complete!
+    update!(completed_at: Time.current)
   end
 end
