@@ -5,6 +5,10 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
 
   has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun'
 
+  # TODO: Add support for monitoring task runtime duration to alert when tasks run too long
+  # This would need an additional threshold value and a calculation based on
+  # the difference between started_at and completed_at timestamps
+
   def threshold_exceeded?(now: Time.current)
     return false unless completion_alert_minutes&.positive?
 
@@ -18,6 +22,7 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
 
     alerts = []
     alerts << "Exceeded threshold, task has not completed in #{completion_alert_minutes} minutes" if threshold_exceeded?(now: now)
+    alerts << "Missing scheduled execution: Task has not completed successfully in the last #{completion_alert_minutes} minutes" if threshold_exceeded?(now: now)
     return if alerts.empty?
 
     tag = "#{self.class.name.demodulize}# \"#{name}\""

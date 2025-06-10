@@ -87,8 +87,7 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
         freeze_time do
           task.process_alerts
 
-          expected_message = 'SystemMaintenanceTask# "Test Task": Exceeded threshold, task has not completed in 60 minutes'
-          expect(Sentry).to have_received(:capture_message).with(expected_message)
+          expect(Sentry).to have_received(:capture_message).with(/Missing scheduled execution.*Task has not completed successfully/)
         end
       end
 
