@@ -206,7 +206,6 @@ type ApplicationUser {
   manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
-  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated @deprecated(reason: "Replaced with new UserDashboard type")
 }
 
 type ApplicationUserAuditEvent {
@@ -9684,7 +9683,6 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
-  canViewMyDashboard: Boolean! @deprecated(reason: "Replaced with new UserDashboard type")
   canViewOpenEnrollmentSummary: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!

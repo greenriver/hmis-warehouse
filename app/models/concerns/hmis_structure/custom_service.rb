@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HmisStructure::CustomService
   extend ActiveSupport::Concern
@@ -22,7 +22,7 @@ module HmisStructure::CustomService
 
     def hmis_configuration(version: nil)
       case version
-      when '2020', '2022', '2024'
+      when '2020', '2022', '2024', '2026'
         {
           CustomServiceID: {
             type: :string,

@@ -9,18 +9,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
-    runs-on: ubuntu-22.04
+  rebuild_fixpoints:
+    runs-on: ubuntu-24.04
+    container: ruby:3.3.8-slim-bookworm
     if: contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]')
 
-    # Docker Hub image that the job executes in
-    # $RUBY_VERSION
-    container: ruby:3.3.7-alpine3.20
+    permissions:
+      contents: read
+      packages: read
+      pull-requests: read
 
     # Service containers to run with job
     services:
       postgres:
-        image: index.docker.io/postgis/postgis@sha256:681931a625df344215e9b8998bf34daf146b6a395ceacee4439eb9c85869239f # 16-3.4-alpine
+        image: index.docker.io/postgis/postgis@sha256:1d7869b7f4dc799835cc8106061f10bcde94377da4704cd508511b78b9005c02 # 17-3.5-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
@@ -30,7 +32,7 @@ jobs:
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
-          --health-timeout 5s
+          --health-timeout 15s
           --health-retries 5
         ports:
           - 5432:5432
@@ -140,7 +142,7 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
+          CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
