@@ -303,19 +303,19 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def auto_exit_enabled?
-    Hmis::ProjectAutoExitConfig.active.detect_best_config_for_project(object).present?
+    Hmis::ProjectAutoExitConfig.detect_best_config_for_project(self).present?
   end
 
   def auto_exit_days_threshold
-    config = Hmis::ProjectAutoExitConfig.active.detect_best_config_for_project(object)
+    config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(self)
     config&.length_of_absence_days
   end
 
   def coordinated_entry_enabled?
     # Override to false if the system-wide AppConfigProperty is disabled
-    return false unless Hmis::Ce::Configuration.enabled?
+    return false unless Hmis::Ce.configuration.enabled?
 
-    Hmis::ProjectCeConfig.active.detect_best_config_for_project(object).present?
+    Hmis::ProjectCeConfig.detect_best_config_for_project(self).present?
   end
 
   # Service types that are collected in this project. They are collected if they have an active form definition and instance.

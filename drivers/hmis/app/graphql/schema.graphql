@@ -5382,6 +5382,7 @@ type GlobalFeatureFlags {
   Whether an external referral integration is enabled
   """
   externalReferralsEnabled: Boolean!
+  id: ID!
 
   """
   Whether MCI ID integration is enabled

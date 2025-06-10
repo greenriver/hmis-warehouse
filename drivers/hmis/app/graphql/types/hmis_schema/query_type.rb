@@ -292,6 +292,9 @@ module Types
     field :current_user, Application::User, null: true
 
     field :global_feature_flags, Types::HmisSchema::GlobalFeatureFlags, null: false
+    def global_feature_flags
+      current_user
+    end
 
     field :user_dashboard, Types::Application::UserDashboard, null: false
     def user_dashboard

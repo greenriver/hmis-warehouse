@@ -8,6 +8,9 @@
 
 module Types
   class HmisSchema::GlobalFeatureFlags < Types::BaseObject
+    skip_activity_log
+
+    field :id, ID, null: false # current user ID for apollo caching
     field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled'
     field :external_referrals_enabled, Boolean, null: false, description: 'Whether an external referral integration is enabled'
     field :mci_id_enabled, Boolean, null: false, description: 'Whether MCI ID integration is enabled'
