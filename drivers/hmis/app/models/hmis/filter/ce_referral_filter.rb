@@ -46,10 +46,8 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   def on_current_task_since(scope)
     with_filter(scope, :on_current_task_since) do
-      # Convert input to application timezone for proper comparison with database timestamps
-      filter_time = Time.zone.parse(input.on_current_task_since.to_s)
       scope.joins(:current_steps).
-        where(wfe_step_t[:available_at].lt(filter_time)).
+        where(wfe_step_t[:available_at].lt(input.on_current_task_since)).
         distinct
     end
   end
