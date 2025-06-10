@@ -90,7 +90,7 @@ module
     end
 
     # Counts the number of adult clients
-    # @return [Integer] The count of adult clients, masked if population is small
+    # @return [Integer] The count of adult clients, masked if appropriate
     def adult_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         mask_small_population(adult_scope.select(:client_id).distinct.count)
