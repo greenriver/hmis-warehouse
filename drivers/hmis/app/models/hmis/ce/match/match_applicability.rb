@@ -76,9 +76,7 @@ module Hmis::Ce::Match
     def gather_parents(entity)
       parents = case entity
       when Hmis::Ce::Opportunity
-        unit = entity.owner
-        raise "Expected opportunity owner to be a Unit, but found #{unit.class.name}" unless unit.is_a?(Hmis::Unit)
-
+        unit = entity.unit
         [unit, unit.unit_group, unit.project, unit.project.organization]
       when Hmis::Unit
         [entity, entity.unit_group, entity.project, entity.project.organization]

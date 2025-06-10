@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Risk: Describes a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -937,8 +939,6 @@ module Health
         elsif status == 'No'
           'Non-veteran'
         end
-
-        nil
       end
     end
 
@@ -1064,6 +1064,9 @@ module Health
           member = klass.where(at[:email].lower.eq(epic_member.email.downcase).to_sql).
             where(patient_id: id).
             first_or_initialize
+          # If we have only one name, duplicate it for both first and last
+          first_name ||= last_name
+          last_name ||= first_name
         elsif first_name && last_name
           member = klass.where(
             at[:first_name].lower.eq(first_name&.downcase).

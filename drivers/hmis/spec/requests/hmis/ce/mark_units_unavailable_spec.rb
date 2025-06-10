@@ -18,7 +18,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
   let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
   let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
   let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
-  let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :open) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -95,7 +95,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
     end
 
     context 'when unit had an opportunity in the past that is now closed' do
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       it 'destroys the active opportunity and not the past opportunity' do
@@ -113,7 +113,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       let!(:units) do
         10.times.map do
           unit = create(:hmis_unit, project: project, unit_type: unit_type)
-          create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :open)
+          create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open)
           unit
         end
       end

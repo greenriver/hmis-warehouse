@@ -115,7 +115,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit has an in-progress referral' do
-      let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, status: :locked) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
       it 'does not create a new opportunity' do
@@ -131,7 +131,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit was marked available in the past, and opportunity was filled' do
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, owner: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
       it 'creates a new opportunity' do
@@ -163,7 +163,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
         end.to make_database_queries(count: 20..35)
-        expect(Hmis::Ce::Opportunity.where(owner_id: unit_ids).count).to eq(unit_ids.count)
+        expect(Hmis::Ce::Opportunity.where(unit_id: unit_ids).count).to eq(unit_ids.count)
       end
     end
 

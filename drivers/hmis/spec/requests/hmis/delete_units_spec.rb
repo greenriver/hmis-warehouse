@@ -43,7 +43,7 @@ RSpec.describe 'Delete units mutation', type: :request do
   end
 
   context 'when unit has an opportunity' do
-    let!(:opportunity) { create(:hmis_ce_opportunity, owner: unit, project: p1, data_source: ds1, status: :open) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
 
     it 'deletes the unit and the opportunity' do
       input = { input: { unitIds: [unit.id.to_s] } }
