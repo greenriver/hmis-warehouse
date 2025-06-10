@@ -41,7 +41,7 @@ module HudApr::Generators::Shared::Fy2026
       }.freeze
     end
 
-    # 5.	Column G should show the response to 2.09.1 effective as of the project's [operating end date] if [operating end date] >= [report start date] and [operating end date] < [report end date]. If the [operating end date] does not meet that criteria, use the response to 2.09.1 effective as of the [report end date]. This element is a transactional data element, and only the most recent value for the report period is displayed.
+    # 5.	Column G should show the response to 2.09.1 effective as of the project’s [operating end date] if [operating end date] >= [report start date] and [operating end date] < [report end date]. If the [operating end date] does not meet that criteria, use the response to 2.09.1 effective as of the [report end date]. This element is a transactional data element, and only the most recent value for the report period is displayed.
     def detect_ce_participation(project)
       # Determine the effective date based on project's operating end date
       effective_date = if project.operating_end_date.present? &&

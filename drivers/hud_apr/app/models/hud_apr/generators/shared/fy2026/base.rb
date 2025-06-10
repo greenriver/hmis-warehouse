@@ -143,8 +143,9 @@ module HudApr::Generators::Shared::Fy2026
           enrollment.enrollment_coc = if enrollment.project.project_cocs.one?
             enrollment.project.project_cocs.first.coc_code
           else
-            hoh_enrollment&.enrollment_coc
+            hoh_enrollment&.enrollment&.enrollment_coc
           end
+
           # Ignore any enrollment where the CoC is not in the chosen set
           # Step 7. of the CE APR, but really all APR related should work this way.  Filter the assessments/events, keeping only those where the CoC code assigned in step 6 matches the CoC on which the report is being run.
           next unless enrollment.enrollment_coc.in?(@report.coc_codes)
