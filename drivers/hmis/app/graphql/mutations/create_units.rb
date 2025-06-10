@@ -25,6 +25,7 @@ module Mutations
       errors.add :count, :required unless input.count.present?
       errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
       errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
+      errors.add :count, :out_of_range, message: 'must not be greater than 200' if input.count && input.count > 200
       return { errors: errors.errors } if errors.any?
 
       unit_group = project.unit_groups.find(input.unit_group_id) if input.unit_group_id.present?
