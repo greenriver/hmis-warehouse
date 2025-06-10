@@ -9,10 +9,10 @@
       "link_id": "V10_1",
       "required": false,
       "text": "Mental Health Consultation Status",
-      "pick_list_reference": "MentalHeathConsultation",
+      "pick_list_reference": "MentalHealthConsultation",
       "mapping": {
         "record_type": "ENROLLMENT",
-        "field_name": "MentalHealthConsultation"
+        "field_name": "mentalHealthConsultation"
       }
     }
   ]

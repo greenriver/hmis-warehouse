@@ -2070,7 +2070,7 @@ module Concerns::HudLists2026
     end
 
     # V10
-    def mental_heath_consultations
+    def mental_health_consultations
       {
         1 => 'Mental health consultation completed',
         2 => 'Mental health consultation being coordinated/arranged with VA provider',
@@ -2079,8 +2079,8 @@ module Concerns::HudLists2026
       }.freeze
     end
 
-    def mental_heath_consultation(id, reverse = false, raise_on_missing: false)
-      _translate(mental_heath_consultations, id, reverse, raise_on_missing: raise_on_missing)
+    def mental_health_consultation(id, reverse = false, raise_on_missing: false)
+      _translate(mental_health_consultations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.2

@@ -628,4 +628,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       owner_container_name
     end
   end
+
+  def related_income_benefits
+    [income_benefit, owner].filter { |r| r.is_a?(Hmis::Hud::IncomeBenefit) }
+  end
+
+  def related_services
+    [owner].filter { |r| r.is_a?(Hmis::Hud::Service) }
+  end
 end

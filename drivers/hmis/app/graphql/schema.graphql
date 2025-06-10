@@ -1137,6 +1137,7 @@ type Client {
   race: [Race!]!
   scanCardCodes(limit: Int, offset: Int): ScanCardCodesPaginated!
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  sex: Sex
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: ApplicationUser
@@ -3721,6 +3722,7 @@ type Enrollment {
   livingSituation: PriorLivingSituation
   lockVersion: Int!
   losUnderThreshold: NoYesMissing
+  mentalHealthConsultation: MentalHealthConsultation
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInAddresses: [ClientAddress!]!
@@ -5080,7 +5082,7 @@ enum FundingSource {
   """
   (47) HUD: ESG - CV [Deprecated]
   """
-  HUD_ESG_CV
+  HUD_ESG_CV_DEPRECATED
 
   """
   (8) HUD: ESG - Emergency Shelter (operating and/or essential services)
@@ -5120,7 +5122,7 @@ enum FundingSource {
   """
   (48) HUD: HOPWA - CV [Deprecated]
   """
-  HUD_HOPWA_CV
+  HUD_HOPWA_CV_DEPRECATED
 
   """
   (13) HUD: HOPWA - Hotel/Motel Vouchers
@@ -6257,6 +6259,36 @@ type MciClearanceMatch {
   nameSuffix: String
   score: Int!
   ssn: String
+}
+
+"""
+HUD MentalHealthConsultation (V10)
+"""
+enum MentalHealthConsultation {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (3) Mental health consultation being coordinated/arranged with other provider
+  """
+  MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_OTHER_PROVIDER
+
+  """
+  (2) Mental health consultation being coordinated/arranged with VA provider
+  """
+  MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER
+
+  """
+  (1) Mental health consultation completed
+  """
+  MENTAL_HEALTH_CONSULTATION_COMPLETED
+
+  """
+  (4) Offer declined
+  """
+  OFFER_DECLINED
 }
 
 type MergeAuditEvent {
@@ -10834,6 +10866,7 @@ type Service {
   """
   formDefinitionId: ID
   id: ID!
+  informationDate: ISO8601Date
   movingOnOtherType: String
   otherTypeProvided: String
   recordType: RecordType
@@ -11534,11 +11567,6 @@ enum ServiceTypeProvided {
   SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE
 
   """
-  (11) General housing stability assistance - emergency supplies [Deprecated]
-  """
-  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED
-
-  """
   (17) Landlord Incentive
   """
   SSVF_FINANCIAL_ASSISTANCE__LANDLORD_INCENTIVE
@@ -11609,7 +11637,7 @@ enum ServiceTypeProvided {
   SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS
 
   """
-  (10) Healthcare navigation
+  (10) Healthcare Navigation
   """
   SSVF_SERVICE__HEALTHCARE_NAVIGATION
 
@@ -11669,6 +11697,26 @@ type ServicesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+HUD Sex (4.21)
+"""
+enum Sex {
+  """
+  (0) Female
+  """
+  FEMALE
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Male
+  """
+  MALE
 }
 
 """

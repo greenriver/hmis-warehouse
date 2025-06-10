@@ -1701,9 +1701,9 @@ module Types::HmisSchema::Enums::Hud
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
-  class MentalHeathConsultation < Types::BaseEnum
-    description 'HUD MentalHeathConsultation (V10)'
-    graphql_name 'MentalHeathConsultation'
+  class MentalHealthConsultation < Types::BaseEnum
+    description 'HUD MentalHealthConsultation (V10)'
+    graphql_name 'MentalHealthConsultation'
     value 'MENTAL_HEALTH_CONSULTATION_COMPLETED', '(1) Mental health consultation completed', value: 1
     value 'MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER', '(2) Mental health consultation being coordinated/arranged with VA provider', value: 2
     value 'MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_OTHER_PROVIDER', '(3) Mental health consultation being coordinated/arranged with other provider', value: 3

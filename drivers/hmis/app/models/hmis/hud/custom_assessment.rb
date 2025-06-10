@@ -154,17 +154,17 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def data_integrity_reconciliation
     [
-      [Hmis::Hud::DataIntegrity::TotalIncomeReconciler, form_processor.income_benefit],
-      [Hmis::Hud::DataIntegrity::ServiceInformationDateReconciler, form_processor.service],
+      [Hmis::Hud::DataIntegrity::TotalIncomeReconciler, form_processor.related_income_benefits],
+      [Hmis::Hud::DataIntegrity::ServiceInformationDateReconciler, form_processor.related_services],
       # add other reconcilers as needed
-    ].each do |command, record|
-      next unless record
+    ].each do |command, records|
+      records.each do |record|
+        command.call(record).each do |message|
+          # surface issues in development
+          raise message if Rails.env.development?
 
-      command.call(record).each do |message|
-        # surface issues in development
-        raise message if Rails.env.development?
-
-        Sentry.capture_message(message)
+          Sentry.capture_message(message)
+        end
       end
     end
   end
