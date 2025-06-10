@@ -291,6 +291,8 @@ module Types
 
     field :current_user, Application::User, null: true
 
+    field :global_feature_flags, Types::HmisSchema::GlobalFeatureFlags, null: false
+
     field :user_dashboard, Types::Application::UserDashboard, null: false
     def user_dashboard
       current_user
@@ -301,7 +303,7 @@ module Types
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-      field :can_view_coordinated_entry, Boolean, null: false
+      field :can_view_coordinated_entry, Boolean, null: false, deprecation_reason: 'Replaced with Project-level coordinatedEntryEnabled field and global feature flag'
     end
 
     def access

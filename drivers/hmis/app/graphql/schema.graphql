@@ -5372,6 +5372,23 @@ type GeolocationCoordinates {
   longitude: String!
 }
 
+type GlobalFeatureFlags {
+  """
+  Whether Coordinated Entry is enabled
+  """
+  coordinatedEntryEnabled: Boolean!
+
+  """
+  Whether an external referral integration is enabled
+  """
+  externalReferralsEnabled: Boolean!
+
+  """
+  Whether MCI ID integration is enabled
+  """
+  mciIdEnabled: Boolean!
+}
+
 """
 HUD HMISParticipationType (2.08.1)
 """
@@ -9568,6 +9585,7 @@ type Query {
   Funder lookup
   """
   funder(id: ID!): Funder
+  globalFeatureFlags: GlobalFeatureFlags!
 
   """
   Household lookup
@@ -9713,7 +9731,7 @@ type QueryAccess {
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewClients: Boolean!
-  canViewCoordinatedEntry: Boolean!
+  canViewCoordinatedEntry: Boolean! @deprecated(reason: "Replaced with Project-level coordinatedEntryEnabled field and global feature flag")
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewEnrollmentLocationMap: Boolean!
