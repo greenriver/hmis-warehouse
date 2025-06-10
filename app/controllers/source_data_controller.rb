@@ -27,6 +27,15 @@ class SourceDataController < ApplicationController
   end
 
   def show
+    if @item.blank?
+      # When no type is provided, we'll get a blank @item as a result of the `set_item` method.
+      # Capture this in sentry and redirect to the index page with an error message for the user.
+      Sentry.capture_message('SourceDataController#show: @item not found')
+      flash[:error] = 'The requested record could not be found.'
+      redirect_to source_data_path
+      return
+    end
+
     @type = params[:type] if valid_class(params[:type]).present?
     @data_source = @item.data_source
     return unless RailsDrivers.loaded.include?(:hmis_csv_importer)
