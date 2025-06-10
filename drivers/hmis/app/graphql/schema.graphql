@@ -12128,7 +12128,15 @@ type UnassignStaffPayload {
 
 type Unit {
   acceptingCeReferrals: Boolean!
+
+  """
+  Whether the unit can be marked available for a future date
+  """
   canBeMarkedAvailable: Boolean!
+
+  """
+  Whether the unit can be marked available for referrals now
+  """
   canBeMarkedAvailableToday: Boolean!
   canBeMarkedUnavailable: Boolean!
   dateCreated: ISO8601DateTime!

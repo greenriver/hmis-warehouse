@@ -36,8 +36,8 @@ module Types
     field :unit_size, Integer, null: true
     field :unit_group, HmisSchema::UnitGroup, null: true
     field :deletable, Boolean, null: false
-    field :can_be_marked_available_today, Boolean, null: false
-    field :can_be_marked_available, Boolean, null: false
+    field :can_be_marked_available_today, Boolean, null: false, description: 'Whether the unit can be marked available for referrals now'
+    field :can_be_marked_available, Boolean, null: false, description: 'Whether the unit can be marked available for a future date'
     field :can_be_marked_unavailable, Boolean, null: false
 
     # CE fields
@@ -81,7 +81,7 @@ module Types
 
     def can_be_marked_available
       return false unless Hmis::Ce.configuration.enabled? # CE must be enabled
-      return false unless unit_group&.workflow_template&.present? # Must have a workflow template
+      return false unless workflow_template_name # Must have a workflow template
       return false if latest_opportunity&.active? # Must not have an active opportunity
 
       # MAY have current occupants; see #7537
@@ -114,7 +114,9 @@ module Types
     end
 
     def workflow_template_name
-      unit_group&.workflow_template&.name
+      return unless unit_group
+
+      load_ar_association(unit_group, :workflow_template)&.name
     end
 
     def latest_opportunity

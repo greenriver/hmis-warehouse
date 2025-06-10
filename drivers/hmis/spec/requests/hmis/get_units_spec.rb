@@ -50,6 +50,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               canBeMarkedAvailable
               canBeMarkedAvailableToday
               canBeMarkedUnavailable
+              workflowTemplateName
             }
           }
         }
