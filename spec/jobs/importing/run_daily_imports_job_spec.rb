@@ -103,7 +103,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         job.perform
 
         tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
-        expect(tasks.first.alert_threshold_minutes).to eq(60 * 36) # 36 hours default
+        expect(tasks.first.completion_alert_minutes).to eq(60 * 36) # 36 hours default
       end
 
       it 'invokes each task and creates task runs' do

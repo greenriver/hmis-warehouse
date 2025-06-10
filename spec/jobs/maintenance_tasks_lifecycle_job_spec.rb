@@ -12,8 +12,8 @@ RSpec.describe MaintenanceTasksLifecycleJob, type: :job do
       task2 = create(:system_maintenance_task, job_type: 'SomeOtherJob', name: 'Task 2')
 
       # Update both tasks to have short thresholds and old runs
-      task1.update!(alert_threshold_minutes: 60)
-      task2.update!(alert_threshold_minutes: 60)
+      task1.update!(completion_alert_minutes: 60)
+      task2.update!(completion_alert_minutes: 60)
 
       # Create old runs that exceed the threshold for both tasks
       create(:system_maintenance_task_run,

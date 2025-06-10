@@ -6,7 +6,7 @@ class CreateTaskRuns < ActiveRecord::Migration[7.1]
       t.timestamps
       t.string :job_type, null: false
       t.string :name, null: false
-      t.integer :alert_threshold_minutes
+      t.integer :completion_alert_minutes
       t.datetime :alert_sent_at
       t.index [:job_type, :name], unique: true
     end

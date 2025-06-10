@@ -10,7 +10,7 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
   end
 
   describe '#threshold_exceeded?' do
-    let(:task) { create(:system_maintenance_task, alert_threshold_minutes: 60) }
+    let(:task) { create(:system_maintenance_task, completion_alert_minutes: 60) }
 
     context 'when there are no completed runs' do
       it 'returns true' do
@@ -59,7 +59,7 @@ RSpec.describe GrdaWarehouse::Tasks::SystemMaintenanceTask, type: :model do
   end
 
   describe '#process_alerts' do
-    let(:task) { create(:system_maintenance_task, name: 'Test Task', alert_threshold_minutes: 60) }
+    let(:task) { create(:system_maintenance_task, name: 'Test Task', completion_alert_minutes: 60) }
 
     before do
       allow(Sentry).to receive(:capture_message)

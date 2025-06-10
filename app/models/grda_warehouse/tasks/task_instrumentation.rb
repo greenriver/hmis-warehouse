@@ -3,8 +3,8 @@
 class GrdaWarehouse::Tasks::TaskInstrumentation
   include Singleton
 
-  def call(job:, name:, alert_threshold_minutes: (60 * 36), &block)
-    task = find_or_create_maintenance_task(job: job, name: name, alert_threshold_minutes: alert_threshold_minutes)
+  def call(job:, name:, completion_alert_minutes: (60 * 36), &block)
+    task = find_or_create_maintenance_task(job: job, name: name, completion_alert_minutes: completion_alert_minutes)
     run = task.system_maintenance_task_runs.create!(started_at: Time.current)
     block.call(run)
     # if the run completed, clear alert-sent to it will trigger in the future
@@ -13,9 +13,9 @@ class GrdaWarehouse::Tasks::TaskInstrumentation
 
   protected
 
-  def find_or_create_maintenance_task(job:, name:, alert_threshold_minutes: (60 * 36))
+  def find_or_create_maintenance_task(job:, name:, completion_alert_minutes: (60 * 36))
     task = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: job.class.name, name: name).first_or_initialize
-    task.alert_threshold_minutes = alert_threshold_minutes
+    task.completion_alert_minutes = completion_alert_minutes
     task.save! if task.changed?
     task
   end

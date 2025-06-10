@@ -6,10 +6,10 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
   has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun'
 
   def threshold_exceeded?(now: Time.current)
-    return false unless alert_threshold_minutes&.positive?
+    return false unless completion_alert_minutes&.positive?
 
     # have we completed tasks within the threshold?
-    threshold = now - alert_threshold_minutes.minutes
+    threshold = now - completion_alert_minutes.minutes
     system_maintenance_task_runs.where(completed_at: threshold...).none?
   end
 
@@ -17,7 +17,7 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
     return unless should_send_alert?(now)
 
     alerts = []
-    alerts << "Exceeded threshold, task has not completed in #{alert_threshold_minutes} minutes" if threshold_exceeded?(now: now)
+    alerts << "Exceeded threshold, task has not completed in #{completion_alert_minutes} minutes" if threshold_exceeded?(now: now)
     return if alerts.empty?
 
     tag = "#{self.class.name.demodulize}# \"#{name}\""

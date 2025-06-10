@@ -30851,7 +30851,7 @@ CREATE TABLE public.system_maintenance_tasks (
     updated_at timestamp(6) without time zone NOT NULL,
     job_type character varying NOT NULL,
     name character varying NOT NULL,
-    alert_threshold_minutes integer,
+    completion_alert_minutes integer,
     alert_sent_at timestamp(6) without time zone
 );
 
