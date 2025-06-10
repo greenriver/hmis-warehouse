@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class UploadsController < ApplicationController
   before_action :require_can_upload_hud_zips!
   before_action :set_data_source
@@ -56,9 +58,19 @@ class UploadsController < ApplicationController
       data_source_id: @upload.data_source_id,
       deidentified: @upload.deidentified,
       allowed_projects: @upload.project_whitelist,
+      stop_version: stop_version,
+      dry_run: dry_run_param,
     }
     job = Importing::HudZip::HmisAutoMigrateJob.perform_later(**options)
     @upload.update(delayed_job_id: job.provider_job_id)
+  end
+
+  private def stop_version
+    Importers::HmisAutoMigrate.current_stop_version
+  end
+
+  private def dry_run_param
+    params.require(:grda_warehouse_upload).permit(:dry_run).try(:[], :dry_run) == '1'
   end
 
   private def upload_params

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwenty::GrdaWarehouse
   module UploadExtension
     extend ActiveSupport::Concern
@@ -18,7 +20,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse
         elsif percent_complete.to_d == 0.01.to_d
           'Started'
         elsif percent_complete == 100
-          return 'Paused for error review' if importer_log&.paused?
+          return 'Paused for review' if importer_log&.paused?
 
           'Complete'
         else
@@ -32,7 +34,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse
           return 'failed' if delayed_job.failed_at.present? || delayed_job.last_error.present?
         end
         if percent_complete == 100
-          return 'Paused for error review' if importer_log&.paused?
+          return 'Paused for review' if importer_log&.paused?
           return 'Resuming...' if importer_log&.resuming?
 
           begin

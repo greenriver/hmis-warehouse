@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -69,11 +71,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'user staff assignment query' do
+  describe 'user dashboard staff assignment query' do
     let(:query) do
       <<~GRAPHQL
-        query GetUserStaffAssignments($id: ID!) {
-          user(id: $id) {
+        query GetUserStaffAssignments {
+          userDashboard {
+            id
             staffAssignments {
               nodesCount
               nodes {
@@ -98,8 +101,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'resolves assignees for the user, resolving only those in the current data source' do
         response, result = post_graphql(id: hmis_user.id) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
-        expect(result.dig('data', 'user', 'staffAssignments', 'nodes', 0, 'id')).to eq(ds1_assignment.id.to_s)
+        expect(result.dig('data', 'userDashboard', 'staffAssignments', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'userDashboard', 'staffAssignments', 'nodes', 0, 'id')).to eq(ds1_assignment.id.to_s)
       end
     end
 
@@ -109,7 +112,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'resolves only one row per household' do
         response, result = post_graphql(id: hmis_user.id) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'userDashboard', 'staffAssignments', 'nodesCount')).to eq(1)
       end
     end
 
@@ -120,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'excludes the exited household' do
         response, result = post_graphql(id: hmis_user.id) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(0)
+        expect(result.dig('data', 'userDashboard', 'staffAssignments', 'nodesCount')).to eq(0)
       end
     end
 
@@ -131,7 +134,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'includes the partially exited household' do
         response, result = post_graphql(id: hmis_user.id) { query }
         expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'user', 'staffAssignments', 'nodesCount')).to eq(1)
+        expect(result.dig('data', 'userDashboard', 'staffAssignments', 'nodesCount')).to eq(1)
       end
     end
   end
