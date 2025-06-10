@@ -486,11 +486,15 @@ module Types
       Hmis::Form::Instance.find_by(id: id)
     end
 
-    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
-    def project_configs
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false do
+      filters_argument Types::HmisSchema::ProjectConfig
+    end
+    def project_configs(filters: nil)
+      access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.viewable_by(current_user)
+      scope = Hmis::ProjectConfig.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters
+      scope.order(created_at: :asc, id: :asc)
     end
 
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do

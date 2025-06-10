@@ -182,6 +182,17 @@ module Types
           description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
           { code: identifier, label: description }
         end
+      when 'PROJECT_CONFIG_TYPES'
+        # Project config types for selection on the Admin Project Config page.
+        # Hide Coordinated Entry option if CE is not enabled in the installation.
+        Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
+          next if key == 'COORDINATED_ENTRY' && !Hmis::Ce.configuration.enabled?
+
+          {
+            code: key,
+            label: enum.description,
+          }
+        end
       end
     end
 

@@ -7270,6 +7270,7 @@ enum PickListType {
   Open Projects that can receive referrals
   """
   PROJECTS_RECEIVING_REFERRALS
+  PROJECT_CONFIG_TYPES
   REFERRAL_OUTCOME
 
   """
@@ -9265,6 +9266,11 @@ type ProjectConfig {
   projectType: ProjectType
 }
 
+input ProjectConfigFilterOptions {
+  configType: [ProjectConfigType!]
+  project: [ID!]
+}
+
 """
 Project Config Input
 """
@@ -9286,6 +9292,11 @@ enum ProjectConfigType {
   Auto Exit
   """
   AUTO_EXIT
+
+  """
+  Coordinated Entry
+  """
+  COORDINATED_ENTRY
 
   """
   Staff Assignment
@@ -9575,7 +9586,7 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
-  projectConfigs(limit: Int, offset: Int): ProjectConfigsPaginated!
+  projectConfigs(filters: ProjectConfigFilterOptions, limit: Int, offset: Int): ProjectConfigsPaginated!
   projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
 
   """

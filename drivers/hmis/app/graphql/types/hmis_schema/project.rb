@@ -127,6 +127,12 @@ module Types
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
     ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
 
+    # auto_enter_enabled
+    # auto_exit_enabled
+    # auto_exit_days_threshold
+    # staff_assignment_enabled
+    # ce_enabled - override to false if AppConfigProperty is disabled
+
     def hud_id
       object.project_id
     end
