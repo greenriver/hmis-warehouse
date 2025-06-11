@@ -12,6 +12,8 @@ module
   CoreDemographicsReport::HouseholdTypeCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for household type-related data
+    # @return [Hash] A hash containing report configurations for different household types
     def household_detail_hash
       {}.tap do |hashes|
         available_household_types.invert.each do |key, title|
@@ -33,10 +35,18 @@ module
       end
     end
 
+    # Counts the number of heads of household for a specific household type
+    # @param type [Symbol] The household type to count
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Integer] The count of heads of household for the specified type, masked if population is small
     def household_type_hoh_count(type, coc_code = base_count_sym)
       mask_small_population(hoh_households(coc_code)[type]&.keys&.count&.presence || 0)
     end
 
+    # Calculates the percentage of heads of household for a specific household type
+    # @param type [Symbol] The household type to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Float] The percentage of heads of household for the specified type
     def household_type_hoh_percentage(type, coc_code = base_count_sym)
       total_count = hoh_count
       return 0 if total_count.zero?
@@ -47,10 +57,18 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Counts the number of clients in a specific household type
+    # @param type [Symbol] The household type to count
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Integer] The count of clients in the specified type, masked if population is small
     def household_type_client_count(type, coc_code = base_count_sym)
       mask_small_population(client_households(coc_code)[type]&.keys&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients in a specific household type
+    # @param type [Symbol] The household type to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Float] The percentage of clients in the specified type
     def household_type_client_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
@@ -61,6 +79,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares household type-related data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with household type data
     def household_type_data_for_export(rows)
       rows['_Household Types'] ||= []
       rows['*Household Types'] ||= []
@@ -92,14 +113,24 @@ module
       rows
     end
 
+    # Retrieves enrollment IDs for a specific household type
+    # @param key [Symbol] The household type to filter by
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Array] Array of enrollment IDs in the specified household type
     private def enrollment_ids_in_household_type(key, coc_code = base_count_sym)
       client_households(coc_code)[key]&.values&.flatten
     end
 
+    # Retrieves head of household enrollment IDs for a specific household type
+    # @param key [Symbol] The household type to filter by
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Array] Array of head of household enrollment IDs in the specified household type
     private def hoh_enrollment_ids_in_household_type(key, coc_code = base_count_sym)
       hoh_households(coc_code)[key]&.values&.flatten
     end
 
+    # Returns a hash of available household types and their corresponding keys
+    # @return [Hash] A hash mapping display names to household type symbols
     def available_household_types
       # We want to enforce order, so we've transitioned to a strict hash here, but this comes from:
       # @filter.available_household_types.merge('Youth only Households' => :unaccompanied_youth, 'Unknown' => :unknown)
@@ -113,6 +144,8 @@ module
       }.invert.freeze
     end
 
+    # Calculates and caches household data for all CoC codes
+    # @return [void]
     private def calculate_households
       @hoh_enrollments ||= Rails.cache.fetch([self.class.name, cache_slug, "#{__method__}_hoh_enrollments"], expires_in: expiration_length)
       @households ||= Rails.cache.fetch([self.class.name, cache_slug, "#{__method__}_households"], expires_in: expiration_length)
@@ -144,6 +177,9 @@ module
       Rails.cache.write([self.class.name, cache_slug, "#{__method__}_households"], @households, expires_in: expiration_length)
     end
 
+    # Sets household counts for a specific scope and CoC code
+    # @param household_scope [ActiveRecord::Relation] The scope to process
+    # @param coc_code [Symbol] The CoC code to process for (defaults to base_count_sym)
     private def set_household_counts(household_scope, coc_code = base_count_sym)
       scope = household_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct
       scope = scope.in_enrollment_coc(coc_code: coc_code) unless coc_code.to_sym == base_count_sym
@@ -162,20 +198,32 @@ module
       end
     end
 
+    # Generates a unique household ID for a service history enrollment
+    # @param service_history_enrollment [GrdaWarehouse::ServiceHistoryEnrollment] The enrollment to generate an ID for
+    # @return [String] A unique household ID
     private def get_hh_id(service_history_enrollment)
       "#{service_history_enrollment.household_id}_#{service_history_enrollment.data_source_id}" || "#{service_history_enrollment.enrollment_group_id}_#{service_history_enrollment.data_source_id}*HH"
     end
 
+    # Retrieves household data for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing household data
     private def households(coc_code = base_count_sym)
       calculate_households if @households.nil? || @households[coc_code].nil?
       @households[coc_code]
     end
 
+    # Retrieves head of household enrollment data for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing head of household enrollment data
     private def hoh_enrollments(coc_code = base_count_sym)
       calculate_households if @hoh_enrollments.nil? || @hoh_enrollments[coc_code].nil?
       @hoh_enrollments[coc_code]
     end
 
+    # Retrieves adult-only households for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing adult-only household data
     private def adult_only_households(coc_code = base_count_sym)
       @adult_only_households ||= {}
       @adult_only_households[coc_code] ||= households(coc_code).select do |_, enrollments|
@@ -183,6 +231,9 @@ module
       end
     end
 
+    # Retrieves adult and child households for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing adult and child household data
     private def adult_and_child_households(coc_code = base_count_sym)
       @adult_and_child_households ||= {}
       @adult_and_child_households[coc_code] ||= households(coc_code).select do |_, enrollments|
@@ -191,6 +242,9 @@ module
       end
     end
 
+    # Retrieves child-only households for a specific CoC code
+    # @param coc_codes [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing child-only household data
     private def child_only_households(coc_codes = base_count_sym)
       @child_only_households ||= {}
       @child_only_households[coc_codes] ||= households(coc_codes).select do |_, enrollments|
@@ -198,6 +252,9 @@ module
       end
     end
 
+    # Retrieves unaccompanied youth households for a specific CoC code
+    # @param coc_codes [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing unaccompanied youth household data
     private def unaccompanied_youth_households(coc_codes = base_count_sym)
       @unaccompanied_youth_households ||= {}
       @unaccompanied_youth_households[coc_codes] ||= households(coc_codes).select do |_, enrollments|
@@ -205,6 +262,9 @@ module
       end
     end
 
+    # Retrieves households with unknown type for a specific CoC code
+    # @param coc_codes [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing unknown household data
     private def unknown_households(coc_codes = base_count_sym)
       @unknown_households ||= {}
       @unknown_households[coc_codes] ||= begin
@@ -220,6 +280,9 @@ module
       end
     end
 
+    # Retrieves head of household data for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing head of household data grouped by household type
     private def hoh_households(coc_code = base_count_sym)
       @hoh_households ||= {}
       # Force calculation of Households if necessary
@@ -236,6 +299,9 @@ module
       end
     end
 
+    # Retrieves client household data for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to retrieve data for (defaults to base_count_sym)
+    # @return [Hash] A hash containing client household data grouped by household type
     private def client_households(coc_code = base_count_sym)
       @client_households ||= {}
       # Force calculation of Households if necessary
@@ -252,8 +318,10 @@ module
       end
     end
 
-    # We need all related household members to calculate the household, but once we know the household type,
-    # we only want the enrollments that meet the report filter criteria
+    # Filters enrollments based on report scope criteria
+    # @param enrollments [Array] The enrollments to filter
+    # @param hoh_only [Boolean] Whether to only include head of household enrollments
+    # @return [Array] Filtered array of enrollments
     private def filter_enrollments_for_report_scope(enrollments, hoh_only: false)
       enrollments&.select do |en|
         next false if hoh_only && en['relationship_to_hoh'] != 1
@@ -262,16 +330,24 @@ module
       end
     end
 
+    # Converts enrollment data to client ID and enrollment ID pairs
+    # @param enrollments [Array] The enrollments to convert
+    # @return [Array] Array of [client_id, enrollment_id] pairs
     private def convert_enrollments_to_client_id_enrollment_id_pairs(enrollments)
       enrollments&.map do |en|
         [en['client_id'], en['enrollment_id']]
       end
     end
 
+    # Retrieves enrollment IDs in the report scope
+    # @return [Set] Set of enrollment IDs
     private def report_scope_enrollment_ids
       @report_scope_enrollment_ids ||= report_scope.pluck(:id).to_set
     end
 
+    # Generates a cache key for household types
+    # @param coc_code [Symbol] The CoC code to generate a key for (defaults to base_count_sym)
+    # @return [Array] Cache key array
     private def household_types_cache_key(coc_code = base_count_sym)
       [self.class.name, cache_slug, "client_households_#{coc_code}"]
     end

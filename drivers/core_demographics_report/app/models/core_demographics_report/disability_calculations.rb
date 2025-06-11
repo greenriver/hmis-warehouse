@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::DisabilityCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for clients with disabilities
+    # @return [Hash] A hash containing report configurations for different disability categories
     def disability_detail_hash
       hash = {}.tap do |hashes|
         @filter.available_disabilities.each do |title, key|
@@ -40,10 +42,16 @@ module
       )
     end
 
+    # Counts the number of clients with a specific disability type
+    # @param type [Symbol] The disability type to count
+    # @return [Integer] The count of clients with the specified disability, masked if population is small
     def disability_count(type)
       mask_small_population(disability_breakdowns[type]&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with a specific disability type
+    # @param type [Symbol] The disability type to calculate percentage for
+    # @return [Float] The percentage of clients with the specified disability
     def disability_percentage(type)
       total_count = total_client_count
       return 0 if total_count.zero?
@@ -54,10 +62,14 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Counts the number of clients with no disabilities
+    # @return [Integer] The count of clients with no disabilities
     def no_disability_count
       @no_disability_count ||= total_client_count - client_disabilities_count
     end
 
+    # Calculates the percentage of clients with no disabilities
+    # @return [Float] The percentage of clients with no disabilities
     def no_disability_percentage
       total_count = total_client_count
       return 0 if total_count.zero?
@@ -68,10 +80,14 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Counts the number of clients with at least one disability
+    # @return [Integer] The count of clients with at least one disability
     def yes_disability_count
       @yes_disability_count ||= client_disabilities_count
     end
 
+    # Calculates the percentage of clients with at least one disability
+    # @return [Float] The percentage of clients with at least one disability
     def yes_disability_percentage
       total_count = total_client_count
       return 0 if total_count.zero?
@@ -82,6 +98,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares disability-related data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with disability data
     def disability_data_for_export(rows)
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
@@ -112,16 +131,23 @@ module
       rows
     end
 
+    # Counts the total number of clients with disabilities
+    # @return [Integer] The count of clients with disabilities, masked if population is small
     private def client_disabilities_count
       @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         mask_small_population(client_disabilities.count)
       end
     end
 
+    # Retrieves client IDs for a specific disability type
+    # @param type [Symbol] The disability type to filter by
+    # @return [Array] Array of client IDs with the specified disability
     def client_ids_in_disability(type)
       disability_breakdowns[type]
     end
 
+    # Groups clients by their disability types
+    # @return [Hash] A hash mapping disability types to sets of client IDs
     private def disability_breakdowns
       @disability_breakdowns ||= {}.tap do |disabilities|
         @filter.available_disabilities.each_value do |d|
@@ -133,6 +159,8 @@ module
       end
     end
 
+    # Retrieves and caches client disability information
+    # @return [Hash] A hash mapping client IDs to sets of their disability types
     private def client_disabilities
       @client_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
@@ -144,6 +172,8 @@ module
       end
     end
 
+    # Retrieves disability types for disabled clients
+    # @return [Array] Array of [client_id, disability_type] pairs
     private def disabled_client_disability_types
       ids = distinct_client_ids.pluck(:client_id)
       return [] unless ids.any?
@@ -159,6 +189,8 @@ module
         )
     end
 
+    # Generates the cache key for client disabilities
+    # @return [Array] The cache key components
     private def disabilities_cache_key
       [self.class.name, cache_slug, 'client_disabilities']
     end
