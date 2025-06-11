@@ -20,8 +20,8 @@ module Mutations
       errors.add :config_type, :required if input.config_type.blank?
       return { errors: errors } if errors.any?
 
-      class_name = input.config_type.constantize
-      record = class_name.new(input.to_params)
+      record = Hmis::ProjectConfig.config_factory(input.config_type)
+      record.assign_attributes(input.to_params.excluding(:config_type))
       if record.valid?
         record.save!
       else

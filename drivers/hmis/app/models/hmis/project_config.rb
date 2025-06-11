@@ -25,14 +25,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'
   CE_CONFIG = 'Hmis::ProjectCeConfig'
 
-  TYPE_OPTIONS = [
-    AUTO_EXIT_CONFIG,
-    AUTO_ENTER_CONFIG,
-    STAFF_ASSIGNMENT_CONFIG,
-    CE_CONFIG,
-  ].freeze
+  CONFIG_TYPE_FACTORIES = {
+    'AUTO_EXIT' => AUTO_EXIT_CONFIG,
+    'AUTO_ENTER' => AUTO_ENTER_CONFIG,
+    'STAFF_ASSIGNMENT' => STAFF_ASSIGNMENT_CONFIG,
+    'COORDINATED_ENTRY' => CE_CONFIG,
+  }.freeze
 
-  validates :type, inclusion: { in: TYPE_OPTIONS }
+  validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
 
   validate :validate_config_options_json
 
@@ -85,6 +85,10 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   scope :active, -> do
     where(enabled: true)
+  end
+
+  def self.config_factory(config_type)
+    CONFIG_TYPE_FACTORIES.fetch(config_type).constantize.new
   end
 
   def self.apply_filters(input)

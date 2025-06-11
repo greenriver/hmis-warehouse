@@ -10,7 +10,7 @@ module Types
   class HmisSchema::ProjectConfig < Types::BaseObject
     description 'Project Config'
     field :id, ID, null: false
-    field :config_type, Types::HmisSchema::Enums::ProjectConfigType, null: false, method: :type
+    field :config_type, Types::HmisSchema::Enums::ProjectConfigType, null: false # defined by ProjectConfig subclass
     field :config_options, GraphQL::Types::JSON, null: true
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
     field :project_id, ID, null: true

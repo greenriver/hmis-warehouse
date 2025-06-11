@@ -192,7 +192,7 @@ module Types
             code: key,
             label: enum.description,
           }
-        end
+        end.compact
       end
     end
 
