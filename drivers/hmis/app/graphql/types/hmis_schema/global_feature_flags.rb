@@ -15,6 +15,10 @@ module Types
     field :external_referrals_enabled, Boolean, null: false, description: 'Whether an external referral integration is enabled'
     field :mci_id_enabled, Boolean, null: false, description: 'Whether MCI ID integration is enabled'
 
+    def id
+      current_user.id # ID to use as a cache key for Apollo
+    end
+
     def coordinated_entry_enabled
       Hmis::Ce.configuration.enabled?
     end

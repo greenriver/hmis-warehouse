@@ -293,7 +293,7 @@ module Types
 
     field :global_feature_flags, Types::HmisSchema::GlobalFeatureFlags, null: false
     def global_feature_flags
-      current_user
+      {}
     end
 
     field :user_dashboard, Types::Application::UserDashboard, null: false
@@ -499,7 +499,7 @@ module Types
 
       scope = Hmis::ProjectConfig.viewable_by(current_user)
       scope = scope.apply_filters(filters) if filters
-      scope.order(created_at: :asc, id: :asc)
+      scope.order(created_at: :desc, id: :asc)
     end
 
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
