@@ -17,7 +17,9 @@ class Hmis::Filter::ProjectConfigFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_config_type(scope)
-    with_filter(scope, :config_type) { scope.where(type: input.config_type) }
+    with_filter(scope, :config_type) do
+      scope.with_config_type(input.config_type)
+    end
   end
 
   def with_project(scope)

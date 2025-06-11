@@ -87,6 +87,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     where(enabled: true)
   end
 
+  # Filter by GraphQL config type (eg 'AUTO_ENTER', 'AUTO_EXIT', etc.)
+  scope :with_config_type, ->(config_type) do
+    types = Array.wrap(config_type).map do |type|
+      CONFIG_TYPE_FACTORIES[type.to_s] || raise("Unknown config type: #{type}")
+    end
+    where(type: types)
+  end
+
   def self.config_factory(config_type)
     CONFIG_TYPE_FACTORIES.fetch(config_type).constantize.new
   end
