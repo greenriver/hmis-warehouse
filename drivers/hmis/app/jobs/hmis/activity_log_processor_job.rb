@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -12,13 +14,14 @@
 module Hmis
   class ActivityLogProcessorJob < ::BaseJob
     def perform(force: false)
-      Hmis::ActivityLog.with_advisory_lock(
-        'AccessLogProcessorLock',
-        timeout_seconds: 0, # don't wait
-      ) do
-        scope = Hmis::ActivityLog.all
-        scope = scope.unprocessed unless force
-        process_records(scope)
+      instrument_as_maintenance_task('perform') do |run|
+        lock_name = 'AccessLogProcessorLock'
+        Hmis::ActivityLog.with_advisory_lock(lock_name, timeout_seconds: 0) do
+          scope = Hmis::ActivityLog.all
+          scope = scope.unprocessed unless force
+          process_records(scope)
+          run.complete!
+        end
       end
     end
 

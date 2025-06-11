@@ -14,16 +14,21 @@
 #
 module GrdaWarehouse::Tasks
   class SyncAnalysisDataTask
+    include MaintenanceTaskInstrumentation
+
     def self.perform
       new.perform
     end
 
     def perform
-      with_lock do
-        GrdaWarehouseBase.transaction do
-          sync_app_users
-          # TODO: #7600 - delete breaks for some reason
-          # prune_removed_users
+      instrument_as_maintenance_task('perform') do |run|
+        with_lock do
+          GrdaWarehouseBase.transaction do
+            sync_app_users
+            # TODO: #7600 - delete breaks for some reason
+            # prune_removed_users
+            run.complete!
+          end
         end
       end
     end

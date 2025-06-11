@@ -20,7 +20,7 @@ class SystemCohortsJob < BaseJob
   def perform(...)
     return unless GrdaWarehouse::Config.get(:enable_system_cohorts)
 
-    instrument_as_maintenance_task(name: 'perform') do |run|
+    instrument_as_maintenance_task('perform') do |run|
       run.complete! if _perform(...)
     end
   end

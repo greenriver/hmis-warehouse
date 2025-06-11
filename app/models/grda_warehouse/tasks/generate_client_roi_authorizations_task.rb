@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -8,14 +10,24 @@
 # the future
 module GrdaWarehouse::Tasks
   class GenerateClientRoiAuthorizationsTask
+    include MaintenanceTaskInstrumentation
+
     def self.perform(...)
       new.perform(...)
     end
 
+    def perform(...)
+      instrument_as_maintenance_task('perform') do |run|
+        run.complete! if _perform(...)
+      end
+    end
+
     # @param client_ids [Array<Integer>, nil] client ids to rebuild. Rebuild all clients if nil
     # @param batch_size [Integer] number of records to process in each batch
-    def perform(client_ids: nil, batch_size: 500)
+    def _perform(client_ids: nil, batch_size: 500)
+      did_run = false
       with_lock do
+        did_run = true
         scope = destination_client_scope
         scope = scope.where(id: client_ids) unless client_ids.nil?
         scope.find_in_batches(batch_size: batch_size) do |batch|
@@ -45,6 +57,7 @@ module GrdaWarehouse::Tasks
           GrdaWarehouse::ClientRoiAuthorization.where(id: ids).delete_all
         end
       end
+      did_run
     end
 
     protected

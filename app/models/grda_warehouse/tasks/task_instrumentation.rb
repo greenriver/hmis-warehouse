@@ -6,19 +6,20 @@ class GrdaWarehouse::Tasks::TaskInstrumentation
   # convenience method
   def self.call(...) = instance.call(...)
 
-  def call(job:, name:, completion_alert_minutes: (60 * 36), &block)
-    task = find_or_create_maintenance_task(job: job, name: name, completion_alert_minutes: completion_alert_minutes)
+  def call(name, alert_threshold:, &block)
+    task = find_or_create_maintenance_task(name, alert_threshold: alert_threshold)
     run = task.system_maintenance_task_runs.create!(started_at: Time.current)
     block.call(run)
-    # if the run completed, clear alert-sent to it will trigger in the future
-    task.update!(alert_sent_at: nil) if run.completed?
   end
 
   protected
 
-  def find_or_create_maintenance_task(job:, name:, completion_alert_minutes: (60 * 36))
-    task = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: job.class.name, name: name).first_or_initialize
-    task.completion_alert_minutes = completion_alert_minutes
+  def find_or_create_maintenance_task(name, alert_threshold:)
+    minutes = alert_threshold.to_i / 60
+    raise ArgumentError unless minutes.positive?
+
+    task = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(name: name).first_or_initialize
+    task.completion_alert_minutes = minutes
     task.save! if task.changed?
     task
   end

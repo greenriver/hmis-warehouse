@@ -85,31 +85,20 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
       it 'creates maintenance tasks' do
         expect do
           job.perform
-        end.to change { GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob').count }.by_at_least(10)
-      end
-
-      it 'creates task records with correct job_type' do
-        job.perform
-
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
-        expect(tasks.count).to be >= 12
-        expect(tasks.pluck(:name)).to include(
-          'Update Client ROIs',
-          'Identify Duplicates',
-        )
+        end.to change { GrdaWarehouse::Tasks::SystemMaintenanceTask.count }.by_at_least(10)
       end
 
       it 'sets default alert threshold for tasks' do
         job.perform
 
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
-        expect(tasks.first.completion_alert_minutes).to eq(60 * 36) # 36 hours default
+        task = GrdaWarehouse::Tasks::SystemMaintenanceTask.first!
+        expect(task.completion_alert_minutes).to eq(60 * 36) # 36 hours default
       end
 
       it 'invokes each task and creates task runs' do
         job.perform
 
-        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(job_type: 'Importing::RunDailyImportsJob')
+        tasks = GrdaWarehouse::Tasks::SystemMaintenanceTask.order(:id)
         tasks.each do |task|
           expect(task.system_maintenance_task_runs.count).to be >= 1
           run = task.system_maintenance_task_runs.last # Get the most recent run

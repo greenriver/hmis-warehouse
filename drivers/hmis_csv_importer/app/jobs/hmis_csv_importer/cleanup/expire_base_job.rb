@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -29,12 +31,20 @@ module HmisCsvImporter::Cleanup
       10
     end
 
+    def perform(**args)
+      instrument_as_maintenance_task("perform #{args[:model_name]}") do |run|
+        _perform(**args)
+        run.complete!
+      end
+    end
+
     # @param model_name[String] only run against one model, defaults to all models
     # @param retain_item_count [Integer] the number of retained imported records to retain beyond the retention date
     # @param retain_after_date [DateTime] the date after which records are retained
     # @param max_per_run [Integer] stop processing if we delete more records than this
     # @param dry_run [Boolean] do not run delete statements
-    def perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, max_per_run: 30_000_000, batch_size: 500_000, dry_run: true)
+    def _perform(model_name: nil, retain_item_count: 5, retain_after_date: DateTime.current - 2.weeks, max_per_run: 30_000_000, batch_size: 500_000, dry_run: true)
+      did_run = false
       @retain_item_count = retain_item_count
       @retain_after_date = retain_after_date
       @dry_run = dry_run
@@ -51,6 +61,7 @@ module HmisCsvImporter::Cleanup
       catch(:max_rows_exceeded) do
         models_to_run.each do |model|
           with_lock(model) do
+            did_run = true
             benchmark(model.table_name.to_s) do
               throw(:max_rows_exceeded) if max_rows_exceeded?
 
@@ -59,6 +70,7 @@ module HmisCsvImporter::Cleanup
           end
         end
       end
+      did_run
     end
 
     def with_lock(model)

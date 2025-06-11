@@ -12,9 +12,19 @@ module Hmis
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+    def perform(**args)
+      # one-off opportunity, don't track
+      return _perform(**args) if args[:opportunity_ids]
+
+      instrument_as_maintenance_task('perform') do |run|
+        _perform(**args)
+        run.complete!
+      end
+    end
+
     # @param opportunity_ids [Array] an array of opportunity IDs to build candidate pools for.
     # If nil, builds pools for all active Opportunities
-    def perform(opportunity_ids: nil)
+    def _perform(opportunity_ids: nil)
       opportunities = opportunity_ids ? Hmis::Ce::Opportunity.where(id: opportunity_ids) : Hmis::Ce::Opportunity.active
       log("Building candidate pools for #{opportunities.count} opportunities")
       Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform

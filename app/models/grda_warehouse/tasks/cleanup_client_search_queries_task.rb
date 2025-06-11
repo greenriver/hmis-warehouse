@@ -12,6 +12,7 @@ module GrdaWarehouse::Tasks
   # This task is responsible for cleaning up client search queries that are older
   # than the configured retention period
   class CleanupClientSearchQueriesTask
+    include MaintenanceTaskInstrumentation
     RETENTION_PERIOD = 2.years
 
     def self.perform
@@ -19,9 +20,12 @@ module GrdaWarehouse::Tasks
     end
 
     def perform
-      with_lock do
-        GrdaWarehouseBase.transaction do
-          cleanup_old_queries
+      instrument_as_maintenance_task('perform') do |run|
+        with_lock do
+          GrdaWarehouse::ClientSearchQuery.transaction do
+            cleanup_old_queries
+            run.complete!
+          end
         end
       end
     end

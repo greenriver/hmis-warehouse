@@ -7,9 +7,9 @@ RSpec.describe MaintenanceTasksLifecycleJob, type: :job do
 
   describe '#perform' do
     it 'processes alerts for all existing tasks' do
-      # Create tasks from different job types
-      task1 = create(:system_maintenance_task, job_type: 'Importing::RunDailyImportsJob', name: 'Task 1')
-      task2 = create(:system_maintenance_task, job_type: 'SomeOtherJob', name: 'Task 2')
+      # Create tasks with unique names
+      task1 = create(:system_maintenance_task, name: 'Importing::RunDailyImportsJob')
+      task2 = create(:system_maintenance_task, name: 'SomeOtherJob')
 
       # Update both tasks to have short thresholds and old runs
       task1.update!(completion_alert_minutes: 60)
@@ -35,8 +35,8 @@ RSpec.describe MaintenanceTasksLifecycleJob, type: :job do
     end
 
     it 'deletes expired task runs for all jobs' do
-      task1 = create(:system_maintenance_task, job_type: 'Importing::RunDailyImportsJob', name: 'Task 1')
-      task2 = create(:system_maintenance_task, job_type: 'SomeOtherJob', name: 'Task 2')
+      task1 = create(:system_maintenance_task, name: 'Importing::RunDailyImportsJob')
+      task2 = create(:system_maintenance_task, name: 'SomeOtherJob')
 
       # Create recent and expired runs
       recent_run = create(:system_maintenance_task_run, system_maintenance_task: task1, started_at: 1.month.ago)

@@ -18,9 +18,14 @@ module HmisExternalApis::AcHmis
 
         Array.wrap(methods).each do |method|
           if method == 'daily_uploads'
-            daily_uploads.each { |m| send(m) } # run all exports in the daily_uploads group
+            instrument_as_maintenance_task(method) do |run|
+              daily_uploads.each { |m| send(m) } # run all exports in the daily_uploads group
+              run.complete!
+            end
           elsif method == 'quarterly_uploads'
-            hmis_csv_export_full_refresh
+            instrument_as_maintenance_task(method, alert_threshold: 95.days) do |_run|
+              hmis_csv_export_full_refresh
+            end
           elsif known?(method)
             # run one export individually. only used for testing purposes or manual runs.
             send(method)

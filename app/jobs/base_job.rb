@@ -8,6 +8,7 @@
 
 class BaseJob < ApplicationJob
   include NotifierConfig
+  include MaintenanceTaskInstrumentation
 
   attr_accessor :start_time
 
@@ -99,9 +100,5 @@ class BaseJob < ApplicationJob
   # Override as necessary to limit the number of times a job is tried
   def calculated_attempts
     0
-  end
-
-  def instrument_as_maintenance_task(...)
-    GrdaWarehouse::Tasks::TaskInstrumentation.call(...)
   end
 end

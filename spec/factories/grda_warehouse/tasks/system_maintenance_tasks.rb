@@ -2,7 +2,6 @@
 
 FactoryBot.define do
   factory :system_maintenance_task, class: 'GrdaWarehouse::Tasks::SystemMaintenanceTask' do
-    job_type { 'Importing::RunDailyImportsJob' }
     sequence(:name) { |n| "Test Maintenance Task #{n}" }
     completion_alert_minutes { 60 * 36 } # 36 hours default
   end

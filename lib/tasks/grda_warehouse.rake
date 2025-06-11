@@ -1,6 +1,14 @@
 # frozen_string_literal: false
 
 namespace :grda_warehouse do
+  def self.safely_execute(&block)
+    block.call
+  rescue StandardError => e
+    puts e.message
+    Sentry.capture_exception(e)
+    Rails.logger.error(e.message)
+  end
+
   desc 'Setup a sample GRDA warehouse database'
   task setup: [:migrate, :seed_data_sources]
 
@@ -288,7 +296,8 @@ namespace :grda_warehouse do
 
   desc 'Monthly tasks'
   task monthly: [:environment, 'log:info_to_stdout'] do
-    GrdaWarehouse::Tasks::CensusImport.new.run!
+    # this runs every day out of RunDailyImportsJob
+    # GrdaWarehouse::Tasks::CensusImport.new.run!
 
     # Force a cleanup of all destination clients so we don't miss splits or merges
     # where the source clients don't have any open enrollments
@@ -299,52 +308,39 @@ namespace :grda_warehouse do
 
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
-    begin
+    safely_execute do
       MaintenanceTasksLifecycleJob.new.perform
-    rescue StandardError => e
-      Sentry.capture_exception(e)
     end
 
-    begin
+    safely_execute do
       Rake::Task['jobs:check_queue'].invoke
-    rescue StandardError => e
-      puts e.message
-      Sentry.capture_exception(e)
-    end
-    begin
-      Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
-    rescue StandardError => e
-      puts e.message
-      Sentry.capture_exception(e)
-    end
-    begin
-      Rake::Task['driver:hmis:process_activity_logs'].invoke if HmisEnforcement.hmis_enabled?
-    rescue StandardError => e
-      puts e.message
-      Sentry.capture_exception(e)
     end
 
-    TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
-    GrdaWarehouse::CustomImports::Config.active.each do |config|
-      config.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).import!
+    safely_execute do
+      Rake::Task['driver:hmis:process_activity_logs'].invoke if HmisEnforcement.hmis_enabled?
     end
+
+    # disabled tasks from COVID
+    # Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
+    # TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
+
+    safely_execute do
+      GrdaWarehouse::CustomImports::Config.active.each do |config|
+        config.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).import!
+      end
+    end
+
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
-    begin
+    safely_execute do
       Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
-    rescue StandardError => e # rescue and report error, for example from incorrectly formatted criteria
-      Sentry.capture_exception(e)
-      Rails.logger.error(e.message)
     end
 
     # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      begin
+      safely_execute do
         Hmis::AutoExitJob.perform_now
-      rescue StandardError => e
-        Sentry.capture_exception(e)
-        Rails.logger.error(e.message)
       end
     end
 
@@ -354,12 +350,9 @@ namespace :grda_warehouse do
     end
 
     # Purge old soft-deleted records
-    begin
+    safely_execute do
       enabled = AppConfigProperty.where(key: 'purge_soft_deleted_records', value: '1').any? || Rails.env.staging?
       PurgeSoftDeletedRecordsJob.set(priority: 15).perform_later(dry_run: false) if DateTime.current.hour == 5 && enabled
-    rescue StandardError => e
-      Sentry.capture_exception(e)
-      Rails.logger.error(e.message)
     end
 
     # Run CSG Engage export if ready
@@ -376,27 +369,27 @@ namespace :grda_warehouse do
       end
     end
 
-    begin
+    safely_execute do
       HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
-    rescue StandardError => e
-      Sentry.capture_exception(e)
-      Rails.logger.error(e.message)
     end
 
     if DateTime.current.hour == 20
-      begin
+      safely_execute do
         GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
-      rescue StandardError => e
-        Sentry.capture_exception(e)
-        Rails.logger.error(e.message)
       end
     end
 
     # This should be very fast, no need to background
-    HmisCsvImporter::ImportOverride.remove_expired! if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
+    if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
+      safely_execute do
+        HmisCsvImporter::ImportOverride.remove_expired!
+      end
+    end
 
     stats_collector = AppResourceMonitor::CollectStatsJob.new
-    AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
+    safely_execute do
+      AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
+    end
 
     # Queue the cohort analytics generation job if it's not already queued
     if DateTime.current.hour == 3 && ! Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
@@ -405,18 +398,12 @@ namespace :grda_warehouse do
         maintain_cohort_intermediate_data
     end
 
-    begin
+    safely_execute do
       GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform
-    rescue StandardError => e
-      Sentry.capture_exception(e)
-      Rails.logger.error(e.message)
     end
 
-    begin
+    safely_execute do
       GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask.perform
-    rescue StandardError => e
-      Sentry.capture_exception(e)
-      Rails.logger.error(e.message)
     end
 
     BuildTranslationCacheJob.perform_later

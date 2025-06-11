@@ -196,7 +196,7 @@ module Importing
     end
 
     def run_maintenance_task(name, &block)
-      instrument_as_maintenance_task(job: self, name: name) do |run|
+      instrument_as_maintenance_task(name) do |run|
         block.call
         run.complete!
       end

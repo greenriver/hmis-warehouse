@@ -16,6 +16,10 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
   end
 
   def complete!
-    update!(completed_at: Time.current)
+    transaction do
+      update!(completed_at: Time.current)
+      # if the run completed, clear alert_sent_at so it will trigger in the future
+      system_maintenance_task.update!(alert_sent_at: nil)
+    end
   end
 end

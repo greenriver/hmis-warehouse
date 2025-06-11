@@ -20,7 +20,7 @@ class SyncSyntheticDataJob < BaseJob
   def perform(...)
     return unless CasBase.db_exists?
 
-    instrument_as_maintenance_task(name: 'perform') do |run|
+    instrument_as_maintenance_task('perform') do |run|
       run.complete! if _perform(...)
     end
   end
