@@ -102,6 +102,6 @@ class BaseJob < ApplicationJob
   end
 
   def instrument_as_maintenance_task(...)
-    GrdaWarehouse::Tasks::TaskInstrumentation.instance.call(...)
+    GrdaWarehouse::Tasks::TaskInstrumentation.call(...)
   end
 end

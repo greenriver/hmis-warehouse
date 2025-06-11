@@ -3,6 +3,9 @@
 class GrdaWarehouse::Tasks::TaskInstrumentation
   include Singleton
 
+  # convenience method
+  def self.call(...) = instance.call(...)
+
   def call(job:, name:, completion_alert_minutes: (60 * 36), &block)
     task = find_or_create_maintenance_task(job: job, name: name, completion_alert_minutes: completion_alert_minutes)
     run = task.system_maintenance_task_runs.create!(started_at: Time.current)
