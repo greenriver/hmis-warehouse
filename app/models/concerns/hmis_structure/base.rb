@@ -174,7 +174,9 @@ module HmisStructure::Base
       end
     end
 
-    def hmis_structure(version: hud_csv_version)
+    # Set the default version in the method to allow passing in nil to still use the default
+    def hmis_structure(version: nil)
+      version ||= hud_csv_version
       hmis_configuration(version: version).transform_values { |v| v.select { |k| k.in?(HMIS_STRUCTURE_KEYS) } }
     end
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DocumentExportsControllerBase < ApplicationController
   def create
     @export = find_or_create
@@ -103,7 +105,6 @@ class DocumentExportsControllerBase < ApplicationController
       'HmisDataQualityTool::DocumentExports::ReportExcelExport',
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
       'SystemPathways::DocumentExports::ReportExport',
-      'SystemPathways::DocumentExports::ReportExcelExport',
       'HealthPctp::DocumentExports::HealthPctpPdfExport',
       'HealthPctp::DocumentExports::HealthPctpSignaturePdfExport',
       'HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport',

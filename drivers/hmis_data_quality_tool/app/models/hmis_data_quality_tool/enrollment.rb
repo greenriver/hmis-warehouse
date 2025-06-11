@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool
   class Enrollment < ::HudReports::ReportClientBase
     self.table_name = 'hmis_dqt_enrollments'
@@ -854,7 +856,7 @@ module HmisDataQualityTool
         },
         non_homeless_living_situation_issues: {
           title: 'RRH - Non-Homeless Living Situation',
-          description: 'Adults entering RRH must indicate they were homeless prior to entry.',
+          description: 'Adults entering RRH must indicate they were homeless prior to entry. Clients may be flagged as errors in this category when transferring from a TH to an RRH project. Since TH is not classified as a homeless prior living situation, these flags occur but should be disregarded for Joint TH/RRH projects.',
           required_for: 'Adults in RRH at entry',
           detail_columns: default_detail_columns + [
             :living_situation,
