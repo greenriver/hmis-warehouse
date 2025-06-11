@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::OutcomeCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for outcome-related data
+    # @return [Hash] A hash containing report configurations for different outcome types
     def outcome_detail_hash
       {}.tap do |hashes|
         available_outcome_types.invert.each do |key, title|
@@ -23,6 +25,10 @@ module
       end
     end
 
+    # Counts the number of clients with a specific outcome type
+    # @param type [Symbol] The outcome type to count
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Integer] The count of clients with the specified outcome type, or average length of stay for average_los
     def outcome_count(type, coc_code = base_count_sym)
       # Return average days
       if type.to_s == 'average_los'
@@ -41,6 +47,10 @@ module
       mask_small_population(outcome_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with a specific outcome type
+    # @param type [Symbol] The outcome type to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Float, String] The percentage of clients with the specified outcome type, or 'N/A' for average_los
     def outcome_percentage(type, coc_code = base_count_sym)
       return 'N/A' if type.to_s == 'average_los'
 
@@ -54,6 +64,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares outcome-related data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with outcome data
     def outcome_data_for_export(rows)
       rows['_Outcome Type'] ||= []
       rows['*Outcome Type'] ||= []
@@ -87,12 +100,18 @@ module
       rows
     end
 
+    # Retrieves client IDs for a specific outcome type
+    # @param type [Symbol] The outcome type to filter by
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Array] Array of client IDs with the specified outcome type
     private def outcome_client_ids(type, coc_code = base_count_sym)
       return outcome_clients[type][coc_code].map(&:first) if type.to_s == 'average_los'
 
       outcome_clients[type][coc_code]
     end
 
+    # Returns a hash of available outcome types and their corresponding keys
+    # @return [Hash] A hash mapping display names to outcome type symbols
     def available_outcome_types
       {
         'Average Length of Stay in Homeless System' => :average_los,
@@ -109,6 +128,8 @@ module
       }
     end
 
+    # Retrieves client IDs with homeless activity in the month prior to the report start date
+    # @return [Set] Set of client IDs with homeless activity
     private def client_ids_with_homeless_activity_1_months
       @client_ids_with_homeless_activity_1_months ||= begin
         # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
@@ -121,6 +142,8 @@ module
       end
     end
 
+    # Retrieves client IDs with homeless activity between 1-12 months prior to the report start date
+    # @return [Set] Set of client IDs with homeless activity
     private def client_ids_with_homeless_activity_1_12_months
       @client_ids_with_homeless_activity_1_12_months ||= begin
         # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
@@ -133,6 +156,8 @@ module
       end
     end
 
+    # Retrieves client IDs with homeless activity in the 12 months prior to the report start date
+    # @return [Set] Set of client IDs with homeless activity
     private def client_ids_with_homeless_activity_0_12_months
       @client_ids_with_homeless_activity_0_12_months ||= begin
         # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
@@ -145,6 +170,8 @@ module
       end
     end
 
+    # Retrieves client IDs with homeless activity between 12-24 months prior to the report start date
+    # @return [Set] Set of client IDs with homeless activity
     private def client_ids_with_homeless_activity_12_24_months
       @client_ids_with_homeless_activity_12_24_months ||= begin
         # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
@@ -158,10 +185,14 @@ module
     end
 
     # Homeless project types that overlap chosen project types
+    # @return [Array] Array of homeless project type codes
     private def homeless_project_type_codes
       @homeless_project_type_codes ||= HudUtility2024.homeless_project_type_numbers & filter.project_type_ids
     end
 
+    # Initializes the data structure for tracking outcome clients
+    # @param clients [Hash] The hash to store client data
+    # @param coc_code [Symbol] The CoC code to initialize for (defaults to base_count_sym)
     private def initialize_outcome_client_counts(clients, coc_code = base_count_sym)
       # Exit destinations
       available_outcome_types.invert.each do |key, _|
@@ -175,6 +206,11 @@ module
       clients[:returns_1_2_years][coc_code] = Set.new
     end
 
+    # Updates the counts of outcome clients for exit destinations
+    # @param clients [Hash] The hash storing client data
+    # @param client_id [Integer] The ID of the client to process
+    # @param destination [Integer] The destination code for the client
+    # @param coc_code [Symbol] The CoC code to update for (defaults to base_count_sym)
     private def set_outcome_exit_client_counts(clients, client_id, destination, coc_code = base_count_sym)
       clients[:exit_counted][coc_code] << client_id
       clients[:exit_homeless][coc_code] << client_id if HudUtility2024.homeless_destinations.include?(destination)
@@ -184,6 +220,10 @@ module
       clients[:exit_other][coc_code] << client_id if HudUtility2024.other_destinations.include?(destination)
     end
 
+    # Updates the counts of outcome clients for returns
+    # @param clients [Hash] The hash storing client data
+    # @param client_id [Integer] The ID of the client to process
+    # @param coc_code [Symbol] The CoC code to update for (defaults to base_count_sym)
     private def set_outcome_return_client_counts(clients, client_id, coc_code = base_count_sym)
       clients[:return_counted][coc_code] << client_id
       if client_ids_with_homeless_activity_1_12_months.include?(client_id) && ! client_ids_with_homeless_activity_1_months.include?(client_id)
@@ -195,6 +235,8 @@ module
       end
     end
 
+    # Retrieves and caches outcome client information
+    # @return [Hash] A hash containing sets of client IDs for different outcome categories
     private def outcome_clients
       @outcome_clients ||= Rails.cache.fetch(outcome_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
@@ -258,6 +300,8 @@ module
       end
     end
 
+    # Generates a cache key for outcome clients
+    # @return [Array] Cache key array
     private def outcome_cache_key
       [self.class.name, cache_slug, 'outcome_clients']
     end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module UserDirectoryReport::DocumentExports
   class CasUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -23,54 +25,49 @@ module UserDirectoryReport::DocumentExports
       return users
     end
 
-    protected def view_assigns
-      {
-        users: _users(CasAccess::User),
-        pdf: false,
-      }
-    end
-
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
-
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
-        )
-        write_tmp_file(
-          renderer.render(
-            action: :cas,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "CAS User Directory Report - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
-        end
+        self.filename = "CAS User Directory Report - #{Time.current.to_fs(:db)}"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
       end
     end
 
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
-
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
+    private def excel_package
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        wb.add_worksheet(name: 'CAS Users'[0, 30]) do |sheet|
+          title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+          sheet.add_row(
+            [
+              'Name',
+              'Email',
+              'Phone',
+              'Agency',
+              'Roles',
+              'Status',
+              'Last Login',
+              'Count of Active Matches',
+              'Count of Closed Matches',
+            ], style: title
+          )
+          _users(CasAccess::User).each do |user|
+            sheet.add_row(
+              [
+                user.name,
+                user.email,
+                user.phone_for_directory,
+                user.agency_name,
+                user.unique_role_names&.sort&.join('; '),
+                user.active ? 'Active' : 'Inactive',
+                user.last_sign_in_at,
+                user.contact&.client_opportunity_matches&.merge(CasAccess::ClientOpportunityMatch.active)&.count,
+                user.contact&.client_opportunity_matches&.merge(CasAccess::ClientOpportunityMatch.closed)&.count,
+              ],
+            )
+          end
+        end
       end
-      true
-    end
-
-    private def controller_class
-      UserDirectoryReport::WarehouseReports::UsersController
     end
   end
 end

@@ -91,7 +91,7 @@ class SourceDataController < ApplicationController
 
   private def set_item
     @klass = valid_class(params[:type])
-    return nil unless @klass.present?
+    raise ActiveRecord::RecordNotFound unless @klass.present?
 
     @item = item_scope.find(params[:id].to_i)
   end
