@@ -517,7 +517,7 @@ module HudApr::Generators::Shared::Fy2026
       return true if enrollment.last_date_in_program.present? && (@report.start_date..@report.end_date).cover?(enrollment.last_date_in_program)
 
       # anyone with service in the range (bed-night for ES NBN, CLS for SO)
-      @with_service ||= Set.tap do |enrollment_ids|
+      @with_service ||= Set.new.tap do |enrollment_ids|
         # ES NBN
         enrollment_ids.merge(GrdaWarehouse::ServiceHistoryService.bed_night.
           service_excluding_extrapolated.
