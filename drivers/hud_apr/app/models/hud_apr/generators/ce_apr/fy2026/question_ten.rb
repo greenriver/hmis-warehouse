@@ -7,9 +7,10 @@
 # frozen_string_literal: true
 
 module HudApr::Generators::CeApr::Fy2026
-  class QuestionTen < HudApr::Generators::Shared::Fy2026::QuestionTen
+  class QuestionTen < HudApr::Generators::Shared::Fy2026::Base
     include HudApr::Generators::CeApr::Fy2026::QuestionConcern
     QUESTION_TABLE_NUMBERS = ['Q10'].freeze
+    QUESTION_NUMBER = 'Question 10'
 
     def self.table_descriptions
       {
