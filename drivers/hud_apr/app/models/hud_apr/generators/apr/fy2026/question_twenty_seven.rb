@@ -8,14 +8,13 @@
 
 module HudApr::Generators::Apr::Fy2026
   class QuestionTwentySeven < HudApr::Generators::Shared::Fy2026::QuestionTwentySeven
-    QUESTION_TABLE_NUMBERS = ['Q27a', 'Q27b', 'Q27c', 'Q27d', 'Q27e', 'Q27f1', 'Q27f2', 'Q27g', 'Q27h', 'Q27i', 'Q27j', 'Q27k', 'Q27l', 'Q27m'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q27a', 'Q27b', 'Q27d', 'Q27e', 'Q27f1', 'Q27f2', 'Q27g', 'Q27h', 'Q27i', 'Q27j', 'Q27k', 'Q27l', 'Q27m'].freeze
 
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q27a_youth_age
       q27b_parenting_youth
-      q27c_youth_gender
       q27d_youth_living_situation
       q27e_youth_length_of_participation
       q27f1_youth_destination

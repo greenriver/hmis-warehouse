@@ -15,8 +15,8 @@ module HudApr::Generators::Shared::Fy2026
         'Question 24' => '',
         'Q24a' => 'Homelessness Prevention Housing Assessment at Exit',
         'Q24b' => 'Moving On Assistance Provided to Households in PSH',
-        'Q24c' => 'Sexual Orientation of Adults in PSH',
         'Q24d' => 'Language of Persons Requiring Translation Assistance',
+        'Q24e' => 'Sex',
       }.freeze
     end
 
@@ -80,41 +80,6 @@ module HudApr::Generators::Shared::Fy2026
       end
     end
 
-    def q24c_sexual_orientation_of_adults_in_psh_in_psh
-      relevant_members = universe.members.where(adult_or_hoh_clause).where(a_t[:project_type].eq(3))
-
-      question_sheet(question: 'Q24c') do  |sheet|
-        sub_populations.keys.each do |label|
-          sheet.add_header(label: label)
-        end
-
-        so_col = a_t[:sexual_orientation]
-        [
-          ['Heterosexual', so_col.eq(1)],
-          ['Gay', so_col.eq(2)],
-          ['Lesbian', so_col.eq(3)],
-          ['Bisexual', so_col.eq(4)],
-          ['Questioning / unsure', so_col.eq(5)],
-          ['Other', so_col.eq(6)],
-          [label_for(:dkptr), so_col.in([8, 9])],
-          [label_for(:data_not_collected), so_col.eq(99).or(so_col.eq(nil))],
-        ].each do |label, so_cond|
-          scope = relevant_members.where(so_cond)
-          sheet.append_row(label: label) do |row|
-            sub_populations.values.each do |pop_cond|
-              row.append_cell_members(members: scope.where(pop_cond))
-            end
-          end
-        end
-
-        sheet.append_row(label: 'Total') do |row|
-          sub_populations.values.each do |pop_cond|
-            row.append_cell_members(members: relevant_members.where(pop_cond))
-          end
-        end
-      end
-    end
-
     def q24d_language_of_persons_requiring_translation_assistance
       relevant_members = universe.members.
         where(hoh_clause).
@@ -151,6 +116,31 @@ module HudApr::Generators::Shared::Fy2026
         end
         sheet.append_row(label: 'Total') do |row|
           row.append_cell_members(members: relevant_members)
+        end
+      end
+    end
+
+    def q24e_sex
+      # Active clients in the report date range
+      relevant_members = universe.members.where(hoh_clause).where(a_t[:project_type].eq(3))
+      question_sheet(question: 'Q24e') do  |sheet|
+        sub_populations.keys.each do |label|
+          sheet.add_header(label: label)
+        end
+
+        sex_col = a_t[:sex]
+        [
+          ['Female', sex_col.eq(0)],
+          ['Male', sex_col.eq(1)],
+          ['Client Doesn’t Know/Prefers Not to Answer', sex_col.in([8, 9])],
+          ['Data not collected', sex_col.eq(99)],
+        ].each do |label, sex_cond|
+          scope = relevant_members.where(sex_cond)
+          sheet.append_row(label: label) do |row|
+            sub_populations.values.each do |pop_cond|
+              row.append_cell_members(members: scope.where(pop_cond))
+            end
+          end
         end
       end
     end

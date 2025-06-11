@@ -27,7 +27,7 @@ module HudApr::Generators::Caper::Fy2026
     end
 
     def self.default_project_type_codes
-      HudUtility2026.residential_project_type_numbers_by_code.keys + [:prevention]
+      HudUtility2026.performance_reporting.keys
     end
 
     def url
@@ -46,7 +46,6 @@ module HudApr::Generators::Caper::Fy2026
         HudApr::Generators::Caper::Fy2026::QuestionSeven, # Persons Served
         HudApr::Generators::Caper::Fy2026::QuestionEight, # Households Served
         HudApr::Generators::Caper::Fy2026::QuestionNine, # Contacts and Engagements
-        HudApr::Generators::Caper::Fy2026::QuestionTen, # Gender
         HudApr::Generators::Caper::Fy2026::QuestionEleven, # Age-Household Breakdown
         HudApr::Generators::Caper::Fy2026::QuestionTwelve, # Race & Ethnicity
         HudApr::Generators::Caper::Fy2026::QuestionThirteen, # Health

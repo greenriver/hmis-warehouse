@@ -281,12 +281,11 @@ module HudApr::Generators::Shared::Fy2026
             drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             enrollment_coc: enrollment.enrollment_coc,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
-            ethnicity: source_client.Ethnicity,
             exit_created: exit_record&.exit&.DateCreated,
             exit_destination_subsidy_type: exit_record&.exit&.DestinationSubsidyType,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
-            gender_multi: source_client.gender_multi.sort.join(','),
+            sex: source_client.Sex || 99,
             head_of_household_id: last_service_history_enrollment.head_of_household_id,
             head_of_household: last_service_history_enrollment[:head_of_household],
             hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
@@ -505,26 +504,33 @@ module HudApr::Generators::Shared::Fy2026
         group_by(&:client_id).
         transform_values do |enrollments|
           enrollments.select do |enrollment|
-            nbn_with_service?(enrollment)
+            nbn_with_service_or_so_with_cls?(enrollment)
           end
         end.
         reject { |_, enrollments| enrollments.empty? }
     end
 
     # Uses Method 2 Active Clients by Date of Service from the HMIS Glossary
-    private def nbn_with_service?(enrollment)
-      return true unless enrollment.nbn?
+    private def nbn_with_service_or_so_with_cls?(enrollment)
+      return true unless enrollment.nbn? || enrollment.so?
+      # In addition to the date of service, Method 2 should also include the [project exit date] as an indicator of an active client
+      return true if enrollment.last_date_in_program.present? && (@report.start_date..@report.end_date).cover?(enrollment.last_date_in_program)
 
-      @with_service ||= (
-        # anyone with service in the range
-        GrdaWarehouse::ServiceHistoryService.bed_night.
+      # anyone with service in the range (bed-night for ES NBN, CLS for SO)
+      @with_service ||= Set.tap do |enrollment_ids|
+        # ES NBN
+        enrollment_ids.merge(GrdaWarehouse::ServiceHistoryService.bed_night.
           service_excluding_extrapolated.
           service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
           where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
-          pluck(:service_history_enrollment_id) +
-        # plus anyone with an exit within the range
-        enrollment_scope_without_preloads.exit_within_date_range(start_date: @report.start_date, end_date: @report.end_date).pluck(:id)).to_set
-
+          pluck(:service_history_enrollment_id))
+        # SO
+        enrollment_ids.merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          joins(enrollment: [:current_living_situations, :project]).
+          merge(GrdaWarehouse::Hud::Project.so.where(id: @report.project_ids)).
+          merge(GrdaWarehouse::Hud::CurrentLivingSituation.between(start_date: @report.start_date, end_date: @report.end_date)).
+          pluck(:id))
+      end
       @with_service.include?(enrollment.id)
     end
 

@@ -41,7 +41,6 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionTwo
       clients = clients.or(dob_quality(table_name: table_name, universe_members: universe_members))
       clients = clients.or(race_and_ethnicity_quality(table_name: table_name, universe_members: universe_members))
       # clients = clients.or(simple_quality(table_name: table_name, row: 6, attr: :ethnicity))
-      clients = clients.or(simple_quality(table_name: table_name, row: 6, attr: :gender_multi, universe_members: universe_members))
 
       count = clients.distinct.count
       @report.answer(question: table_name, cell: 'E7').update(summary: count)

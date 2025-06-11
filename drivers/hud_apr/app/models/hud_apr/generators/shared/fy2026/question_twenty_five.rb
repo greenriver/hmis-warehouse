@@ -19,7 +19,6 @@ module HudApr::Generators::Shared::Fy2026
         'Question 25' => 'Veterans Questions',
         'Q25a' => 'Number of Veterans',
         'Q25b' => 'Number of Veteran Households',
-        'Q25c' => 'Gender - Veterans',
         'Q25d' => 'Age - Veterans',
         'Q25i' => 'Exit Destination - Veterans',
         'Q25j' => 'Exit Destination – Subsidy Type of Persons Exiting to Rental by Client With An Ongoing Subsidy - Veteran',
@@ -120,14 +119,6 @@ module HudApr::Generators::Shared::Fy2026
       end
     end
 
-    private def q25c_veteran_gender
-      gender_question(
-        question: 'Q25c',
-        members: universe.members.where(veteran_clause),
-        populations: q25_populations,
-      )
-    end
-
     private def q25d_veteran_age
       table_name = 'Q25d'
       metadata = {
@@ -196,10 +187,6 @@ module HudApr::Generators::Shared::Fy2026
         'Data Not Collected' => :not_collected,
         'Total' => Arel.sql('1=1'),
       }.freeze
-    end
-
-    private def q25c_responses
-      gender_identities
     end
 
     private def veteran_income_types(suffix)

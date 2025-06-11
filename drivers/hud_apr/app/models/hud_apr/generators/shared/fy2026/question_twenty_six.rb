@@ -15,7 +15,6 @@ module HudApr::Generators::Shared::Fy2026
         'Question 26' => 'Chronic Homeless Questions',
         'Q26a' => 'Chronic Homeless Status - Number of Households w/at least one or more CH person',
         'Q26b' => 'Number of Chronically Homeless Persons by Household',
-        'Q26c' => 'Gender of Chronically Homeless Persons',
         'Q26d' => 'Age of Chronically Homeless Persons',
         'Q26e' => 'Physical and Mental Health Conditions - Chronically Homeless Persons',
         'Q26f' => 'Client Cash Income - Chronically Homeless Persons',
@@ -92,24 +91,6 @@ module HudApr::Generators::Shared::Fy2026
 
           answer.add_members(members)
           answer.update(summary: value)
-        end
-      end
-    end
-
-    private def q26c_ch_gender
-      members = universe.members.where(a_t[:chronically_homeless].eq(true))
-      question_sheet(question: 'Q26c') do  |sheet|
-        q26_populations.keys.each do |label|
-          sheet.add_header(label: label)
-        end
-
-        gender_identities.each_pair do |label, gender_cond|
-          gender_scope = members.where(gender_cond[1])
-          sheet.append_row(label: label) do |row|
-            q26_populations.values.each do |pop_cond|
-              row.append_cell_members(members: gender_scope.where(pop_cond))
-            end
-          end
         end
       end
     end
@@ -194,19 +175,6 @@ module HudApr::Generators::Shared::Fy2026
         'Not Chronically Homeless' => a_t[:chronically_homeless_detail].eq('no'),
         label_for(:dkptr) => a_t[:chronically_homeless_detail].eq('dk_or_r'),
         label_for(:data_not_collected) => a_t[:chronically_homeless_detail].eq('missing'),
-        'Total' => Arel.sql('1=1'),
-      }.freeze
-    end
-
-    private def q26c_responses
-      {
-        'Male' => a_t[:gender_multi].eq('1'),
-        'Female' => a_t[:gender_multi].eq('0'),
-        'No Single Gender' => a_t[:gender_multi].in(::HudUtility2026.no_single_gender_queries),
-        'Questioning' => a_t[:gender_multi].in(::HudUtility2026.questioning_gender_queries),
-        'Transgender' => a_t[:gender_multi].in(::HudUtility2026.transgender_gender_queries),
-        label_for(:dkptr) => a_t[:gender_multi].in(['8', '9']),
-        'Data Not Collected' => a_t[:gender_multi].eq('99'),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end

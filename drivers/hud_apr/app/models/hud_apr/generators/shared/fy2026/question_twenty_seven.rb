@@ -21,7 +21,6 @@ module HudApr::Generators::Shared::Fy2026
         'Question 27' => 'Youth Questions',
         'Q27a' => 'Age of Youth',
         'Q27b' => 'Parenting Youth',
-        'Q27c' => 'Gender - Youth',
         'Q27d' => 'Living Situation - Youth',
         'Q27e' => 'Length of Participation - Youth',
         'Q27f1' => 'Exit Destination - Youth',
@@ -151,14 +150,6 @@ module HudApr::Generators::Shared::Fy2026
           answer.update(summary: value)
         end
       end
-    end
-
-    private def q27c_youth_gender
-      gender_question(
-        question: 'Q27c',
-        members: universe.members.where(youth_filter),
-        populations: sub_populations,
-      )
     end
 
     private def q27d_youth_living_situation
@@ -721,19 +712,6 @@ module HudApr::Generators::Shared::Fy2026
         'Income at Latest Annual Assessment for Stayers' => :annual_assessment,
         'Income at Exit for Leavers' => :exit,
       }
-    end
-
-    private def q27c_responses
-      {
-        'Male' => a_t[:gender_multi].eq('1'),
-        'Female' => a_t[:gender_multi].eq('0'),
-        'No Single Gender' => a_t[:gender_multi].in(::HudUtility2026.no_single_gender_queries),
-        'Questioning' => a_t[:gender_multi].in(::HudUtility2026.questioning_gender_queries),
-        'Transgender' => a_t[:gender_multi].in(::HudUtility2026.transgender_gender_queries),
-        label_for(:dkptr) => a_t[:gender_multi].in(['8', '9']),
-        'Data Not Collected' => a_t[:gender_multi].eq('99'),
-        'Total' => youth_filter,
-      }.freeze
     end
 
     private def youth_age_ranges
