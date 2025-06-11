@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::UnshelteredCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for unsheltered client data
+    # @return [Hash] A hash containing report configurations for different unsheltered client categories
     def unsheltered_detail_hash
       {}.tap do |hashes|
         available_unsheltered_types.invert.each do |key, title|
@@ -23,10 +25,18 @@ module
       end
     end
 
+    # Counts the number of unsheltered clients of a specific type
+    # @param type [Symbol] The type of unsheltered client to count
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Integer] The count of unsheltered clients of the specified type, masked if population is small
     def unsheltered_count(type, coc_code = base_count_sym)
       mask_small_population(unsheltered_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of unsheltered clients of a specific type
+    # @param type [Symbol] The type of unsheltered client to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Float] The percentage of unsheltered clients of the specified type
     def unsheltered_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       # We want the percentage based on the total unsheltered households for the hh breakdowns
@@ -39,6 +49,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares unsheltered client data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with unsheltered client data
     def unsheltered_data_for_export(rows)
       rows['_Unsheltered'] ||= []
       rows['*Unsheltered and Active in Street Outreach'] ||= []
@@ -67,6 +80,10 @@ module
       rows
     end
 
+    # Retrieves client IDs for a specific unsheltered type and CoC code
+    # @param key [Symbol] The unsheltered type to filter by
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Array] Array of client IDs matching the specified criteria
     private def unsheltered_client_ids(key, coc_code = base_count_sym)
       # These two are stored as client_ids, the remaining are enrollment, client_id pairs
       if key.in?([:client, :household])
@@ -77,10 +94,14 @@ module
       end
     end
 
+    # Retrieves client IDs for heads of household
+    # @return [Array] Array of client IDs who are heads of household
     private def hoh_client_ids
       @hoh_client_ids ||= hoh_scope.pluck(:client_id)
     end
 
+    # Defines the available types of unsheltered clients
+    # @return [Hash] A hash mapping display names to unsheltered client type symbols
     def available_unsheltered_types
       {
         'Client' => :client,
@@ -92,12 +113,20 @@ module
       }
     end
 
+    # Initializes the unsheltered client counts for a specific CoC code
+    # @param clients [Hash] The hash to store client counts
+    # @param coc_code [Symbol] The CoC code to initialize for, defaults to base_count_sym
     private def initialize_unsheltered_client_counts(clients, coc_code = base_count_sym)
       available_unsheltered_types.invert.each do |key, _|
         clients[key][coc_code] = Set.new
       end
     end
 
+    # Sets the unsheltered client counts for a specific client and enrollment
+    # @param clients [Hash] The hash to store client counts
+    # @param client_id [Integer] The client ID to count
+    # @param enrollment_id [Integer] The enrollment ID to count
+    # @param coc_code [Symbol] The CoC code to count for, defaults to base_count_sym
     private def set_unsheltered_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
       # Only count HoH for household counts, and only count them in one category.
       if !clients[:client][coc_code].include?(client_id) && hoh_client_ids.include?(client_id)
@@ -112,6 +141,8 @@ module
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
     end
 
+    # Retrieves and caches unsheltered client data
+    # @return [Hash] A hash containing sets of client IDs organized by unsheltered type and CoC code
     private def unsheltered_clients
       @unsheltered_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|

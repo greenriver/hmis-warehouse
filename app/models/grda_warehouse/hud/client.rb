@@ -1805,14 +1805,16 @@ module GrdaWarehouse::Hud
         ).pluck(:id)
       end
 
-      if ssn.length == 9
-        ssn_ids = source.where(
-          arel_table[:SSN].eq(ssn),
-        ).pluck(:id)
-      elsif ssn.length == 4
-        ssn_ids = source.where(
-          arel_table[:SSN].matches("%#{ssn}"),
-        ).pluck(:id)
+      if ssn.present?
+        if ssn.length == 9
+          ssn_ids = source.where(
+            arel_table[:SSN].eq(ssn),
+          ).pluck(:id)
+        elsif ssn.length == 4
+          ssn_ids = source.where(
+            arel_table[:SSN].matches("%#{ssn}"),
+          ).pluck(:id)
+        end
       end
 
       all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
