@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::Affiliation
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
@@ -16,7 +18,7 @@ module HmisStructure::Affiliation
   module ClassMethods
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', '2022', '2024'
+      when '6.11', '6.12', '2020', '2022', '2024', '2026'
         {
           AffiliationID: {
             type: :string,

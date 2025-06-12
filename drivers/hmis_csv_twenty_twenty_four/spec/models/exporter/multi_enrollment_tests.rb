@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context '2024 multi-enrollment tests', shared_context: :metadata do
   def involved_projects
-    GrdaWarehouse::Hud::Project.where(id: @involved_project_ids)
+    GrdaWarehouse::Hud::Project.where(id: @involved_project_ids || ExportHelper2024.projects.map(&:id))
   end
 
   def involved_enrollments
@@ -23,20 +25,20 @@ RSpec.shared_context '2024 multi-enrollment tests', shared_context: :metadata do
         expect(@exporter.enrollment_scope.count).to eq 3
       end
       it 'creates one CSV file' do
-        expect(File.exist?(csv_file_path(@enrollment_class))).to be true
+        expect(File.exist?(ExportHelper2024.csv_file_path(ExportHelper2024.enrollment_class))).to be true
       end
       it 'adds three rows to the enrollment CSV file' do
-        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+        csv = CSV.read(ExportHelper2024.csv_file_path(ExportHelper2024.enrollment_class), headers: true)
         expect(csv.count).to eq 3
       end
       it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
-        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+        csv = CSV.read(ExportHelper2024.csv_file_path(ExportHelper2024.enrollment_class), headers: true)
         csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
         source_ids = involved_enrollments.map(&:id).sort.map(&:to_s).first(3)
         expect(csv_ids).to eq source_ids
       end
       it 'PersonalID from CSV should not be blank' do
-        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+        csv = CSV.read(ExportHelper2024.csv_file_path(ExportHelper2024.enrollment_class), headers: true)
         expect(csv.first['PersonalID']).to_not be_empty
       end
     end
@@ -45,14 +47,14 @@ RSpec.shared_context '2024 multi-enrollment tests', shared_context: :metadata do
         expect(@exporter.client_scope.count).to eq 3
       end
       it 'creates one CSV file' do
-        expect(File.exist?(csv_file_path(@client_class))).to be true
+        expect(File.exist?(ExportHelper2024.csv_file_path(ExportHelper2024.client_class))).to be true
       end
       it 'adds three row to the CSV file' do
-        csv = CSV.read(csv_file_path(@client_class), headers: true)
+        csv = CSV.read(ExportHelper2024.csv_file_path(ExportHelper2024.client_class), headers: true)
         expect(csv.count).to eq 3
       end
       it 'PersonalIDs from CSV file match the ids of first three clients' do
-        csv = CSV.read(csv_file_path(@client_class), headers: true)
+        csv = CSV.read(ExportHelper2024.csv_file_path(ExportHelper2024.client_class), headers: true)
 
         csv_ids = csv.map { |m| m['PersonalID'] }.sort
         source_ids = involved_clients.map(&:destination_client).map(&:id).sort.map(&:to_s).first(3)
@@ -60,26 +62,26 @@ RSpec.shared_context '2024 multi-enrollment tests', shared_context: :metadata do
       end
     end
 
-    enrollment_related_items.each do |items, klass|
+    ExportHelper2024.enrollment_related_items.each do |items, klass|
       describe "when exporting #{items}" do
         it "creates one #{klass.hud_csv_file_name} CSV file" do
-          expect(File.exist?(csv_file_path(klass))).to be true
+          expect(File.exist?(ExportHelper2024.csv_file_path(klass))).to be true
         end
         it "adds three rows to the #{klass.hud_csv_file_name} CSV file" do
-          csv = CSV.read(csv_file_path(klass), headers: true)
+          csv = CSV.read(ExportHelper2024.csv_file_path(klass), headers: true)
           expect(csv.count).to eq 3
         end
         it "hud keys in #{klass.hud_csv_file_name} CSV should match ids of first three items in list" do
-          csv = CSV.read(csv_file_path(klass), headers: true)
+          csv = CSV.read(ExportHelper2024.csv_file_path(klass), headers: true)
           hmis_class = klass.hmis_class
           csv_ids = csv.map { |m| m[hmis_class.hud_key.to_s] }.sort
           involved_enrollment_project_entry_ids = involved_enrollments.pluck(:EnrollmentID)
-          source_ids = instance_variable_get("@#{items}").select do |m|
+          source_ids = ExportHelper2024.send(items).select do |m|
             involved_enrollment_project_entry_ids.include? m.EnrollmentID
           end.map(&:id).
             sort. # Sort by number, because export chose first 3 enrollments and related items before converting to strings
             map(&:to_s)
-          instance_variable_get("@#{items}").select do |m|
+          ExportHelper2024.send(items).select do |m|
             involved_enrollment_project_entry_ids.include? m.EnrollmentID
           end.map { |m| [m.id, m.EnrollmentID, m.data_source_id] }
           # expecting ids are 2 larger than originally expected
@@ -88,7 +90,7 @@ RSpec.shared_context '2024 multi-enrollment tests', shared_context: :metadata do
         if klass.hmis_class.column_names.include?('EnrollmentID')
           it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
             # binding.pry if items == :exits
-            csv = CSV.read(csv_file_path(klass), headers: true)
+            csv = CSV.read(ExportHelper2024.csv_file_path(klass), headers: true)
             csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
             source_ids = involved_enrollments.map(&:id).sort.map(&:to_s).first(3)
             expect(csv_ids).to eq source_ids
@@ -97,7 +99,7 @@ RSpec.shared_context '2024 multi-enrollment tests', shared_context: :metadata do
         if klass.hmis_class.column_names.include?('PersonalID')
           it 'PersonalID from CSV should not be blank' do
             # binding.pry if items == :exits
-            csv = CSV.read(csv_file_path(klass), headers: true)
+            csv = CSV.read(ExportHelper2024.csv_file_path(klass), headers: true)
             expect(csv.first['PersonalID']).to_not be_empty
           end
         end

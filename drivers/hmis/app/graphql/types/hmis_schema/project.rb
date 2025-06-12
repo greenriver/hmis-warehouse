@@ -84,7 +84,11 @@ module Types
     field :residential_affiliation_projects, [HmisSchema::Project], null: false
     field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
-    field :staff_assignments_enabled, Boolean, null: false
+    field :staff_assignments_enabled, Boolean, null: false, description: 'Whether staff assignment is enabled in this project', method: :staff_assignments_enabled?
+    field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
+    field :auto_exit_enabled, Boolean, null: false, description: 'Whether auto-exit is enabled in this project', method: :auto_exit_enabled?
+    field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
+    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -232,11 +236,6 @@ module Types
         dangerous_skip_permission_check: true, # safe because its checked above
         **args,
       )
-    end
-
-    def staff_assignments_enabled
-      # Should not be used in batch since it doesn't use the data loader
-      object.staff_assignments_enabled?
     end
 
     def arel

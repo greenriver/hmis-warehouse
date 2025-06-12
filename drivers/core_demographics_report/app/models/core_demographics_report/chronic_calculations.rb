@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::ChronicCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for chronically homeless clients
+    # @return [Hash] A hash containing report configurations for different chronic homelessness categories
     def chronic_detail_hash
       {}.tap do |hashes|
         available_chronic_types.invert.each do |key, title|
@@ -23,10 +25,18 @@ module
       end
     end
 
+    # Counts the number of chronically homeless clients for a specific type and CoC
+    # @param type [Symbol] The type of chronic homelessness category to count
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Integer] The count of chronically homeless clients, masked if population is small
     def chronic_count(type, coc_code = base_count_sym)
       mask_small_population(chronic_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of chronically homeless clients
+    # @param type [Symbol] The type of chronic homelessness category to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Float] The percentage of chronically homeless clients
     def chronic_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       # We want the percentage based on the total chronic households for the hh breakdowns
@@ -39,6 +49,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares chronic homelessness data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with chronic homelessness data
     def chronic_data_for_export(rows)
       rows['_Chronic Type'] ||= []
       rows['*Chronic Type'] ||= []
@@ -67,6 +80,10 @@ module
       rows
     end
 
+    # Retrieves client IDs for a specific chronic homelessness category and CoC
+    # @param key [Symbol] The type of chronic homelessness category
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Array] Array of client IDs for the specified category
     private def chronic_client_ids(key, coc_code = base_count_sym)
       # These two are stored as client_ids, the remaining are enrollment, client_id pairs
       if key.in?([:client, :household])
@@ -77,10 +94,14 @@ module
       end
     end
 
+    # Retrieves client IDs for heads of households
+    # @return [Array] Array of client IDs who are heads of households
     private def hoh_client_ids
       @hoh_client_ids ||= hoh_scope.pluck(:client_id)
     end
 
+    # Defines the available types of chronic homelessness categories
+    # @return [Hash] A hash mapping display names to category symbols
     def available_chronic_types
       {
         'Client' => :client,
@@ -92,12 +113,20 @@ module
       }
     end
 
+    # Initializes the data structure for tracking chronically homeless clients
+    # @param clients [Hash] The hash to store client data
+    # @param coc_code [Symbol] The CoC code to initialize for (defaults to base_count_sym)
     private def initialize_chronic_client_counts(clients, coc_code = base_count_sym)
       available_chronic_types.invert.each do |key, _|
         clients[key][coc_code] = Set.new
       end
     end
 
+    # Updates the counts of chronically homeless clients for various categories
+    # @param clients [Hash] The hash storing client data
+    # @param client_id [Integer] The ID of the client to process
+    # @param enrollment_id [Integer] The ID of the enrollment to process
+    # @param coc_code [Symbol] The CoC code to update for (defaults to base_count_sym)
     private def set_chronic_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
       # Only count HoH for household counts, and only count them in one category.
       if !clients[:client][coc_code].include?(client_id) && hoh_client_ids.include?(client_id)
@@ -111,6 +140,8 @@ module
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
     end
 
+    # Retrieves and caches the set of chronically homeless clients
+    # @return [Hash] A hash containing sets of client IDs for different chronic homelessness categories
     private def chronic_clients
       @chronic_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|

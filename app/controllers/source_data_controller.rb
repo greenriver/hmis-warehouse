@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class SourceDataController < ApplicationController
   # Permission notes: This is limited to people who can upload HMIS data
   # and further limited to the data sources someone can edit.  This means
@@ -47,9 +49,9 @@ class SourceDataController < ApplicationController
       return
     end
 
-    year = @item.imported_item_type(@importer.id)
-    @imported = @item.send("imported_items_#{year}").order(importer_log_id: :desc).first
-    @csv = @item.send("loaded_items_#{year}").with_deleted.order(loader_id: :desc).first
+    @year = @item.imported_item_type(@importer.id)
+    @imported = @item.send("imported_items_#{@year}").order(importer_log_id: :desc).first
+    @csv = @item.send("loaded_items_#{@year}").with_deleted.order(loader_id: :desc).first
   end
 
   private def searched?
@@ -89,7 +91,7 @@ class SourceDataController < ApplicationController
 
   private def set_item
     @klass = valid_class(params[:type])
-    return nil unless @klass.present?
+    raise ActiveRecord::RecordNotFound unless @klass.present?
 
     @item = item_scope.find(params[:id].to_i)
   end

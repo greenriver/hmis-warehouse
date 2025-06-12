@@ -4,12 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Decision Tree
+# frozen_string_literal: true
+
+# Decision Tree (based on the HMIS Reporting Glossary Guidance - updated for FY2026)
 # If the HouseholdID is blank, consider it an individual enrollment, ensure RelationshipToHoH is 1
 # If the household only has one person, ensure RelationshipToHoH is 1
-# If the household has more than one person, and there is a woman 18 or older,
-# set the oldest woman to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
-# If the household has more than one person, but no woman 18 or older, and someone in the household is 18 or older, set the oldest person to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
+# If the household has more than one person, and there is a person 18 or older,
+# set the oldest person to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
 # If everyone in the household is 17 or younger, and there is a person 10 or younger, set the oldest person to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
 # If the household only contains clients between the age of 11 and 17 inclusive, break up the household and set everyone as RelationshipToHoH = 1
 
@@ -57,13 +58,10 @@ module HmisCsvImporter::HmisCsvCleanup
         if rows.count == 1
           individual_household_ids << hh_id
         else
-          woman_adult = rows.select { |m| m[:woman] && m[:adult] }.max_by { |m| m[:age] }
           oldest_adult = rows.select { |m| m[:adult] }.max_by { |m| m[:age] }
           child_under_11 = rows.any? { |m| m[:age].between?(0, 11) }
           oldest_client = rows.max_by { |m| m[:age] }
-          if woman_adult.present?
-            multi_person_to_fix[hh_id] = woman_adult[:row_id]
-          elsif oldest_adult.present?
+          if oldest_adult.present?
             multi_person_to_fix[hh_id] = oldest_adult[:row_id]
           elsif child_under_11
             multi_person_to_fix[hh_id] = oldest_client[:row_id]
@@ -234,11 +232,6 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def households
-      female_column = if importable_file_class('Client').name.include?('TwentyFour')
-        :Woman
-      else
-        :Female
-      end
       ic_t = importable_file_class('Client').arel_table
       @households ||= {}.tap do |hh|
         enrollment_scope.joins(:client).
@@ -249,11 +242,10 @@ module HmisCsvImporter::HmisCsvCleanup
             :HouseholdID,
             :PersonalID,
             ic_t[:DOB],
-            ic_t[female_column],
             :RelationshipToHoH,
             :id,
           ).
-          each do |en_id, project_id, hh_id, personal_id, dob, woman, relationship, id|
+          each do |en_id, project_id, hh_id, personal_id, dob, relationship, id|
             hh[hh_id] ||= []
             age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: dob)
             hh[hh_id] << {
@@ -261,7 +253,6 @@ module HmisCsvImporter::HmisCsvCleanup
               personal_id: personal_id,
               hoh: relationship == 1,
               age: age || -1,
-              woman: woman == 1,
               adult: age.present? && age >= 18,
               enrollment_id: en_id,
               project_id: project_id,

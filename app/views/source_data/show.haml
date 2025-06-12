@@ -78,7 +78,7 @@
         %td= @imported.id
       - if @csv
         %td= @csv.id
-    - @item.class.hud_csv_headers.each do |key|
+    - @item.class.hud_csv_headers(version: @year).each do |key|
       - value = @item[key]
       - if key == :PersonalID && @item.class.name != 'GrdaWarehouse::Hud::Client'
         - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Client'})

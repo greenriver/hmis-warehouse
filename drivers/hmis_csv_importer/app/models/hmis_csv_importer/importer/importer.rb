@@ -47,7 +47,8 @@ module HmisCsvImporter::Importer
       data_source_id:,
       debug: true,
       deidentified: false,
-      project_cleanup: true
+      project_cleanup: true,
+      dry_run: false
     )
       setup_notifier('HMIS CSV Importer')
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
@@ -57,7 +58,11 @@ module HmisCsvImporter::Importer
 
       @deidentified = deidentified
       @project_cleanup = project_cleanup
+      @current_version = @loader_log.version
+      @dry_run = dry_run
       self.importer_log = setup_import
+      importer_log.version = @current_version
+
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -92,6 +97,8 @@ module HmisCsvImporter::Importer
 
       # refuse to proceed with the import if there are any errors and that setting is in effect
       return pause_import if should_pause?
+      # if this is a dry run, pause, but don't notify unless there are errors
+      return pause_import if @dry_run
 
       ingest!
       log_timing :invalidate_aggregated_enrollments!
@@ -187,7 +194,7 @@ module HmisCsvImporter::Importer
     # @return [Hash{String => Integer}] A hash where keys are filenames and values are the total error counts for each file.
     #
     memoize private def error_counts
-      file_lookup = self.class.importable_files_map.invert
+      file_lookup = self.class.importable_files_map(@current_version).invert
 
       # Serialized hash of processing data persisted on the log model
       summary = @loader_log.summary
@@ -442,7 +449,11 @@ module HmisCsvImporter::Importer
 
         log("Rebuilding aggregated enrollments with #{klass.name}")
         aggregators.each do |aggregator_klass|
-          aggregator_klass.new(importer_log: @importer_log, date_range: date_range).rebuild_warehouse_data
+          aggregator_klass.new(
+            importer_log: @importer_log,
+            date_range: date_range,
+            version: @current_version,
+          ).rebuild_warehouse_data
         end
       end
     end
@@ -458,6 +469,7 @@ module HmisCsvImporter::Importer
           aggregator = aggregator_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
+            version: @current_version,
           )
           aggregator.remove_deleted_overlapping_data!
           aggregator.copy_incoming_data!
@@ -484,6 +496,7 @@ module HmisCsvImporter::Importer
           cleanup = cleanup_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
+            version: @current_version,
           )
           cleanup.cleanup!
         end
@@ -955,8 +968,12 @@ module HmisCsvImporter::Importer
     end
 
     private def source_data_scope_for(file_name)
-      scope = HmisCsvImporter::Loader::Loader.loadable_files[file_name]
+      scope = loader_class.loadable_files(importer_log.version)[file_name]
       scope.unscoped.where(loader_id: @loader_log.id)
+    end
+
+    private def loader_class
+      HmisCsvImporter::Loader::Loader
     end
 
     private def date_range
@@ -1032,16 +1049,9 @@ module HmisCsvImporter::Importer
       }
     end
 
-    def importable_files
-      self.class.importable_files
-    end
-
-    def importable_file_class(name)
-      self.class.data_lake_file_class(name, 'Importer')
-    end
-
-    def self.soft_deletable_sources
-      importable_files_map.except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
+    # Note, only used for tests
+    def self.soft_deletable_sources(version)
+      importable_files_map(version).except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
     end
 
     def setup_import

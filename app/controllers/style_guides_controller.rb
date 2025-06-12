@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class StyleGuidesController < ApplicationController
   include AjaxModalRails::Controller
   include ClientPathGenerator
@@ -19,6 +21,15 @@ class StyleGuidesController < ApplicationController
 
   def careplan
     @patient = Health::Patient.pilot.first
+    # Stub out a patient for the style guide if one isn't available
+    @patient ||= OpenStruct.new(
+      client: GrdaWarehouse::Hud::Client.new(
+        id: 1,
+        FirstName: Faker::Name.first_name,
+        LastName: Faker::Name.last_name,
+      ),
+      careplans: Health::Careplan.none,
+    )
     @client = @patient.client
     @careplan = @patient.careplans.build
     @goal = Health::Goal::Base.new

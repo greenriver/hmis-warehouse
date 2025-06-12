@@ -3012,6 +3012,20 @@
     ]
   },
   {
+    "name": "Sex",
+    "code": "4.21",
+    "values": [
+      {
+        "key": 0,
+        "description": "Female"
+      },
+      {
+        "key": 1,
+        "description": "Male"
+      }
+    ]
+  },
+  {
     "name": "RHYServices",
     "code": "R14.2",
     "values": [

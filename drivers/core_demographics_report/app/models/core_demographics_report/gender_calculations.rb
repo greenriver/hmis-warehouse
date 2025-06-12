@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::GenderCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for gender data
+    # @return [Hash] A hash containing report configurations for different gender categories
     def gender_detail_hash
       {}.tap do |hashes|
         genders.each do |key, title|
@@ -28,10 +30,18 @@ module
       end
     end
 
+    # Counts the number of clients with a specific gender
+    # @param type [Symbol] The gender type to count
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Integer] The count of clients with the specified gender, masked if population is small
     def gender_count(type, coc_code = base_count_sym)
       mask_small_population(client_ids_in_gender(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with a specific gender
+    # @param type [Symbol] The gender type to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Float] The percentage of clients with the specified gender
     def gender_percentage(type, coc_code = base_count_sym)
       total_count = mask_small_population(client_genders_and_ages[coc_code].count)
       return 0 if total_count.zero?
@@ -42,10 +52,20 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Counts the number of clients with a specific gender and age range
+    # @param gender [Symbol] The gender type to count
+    # @param age_range [Range] The age range to count
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Integer] The count of clients with the specified gender and age range, masked if population is small
     def gender_age_count(gender:, age_range:, coc_code: base_count_sym)
       mask_small_population(client_ids_in_gender_age(gender, age_range, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with a specific gender and age range
+    # @param gender [Symbol] The gender type to calculate percentage for
+    # @param age_range [Range] The age range to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Float] The percentage of clients with the specified gender and age range
     def gender_age_percentage(gender:, age_range:, coc_code: base_count_sym)
       total_count = mask_small_population(client_genders_and_ages[coc_code].count)
       return 0 if total_count.zero?
@@ -56,6 +76,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares gender and age data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with gender and age data
     def gender_data_for_export(rows)
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
@@ -110,6 +133,9 @@ module
       rows
     end
 
+    # Groups clients by their gender and age for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to group by, defaults to base_count_sym
+    # @return [Hash] A hash mapping gender and age combinations to sets of client IDs
     private def gender_age_breakdowns(coc_code = base_count_sym)
       client_genders_and_ages[coc_code].group_by do |_, row|
         [
@@ -119,6 +145,11 @@ module
       end
     end
 
+    # Retrieves client IDs for a specific gender and age range
+    # @param gender [Symbol] The gender type to filter by
+    # @param age [Range] The age range to filter by
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Set] Set of client IDs matching the specified criteria
     def client_ids_in_gender_age(gender, age, coc_code = base_count_sym)
       ids = Set.new
       age.to_a.each do |age_old|
@@ -128,21 +159,32 @@ module
       ids
     end
 
-    # Grouped by numeric gender
+    # Groups clients by their gender for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to group by, defaults to base_count_sym
+    # @return [Hash] A hash mapping gender types to sets of client IDs
     private def gender_breakdowns(coc_code = base_count_sym)
       client_genders_and_ages[coc_code].group_by do |_, row|
         row[:gender]
       end
     end
 
+    # Converts a gender column name to its numeric ID
+    # @param column [Symbol] The gender column name to convert
+    # @return [Integer] The numeric ID for the gender column
     private def gender_column_to_numeric(column)
       HudUtility2024.gender_id_to_field_name.detect { |_, l| l == column }.first
     end
 
+    # Retrieves client IDs for a specific gender
+    # @param column [Symbol] The gender type to filter by
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Array] Array of client IDs with the specified gender
     def client_ids_in_gender(column, coc_code = base_count_sym)
       gender_breakdowns(coc_code)[gender_column_to_numeric(column)]&.map(&:first)
     end
 
+    # Retrieves and caches client gender and age data
+    # @return [Hash] A hash mapping CoC codes to client gender and age data
     def client_genders_and_ages
       @client_genders_and_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
