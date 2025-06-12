@@ -78,14 +78,6 @@ module HudApr::Dq::DqConcern
       @question = generator.valid_question_number(params[:question] || params[:id])
     end
 
-    def available_report_versions
-      {
-        'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2022' => { slug: :fy2022, active: false },
-        'FY 2024 (current)' => { slug: :fy2024, active: true },
-      }.freeze
-    end
-
     private def possible_generator_classes
       {
         fy2024: HudApr::Generators::Dq::Fy2024::Generator,
