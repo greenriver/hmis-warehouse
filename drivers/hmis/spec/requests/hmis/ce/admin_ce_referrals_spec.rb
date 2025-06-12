@@ -74,9 +74,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_gql_error(post_graphql { query }, message: 'access denied')
     end
 
-    context 'when querying by workflow template' do
-    end
-
     context 'when referrals have varying statuses' do
       let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'in_progress', updated_at: 1.month.ago) }
       let!(:referral_accepted) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'accepted', updated_at: 1.week.ago) }

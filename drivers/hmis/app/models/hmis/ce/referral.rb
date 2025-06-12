@@ -42,13 +42,17 @@ module Hmis::Ce
       # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
       # Referral only becomes viewable once the assigned step becomes available.
       # Note that the user does *not* need can_view_project in this case
-      assigned_step_ids = user.workflow_step_assignments.pluck(:step_id)
-      own_referral_ids = base_scope.joins(:steps).
+      own_referral_ids = base_scope.with_available_step_assigned_to(user).
         merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
-        merge(Hmis::WorkflowExecution::Step.where(id: assigned_step_ids).excluding_unavailable).
         pluck(:id) # pluck to avoid duplicates in resulting scope (from the step join)
 
       access_through_project.or(base_scope.where(id: own_referral_ids))
+    end
+
+    # Referrals that have a step assigned to the specified user. Excludes referrals if the assigned step(s) are unavailable.
+    scope :with_available_step_assigned_to, ->(user) do
+      assigned_step_ids = user.workflow_step_assignments.pluck(:step_id)
+      joins(:steps).merge(Hmis::WorkflowExecution::Step.where(id: assigned_step_ids).excluding_unavailable)
     end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
@@ -57,7 +61,7 @@ module Hmis::Ce
     # Default sort for displaying referrals. Floats 'in_progress' and 'initialized' to the top,
     # then sorts by updated_at descending.
     # This is used in the frontend to display referrals in a consistent order.
-    scope :sorted_by_status, -> do
+    scope :order_by_status, -> do
       conditions = [
         [arel_table[:status].eq('initialized'), 1],
         [arel_table[:status].eq('in_progress'), 1],

@@ -43,7 +43,7 @@ module Types
     def ce_referral_steps
       return Hmis::WorkflowExecution::Step.none unless show_referrals
 
-      # Scope to open steps that are assigned to the current user
+      # Scope open steps that are assigned to the current user
       step_scope = Hmis::WorkflowExecution::Step.open.
         assigned_to(current_user.id)
 
@@ -55,7 +55,7 @@ module Types
       viewable_instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
       step_scope = step_scope.where(instance_id: viewable_instance_ids)
 
-      step_scope.order_by_available_at
+      step_scope.order(available_at: :desc, id: :desc)
     end
 
     private
