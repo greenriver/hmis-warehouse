@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwenty
   def self.matches(file_path)
     # FIXME: Check all the file headers instead of just this one file
@@ -77,6 +79,26 @@ module HmisCsvTwentyTwenty
       'Event.csv' => 'Event',
       'User.csv' => 'User',
     }.freeze
+  end
+
+  def self.data_lake_module
+    'HmisCsvTwentyTwenty'
+  end
+
+  def self.loadable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Loader')
+    end
+  end
+
+  def self.importable_files
+    importable_files_map.transform_values do |name|
+      data_lake_file_class(name, 'Importer')
+    end
+  end
+
+  def self.data_lake_file_class(name, phase)
+    "#{data_lake_module}::#{phase}::#{name}".constantize
   end
 
   def self.expiring_loader_classes

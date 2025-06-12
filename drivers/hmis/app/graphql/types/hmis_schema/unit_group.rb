@@ -41,7 +41,7 @@ module Types
 
       object.units.map(&:unit_type).uniq.compact.map do |unit_type|
         OpenStruct.new(
-          id: unit_type.id,
+          id: "#{object.id}:#{unit_type.id}",
           unit_type: unit_type.description,
           capacity: capacity[unit_type.id] || 0,
           availability: unoccupied[unit_type.id] || 0,

@@ -1,0 +1,5 @@
+"EmploymentEducationID","EnrollmentID","PersonalID","InformationDate","LastGradeCompleted","SchoolStatus","Employed","EmploymentType","NotEmployedReason","DataCollectionStage","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","2016-09-01","1","1","1","1","1","1","2016-09-02 15:42:06","2016-09-02 15:42:06","VALID","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","","1","1","1","1","1","999","2016-09-02 15:42:06","2016-09-02 15:42:06","VALIDATION","","b6585c2320f69a2b920adb507cc9d82f"
+"ERROR","","","2016-09-01","1","1","1","1","1","","2016-09-02 15:42:06","2016-09-02 15:42:06","ERROR","","b6585c2320f69a2b920adb507cc9d82f"
+"VALID","FAILED","FAILED","2016-09-01","1","1","1","1","1","1","2016-09-02 15:42:06","2016-09-02 15:42:06","FAILED","","b6585c2320f69a2b920adb507cc9d82f"

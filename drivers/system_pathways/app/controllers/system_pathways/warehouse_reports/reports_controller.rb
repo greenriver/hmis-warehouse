@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SystemPathways::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -14,7 +16,6 @@ module SystemPathways::WarehouseReports
     before_action :set_report, only: [:show, :destroy, :details, :chart_data]
     before_action :show_filter, only: [:show, :details, :chart_data]
     before_action :set_pdf_export, only: [:show]
-    before_action :set_excel_export, only: [:show]
 
     def index
       @pagy, @reports = pagy(report_scope.diet.ordered)
@@ -236,10 +237,6 @@ module SystemPathways::WarehouseReports
 
     private def set_pdf_export
       @pdf_export = SystemPathways::DocumentExports::ReportExport.new
-    end
-
-    private def set_excel_export
-      @excel_export = SystemPathways::DocumentExports::ReportExcelExport.new
     end
 
     def report_class
