@@ -2257,59 +2257,71 @@ module GrdaWarehouse::Hud
       setup_notifier('PatientMerger') unless @notifier
       moved = []
       to_clean = [id]
-      transaction do
-        # get the existing destination client for other_client
-        prev_destination_client = if other_client.destination_client
-          other_client.destination_client
-        elsif other_client.destination?
-          to_clean << other_client.id
-          other_client
-        end
-        # if it had sources then move those over to us
-        # and say who made the decision and when
-        other_client.source_clients.each do |m|
-          m.warehouse_client_source.update!(
-            destination_id: id,
-            reviewed_at: reviewed_at,
-            reviewd_by: reviewed_by.id,
-            client_match_id: client_match_id,
-          )
-          moved << m
-        end
-        # if we are a source, move us
-        if other_client.warehouse_client_source
-          other_client.warehouse_client_source.update!(
-            destination_id: id,
-            reviewed_at: reviewed_at,
-            reviewd_by: reviewed_by.id,
-            client_match_id: client_match_id,
-          )
-          moved << other_client
-        end
-        # clean up the previous destination
-        if prev_destination_client
-          # move any CAS column data
-          previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-          current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-          current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
-          update(current_cas_columns)
-          save!
-
-          prev_destination_client.force_full_service_history_rebuild
-          prev_destination_client.source_clients.reload
-          if prev_destination_client.source_clients.empty?
-            # Create a client_merge_history record so we can keep links working
-            GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-            prev_destination_client.destroy
+      begin
+        transaction do
+          # get the existing destination client for other_client
+          prev_destination_client = if other_client.destination_client
+            other_client.destination_client
+          elsif other_client.destination?
+            to_clean << other_client.id
+            other_client
           end
+          # if it had sources then move those over to us
+          # and say who made the decision and when
+          other_client.source_clients.each do |m|
+            m.warehouse_client_source.update!(
+              destination_id: id,
+              reviewed_at: reviewed_at,
+              reviewd_by: reviewed_by.id,
+              client_match_id: client_match_id,
+            )
+            moved << m
+          end
+          # if we are a source, move us
+          if other_client.warehouse_client_source
+            other_client.warehouse_client_source.update!(
+              destination_id: id,
+              reviewed_at: reviewed_at,
+              reviewd_by: reviewed_by.id,
+              client_match_id: client_match_id,
+            )
+            moved << other_client
+          end
+          # clean up the previous destination
+          if prev_destination_client
+            # move any CAS column data
+            previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+            current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+            current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
+            update(current_cas_columns)
+            save!
 
-          move_dependent_items(prev_destination_client.id, id)
-          to_clean << prev_destination_client.id
+            prev_destination_client.force_full_service_history_rebuild
+            prev_destination_client.source_clients.reload
+            if prev_destination_client.source_clients.empty?
+              # Create a client_merge_history record so we can keep links working
+              GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+              prev_destination_client.destroy
+            end
+
+            move_dependent_items(prev_destination_client.id, id)
+            to_clean << prev_destination_client.id
+          end
+          # and invalidate our own service history
+          force_full_service_history_rebuild
+          # and invalidate any cache for these clients
+          self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
         end
-        # and invalidate our own service history
-        force_full_service_history_rebuild
-        # and invalidate any cache for these clients
-        self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
+      rescue Health::MedicaidIdConflict => e
+        @notifier.ping(
+          'Non-matching Medicaid IDs on patient merge',
+          {
+            exception: e,
+          },
+        )
+        # add a split record to prevent these client being merged automatically in the future
+        GrdaWarehouse::ClientSplitHistory.create(split_from: other_client.id, split_into: id)
+        return []
       end
       self.class.clear_view_cache(id)
       self.class.clear_view_cache(other_client.id)
@@ -2322,13 +2334,6 @@ module GrdaWarehouse::Hud
       end
       ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq) if cleanup
       moved
-    rescue Health::MedicaidIdConflict => e
-      @notifier.ping(
-        'Non-matching Medicaid IDs on patient merge',
-        {
-          exception: e,
-        },
-      )
     end
 
     def move_dependent_hmis_items(previous_id, new_id)
