@@ -152,5 +152,24 @@ module GrdaWarehouse::Hud
       end
       days
     end
+
+    def active_on_date?(date)
+      # Always active if all dates are blank
+      if inventory_start_date.blank? &&
+         inventory_end_date.blank?
+        return true
+      end
+
+      start_date = inventory_start_date
+      end_date = inventory_end_date
+
+      # If we have a start date but no end date, active from start onward
+      return true if start_date && !end_date && start_date <= date
+
+      # If we have both start and end dates, check if date is in range (inclusive)
+      return true if start_date && end_date && date.between?(start_date, end_date)
+
+      false
+    end
   end
 end
