@@ -10,8 +10,7 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
   has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun'
 
   # TODO: Add support for monitoring task runtime duration to alert when tasks run too long
-  # This would need an additional threshold value and a calculation based on
-  # the difference between started_at and completed_at timestamps
+  # This would need an additional threshold value and a baseline measure or threshold to compare to
 
   def last_completed_at
     system_maintenance_task_runs.maximum(:completed_at)

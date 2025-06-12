@@ -44,7 +44,7 @@ module Importing
         end
       end
 
-      run_maintenance_task('Update from HMIS forms') do
+      run_maintenance_task('Update HMIS forms') do
         update_from_hmis_forms
       end
 

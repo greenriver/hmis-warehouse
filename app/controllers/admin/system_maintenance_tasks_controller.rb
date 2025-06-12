@@ -6,7 +6,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# tests for proper deprecation handling
 module Admin
   class SystemMaintenanceTasksController < ApplicationController
     helper ElapsedTimeHelper

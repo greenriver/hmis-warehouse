@@ -14,11 +14,14 @@ module Hmis
       Hmis::ProjectAutoExitConfig.exists?
     end
 
-    def perform(...)
+    def perform(**args)
       return unless self.class.enabled?
 
+      # don't track if there are arguments
+      return _perform if args.present?
+
       instrument_as_maintenance_task do |run|
-        _perform(...)
+        _perform(**args)
         run.complete!
       end
     end
