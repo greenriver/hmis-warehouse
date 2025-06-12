@@ -167,7 +167,7 @@ module
                 counts_by_enrollment = {}
 
                 # Don't count anyone we've already counted in the chronic counts
-                next if chronic_clients[:client].include?(client_id)
+                next if chronic_clients[:client][coc_code].include?(client_id)
 
                 enrollments = rows.group_by { |e| [e.shift, e.shift, e.shift] }
                 enrollments.each do |(enrollment_id, times_homeless, disabling_condition), disabilities|
