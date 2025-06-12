@@ -60,7 +60,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result.dig('data', 'project', 'ceOpportunities', 'nodes')).to be_empty
     end
 
-    context 'when filtering for open referrals' do
+    context 'when filtering for opportunities with open referrals' do
       let(:variables) do
         {
           id: project.id,
@@ -74,7 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:closed_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :closed }
       let(:locked_opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, status: :locked }
 
-      it 'returns only active referrals' do
+      it 'returns only opportunities with active referrals' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
 

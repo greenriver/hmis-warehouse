@@ -17,6 +17,12 @@ module Hmis::WorkflowExecution
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
 
     scope :open, -> { where(status: ['available', 'in_progress']) }
+    scope :excluding_unavailable, -> { where.not(status: 'unavailable') }
+    scope :assigned_to, ->(user_id) do
+      sa_t = Hmis::WorkflowExecution::StepAssignment.arel_table
+      joins(:assignments).where(sa_t[:user_id].eq(user_id))
+    end
+    scope :order_by_available_at, -> { order(available_at: :desc, id: :desc) }
 
     def open?
       [:available, :in_progress].include?(status.to_sym)

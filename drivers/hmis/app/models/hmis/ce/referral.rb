@@ -33,28 +33,39 @@ module Hmis::Ce
       # - If they have can_view_referrals at the target project, OR
       # - If they have can_view_own_referrals, AND are assigned a step in the referral.
 
-      # Start with base scope that does all necessary joins, for structural compatibility when we `or` the scopes later
-      base_scope = joins(:target_project).left_outer_joins(steps: :assignments)
+      base_scope = joins(:target_project)
 
-      # Projects in which the user can_view_referrals
+      # Referrals that the user can view because they have can_view_referrals in the target project
       access_through_project = base_scope.
         merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_referrals))
 
       # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
+      # Referral only becomes viewable once the assigned step becomes available.
       # Note that the user does *not* need can_view_project in this case
-      own_referrals = base_scope.
+      assigned_step_ids = user.workflow_step_assignments.pluck(:step_id)
+      own_referral_ids = base_scope.joins(:steps).
         merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
-        merge(
-          Hmis::WorkflowExecution::Step.
-            where(Hmis::WorkflowExecution::StepAssignment.arel_table[:user_id].eq(user.id)).
-            where.not(status: 'unavailable'),
-        )
+        merge(Hmis::WorkflowExecution::Step.where(id: assigned_step_ids).excluding_unavailable).
+        pluck(:id) # pluck to avoid duplicates in resulting scope (from the step join)
 
-      access_through_project.or(own_referrals).distinct
+      access_through_project.or(base_scope.where(id: own_referral_ids))
     end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
     scope :active_or_accepted, -> { where.not(status: 'rejected') }
+
+    # Default sort for displaying referrals. Floats 'in_progress' and 'initialized' to the top,
+    # then sorts by updated_at descending.
+    # This is used in the frontend to display referrals in a consistent order.
+    scope :sorted_by_status, -> do
+      conditions = [
+        [arel_table[:status].eq('initialized'), 1],
+        [arel_table[:status].eq('in_progress'), 1],
+        [arel_table[:status].eq('accepted'), 2],
+        [arel_table[:status].eq('rejected'), 2],
+      ]
+      order(acase(conditions, elsewise: 3), updated_at: :desc, id: :asc)
+    end
 
     validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity
