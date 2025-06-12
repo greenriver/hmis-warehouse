@@ -13,6 +13,15 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
   # This would need an additional threshold value and a calculation based on
   # the difference between started_at and completed_at timestamps
 
+  def last_completed_at
+    system_maintenance_task_runs.maximum(:completed_at)
+  end
+
+  def average_run_time
+    # average last 5 runs
+    system_maintenance_task_runs.order(id: :desc).completed.limit(5).average_run_time
+  end
+
   # Checks if the task has exceeded its completion threshold
   # @param now [Time] current time for threshold calculation
   # @return [Boolean] true if no successful completions within the threshold period

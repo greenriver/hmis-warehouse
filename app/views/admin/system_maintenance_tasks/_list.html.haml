@@ -1,0 +1,17 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Task Name
+        %th Last Alert Sent
+        %th Last Completed
+        %th Alert Threshold
+        %th Average Run Time
+    %tbody
+      - list.each do |task|
+        %tr
+          %td= task.name
+          %td= task.alert_sent_at
+          %td= task.last_completed_at
+          %td= elapsed_time(task.completion_alert_minutes.minutes)
+          %td= elapsed_time(task.average_run_time)

@@ -11,6 +11,12 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
     where(started_at: ..expiration_threshold)
   }
 
+  scope :completed, -> { where.not(completed_at: nil) }
+
+  def self.average_run_time
+    average('EXTRACT(EPOCH FROM (completed_at - started_at))')
+  end
+
   def completed?
     completed_at.present?
   end
