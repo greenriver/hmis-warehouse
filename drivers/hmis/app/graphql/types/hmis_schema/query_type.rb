@@ -291,6 +291,11 @@ module Types
 
     field :current_user, Application::User, null: true
 
+    field :global_feature_flags, Types::HmisSchema::GlobalFeatureFlags, null: false
+    def global_feature_flags
+      {}
+    end
+
     field :user_dashboard, Types::Application::UserDashboard, null: false
     def user_dashboard
       current_user
@@ -301,7 +306,7 @@ module Types
         root_can perm
       end
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-      field :can_view_coordinated_entry, Boolean, null: false
+      field :can_view_coordinated_entry, Boolean, null: false, deprecation_reason: 'Replaced with Project-level coordinatedEntryEnabled field and global feature flag'
     end
 
     def access
@@ -486,11 +491,15 @@ module Types
       Hmis::Form::Instance.find_by(id: id)
     end
 
-    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
-    def project_configs
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false do
+      filters_argument Types::HmisSchema::ProjectConfig
+    end
+    def project_configs(filters: nil)
+      access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.viewable_by(current_user)
+      scope = Hmis::ProjectConfig.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters
+      scope.order(created_at: :desc, id: :asc)
     end
 
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
