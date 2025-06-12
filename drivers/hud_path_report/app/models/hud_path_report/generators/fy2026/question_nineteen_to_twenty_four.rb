@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-module HudPathReport::Generators::Fy2021
+module HudPathReport::Generators::Fy2026
   class QuestionNineteenToTwentyFour < Base
     include ArelHelper
 
@@ -16,9 +16,9 @@ module HudPathReport::Generators::Fy2021
 
     TABLE_HEADER = [
       'Outcomes',
-      'At PATH project Start',
-      'AT PATH project exit (for clients who were exited from PATH this year - leavers)',
-      'At report end date (for clients who were still active in PATH as of report end date - stayers)',
+      'At PATH Project Start',
+      'AT PATH Project Exit (for clients who were exited from PATH in the reporting period – leavers)',
+      'At Report End Date (for clients who were still active in PATH as of Report End Date – stayers)',
     ].freeze
 
     ROW_LABELS = [
@@ -26,27 +26,27 @@ module HudPathReport::Generators::Fy2021
       'Yes',
       'No',
       'Client doesn\'t know',
-      'Client refused',
+      'Client prefers not to answer',
       'Data not collected',
       'Total',
-      '20. SSI/SSDI',
+      '20. Supplemental Security Income (SSI)/ Social',
       'Yes',
       'No',
-      '21. Non-cash benefits from any source',
-      'Yes',
-      'No',
-      'Client doesn\'t know',
-      'Client refused',
-      'Data not collected',
-      'Total',
-      '22. Covered by health insurance',
+      '21. Non-Cash Benefits from Any Source',
       'Yes',
       'No',
       'Client doesn\'t know',
-      'Client refused',
+      'Client prefers not to answer',
       'Data not collected',
       'Total',
-      '23. Medicaid/Medicare',
+      '22. Covered by Health Insurance',
+      'Yes',
+      'No',
+      'Client doesn\'t know',
+      'Client prefers not to answer',
+      'Data not collected',
+      'Total',
+      '23. MEDICAID/MEDICARE',
       'Yes',
       'No',
       '24. All other health insurance',
@@ -204,24 +204,26 @@ module HudPathReport::Generators::Fy2021
     def receiving_other_health_insurance(column)
       [
         'SCHIP',
-        'VAMedicalServices',
+        'VHAServices',
         'EmployerProvided',
         'COBRA',
         'PrivatePay',
         'StateHealthIns',
         'IndianHealthServices',
+        'OtherInsurance',
       ].map { |type| jsonb_test(column, type, 1) }.join(' OR ')
     end
 
     def not_receiving_other_health_insurance(column)
       [
         'SCHIP',
-        'VAMedicalServices',
+        'VHAServices',
         'EmployerProvided',
         'COBRA',
         'PrivatePay',
         'StateHealthIns',
         'IndianHealthServices',
+        'OtherInsurance',
       ].map { |type| "NOT(#{jsonb_test(column, type, 1)})" }.join(' AND ')
     end
 

@@ -6,10 +6,10 @@
 
 # frozen_string_literal: true
 
-module HudPathReport::Generators::Fy2024
+module HudPathReport::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
-      'FY 2024'
+      'FY 2026'
     end
 
     def self.generic_title
@@ -25,7 +25,7 @@ module HudPathReport::Generators::Fy2024
     end
 
     def self.default_project_type_codes
-      HudUtility2024.path_project_type_codes
+      HudUtility2026.path_project_type_codes
     end
 
     def url
@@ -34,12 +34,12 @@ module HudPathReport::Generators::Fy2024
 
     def self.questions
       [
-        HudPathReport::Generators::Fy2024::QuestionEightToSixteen,
-        HudPathReport::Generators::Fy2024::QuestionSeventeen,
-        HudPathReport::Generators::Fy2024::QuestionEighteen,
-        HudPathReport::Generators::Fy2024::QuestionNineteenToTwentyFour,
-        HudPathReport::Generators::Fy2024::QuestionTwentyFive,
-        HudPathReport::Generators::Fy2024::QuestionTwentySix,
+        HudPathReport::Generators::Fy2026::QuestionEightToSixteen,
+        HudPathReport::Generators::Fy2026::QuestionSeventeen,
+        HudPathReport::Generators::Fy2026::QuestionEighteen,
+        HudPathReport::Generators::Fy2026::QuestionNineteenToTwentyFour,
+        HudPathReport::Generators::Fy2026::QuestionTwentyFive,
+        HudPathReport::Generators::Fy2026::QuestionTwentySix,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
