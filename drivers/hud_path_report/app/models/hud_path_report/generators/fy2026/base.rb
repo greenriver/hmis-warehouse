@@ -202,7 +202,7 @@ module HudPathReport::Generators::Fy2026
             age: source_client.age_on([@report.start_date, enrollment.EntryDate].max),
             dob: source_client.DOB,
             dob_quality: source_client.DOBDataQuality,
-            sex: source_client.sex,
+            sex: source_client.Sex,
             race_multi: source_client.race_multi.sort.join(','),
             veteran: source_client.VeteranStatus,
             substance_use_disorder: disabilities_latest.detect { |d| d.DisabilityType == 10 }&.DisabilityResponse,
