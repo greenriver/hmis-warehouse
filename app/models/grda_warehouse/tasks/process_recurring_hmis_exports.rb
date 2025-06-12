@@ -11,7 +11,7 @@ module GrdaWarehouse::Tasks
     include MaintenanceTaskInstrumentation
 
     def run!
-      instrument_as_maintenance_task('run!') do |task_run|
+      instrument_as_maintenance_task do |task_run|
         recurring_exports_scope.each do |export|
           if export.should_run?
             export.run

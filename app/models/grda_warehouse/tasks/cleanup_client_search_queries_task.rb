@@ -20,7 +20,7 @@ module GrdaWarehouse::Tasks
     end
 
     def perform
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         with_lock do
           GrdaWarehouse::ClientSearchQuery.transaction do
             cleanup_old_queries

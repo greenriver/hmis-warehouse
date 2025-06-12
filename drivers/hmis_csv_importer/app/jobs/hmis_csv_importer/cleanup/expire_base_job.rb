@@ -32,7 +32,7 @@ module HmisCsvImporter::Cleanup
     end
 
     def perform(**args)
-      instrument_as_maintenance_task("perform #{args[:model_name]}") do |run|
+      instrument_as_maintenance_task(name: args[:model_name].to_s) do |run|
         _perform(**args)
         run.complete!
       end

@@ -17,7 +17,7 @@ module Reporting
     end
 
     def perform(...)
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         run.complete! if _perform(...)
       end
     end

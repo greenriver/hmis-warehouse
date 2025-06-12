@@ -11,7 +11,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   def perform(...)
-    instrument_as_maintenance_task('perform') do |run|
+    instrument_as_maintenance_task do |run|
       _perform(...)
       run.complete!
     end

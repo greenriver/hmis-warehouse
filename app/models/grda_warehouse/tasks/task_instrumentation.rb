@@ -16,7 +16,7 @@ class GrdaWarehouse::Tasks::TaskInstrumentation
 
   def find_or_create_maintenance_task(name, alert_threshold:)
     minutes = alert_threshold.to_i / 60
-    raise ArgumentError unless minutes.positive?
+    raise ArgumentError, "Alert threshold must be positive, got: #{alert_threshold}" unless minutes.positive?
 
     task = GrdaWarehouse::Tasks::SystemMaintenanceTask.where(name: name).first_or_initialize
     task.completion_alert_minutes = minutes

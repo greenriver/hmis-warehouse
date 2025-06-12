@@ -14,7 +14,7 @@
 module Hmis
   class ActivityLogProcessorJob < ::BaseJob
     def perform(force: false)
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         lock_name = 'AccessLogProcessorLock'
         Hmis::ActivityLog.with_advisory_lock(lock_name, timeout_seconds: 0) do
           scope = Hmis::ActivityLog.all

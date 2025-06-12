@@ -11,7 +11,7 @@ module Health
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         Health::DocumentExport.with_advisory_lock(
           'health_prune_document_exports_job',
           timeout_seconds: 0,

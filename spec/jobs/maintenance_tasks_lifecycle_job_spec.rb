@@ -31,7 +31,7 @@ RSpec.describe MaintenanceTasksLifecycleJob, type: :job do
       job.perform
 
       # Verify that alerts were sent for both tasks
-      expect(Sentry).to have_received(:capture_message).with(a_string_matching(/Exceeded threshold/)).at_least(2).times
+      expect(Sentry).to have_received(:capture_message).with(a_string_matching(/Missing scheduled execution/)).at_least(2).times
     end
 
     it 'deletes expired task runs for all jobs' do

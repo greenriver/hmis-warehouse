@@ -11,7 +11,7 @@ RSpec.describe GrdaWarehouse::Tasks::TaskInstrumentation, type: :job do
       end
 
       def perform(should_fail: false)
-        instrument_as_maintenance_task('perform') do |run|
+        instrument_as_maintenance_task do |run|
           raise StandardError, 'Test failure' if should_fail
 
           run.complete!
@@ -29,7 +29,7 @@ RSpec.describe GrdaWarehouse::Tasks::TaskInstrumentation, type: :job do
       end.to change(GrdaWarehouse::Tasks::SystemMaintenanceTask, :count).by(1)
 
       task = GrdaWarehouse::Tasks::SystemMaintenanceTask.last
-      expect(task.name).to eq('TestInstrumentedJob:perform')
+      expect(task.name).to eq('TestInstrumentedJob#perform')
     end
 
     it 'creates a task run record with completion time' do

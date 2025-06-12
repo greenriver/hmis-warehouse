@@ -10,7 +10,7 @@ class HmisSupplemental::ImportJob < BaseJob
   attr_reader :data_set
 
   def perform(**args)
-    instrument_as_maintenance_task("DataSource##{args[:data_set_id]}") do |run|
+    instrument_as_maintenance_task(name: "DataSource##{args[:data_set_id]}") do |run|
       run.complete! if _perform(**args)
     end
   end

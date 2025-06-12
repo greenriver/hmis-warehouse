@@ -16,7 +16,7 @@ module Hmis
       # one-off opportunity, don't track
       return _perform(**args) if args[:opportunity_ids]
 
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         _perform(**args)
         run.complete!
       end

@@ -21,7 +21,7 @@ module GrdaWarehouse::Tasks
     end
 
     def perform
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         with_lock do
           GrdaWarehouseBase.transaction do
             sync_app_users

@@ -17,7 +17,7 @@ module Hmis
     def perform(...)
       return unless self.class.enabled?
 
-      instrument_as_maintenance_task('perform') do |run|
+      instrument_as_maintenance_task do |run|
         _perform(...)
         run.complete!
       end

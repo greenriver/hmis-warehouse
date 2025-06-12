@@ -6,19 +6,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 # warm cache from db translations
 class BuildTranslationCacheJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   LOCK_NAME = 'build_translation_cache'
 
   def perform(...)
-    instrument_as_maintenance_task('perform') do |run|
+    instrument_as_maintenance_task do |run|
       run.complete! if _perform(...)
     end
   end
