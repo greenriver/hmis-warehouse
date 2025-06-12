@@ -4,10 +4,11 @@
       "type": "CHOICE",
       "link_id": "configType",
       "text": "Config Type",
-      "pick_list_reference": "ProjectConfigType",
+      "pick_list_reference": "PROJECT_CONFIG_TYPES",
       "mapping": {
         "field_name": "configType"
       },
+      "helper_text": "Select the configuration to enable",
       "component": "DROPDOWN",
       "required": true
     },
@@ -17,6 +18,7 @@
       "link_id": "projectType",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
+      "helper_text": "(Optional) Enable this configuration for all projects with the specified Project Type",
       "mapping": {
         "field_name": "projectType"
       }
@@ -27,6 +29,7 @@
       "link_id": "projectId",
       "text": "Project",
       "pick_list_reference": "PROJECT",
+      "helper_text": "(Optional) Enable this configuration in the specified Project",
       "mapping": {
         "field_name": "projectId"
       }
@@ -37,6 +40,7 @@
       "link_id": "organizationId",
       "text": "Organization",
       "pick_list_reference": "ORGANIZATION",
+      "helper_text": "(Optional) Enable this configuration in the specified Organization",
       "mapping": {
         "field_name": "organizationId"
       }
