@@ -18,7 +18,7 @@ module Hmis
       return unless self.class.enabled?
 
       # don't track if there are arguments
-      return _perform if args.present?
+      return _perform(**args) if args.present?
 
       instrument_as_maintenance_task do |run|
         _perform(**args)

@@ -3,15 +3,39 @@
     %thead
       %tr
         %th Task Name
+        %th Completed Runs
         %th Last Alert Sent
-        %th Last Completed
+        %th Time Since Last Run
         %th Alert Threshold
         %th Average Run Time
     %tbody
       - list.each do |task|
+        :ruby
+          last_completed = task.last_completed_at
+          last_alert = task.alert_sent_at
+          average_run_time = task.average_run_time
         %tr
-          %td= task.name
-          %td= task.alert_sent_at
-          %td= task.last_completed_at
-          %td= elapsed_time(task.completion_alert_minutes.minutes)
-          %td= elapsed_time(task.average_run_time)
+          %td
+            - display_name = task.name.split(/(#|: )/).last
+            %span{title: task.name, data: { toggle: :tooltip }}= display_name
+            %td= number_with_delimiter task.system_maintenance_task_runs.completed.count
+            %td
+              - if last_alert
+                %span{title: last_alert, data: { toggle: :tooltip }}
+                  = time_ago_in_words(last_alert) + ' ago'
+              - else
+                %span.text-muted Never
+            %td
+              - if last_completed
+                %span{title: last_completed, data: { toggle: :tooltip }}
+                  = time_ago_in_words(last_completed) + ' ago'
+              - else
+                %span.text-muted Never
+              %td
+                - if task.completion_alert_minutes
+                  = precise_distance_of_time(task.completion_alert_minutes.minutes)
+          %td
+            - if average_run_time
+              = precise_distance_of_time(average_run_time.seconds)
+            -else
+              %span.text-muted N/A

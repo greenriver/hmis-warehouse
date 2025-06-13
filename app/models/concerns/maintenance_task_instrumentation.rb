@@ -21,7 +21,6 @@ module MaintenanceTaskInstrumentation
       caller_name = caller_locations(1, 1)[0].label # skip 1 frame to get the actual calling method
       name = "#{self.class.name}##{caller_name}"
     end
-    qualified_name = "#{self.class.name}##{name || caller_name}"
-    GrdaWarehouse::Tasks::TaskInstrumentation.call(qualified_name, alert_threshold: alert_threshold, &block)
+    GrdaWarehouse::Tasks::TaskInstrumentation.call(name, alert_threshold: alert_threshold, &block)
   end
 end

@@ -6,6 +6,7 @@
 
 module MaReports::CsgEngage
   class ProgramReport < GrdaWarehouseBase
+    include MaintenanceTaskInstrumentation
     include MaReports::CsgEngage::Concerns::HasReportStatus
 
     self.table_name = :csg_engage_program_reports
@@ -26,6 +27,13 @@ module MaReports::CsgEngage
     end
 
     def run
+      instrument_as_maintenance_task do |run|
+        _run
+        run.complete!
+      end
+    end
+
+    def _run
       reset
 
       data = MaReports::CsgEngage::ReportComponents::Report.new(program).serialize

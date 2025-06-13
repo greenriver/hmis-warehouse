@@ -22,4 +22,29 @@ module ElapsedTimeHelper
       format('%ss', s)
     end
   end
+
+  def precise_distance_of_time(seconds)
+    return "less than a minute" if seconds.to_f < 60
+
+    # Convert to integer for consistent division
+    seconds = seconds.to_i
+    parts = []
+
+    days, seconds = seconds.divmod(1.day.to_i)
+    if days > 0
+      parts << "#{days} #{'day'.pluralize(days)}"
+    end
+
+    hours, seconds = seconds.divmod(1.hour.to_i)
+    if hours > 0
+      parts << "#{hours} #{'hour'.pluralize(hours)}"
+    end
+
+    minutes = seconds / 1.minute.to_i
+    if minutes > 0
+      parts << "#{minutes} #{'minute'.pluralize(minutes)}"
+    end
+
+    parts.join(", ")
+  end
 end

@@ -7,7 +7,7 @@
 class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
   self.table_name = 'system_maintenance_tasks'
 
-  has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun'
+  has_many :system_maintenance_task_runs, class_name: 'GrdaWarehouse::Tasks::SystemMaintenanceTaskRun', dependent: :destroy
 
   # TODO: Add support for monitoring task runtime duration to alert when tasks run too long
   # This would need an additional threshold value and a baseline measure or threshold to compare to
