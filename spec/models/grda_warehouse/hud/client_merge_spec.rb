@@ -177,4 +177,103 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
     end
   end
+
+  describe 'when handling medicaid conflicts during merge' do
+    let!(:user) { create :user }
+    let!(:organization) { create(:hud_organization, data_source: source_ds) }
+    let!(:project) { create(:hud_project, project_type: 1, organization: organization, data_source: source_ds) }
+    let!(:source_a) { create :hud_client, FirstName: 'Same', LastName: 'Name', DOB: '2000-01-01', SSN: '1111', data_source: source_ds }
+    let!(:source_b) { create :hud_client, FirstName: 'Same', LastName: 'Name', DOB: '2000-01-01', SSN: '1111', data_source: source_ds }
+    let!(:dest_initial) { create :hud_client, data_source: destination_ds }
+    let!(:enrollments) do
+      [source_a, source_b].each do |client|
+        create(:hud_enrollment, client: client, project: project, data_source: source_ds)
+      end
+    end
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination: dest_initial, source: source_a, id_in_source: source_a.PersonalID)
+      GrdaWarehouse::WarehouseClient.create!(destination: dest_initial, source: source_b, id_in_source: source_b.PersonalID)
+      allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+      allow(GrdaWarehouse::Config).to receive(:get).with(:enable_auto_deduplication).and_return(true)
+    end
+
+    # Helper to spy on the medicaid conflict exception
+    def expect_medicaid_conflict_handling
+      conflict_raised = false
+      allow_any_instance_of(GrdaWarehouse::Hud::Client).to receive(:move_dependent_health_items).and_wrap_original do |original_method, *args|
+        original_method.call(*args)
+      rescue Health::MedicaidIdConflict
+        conflict_raised = true
+        raise # Re-raise for the application to handle
+      end
+
+      yield
+
+      conflict_raised
+    ensure
+      # Restore original method to avoid mock leakage into other tests
+      allow_any_instance_of(GrdaWarehouse::Hud::Client).to receive(:move_dependent_health_items).and_call_original
+    end
+
+    it 'tests the full split/merge cycle with medicaid conflicts' do
+      # 1. split two clients with the same PII
+      dest_initial.split([source_b.id], source_b.id, source_b.id, user)
+      GrdaWarehouse::Tasks::ClientCleanup.new.run!
+      expect(dest_initial.source_clients.count).to eq(1)
+      expect(dest_initial.source_clients.first.id).to eq(source_a.id)
+      dest_b = source_b.reload.destination_client
+      expect(dest_b).not_to be_nil
+      expect(dest_b.id).not_to eq(dest_initial.id)
+      expect(GrdaWarehouse::ClientSplitHistory.count).to eq(1)
+
+      # 2. remove the created ClientSplitHistory
+      GrdaWarehouse::ClientSplitHistory.destroy_all
+      expect(GrdaWarehouse::ClientSplitHistory.count).to eq(0)
+
+      # 3. run identify duplicates, confirm a re-merge
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+      expect(dest_initial.reload.source_clients.count).to eq(2)
+      # dest_b should have been destroyed after merge
+      expect(GrdaWarehouse::Hud::Client.find_by(id: dest_b.id)).to be_nil
+
+      # 4. split them again, and remove the ClientSplitHistory
+      dest_initial.split([source_b.id], source_b.id, source_b.id, user)
+      GrdaWarehouse::Tasks::ClientCleanup.new.run!
+      dest_b = source_b.reload.destination_client
+      GrdaWarehouse::ClientSplitHistory.destroy_all
+      expect(GrdaWarehouse::ClientSplitHistory.count).to eq(0)
+
+      # 5. Update associated patients to raise Health::MedicaidIdConflict
+      create(:patient, client: dest_initial, medicaid_id: 'CONFLICT_1')
+      create(:patient, client: dest_b, medicaid_id: 'CONFLICT_2')
+
+      # 6. run identify duplicates, confirm a Health::MedicaidIdConflict is raised and handled without re-merging
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      conflict_in_step_6 = expect_medicaid_conflict_handling do
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+      end
+      expect(conflict_in_step_6).to be(true)
+
+      expect(dest_initial.reload.source_clients.count).to eq(1)
+      expect(dest_b.reload.source_clients.count).to eq(1)
+      expect(GrdaWarehouse::ClientSplitHistory.count).to eq(1)
+
+      # 7. Remove the conflicting medicaid ids that cause the raise in the transaction
+      dest_b.patient.update!(medicaid_id: 'CONFLICT_1')
+      # and remove the split history to allow merge
+      GrdaWarehouse::ClientSplitHistory.destroy_all
+
+      # 8. run identify duplicates, confirm a re-merge and no conflict is raised
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      conflict_in_step_8 = expect_medicaid_conflict_handling do
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+      end
+      expect(conflict_in_step_8).to be(false)
+      expect(dest_initial.reload.source_clients.count).to eq(2)
+      expect(GrdaWarehouse::Hud::Client.find_by(id: dest_b.id)).to be_nil
+      expect(GrdaWarehouse::ClientSplitHistory.count).to eq(0)
+    end
+  end
 end
