@@ -4,176 +4,8 @@
     "code": "2.06.1",
     "values": [
       {
-        "key": 1,
-        "description": "HUD: CoC - Homelessness Prevention (High Performing Communities Only)"
-      },
-      {
-        "key": 2,
-        "description": "HUD: CoC - Permanent Supportive Housing"
-      },
-      {
-        "key": 3,
-        "description": "HUD: CoC - Rapid Re-Housing"
-      },
-      {
-        "key": 4,
-        "description": "HUD: CoC - Supportive Services Only"
-      },
-      {
-        "key": 5,
-        "description": "HUD: CoC - Transitional Housing"
-      },
-      {
-        "key": 6,
-        "description": "HUD: CoC - Safe Haven"
-      },
-      {
-        "key": 7,
-        "description": "HUD: CoC - Single Room Occupancy (SRO)"
-      },
-      {
-        "key": 8,
-        "description": "HUD: ESG - Emergency Shelter (operating and/or essential services)"
-      },
-      {
-        "key": 9,
-        "description": "HUD: ESG - Homelessness Prevention"
-      },
-      {
-        "key": 10,
-        "description": "HUD: ESG - Rapid Rehousing"
-      },
-      {
-        "key": 11,
-        "description": "HUD: ESG - Street Outreach"
-      },
-      {
         "key": 12,
         "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
-      },
-      {
-        "key": 13,
-        "description": "HUD: HOPWA - Hotel/Motel Vouchers"
-      },
-      {
-        "key": 14,
-        "description": "HUD: HOPWA - Housing Information"
-      },
-      {
-        "key": 15,
-        "description": "HUD: HOPWA - Permanent Housing (facility based or TBRA)"
-      },
-      {
-        "key": 16,
-        "description": "HUD: HOPWA - Permanent Housing Placement"
-      },
-      {
-        "key": 17,
-        "description": "HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance"
-      },
-      {
-        "key": 18,
-        "description": "HUD: HOPWA - Short-Term Supportive Facility"
-      },
-      {
-        "key": 19,
-        "description": "HUD: HOPWA - Transitional Housing (facility based or TBRA)"
-      },
-      {
-        "key": 20,
-        "description": "HUD: HUD/VASH"
-      },
-      {
-        "key": 21,
-        "description": "HHS: PATH - Street Outreach & Supportive Services Only"
-      },
-      {
-        "key": 22,
-        "description": "HHS: RHY - Basic Center Program (prevention and shelter)"
-      },
-      {
-        "key": 23,
-        "description": "HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth"
-      },
-      {
-        "key": 24,
-        "description": "HHS: RHY - Transitional Living Program"
-      },
-      {
-        "key": 25,
-        "description": "HHS: RHY - Street Outreach Project"
-      },
-      {
-        "key": 26,
-        "description": "HHS: RHY - Demonstration Project"
-      },
-      {
-        "key": 27,
-        "description": "VA: CRS Contract Residential Services"
-      },
-      {
-        "key": 30,
-        "description": "VA: Community Contract Safe Haven Program"
-      },
-      {
-        "key": 32,
-        "description": "VA: Compensated Work Therapy Transitional Residence"
-      },
-      {
-        "key": 33,
-        "description": "VA: Supportive Services for Veteran Families"
-      },
-      {
-        "key": 34,
-        "description": "N/A"
-      },
-      {
-        "key": 35,
-        "description": "HUD: Pay for Success"
-      },
-      {
-        "key": 36,
-        "description": "HUD: Public and Indian Housing (PIH) Programs"
-      },
-      {
-        "key": 37,
-        "description": "VA: Grant Per Diem - Bridge Housing"
-      },
-      {
-        "key": 38,
-        "description": "VA: Grant Per Diem - Low Demand"
-      },
-      {
-        "key": 39,
-        "description": "VA: Grant Per Diem - Hospital to Housing"
-      },
-      {
-        "key": 40,
-        "description": "VA: Grant Per Diem - Clinical Treatment"
-      },
-      {
-        "key": 41,
-        "description": "VA: Grant Per Diem - Service Intensive Transitional Housing"
-      },
-      {
-        "key": 42,
-        "description": "VA: Grant Per Diem - Transition in Place"
-      },
-      {
-        "key": 43,
-        "description": "HUD: CoC - Youth Homeless Demonstration Program (YHDP)"
-      },
-      {
-        "key": 44,
-        "description": "HUD: CoC - Joint Component TH/RRH"
-      },
-      {
-        "key": 45,
-        "description": "VA: Grant Per Diem - Case Management/Housing Retention"
-      },
-      {
-        "key": 46,
-        "description": "Local or Other Funding Source"
       },
       {
         "key": 47,
@@ -186,34 +18,16 @@
       {
         "key": 49,
         "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
-      },
+      }
+    ]
+  },
+  {
+    "name": "SSVFFinancialAssistance",
+    "code": "V3.3",
+    "values": [
       {
-        "key": 50,
-        "description": "HUD: HOME"
-      },
-      {
-        "key": 51,
-        "description": "HUD: HOME (ARP)"
-      },
-      {
-        "key": 52,
-        "description": "HUD: PIH (Emergency Housing Voucher)"
-      },
-      {
-        "key": 53,
-        "description": "HUD: ESG - RUSH"
-      },
-      {
-        "key": 54,
-        "description": "HUD: Unsheltered Special NOFO"
-      },
-      {
-        "key": 55,
-        "description": "HUD: Rural Special NOFO"
-      },
-      {
-        "key": 56,
-        "description": "HUD: CoC Builds"
+        "key": 11,
+        "description": "General housing stability assistance - emergency supplies [Deprecated]"
       }
     ]
   },

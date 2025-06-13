@@ -788,4 +788,8 @@ module HudUtility2026
       '65+' => 65..Float::INFINITY,
     }
   end
+
+  def race_gender_none_options
+    race_nones
+  end
 end

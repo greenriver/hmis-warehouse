@@ -716,6 +716,10 @@ module Concerns::HudLists2026
         54 => 'HUD: Unsheltered Special NOFO',
         55 => 'HUD: Rural Special NOFO',
         56 => 'HUD: CoC Builds',
+        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
+        47 => 'HUD: ESG - CV [Deprecated]',
+        48 => 'HUD: HOPWA - CV [Deprecated]',
+        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
       }.freeze
     end
 
@@ -737,7 +741,6 @@ module Concerns::HudLists2026
         9 => 'HUD: ESG - Homelessness Prevention',
         10 => 'HUD: ESG - Rapid Rehousing',
         11 => 'HUD: ESG - Street Outreach',
-        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
         13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
         14 => 'HUD: HOPWA - Housing Information',
         15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
@@ -769,9 +772,6 @@ module Concerns::HudLists2026
         44 => 'HUD: CoC - Joint Component TH/RRH',
         45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
         46 => 'Local or Other Funding Source',
-        47 => 'HUD: ESG - CV [Deprecated]',
-        48 => 'HUD: HOPWA - CV [Deprecated]',
-        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
         50 => 'HUD: HOME',
         51 => 'HUD: HOME (ARP)',
         52 => 'HUD: PIH (Emergency Housing Voucher)',
@@ -779,6 +779,10 @@ module Concerns::HudLists2026
         54 => 'HUD: Unsheltered Special NOFO',
         55 => 'HUD: Rural Special NOFO',
         56 => 'HUD: CoC Builds',
+        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
+        47 => 'HUD: ESG - CV [Deprecated]',
+        48 => 'HUD: HOPWA - CV [Deprecated]',
+        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
       }.freeze
     end
 
@@ -2193,6 +2197,32 @@ module Concerns::HudLists2026
         16 => 'Food Assistance',
         17 => 'Landlord Incentive',
         18 => 'Tenant Incentive',
+        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
+      }.freeze
+    end
+
+    def ssvf_financial_assistance(id, reverse = false, raise_on_missing: false)
+      _translate(ssvf_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # V3.3
+    def ssvf_financial_assistance_options
+      {
+        1 => 'Rental assistance',
+        2 => 'Security deposit',
+        3 => 'Utility deposit',
+        4 => 'Utility fee payment assistance',
+        5 => 'Moving costs',
+        8 => 'Transportation services: tokens/vouchers',
+        9 => 'Transportation services: vehicle repair/maintenance',
+        10 => 'Child care',
+        12 => 'General housing stability assistance',
+        14 => 'Emergency housing assistance',
+        15 => 'Shallow Subsidy - Financial Assistance',
+        16 => 'Food Assistance',
+        17 => 'Landlord Incentive',
+        18 => 'Tenant Incentive',
+        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
       }.freeze
     end
 

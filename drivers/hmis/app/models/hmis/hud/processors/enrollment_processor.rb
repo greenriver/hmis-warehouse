@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -21,7 +23,6 @@ module Hmis::Hud::Processors
         attribute_value = attribute_value_for_enum(graphql_enum(field), value)
         { attribute_name => attribute_value }
       end
-      #raise [field, value, attributes].inspect if attribute_name == 'mental_health_consultation'
       enrollment.assign_attributes(attributes)
     end
     # Error processing field 'Enrollment.MentalHealthConsultation': ["MentalHealthConsultation", "MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER", {"mental_health_consultation"=>"MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER"}]

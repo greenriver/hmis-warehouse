@@ -56,8 +56,7 @@ module HudCodeGen
     source = File.read("lib/data/#{year}_hud_lists.json")
     all_lists = JSON.parse(source)
 
-    deprecations_file = "lib/data/#{year}_hud_deprecations.json"
-    all_lists.concat(JSON.parse(File.read(deprecations_file))) if File.exist?(deprecations_file)
+    all_lists = merge_deprecations(all_lists, year)
 
     all_lists = all_lists.sort_by { |hash| hash['code'] }
     skipped = []
@@ -108,8 +107,7 @@ module HudCodeGen
     source = File.read("lib/data/#{year}_hud_lists.json")
     all_lists = JSON.parse(source)
 
-    deprecations_file = "lib/data/#{year}_hud_deprecations.json"
-    all_lists.concat(JSON.parse(File.read(deprecations_file))) if File.exist?(deprecations_file)
+    all_lists = merge_deprecations(all_lists, year)
 
     # ideally we would sort by code, but this causes a lot of churn
     # all_lists = all_lists.sort_by { |hash| hash['code'] }
@@ -166,6 +164,35 @@ module HudCodeGen
       f.write(contents)
     end
     filename
+  end
+
+  private def merge_deprecations(all_lists, year)
+    deprecations_file = "lib/data/#{year}_hud_deprecations.json"
+    return all_lists unless File.exist?(deprecations_file)
+
+    deprecations = JSON.parse(File.read(deprecations_file))
+
+    # Merge deprecated values into existing lists when code matches
+    deprecations.each do |deprecated_list|
+      existing_list = all_lists.find { |list| list['code'] == deprecated_list['code'] }
+
+      if existing_list
+        # Merge deprecated values into existing list, avoiding duplicates by key
+        merged_list = existing_list.dup
+        existing_keys = merged_list['values'].map { |v| v['key'] }.to_set
+        deprecated_list['values'].each do |deprecated_value|
+          unless existing_keys.include?(deprecated_value['key'])
+            merged_list['values'] << deprecated_value
+          end
+        end
+        all_lists << merged_list
+      else
+        # Include deprecated list verbatim if no matching code found in current lists
+        all_lists << deprecated_list
+      end
+    end
+
+    all_lists
   end
 
   private def get_function_names(name)
