@@ -24,27 +24,21 @@ module ElapsedTimeHelper
   end
 
   def precise_distance_of_time(seconds)
-    return "less than a minute" if seconds.to_f < 60
+    return 'less than a minute' if seconds.to_f < 60
 
     # Convert to integer for consistent division
     seconds = seconds.to_i
     parts = []
 
     days, seconds = seconds.divmod(1.day.to_i)
-    if days > 0
-      parts << "#{days} #{'day'.pluralize(days)}"
-    end
+    parts << "#{days} #{'day'.pluralize(days)}" if days > 0
 
     hours, seconds = seconds.divmod(1.hour.to_i)
-    if hours > 0
-      parts << "#{hours} #{'hour'.pluralize(hours)}"
-    end
+    parts << "#{hours} #{'hour'.pluralize(hours)}" if hours > 0
 
     minutes = seconds / 1.minute.to_i
-    if minutes > 0
-      parts << "#{minutes} #{'minute'.pluralize(minutes)}"
-    end
+    parts << "#{minutes} #{'minute'.pluralize(minutes)}" if minutes > 0
 
-    parts.join(", ")
+    parts.join(', ')
   end
 end

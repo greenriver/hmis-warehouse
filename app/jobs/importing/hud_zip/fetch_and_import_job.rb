@@ -9,7 +9,6 @@ module Importing::HudZip
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     WAIT_MINUTES = 15
 
-
     def perform(...)
       instrument_as_maintenance_task do |run|
         run.complete! if _perform(...)
