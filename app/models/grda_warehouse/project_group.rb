@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'roo'
 module GrdaWarehouse
   class ProjectGroup < GrdaWarehouseBase
@@ -18,6 +20,8 @@ module GrdaWarehouse
     validates_presence_of :name
     # allows us to skip this expensive operation when running in tests
     attr_accessor :skip_maintain_system_group
+    # used to store the excluded project ids and types for the form, saved to the filter
+    attr_accessor :excluded_project_ids, :excluded_project_type_numbers
     after_create :maintain_system_group, unless: :skip_maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
@@ -44,6 +48,12 @@ module GrdaWarehouse
 
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects
+
+    after_initialize do
+      # Initialize filter with excluded project ids and types
+      self.excluded_project_ids = filter&.excluded_project_ids || []
+      self.excluded_project_type_numbers = filter&.excluded_project_type_numbers || []
+    end
 
     scope :viewable_by, ->(user) do
       # only used in the context of reporting
