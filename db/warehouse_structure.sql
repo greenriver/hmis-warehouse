@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -24707,7 +24707,8 @@ CREATE TABLE public.hud_report_apr_clients (
     pay_for_success boolean DEFAULT false,
     race_multi_include_race_none jsonb,
     hoh_move_in_date date,
-    adjusted_move_in_date date
+    adjusted_move_in_date date,
+    sex integer
 );
 
 
@@ -25334,7 +25335,8 @@ CREATE TABLE public.hud_report_path_clients (
     newly_enrolled_client boolean DEFAULT false,
     cmh_service_provided boolean DEFAULT false NOT NULL,
     cmh_referral_provided_and_attained boolean DEFAULT false NOT NULL,
-    project_id integer
+    project_id integer,
+    sex integer
 );
 
 
@@ -31836,7 +31838,8 @@ CREATE TABLE public.warehouse_clients_processed (
     cohorts_ongoing_enrollments_so jsonb,
     cohorts_ongoing_enrollments_psh jsonb,
     cohorts_ongoing_enrollments_rrh jsonb,
-    last_intentional_contacts character varying
+    last_intentional_contacts character varying,
+    cohorts_ongoing_enrollments_sso jsonb
 );
 
 
@@ -73998,6 +74001,9 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250614013242'),
+('20250612192906'),
+('20250612153642'),
+('20250611163755'),
 ('20250603132106'),
 ('20250528205252'),
 ('20250528000208'),
@@ -74164,4 +74170,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-
