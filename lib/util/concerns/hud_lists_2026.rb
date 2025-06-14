@@ -964,7 +964,7 @@ module Concerns::HudLists2026
     end
 
     # 3.6.1
-    def genders_options
+    def genders
       {
         0 => 'Woman (Girl, if child)',
         1 => 'Man (Boy, if child)',
@@ -979,8 +979,8 @@ module Concerns::HudLists2026
       }.freeze
     end
 
-    def genders(id, reverse = false, raise_on_missing: false)
-      _translate(genders_options, id, reverse, raise_on_missing: raise_on_missing)
+    def gender(id, reverse = false, raise_on_missing: false)
+      _translate(genders, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917

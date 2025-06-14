@@ -181,9 +181,7 @@ module HudCodeGen
         merged_list = existing_list.dup
         existing_keys = merged_list['values'].map { |v| v['key'] }.to_set
         deprecated_list['values'].each do |deprecated_value|
-          unless existing_keys.include?(deprecated_value['key'])
-            merged_list['values'] << deprecated_value
-          end
+          merged_list['values'] << deprecated_value unless existing_keys.include?(deprecated_value['key'])
         end
         all_lists << merged_list
       else
