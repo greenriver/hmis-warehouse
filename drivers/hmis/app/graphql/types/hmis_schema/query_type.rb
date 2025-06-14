@@ -587,7 +587,7 @@ module Types
     def ce_referrals(**args)
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
-      resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
+      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
     field :unit_group, HmisSchema::UnitGroup, null: true do
