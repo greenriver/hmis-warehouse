@@ -343,15 +343,6 @@ module HudUtility2026
   # START 2024 Deprecated fields
   ######
 
-  # 1.6
-  def gender_none(id, reverse = false)
-    race_none(id, reverse)
-  end
-
-  def race_gender_none_options
-    race_nones
-  end
-
   def gender_fields
     gender_id_to_field_name.values.uniq.freeze
   end
