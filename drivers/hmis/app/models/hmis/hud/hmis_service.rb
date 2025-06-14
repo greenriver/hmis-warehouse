@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -45,7 +47,15 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     age_oldest_to_youngest: 'Client Age: Oldest to Youngest',
   }.freeze
 
-  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome].freeze
+  HUD_ATTRIBUTES = [
+    :record_type,
+    :type_provided,
+    :other_type_provided,
+    :moving_on_other_type,
+    :sub_type_provided,
+    :referral_outcome,
+    :information_date,
+  ].freeze
   HUD_AND_CUSTOM_ATTRIBUTES = [:fa_amount, :fa_start_date, :fa_end_date].freeze
 
   delegate(*HUD_AND_CUSTOM_ATTRIBUTES, to: :owner)
@@ -89,8 +99,8 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     true
   end
 
-  HUD_SERVICE_ID_PREFIX = '1'.freeze
-  CUSTOM_SERVICE_ID_PREFIX = '2'.freeze
+  HUD_SERVICE_ID_PREFIX = '1'
+  CUSTOM_SERVICE_ID_PREFIX = '2'
 
   # HmisService IDs are prefixed. Check if a given ID format is valid.
   def self.valid_id?(id)

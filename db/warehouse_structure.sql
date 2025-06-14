@@ -1,6 +1,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -23558,6 +23559,7 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
+    "Services"."InformationDate",
     ("Services"."UserID")::character varying AS "UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
@@ -23575,6 +23577,7 @@ UNION ALL
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
     "CustomServices"."DateProvided",
+    NULL::date AS "InformationDate",
     "CustomServices"."UserID",
     "CustomServices"."DateCreated",
     "CustomServices"."DateUpdated",
@@ -73994,6 +73997,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250614013242'),
 ('20250603132106'),
 ('20250528205252'),
 ('20250528000208'),
