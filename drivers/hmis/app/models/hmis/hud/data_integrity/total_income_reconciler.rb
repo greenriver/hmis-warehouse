@@ -11,32 +11,60 @@
 #
 class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity::BaseReconciler
   # [[:Alimony, :AlimonyAmount], ...]
-  INCOME_SOURCES = GrdaWarehouse::Hud::IncomeBenefit::SOURCES
+  INCOME_SOURCES = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.to_a.freeze
 
   # @param [Hmis::Hud::IncomeBenefit] record
   def call(record)
-    messages = []
+    # note, we only perform reconciliation if the record indicates income_from_any_source. Otherwise we leave any
+    # issues to be flagged by DQ
+    @messages = []
+    if record.income_from_any_source&.to_i == 1
+      reconcile_total_income(record)
+    else
+      check_no_income_fields(record)
+    end
 
-    calculated_income = 0
-    INCOME_SOURCES.each_pair do |source_field, amount_field|
-      next unless record.public_send(source_field)&.to_i == 1 # 1 = yes
+    format_messages(record, @messages)
+  end
 
-      amount = record.public_send(amount_field).presence
-      if amount.nil?
-        messages << "Expected #{amount_field} to have a numeric value but was null"
-      elsif amount.negative? || amount.zero?
-        messages << "Expected #{amount_field} to be positive but was #{amount}. Excluding from total"
-      else
-        calculated_income += amount
+  protected
+
+  def check_no_income_fields(record)
+    total = record.total_monthly_income
+    report(record, "Expected total_monthly_income to be zero or nil, was #{total}") if total.to_f.positive?
+  end
+
+  def reconcile_total_income(record)
+    calculated_income = calculate_total_income(record)
+    # Normalize nil total_monthly_income to 0 for comparison
+    total_income = record.total_monthly_income.to_f
+    # do nothing if total income matches calculated within tolerance
+    return if (calculated_income - total_income).abs < 0.01
+
+    # report and correct value
+    report(record, "Total monthly income does not match calculated income. Expected #{record.total_monthly_income&.to_f.inspect} to equal calculated: #{calculated_income.inspect} (auto-corrected)")
+    record.total_monthly_income = calculated_income
+  end
+
+  def calculate_total_income(record)
+    result = 0
+    INCOME_SOURCES.each do |source_field, amount_field|
+      source = record.public_send(source_field)&.to_i
+      amount = record.public_send(amount_field)&.to_f
+
+      # we ignore the source field when calculating total value
+      result += amount if amount&.positive?
+
+      # report inconsistencies if the source was set to true
+      if source == 1
+        report(record, "Expected #{amount_field} to be provided but was #{amount.inspect}") if amount.nil? || amount&.negative? || amount&.zero?
       end
     end
+    result
+  end
 
-    if calculated_income.round(2) != record.total_monthly_income&.round(2)
-      messages << "Total monthly income does not match calculated income. Expected #{record.total_monthly_income} to equal calculated: #{calculated_income} (auto-corrected)"
-      # auto correction
-      record.total_monthly_income = calculated_income
-    end
-
-    format_messages(record, messages)
+  def report(record, message)
+    tag = "#{record.class.name}##{record.id}"
+    @messages << "#{tag}: #{message}"
   end
 end
