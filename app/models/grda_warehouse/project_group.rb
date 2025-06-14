@@ -150,7 +150,7 @@ module GrdaWarehouse
     end
 
     def filter
-      @filter ||= begin
+      @filter = begin
         f = ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
         f.coc_codes = []
         f
