@@ -3,3 +3,7 @@ CVE-2024-49761
 # this version of net-imap is included with the default ruby in the container, but not used
 # as we install a newer version for the application
 CVE-2025-43857
+
+# owner of esbuild indicates this is a false-positive; esbuild doesn't use crypto/x509
+# https://github.com/evanw/esbuild/issues/4204
+CVE-2025-22874
