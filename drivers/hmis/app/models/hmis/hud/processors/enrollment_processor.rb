@@ -25,8 +25,6 @@ module Hmis::Hud::Processors
       end
       enrollment.assign_attributes(attributes)
     end
-    # Error processing field 'Enrollment.MentalHealthConsultation': ["MentalHealthConsultation", "MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER", {"mental_health_consultation"=>"MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER"}]
-    # Error processing field 'Enrollment.livingSituation': ["livingSituation", "SAFE_HAVEN", {"living_situation"=>118}]
 
     def factory_name
       :enrollment_factory
