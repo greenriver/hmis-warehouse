@@ -26,6 +26,10 @@ module GraphqlApplicationHelper
     raise message
   end
 
+  def policy_for(resource)
+    current_user.policy_for(resource)
+  end
+
   # Does the current user have the given permission on entity?
   #
   # @param permission [Symbol] :can_do_foo

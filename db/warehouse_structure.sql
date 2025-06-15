@@ -23419,6 +23419,27 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
+-- Name: hmis_project_access_group_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_project_access_group_members AS
+ SELECT targets.project_id,
+    hmis_group_viewable_entities.collection_id AS access_group_id
+   FROM (public.hmis_group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            hmis_project_groups.id AS project_group_id
+           FROM (((public."Project"
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.hmis_project_project_groups ON ((hmis_project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.hmis_project_groups ON (((hmis_project_groups.deleted_at IS NULL) AND (hmis_project_groups.id = hmis_project_project_groups.hmis_project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((hmis_group_viewable_entities.deleted_at IS NULL) AND ((((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.entity_id = targets.data_source_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (hmis_group_viewable_entities.entity_id = targets.organization_id)) OR ((((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectAccessGroup'::text) OR ((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text)) AND (hmis_group_viewable_entities.entity_id = targets.project_group_id))))))
+  WHERE ((hmis_group_viewable_entities.deleted_at IS NULL) AND (hmis_group_viewable_entities.collection_id IS NOT NULL))
+  GROUP BY targets.project_id, hmis_group_viewable_entities.collection_id;
+
+
+--
 -- Name: hmis_project_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -72917,6 +72938,20 @@ CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless
 
 
 --
+-- Name: hmis_project_access_group_members attempt_hmis_project_access_group_members_del; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER attempt_hmis_project_access_group_members_del INSTEAD OF DELETE ON public.hmis_project_access_group_members FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
+
+
+--
+-- Name: hmis_project_access_group_members attempt_hmis_project_access_group_members_up; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER attempt_hmis_project_access_group_members_up INSTEAD OF UPDATE ON public.hmis_project_access_group_members FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
+
+
+--
 -- Name: client_searchable_names no_modify_client_searchable_names; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -73998,6 +74033,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250617234921'),
 ('20250612192906'),
 ('20250612153642'),
 ('20250611163755'),

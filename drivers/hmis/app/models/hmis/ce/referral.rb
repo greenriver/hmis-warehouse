@@ -95,6 +95,9 @@ module Hmis::Ce
       # end
     end
 
+    def self.policy_class = Hmis::AuthPolicies::CeReferralPolicy
+    def policy_class = self.class.policy_class
+
     def workflow_engine
       @workflow_engine ||= Hmis::WorkflowExecution::Engine.new(
         workflow_instance,

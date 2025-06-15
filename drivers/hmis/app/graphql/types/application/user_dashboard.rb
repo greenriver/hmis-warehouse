@@ -26,13 +26,13 @@ module Types
     def user_dashboard_config
       {
         id: object.id,
-        show_staff_assignment: show_staff_assignment,
-        show_referrals: show_referrals,
+        show_staff_assignment: policy_for(Hmis::StaffAssignment).can_index?,
+        show_referrals: policy_for(Hmis::Ce::Referral).can_index?,
       }
     end
 
     def staff_assignments
-      return Hmis::StaffAssignment.none unless show_staff_assignment
+      return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment).can_index?
 
       object.staff_assignments.
         viewable_by(current_user). # Only resolve assignments where the user has access to view the household
@@ -41,7 +41,7 @@ module Types
     end
 
     def ce_referral_steps
-      return Hmis::WorkflowExecution::Step.none unless show_referrals
+      return Hmis::WorkflowExecution::Step.none unless policy_for(Hmis::Ce::Referral).can_index?
 
       # Scope open steps that are assigned to the current user
       step_scope = Hmis::WorkflowExecution::Step.open.
@@ -56,28 +56,6 @@ module Types
       step_scope = step_scope.where(instance_id: viewable_instance_ids)
 
       step_scope.order(available_at: :desc, id: :desc)
-    end
-
-    private
-
-    def show_referrals
-      @show_referrals ||= begin
-        return false unless Hmis::Ce.configuration.enabled?
-
-        can_view_referrals = object.permissions?(:can_view_referrals, :can_view_own_referrals)
-        can_perform_referral_steps = object.permissions?(:can_perform_any_referral_tasks, :can_perform_own_referral_tasks)
-
-        can_view_referrals && can_perform_referral_steps
-      end
-    end
-
-    def show_staff_assignment
-      @show_staff_assignment ||= begin
-        return false unless Hmis::ProjectStaffAssignmentConfig.exists?
-
-        project_scope = Hmis::Hud::Project.with_access(object, :can_edit_enrollments).preload(:organization)
-        Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
-      end
     end
   end
 end

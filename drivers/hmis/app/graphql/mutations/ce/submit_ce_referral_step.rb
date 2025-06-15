@@ -30,7 +30,7 @@ module Mutations
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
         step.form_definition = form_definition
-        access_denied! unless current_user.can_perform_referral_step?(step)
+        access_denied! unless policy_for(step).can_perform?
 
         validations = engine.validate_step(step, submitted_values: input)
         errors.push(*validations)
