@@ -123,7 +123,7 @@
       "enable_when": [
         {
           "local_constant": "$hudRecordType",
-          "operator": "NOT_EQUAL",
+          "operator": "EQUAL",
           "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
         }
       ]
