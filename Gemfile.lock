@@ -297,10 +297,6 @@ GEM
       msgpack (~> 1.2)
     bootstrap (5.3.5)
       popper_js (>= 2.11.8, < 3)
-    bootstrap4-datetime-picker-rails (0.3.1)
-      jquery-rails (~> 4.2, >= 4.2.0)
-      moment-timezone-rails (~> 1.0)
-      momentjs-rails (>= 2.10.5, <= 3.0.0)
     brakeman (7.0.2)
       racc
     browser (6.2.0)
@@ -672,10 +668,6 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    moment-timezone-rails (1.1.0)
-      momentjs-rails (>= 2.10.5, <= 3.0.0)
-    momentjs-rails (2.29.4.1)
-      railties (>= 3.1)
     msgpack (1.8.0)
     multi_json (1.15.0)
     multi_xml (0.7.1)
@@ -1165,7 +1157,6 @@ DEPENDENCIES
   benchmark
   bootsnap
   bootstrap (~> 5.3.3)
-  bootstrap4-datetime-picker-rails
   brakeman
   browser
   bumbler
@@ -1432,7 +1423,6 @@ CHECKSUMS
   bindex (0.8.1) sha256=7b1ecc9dc539ed8bccfc8cb4d2732046227b09d6f37582ff12e50a5047ceb17e
   bootsnap (1.18.4) sha256=ac4c42af397f7ee15521820198daeff545e4c360d2772c601fbdc2c07d92af55
   bootstrap (5.3.5) sha256=d57c9b7a21eaf2182c32fe93d1c0eaa0e1ebe82c46676c5a1fd66dd3a6ac41f8
-  bootstrap4-datetime-picker-rails (0.3.1) sha256=1664ef9e842a764a281b05c00c0e03400eaef7b25b77d3b07511a5700b1256e8
   brakeman (7.0.2) sha256=b602d91bcec6c5ce4d4bc9e081e01f621c304b7a69f227d1e58784135f333786
   browser (6.2.0) sha256=281d5295788825c9396427c292c2d2be0a5c91875c93c390fde6e5d61a5ace2d
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
@@ -1593,8 +1583,6 @@ CHECKSUMS
   mini_portile2 (2.8.8) sha256=8e47136cdac04ce81750bb6c09733b37895bf06962554e4b4056d78168d70a75
   minitest (5.25.5) sha256=391b6c6cb43a4802bfb7c93af1ebe2ac66a210293f4a3fb7db36f2fc7dc2c756
   minitest-reporters (1.7.1) sha256=5060413a0c95b8c32fe73e0606f3631c173a884d7900e50013e15094eb50562c
-  moment-timezone-rails (1.1.0) sha256=663fb1cfcb9f75b9298569e64b4df4e3a8e5d17061eadc2963bd3f2496ed7434
-  momentjs-rails (2.29.4.1) sha256=c7f9bc583872b628f8723319f4ae12a646c858c1c3ddb352bc75d5a7aa0b9e01
   msgpack (1.8.0) sha256=e64ce0212000d016809f5048b48eb3a65ffb169db22238fb4b72472fecb2d732
   multi_json (1.15.0) sha256=1fd04138b6e4a90017e8d1b804c039031399866ff3fbabb7822aea367c78615d
   multi_xml (0.7.1) sha256=4fce100c68af588ff91b8ba90a0bb3f0466f06c909f21a32f4962059140ba61b
