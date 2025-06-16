@@ -35,9 +35,24 @@ module Reporting
       end
 
       context 'when a specific sub_population is given' do
+        let(:youth_report_class_double) { class_double(Reporting::MonthlyReports::Base) }
+        let(:youth_report_instance_double) { instance_double(Reporting::MonthlyReports::Base) }
+        let(:veterans_report_class_double) { class_double(Reporting::MonthlyReports::Base) }
+        let(:veterans_report_instance_double) { instance_double(Reporting::MonthlyReports::Base) }
+
+        before do
+          allow(Reporting::MonthlyReports::Base).to receive(:class_for).with(:youth).and_return(youth_report_class_double)
+          allow(Reporting::MonthlyReports::Base).to receive(:class_for).with(:veterans).and_return(veterans_report_class_double)
+          allow(youth_report_class_double).to receive(:new).and_return(youth_report_instance_double)
+          allow(veterans_report_class_double).to receive(:new).and_return(veterans_report_instance_double)
+          allow(youth_report_instance_double).to receive(:populate!)
+          allow(veterans_report_instance_double).to receive(:populate!)
+        end
+
         it 'populates the specific report' do
           described_class.new.perform(sub_population: 'youth')
-          expect(report_instance_double).to have_received(:populate!)
+          expect(youth_report_instance_double).to have_received(:populate!)
+          expect(veterans_report_instance_double).to_not have_received(:populate!)
         end
       end
     end
