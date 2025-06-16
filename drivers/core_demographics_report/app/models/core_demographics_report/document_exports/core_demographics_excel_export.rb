@@ -27,7 +27,7 @@ module CoreDemographicsReport::DocumentExports
 
     def perform
       with_status_progression do
-        self.filename = "Core Demographics - #{Time.current.to_fs(:db)}"
+        self.filename = "Core Demographics - #{Time.current.to_fs(:db)}.xlsx"
         self.file_data = excel_package.to_stream.read
         self.mime_type = EXCEL_MIME_TYPE
       end
