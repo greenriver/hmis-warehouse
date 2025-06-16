@@ -10,7 +10,8 @@ class App.Rollups.Loader
         $(document).queue "fx", =>
           $.get @rollupPath + $e.data('partial'), (data) =>
             $e.find('.rollup-container').append data
-            $e.find('[data-toggle=tooltip]').tooltip()
+            # FIXME: needs testing before removal
+            # $e.find('[data-bs-toggle=tooltip]').tooltip()
             # dress up all the id dots
             $e.find('.id-sqr[data-id]').each (i,el)=>
               $id = $(el)

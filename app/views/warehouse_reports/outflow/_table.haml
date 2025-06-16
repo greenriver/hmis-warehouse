@@ -14,4 +14,4 @@
           %td
             - if obj[:type] == :exit && @report.project_types_limiting_exit_scope.present?
               - types = @report.project_types_limiting_exit_scope.join(', ')
-              %i.icon-info{data: {toggle: :tooltip, title: "Limited to exits from #{types}"}}
+              %i.icon-info{data: { 'bs-toggle' => :tooltip, title: "Limited to exits from #{types}"}}

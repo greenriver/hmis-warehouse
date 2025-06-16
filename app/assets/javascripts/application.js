@@ -41,8 +41,6 @@
 //= require billboard.js/dist/billboard.min
 //= require ag-grid-community/dist/ag-grid-community.min.noStyle.js
 //= require moment/moment
-
-//= require tempusdominus-bootstrap-4
 //= require stimulus/dist/stimulus.umd
 //= require vendor/rfdc/rfdc
 //= require promise-polyfill/dist/polyfill.min

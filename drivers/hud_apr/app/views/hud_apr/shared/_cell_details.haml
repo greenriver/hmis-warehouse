@@ -29,7 +29,7 @@
             - column_headings.each_value do |header|
               %th= header
         %tbody.thead-dark
-          - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id)) 
+          - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
           - @clients.find_each.with_index do |client, i|
             - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
             %tr
@@ -39,12 +39,12 @@
                   - if k.to_s == 'client_id'
                     = link_to from_source_client_path(client[k]) do
                       = client[k]
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s == 'destination_client_id'
                     = link_to appropriate_client_path(client[k]) do
                       = client[k]
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s.starts_with?('hiv_aids') && !can_view_hiv_status?
                     %i.light redacted

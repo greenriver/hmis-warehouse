@@ -11,7 +11,7 @@
   .question-jumper.ml-auto
     - if @report&.completed_questions && @report.completed_questions.count > 1
       .btn-group
-        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ data: { toggle: :dropdown}, aria: { expanded: :false }}
+        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ data: { 'bs-toggle' => :dropdown}, aria: { expanded: :false }}
           Jump to
           .icon-angle-down.pl-4
         .dropdown-menu.dropdown-menu-right

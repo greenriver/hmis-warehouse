@@ -13,7 +13,7 @@
         - if item.children?
           - options[:class] = collapsed
           - options[:data] ||= {}
-          - options[:data].merge!(toggle: :collapse, target: href)
+          - options[:data].merge!('bs-toggle' => :collapse, target: href)
         %a.nav-link.d-flex{ **options }
           .icon-wrapper
             - if item.icon?

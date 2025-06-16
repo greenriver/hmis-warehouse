@@ -85,7 +85,7 @@ module ApplicationHelper
       svg_checkbox(wrapper_class: wrapper_class, symbol_name: symbol_name, size: size, tooltip: tooltip)
     else
       capture do
-        concat content_tag :span, nil, { data: { toggle: :tooltip, title: tooltip }, class: "icon-#{html_class} inline-icon" }
+        concat content_tag :span, nil, { data: { 'bs-toggle' => :tooltip, title: tooltip }, class: "icon-#{html_class} inline-icon" }
       end
     end
   end
@@ -94,13 +94,13 @@ module ApplicationHelper
     allow_directions = [:up, :down, :none]
     direction = :none if allow_directions.exclude? direction.to_sym
     tooltip_data = {}
-    tooltip_data = { toggle: :tooltip, title: tooltip } if tooltip.present?
+    tooltip_data = { 'bs-toggle' => :tooltip, title: tooltip } if tooltip.present?
     embedded_svg("change-#{direction}", options: tooltip_data)
   end
 
   def svg_checkbox(wrapper_class:, symbol_name:, size: 'xs', tooltip: nil)
     capture do
-      content_tag(:span, class: "icon-svg--#{size} #{wrapper_class} mr-2", data: { toggle: :tooltip, title: tooltip }) do
+      content_tag(:span, class: "icon-svg--#{size} #{wrapper_class} mr-2", data: { 'bs-toggle' => :tooltip, title: tooltip }) do
         content_tag(:svg) do
           content_tag(:use, '', 'xlink:href' => "\#icon-#{symbol_name}")
         end
@@ -561,7 +561,7 @@ module ApplicationHelper
     raise ArgumentError, "Method must be 'get' or 'post'" unless ['get', 'post'].include?(method.to_s)
 
     form_options = { method: method }
-    input_data = { toggle: 'tooltip', title: tooltip_title, placement: 'bottom' } if tooltip_title
+    input_data = { 'bs-toggle' => 'tooltip', title: tooltip_title, placement: 'bottom' } if tooltip_title
     input_attrs = {
       name: input_name,
       autofocus: autofocus,

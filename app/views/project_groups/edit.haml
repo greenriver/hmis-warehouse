@@ -29,7 +29,7 @@
         %dl
           %dt
             PIT Count
-            %i.icon-info{data: { toggle: :tooltip, title: 'The sum of all PITCount columuns as reported from HMIS for all projects included.' }}
+            %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'The sum of all PITCount columuns as reported from HMIS for all projects included.' }}
           %dd.mb-4= @project_group.projects.map(&:PITCount).compact.sum
           %dt Project Count
           %dd.mb-4= @project_group.projects.count

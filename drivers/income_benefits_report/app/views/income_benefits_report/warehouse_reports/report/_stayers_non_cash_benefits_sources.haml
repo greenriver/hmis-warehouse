@@ -24,7 +24,7 @@
             - report.stayer_non_cash_sources_data.each do |key, row|
               %tr
                 %th
-                  %i.icon-info{data: {toggle: :tooltip, title: row[:description]}}
+                  %i.icon-info{data: { 'bs-toggle' => :tooltip, title: row[:description]}}
                   = row[:title]
                 %td= link_to_if(report.can_see_client_details?(current_user) && row[:scope], number_with_delimiter(row[:count]), details_income_benefits_report_warehouse_reports_report_path(report, key: key, comparison: index.positive?))
                 %td= percentage(row[:percent], format: '%1.0f%%') unless row[:percent].nil?

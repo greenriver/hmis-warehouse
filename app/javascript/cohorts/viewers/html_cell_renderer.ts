@@ -18,7 +18,7 @@ export class HtmlCellRenderer {
     wrapper.className = '';
     wrapper.innerHTML = this.params?.value || '';
     if (this.row?.comments) {
-      wrapper.setAttribute('data-toggle', 'tooltip');
+      wrapper.setAttribute('data-bs-toggle', 'tooltip');
       wrapper.setAttribute('data-title', this.row.comments);
       wrapper.setAttribute('data-placement', 'left');
       wrapper.setAttribute('data-container', 'body');

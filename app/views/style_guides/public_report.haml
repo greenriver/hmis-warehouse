@@ -39,7 +39,7 @@
       max-width: 95%
 
 %section
-  %h3.linked{data: {toggle: "modal", target: "##{modal_id}"}}
+  %h3.linked{data: { 'bs-toggle' => "modal", target: "##{modal_id}"}}
     %span= section_title
     %i.bi.bi-info-circle-fill
   %p=lorem
@@ -55,14 +55,14 @@
 
 - context_id = "context"
 %section.position-relative
-  %h3.linked{data: {toggle:"collapse", target:"##{context_id}"}, aria:{expanded:"false", controls:context_id}, role: "button"}
+  %h3.linked{data: { 'bs-toggle' =>"collapse", target:"##{context_id}"}, aria:{expanded:"false", controls:context_id}, role: "button"}
     %span Report Section with "collapse" context
     %i.bi.bi-info-circle-fill
   .context.collapse{id: context_id}
     .context__container
       .context__header
         %h3 Definition or context:
-        %button.btn.btn-dark.ml-auto{data: {toggle:"collapse", target:"##{context_id}"}, aria:{expanded:"false", controls:context_id}, role: "button"}
+        %button.btn.btn-dark.ml-auto{data: { 'bs-toggle' =>"collapse", target:"##{context_id}"}, aria:{expanded:"false", controls:context_id}, role: "button"}
           %i.bi.bi-x-lg.mr-1
           %span Close
       .context__content

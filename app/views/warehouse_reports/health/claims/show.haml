@@ -6,7 +6,7 @@
 .mb-6
   - if @report.completed_at
     - if @report.qualifying_activities.maximum(:updated_at) > @report.created_at
-      = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", disabled: true, class: 'btn btn-secondary btn-sm', data: {toggle: :tooltip, title: 'This claims file is out of date, please re-generate a new one.'} do
+      = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", disabled: true, class: 'btn btn-secondary btn-sm', data: { 'bs-toggle' => :tooltip, title: 'This claims file is out of date, please re-generate a new one.'} do
         %i.icon-download2
         Download Claims File
     - else

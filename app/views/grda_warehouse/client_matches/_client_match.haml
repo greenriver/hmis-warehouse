@@ -21,7 +21,7 @@
             %br
             = client_a.data_source&.short_name
             - unless match.accepted?
-              = link_to appropriate_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
+              = link_to appropriate_client_path(client_a.destination_client), target: 'client_a', data: { 'bs-toggle' => :tooltip, title: "#{client_a.uuid}"} do
                 = client_a.PersonalID.slice(0,4)
               source for:
               = client_a.destination_client.id
@@ -35,7 +35,7 @@
             %br
             = client_b.data_source&.short_name
             - unless match.accepted?
-              = link_to appropriate_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
+              = link_to appropriate_client_path(client_b.destination_client), target: 'client_b', data: { 'bs-toggle' => :tooltip, title: "#{client_b.uuid}"} do
                 = client_b.PersonalID.slice(0,4)
               source for:
               = client_b.destination_client.id
@@ -107,7 +107,7 @@
         .d-flex
           = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger mr-auto'
           = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default'
-          = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{pii_source.full_name} #{client_b.uuid} <br />into existing: <br />#{pii_dest.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success  ml-auto'})
+          = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', 'bs-toggle' => :tooltip, title: "Merge proposed: <br />#{pii_source.full_name} #{client_b.uuid} <br />into existing: <br />#{pii_dest.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success  ml-auto'})
 
       - elsif match.accepted?
         = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"

@@ -33,7 +33,7 @@
         %thead
           %tr
             %th
-              %input#jSelectGroup.jCheckAll{type: :checkbox, data: { toggle: :tooltip, title: 'Check All/None'}}
+              %input#jSelectGroup.jCheckAll{type: :checkbox, data: { 'bs-toggle' => :tooltip, title: 'Check All/None'}}
             %th Name
             %th Project Count
             %th Universe
@@ -44,7 +44,7 @@
               %td
                 = link_to group.name.presence || 'unnamed', edit_project_group_path(group)
                 - if group.used_for_cas_sync?
-                  %span.badge.badge-success.ml-3{data: {toggle: :tooltip, title: "Used for syncing clients to CAS"}}
+                  %span.badge.badge-success.ml-3{data: { 'bs-toggle' => :tooltip, title: "Used for syncing clients to CAS"}}
                     CAS
               %th= group.projects.count
               %td.reports.report-parameters-all

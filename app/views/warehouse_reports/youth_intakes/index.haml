@@ -14,7 +14,7 @@
     %tbody
       %tr
         %th{rowspan: 2}
-          %i.icon-info{data: { toggle: :tooltip, title: 'Youth with an intake with an engagement date within the date range where the intake was marked as a street outreach contact.'}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'Youth with an intake with an engagement date within the date range where the intake was marked as a street outreach contact.'}}
           1.Street Outreach/Collaboration
         %th a. Unduplicated number of outreach contacts with YYA experiencing homelessness
         -# %td= link_to @report.one_a.count, details_warehouse_reports_youth_intakes_path(filter: {start: @filter.start, end: @filter.end}, key: :one_a), data: {loads_in_pjax_modal: true}
@@ -36,13 +36,13 @@
       %tr
         %th{rowspan: 2} 3. Assessment/ Case Management/ Case Coordination - Prevention
         %th
-          %i.icon-info{data: { toggle: :tooltip, title: 'Counts youth who have an intake with an engagement date within the chosen date range, who also reported being at risk, either on the initial intake, or in a case management note during the date range.'}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'Counts youth who have an intake with an engagement date within the chosen date range, who also reported being at risk, either on the initial intake, or in a case management note during the date range.'}}
           a. Number of YYA completing new intake: YYA considered “at-risk” of homelessness
         %td= data_link(:three_a)
         %td Include brief & full intakes (unduplicated clients) and clients who enrolled in case management provided through EOHHS funds
       %tr
         %th
-          %i.icon-info{data: { toggle: :tooltip, title: 'Counts youth who had at least one case management note during the date range.'}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'Counts youth who had at least one case management note during the date range.'}}
           b. Number of YYA continuing in case management
         %td= data_link(:three_b)
         %td Clients who received case management through EOHHS funds, excluding new enrollments
@@ -54,7 +54,7 @@
         %td Include brief & full intakes (unduplicated clients) and clients who enrolled in case management provided through EOHHS funds
       %tr
         %th
-          %i.icon-info{data: {toggle: :tooltip, title: 'Youth with at least one case management note indicating the youth was homeless during the reporting period who\'s intake was started before the reporting period.'}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'Youth with at least one case management note indicating the youth was homeless during the reporting period who\'s intake was started before the reporting period.'}}
           b. Number of YYA continuing in case management
         %td= data_link(:four_b)
         %td Clients who received case management through EOHHS funds, excluding new enrollments
@@ -141,7 +141,7 @@
   .col-6.text-right
     %h3
       Intakes Overlapping Range:
-      %i.icon-info{data: { toggle: :tooltip, title: 'This includes any intake where the Engagement Date is before or during the range, and the exit date is empty, or after the beginning of the reporting range'}}
+      %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'This includes any intake where the Engagement Date is before or during the range, and the exit date is empty, or after the beginning of the reporting range'}}
       %strong= data_link(:client_ids_for_open_intakes)
 %p Please note, all demographic calculations are for clients who received some service during the range, either a new intake, a case note, direct financial assistance, or referral.
 .card.mb-4
@@ -254,7 +254,7 @@
         %td Refer to definition of Prevention
       %tr
         %th
-          %i.icon-info{data: { toggle: :tooltip, title: 'Youth who reported being at-risk at entry, or after being housed, who 3-months after being identifed as at-risk, remain at-risk or are stably housed'}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'Youth who reported being at-risk at entry, or after being housed, who 3-months after being identifed as at-risk, remain at-risk or are stably housed'}}
           b. Number of YYA who remain housed 3 mos. after receiving prevention services
         %td= data_link(:follow_up_one_b)
       %tr
@@ -267,7 +267,7 @@
         %td= data_link(:follow_up_two_b)
       %tr
         %th
-          %i.icon-info{data: { toggle: :tooltip, title: 'Youth who reported being homeless at entry, or later became homeless, who 3-months after being identifed as homeless, remain  are stably housed'}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, title: 'Youth who reported being homeless at entry, or later became homeless, who 3-months after being identifed as homeless, remain  are stably housed'}}
           c.  Number of YYA who are in housing 3 mos. after receiving rehousing services
         %td= data_link(:follow_up_two_c)
       %tr

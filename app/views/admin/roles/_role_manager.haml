@@ -18,7 +18,7 @@
           %label.w-100{for: 'search-roles'} Search
           %input#search-roles.form-control.j-table__search.w-100{placeholder: 'Search permissions', data: { 'role-manager' => { target: 'searchInput' }, action: 'keyup->role-manager#searchPermissions'}}
         .administrative-permissions.d-flex.administrative.border-right.border-dark
-          .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
+          .btn-group.btn-group-toggle{data: { 'bs-toggle' => :buttons}, aria: {label: "Toggle Administrative Permissions"}}
             %label.btn.btn-secondary.btn-xs.active{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
               %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked, value: 'show'} Show
             %label.btn.btn-secondary.btn-xs{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
@@ -36,7 +36,7 @@
             - hide = :checked
             - hide_class = :active
             %li.list-group-item.d-flex{ class: role_color_class }
-              .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
+              .btn-group.btn-group-toggle{data: { 'bs-toggle' => :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
                 %label.btn.btn-secondary.btn-xs{class: show_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
                   %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: show, value: 'show'} Show
                 %label.btn.btn-secondary.btn-xs{class: hide_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}

@@ -6,9 +6,9 @@
     .c-columns__column-header
       %h3.c-columns__column-title=name.pluralize
       .c-columns__column-buttons
-        = link_to '#', class: 'j-add', data: {toggle: 'tooltip', placement: 'bottom'}, title: "Add #{name}" do
+        = link_to '#', class: 'j-add', data: { 'bs-toggle' => 'tooltip', placement: 'bottom'}, title: "Add #{name}" do
           %i.icon-plus
-        = link_to '#', class: 'j-remove-all-toggle', data: {toggle: 'tooltip', placement: 'bottom'}, title: "Remove All #{name.pluralize}" do
+        = link_to '#', class: 'j-remove-all-toggle', data: { 'bs-toggle' => 'tooltip', placement: 'bottom'}, title: "Remove All #{name.pluralize}" do
           %i.icon-cross
 
     .c-columns__column-actions
@@ -27,7 +27,7 @@
         - associated_items.each do |associated, items|
           - items.each do |a|
             %li.c-columns__column-list-item--read-only
-              %span.d-block{data: {toggle: 'tooltip'}, title: "Access by association with #{associated}"}
+              %span.d-block{data: { 'bs-toggle' => 'tooltip'}, title: "Access by association with #{associated}"}
                 = a
                 %em.d-block.text-small.c-columns__column-list-item-description=associated
   - if @user
@@ -39,6 +39,6 @@
           - @user.inherited_for_type(entity_type).each do |group_name, items|
             - items.each do |item|
               %li.c-columns__column-list-item--read-only
-                %span.d-block{data: {toggle: 'tooltip'}, title: "Access through #{group_name} group"}
+                %span.d-block{data: { 'bs-toggle' => 'tooltip'}, title: "Access through #{group_name} group"}
                   = item
                   %em.d-block.text-small.c-columns__column-list-item-description=group_name

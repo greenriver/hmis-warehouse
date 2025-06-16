@@ -60,7 +60,7 @@
                       .c-list-search__item-title
                         %h5= report.name
                         - unless report.limitable?
-                          %i.icon-notification{data: {toggle: :tooltip, title: limited_statement}}
+                          %i.icon-notification{data: { 'bs-toggle' => :tooltip, title: limited_statement}}
                         - if [recents_name, favorites_name].include? group_name
                           - categories.each do |cat|
                             .badge.badge-primary.mr-1.ml-2=report.report_group

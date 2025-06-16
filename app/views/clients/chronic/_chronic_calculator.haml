@@ -63,7 +63,7 @@
       %tr
         %td
           Days homeless in the last 3 years
-          %span.icon-info{data: { toggle: 'tooltip', title: "Using the chronic calculator algorithm for #{date}" } }
+          %span.icon-info{data: { 'bs-toggle' => 'tooltip', title: "Using the chronic calculator algorithm for #{date}" } }
         %td= @client.homeless_dates_for_chronic_in_past_three_years(date: date).count
       %tr
         %td

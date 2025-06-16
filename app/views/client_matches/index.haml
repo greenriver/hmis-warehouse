@@ -46,7 +46,7 @@
       - id = dest.id
       - id = dest.destination_client.id if dest.source?
       = link_to appropriate_client_path(id) do
-        %span{data: {toggle: :tooltip, title: "Warehouse record for #{dest.full_name}."}}
+        %span{data: { 'bs-toggle' => :tooltip, title: "Warehouse record for #{dest.full_name}."}}
           = "ID:#{id}"
       %span{style: 'font-weight: normal;'}
       - pii = dest.pii_provider(user: current_user)

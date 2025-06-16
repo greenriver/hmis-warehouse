@@ -34,7 +34,7 @@
                       %td
                         - if can_audit_users? && user.health_roles.where(name: Role.health.map(&:name)).any?
                           = link_to admin_user_audit_path(user) do
-                            %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                            %span.icon-eye{data: { 'bs-toggle' => :tooltip, title: 'Audit'}}
                       %td
                         .form-group.check_boxes.optional.user_roles
                           - Role.health.each do |role|

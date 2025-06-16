@@ -7,22 +7,22 @@
       %tr
         %th ID
         %th{style: 'width: 15em;'}
-          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:name)}} Name
+          %span{data: { 'bs-toggle' => :tooltip, title: @client.demographic_calculation_logic_description(:name)}} Name
         %th{style: 'width: 10em;'}
-          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:ssn)}} SSN
+          %span{data: { 'bs-toggle' => :tooltip, title: @client.demographic_calculation_logic_description(:ssn)}} SSN
         %th{style: 'width: 11em;'}
-          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:dob)}} Age
+          %span{data: { 'bs-toggle' => :tooltip, title: @client.demographic_calculation_logic_description(:dob)}} Age
         %th
-          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:gender)}} Gender
+          %span{data: { 'bs-toggle' => :tooltip, title: @client.demographic_calculation_logic_description(:gender)}} Gender
         %th
-          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:race)}} Race
+          %span{data: { 'bs-toggle' => :tooltip, title: @client.demographic_calculation_logic_description(:race)}} Race
         %th
-          %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:veteran_status)}} Veteran Status
+          %span{data: { 'bs-toggle' => :tooltip, title: @client.demographic_calculation_logic_description(:veteran_status)}} Veteran Status
         %th
         %th
     %tbody
       %tr
-        %td.destination-data-source-tag{data: {toggle: :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
+        %td.destination-data-source-tag{data: { 'bs-toggle' => :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
           .destination-sqr Warehouse
         %td= pii.brief_name
         %td= pii.ssn

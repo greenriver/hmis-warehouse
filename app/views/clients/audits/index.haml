@@ -24,7 +24,7 @@
             %td= link_to item.user.name, edit_admin_user_path(item.user.id)
             %td
               - tooltip = "Method: #{item.method}"
-              %span.action{data: {toggle: :tooltip, title: tooltip}}
+              %span.action{data: { 'bs-toggle' => :tooltip, title: tooltip}}
                 = item.action_name
 
             %td= link_to title, item.path

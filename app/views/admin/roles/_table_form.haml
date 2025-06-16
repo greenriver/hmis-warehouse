@@ -42,7 +42,7 @@
               %span.mr-1
                 = permission.to_s.humanize
                 - if role_class.administrative?(permission: permission)
-                  %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+                  %i.icon-lock.ml-2{data: { 'bs-toggle' => :tooltip, title: 'Administrative Permission'}}
               %div
                 - categories.each do |cat|
                   %span.badge.badge-primary.mr-1=cat

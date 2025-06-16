@@ -31,7 +31,7 @@
                   - if k.to_s == 'client_id'
                     = link_to from_source_client_path(client[k]) do
                       = client[k]
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
                     = formatted_cell(client[k])

@@ -17,17 +17,17 @@
   - content_for :filter_actions do
     = f.submit 'Count missing fields', class: 'btn btn-primary'
     %a#clear-cols.btn.btn-default{ href: '#' } Clear
-    %a#client-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add all fields from the HUD Client table' } }
+    %a#client-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'add all fields from the HUD Client table' } }
       Client fields
-    %a#enrollment-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add all fields from the HUD Enrollment table' } }
+    %a#enrollment-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'add all fields from the HUD Enrollment table' } }
       Enrollment fields
-    %a#default-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add the fields chosen by default' } }
+    %a#default-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'add the fields chosen by default' } }
       Default fields
-    %a#reset.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'reload the page to show the columns currently displayed' } }
+    %a#reset.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'reload the page to show the columns currently displayed' } }
       Reset
 
     .ml-auto
-      = link_to( query_params.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+      = link_to( query_params.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { 'bs-toggle' => 'tooltip', title: 'download the data currently displayed' } } ) do
         Download Excel
 
   = render 'warehouse_reports/filters', f:f

@@ -2,7 +2,7 @@
 App.init = ->
   $('abbr').tooltip();
   $('body').tooltip({
-    selector: '[data-toggle="tooltip"]'
+    selector: '[data-bs-toggle="tooltip"]'
   });
 
   popovers = new App.Popovers

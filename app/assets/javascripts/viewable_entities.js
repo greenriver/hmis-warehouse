@@ -61,11 +61,11 @@ window.App.ViewableEntities = class {
     }
     const itemsMarkup = itemValues.map((item, i) => {
       let unlimitable = '';
-      if ( unlimitableIds.includes( parseInt( ids[i] ) ) ) {
-        unlimitable = '<span data-toggle="tooltip" data-title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>';
+      if (unlimitableIds.includes(parseInt(ids[i]))) {
+        unlimitable = '<span data-bs-toggle="tooltip" data-title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>';
       }
       let icon_span = '<span/>';
-      if ( editable ) {
+      if (editable) {
         icon_span = '<span> <i class=\'icon-cross\'></i></span>';
       }
       return `
@@ -82,7 +82,8 @@ window.App.ViewableEntities = class {
       noDataMessage = '';
     }
     $listContainer.html(itemsMarkup || noDataMessage);
-    $('[data-toggle="tooltip"]').tooltip();
+    // FIXME: needs testing before removal
+    // $('[data-bs-toggle="tooltip"]').tooltip();
   }
 
   getEntityName($column) {
@@ -111,14 +112,14 @@ window.App.ViewableEntities = class {
 
   initSelect2() {
     const self = this;
-    $('.jClearSelect').on('click', function(event) {
+    $('.jClearSelect').on('click', function (event) {
       event.preventDefault();
       var select_class = $(event.currentTarget).data('input-class');
       $('select.' + select_class).find('option:selected').prop('selected', false);
       return $('select.' + select_class).trigger('change');
     });
 
-    const values = function($this, includeSelected=false) {
+    const values = function ($this, includeSelected = false) {
       let query = 'option[selected]';
       if (includeSelected) {
         query = ':selected';
@@ -127,7 +128,7 @@ window.App.ViewableEntities = class {
       // eslint-disable-next-line no-unused-vars
       const values = $this.val();
       const selected = {};
-      $selectedOptions.each(function(i, el) {
+      $selectedOptions.each(function (i, el) {
         selected[el.value] = el.textContent;
       });
       self.renderList(selected, $this);
@@ -135,7 +136,7 @@ window.App.ViewableEntities = class {
     };
 
     const init = ($this) => {
-      return $(function() {
+      return $(function () {
         $this.select2({
           minimumResultsForSearch: 10,
           placeholder: 'Search for ' + $this.attr('placeholder'),
@@ -146,9 +147,9 @@ window.App.ViewableEntities = class {
       });
     };
 
-    $('.jUserViewable').each(function() {
+    $('.jUserViewable').each(function () {
       const $this = $(this);
-      $this.on('select2:select select2:unselect', function(){
+      $this.on('select2:select select2:unselect', function () {
         self.renderList(values($(this), true), $(this));
       });
       init($this);

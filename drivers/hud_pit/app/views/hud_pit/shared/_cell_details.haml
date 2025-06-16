@@ -40,7 +40,7 @@
                     - destination_id = client['destination_client_id']
                     = link_to appropriate_client_path(destination_id) do
                       = destination_id
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
                     = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)

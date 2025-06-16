@@ -3,7 +3,7 @@
     - min_date = data.min_date(@client)
     - max_date = data.max_date(@client)
     %h3.mr-4= data.title
-    = link_to '#', class: 'mr-4 dropdown-toggle', id: 'client__calendar-datepicker', data: {toggle: 'dropdown'} do
+    = link_to '#', class: 'mr-4 dropdown-toggle', id: 'client__calendar-datepicker', data: { 'bs-toggle' => 'dropdown'} do
       %i.icon-calendar
     .dropdown-menu#client__calendar-datepicker__dropdown
       %div{data: { provide: :datepicker}, id: 'client__calendar-datepicker__input'}

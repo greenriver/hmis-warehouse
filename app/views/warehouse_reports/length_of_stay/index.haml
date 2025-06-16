@@ -26,7 +26,7 @@
     %tr
       %th Project
       - @headers.each_with_index do |header, i|
-        %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { toggle: 'tooltip', title: 'days in project' } if header == 'average' ) }
+        %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { 'bs-toggle' => 'tooltip', title: 'days in project' } if header == 'average' ) }
           = header
   %tbody
 
@@ -89,7 +89,8 @@
             if (spoilt) {
               spoilt = false;
               $jfc.html(data.form);
-              $jfc.find('[data-toggle=tooltip]').tooltip();
+              // FIXME: needs testing before removal
+              // $jfc.find('[data-bs-toggle=tooltip]').tooltip();
               init();
             }
             $orgName.text(orgName).show(200);
@@ -120,7 +121,8 @@
             $table.empty();
             if (xhr.status === 400) {
               $jfc.html(xhr.responseText);
-              $jfc.find('[data-toggle=tooltip]').tooltip();
+              // FIXME: needs testing before removal
+              // $jfc.find('[data-bs-toggle=tooltip]').tooltip();
               spoilt = true;
               init();
             } else {
