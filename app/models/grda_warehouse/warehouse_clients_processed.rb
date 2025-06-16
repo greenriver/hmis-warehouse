@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   include RandomScope
   include ArelHelper
@@ -172,6 +174,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           cohorts_ongoing_enrollments_so: calcs.last_so_visit(client_id),
           cohorts_ongoing_enrollments_psh: calcs.last_psh_visit(client_id),
           cohorts_ongoing_enrollments_rrh: calcs.last_rrh_visit(client_id),
+          cohorts_ongoing_enrollments_sso: calcs.last_sso_visit(client_id),
           active_in_cas_match: calcs.active_in_cas_match(client_id),
           last_cas_match_date: calcs.last_cas_match_date(client_id),
           lgbtq_from_hmis: calcs.sexual_orientation_from_hmis(client_id),
@@ -215,6 +218,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :cohorts_ongoing_enrollments_so,
               :cohorts_ongoing_enrollments_psh,
               :cohorts_ongoing_enrollments_rrh,
+              :cohorts_ongoing_enrollments_sso,
               :active_in_cas_match,
               :last_cas_match_date,
               :lgbtq_from_hmis,
@@ -610,6 +614,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def last_rrh_visit(client_id)
       @last_rrh_visit ||= last_seen_in_type(:rrh)
       @last_rrh_visit[client_id] || []
+    end
+
+    def last_sso_visit(client_id)
+      @last_sso_visit ||= last_seen_in_type(:services_only)
+      @last_sso_visit[client_id] || []
     end
 
     # NOTE: this should be cached in the calling method since this will return different results based on type provided
