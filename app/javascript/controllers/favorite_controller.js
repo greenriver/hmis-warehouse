@@ -1,5 +1,6 @@
-// eslint-disable-next-line no-undef
-App.StimulusApp.register('favorite', class extends Stimulus.Controller {
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
   static get targets() {
     return ['icon'];
   }
@@ -30,17 +31,12 @@ App.StimulusApp.register('favorite', class extends Stimulus.Controller {
       url: `/api/reports/${this.idValue}/${route}`,
       method: 'PUT'
     })
-      // eslint-disable-next-line no-unused-vars
       .done((ret) => {
         console.debug(`Successful ${route} ${this.idValue}`);
       })
       .fail((ret) => {
         console.error([`Failed to ${route} ${this.idValue}`, ret]);
-        // Undo icon change
         this.toggleIcon(!isFavorite);
       });
   }
-
-
-
-});
+}

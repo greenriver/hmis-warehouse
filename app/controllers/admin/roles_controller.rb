@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin
   class RolesController < ApplicationController
     before_action :require_can_edit_roles!
@@ -14,7 +16,7 @@ module Admin
 
     def index
       @roles = role_scope.order(name: :asc)
-      @per_page_js = ['role_manager']
+      @per_page_js = ['controllers/role_manager_controller']
     end
 
     def new
@@ -65,9 +67,9 @@ module Admin
     def title_for_show
       @role.name
     end
-    alias title_for_edit title_for_show
-    alias title_for_destroy title_for_show
-    alias title_for_update title_for_show
+    alias_method :title_for_edit, :title_for_show
+    alias_method :title_for_destroy, :title_for_show
+    alias_method :title_for_update, :title_for_show
 
     def title_for_index
       'Role List'

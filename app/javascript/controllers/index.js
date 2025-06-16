@@ -5,3 +5,27 @@ import { application } from "./application"
 
 import DatepickerController from "./datepicker_controller.js"
 application.register("datepicker", DatepickerController)
+
+import StimulusSelectController from "./stimulus_select_controller.js"
+application.register("stimulus-select", StimulusSelectController)
+
+import InactiveSessionModalController from "./inactive_session_modal_controller.js"
+application.register("inactive-session-modal", InactiveSessionModalController)
+
+import ListSearchController from "./list_search_controller.js"
+application.register("list-search", ListSearchController)
+
+import BackgroundRenderController from "./background_render_controller.js"
+application.register("background-render", BackgroundRenderController)
+
+import FilterProjectsController from "./filter_projects_controller.js"
+application.register("filter-projects", FilterProjectsController)
+
+import FavoriteController from "./favorite_controller.js"
+application.register("favorite", FavoriteController)
+
+import ChartLoaderController from "./chart_loader_controller.js"
+application.register("chart-loader", ChartLoaderController)
+
+import RoleManagerController from "./role_manager_controller.js"
+application.register("role-manager", RoleManagerController)

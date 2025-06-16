@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisAdmin::RolesController < ApplicationController
   include ViewableEntities
   include EnforceHmisEnabled
@@ -13,7 +15,7 @@ class HmisAdmin::RolesController < ApplicationController
 
   def index
     @roles = role_scope.order(name: :asc)
-    @per_page_js = ['role_manager']
+    @per_page_js = ['controllers/role_manager_controller']
   end
 
   def new
@@ -63,9 +65,9 @@ class HmisAdmin::RolesController < ApplicationController
   def title_for_show
     @role.name
   end
-  alias title_for_edit title_for_show
-  alias title_for_destroy title_for_show
-  alias title_for_update title_for_show
+  alias_method :title_for_edit, :title_for_show
+  alias_method :title_for_destroy, :title_for_show
+  alias_method :title_for_update, :title_for_show
 
   def title_for_index
     'Role List'

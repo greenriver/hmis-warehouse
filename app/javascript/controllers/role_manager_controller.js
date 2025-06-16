@@ -1,7 +1,6 @@
-window.App.Form = window.App.Form || {}
-window.App.StimulusApp = window.App.StimulusApp || {}
+import { Controller } from "@hotwired/stimulus"
 
-App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
+export default class extends Controller {
   static get targets() {
     return [
       'permissionCategory',
@@ -58,7 +57,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     const input = $(target).find('input')
 
     // toggle the visibility of the associated roleColumn
-    if($(input).val() == 'show') {
+    if ($(input).val() == 'show') {
       // add this role to the visible columns
       this.enabledColumns.push(target_role)
       this.roleColumnTargets.forEach((column) => {
@@ -109,7 +108,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     this.showSearchPermissions(search_string)
   }
 
-  showSearchPermissions(search_string, reset=true) {
+  showSearchPermissions(search_string, reset = true) {
     // if we have more than three characters
     // 1. Expand all sections
     // 2. hide any permission where the search string doesn't exit in the text
@@ -130,13 +129,13 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
         }
       });
       this.subCategoryWrapperTargets.forEach((section) => {
-        if($(section).find('.c-checkbox:visible').length > 0) {
+        if ($(section).find('.c-checkbox:visible').length > 0) {
           $(section).removeClass('hide')
         } else {
           $(section).addClass('hide')
         }
       });
-    } else if(reset) {
+    } else if (reset) {
       this.permissionCategoryTargets.forEach((section) => {
         $(section).siblings('.panel-collapse').collapse('hide')
       });
@@ -163,7 +162,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       // by default, show the first 3 roles
       // this is slightly awkward because we only work on the "show" input, and calculate the
       // state for the "hide" input, so we ignore odd values
-      if(i > 5 || i % 2 == 1) {
+      if (i > 5 || i % 2 == 1) {
         return
       }
       return this.valueForTarget(this.roleToggleTargets[i])
@@ -176,7 +175,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       }
       const target = $(this.roleToggleTargets[i])
 
-      if(visibleColumns.includes(this.valueForTarget(target))) {
+      if (visibleColumns.includes(this.valueForTarget(target))) {
         this.toggleColumn({ currentTarget: target })
         $(target).find('input').attr('checked', 'checked')
         $(target).next().find('input').removeAttr('checked')
@@ -235,4 +234,4 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       $(this.changeButtonTargets).removeClass('hide')
     }
   }
-});
+}
