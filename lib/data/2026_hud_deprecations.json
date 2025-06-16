@@ -22,16 +22,6 @@
     ]
   },
   {
-    "name": "SSVFFinancialAssistance",
-    "code": "V3.3",
-    "values": [
-      {
-        "key": 11,
-        "description": "General housing stability assistance - emergency supplies [Deprecated]"
-      }
-    ]
-  },
-  {
     "name": "Gender",
     "code": "3.6.1",
     "values": [

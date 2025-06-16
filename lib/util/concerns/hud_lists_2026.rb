@@ -727,69 +727,6 @@ module Concerns::HudLists2026
       _translate(funding_sources, id, reverse, raise_on_missing: raise_on_missing)
     end
 
-    # 2.06.1
-    def funding_sources
-      {
-        1 => 'HUD: CoC - Homelessness Prevention (High Performing Communities Only)',
-        2 => 'HUD: CoC - Permanent Supportive Housing',
-        3 => 'HUD: CoC - Rapid Re-Housing',
-        4 => 'HUD: CoC - Supportive Services Only',
-        5 => 'HUD: CoC - Transitional Housing',
-        6 => 'HUD: CoC - Safe Haven',
-        7 => 'HUD: CoC - Single Room Occupancy (SRO)',
-        8 => 'HUD: ESG - Emergency Shelter (operating and/or essential services)',
-        9 => 'HUD: ESG - Homelessness Prevention',
-        10 => 'HUD: ESG - Rapid Rehousing',
-        11 => 'HUD: ESG - Street Outreach',
-        13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
-        14 => 'HUD: HOPWA - Housing Information',
-        15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
-        16 => 'HUD: HOPWA - Permanent Housing Placement',
-        17 => 'HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance',
-        18 => 'HUD: HOPWA - Short-Term Supportive Facility',
-        19 => 'HUD: HOPWA - Transitional Housing (facility based or TBRA)',
-        20 => 'HUD: HUD/VASH',
-        21 => 'HHS: PATH - Street Outreach & Supportive Services Only',
-        22 => 'HHS: RHY - Basic Center Program (prevention and shelter)',
-        23 => 'HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth',
-        24 => 'HHS: RHY - Transitional Living Program',
-        25 => 'HHS: RHY - Street Outreach Project',
-        26 => 'HHS: RHY - Demonstration Project',
-        27 => 'VA: CRS Contract Residential Services',
-        30 => 'VA: Community Contract Safe Haven Program',
-        32 => 'VA: Compensated Work Therapy Transitional Residence',
-        33 => 'VA: Supportive Services for Veteran Families',
-        34 => 'N/A',
-        35 => 'HUD: Pay for Success',
-        36 => 'HUD: Public and Indian Housing (PIH) Programs',
-        37 => 'VA: Grant Per Diem - Bridge Housing',
-        38 => 'VA: Grant Per Diem - Low Demand',
-        39 => 'VA: Grant Per Diem - Hospital to Housing',
-        40 => 'VA: Grant Per Diem - Clinical Treatment',
-        41 => 'VA: Grant Per Diem - Service Intensive Transitional Housing',
-        42 => 'VA: Grant Per Diem - Transition in Place',
-        43 => 'HUD: CoC - Youth Homeless Demonstration Program (YHDP)',
-        44 => 'HUD: CoC - Joint Component TH/RRH',
-        45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
-        46 => 'Local or Other Funding Source',
-        50 => 'HUD: HOME',
-        51 => 'HUD: HOME (ARP)',
-        52 => 'HUD: PIH (Emergency Housing Voucher)',
-        53 => 'HUD: ESG - RUSH',
-        54 => 'HUD: Unsheltered Special NOFO',
-        55 => 'HUD: Rural Special NOFO',
-        56 => 'HUD: CoC Builds',
-        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
-        47 => 'HUD: ESG - CV [Deprecated]',
-        48 => 'HUD: HOPWA - CV [Deprecated]',
-        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
-      }.freeze
-    end
-
-    def funding_source(id, reverse = false, raise_on_missing: false)
-      _translate(funding_sources, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
     # 2.07.4
     def household_types
       {
@@ -1256,6 +1193,9 @@ module Concerns::HudLists2026
       {
         0 => 'Female',
         1 => 'Male',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
       }.freeze
     end
 
@@ -1854,21 +1794,6 @@ module Concerns::HudLists2026
     end
 
     # R17.A
-    def early_exit_reasons
-      {
-        1 => 'Left for other opportunities - independent living',
-        2 => 'Left for other opportunities - education',
-        3 => 'Left for other opportunities - military',
-        4 => 'Left for other opportunities - other',
-        5 => 'Needs could not be met by project',
-      }.freeze
-    end
-
-    def early_exit_reason(id, reverse = false, raise_on_missing: false)
-      _translate(early_exit_reasons, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # R17.A
     def expelled_reasons
       {
         1 => 'Criminal activity/destruction of property/violence',
@@ -2197,32 +2122,6 @@ module Concerns::HudLists2026
         16 => 'Food Assistance',
         17 => 'Landlord Incentive',
         18 => 'Tenant Incentive',
-        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
-      }.freeze
-    end
-
-    def ssvf_financial_assistance(id, reverse = false, raise_on_missing: false)
-      _translate(ssvf_financial_assistance_options, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # V3.3
-    def ssvf_financial_assistance_options
-      {
-        1 => 'Rental assistance',
-        2 => 'Security deposit',
-        3 => 'Utility deposit',
-        4 => 'Utility fee payment assistance',
-        5 => 'Moving costs',
-        8 => 'Transportation services: tokens/vouchers',
-        9 => 'Transportation services: vehicle repair/maintenance',
-        10 => 'Child care',
-        12 => 'General housing stability assistance',
-        14 => 'Emergency housing assistance',
-        15 => 'Shallow Subsidy - Financial Assistance',
-        16 => 'Food Assistance',
-        17 => 'Landlord Incentive',
-        18 => 'Tenant Incentive',
-        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
       }.freeze
     end
 

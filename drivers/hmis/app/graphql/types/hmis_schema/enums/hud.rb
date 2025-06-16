@@ -933,6 +933,9 @@ module Types::HmisSchema::Enums::Hud
     graphql_name 'Sex'
     value 'FEMALE', '(0) Female', value: 0
     value 'MALE', '(1) Male', value: 1
+    value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
+    value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
+    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -974,7 +977,6 @@ module Types::HmisSchema::Enums::Hud
     value 'FOOD_ASSISTANCE', '(16) Food Assistance', value: 16
     value 'LANDLORD_INCENTIVE', '(17) Landlord Incentive', value: 17
     value 'TENANT_INCENTIVE', '(18) Tenant Incentive', value: 18
-    value 'GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED', '(11) General housing stability assistance - emergency supplies [Deprecated]', value: 11
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -1033,17 +1035,6 @@ module Types::HmisSchema::Enums::Hud
     value 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED', '(1) Successful referral: client accepted', value: 1
     value 'UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED', '(2) Unsuccessful referral: client rejected', value: 2
     value 'UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED', '(3) Unsuccessful referral: provider rejected', value: 3
-    value 'INVALID', 'Invalid Value', value: -999999
-  end
-
-  class EarlyExitReason < Types::BaseEnum
-    description 'HUD EarlyExitReason (R17.A)'
-    graphql_name 'EarlyExitReason'
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_INDEPENDENT_LIVING', '(1) Left for other opportunities - independent living', value: 1
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_EDUCATION', '(2) Left for other opportunities - education', value: 2
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_MILITARY', '(3) Left for other opportunities - military', value: 3
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_OTHER', '(4) Left for other opportunities - other', value: 4
-    value 'NEEDS_COULD_NOT_BE_MET_BY_PROJECT', '(5) Needs could not be met by project', value: 5
     value 'INVALID', 'Invalid Value', value: -999999
   end
 

@@ -57,6 +57,7 @@ module HudCodeGen
     all_lists = JSON.parse(source)
 
     all_lists = merge_deprecations(all_lists, year)
+    validate_lists(all_lists)
 
     all_lists = all_lists.sort_by { |hash| hash['code'] }
     skipped = []
@@ -108,6 +109,7 @@ module HudCodeGen
     all_lists = JSON.parse(source)
 
     all_lists = merge_deprecations(all_lists, year)
+    validate_lists(all_lists)
 
     # ideally we would sort by code, but this causes a lot of churn
     # all_lists = all_lists.sort_by { |hash| hash['code'] }
@@ -166,6 +168,26 @@ module HudCodeGen
     filename
   end
 
+  private def validate_lists(all_lists)
+    # Check for duplicate codes between items
+    duplicate_codes = all_lists.group_by { |item| item['code'] }.filter { |_, v| v.many? }.keys
+
+    raise ArgumentError, "Duplicate codes found: #{duplicate_codes.inspect}" if duplicate_codes.any?
+
+    # Check each item for issues
+    all_lists.each do |item|
+      code = item['code']
+      values = item['values'] || []
+
+      # Check for empty values array
+      raise ArgumentError, "Item with code '#{code}' has empty values array" if values.empty?
+
+      # Check for duplicate keys within values
+      duplicate_keys = values.group_by { |item| item['key'] }.filter { |_, v| v.many? }.keys
+      raise ArgumentError, "Duplicate keys found in item '#{code}': #{duplicate_keys.join(', ')}" if duplicate_keys.any?
+    end
+  end
+
   private def merge_deprecations(all_lists, year)
     deprecations_file = "lib/data/#{year}_hud_deprecations.json"
     return all_lists unless File.exist?(deprecations_file)
@@ -177,13 +199,8 @@ module HudCodeGen
       existing_list = all_lists.find { |list| list['code'] == deprecated_list['code'] }
 
       if existing_list
-        # Merge deprecated values into existing list, avoiding duplicates by key
-        merged_list = existing_list.dup
-        existing_keys = merged_list['values'].map { |v| v['key'] }.to_set
-        deprecated_list['values'].each do |deprecated_value|
-          merged_list['values'] << deprecated_value unless existing_keys.include?(deprecated_value['key'])
-        end
-        all_lists << merged_list
+        # Merge deprecated values into existing list
+        existing_list['values'] += deprecated_list['values']
       else
         # Include deprecated list verbatim if no matching code found in current lists
         all_lists << deprecated_list

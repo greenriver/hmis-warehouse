@@ -95,41 +95,6 @@
     },
     {
       "type": "DATE",
-      "_comment": "Field #1 of v3 SSVF FA, added 2026",
-      "link_id": "informationDate",
-      "required": true,
-      "text": "Date the financial assistance was identifier as a need",
-      "mapping": {
-        "field_name": "informationDate"
-      },
-      "bounds": [
-        {
-          "id": "max-service-date",
-          "type": "MAX",
-          "value_local_constant": "$today"
-        },
-        {
-          "id": "max-service-date-exit-date",
-          "type": "MAX",
-          "value_local_constant": "$exitDate"
-        },
-        {
-          "_comment": "cannot be after end date",
-          "id": "max-fa-start",
-          "type": "MAX",
-          "question": "faEndDate"
-        }
-      ],
-      "enable_when": [
-        {
-          "local_constant": "$hudRecordType",
-          "operator": "EQUAL",
-          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
-        }
-      ]
-    },
-    {
-      "type": "DATE",
       "link_id": "dateProvided",
       "required": true,
       "text": "Date Provided",
@@ -158,11 +123,17 @@
           "type": "MAX",
           "question": "faEndDate"
         }
-      ],
+      ]
+    },
+    {
+      "link_id": "date_provided_guidance",
+      "type": "DISPLAY",
+      "text": "Date Provided should reflect the date that the financial assistance was identified as a need.",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
           "local_constant": "$hudRecordType",
-          "operator": "NOT_EQUAL",
+          "operator": "EQUAL",
           "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
         }
       ]

@@ -126,5 +126,15 @@ RSpec.describe HudCodeGen do
     it 'raises an error for nil year' do
       expect { described_class.generate_hud_lists(nil) }.to raise_error(ArgumentError, 'Year is required')
     end
+
+    context 'when merging deprecations' do
+      it 'does not create duplicate methods for merged lists' do
+        described_class.generate_hud_lists(test_year)
+        generated_content = File.read(output_file)
+
+        # This test ensures that merging them does not result in duplicate method definitions.
+        expect(generated_content.scan(/def yes_no_missing_options/).length).to eq(1)
+      end
+    end
   end
 end

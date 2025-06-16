@@ -8,6 +8,7 @@
       "type": "CHOICE",
       "link_id": "V10_1",
       "required": false,
+      "warn_if_empty": true,
       "text": "Mental Health Consultation Status",
       "pick_list_reference": "MentalHealthConsultation",
       "mapping": {

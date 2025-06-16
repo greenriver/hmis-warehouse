@@ -6,8 +6,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Set service information date (new in 2026). It's not a nullable field
-#
 class Hmis::Hud::DataIntegrity::BaseReconciler
   def self.call(...) = new.call(...)
 
