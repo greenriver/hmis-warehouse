@@ -1016,30 +1016,6 @@ module HmisUtil
             'operator' => 'INCLUDE',
             'value' => 'HUD: HUD-VASH' },
         ] } },
-      V10: {
-        stages: ['INTAKE'],
-        data_collected_about: 'HOH',
-        rule: {
-          'operator' => 'ALL',
-          parts: [
-            {
-              'operator' => 'ANY',
-              'parts' => [
-                { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
-                { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: GPD' },
-              ],
-            },
-            {
-              'operator' => 'ANY',
-              'parts' => [
-                { 'operator' => 'ANY', 'parts' => [{ 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 6 }] },
-                { 'operator' => 'ANY', 'parts' => [{ 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 }] },
-                { 'operator' => 'ANY', 'parts' => [{ 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 }] },
-              ],
-            },
-          ],
-        },
-      },
       # W3
       medical_assistance: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
                             data_collected_about: 'ALL_CLIENTS',

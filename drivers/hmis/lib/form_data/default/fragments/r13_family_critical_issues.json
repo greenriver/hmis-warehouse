@@ -11,7 +11,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesReasonsForMissingData",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "R13_9",
           "required": false,
@@ -25,7 +25,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesReasonsForMissingData",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "R13_11",
           "required": false,
@@ -39,7 +39,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesReasonsForMissingData",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "R13_15",
           "required": false,
@@ -53,7 +53,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesReasonsForMissingData",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "R13_21",
           "required": false,
@@ -67,7 +67,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesReasonsForMissingData",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "R13_22",
           "required": false,
@@ -81,7 +81,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesReasonsForMissingData",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "R13_24",
           "required": false,
