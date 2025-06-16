@@ -14,21 +14,14 @@
 // Vendor libs
 ////////////////////
 //= require jquery3
-//= require popper
-//= require bootstrap-sprockets
-//= require bootstrap
 //= require jquery_ujs
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
-//= require bootstrap-datepicker/dist/js/bootstrap-datepicker.min
 //= require chart.js/dist/Chart.bundle.min
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
-//= require leaflet/dist/leaflet
-//= require leaflet.markercluster/dist/leaflet.markercluster
-//= require beautifymarker/leaflet-beautify-marker-icon
 //= require jquery.minicolors
 //= require jquery.minicolors.simple_form
 //= require d3/dist/d3.min
@@ -51,7 +44,6 @@
 //= require namespace
 //= require polyfills
 //= require ajax_modal_rails
-//= require popovers
 //= require util
 //= require site_menu
 //= require ssm

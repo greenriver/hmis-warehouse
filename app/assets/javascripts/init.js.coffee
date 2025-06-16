@@ -1,13 +1,6 @@
 #= require namespace
 App.init = ->
-  $('abbr').tooltip();
-  $('body').tooltip({
-    selector: '[data-bs-toggle="tooltip"]'
-  });
-
-  popovers = new App.Popovers
-  popovers.init()
-  $.fn.datepicker.defaults.format = "M d, yyyy";
+  # $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()
   $('.colorpicker').minicolors(theme: 'bootstrap')
@@ -20,9 +13,9 @@ App.init = ->
 # TODO may also need to do on pjax_modal change
 $ ->
   App.init()
-  $('.datepicker.enable-on-load, .date_picker.enable-on-load')
-    .prop('disabled', false)
-    .datepicker()
+  # $('.datepicker.enable-on-load, .date_picker.enable-on-load')
+  #   .prop('disabled', false)
+  #   .datepicker()
   poller = $('[data-poll-every]').first()
   if poller.length > 0
     setInterval ->
