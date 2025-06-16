@@ -12,10 +12,10 @@
   @include custom-button-styles;
   // ~~~~~~~~~~~~~~~~~~~~~~~~
 
-  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
+  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-border-radius);
   @include transition($btn-transition);
 
-  @include hover {
+  &:hover {
     color: $body-color;
     text-decoration: none;
   }
@@ -51,6 +51,7 @@
   min-height: rem(40px);
   display: inline-flex;
   align-items: baseline;
+
   [class^='icon'],
   span {
     margin-right: space(2);

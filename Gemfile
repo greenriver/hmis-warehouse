@@ -138,7 +138,7 @@ gem 'virtus'
 
 # Asset related
 gem 'jsbundling-rails', '~> 1.1'
-gem 'bootstrap', '~> 4.3'
+gem 'bootstrap', '~> 5.3.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
@@ -154,8 +154,8 @@ gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
 # gem 'jquery-datatables-rails'
-# gem 'bootstrap4-datetime-picker-rails'
-gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
+gem 'bootstrap4-datetime-picker-rails'
+# gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
 # gem 'stimulusjs-rails', '~> 1.1.1'
 
 # ETO API related

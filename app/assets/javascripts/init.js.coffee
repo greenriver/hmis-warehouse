@@ -24,6 +24,7 @@ $ ->
     .prop('disabled', false)
     .datepicker()
   $('.datetimepicker, .date_time_picker').datetimepicker({
+    locale: 'en-US',
     sideBySide: true,
     stepping: 15,
     format: "MMM D, YYYY h:mm a",
