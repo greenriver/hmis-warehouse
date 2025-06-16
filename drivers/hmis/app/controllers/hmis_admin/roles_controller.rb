@@ -15,7 +15,7 @@ class HmisAdmin::RolesController < ApplicationController
 
   def index
     @roles = role_scope.order(name: :asc)
-    @per_page_js = ['controllers/role_manager_controller']
+    @per_page_js = ['role_manager']
   end
 
   def new

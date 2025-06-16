@@ -1,6 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
-export default class extends Controller {
+// This controller is loaded on-demand and registers itself with the global Stimulus application
+// It assumes that `window.Stimulus` has been initialized by `application_esbuild.js`
+
+const controller = class extends Controller {
   static get targets() {
     return [
       'permissionCategory',
@@ -24,7 +27,7 @@ export default class extends Controller {
 
 
   connect() {
-    this.element['roleManager'] = this // allow access to this controller from other controllers
+    this.element['roleManager'] = this
     // console.log('role manager connected', this.roleToggleTargets)
     this.path = $(this.inputWrapperTarget).data('roleManagerFormValue')
     this.columnStateKey = 'roleManagerState' + this.path
@@ -234,4 +237,11 @@ export default class extends Controller {
       $(this.changeButtonTargets).removeClass('hide')
     }
   }
+}
+
+export default controller
+
+// Register the controller with the global Stimulus application
+if (window.Stimulus) {
+  window.Stimulus.register("role-manager", controller)
 }

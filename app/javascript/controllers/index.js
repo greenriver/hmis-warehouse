@@ -21,11 +21,10 @@ application.register("background-render", BackgroundRenderController)
 import FilterProjectsController from "./filter_projects_controller.js"
 application.register("filter-projects", FilterProjectsController)
 
+// TODO: this should only be loaded on the reports page
 import FavoriteController from "./favorite_controller.js"
 application.register("favorite", FavoriteController)
 
+// TODO: this is only needed on some pages
 import ChartLoaderController from "./chart_loader_controller.js"
 application.register("chart-loader", ChartLoaderController)
-
-import RoleManagerController from "./role_manager_controller.js"
-application.register("role-manager", RoleManagerController)
