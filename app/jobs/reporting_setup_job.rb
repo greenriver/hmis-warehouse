@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,9 +8,17 @@
 
 class ReportingSetupJob < BaseJob
   include ActionView::Helpers::DateHelper
+
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   def perform
+    instrument_as_maintenance_task do |run|
+      _perform
+      run.complete!
+    end
+  end
+
+  def _perform
     setup_notifier('ReportingSetupJob')
     started_at = Time.current
     @notifier.ping('Reporting database updating') if @send_notifications

@@ -25,45 +25,48 @@
 namespace :storage do
   desc 'Move files from the database to S3 and Active Storage'
   task :move_to_s3, [] => [:environment] do
-    {
-      GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
-      GrdaWarehouse::SecureFile => :with_attached_secure_file,
+    GrdaWarehouse::Tasks::TaskInstrumentation.call('storage:move_to_s3', alert_threshold: 36.hours) do |run|
+      {
+        GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
+        GrdaWarehouse::SecureFile => :with_attached_secure_file,
 
-      # The following are classes that remain to be moved
-      # GrdaWarehouse::AdHocBatch
-      # GrdaWarehouse::DashboardExportFile
-      # GrdaWarehouse::NonHmisUpload
-      # GrdaWarehouse::PublicFile
-      # GrdaWarehouse::ReportResultFile
-      # GrdaWarehouse::HealthEmergency::TestBatch
-      # Health::EdIpVisitFile
-      # Health::EligibilityResponse
-      # Health::EnrollmentReasons
-      # Health::Enrollment
-      # Health::HealthFile
-      # Health::PremiumPayment
-      # Health::TransactionAcknowledgement
-      # Health::CpMembers::FileBase
-      # TxClientReports::ResearchExports::Export      #
+        # The following are classes that remain to be moved
+        # GrdaWarehouse::AdHocBatch
+        # GrdaWarehouse::DashboardExportFile
+        # GrdaWarehouse::NonHmisUpload
+        # GrdaWarehouse::PublicFile
+        # GrdaWarehouse::ReportResultFile
+        # GrdaWarehouse::HealthEmergency::TestBatch
+        # Health::EdIpVisitFile
+        # Health::EligibilityResponse
+        # Health::EnrollmentReasons
+        # Health::Enrollment
+        # Health::HealthFile
+        # Health::PremiumPayment
+        # Health::TransactionAcknowledgement
+        # Health::CpMembers::FileBase
+        # TxClientReports::ResearchExports::Export      #
 
-      # The following were previously moved, leaving here to make adding
-      # future files easier.
-      # GrdaWarehouse::Upload => :with_attached_hmis_zip,
-      # GrdaWarehouse::ClientFile => :with_attached_client_file,
-    }.each do |klass, preload|
-      klass.unprocessed_s3_migration.send(preload).find_each(batch_size: 10, &:copy_to_s3!)
-    end
+        # The following were previously moved, leaving here to make adding
+        # future files easier.
+        # GrdaWarehouse::Upload => :with_attached_hmis_zip,
+        # GrdaWarehouse::ClientFile => :with_attached_client_file,
+      }.each do |klass, preload|
+        klass.unprocessed_s3_migration.send(preload).find_each(batch_size: 10, &:copy_to_s3!)
+      end
 
-    # Final cleanup
-    # If you don't remove the content from the content field in `copy_to_s3!`
-    # you can add the class below and it will null the content field.
-    # NOTE: this is destructive, only add your class here after successfully
-    # moving files to S3
-    {
-      GrdaWarehouse::Upload => :content,
-      GrdaWarehouse::ClientFile => :content,
-    }.each do |klass, content_field|
-      klass.update_all(content_field => nil)
+      # Final cleanup
+      # If you don't remove the content from the content field in `copy_to_s3!`
+      # you can add the class below and it will null the content field.
+      # NOTE: this is destructive, only add your class here after successfully
+      # moving files to S3
+      {
+        GrdaWarehouse::Upload => :content,
+        GrdaWarehouse::ClientFile => :content,
+      }.each do |klass, content_field|
+        klass.update_all(content_field => nil)
+      end
+      run.complete!
     end
   end
 end

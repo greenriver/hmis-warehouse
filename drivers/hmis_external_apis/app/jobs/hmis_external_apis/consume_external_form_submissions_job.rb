@@ -9,7 +9,15 @@
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-  def perform
+
+  def perform(...)
+    instrument_as_maintenance_task do |run|
+      _perform(...)
+      run.complete!
+    end
+  end
+
+  def _perform
     s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('hmis_external_form_submissions')&.s3
     encryption_key = GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug('hmis_external_forms_shared_key')
 

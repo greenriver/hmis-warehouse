@@ -629,7 +629,7 @@ module GrdaWarehouse::Hud
     end
 
     # make a scope for every project type and a type? method for instances
-    HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
+    HudUtility2024.performance_reporting.each do |k, v|
       scope k, -> { where(project_type_column => v) }
       define_method "#{k}?" do
         v.include? project_type_to_use
