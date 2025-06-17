@@ -25,9 +25,7 @@ module Hmis::Ce
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :timeline_events, -> {
-      # todo @martha - add comments justifying the messy logic here, or make it less messy with another strategy
-      where(event_type: 'complete_step').
-        or(where(event_type: 'message_sent').where("(event_data->>'event' = 'start_workflow' OR event_data->>'event' = 'end_workflow')")).
+      where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
         order(created_at: :desc)
     }, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance, source: :audit_events
 

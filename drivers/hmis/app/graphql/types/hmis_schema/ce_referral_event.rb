@@ -23,19 +23,13 @@ module Types
     end
 
     def type
-      # todo @martha - add comments justifying the messiness, or make it less messy
       case object.event_type
       when 'complete_step'
         'Completed Task'
-      when 'message_sent'
-        case object.event_data['event']
-        when 'start_workflow'
-          'Started Referral'
-        when 'end_workflow'
-          object.event_data['message'] == 'reject_referral' ? 'Declined Referral' : 'Accepted Referral'
-        else
-          ''
-        end
+      when 'start_workflow'
+        'Started Referral'
+      when 'end_workflow'
+        object.event_data['result'] == 'reject_referral' ? 'Declined Referral' : 'Accepted Referral'
       else
         ''
       end

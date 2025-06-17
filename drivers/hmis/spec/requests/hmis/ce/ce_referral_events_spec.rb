@@ -56,6 +56,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
                 stepName
                 type
+                user {
+                  id
+                  name
+                }
               }
             }
           }
@@ -119,17 +123,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         events = result.dig('data', 'ceReferral', 'events', 'nodes')
         expect(events.length).to eq(3)
+        expected_user = a_hash_including(
+          'id' => hmis_user.id.to_s,
+          'name' => hmis_user.name.to_s,
+        )
         expect(events).to match_array(
           [
             a_hash_including(
-              # todo @martha - referral steps (start, end workflow) should be associated with a specific user.
+              'user' => expected_user,
               'type' => 'Declined Referral',
             ),
             a_hash_including(
+              'user' => expected_user,
               'type' => 'Completed Task',
               'stepName' => 'Client Acceptance',
             ),
             a_hash_including(
+              'user' => expected_user,
               'type' => 'Started Referral',
             ),
           ],
