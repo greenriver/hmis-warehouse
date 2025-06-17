@@ -5,12 +5,12 @@ const hostname = window.location.hostname;
 
 // The base trace rate for performance monitoring.
 // This should be provided during the build process. It can be set to 0 to disable tracing.
-// It defaults to 1.0 in staging and 0.0 in other environments if not set.
+// It defaults to 1.0 in production and staging, and 0.0 in other environments if not set.
 const getBaseTraceRate = () => {
   if (config.traceRate) {
     return parseFloat(config.traceRate);
   }
-  if (config.environment === 'staging') {
+  if (config.environment === 'production' || config.environment === 'staging') {
     return 1.0;
   }
   return 0.0;
