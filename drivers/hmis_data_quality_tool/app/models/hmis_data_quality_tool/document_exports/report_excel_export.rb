@@ -19,7 +19,7 @@ module HmisDataQualityTool::DocumentExports
 
     def perform
       with_status_progression do
-        self.filename = "#{Translation.translate('HMIS Data Quality Tool')} - #{Time.current.to_fs(:db)}"
+        self.filename = "#{Translation.translate('HMIS Data Quality Tool')} - #{Time.current.to_fs(:db)}.xlsx"
         self.file_data = excel_package.to_stream.read
         self.mime_type = EXCEL_MIME_TYPE
       end
