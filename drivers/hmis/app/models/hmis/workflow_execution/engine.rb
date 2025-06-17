@@ -29,7 +29,8 @@ module Hmis::WorkflowExecution
       template.nodes.entrypoints.each do |node|
         visit_node(node, user)
       end
-      log_event('start_workflow', user: user)
+      # todo @martha - commented this out because we log messages instead. for consistency with accept_workflow or reject_workflow
+      # log_event('start_workflow', user: user)
     end
 
     def start_step!(step, user:)

@@ -23,6 +23,7 @@ module Types
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
+    field :events, HmisSchema::CeReferralEvent.page_type, null: false, method: :timeline_events
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
