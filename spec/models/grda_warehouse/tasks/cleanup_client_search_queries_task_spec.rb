@@ -25,7 +25,7 @@ RSpec.describe GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask do
     end
 
     it 'runs in a transaction' do
-      expect(GrdaWarehouseBase).to receive(:transaction)
+      expect(GrdaWarehouse::ClientSearchQuery).to receive(:transaction)
       task.perform
     end
   end

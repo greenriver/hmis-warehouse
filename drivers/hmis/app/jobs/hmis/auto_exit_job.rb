@@ -14,9 +14,19 @@ module Hmis
       Hmis::ProjectAutoExitConfig.exists?
     end
 
-    def perform(project_ids: nil, data_source_id: nil)
+    def perform(**args)
       return unless self.class.enabled?
 
+      # don't track if there are arguments
+      return _perform(**args) if args.present?
+
+      instrument_as_maintenance_task do |run|
+        _perform(**args)
+        run.complete!
+      end
+    end
+
+    def _perform(project_ids: nil, data_source_id: nil)
       setup_notifier('HMIS Auto-Exit')
       auto_exit_projects = Set.new
       auto_exit_count = 0
