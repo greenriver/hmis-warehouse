@@ -56,7 +56,6 @@ module Hmis::WorkflowDefinition
 
     # Returns a string representation of the node for Mermaid diagrams
     def to_mermaid_node
-      # differentiate shape between start/end events and task nodes
       if entrypoint? || endpoint?
         "#{to_mermaid_node_id}((\"#{name}\"))"
       elsif gateway?
@@ -66,9 +65,9 @@ module Hmis::WorkflowDefinition
       end
     end
 
-    # Returns identifier for the node to use in Mermaid diagrams
+    # Returns unique identifier for the node to use in Mermaid diagrams
     def to_mermaid_node_id
-      name.parameterize(separator: '_')
+      "#{name.parameterize(separator: '_')}_#{id}"
     end
 
     protected
