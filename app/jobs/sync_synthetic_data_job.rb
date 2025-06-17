@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,6 +8,7 @@
 
 class SyncSyntheticDataJob < BaseJob
   include NotifierConfig
+
   attr_accessor :send_notifications
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -14,9 +17,15 @@ class SyncSyntheticDataJob < BaseJob
     super
   end
 
-  def perform
+  def perform(...)
     return unless CasBase.db_exists?
 
+    instrument_as_maintenance_task do |run|
+      run.complete! if _perform(...)
+    end
+  end
+
+  def _perform
     @notifier.ping('Processing synthetic data') if @send_notifications
 
     # Find CAS Non HMIS clients that should be connected to warehouse clients
@@ -26,5 +35,6 @@ class SyncSyntheticDataJob < BaseJob
     GrdaWarehouse::Synthetic::YouthEducationStatus.hud_sync
 
     @notifier.ping('Updated synthetic data') if @send_notifications
+    true
   end
 end
