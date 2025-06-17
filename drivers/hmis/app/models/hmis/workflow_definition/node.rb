@@ -58,7 +58,9 @@ module Hmis::WorkflowDefinition
     def to_mermaid_node
       # differentiate shape between start/end events and task nodes
       if entrypoint? || endpoint?
-        "#{to_mermaid_node_id}([\"#{name}\"])"
+        "#{to_mermaid_node_id}((\"#{name}\"))"
+      elsif gateway?
+        "#{to_mermaid_node_id}{\"#{name}\"}"
       else
         "#{to_mermaid_node_id}(\"#{name}\")"
       end
