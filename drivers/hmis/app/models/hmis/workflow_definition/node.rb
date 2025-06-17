@@ -45,6 +45,15 @@ module Hmis::WorkflowDefinition
       inflows.map(&:condition).any?
     end
 
+    def describe_as_string
+      str = "[#{type.demodulize}] #{name} (#{id})"
+      inflow_descriptions = inflows.order(:position).map { |flow| flow.describe_as_string(source_only: true) }
+      str += "\n   Inflows:\n     #{inflow_descriptions.join("\n     ")}" if inflow_descriptions.any?
+      outflow_descriptions = outflows.order(:position).map { |flow| flow.describe_as_string(target_only: true) }
+      str += "\n   Outflows:\n     #{outflow_descriptions.join("\n     ")}" if outflow_descriptions.any?
+      str
+    end
+
     protected
 
     def check_trigger_config_format

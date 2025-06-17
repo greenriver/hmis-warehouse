@@ -35,7 +35,7 @@ module Types
 
         scope = scope.viewable_by(user)
         scope = scope.apply_filters(filters) if filters.present?
-        scope.order(created_at: :desc, id: :asc)
+        scope.order_by_status
       end
     end
   end
