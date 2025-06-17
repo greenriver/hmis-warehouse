@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-module HudPathReport::Generators::Fy2020
+module HudPathReport::Generators::Fy2026
   class QuestionSeventeen < Base
     include ArelHelper
 
@@ -37,6 +37,30 @@ module HudPathReport::Generators::Fy2020
 
     def self.question_number
       QUESTION_NUMBER
+    end
+
+    def run_question!
+      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
+      table_name = QUESTION_TABLE_NUMBER
+
+      metadata = {
+        header_row: TABLE_HEADER,
+        row_labels: ROWS.keys,
+        first_column: 'B',
+        last_column: 'B',
+        first_row: 2,
+        last_row: 14,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      ROWS.values.each_with_index do |service, index|
+        answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
+        members = universe.members.where(active_and_enrolled_clients).where(received_service(service))
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
+
+      @report.complete(QUESTION_NUMBER)
     end
   end
 end

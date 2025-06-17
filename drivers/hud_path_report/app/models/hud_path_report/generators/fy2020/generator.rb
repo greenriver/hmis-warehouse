@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPathReport::Generators::Fy2020
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
