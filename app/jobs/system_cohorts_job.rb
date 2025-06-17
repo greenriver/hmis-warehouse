@@ -8,6 +8,7 @@
 
 class SystemCohortsJob < BaseJob
   include NotifierConfig
+
   attr_accessor :send_notifications
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -16,9 +17,15 @@ class SystemCohortsJob < BaseJob
     super
   end
 
-  def perform
+  def perform(...)
     return unless GrdaWarehouse::Config.get(:enable_system_cohorts)
 
+    instrument_as_maintenance_task do |run|
+      run.complete! if _perform(...)
+    end
+  end
+
+  def _perform
     @notifier.ping('Processing system cohorts') if @send_notifications
 
     lock_name = self.class.name
@@ -27,12 +34,13 @@ class SystemCohortsJob < BaseJob
       GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts
       did_run = true
     end
-    return unless @send_notifications
+    return did_run unless @send_notifications
 
     if did_run
       @notifier.ping('Processed system cohorts')
     else
       @notifier.ping('Could not acquire advisory lock for SystemCohortsJob, another job is already running')
     end
+    did_run
   end
 end

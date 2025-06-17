@@ -56,6 +56,10 @@ module Hmis::WorkflowDefinition
       errors.add(:base, "There can only be one #{status} template for the identifier #{identifier}.")
     end
 
+    def describe_as_string
+      graph.walk.map(&:describe_as_string).join("\n")
+    end
+
     def validate
       # Run validations that don't run on lifecycle hooks. (See comments in WorkflowTemplateValidator)
       Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator.new.validate(self)
