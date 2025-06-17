@@ -28,6 +28,7 @@
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
 - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
+- grouped_collection = {'Group 1' => {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three'}, 'Group 2' => {'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}}
 .container.py-4
   %h1 Form
   %section
@@ -64,6 +65,9 @@
 
             %h4 Select 2 - simple form input - Multiselect (with select all/none)
             = f.input :select2_multi_simple_form, collection: collection, as: :select_two, input_html: { multiple: true }
+
+            %h4 Select 2 - simple form input - Multiselect (with select all/none) to test multiple on a page
+            = f.input :select2_multi_simple_form_2, collection: grouped_collection, as: :grouped_select_two, group_method: :last, input_html: { multiple: true }
 
             %h4 Select 2 - simple form input - CoC special behavior
             %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>

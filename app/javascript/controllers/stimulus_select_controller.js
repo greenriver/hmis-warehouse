@@ -202,16 +202,20 @@ export default class extends Controller {
     let $select_all = $(e.target);
     let $parent = $select_all.next();
     let $original_select = $(this.elementTarget);
+    // set class on select_alls so we can determine what to do based on what's currently selected
     this._updateSelectAllClass($parent, $select_all);
+    // Always include all children to keep them in-sync
     let $options = $parent.find('li');
+
     let current_selection = $original_select.val();
     if ($select_all.hasClass('j-any-selected')) {
       let to_unselect = this._optionGroupOptionValues($options);
       $original_select.val(current_selection.filter(x => !to_unselect.includes(x)));
-      $options.attr('aria-selected', false);
+      $options.attr('aria-selected', false); // this should not be necessary, but select2 doesn't do this automatically
     } else {
       let to_select = this._optionGroupOptionValues($options);
-      $original_select.val([...current_selection, ...to_select]);
+      $original_select.val($original_select.val().concat(to_select));
+      $options.attr('aria-selected', true); // this should not be necessary, but select2 doesn't do this automatically
     }
     $original_select.trigger('change');
   }
@@ -229,7 +233,12 @@ export default class extends Controller {
   }
 
   _anySelected($parent) {
-    return $parent.find('li[aria-selected="true"]').length > 0;
+    const $original_select = $(this.elementTarget);
+    const current_selection = $original_select.val();
+    if (!Array.isArray(current_selection)) { return false; }
+    if (current_selection.length === 0) { return false; }
+    const group_option_values = this._optionGroupOptionValues($parent.find('li'));
+    return group_option_values.some(v => current_selection.includes(v));
   }
 
   _anySourceOptionSelected() {
@@ -242,39 +251,53 @@ export default class extends Controller {
   }
 
   _optionGroupOptionValues($options) {
-    let ids = [];
-    $options.each((i, el) => { ids.push(this._originalSelectFrom($(el)).find(`option:contains(${el.innerText})`)[0].value); });
-    return ids;
+    return $options.map((i, el) => {
+      return el.id.split('-').pop();
+    }).get();
+    // let ids = [];
+    // $options.each((i, el) => { ids.push(this._originalSelectFrom($(el)).find(`option:contains(${el.innerText})`)[0].value); });
+    // return ids;
   }
 
   _initToggleSelectAll() {
-    let selectAllTarget = $(this.selectAllTarget);
-    let selectTarget = $(this.elementTarget);
+    const $select = $(this.elementTarget);
+    // Find the placeholder for the link. This assumes the HAML provides a div with this class.
+    const $selectAllToggle = $select.closest('.form-group,.form-input').find('.select2-select-all');
 
-    if (selectAllTarget.length > 0) {
-      selectAllTarget.removeClass('d-none');
-      let hideSelectAllText = selectTarget.find('option:selected').length > 0;
+    // If there is no placeholder, we can't create the link.
+    if ($selectAllToggle.length === 0) { return; }
+
+    // Create the link and wire it up.
+    $selectAllToggle.html('<a href="#" class="small"></a>');
+    $selectAllToggle.on('click', (e) => { e.preventDefault(); });
+
+    $selectAllToggle
+      .attr('data-stimulus-select-target', 'selectAll')
+      .attr('data-action', 'click->stimulus-select#toggleAll');
+
+    // Update the link text whenever the selection changes.
+    $select.on('change', () => {
+      const option_count = $select.find('option').length;
+      const hideSelectAllText = $select.data('disableSelectAll') || option_count > 75;
       this._updateSelectAllText(hideSelectAllText);
-      selectTarget.on('change', () => {
-        let hideSelectAllText = selectTarget.find('option:selected').length > 0;
-        this._updateSelectAllText(hideSelectAllText);
-      });
-    }
+    });
+
+    $select.trigger('change');
   }
 
   _selectAllText(hideSelectAllText) {
-    let selectAllTarget = $(this.selectAllTarget);
-    if (hideSelectAllText) {
-      return selectAllTarget.data('deselect-text')
+    if (hideSelectAllText) { return ''; }
+
+    if (this._anySourceOptionSelected()) {
+      return 'Select none';
     } else {
-      return selectAllTarget.data('select-text')
+      return 'Select all';
     }
   }
 
   _updateSelectAllText(hideSelectAllText) {
-    let selectAllTarget = $(this.selectAllTarget);
-    if (selectAllTarget.length > 0) {
-      selectAllTarget.html(this._selectAllText(hideSelectAllText));
+    if (this.hasSelectAllTarget) {
+      $(this.selectAllTarget).find('a').text(this._selectAllText(hideSelectAllText));
     }
   }
 }
