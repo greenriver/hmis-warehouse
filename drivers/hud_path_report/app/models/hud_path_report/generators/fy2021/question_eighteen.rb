@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPathReport::Generators::Fy2021
   class QuestionEighteen < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q18: Referrals Provided'.freeze
-    QUESTION_TABLE_NUMBER = 'Q18'.freeze
+    QUESTION_NUMBER = 'Q18: Referrals Provided'
+    QUESTION_TABLE_NUMBER = 'Q18'
     QUESTION_TABLE_NUMBERS = [QUESTION_TABLE_NUMBER].freeze
 
     TABLE_HEADER = [
