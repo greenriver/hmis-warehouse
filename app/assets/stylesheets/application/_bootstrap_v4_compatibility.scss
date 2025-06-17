@@ -38,9 +38,13 @@ $spacers: (
   }
 }
 
-/*
-Dropdown-toggle carats
-*/
+
+// Dropdown-toggle carats
 .dropdown-toggle::after {
   display: none;
+}
+
+// Links
+a {
+  text-decoration: none;
 }
