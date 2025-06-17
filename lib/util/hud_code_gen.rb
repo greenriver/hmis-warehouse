@@ -183,7 +183,7 @@ module HudCodeGen
       raise ArgumentError, "Item with code '#{code}' has empty values array" if values.empty?
 
       # Check for duplicate keys within values
-      duplicate_keys = values.group_by { |item| item['key'] }.filter { |_, v| v.many? }.keys
+      duplicate_keys = values.group_by { |i| i['key'] }.filter { |_, v| v.many? }.keys
       raise ArgumentError, "Duplicate keys found in item '#{code}': #{duplicate_keys.join(', ')}" if duplicate_keys.any?
     end
   end
