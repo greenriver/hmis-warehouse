@@ -155,7 +155,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   def data_integrity_reconciliation
     [
       [Hmis::Hud::DataIntegrity::TotalIncomeReconciler, form_processor.related_income_benefits],
-      [Hmis::Hud::DataIntegrity::ServiceInformationDateReconciler, form_processor.related_services],
       # add other reconcilers as needed
     ].each do |command, records|
       records.each do |record|
