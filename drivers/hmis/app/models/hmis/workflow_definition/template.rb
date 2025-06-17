@@ -60,6 +60,17 @@ module Hmis::WorkflowDefinition
       graph.walk.map(&:describe_as_string).join("\n")
     end
 
+    # Returns a string representation of the workflow template in Mermaid diagram format
+    def describe_as_mermaid
+      lines = ['flowchart TD']
+      graph.walk.map do |node|
+        lines << node.to_mermaid_node
+        lines << node.inflows.map(&:to_mermaid_link)
+        lines << node.outflows.map(&:to_mermaid_link)
+      end
+      lines.flatten.uniq.join("\n")
+    end
+
     def validate
       # Run validations that don't run on lifecycle hooks. (See comments in WorkflowTemplateValidator)
       Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator.new.validate(self)
