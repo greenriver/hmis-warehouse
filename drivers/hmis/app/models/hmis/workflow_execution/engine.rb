@@ -12,6 +12,10 @@ require 'dentaku'
 # task assignments, and message processing according to the workflow template.
 module Hmis::WorkflowExecution
   class Engine
+    # Constants for referral event types
+    ACCEPT_REFERRAL = 'accept_referral'
+    REJECT_REFERRAL = 'reject_referral'
+
     attr_reader :template, :instance, :message_handler, :assignment_handler
 
     def initialize(workflow_instance, message_handler:, assignment_handler:)
@@ -108,7 +112,13 @@ module Hmis::WorkflowExecution
           user: user,
         )
 
-        log_event('message_sent', event_data: trigger.to_h) if result[:success?]
+        # Log audit event only if the message was successfully sent
+        if result[:success?]
+          log_event('message_sent', user: user, event_data: trigger.to_h, step: step)
+          # Log specific message for the end of a workflow
+          log_event('end_workflow', user: user, event_data: trigger.to_h, step: step) if event_type == 'end_workflow'
+        end
+
         result
       end
 

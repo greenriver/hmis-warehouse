@@ -23,7 +23,7 @@ module Types
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
-    field :events, HmisSchema::CeReferralEvent.page_type, null: false, method: :timeline_events
+    field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -165,6 +165,12 @@ module Types
       {
         can_view_target_project: project.present?,
       }
+    end
+
+    def audit_events
+      object.audit_events.
+        where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
+        order(created_at: :desc)
     end
 
     private

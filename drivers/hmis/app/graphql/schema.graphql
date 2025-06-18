@@ -897,12 +897,12 @@ type CeParticipationsPaginated {
 type CeReferral {
   access: CeReferralAccess!
   active: Boolean!
+  auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated!
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!
   currentSteps: [CeReferralStep!]
   daysOnCurrentSteps: Int
-  events(limit: Int, offset: Int): CeReferralEventsPaginated!
   id: ID!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
@@ -923,7 +923,7 @@ type CeReferralAccess {
   id: ID!
 }
 
-type CeReferralEvent {
+type CeReferralAuditEvent {
   createdAt: ISO8601DateTime!
   id: ID!
   stepName: String
@@ -931,11 +931,11 @@ type CeReferralEvent {
   user: ApplicationUser
 }
 
-type CeReferralEventsPaginated {
+type CeReferralAuditEventsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
   limit: Int!
-  nodes: [CeReferralEvent!]!
+  nodes: [CeReferralAuditEvent!]!
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!

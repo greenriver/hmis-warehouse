@@ -19,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         query GetCeReferral($id: ID!) {
           ceReferral(id: $id) {
             id
-            events {
+            auditEvents {
               nodes {
                 id
                 stepName
@@ -45,7 +45,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'returns referral start event' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
-        events = result.dig('data', 'ceReferral', 'events', 'nodes')
+        events = result.dig('data', 'ceReferral', 'auditEvents', 'nodes')
         expect(events.length).to eq(1)
         expect(events.sole['type']).to eq('Started Referral')
       end
@@ -63,7 +63,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'returns step completion and accept referral events' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
-        events = result.dig('data', 'ceReferral', 'events', 'nodes')
+        events = result.dig('data', 'ceReferral', 'auditEvents', 'nodes')
         expect(events.length).to eq(4)
         expect(events).to match_array(
           [
@@ -98,7 +98,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'returns step completion and reject referral events' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
-        events = result.dig('data', 'ceReferral', 'events', 'nodes')
+        events = result.dig('data', 'ceReferral', 'auditEvents', 'nodes')
         expect(events.length).to eq(4)
         expected_user = a_hash_including(
           'id' => hmis_user.id.to_s,

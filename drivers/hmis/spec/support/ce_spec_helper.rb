@@ -90,7 +90,7 @@ RSpec.shared_context 'ce spec helper' do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'reject_referral',
+          message: Hmis::WorkflowExecution::Engine::REJECT_REFERRAL,
         },
       ],
     )
@@ -104,7 +104,7 @@ RSpec.shared_context 'ce spec helper' do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'accept_referral',
+          message: Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL,
         },
       ],
     )

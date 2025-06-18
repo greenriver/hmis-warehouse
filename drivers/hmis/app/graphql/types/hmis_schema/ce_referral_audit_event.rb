@@ -7,12 +7,12 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::CeReferralEvent < Types::BaseObject
+  class HmisSchema::CeReferralAuditEvent < Types::BaseObject
     # object is a Hmis::WorkflowExecution::AuditEvent
     field :id, ID, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Types::Application::User, null: true
-    field :type, String, null: false, method: :event_type
+    field :type, String, null: false
     field :step_name, String, null: true
 
     def step_name
@@ -22,14 +22,21 @@ module Types
       load_ar_association(step, :node).name
     end
 
-    def type
+    def type # todo @martha - make an enum
       case object.event_type
       when 'complete_step'
         'Completed Task'
       when 'start_workflow'
         'Started Referral'
       when 'end_workflow'
-        object.event_data['result'] == 'reject_referral' ? 'Declined Referral' : 'Accepted Referral'
+        case object.event_data['message']
+        when Hmis::WorkflowExecution::Engine::REJECT_REFERRAL
+          'Declined Referral'
+        when Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL
+          'Accepted Referral'
+        else
+          ''
+        end
       else
         ''
       end

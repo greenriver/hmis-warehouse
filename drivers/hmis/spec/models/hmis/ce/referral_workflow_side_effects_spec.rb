@@ -266,7 +266,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         trigger_config: [
           {
             event: 'end_workflow',
-            message: 'accept_referral',
+            message: Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL,
           },
           {
             event: 'end_workflow',
@@ -284,7 +284,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         trigger_config: [
           {
             event: 'end_workflow',
-            message: 'reject_referral',
+            message: Hmis::WorkflowExecution::Engine::REJECT_REFERRAL,
           },
         ],
       )

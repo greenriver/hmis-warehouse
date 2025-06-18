@@ -27,11 +27,11 @@ module Hmis::Ce
       case message.type
       when 'start_referral'
         start_referral
-      when 'accept_referral'
-        accept_referral(message)
+      when Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL
+        accept_referral
         reversible = false
-      when 'reject_referral'
-        reject_referral(message)
+      when Hmis::WorkflowExecution::Engine::REJECT_REFERRAL
+        reject_referral
         reversible = false
       when 'send_notification'
         send_notification(message)
@@ -57,26 +57,14 @@ module Hmis::Ce
       referral.opportunity.reserve!
     end
 
-    def accept_referral(message)
+    def accept_referral
       referral.accept!
       referral.opportunity.close!
-
-      referral.workflow_instance.audit_events.create!(
-        event_type: 'end_workflow',
-        user: message.user,
-        event_data: { 'result': 'accept_referral' }.to_h,
-      )
     end
 
-    def reject_referral(message)
+    def reject_referral
       referral.reject!
       referral.opportunity.release!
-
-      referral.workflow_instance.audit_events.create!(
-        event_type: 'end_workflow',
-        user: message.user,
-        event_data: { 'result': 'reject_referral' }.to_h,
-      )
     end
 
     def create_unit_assignment(message)
