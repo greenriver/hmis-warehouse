@@ -11,6 +11,7 @@
   margin-top: space(4);
   margin-bottom: space(4);
   width: calc(100% + 60px);
+
   &.affixed {
     position: fixed;
     top: 0;
@@ -22,23 +23,23 @@
   }
 }
 
-.nav-tabs > li {
+.nav-tabs>li {
   margin-bottom: 0;
 }
 
-.nav-tabs > li > a:hover,
-.nav-tabs > li > a:focus {
+.nav-tabs>li>a:hover,
+.nav-tabs>li>a:focus {
   background: $body-bg;
   box-shadow: inset 0px 2px 0px 0px darken($brand-primary, 10%);
   color: $black;
 }
 
-.nav-tabs > li.nav-item.active > a,
-.nav-tabs > li.nav-item.active > a:hover,
-.nav-tabs > li.nav-item.active > a:focus,
-.nav-tabs > li.nav-item > a.active,
-.nav-tabs > li.nav-item > a.active:hover,
-.nav-tabs > li.nav-item > a.active:focus {
+.nav-tabs>li.nav-item.active>a,
+.nav-tabs>li.nav-item.active>a:hover,
+.nav-tabs>li.nav-item.active>a:focus,
+.nav-tabs>li.nav-item>a.active,
+.nav-tabs>li.nav-item>a.active:hover,
+.nav-tabs>li.nav-item>a.active:focus {
   border: 0;
   border-radius: 0;
   background: lighten($tab-bg, 30%);
@@ -47,7 +48,7 @@
   box-shadow: inset 0px 2px 0px 0px darken($tab-bg, 10%);
 }
 
-.nav-tabs > li {
+.nav-tabs>li {
   margin-bottom: -2px;
 }
 
@@ -70,9 +71,9 @@
   border-bottom: 2px $gray-200 solid;
 }
 
-.nav-tabs--in-card .nav-item { }
+.nav-tabs--in-card .nav-item {}
 
-.nav-tabs--in-card > li > a {
+.nav-tabs--in-card>li>a {
   padding-top: space(2);
   padding-bottom: space(2);
   padding-left: space(4);
@@ -82,17 +83,17 @@
   font-weight: bold;
 }
 
-.nav-tabs--in-card > li > a:hover,
-.nav-tabs--in-card > li > a:focus {
+.nav-tabs--in-card>li>a:hover,
+.nav-tabs--in-card>li>a:focus {
   box-shadow: inset 0px -2px 0px 0px $link-blue;
 }
 
-.nav-tabs--in-card > li.nav-item.active > a,
-.nav-tabs--in-card > li.nav-item.active > a:hover,
-.nav-tabs--in-card > li.nav-item.active > a:focus,
-.nav-tabs--in-card > li.nav-item > a.active,
-.nav-tabs--in-card > li.nav-item > a.active:hover,
-.nav-tabs--in-card > li.nav-item > a.active:focus {
+.nav-tabs--in-card>li.nav-item.active>a,
+.nav-tabs--in-card>li.nav-item.active>a:hover,
+.nav-tabs--in-card>li.nav-item.active>a:focus,
+.nav-tabs--in-card>li.nav-item>a.active,
+.nav-tabs--in-card>li.nav-item>a.active:hover,
+.nav-tabs--in-card>li.nav-item>a.active:focus {
   box-shadow: inset 0px -2px 0px 0px $link-blue;
   border-top: 0;
 }

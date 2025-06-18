@@ -1,5 +1,5 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Application Setup (formerly helpers.scss.erb)
+// Application Setup
 //
 // This is the single source of truth for all shared Sass configurations.
 // It should be imported by any stylesheet that needs access to variables,
@@ -10,10 +10,9 @@
 
 // 1. Core tools and foundational variables (no Bootstrap yet).
 @import './_tools/constants';
-@import './_settings/colors';
 @import './_settings/variables';
+@import './_settings/colors';
 @import './_settings/spacing';
-@import './_settings/typography';
 @import './_tools/functions';
 @import './_tools/color_calculations';
 @import './_tools/mixins/_index';
@@ -23,6 +22,7 @@
 // not the parts that generate actual CSS.
 @import 'bootstrap/scss/functions';
 @import './_settings/custom_bootstrap_variables';
+@import 'bootstrap/scss/variables';
 @import 'bootstrap/scss/mixins';
 
 // 3. Load dynamic, environment-specific overrides.

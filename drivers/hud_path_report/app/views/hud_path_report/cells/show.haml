@@ -18,12 +18,12 @@
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
             - HudPathReport::Fy2020::PathClient.detail_headers.each_value do |header|
               %th= header
-        %tbody.thead-dark
+        %tbody
           - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
           - @clients.each.with_index do |client, i|
             - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)

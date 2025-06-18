@@ -1,13 +1,5 @@
 @mixin button($color: $brand-primary) {
-  display: inline-block;
   color: $body-color;
-  text-align: center;
-  vertical-align: middle;
-  user-select: none;
-  background-color: transparent;
-  border: $btn-border-width solid transparent;
-  min-height: 50px;
-
   // Custom styles
   @include custom-button-styles;
   // ~~~~~~~~~~~~~~~~~~~~~~~~

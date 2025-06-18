@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
-import bb from "billboard.js";
-import rfdc from 'rfdc/default'
+import bb, { bar, pie, donut } from "billboard.js";
+import rfdc from 'rfdc'
 
 export default class extends Controller {
   static get targets() {
@@ -21,6 +21,12 @@ export default class extends Controller {
     return Function('return ' + this.element.dataset.chart)();
   }
 
+  chartTypes = {
+    bar,
+    pie,
+    donut,
+  }
+
   updateChart(data) {
     const clone = rfdc();
     let config = clone(this.initial_config);
@@ -30,6 +36,11 @@ export default class extends Controller {
         ...data.config,
       };
     }
+
+    if (typeof config.data.type === 'string' && this.chartTypes[config.data.type]) {
+      config.data.type = this.chartTypes[config.data.type]();
+    }
+
     config.data = data.data;
     if (this.initial_config.data && this.initial_config.data.labels && this.initial_config.data.labels.format) config.data.labels.format = this.initial_config.data.labels.format;
     if (this.initial_config.tooltip && this.initial_config.tooltip.format && this.initial_config.tooltip.format.value && this.initial_config.tooltip.format.value.format) config.tooltip.format.value.format = this.initial_config.tooltip.format.value.format;

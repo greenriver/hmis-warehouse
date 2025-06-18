@@ -1,4 +1,3 @@
-
 %ul.nav.flex-column.flex-nowrap.overflow-hidden.site-menu.w-100
   - site_menu.each do |item|
     - next unless item.show?
@@ -24,9 +23,9 @@
               %i.icon{ class: item.trailing_icon }
           - if item.children?
             .ml-auto.toggle-icon-up
-              .i.icon-angle-up
+              %i.icon-angle-up
             .ml-auto.toggle-icon-down
-              .i.icon-angle-down
+              %i.icon-angle-down
         - if item.children?
           .collapse{ id: submenu_id, class: collapsed, aria: { expanded: (collapsed != :collapsed).to_s }}
             %ul.flex-column.pl-1.nav

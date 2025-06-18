@@ -12,16 +12,19 @@ button.close {
 .btn-icon-only {
   @include open-sans-bold;
   display: inline-flex;
+
   [class^='icon'] {
     margin-right: 0;
   }
 }
 
-.btn-sm, input[type=submit].btn-sm {
+.btn-sm,
+input[type=submit].btn-sm {
   padding: $input-btn-sm-padding-y $input-btn-sm-padding-x;
   min-height: auto;
   font-weight: 600;
 }
+
 input[type=submit].btn-sm {
   font-size: 0.875rem;
 }
@@ -46,12 +49,12 @@ input[type=submit].btn-sm {
 .btn-default:active,
 .btn-default:focus,
 .btn-default:active:hover,
-.open > .btn-default.dropdown-toggle:focus {
+.open>.btn-default.dropdown-toggle:focus {
   background-color: $gray-050;
   color: #FFF;
 }
 
-.open > .btn-default.dropdown-toggle {
+.open>.btn-default.dropdown-toggle {
   background-color: $gray-050;
   color: #FFF;
 }
@@ -99,6 +102,7 @@ input[type=submit].btn-secondary:focus,
 }
 
 .btn-group-action-2 {
+
   .btn.active,
   .btn.active:hover,
   .btn.active:focus {
@@ -108,15 +112,18 @@ input[type=submit].btn-secondary:focus,
   }
 
 }
+
 .btn-min-width-medium {
   @include media-breakpoint-up(xs) {
     min-width: 165px;
   }
 }
+
 .btn [class^="icon-"],
 .btn [class*=" icon-"] {
   font-size: 95%;
 }
+
 .btn [class^="icon-lg"],
 .btn [class*=" icon-lg"] {
   font-size: 1.2rem;
@@ -204,16 +211,20 @@ input[type=submit].btn-secondary:focus,
 
 // From CAS
 
+input[type=submit].btn-primary,
 .btn-default,
 .btn-primary {
   background: $brand-primary;
   border-color: $brand-primary-d;
   color: $white;
+  border-radius: $btn-border-radius;
+
   &:hover {
     background: darken($brand-primary-l, 25%);
     border-color: $brand-primary-d;
     color: $white;
   }
+
   &:disabled,
   &.disabled {
     background: desaturate($brand-primary-l, 80%);
@@ -221,6 +232,7 @@ input[type=submit].btn-secondary:focus,
     color: rgba($black, .85);
     outline: 0;
   }
+
   &.active,
   &:active,
   &:focus,
@@ -229,7 +241,9 @@ input[type=submit].btn-secondary:focus,
     box-shadow: 0 0 0 2px rgba($brand-primary, .5);
     outline: 0;
   }
+
   &--outline {
+
     &:hover,
     &:focus {
       background: rgba($brand-primary-l, 25%);
@@ -242,25 +256,30 @@ input[type=submit].btn-secondary,
   background: $white;
   border-color: $brand-primary;
   color: $brand-primary-d;
+
   [class^="icon-"],
-    [class*=" icon-"] {
-      color: $brand-primary-d;
-    }
+  [class*=" icon-"] {
+    color: $brand-primary-d;
+  }
+
   &:hover {
     background: darken($brand-primary-l, 25%);
     border-color: $brand-primary-d;
     color: $white;
+
     [class^="icon-"],
     [class*=" icon-"] {
       color: $white;
     }
   }
+
   &:disabled,
   &.disabled {
     background: desaturate($brand-primary-l, 80%);
     border-color: desaturate($brand-primary, 80%);
     color: rgba($black, .55);
   }
+
   &.active,
   &:active,
   &:focus,
@@ -270,7 +289,9 @@ input[type=submit].btn-secondary,
     color: $white;
     outline: 0;
   }
+
   &--outline {
+
     &:hover,
     &:focus {
       background: rgba($brand-primary-l, 25%);
@@ -282,11 +303,13 @@ input[type=submit].btn-secondary,
   background: $brand-success-l;
   border-color: $brand-success;
   color: rgba($black, .75);
+
   &:hover {
     background: $brand-success-d;
     border-color: $brand-primary-d;
     color: $white;
   }
+
   &.active,
   &:active,
   &:focus,
@@ -296,13 +319,16 @@ input[type=submit].btn-secondary,
     outline: 0;
     color: $white;
   }
+
   &:disabled,
   &.disabled {
     background: desaturate($brand-success-l, 80%);
     border-color: desaturate($brand-success, 80%);
     color: rgba($black, .55);
   }
+
   &--outline {
+
     &:hover,
     &:focus {
       background: rgba($brand-success-l, 25%);
@@ -314,10 +340,12 @@ input[type=submit].btn-secondary,
   background: $brand-warning-l;
   border-color: $brand-warning;
   color: rgba($black, 55%);
+
   &:hover {
     background: $brand-warning-d;
     color: $white;
   }
+
   &.active,
   &:active,
   &:focus,
@@ -327,13 +355,16 @@ input[type=submit].btn-secondary,
     outline: 0;
     color: $white;
   }
+
   &:disabled,
   &.disabled {
     background: desaturate($brand-warning-l, 80%);
     border-color: desaturate($brand-warning, 80%);
     color: $black;
   }
+
   &--outline {
+
     &:hover,
     &:focus {
       background: rgba($brand-warning-l, 25%);
@@ -345,10 +376,12 @@ input[type=submit].btn-secondary,
   background: $brand-danger-l;
   border-color: $brand-danger;
   color: rgba($black, 1);
+
   &:hover {
     background: $brand-danger-d;
     color: $white;
   }
+
   &.active,
   &:active,
   &:focus,
@@ -358,13 +391,16 @@ input[type=submit].btn-secondary,
     outline: 0;
     color: $white;
   }
+
   &:disabled,
   &.disabled {
     background: desaturate($brand-danger-l, 80%);
     border-color: desaturate($brand-danger, 80%);
     color: rgba($black, .55);
   }
+
   &--outline {
+
     &:hover,
     &:focus {
       background: rgba($brand-danger-l, 25%);
@@ -377,10 +413,12 @@ input[type=submit].btn-disabled,
   background: $white;
   border-color: desaturate($brand-primary-l, 80%);
   color: rgba($black, .55);
+
   [class^="icon-"],
   [class*=" icon-"] {
     color: rgba($black, .55);
   }
+
   &:hover,
   &:disabled,
   &.disabled,
@@ -392,6 +430,7 @@ input[type=submit].btn-disabled,
     background: $white;
     border-color: desaturate($brand-primary-l, 80%);
     color: rgba($black, .55);
+
     [class^="icon-"],
     [class*=" icon-"] {
       color: rgba($black, .55);
@@ -408,6 +447,7 @@ input[type=submit].btn-disabled,
   &:hover {
     background: $brand-primary-l;
   }
+
   &:not(:disabled):not(.disabled):active,
   &:not(:disabled):not(.disabled).active {
     background: darken($brand-primary-l, 25%);
@@ -416,18 +456,19 @@ input[type=submit].btn-disabled,
 }
 
 // Dropdown toggle buttons
-.open > .btn-light.dropdown-toggle,
-.open > .btn-secondary.dropdown-toggle,
-.open > .dropdown-toggle.btn-default,
-.show > .btn-secondary.dropdown-toggle,
-.show > .btn-light.dropdown-toggle,
-.show > .dropdown-toggle.btn-default {
+.open>.btn-light.dropdown-toggle,
+.open>.btn-secondary.dropdown-toggle,
+.open>.dropdown-toggle.btn-default,
+.show>.btn-secondary.dropdown-toggle,
+.show>.btn-light.dropdown-toggle,
+.show>.dropdown-toggle.btn-default {
   background: $brand-primary;
   color: $white;
 }
 
 .btn-link--danger {
   color: $brand-danger-d;
+
   &:hover {
     color: darken($brand-danger-d, 10%);
   }

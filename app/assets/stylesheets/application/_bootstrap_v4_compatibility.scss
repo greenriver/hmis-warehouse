@@ -3,24 +3,18 @@ This file adds backwards compatibility for Bootstrap 4 for scenarios that would 
 major refactors to update the code.
 */
 
+@import './helpers';
+
 /*
 Spacing utilities for margin/padding left and right (ml, mr, pl, pr) that were removed in
 Bootstrap 5 in favor of margin/padding start and end (ms, me, ps, pe). This is
 to support a gradual migration.
 */
 
-// Replicating Bootstrap's spacer map.
-$spacers: (
-  0: 0,
-  1: 0.25rem,
-  2: 0.5rem,
-  3: 1rem,
-  4: 1.5rem,
-  5: 3rem,
-  auto: auto
-);
+// Add 'auto' to the spacers map if needed
+$spacers-with-auto: map-merge($spacers, (auto: auto));
 
-@each $key, $value in $spacers {
+@each $key, $value in $spacers-with-auto {
   .ml-#{$key} {
     margin-left: $value !important;
   }
@@ -36,8 +30,15 @@ $spacers: (
   .pr-#{$key} {
     padding-right: $value !important;
   }
-}
 
+  .mt-#{$key} {
+    margin-top: $value !important;
+  }
+
+  .mb-#{$key} {
+    margin-bottom: $value !important;
+  }
+}
 
 // Dropdown-toggle carats
 .dropdown-toggle::after {
@@ -47,4 +48,8 @@ $spacers: (
 // Links
 a {
   text-decoration: none;
+}
+
+.text-right {
+  text-align: right !important;
 }

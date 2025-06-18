@@ -34,8 +34,6 @@
 //= require billboard.js/dist/billboard.min
 //= require ag-grid-community/dist/ag-grid-community.min.noStyle.js
 //= require moment/moment
-// DEPRECATED: stimulus is now loaded via esbuild
-// require stimulus/dist/stimulus.umd
 //= require vendor/rfdc/rfdc
 //= require promise-polyfill/dist/polyfill.min
 
@@ -55,8 +53,6 @@
 //= require viewable_entities
 //= require ./cable
 //= require ./test_channel
-// DEPRECATED: now loaded via esbuild
-// require ./background_render
 //= require_directory ./admin/client_matches
 //= require_directory ./census
 //= require_directory ./maps
@@ -84,13 +80,6 @@
 //= require_directory ./data_quality_reports
 //= require affix
 //= require list_search
-// DEPRECATED: now loaded via esbuild
-// require stimulus_select
-// require inactive-session-modal-controller
-// DEPRECATED: now loaded via esbuild
-// require chart_loader
-// DEPRECATED: now loaded via esbuild
-// require filter_projects
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js

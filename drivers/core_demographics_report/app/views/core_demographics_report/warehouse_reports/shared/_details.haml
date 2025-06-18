@@ -5,8 +5,7 @@
   .mr-4
     .input-group
       %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-      %span.input-group-append
-        %button.btn.btn-secondary Search
+      %button.btn.btn-secondary Search
   - unless @pdf
     .ml-auto
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
@@ -22,7 +21,7 @@
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             - columns.each do |column|
               %th= column.label

@@ -9,8 +9,7 @@
     .o-page__search
       .input-group
         = f.input :search, label: false, wrapper_html: {class: 'mb-0'}
-        %span.input-group-append
-          %button.btn.btn-secondary{type: :submit} Search
+        %button.btn.btn-secondary{type: :submit} Search
     -# if show_filters?
     .o-page__sort
       - if show_filters?

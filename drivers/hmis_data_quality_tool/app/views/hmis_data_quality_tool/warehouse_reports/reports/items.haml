@@ -10,8 +10,7 @@
     .mr-4
       .input-group
         %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-        %span.input-group-append
-          %button.btn.btn-secondary Search
+        %button.btn.btn-secondary Search
     .ml-auto
       - key = if @result.key.present? then @result.key else @result.title end
       = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: key, format: :xlsx), class: ['btn', 'btn-secondary'] do
@@ -24,13 +23,13 @@
     .card
       .overflow-x-scroll{style: "height: 800px"}
         %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-          %thead.thead-dark
+          %thead.table-dark
             %tr
               %th
 
               - headers.each_value do |header|
                 %th= header[:title]
-          %tbody.thead-dark
+          %tbody
             - @items.each.with_index do |item, i|
               %tr
                 %th= i + 1

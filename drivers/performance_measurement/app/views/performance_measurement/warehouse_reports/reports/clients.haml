@@ -21,17 +21,16 @@
     .mr-auto
       .input-group
         %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-        %span.input-group-append
-          %button.btn.btn-secondary Search
+        %button.btn.btn-secondary Search
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
             - @report.detail_headers(key: @key).each_value do |header|
               %th= header
-        %tbody.thead-dark
+        %tbody
           - @report.clients_for_question(@key, :reporting, project_id: project_id).each.with_index do |client, i|
             %tr
               %th= i + 1
