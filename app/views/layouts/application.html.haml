@@ -97,8 +97,4 @@
     = svg 'symbol-defs'
 
     :javascript
-      window.sentryConfig = {
-        dsn: "#{ENV['WAREHOUSE_SENTRY_DSN']}",
-        environment: "#{Rails.env}",
-        traceRate: "#{ENV['SENTRY_PERFORMANCE_TRACE_RATE']}"
-      };
+      window.sentryConfig = #{sentry_frontend_config.to_json};

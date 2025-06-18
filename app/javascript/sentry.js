@@ -20,6 +20,7 @@ if (config.dsn) {
   Sentry.init({
     dsn: config.dsn,
     environment: config.environment || 'development',
+    release: config.release,
     initialScope: {
       tags: { hostname },
     },
@@ -47,6 +48,17 @@ if (config.dsn) {
       return event;
     },
   });
+
+  Sentry.configureScope(
+    (scope) => {
+      if (config.user) {
+        scope.setUser(config.user);
+      }
+      if (config.trueUserId) {
+        scope.setExtra('true_user_id', config.trueUserId);
+      }
+    },
+  );
 }
 
 // Export Sentry for use in other files
