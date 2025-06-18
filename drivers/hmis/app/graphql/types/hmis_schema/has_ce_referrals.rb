@@ -31,7 +31,7 @@ module Types
       private
 
       def scoped_ce_referrals(scope, user: current_user, filters: nil)
-        raise unless Hmis::Ce.configuration.enabled? # TODO(#7506) permissions
+        raise unless Hmis::Ce.configuration.enabled?
 
         scope = scope.viewable_by(user)
         scope = scope.apply_filters(filters) if filters.present?

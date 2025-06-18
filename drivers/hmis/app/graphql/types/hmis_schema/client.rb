@@ -93,7 +93,7 @@ module Types
     )
     ce_referrals_field(
       :ce_referrals,
-      filter_args: { omit: [:workflow_template, :on_current_step_since], type_name: 'ClientCeReferral' },
+      filter_args: { omit: [:workflow_template, :on_current_task_since], type_name: 'ClientCeReferral' },
     )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
@@ -180,6 +180,9 @@ module Types
       root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
       can :view_client_alerts
       can :manage_client_alerts
+      root_can :can_view_client_eligible_opportunities
+      root_can :can_view_referrals
+      root_can :can_view_own_referrals
     end
 
     def external_ids
@@ -419,7 +422,12 @@ module Types
     end
 
     def eligible_ce_opportunities(**args) # Don't resolve in batch
-      resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), **args)
+      # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
+      access_denied! unless current_user.can_view_client_eligible_opportunities?
+
+      # If so, we can skip the permission check inside resolve_ce_opportunities.
+      # The global permission gives the user permission to view all opportunities the client is eligible for, regardless of project-level access.
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), dangerous_skip_permission_check: true, **args)
     end
 
     def ce_referrals(**args)

@@ -790,7 +790,7 @@ input CeOpportunityFilterOptions {
 
 input CeOpportunityInput {
   name: String!
-  templateId: ID!
+  templateIdentifier: String!
 }
 
 """
@@ -874,7 +874,7 @@ type CeReferral {
 }
 
 input CeReferralFilterOptions {
-  onCurrentStepSince: ISO8601Date
+  onCurrentTaskSince: ISO8601Date
   organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
@@ -910,6 +910,8 @@ enum CeReferralStatus {
 }
 
 type CeReferralStep {
+  access: CeReferralStepAccess!
+
   """
   User(s) currently assigned to this step
   """
@@ -931,6 +933,11 @@ type CeReferralStep {
   swimlane: String!
   updatedAt: ISO8601DateTime
   updatedBy: ApplicationUser
+}
+
+type CeReferralStepAccess {
+  canPerformStep: Boolean!
+  id: ID!
 }
 
 enum CeReferralStepStatus {
@@ -1096,12 +1103,15 @@ type ClientAccess {
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
+  canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
+  canViewReferrals: Boolean!
   id: ID!
 }
 
@@ -7104,6 +7114,11 @@ enum PickListType {
   CE_EVENTS
 
   """
+  Templates for CE workflow definitions
+  """
+  CE_WORKFLOW_TEMPLATE_IDENTIFIERS
+
+  """
   Templates for CE workflow definitions, including fully retired workflows
   """
   CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED
@@ -7119,7 +7134,12 @@ enum PickListType {
   DESTINATION
 
   """
-  Current users who are eligible for staff assignment
+  Users who can be assigned to referral steps in the specified project
+  """
+  ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS
+
+  """
+  Users who are eligible for staff assignment
   """
   ELIGIBLE_STAFF_ASSIGNMENT_USERS
 
@@ -7200,11 +7220,6 @@ enum PickListType {
   User accounts. Deprecated in favor of AUDITABLE_USERS
   """
   USERS
-
-  """
-  Templates for CE workflow definitions
-  """
-  WORKFLOW_DEFINITION_TEMPLATES
 }
 
 """
@@ -9078,6 +9093,7 @@ type Project {
 }
 
 type ProjectAccess {
+  canAssignReferralTasks: Boolean!
   canDeleteAssessments: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteProject: Boolean!
@@ -9089,11 +9105,17 @@ type ProjectAccess {
   canManageIncomingReferrals: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageUnits: Boolean!
+  canPerformAnyReferralTasks: Boolean!
+  canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
+  canStartReferrals: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
+  canViewPrioritizedClientLists: Boolean!
+  canViewReferrals: Boolean!
   canViewUnits: Boolean!
   id: ID!
 }
@@ -9538,6 +9560,8 @@ type Query {
 type QueryAccess {
   canAdministerHmis: Boolean!
   canAdministrateConfig: Boolean!
+  canAdministrateCoordinatedEntry: Boolean!
+  canAssignReferralTasks: Boolean!
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
@@ -9565,12 +9589,16 @@ type QueryAccess {
   canManageScanCards: Boolean!
   canManageUnits: Boolean!
   canMergeClients: Boolean!
+  canPerformAnyReferralTasks: Boolean!
+  canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
+  canStartReferrals: Boolean!
   canTransferEnrollments: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
   canViewClientContactInfo: Boolean!
+  canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewClients: Boolean!
@@ -9583,8 +9611,11 @@ type QueryAccess {
   canViewLimitedEnrollmentDetails: Boolean!
   canViewMyDashboard: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
+  canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
+  canViewPrioritizedClientLists: Boolean!
   canViewProject: Boolean!
+  canViewReferrals: Boolean!
   canViewUnits: Boolean!
   id: ID!
 }
