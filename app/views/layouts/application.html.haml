@@ -95,3 +95,6 @@
     = yield :page_js
     = render "inactive_session_modal"
     = svg 'symbol-defs'
+
+    :javascript
+      window.sentryConfig = #{sentry_frontend_config.to_json};
