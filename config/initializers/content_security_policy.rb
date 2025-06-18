@@ -47,6 +47,7 @@ Rails.application.config.content_security_policy do |policy|
     :self,
     'https://sentry.io/',
     'https://*.ingest.sentry.io/',
+    'https://*.ingest.us.sentry.io',
   )
 
   # Report CSP violations to a specified URI

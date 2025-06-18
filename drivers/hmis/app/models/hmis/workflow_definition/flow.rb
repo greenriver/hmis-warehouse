@@ -20,5 +20,16 @@ module Hmis::WorkflowDefinition
       str += " (#{id})"
       str
     end
+
+    # Returns a string representation of the link (arrow) for Mermaid diagrams
+    def to_mermaid_link
+      source = source_node.to_mermaid_node_id
+      target = target_node.to_mermaid_node_id
+      if condition
+        "#{source}-- IF #{condition} --> #{target}"
+      else
+        "#{source}--> #{target}"
+      end
+    end
   end
 end
