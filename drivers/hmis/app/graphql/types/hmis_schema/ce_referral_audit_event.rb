@@ -12,7 +12,7 @@ module Types
     field :id, ID, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Types::Application::User, null: true
-    field :type, String, null: false
+    field :type, HmisSchema::Enums::CeReferralAuditEventType, null: false
     field :step_name, String, null: true
 
     def step_name
@@ -22,23 +22,23 @@ module Types
       load_ar_association(step, :node).name
     end
 
-    def type # todo @martha - make an enum
+    def type
       case object.event_type
       when 'complete_step'
-        'Completed Task'
+        'COMPLETE_STEP'
       when 'start_workflow'
-        'Started Referral'
+        'START_REFERRAL'
       when 'end_workflow'
         case object.event_data['message']
         when Hmis::WorkflowExecution::Engine::REJECT_REFERRAL
-          'Declined Referral'
+          'REJECT_REFERRAL'
         when Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL
-          'Accepted Referral'
+          'ACCEPT_REFERRAL'
         else
-          ''
+          raise "Unexpected referral audit event. ID: #{object.id}. Event data: #{object.event_data}"
         end
       else
-        ''
+        raise "Unexpected referral audit event. ID: #{object.id}. Event type: #{object.event_type}"
       end
     end
   end

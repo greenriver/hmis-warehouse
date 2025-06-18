@@ -47,7 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         events = result.dig('data', 'ceReferral', 'auditEvents', 'nodes')
         expect(events.length).to eq(1)
-        expect(events.sole['type']).to eq('Started Referral')
+        expect(events.sole['type']).to eq('START_REFERRAL')
       end
     end
 
@@ -68,18 +68,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(events).to match_array(
           [
             a_hash_including(
-              'type' => 'Accepted Referral',
+              'type' => 'ACCEPT_REFERRAL',
             ),
             a_hash_including(
-              'type' => 'Completed Task',
+              'type' => 'COMPLETE_STEP',
               'stepName' => 'Provider Acceptance',
             ),
             a_hash_including(
-              'type' => 'Completed Task',
+              'type' => 'COMPLETE_STEP',
               'stepName' => 'Client Acceptance',
             ),
             a_hash_including(
-              'type' => 'Started Referral',
+              'type' => 'START_REFERRAL',
             ),
           ],
         )
@@ -108,21 +108,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           [
             a_hash_including(
               'user' => expected_user,
-              'type' => 'Declined Referral',
+              'type' => 'REJECT_REFERRAL',
             ),
             a_hash_including(
               'user' => expected_user,
-              'type' => 'Completed Task',
+              'type' => 'COMPLETE_STEP',
               'stepName' => 'Provider Acceptance',
             ),
             a_hash_including(
               'user' => expected_user,
-              'type' => 'Completed Task',
+              'type' => 'COMPLETE_STEP',
               'stepName' => 'Client Acceptance',
             ),
             a_hash_including(
               'user' => expected_user,
-              'type' => 'Started Referral',
+              'type' => 'START_REFERRAL',
             ),
           ],
         )

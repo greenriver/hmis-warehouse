@@ -927,8 +927,30 @@ type CeReferralAuditEvent {
   createdAt: ISO8601DateTime!
   id: ID!
   stepName: String
-  type: String!
+  type: CeReferralAuditEventType!
   user: ApplicationUser
+}
+
+enum CeReferralAuditEventType {
+  """
+  Accepted Referral
+  """
+  ACCEPT_REFERRAL
+
+  """
+  Completed Task
+  """
+  COMPLETE_STEP
+
+  """
+  Declined Referral
+  """
+  REJECT_REFERRAL
+
+  """
+  Started Referral
+  """
+  START_REFERRAL
 }
 
 type CeReferralAuditEventsPaginated {
