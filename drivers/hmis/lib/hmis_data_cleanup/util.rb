@@ -545,6 +545,7 @@ module HmisDataCleanup
           raise unless record
 
           # skip records that were likely created by migrations
+          next if fp.values.nil?
           next if record.user_id.nil?
           next if record.user_id == system_hud_users.fetch(record.data_source_id)&.user_id
 
