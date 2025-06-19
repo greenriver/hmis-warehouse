@@ -23559,7 +23559,6 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
-    "Services"."InformationDate",
     ("Services"."UserID")::character varying AS "UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
@@ -23577,7 +23576,6 @@ UNION ALL
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
     "CustomServices"."DateProvided",
-    NULL::date AS "InformationDate",
     "CustomServices"."UserID",
     "CustomServices"."DateCreated",
     "CustomServices"."DateUpdated",
@@ -74116,7 +74114,6 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250614013242'),
 ('20250612192906'),
 ('20250612153642'),
 ('20250611163755'),

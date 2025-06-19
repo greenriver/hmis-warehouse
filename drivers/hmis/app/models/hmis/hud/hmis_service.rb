@@ -54,7 +54,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     :moving_on_other_type,
     :sub_type_provided,
     :referral_outcome,
-    :information_date,
   ].freeze
   HUD_AND_CUSTOM_ATTRIBUTES = [:fa_amount, :fa_start_date, :fa_end_date].freeze
 

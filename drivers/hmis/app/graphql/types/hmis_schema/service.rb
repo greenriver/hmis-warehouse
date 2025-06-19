@@ -34,7 +34,6 @@ module Types
     field :fa_amount, Float, null: true
     field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
     field :fa_end_date, GraphQL::Types::ISO8601Date, null: true
-    field :information_date, GraphQL::Types::ISO8601Date, null: true
 
     custom_data_elements_field
 
