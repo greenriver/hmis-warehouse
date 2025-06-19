@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Apr::Fy2021
   class QuestionThirteen < HudApr::Generators::Shared::Fy2021::QuestionThirteen
     QUESTION_TABLE_NUMBERS = [

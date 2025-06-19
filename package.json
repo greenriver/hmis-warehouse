@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
+    "@sentry/browser": "^7.101.1",
     "@stimulus/polyfills": "^2.0.0",
     "ag-grid-community": "^33.1.1",
     "beautifymarker": "^1.0.9",

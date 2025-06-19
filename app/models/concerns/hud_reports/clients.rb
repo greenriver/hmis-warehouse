@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Required concerns:
 #   HudReports::Util for anniversary_date
 #
@@ -41,9 +43,9 @@ module HudReports::Clients
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the
       # [report end date] as the two dates of comparison. This calculation is time-based, not service-based, so a
       # client with a [project start date] that is active for a year or longer in a night-by-night emergency shelter
-      # would require an Annual Assessment, regardless of how many bed night dates were recorded. It is
-      # important to use the “age” method of determining client anniversaries due to leap years; using “one year =
-      # 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
+      # would require an Annual Assessment, regardless of how many bed-night dates were recorded. It is
+      # important to use the “age” method of determining client anniversaries due to leap years; using “one
+      # year = 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
 
       # The date for the annual enrollment is tied to the HoH's entry date
       # Calculate when the annual assessment is due for the household prior to the report end date
@@ -61,7 +63,7 @@ module HudReports::Clients
       # [project start date]. This becomes the household’s relevant anniversary date for the purposes of the report.
       # For example, using a report date range of 10/1/2022 – 9/30/2023, a HoH with a [project start date] of
       # 6/1/2021 will have been in the project 2 years as of 9/30/2023 and so will have an [anniversary date] of
-      # 6/1/2023. (i.e. 2021 + 2 = 2023).
+      # 6/1/2023. (i.e., 2021 + 2 = 2023).
       annual_due = start_for_annual + years_in_project.years
 
       # If the household member’s [project start date] is > [anniversary date] (i.e., the person entered the

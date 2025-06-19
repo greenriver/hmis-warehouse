@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# NOTE: this is a legacy controller and is only used to show previous versions of the HUD HIC Report.
 module HudHic
   class HicsController < ::HudReports::BaseController
     before_action :filter
