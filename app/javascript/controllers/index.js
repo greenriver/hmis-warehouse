@@ -12,9 +12,6 @@ application.register("stimulus-select", StimulusSelectController)
 import InactiveSessionModalController from "./inactive_session_modal_controller.js"
 application.register("inactive-session-modal", InactiveSessionModalController)
 
-import ListSearchController from "./list_search_controller.js"
-application.register("list-search", ListSearchController)
-
 import BackgroundRenderController from "./background_render_controller.js"
 application.register("background-render", BackgroundRenderController)
 

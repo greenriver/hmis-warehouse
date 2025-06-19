@@ -55,31 +55,37 @@ const controller = class extends Controller {
   }
 
   toggleColumn(e) {
-    const target = $(e.currentTarget)
-    const target_role = target.data('roleManagerRoleValue')
-    const input = $(target).find('input')
+    const input = $(e.currentTarget)
+    const target_role = input.data('roleManagerRoleValue')
 
-    // toggle the visibility of the associated roleColumn
-    if ($(input).val() == 'show') {
-      // add this role to the visible columns
-      this.enabledColumns.push(target_role)
-      this.roleColumnTargets.forEach((column) => {
-        if (target_role == $(column).data('roleManagerRoleValue')) {
-          $(column).removeClass('hide')
-        }
-        const search_string = $('.j-table__search').val().toLowerCase()
-        this.showSearchPermissions(search_string, false)
-      });
+    if (input.is(':checked')) {
+      this.showColumn(target_role)
     } else {
-      // remove this role from the visible columns
-      this.enabledColumns = this.enabledColumns.filter(element => element !== target_role)
-      this.roleColumnTargets.forEach((column) => {
-        if (target_role == $(column).data('roleManagerRoleValue')) {
-          $(column).addClass('hide')
-        }
-      });
+      this.hideColumn(target_role)
     }
     this.storeColumnState()
+  }
+
+  showColumn(target_role) {
+    if (!this.enabledColumns.includes(target_role)) {
+      this.enabledColumns.push(target_role)
+    }
+    this.roleColumnTargets.forEach((column) => {
+      if (target_role == $(column).data('roleManagerRoleValue')) {
+        $(column).removeClass('hide')
+      }
+    });
+    const search_string = $('.j-table__search').val().toLowerCase()
+    this.showSearchPermissions(search_string, false)
+  }
+
+  hideColumn(target_role) {
+    this.enabledColumns = this.enabledColumns.filter(element => element !== target_role)
+    this.roleColumnTargets.forEach((column) => {
+      if (target_role == $(column).data('roleManagerRoleValue')) {
+        $(column).addClass('hide')
+      }
+    });
   }
 
   storeColumnState() {
@@ -95,10 +101,9 @@ const controller = class extends Controller {
   }
 
   toggleAdmin(e) {
-    const target = $(e.currentTarget)
-    const input = $(target).find('input')
+    const input = $(e.currentTarget)
     // toggle the visibility of the associated administrative items
-    if ($(input).val() == 'show') {
+    if (input.is(':checked')) {
       $(this.administrativeInputTargets).removeClass('hide')
     } else {
       $(this.administrativeInputTargets).addClass('hide')
@@ -161,31 +166,26 @@ const controller = class extends Controller {
 
   // enable columns that were previously enabled
   setInitialColumns() {
-    let visibleColumns = this.fetchColumnState() || $(this.roleToggleTargets).map((i) => {
-      // by default, show the first 3 roles
-      // this is slightly awkward because we only work on the "show" input, and calculate the
-      // state for the "hide" input, so we ignore odd values
-      if (i > 5 || i % 2 == 1) {
-        return
-      }
-      return this.valueForTarget(this.roleToggleTargets[i])
-    }).get()
-    $(this.roleToggleTargets).each((i) => {
-      // this is slightly awkward because we only work on the "show" input, and calculate the
-      // state for the "hide" input, so we ignore odd values
-      if (i % 2 == 1) {
-        return
-      }
-      const target = $(this.roleToggleTargets[i])
+    // By default, show the first 3 roles
+    let visibleColumns = this.fetchColumnState() || this.roleToggleTargets.slice(0, 3).map((target) => this.valueForTarget(target));
 
-      if (visibleColumns.includes(this.valueForTarget(target))) {
-        this.toggleColumn({ currentTarget: target })
-        $(target).find('input').attr('checked', 'checked')
-        $(target).next().find('input').removeAttr('checked')
-      }
-    })
+    this.enabledColumns = [];
 
-    return visibleColumns;
+    this.roleToggleTargets.forEach((toggle) => {
+      const input = $(toggle);
+      const roleValue = this.valueForTarget(input);
+
+      if (visibleColumns.includes(roleValue)) {
+        input.prop('checked', true);
+        this.showColumn(roleValue);
+      } else {
+        input.prop('checked', false);
+        this.hideColumn(roleValue);
+      }
+    });
+
+    this.storeColumnState();
+    return this.enabledColumns;
   }
 
   setState(variable) {

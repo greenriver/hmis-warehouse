@@ -4,13 +4,13 @@
 
 = render 'menus/health_admin_tabs'
 
-.table-responsive.j-table.c-save-table{data: {objects: @roles.map(&:id).to_json.html_safe}}
-  .c-save-table__submit-container.j-table__submit-container
+.c-save-table{data: {controller: 'role-table', 'role-table-patch-url-value': '/admin/health/roles', 'role-table-objects-value': @roles.map(&:id).to_json.html_safe, objects: @roles.map(&:id).to_json.html_safe}}
+  .c-save-table__submit-container.j-table__submit-container{data: {'role-table-target': 'submitContainer'}}
     .c-save-table__submit-container-error-text
     = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
-    = link_to 'Cancel', '', class: 'btn btn-link j-table__cancel'
-    %button.j-table__submit-changes.c-save-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
-  %table.table.c-table.c-table--striped.j-table__table
+    = link_to 'Cancel', '', class: 'btn btn-link j-table__cancel', data: {'role-table-target': 'cancelButton'}
+    %button.j-table__submit-changes.c-save-table__submit-changes.btn.btn-primary{type: 'button', data: {'role-table-target': 'submitButton'}} Save changes
+  %table.table.c-table.c-table--striped{data: {'role-table-target': 'table', 'scroll-collapse': true, 'scroll-x': true, searching: false, ordering: false, paging: false, info: false}}
     %thead
       %tr.c-table__header.c-table__header--primary
         %th.c-table__cell--border-r-primary.v-align-middle{colspan:1, style: 'min-width: 400px'}
@@ -28,14 +28,14 @@
               = pluralize(@roles.count, 'role')
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
-          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
+          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions', data: {'role-table-target': 'searchInput'}}
         - @roles.each do |role|
           %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
             = link_to role.name, action: :edit, id: role
 
     %tbody
       - Role.health_permissions.each do |permission|
-        %tr.j-table__row{'data-title' => permission.to_s.humanize}
+        %tr.j-table__row{'data-title' => permission.to_s.humanize, data: {'role-table-target': 'tableRow'}}
           %td.c-table__cell--border-r-primary{colspan:1}
             .c-table__cell-title.d-flex.align-items-center.flex-wrap
               %span.mr-1
@@ -55,7 +55,3 @@
                 .c-checkbox.d-flex.align-items-center.justify-content-center
                   %input{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
                   %label{for: id}
-
-- content_for :page_js do
-  :javascript
-    new App.RoleTable({patch_url: '/admin/health/roles'})

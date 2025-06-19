@@ -15,7 +15,6 @@
 ////////////////////
 //= require jquery3
 //= require jquery_ujs
-//= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
 //= require chart.js/dist/Chart.bundle.min
@@ -79,9 +78,7 @@
 
 //= require_directory ./data_quality_reports
 //= require affix
-//= require list_search
 //= require TableWithToggleRows
-//= require role_table
 //= require documentExport.js
 //= require file_dropzone
 
