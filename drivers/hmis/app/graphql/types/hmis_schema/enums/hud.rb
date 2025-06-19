@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
+# THIS FILE WAS GENERATED but we may need manual edits after generation. (Generation should only happen when data standards change).
 
 module Types::HmisSchema::Enums::Hud
   class ExportPeriodType < Types::BaseEnum
