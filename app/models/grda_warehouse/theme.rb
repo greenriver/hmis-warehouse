@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Example for testing:
 # GrdaWarehouse::Theme.create!(
 #   client: 'myclient', # should match ENV['CLIENT']
