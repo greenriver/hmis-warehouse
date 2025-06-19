@@ -15,6 +15,9 @@
 ////////////////////
 //= require jquery3
 //= require jquery_ujs
+//= require DataTables/datatables.min
+//= require jquery3
+//= require jquery_ujs
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
 //= require chart.js/dist/Chart.bundle.min
