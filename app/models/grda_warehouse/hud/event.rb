@@ -35,6 +35,27 @@ module GrdaWarehouse::Hud
       where(EventDate: range)
     end
 
+    # Finds events that occurred during a project's Coordinated Entry (CE) participation period
+    # Joins through the following associations:
+    # - enrollment
+    # - project
+    # - ce_participations
+    #
+    # Conditions:
+    # - EventDate must fall between CEParticipationStatusStartDate and CEParticipationStatusEndDate
+    # - AccessPoint must be 1 (active)
+    scope :within_ce_participation_range, -> do
+      ce_t = GrdaWarehouse::Hud::CeParticipation.arel_table
+      joins(enrollment: { project: :ce_participations }).
+        where(
+          ce_t[:AccessPoint].eq(1).and(
+            arel_table[:EventDate].gteq(ce_t[:CEParticipationStatusStartDate]).and(
+              arel_table[:EventDate].lteq(ce_t[:CEParticipationStatusEndDate]),
+            ).or(ce_t[:CEParticipationStatusEndDate].eq(nil)),
+          ),
+        )
+    end
+
     # hide previous declaration of :importable, we'll use this one
     replace_scope :importable, -> do
       where(synthetic: false)

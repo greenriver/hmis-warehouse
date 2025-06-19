@@ -54,6 +54,22 @@ module Hmis::WorkflowDefinition
       str
     end
 
+    # Returns a string representation of the node for Mermaid diagrams
+    def to_mermaid_node
+      if entrypoint? || endpoint?
+        "#{to_mermaid_node_id}((\"#{name}\"))"
+      elsif gateway?
+        "#{to_mermaid_node_id}{\"#{name}\"}"
+      else
+        "#{to_mermaid_node_id}(\"#{name}\")"
+      end
+    end
+
+    # Returns unique identifier for the node to use in Mermaid diagrams
+    def to_mermaid_node_id
+      "#{name.parameterize(separator: '_')}_#{id}"
+    end
+
     protected
 
     def check_trigger_config_format

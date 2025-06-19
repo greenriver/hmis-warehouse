@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'memery'
 module HudReports
   class GeneratorBase
@@ -12,9 +14,9 @@ module HudReports
     include Rails.application.routes.url_helpers
     include Memery
 
-    PENDING = 'pending'.freeze
-    STARTED = 'started'.freeze
-    COMPLETED = 'completed'.freeze
+    PENDING = 'pending'
+    STARTED = 'started'
+    COMPLETED = 'completed'
 
     attr_reader :report
 
@@ -139,6 +141,8 @@ module HudReports
         :hoh_only,
         :genders,
         :races,
+        :funder_ids,
+        :funder_others,
       ]
     end
   end
