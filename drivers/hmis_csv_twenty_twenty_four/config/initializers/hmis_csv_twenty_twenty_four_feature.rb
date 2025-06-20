@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The core app (or other drivers) can check the presence of the
 # HmisCsvTwentyTwentyFour driver with the following code snippet
 #
@@ -16,8 +18,7 @@ Rails.application.reloader.to_prepare do
   Filters::HmisExport.register_version('HMIS 2024', '2024', 'HmisCsvTwentyTwentyFour::ExportJob')
 end
 
-# Reminder: Disable any old versions when moving to 2026
-Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentyFour'
+Rails.application.config.hmis_data_lakes['2024'] = 'HmisCsvTwentyTwentyFour'
 
 Rails.application.config.queued_tasks[:hmis_twenty_twenty_four_upgrade_recurring_exports] = -> do
   HmisCsvTwentyTwentyFour::Tasks::UpgradeRecurringExports.upgrade!

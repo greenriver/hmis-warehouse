@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Dq::Fy2024
   class QuestionFour < Base
     include ::HudApr::Generators::Shared::Fy2024::Dq::QuestionFour
 
-    QUESTION_NUMBER = 'Question 4'.freeze
-    QUESTION_TABLE_NUMBER = 'Q4'.freeze
+    QUESTION_NUMBER = 'Question 4'
+    QUESTION_TABLE_NUMBER = 'Q4'
 
     def self.table_descriptions
       {

@@ -1164,6 +1164,18 @@ module Concerns::HudLists2026
       _translate(referral_results, id, reverse, raise_on_missing: raise_on_missing)
     end
 
+    # 4.21
+    def sexes
+      {
+        0 => 'Female',
+        1 => 'Male',
+      }.freeze
+    end
+
+    def sex(id, reverse = false, raise_on_missing: false)
+      _translate(sexes, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
     # 5.03.1
     def data_collection_stages
       {

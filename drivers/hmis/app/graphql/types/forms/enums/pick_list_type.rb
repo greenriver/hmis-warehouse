@@ -54,5 +54,6 @@ module Types
     value 'CONTINUUM_PROJECTS', 'Continuum Projects'
     value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS', 'Templates for CE workflow definitions'
     value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED', 'Templates for CE workflow definitions, including fully retired workflows'
+    value 'PROJECT_CONFIG_TYPES'
   end
 end

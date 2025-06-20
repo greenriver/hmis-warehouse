@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'application_responder'
+require_relative '../../lib/util/git'
 
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
@@ -167,6 +168,17 @@ class ApplicationController < ActionController::Base
     @current_user_identity ||= OauthIdentity.for_user(current_user).where(provider: provider).first
   end
   helper_method :current_user_identity
+
+  def sentry_frontend_config
+    {
+      dsn: ENV['WAREHOUSE_SENTRY_DSN'],
+      environment: Rails.env,
+      release: Git.revision,
+      user: current_user&.id,
+      true_user_id: true_user&.id,
+    }.compact
+  end
+  helper_method :sentry_frontend_config
 
   protected
 

@@ -522,6 +522,14 @@ class Menu::Menu
         title: 'Sessions',
       ),
     )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: lambda(&:can_manage_config?),
+        path: admin_system_maintenance_tasks_path,
+        title: 'System Tasks',
+      ),
+    )
     menu
   end
 

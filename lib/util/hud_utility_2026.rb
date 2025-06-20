@@ -95,15 +95,6 @@ module HudUtility2026
     _translate map, field, reverse
   end
 
-  # 1.6
-  def gender_none(id, reverse = false)
-    race_none(id, reverse)
-  end
-
-  def race_gender_none_options
-    race_nones
-  end
-
   def veteran_status(*args)
     no_yes_reasons_for_missing_data(*args)
   end
@@ -335,50 +326,6 @@ module HudUtility2026
       4, # Street Outreach
       6, # Services Only
     ].freeze
-  end
-
-  def gender_fields
-    gender_id_to_field_name.values.uniq.freeze
-  end
-
-  def gender_field_name_to_id
-    gender_id_to_field_name.invert.freeze
-  end
-
-  def gender_field_name_label
-    genders.transform_keys do |k|
-      gender_id_to_field_name[k]
-    end
-  end
-
-  def gender_id_to_field_name
-    # Integer values from HUD Data Dictionary
-    {
-      0 => :Woman,
-      1 => :Man,
-      2 => :CulturallySpecific,
-      3 => :DifferentIdentity,
-      4 => :NonBinary,
-      5 => :Transgender,
-      6 => :Questioning,
-      8 => :GenderNone,
-      9 => :GenderNone,
-      99 => :GenderNone,
-    }.freeze
-  end
-
-  def gender_known_ids
-    [0, 1, 2, 3, 4, 5, 6].freeze
-  end
-
-  def gender_known_values
-    genders.values_at(*gender_known_ids).freeze
-  end
-
-  def gender_comparison_value(key)
-    return key if key.in?([8, 9, 99])
-
-    1
   end
 
   def race_fields

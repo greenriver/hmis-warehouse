@@ -2580,6 +2580,7 @@ CREATE TABLE public.roles (
     can_report_on_confidential_projects boolean DEFAULT false,
     can_edit_assigned_project_groups boolean DEFAULT false,
     can_view_chronic_tab boolean DEFAULT false,
+    can_view_confidential_enrollment_details boolean DEFAULT false,
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,
@@ -5155,3 +5156,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240829152856'),
 ('20240710124743'),
 ('20230420195221');
+

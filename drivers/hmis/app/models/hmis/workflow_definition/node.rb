@@ -45,6 +45,31 @@ module Hmis::WorkflowDefinition
       inflows.map(&:condition).any?
     end
 
+    def describe_as_string
+      str = "[#{type.demodulize}] #{name} (#{id})"
+      inflow_descriptions = inflows.order(:position).map { |flow| flow.describe_as_string(source_only: true) }
+      str += "\n   Inflows:\n     #{inflow_descriptions.join("\n     ")}" if inflow_descriptions.any?
+      outflow_descriptions = outflows.order(:position).map { |flow| flow.describe_as_string(target_only: true) }
+      str += "\n   Outflows:\n     #{outflow_descriptions.join("\n     ")}" if outflow_descriptions.any?
+      str
+    end
+
+    # Returns a string representation of the node for Mermaid diagrams
+    def to_mermaid_node
+      if entrypoint? || endpoint?
+        "#{to_mermaid_node_id}((\"#{name}\"))"
+      elsif gateway?
+        "#{to_mermaid_node_id}{\"#{name}\"}"
+      else
+        "#{to_mermaid_node_id}(\"#{name}\")"
+      end
+    end
+
+    # Returns unique identifier for the node to use in Mermaid diagrams
+    def to_mermaid_node_id
+      "#{name.parameterize(separator: '_')}_#{id}"
+    end
+
     protected
 
     def check_trigger_config_format

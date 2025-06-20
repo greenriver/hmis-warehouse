@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CoreDemographicsReport::DemographicSummary::DocumentExports
   class DemographicSummaryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -15,66 +17,134 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
       @report ||= report_class.new(filter)
     end
 
-    protected def view_assigns
-      comparison_filter = filter.to_comparison
-      comparison_report = report_class.new(comparison_filter) if report.include_comparison?
-      # Only allow breakdowns of CoC codes for download since it isn't displayed otherwise
-      report.should_calculate_coc_breakdowns = true
-      {
-        report: report,
-        filter: filter,
-        comparison: comparison_report || report,
-        comparison_filter: comparison_filter,
-        pdf: false,
-      }
+    protected def comparison
+      @comparison ||= report_class.new(comparison_filter)
+    end
+
+    protected def comparison_filter
+      @comparison_filter ||= filter.to_comparison
     end
 
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
+        self.filename = "#{Translation.translate('Demographic Summary')} - #{Time.current.to_fs(:db)}.xlsx"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
+      end
+    end
 
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
+    private def excel_package
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        # Only allow breakdowns of CoC codes for download since it isn't displayed otherwise
+        report.should_calculate_coc_breakdowns = true
+        reports = [report]
+        coc_count = report.available_coc_codes.count
+        reports << comparison if report.include_comparison?
+        wb_styles = wb.styles
+        percentage_format = wb_styles.add_style format_code: '0%'
+        report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
+        comparison_style = wb_styles.add_style({ border: { style: :thick, color: 'FFA600', edges: [:left] } })
+        header_style = wb_styles.add_style({ sz: 14 })
+        th_style = wb_styles.add_style(
+          {
+            bg_color: '81adb9',
+            b: true,
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+          },
         )
+        wb_styles.add_style(
+          {
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+          },
+        )
+        wb.add_worksheet(name: 'Report Info') do |sheet|
+          sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+          sheet.add_row(
+            [
+              'Demographic Summary',
+            ],
+            style: header_style,
+          )
+          filter.selected_params_for_display.each do |title, value|
+            value = value.join(', ') if value.is_a?(Array)
+            sheet.add_row(
+              [
+                "#{title}:",
+                value,
+              ],
+              style: [th_style, nil],
+            )
+          end
+        end
+        data_styles = {
+          'Age Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Gender/Age' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Gender Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Race by Ethnicity' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Race Overall' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Ethnicity Overall' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Relationship' => [th_style, nil, nil, nil, percentage_format],
+          'Disabilities' => [th_style, nil, nil, nil, percentage_format],
+          'At Least One Disability' => [th_style, nil, nil, nil, percentage_format],
+          'No Disability' => [th_style, nil, nil, nil, percentage_format],
+          'DV Response' => [th_style, nil, nil, nil, percentage_format],
+          'DV Occurrence Timing' => [th_style, nil, nil, nil, percentage_format],
+          'Number of Times Response' => [th_style, nil, nil, nil, percentage_format],
+          'Number of Months' => [th_style, nil, nil, nil, percentage_format],
+          'Prior Living Situation' => [th_style, nil, nil, nil, percentage_format],
+          'Household Types' => [th_style, nil, nil, nil, nil, percentage_format, nil] + [nil, nil, percentage_format] * coc_count,
+          'Clients in Projects' => [th_style, nil, nil, nil, nil],
+          'Chronic at Entry' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Chronic Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'High Acuity Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Unsheltered' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Newly Entering Homelessness' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+          'Outcome Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+        }
+        wb.add_worksheet(name: 'Data') do |sheet|
+          sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+          report.class.data_for_export(reports).each_with_index do |(title, row), index|
+            if index.zero?
+              style = []
+            elsif index.positive?
+              if reports.count > 1
+                if title.starts_with?('_')
+                  title = ''
+                  style = [nil, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
+                else
+                  style = [th_style, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
+                end
+              else
+                style = [th_style, nil]
+              end
+              if title.starts_with?('*')
+                # Remove only the first character since we know it's an asterisk
+                title = title[1..]
+                style = Array.new(12 + (coc_count * 3), th_style)
+              elsif title.starts_with?('_')
+                if title.include?('_data_')
+                  key = title[0..title.index('_data_')].gsub('_', '')
+                  style = data_styles[key]
+                end
+                title = ''
+              end
+            end
 
-        write_tmp_file(
-          renderer.render(
-            action: :index,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "#{Translation.translate('Demographic Summary')} - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
+            sheet.add_row(
+              [
+                title,
+                *row,
+              ],
+              style: style,
+            )
+          end
         end
       end
-    end
-
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
-
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
-      end
-      true
     end
 
     protected def report_class
       CoreDemographicsReport::DemographicSummary::Report
-    end
-
-    private def controller_class
-      CoreDemographicsReport::WarehouseReports::DemographicSummaryController
     end
   end
 end

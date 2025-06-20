@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyTwo::Loader
   class Export < GrdaWarehouse::Hud::Base
     include LoaderConcern
@@ -19,8 +21,8 @@ module HmisCsvTwentyTwentyTwo::Loader
 
     def self.load_from_csv(file_path:, data_source_id:)
       new CSV.parse(
-        File.read(File.join(file_path, hud_csv_file_name)).gsub("\r\n", "\n"),
-        headers: hud_csv_headers.map(&:to_s),
+        File.read(File.join(file_path, hud_csv_file_name(version: '2022'))).gsub("\r\n", "\n"),
+        headers: hud_csv_headers(version: '2022').map(&:to_s),
         liberal_parsing: true,
       ).drop(1).first.to_h.
         merge({ file_path: file_path, data_source_id: data_source_id })

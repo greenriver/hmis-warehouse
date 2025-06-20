@@ -6,8 +6,12 @@
 ARG BUILD_TAG
 FROM ruby:${BUILD_TAG} AS cert
 
-RUN apk add --no-cache \
-  openssl
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  openssl \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
 
@@ -22,14 +26,20 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 
 ARG BUILD_TAG
 FROM ruby:${BUILD_TAG} AS base
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG USER_ID=10000
 ARG GROUP_ID=10000
 ARG BUNDLER_VERSION=2.6.3
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.3.7
+LABEL "ruby-version"=3.3.8
 
+ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
 ENV GEM_HOME=/bundle
 ENV BUNDLE_JOBS=4
 ENV BUNDLE_RETRY=3
@@ -43,47 +53,92 @@ ENV PATH /app/bin:$BUNDLE_BIN:$PATH
 ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native
 ENV RAILS_LOG_TO_STDOUT=true
 ENV RAILS_SERVE_STATIC_FILES=true
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US.UTF-8
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV GROVER_NO_SANDBOX=true
-ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+ENV CHROMIUM_PATH=/usr/bin/chromium
 
 # Allow tls connection to database with verification
 COPY docker/app/us-east-1-bundle.pem  /etc/ssl/certs/us-east-1-bundle.pem
 # Deprecated and soon to expire
 COPY docker/app/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
-RUN addgroup -g ${GROUP_ID} app-user \
-  && adduser -u ${USER_ID} -G app-user -h /home/app-user -D app-user \
+RUN groupadd -g ${GROUP_ID} app-user \
+  && useradd -l -u ${USER_ID} -g app-user -s /bin/bash -d /home/app-user -m app-user \
   && mkdir /app /bundle \
   && chown app-user:app-user /bundle /app
 
-RUN apk update \
-  && apk upgrade --no-cache \
-  && apk add --no-cache \
-  nodejs yarn \
-  aws-cli \
-  tzdata \
-  git \
+# Add PostgreSQL official repository, NodeJS and Yarn repositories
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends curl ca-certificates lsb-release gnupg \
+  && sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' \
+  && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
+  && curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y \
+  && apt-get update \
+  && apt-get remove -y nodejs \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends \
+  awscli \
   bash \
-  linux-headers \
+  build-essential \
+  chromium \
+  chromium-common \
+  dbus \
+  dbus-user-session \
+  expect \
+  file \
+  fonts-dejavu \
+  fonts-droid-fallback \
+  fonts-freefont-ttf \
+  fonts-liberation \
   freetds-dev \
-  icu icu-dev \
-  curl libcurl curl-dev \
+  git \
+  gnupg-agent \
+  gpg \
   imagemagick \
-  libmagic libheif file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev \
-  libgcc libstdc++ libx11 glib libxrender libxext libintl \
-  ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
-  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-  lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
-  shared-mime-info yaml-dev libffi-dev \
-  tar p7zip vim gpg gpg-agent poppler-utils \
-  && rm -rf /var/cache/apk/* \
-  && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
+  libcurl4 \
+  libcurl4-openssl-dev \
+  libffi-dev \
+  libfreetype-dev \
+  libfreetype6 \
+  libgeos-dev \
+  libglib2.0-0 \
+  libharfbuzz-dev \
+  libheif1 \
+  libicu-dev \
+  libmagic-dev \
+  libmagic1 \
+  libpq-dev \
+  libx11-6 \
+  libxext6 \
+  libxml2-dev \
+  libxrender1 \
+  libxslt1-dev \
+  libyaml-dev \
+  locales-all \
+  nodejs \
+  p7zip-full \
+  packagekit \
+  packagekit-tools \
+  policykit-1 \
+  poppler-utils \
+  postgresql-client \
+  shared-mime-info \
+  software-properties-common \
+  tar \
+  tzdata \
+  vim \
+  zip \
+  && rm -rf /var/lib/apt/lists/* \
+  && if [ "$(uname -m)" = "aarch64" ]; then \
+       ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
+     else \
+       ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
+     fi \
+  && npm install -g yarn@1.22.19
 
 WORKDIR /app
 
@@ -112,10 +167,10 @@ COPY docker/app/entrypoint.dj-eks-test.sh /usr/bin/
 ENTRYPOINT ["/usr/bin/entrypoint.dev.sh"]
 
 RUN git config --global --add safe.directory /app \
-  && apk update \
-  && apk add --no-cache \
-  neovim less docker python3 zsh openssh \
-  && rm -rf /var/cache/apk/*
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+  neovim less docker.io python3 zsh openssh-client \
+  && rm -rf /var/lib/apt/lists/*
 
 USER ${USER_ID}
 

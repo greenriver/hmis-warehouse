@@ -9,28 +9,40 @@
 module HmisCsvImporter::HmisCsv
   extend ActiveSupport::Concern
   included do
-    def self.loadable_files
-      importable_files_map.transform_values do |name|
-        data_lake_file_class(name, 'Loader')
-      end
+    def self.loadable_files(version)
+      data_lake_module(version).loadable_files
     end
 
-    def self.importable_files
-      importable_files_map.transform_values do |name|
-        data_lake_file_class(name, 'Importer')
-      end
+    def self.importable_files(version)
+      data_lake_module(version).importable_files
     end
 
-    def self.importable_file_class(name)
-      importable_files["#{name}.csv"]
+    def self.importable_files_map(version)
+      data_lake_module(version).importable_files_map
     end
 
-    def self.importable_files_map
-      Rails.application.config.hmis_data_lake.constantize.importable_files_map
+    def self.data_lake_file_class(module_name:, phase:, name:)
+      "#{module_name}::#{phase}::#{name}".constantize
     end
 
-    def self.data_lake_file_class(name, phase)
-      "#{Rails.application.config.hmis_data_lake}::#{phase}::#{name}".constantize
+    def loadable_files
+      self.class.loadable_files(@current_version)
+    end
+
+    def importable_files
+      self.class.importable_files(@current_version)
+    end
+
+    def self.data_lake_module(version)
+      active_data_lake_module = Rails.application.config.hmis_data_lakes[version]
+      raise "No data lake module found for version #{version}" if active_data_lake_module.blank?
+
+      active_data_lake_module.constantize
+    end
+
+    def importable_file_class(name)
+      module_name = self.class.data_lake_module(@current_version)
+      self.class.data_lake_file_class(module_name: module_name, phase: 'Importer', name: name)
     end
 
     def log(message, attachment = nil)
