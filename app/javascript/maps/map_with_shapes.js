@@ -1,6 +1,6 @@
-//= require ./namespace
+import L from 'leaflet';
 
-App.Maps.MapWithShapes = class MapWithShapes {
+export default class MapWithShapes {
   constructor({ elementId, shapes }) {
     this.initInfoBox = this.initInfoBox.bind(this);
     this.initLegend = this.initLegend.bind(this);
@@ -71,9 +71,8 @@ App.Maps.MapWithShapes = class MapWithShapes {
           if (metric == null) {
             innerHTML += '<p>No shared clients because data is unavailable for this CoC</p>';
           } else {
-            innerHTML += `<p><stron>${metric}</strong> shared clients with ${
-              primaryName || 'the primary CoC'
-            }</p>`;
+            innerHTML += `<p><stron>${metric}</strong> shared clients with ${primaryName || 'the primary CoC'
+              }</p>`;
           }
         }
         hidden = false;
@@ -244,4 +243,4 @@ App.Maps.MapWithShapes = class MapWithShapes {
     this.highlightPrimary(primaryId);
     this.highlightSecondary(secondaryId);
   }
-};
+}

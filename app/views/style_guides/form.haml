@@ -56,6 +56,9 @@
           %h4 Normal boolean
           = f.input :is_currently_normal_youth, as: :boolean, disabled: false, hint: 'This is a hint'
 
+          %h4 Normal Select
+          = f.input :normal_select_simple_form, collection: collection, as: :select, hint: 'This is a hint'
+
           %section.my-6.mb-8
             %h3 Select 2 Inputs
             %hr

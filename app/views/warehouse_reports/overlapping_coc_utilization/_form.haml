@@ -7,14 +7,14 @@
     padding: 0.5em !important;
     min-height: initial !important;
   }
-= simple_form_for filters, as: :compare, url: url_for(action: :overlap), html: {id: form_id}, method: :get do |f|
+= simple_form_for filters, as: :compare, url: url_for(action: :overlap), html: {id: form_id, data: {'coc-overlap-target': 'form', action: 'submit->coc-overlap#postForm'}}, method: :get do |f|
   .row.fix-date-picker.fix-select2
     .col-lg-6
       .row
         .col-md-6
-          = f.input :coc1_id, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'Primary CoC', input_html: { id: 'compare_coc1'}, as: :select_two
+          = f.input :coc1_id, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'Primary CoC', selected: filters.coc1_id, input_html: { id: 'compare_coc1', data: {'coc-overlap-target': 'coc1Input'}}, as: :select_two
         .col-md-6
-          = f.input :coc2_id, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Secondary CoC', input_html: { id: 'compare_coc2'}, as: :select_two
+          = f.input :coc2_id, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Secondary CoC', selected: filters.coc2_id, input_html: { id: 'compare_coc2'}, as: :select_two
     .col-lg-6
       .row
         .col-md-6
@@ -22,11 +22,16 @@
         .col-md-6
           = f.input :end_date, as: :date_picker, label: 'Service End Date', required: true, input_html: {id: 'compare_end_date'}
   .d-flex.align-items-center.justify-content-end
-    .j-submit-button-error.hide.mr-4.alert.alert-danger.mt-2
-    .j-submit-button-prompt.mr-4{class: filters.coc1 ? 'd-none' : nil} To start, select a Primary CoC
-    .j-submit-button-loading.mr-4.d-none
+    .j-submit-button-error.hide.mr-4.alert.alert-danger.mt-2{data: {'coc-overlap-target': 'errorContainer'}}
+    .j-submit-button-prompt.mr-4{class: filters.coc1 ? 'd-none' : nil, data: {'coc-overlap-target': 'prompt'}} To start, select a Primary CoC
+    .j-submit-button-loading.mr-4.d-none{data: {'coc-overlap-target': 'loading'}}
       .d-flex
         .mr-2= render 'spinner'
         %div Loading&hellip;
     %div
-      %button.btn.btn-primary.j-submit-button(type='button' disabled) Update
+      %button.btn.btn-primary.j-submit-button{type: 'submit', disabled: true, data: {'coc-overlap-target': 'submitButton'}} Update
+- content_for :page_js do
+  :javascript
+    $('select').on('change', function(e) {
+      console.log('change', e.target.value);
+    });

@@ -14,6 +14,9 @@ function initializeControllers() {
 
 function waitForJQuery() {
   if (window.jQuery && window.$) {
+    // DO NOT import select2 here. Sprockets is handling it.
+    // Just initialize the controllers now that we know jQuery and its
+    // plugins are globally available.
     initializeControllers();
   } else {
     // Poll for jQuery to be loaded by Sprockets.

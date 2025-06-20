@@ -1,5 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Do NOT import jquery. Instead, use the global jQuery from Sprockets.
+const $ = window.jQuery;
+
 // See app/assets/javascripts/stimulus_select.js for the original implementation, we probably want to port some comments if nothing else.
 export default class extends Controller {
   static get targets() {
@@ -138,6 +141,7 @@ export default class extends Controller {
         $select.select2('open');
       });
     }
+    this.dispatch('ready');
   }
 
   toggleAll() {

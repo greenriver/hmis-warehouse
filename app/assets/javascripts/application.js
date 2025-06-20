@@ -16,11 +16,9 @@
 //= require jquery3
 //= require jquery_ujs
 //= require DataTables/datatables.min
-//= require jquery3
-//= require jquery_ujs
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
-//= require chart.js/dist/Chart.bundle.min
+//= require chart.js/dist/chart.umd.min
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
@@ -57,8 +55,6 @@
 //= require ./test_channel
 //= require_directory ./admin/client_matches
 //= require_directory ./census
-//= require_directory ./maps
-//= require_directory ./reports
 //= require_directory ./rollups
 //= require_directory ./sections
 //= require_directory ./health

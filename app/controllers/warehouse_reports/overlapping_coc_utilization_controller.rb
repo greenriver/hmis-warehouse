@@ -64,6 +64,7 @@ module WarehouseReports
     end
 
     def index
+      @per_page_js = ['coc_overlap']
       @cocs = state_coc_shapes.sort_by(&:number_and_name)
       @shapes = map_shapes
     end
@@ -145,7 +146,7 @@ module WarehouseReports
           report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: CACHE_VERSION),
           expires_in: CACHE_LIFETIME,
         ) do
-          render_to_string(partial: 'overlap', locals: { report: report })
+          render_to_string(partial: 'overlap', locals: { report: report, filters: filters })
         end
       end
 

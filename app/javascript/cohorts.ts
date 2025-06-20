@@ -1,7 +1,8 @@
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+import { ModuleRegistry } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 
 // Register all Community features
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 import { DateCellEditor } from './cohorts/editors/date_cell_editor.ts';
 import { DateCellRenderer } from './cohorts/viewers/date_cell_renderer.ts';
