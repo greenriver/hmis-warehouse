@@ -155,6 +155,12 @@ module Hmis::WorkflowExecution
         step.available_at = Time.current
         step.enable!
         assign_task!(step)
+
+        if node.script_task?
+          # If this is a script task, don't wait for user interaction.
+          # Immediately complete the step, process side effects, and traverse to the next node.
+          complete_step!(step, user: user, submitted_values: {})
+        end
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node, user)
       when Hmis::WorkflowDefinition::StartEvent

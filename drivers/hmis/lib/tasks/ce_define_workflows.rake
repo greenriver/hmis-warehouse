@@ -183,7 +183,18 @@ module CeWorkflowBuilder
       swimlane: project_staff_swimlane,
     )
 
-    accept_event = create_accept_event(template, create_enrollment: true)
+    create_enrollment_task = Hmis::WorkflowDefinition::Task.create!(
+      name: 'Create Enrollment Script Task',
+      template_id: template.id,
+      trigger_config: [
+        {
+          event: 'complete_step',
+          message: 'create_enrollment',
+        },
+      ]
+    )
+
+    accept_event = create_accept_event(template)
     decline_event = create_decline_event(template)
 
     review_task_gateway = create_gateway(template, 'review_task')
@@ -196,8 +207,10 @@ module CeWorkflowBuilder
     review_task_gateway.connect_to!(decline_event)
 
     project_offer_outcome_task.connect_to!(project_offer_outcome_gateway)
-    project_offer_outcome_gateway.connect_to!(accept_event, condition: 'move_forward = 1')
+    project_offer_outcome_gateway.connect_to!(create_enrollment_task, condition: 'move_forward = 1')
     project_offer_outcome_gateway.connect_to!(decline_event)
+
+    create_enrollment_task.connect_to!(accept_event)
 
     template.validate!
 

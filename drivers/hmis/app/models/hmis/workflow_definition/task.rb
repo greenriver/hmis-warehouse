@@ -13,5 +13,16 @@ module Hmis::WorkflowDefinition
     validates :name, presence: true
 
     def task? = true
+
+    # If the task has no form definition, it is a BPMN Script Task.
+    # The engine will process it, and any side effects (trigger_config), without requiring user input.
+    def script_task?
+      form_definition_identifier.blank?
+    end
+
+    # If the task has a form definition, it is a BPMN User Task.
+    def user_task?
+      form_definition_identifier.present?
+    end
   end
 end
