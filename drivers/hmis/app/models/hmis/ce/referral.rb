@@ -11,6 +11,9 @@ module Hmis::Ce
   class Referral < GrdaWarehouseBase
     include SimpleStateMachine
 
+    def self.policy_class = Hmis::AuthPolicies::CeReferralPolicy
+    def policy_class = self.class.policy_class
+
     has_paper_trail
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
@@ -94,9 +97,6 @@ module Hmis::Ce
       #   transitions from: :active, to: :stalled
       # end
     end
-
-    def self.policy_class = Hmis::AuthPolicies::CeReferralPolicy
-    def policy_class = self.class.policy_class
 
     def workflow_engine
       @workflow_engine ||= Hmis::WorkflowExecution::Engine.new(

@@ -19,7 +19,7 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
   def can_view?
     return false unless Hmis::Ce.configuration.enabled?
 
-    project_permissions = referral_project_permissions(referral)
+    project_permissions = context.referral_project_permissions(referral)
 
     # Referrals that the user can view because they have can_view_referrals in the target project
     return true if project_permissions.include?(:can_view_referrals) && project_permissions.include?(:can_view_project)
@@ -27,7 +27,7 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
     # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
     # Referral only becomes viewable once the assigned step becomes available.
     # Note that the user does *not* need can_view_project in this case
-    project_permissions.include?(:can_view_own_referrals) && context.assigned_referral_ids.include?(referral.id)
+    project_permissions.include?(:can_view_own_referrals) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
   end
 
   protected

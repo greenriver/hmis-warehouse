@@ -15,6 +15,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ActiveModel::Dirty
 
+  def self.policy_class = Hmis::AuthPolicies::ProjectPolicy
+  def policy_class = self.class.policy_class
+
   has_paper_trail(meta: { project_id: :id })
 
   CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
@@ -65,8 +68,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 
   has_and_belongs_to_many :project_groups,
-                          class_name: 'GrdaWarehouse::ProjectGroup',
-                          join_table: :project_project_groups
+                          class_name: 'Hmis::ProjectGroup',
+                          join_table: :hmis_project_project_groups,
+                          association_foreign_key: 'hmis_project_group_id'
 
   validates_with Hmis::Hud::Validators::ProjectValidator
 

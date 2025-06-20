@@ -48,8 +48,16 @@ class Hmis::AuthPolicies::UserContext
     project_role_permissions(project_id)
   end
 
-  memoize def assigned_referral_ids = assigned_referral_steps.pluck(:instance_id).to_set
+  memoize def assigned_referral_instance_ids = assigned_referral_steps.pluck(:instance_id).to_set
   memoize def assigned_referral_step_ids = assigned_referral_steps.pluck(:id).to_set
+
+  memoize def referral_for_step(step_id)
+    Hmis::Ce::Referral
+      .joins(workflow_instance: :steps)
+      .joins(:opportunity)
+      .merge(Hmis::WorkflowExecution::Step.where(id: step_id))
+      .sole
+  end
 
   protected
 
@@ -68,8 +76,8 @@ class Hmis::AuthPolicies::UserContext
     access_group_ids += system_access_group_ids(:data_sources)
     return EMPTY_SET if access_group_ids.blank?
 
-    Role.joins(:access_controls).
-      merge(user.access_controls.where(collection_id: access_group_ids)).
+    Hmis::Role.joins(:access_controls).
+      merge(user.access_controls.where(access_group_id: access_group_ids)).
       flat_map(&:granted_permissions).to_set.freeze
   end
 

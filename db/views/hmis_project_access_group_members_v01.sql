@@ -34,20 +34,17 @@ FROM
     )
     -- Direct project access
     OR (
-      hmis_group_viewable_entities.entity_type = 'GrdaWarehouse::Hud::Project'
+      hmis_group_viewable_entities.entity_type = 'Hmis::Hud::Project'
       AND hmis_group_viewable_entities.entity_id = targets.project_id
     )
     -- Access via organization
     OR (
-      hmis_group_viewable_entities.entity_type = 'GrdaWarehouse::Hud::Organization'
+      hmis_group_viewable_entities.entity_type = 'Hmis::Hud::Organization'
       AND hmis_group_viewable_entities.entity_id = targets.organization_id
     )
     -- Access via project groups
     OR (
-      (
-        hmis_group_viewable_entities.entity_type = 'GrdaWarehouse::ProjectAccessGroup'
-        OR hmis_group_viewable_entities.entity_type = 'GrdaWarehouse::ProjectGroup'
-      )
+      hmis_group_viewable_entities.entity_type = 'Hmis::ProjectGroup'
       AND hmis_group_viewable_entities.entity_id = targets.project_group_id
     )
   )
