@@ -12,10 +12,6 @@ require 'dentaku'
 # task assignments, and message processing according to the workflow template.
 module Hmis::WorkflowExecution
   class Engine
-    # Constants for referral event types
-    ACCEPT_REFERRAL = 'accept_referral'
-    REJECT_REFERRAL = 'reject_referral'
-
     attr_reader :template, :instance, :message_handler, :assignment_handler
 
     def initialize(workflow_instance, message_handler:, assignment_handler:)
