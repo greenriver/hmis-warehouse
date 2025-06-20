@@ -8,7 +8,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
     this._selector_exists = this._selector_exists.bind(this);
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
     this.chart_selector = chart_selector;
-    window.Chart.defaults.global.defaultFontSize = 10;
+    ;
     this.truncate_labels = (options != null && options.truncate_labels != null) ? options.truncate_labels : 0;
     this.color_map = {};
     this.next_color = 0;
@@ -113,7 +113,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
           }
         },
       };
-      if(this.legend_holder != null) {
+      if (this.legend_holder != null) {
         config.legend = {
           contents: {
             bindto: this.legend_holder,

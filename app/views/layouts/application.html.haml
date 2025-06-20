@@ -22,6 +22,7 @@
         = colors
     = render 'layouts/favicon'
     = csrf_meta_tags
+    = yield :head
   - data = {}
   - data.merge!({ spy: :scroll, target: '.scrollspy' }) if content_for(:body_data_scrollspy)
   %body{class: body_classes, data: data}

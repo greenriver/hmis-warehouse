@@ -31,7 +31,8 @@ Rails.application.config.content_security_policy do |policy|
   policy.script_src(
     :self,
     'https://browser.sentry-cdn.com',
-    'https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/',
+    'https://cdnjs.cloudflare.com/ajax/libs/chance/',
     'https://unpkg.com/ag-grid-community@27.3.0/dist/ag-grid-community.min.noStyle.js',
     :unsafe_inline,
     :unsafe_eval,
@@ -39,6 +40,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.style_src(
     :self,
     'https://fonts.googleapis.com',
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/',
     'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-grid.css',
     'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-theme-balham.css',
     :unsafe_inline,

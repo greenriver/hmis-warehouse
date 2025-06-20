@@ -7,7 +7,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
     this._selector_exists = this._selector_exists.bind(this);
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
     this.chart_selector = chart_selector;
-    window.Chart.defaults.global.defaultFontSize = 10;
+    ;
     this.truncate_labels = (options != null && options.truncate_labels != null) ? options.truncate_labels : 0;
     this.color_map = {};
     this.next_color = 0;
@@ -58,7 +58,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
               let percentage = 0;
               let setIndex = setNames.indexOf(id);
               if (columnTotals[setIndex] > v) {
-                percentage = (v/columnTotals[setIndex])*100;
+                percentage = (v / columnTotals[setIndex]) * 100;
               }
               return `${d3.format(',')(v)} (${percentage.toFixed(1)}%)`;
             }
@@ -149,7 +149,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         let details = `<td class='text-left' rowspan='2'>${support.all_counts[tooltip_title]}</td>`;
         html += box;
         html += value;
-        if(! details_added) {
+        if (!details_added) {
           html += details;
           details_added = true;
         }

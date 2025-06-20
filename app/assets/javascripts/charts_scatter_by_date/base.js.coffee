@@ -18,7 +18,7 @@ class App.ChartsScatterByDate.Base
       $('.jLoading').remove()
   _build_charts: ->
     # Default chart options
-    Chart.defaults.global.defaultFontSize = 10
+
     Chart.defaults.global.title.position = 'top'
     Chart.defaults.global.legend.display = false
     Chart.defaults.global.hover.onHover = @_process_hover

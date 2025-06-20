@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import bb, { bar, pie, donut } from "billboard.js";
+const { bb, bar, pie, donut } = window.bb;
 import rfdc from 'rfdc'
 
 export default class extends Controller {
