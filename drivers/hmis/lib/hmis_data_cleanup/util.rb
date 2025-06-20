@@ -534,7 +534,10 @@ module HmisDataCleanup
         merge(data_sources).
         preload(:income_benefit)
 
-      system_hud_user = Hmis::Hud::User.from_user(Hmis::User.system_user)
+      system_hud_users = data_sources.map do |ds|
+        Hmis::Hud::User.system_user(data_source_id: ds.id)
+      end.index_by(&:data_source_id)
+
       messages = []
       Hmis::Hud::IncomeBenefit.transaction do
         scope.find_each do |fp|
@@ -542,7 +545,9 @@ module HmisDataCleanup
           raise unless record
 
           # skip records that were likely created by migrations
-          next if record.user_id.nil? || record.user_id == system_hud_user.user_id
+          next if fp.values.nil?
+          next if record.user_id.nil?
+          next if record.user_id == system_hud_users.fetch(record.data_source_id)&.user_id
 
           messages += Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
           record.save! if record.changed?
