@@ -177,23 +177,23 @@ module Hmis::WorkflowExecution
 
       calculator = Dentaku::Calculator.new
       defaults = calculator.dependencies(expression).to_h { |k| [k.to_sym, nil] }
+
+      # Evaluate conditions against *all* submitted values. This is important because when we reach a gateway,
+      # we need to evaluate which branch(es) to take based on the submitted values of the previous tasks;
+      # the gateway itself doesn't have submitted values.
       calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
     end
 
-    # Evaluate conditions against *all* submitted values. This is important because when we reach a gateway,
-    # we need to evaluate which branch(es) to take based on the submitted values of the previous tasks;
-    # the gateway itself doesn't have submitted values.
     def all_submitted_values
       instance.steps.reset
       steps_by_node_id = instance.steps.index_by(&:node_id)
       template.graph.walk.each.with_object({}) do |node, result|
         step = steps_by_node_id[node.id]
-        # Caution: This logic is a little fragile. Steps may reuse the same form definition, and
-        # we want to always evaluate against the most recently submitted value.
-        # So for example, if step 1 previously submitted "move_forward = 1" but step 2 submits "move_forward = 0",
+        # Steps may reuse the same form definition, and we always evaluate against the most recently submitted value.
+        # For example, if step 1 previously submitted "move_forward = 1" but step 2 submits "move_forward = 0",
         # the referral should not move forward.
-        # This relies on the .merge behavior that overwrites existing keys combined with the fact that we are walking
-        # through the graph sequentially.
+        # This relies on the .merge behavior, which overwrites existing keys,
+        # combined with the fact that we are walking through the graph sequentially.
         result.merge!(step.submitted_values) if step&.completed?
       end
     end
