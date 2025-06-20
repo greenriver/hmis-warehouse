@@ -5,6 +5,8 @@ desc 'Script to create CE workflow definition'
 # This means it should NOT be run in production after the first time!
 # Usage: rails driver:hmis:ce_define_workflows
 task ce_define_workflows: [:environment] do
+  raise 'This task destroys data and should not be run in production!' if Rails.env.production?
+
   TEMPLATE_IDENTIFER = 'coordinated_entry_referral'
 
   GENERIC_YES_NO = 'generic_yes_no'
@@ -37,7 +39,7 @@ task ce_define_workflows: [:environment] do
 
   # Temporarily disable the callback that prevents destroying published forms
   Hmis::Form::Definition.skip_callback(:destroy, :before, :can_be_destroyed)
-  Hmis::Form::Definition.where(identifier: FORM_DEFINITION_IDENTIFIERS).destroy_all
+  Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: FORM_DEFINITION_IDENTIFIERS).destroy_all
   Hmis::Form::Definition.set_callback(:destroy, :before, :can_be_destroyed) # re-enable callback
 
   puts 'Enabling CE in AppConfigProperty'
@@ -45,8 +47,7 @@ task ce_define_workflows: [:environment] do
   ce_enabled.value = true
   ce_enabled.save! if ce_enabled.changed?
 
-  # Caution: if we need to run this in a multi-hmis environment, make sure this is the right data source
-  data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
+  data_source = GrdaWarehouse::DataSource.hmis.sole
   puts "Creating workflow definition template for data source #{data_source.id}"
 
   template = Hmis::WorkflowDefinition::Template.create!(
@@ -138,7 +139,7 @@ task ce_define_workflows: [:environment] do
     trigger_config: [
       {
         event: 'end_workflow',
-        message: Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL,
+        message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
       },
       {
         event: 'end_workflow',
@@ -153,7 +154,7 @@ task ce_define_workflows: [:environment] do
     trigger_config: [
       {
         event: 'end_workflow',
-        message: Hmis::WorkflowExecution::Engine::REJECT_REFERRAL,
+        message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
       },
     ]
   )
