@@ -25,16 +25,16 @@
 // required via Sprockets as before.
 @import 'select2/dist/css/select2.min';
 @import 'select2-bootstrap';
-//= require billboard.js/dist/billboard.min
-//= require jquery-ui/sortable
-//= require jquery-ui/slider
-//= require jquery-ui/autocomplete
+@import 'billboard.js/dist/billboard.min.css';
+@import 'jquery-ui/sortable';
+@import 'jquery-ui/slider';
+@import 'jquery-ui/autocomplete';
 @import 'leaflet/dist/leaflet';
 @import 'leaflet.markercluster/dist/MarkerCluster';
 @import 'leaflet.markercluster/dist/MarkerCluster.Default';
 @import 'beautifymarker/leaflet-beautify-marker-icon';
-//= require ag-grid-community/styles/ag-theme-balham.min.css
-//= require jquery.minicolors
+@import 'ag-grid-community/styles/ag-theme-balham.min.css';
+@import 'jquery.minicolors';
 
 // require datatables.net-bs5/css/dataTables.bootstrap5
 @import 'datatables_bootstrap';
