@@ -30,8 +30,3 @@
         %div Loading&hellip;
     %div
       %button.btn.btn-primary.j-submit-button{type: 'submit', disabled: true, data: {'coc-overlap-target': 'submitButton'}} Update
-- content_for :page_js do
-  :javascript
-    $('select').on('change', function(e) {
-      console.log('change', e.target.value);
-    });

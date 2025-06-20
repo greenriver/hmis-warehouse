@@ -22,6 +22,7 @@ export default class extends Controller {
   ];
 
   connect() {
+    console.log('shapesValue', this.shapesValue);
     this.map = new MapWithShapes({
       elementId: this.mapTarget.id,
       shapes: this.shapesValue,
@@ -31,8 +32,6 @@ export default class extends Controller {
     // from the select2 instance, avoiding race conditions on initialization.
     this.boundHandleChange = this.handlePotentialChange.bind(this);
     $(document).on('change', this.boundHandleChange);
-    console.log('connected');
-
 
     this.postForm();
   }
@@ -42,7 +41,6 @@ export default class extends Controller {
   }
 
   handlePotentialChange(evt) {
-    console.log('handlePotentialChange called with event:', evt);
     if (evt.target === this.coc1InputTarget) {
       this.handleCoc1Change();
     }
@@ -50,7 +48,6 @@ export default class extends Controller {
 
   handleCoc1Change() {
     const value = this.coc1InputTarget.value;
-    console.log('value', value);
     this.submitButtonTarget.disabled = !value;
     this.promptTarget.classList.toggle('d-none', !!value);
   }

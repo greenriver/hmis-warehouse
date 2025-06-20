@@ -1,4 +1,5 @@
-import L from 'leaflet';
+// Do NOT import a private Leaflet. Use the global one from Sprockets.
+const L = window.L;
 
 export default class MapWithShapes {
   constructor({ elementId, shapes }) {
@@ -27,7 +28,7 @@ export default class MapWithShapes {
     this.highlightedFeatures = [];
 
     this.map = new L.Map(this.elementId, mapOptions);
-
+    console.log('map', this.map)
     L.control
       .zoom({
         position: 'bottomleft',

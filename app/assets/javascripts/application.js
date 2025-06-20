@@ -22,6 +22,9 @@
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
+//= require leaflet/dist/leaflet
+//= require leaflet.markercluster/dist/leaflet.markercluster
+//= require beautifymarker/leaflet-beautify-marker-icon
 //= require jquery.minicolors
 //= require jquery.minicolors.simple_form
 //= require d3/dist/d3.min
