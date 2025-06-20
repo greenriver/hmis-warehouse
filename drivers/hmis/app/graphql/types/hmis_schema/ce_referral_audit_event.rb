@@ -30,9 +30,9 @@ module Types
         'START_REFERRAL'
       when 'end_workflow'
         case object.event_data['message']
-        when Hmis::WorkflowExecution::Engine::REJECT_REFERRAL
+        when Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE
           'REJECT_REFERRAL'
-        when Hmis::WorkflowExecution::Engine::ACCEPT_REFERRAL
+        when Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE
           'ACCEPT_REFERRAL'
         else
           raise "Unexpected referral audit event. ID: #{object.id}. Event data: #{object.event_data}"
