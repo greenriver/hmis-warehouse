@@ -128,6 +128,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def show
+    @per_page_js = ['map_with_markers']
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     log_item(@client)
     @note = GrdaWarehouse::ClientNotes::Base.new

@@ -6,13 +6,9 @@
 = render 'clients/tab_navigation', current: map_client_location_history_client_path(@client)
 = render_display_title "Location Map for #{@client.pii_provider(user: current_user).full_name}"
 = render 'filter'
+
 - if @locations.any?
-  #client__location-history
-  = content_for :page_js do
-    :javascript
-      var markers = #{@markers.to_json.html_safe};
-      var options = #{@options.to_json.html_safe};
-      var map = new App.Maps.MapWithMarkers('client__location-history', markers, options);
+  #client__location-history{data: { controller: 'map-with-markers', 'map-with-markers-markers-value': @markers.to_json, 'map-with-markers-options-value': @options.to_json }}
 - else
   .no-data
     No previous locations
