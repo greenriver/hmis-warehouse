@@ -21,8 +21,7 @@
 // 2. Vendor Libraries (Bootstrap is now the main one)
 @import 'application/vendor/bootstrap/index'; // This will now compile Bootstrap 5 CSS
 
-// NOTE: Other vendor CSS files that are not Sass-based should still be
-// required via Sprockets as before.
+// NOTE: as this file is now type scss, we cannot use require, or require_tree, we need to use @import
 @import 'select2/dist/css/select2.min';
 @import 'select2-bootstrap';
 @import 'billboard.js/dist/billboard.min.css';
