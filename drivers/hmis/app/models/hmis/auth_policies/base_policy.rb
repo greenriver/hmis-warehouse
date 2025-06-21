@@ -31,10 +31,8 @@ class Hmis::AuthPolicies::BasePolicy
   def ensure_arg_type!(arg, klass)
     return if arg.is_a?(klass)
 
-    # For ActiveRecord models, also accept the class itself or scopes
-    if arg.is_a?(Class) && arg < ActiveRecord::Base
-      return if arg == klass || arg < klass || (arg.is_a?(ActiveRecord::Relation) && arg.klass <= klass)
-    end
+    # For ActiveRecord models, also accept the class itself
+    return if arg.is_a?(Class) && arg < ActiveRecord::Base && arg == klass
 
     raise ArgumentError, "Expected a #{klass.name} got #{arg.class}"
   end

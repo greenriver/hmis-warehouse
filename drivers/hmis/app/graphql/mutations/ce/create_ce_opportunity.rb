@@ -17,7 +17,7 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
-      access_denied! unless current_permission?(permission: :can_manage_units, entity: project)
+      access_denied! unless policy_for(project).can_manage_units?
 
       template = Hmis::WorkflowDefinition::Template.
         published.viewable_by(current_user).

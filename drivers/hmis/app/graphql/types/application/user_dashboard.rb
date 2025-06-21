@@ -55,7 +55,9 @@ module Types
       viewable_instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
       step_scope = step_scope.where(instance_id: viewable_instance_ids)
 
-      step_scope.order(available_at: :desc, id: :desc)
+      steps = step_scope.order(available_at: :desc, id: :desc)
+
+      steps
     end
   end
 end

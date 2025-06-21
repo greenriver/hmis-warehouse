@@ -15,7 +15,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ActiveModel::Dirty
 
-  def self.policy_class = Hmis::AuthPolicies::ProjectPolicy
+  def self.policy_class = Hmis::AuthPolicies::HmisProjectPolicy
   def policy_class = self.class.policy_class
 
   has_paper_trail(meta: { project_id: :id })

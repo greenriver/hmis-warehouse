@@ -39,8 +39,7 @@ module Types
     end
 
     def candidates # not for batch
-      permission_from_project = current_permission?(permission: :can_view_prioritized_client_lists, entity: object.project)
-      return Hmis::Ce::Match::Candidate.none unless permission_from_project
+      return Hmis::Ce::Match::Candidate.none unless policy_for(object).can_view_candidates?
 
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).

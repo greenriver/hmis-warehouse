@@ -7,9 +7,6 @@ module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
     include SimpleStateMachine
 
-    def self.policy_class = Hmis::AuthPolicies::WorkflowExecutionStepPolicy
-    def policy_class = self.class.policy_class
-
     has_paper_trail
 
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'

@@ -8,91 +8,59 @@
 
 require 'memery'
 
+# Facade that provides authorization context for policy objects.
+# Delegates complex data loading and caching to specialized loader classes.
+#
+# This context is shared across all policy objects for a single user/request,
+# enabling efficient bulk data loading and caching.
 class Hmis::AuthPolicies::UserContext
   include Memery
-  attr_accessor :user
+
+  attr_reader :user
   EMPTY_SET = Set.new.freeze
 
   def initialize(user)
     raise ArgumentError, 'Must be an HMIS user' unless user.is_a?(Hmis::User)
 
     @user = user
-    @access_group_ids_by_project = {}
   end
 
-  memoize def project_role_permissions(project_id)
-    access_group_ids = project_access_group_ids(project_id)
-    permissions_for_access_group_ids(access_group_ids)
-  end
-
-  memoize def data_source_role_permissions(data_source_id)
-    access_group_ids = data_source_access_group_ids(data_source_id)
-    permissions_for_access_group_ids(access_group_ids)
-  end
-
-  def preload_project_dependencies(project_ids)
-    results = Hmis::ProjectAccessGroupMember.
-      where(project_id: project_ids).
-      pluck(:project_id, :access_group_id).
-      group_by(&:shift).
-      transform_values { |v| v.flatten.compact_blank }
-    @access_group_ids_by_project.merge!(results)
-  end
-
-  def potential_permissions
+  # Global user permissions (across all projects/entities)
+  memoize def potential_permissions
     user.roles.flat_map(&:granted_permissions).to_set.freeze
   end
 
-  def referral_project_permissions(referral)
-    project_id = referral.opportunity.project_id
-    project_role_permissions(project_id)
+  # Project-specific permissions
+  def project_permissions(project_id)
+    access_group_ids = project_access_group_loader.get(project_id)
+    permission_loader.for_access_group_ids(access_group_ids)
   end
 
-  memoize def assigned_referral_instance_ids = assigned_referral_steps.pluck(:instance_id).to_set
-  memoize def assigned_referral_step_ids = assigned_referral_steps.pluck(:id).to_set
+  def preload_project_dependencies(project_ids)
+    project_access_group_loader.preload(project_ids)
+  end
 
-  memoize def referral_for_step(step_id)
-    Hmis::Ce::Referral.
-      joins(workflow_instance: :steps).
-      joins(:opportunity).
-      merge(Hmis::WorkflowExecution::Step.where(id: step_id)).
-      sole
+  # CE Referral assignment data
+  def assigned_referral_instance_ids
+    ce_referral_assignment_loader.assigned_referral_instance_ids
+  end
+
+  def assigned_referral_step_ids
+    ce_referral_assignment_loader.assigned_referral_step_ids
   end
 
   protected
 
-  def assigned_referral_steps
-    Hmis::WorkflowExecution::Step.
-      excluding_unavailable.
-      joins(:task, :assignments).
-      where(assignments: { user_id: user.id }) # assigned to this user
+  # Context loaders (memoized for request-level caching)
+  memoize def permission_loader
+    Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader.new(user)
   end
 
-  memoize def system_access_group_ids(group_name)
-    [Collection.system_collection(group_name)&.id].compact
+  memoize def project_access_group_loader
+    Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader.new
   end
 
-  memoize def permissions_for_access_group_ids(access_group_ids)
-    access_group_ids += system_access_group_ids(:data_sources)
-    return EMPTY_SET if access_group_ids.blank?
-
-    Hmis::Role.joins(:access_controls).
-      merge(user.access_controls.where(access_group_id: access_group_ids)).
-      flat_map(&:granted_permissions).to_set.freeze
-  end
-
-  def data_source_access_group_ids(data_source_id)
-    ids = Hmis::GroupViewableEntity.
-      where(entity_type: GrdaWarehouse::DataSource.sti_name).
-      where(entity_id: data_source_id).
-      where.not(collection_id: nil).
-      pluck(:collection_id)
-    ids.uniq.sort
-  end
-
-  # Returns the access group ids that include this project id
-  def project_access_group_ids(project_id)
-    preload_project_dependencies([project_id]) unless @access_group_ids_by_project.key?(project_id)
-    @access_group_ids_by_project[project_id] ||= []
+  memoize def ce_referral_assignment_loader
+    Hmis::AuthPolicies::ContextLoaders::CeReferralAssignmentLoader.new(user)
   end
 end

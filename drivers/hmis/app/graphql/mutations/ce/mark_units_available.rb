@@ -22,7 +22,7 @@ module Mutations
       raise 'Cannot manage units across projects' if project_ids.size > 1
 
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
-      access_denied! unless current_user.permissions_for?(project, :can_manage_units)
+      access_denied! unless policy_for(project).can_manage_units?
 
       # Determine which template to use for each unit based on Unit Group configuration.
       unit_to_template = units.preload(unit_group: :workflow_template).map do |unit|

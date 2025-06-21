@@ -10,7 +10,7 @@ require_relative '../../../requests/hmis/login_and_permissions'
 
 require 'rails_helper'
 
-RSpec.describe Hmis::AuthPolicies::ProjectPolicy, type: :model do
+RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:organization) { create(:hmis_hud_organization, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }

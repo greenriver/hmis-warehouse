@@ -69,7 +69,7 @@ module Types
       load_ar_association(object, :assignments) # Preload assignments with dataloader
 
       {
-        can_perform_step: policy_for(object).can_perform?,
+        can_perform_step: policy_for(referral).can_perform?(step: object),
       }
     end
 

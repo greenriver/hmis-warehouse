@@ -6,8 +6,7 @@
 
 # frozen_string_literal: true
 
-# NOT in active use yet
-class Hmis::AuthPolicies::ProjectPolicy < Hmis::AuthPolicies::BasePolicy
+class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
   def can_view?
     project_permissions.include?(:can_view_project)
   end
@@ -20,10 +19,14 @@ class Hmis::AuthPolicies::ProjectPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_delete_project)
   end
 
+  def can_manage_units?
+    project_permissions.include?(:can_manage_units)
+  end
+
   protected
 
   memoize def project_permissions
-    context.project_role_permissions(resource.id)
+    context.project_permissions(resource.id)
   end
 
   def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Project)
