@@ -52,20 +52,20 @@ class Hmis::AuthPolicies::UserContext
   memoize def assigned_referral_step_ids = assigned_referral_steps.pluck(:id).to_set
 
   memoize def referral_for_step(step_id)
-    Hmis::Ce::Referral
-      .joins(workflow_instance: :steps)
-      .joins(:opportunity)
-      .merge(Hmis::WorkflowExecution::Step.where(id: step_id))
-      .sole
+    Hmis::Ce::Referral.
+      joins(workflow_instance: :steps).
+      joins(:opportunity).
+      merge(Hmis::WorkflowExecution::Step.where(id: step_id)).
+      sole
   end
 
   protected
 
   def assigned_referral_steps
-    Hmis::WorkflowExecution::Step
-      .excluding_unavailable
-      .joins(:task, :assignments)
-      .where(assignments: {user_id: user.id}) # assigned to this user
+    Hmis::WorkflowExecution::Step.
+      excluding_unavailable.
+      joins(:task, :assignments).
+      where(assignments: { user_id: user.id }) # assigned to this user
   end
 
   memoize def system_access_group_ids(group_name)

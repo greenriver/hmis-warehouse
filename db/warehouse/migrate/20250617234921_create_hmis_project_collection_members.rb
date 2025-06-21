@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateHmisProjectCollectionMembers < ActiveRecord::Migration[7.1]
   def change
     view = 'hmis_project_access_group_members'
@@ -12,5 +14,5 @@ class CreateHmisProjectCollectionMembers < ActiveRecord::Migration[7.1]
       INSTEAD OF UPDATE ON hmis_project_access_group_members
       FOR EACH ROW EXECUTE FUNCTION prevent_modification();
     SQL
-   end
+  end
 end

@@ -5,6 +5,7 @@
 ###
 
 # frozen_string_literal: true
+
 require_relative '../../../requests/hmis/login_and_permissions'
 
 require 'rails_helper'
