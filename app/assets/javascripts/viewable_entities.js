@@ -2,6 +2,7 @@ window.App.ViewableEntities = class {
   constructor() {
     this.registerEvents();
     this.initSelect2();
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new window.bootstrap.Tooltip(el));
   }
 
   registerEvents() {
@@ -62,7 +63,7 @@ window.App.ViewableEntities = class {
     const itemsMarkup = itemValues.map((item, i) => {
       let unlimitable = '';
       if (unlimitableIds.includes(parseInt(ids[i]))) {
-        unlimitable = '<span data-bs-toggle="tooltip" data-title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>';
+        unlimitable = '<span data-bs-toggle="tooltip" title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>';
       }
       let icon_span = '<span/>';
       if (editable) {
@@ -82,8 +83,7 @@ window.App.ViewableEntities = class {
       noDataMessage = '';
     }
     $listContainer.html(itemsMarkup || noDataMessage);
-    // FIXME: needs testing before removal
-    // $('[data-bs-toggle="tooltip"]').tooltip();
+    $listContainer.find('[data-bs-toggle="tooltip"]').each((_, e) => new window.bootstrap.Tooltip(e));
   }
 
   getEntityName($column) {
