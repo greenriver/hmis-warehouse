@@ -141,7 +141,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
     if (key.id != null) {
       key = key.id;
     }
-    const colors = window.Chart.defaults.colors;
+    const colors = window.App.chartDefaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {

@@ -133,7 +133,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
   _colors(c, d) {
     let color;
     let key = this.categories.indexOf(d.id);
-    const colors = window.Chart.defaults.colors;
+    const colors = window.App.chartDefaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {
