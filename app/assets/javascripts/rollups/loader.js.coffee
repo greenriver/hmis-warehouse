@@ -10,8 +10,15 @@ class App.Rollups.Loader
         $(document).queue "fx", =>
           $.get @rollupPath + $e.data('partial'), (data) =>
             $e.find('.rollup-container').append data
-            # FIXME: needs testing before removal
-            # $e.find('[data-bs-toggle=tooltip]').tooltip()
+            for el in $e.find('[data-bs-toggle=tooltip]')
+              $el = $(el)
+              if $el.data('title')
+                options =
+                  html: true
+                  title: $el.data('title')
+                  placement: $el.data('placement') || 'top'
+                  fallbackPlacements: ['top', 'bottom', 'right', 'left']
+                new bootstrap.Tooltip(el, options)
             # dress up all the id dots
             $e.find('.id-sqr[data-id]').each (i,el)=>
               $id = $(el)
