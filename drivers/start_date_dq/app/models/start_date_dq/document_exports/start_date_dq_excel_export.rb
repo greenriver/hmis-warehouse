@@ -19,7 +19,7 @@ module StartDateDq::DocumentExports
 
     def perform
       with_status_progression do
-        self.filename = "#{report.title} Data Quality Report #{DateTime.current.to_fs(:db)}"
+        self.filename = "#{report.title} Data Quality Report #{DateTime.current.to_fs(:db)}.xlsx"
         self.file_data = excel_package.to_stream.read
         self.mime_type = EXCEL_MIME_TYPE
       end

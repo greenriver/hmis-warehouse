@@ -543,6 +543,85 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
+  context 'with incorrect total income via form processor' do
+    let!(:form_definition) { create(:hmis_form_definition) }
+    let!(:non_system_user) { create(:hmis_hud_user, data_source: hmis_ds) }
+    let!(:income_benefit) do
+      create(:hmis_income_benefit,
+             enrollment: e1,
+             client: e1.client,
+             user: non_system_user,
+             income_from_any_source: 1,
+             earned_amount: 100,
+             earned: 1,
+             ssi_amount: 200,
+             ssi: 1,
+             total_monthly_income: 250, # incorrect total
+             **default_enrollment_attrs)
+    end
+    let!(:custom_assessment) do
+      create(:hmis_custom_assessment,
+             enrollment: e1,
+             client: e1.client,
+             user: non_system_user,
+             data_source: hmis_ds,
+             definition: form_definition,
+             values: { 'test' => 'value' })
+    end
+    let!(:form_processor) do
+      custom_assessment.form_processor.tap do |fp|
+        fp.update!(income_benefit: income_benefit)
+      end
+    end
+
+    # Canary records that should be skipped
+    let!(:system_user) { Hmis::Hud::User.system_user(data_source_id: hmis_ds.id) }
+    let!(:income_with_system_user) do
+      create(:hmis_income_benefit,
+             enrollment: e2,
+             client: e2.client,
+             user: system_user,
+             income_from_any_source: 1,
+             earned: 1,
+             earned_amount: 50,
+             total_monthly_income: 75, # incorrect total, but should be skipped
+             **default_enrollment_attrs)
+    end
+    let!(:assessment_with_nil_values) do
+      create(:hmis_custom_assessment,
+             enrollment: e3,
+             client: e3.client,
+             user: non_system_user,
+             data_source: hmis_ds,
+             definition: form_definition,
+             values: nil) # nil values should be skipped
+    end
+    let!(:income_with_nil_values) do
+      create(:hmis_income_benefit,
+             enrollment: e3,
+             client: e3.client,
+             user: non_system_user,
+             income_from_any_source: 1,
+             earned_amount: 75,
+             earned: 1,
+             total_monthly_income: 100, # incorrect total, but should be skipped
+             **default_enrollment_attrs)
+    end
+    before do
+      assessment_with_nil_values.form_processor.update!(income_benefit: income_with_nil_values)
+    end
+
+    xit 'corrects total income records via form processor' do
+      expect { HmisDataCleanup::Util.correct_total_income_records! }.to(
+        [
+          change { income_benefit.reload.total_monthly_income.to_i }.from(250).to(300),
+          not_change { income_with_system_user.reload.total_monthly_income.to_i },
+          not_change { income_with_nil_values.reload.total_monthly_income.to_i },
+        ].reduce(&:and),
+      )
+    end
+  end
+
   context 'with household ids duplicated across projects' do
     before(:each) do
       p2 = create(:hmis_hud_project, data_source: hmis_ds, organization: o1)

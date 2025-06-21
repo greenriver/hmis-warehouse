@@ -72,9 +72,8 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       context 'and user has assigned step' do
         before do
           engine.start_workflow!(user: hmis_user)
-          step = referral.steps.first
-          referral.participants.create!(user: hmis_user, swimlane: step.swimlane)
-          engine.assign_task!(step)
+          referral.participants.create!(user: hmis_user, swimlane: case_manager_swimlane)
+          engine.assign_task!(referral.steps.first)
         end
 
         let(:step) { referral.steps.first }
@@ -96,6 +95,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
         context 'user has multiple assigned steps' do
           before do
+            referral.participants.create!(user: hmis_user, swimlane: provider_swimlane)
             engine.start_step!(step, user: hmis_user)
             engine.complete_step!(step, user: hmis_user, submitted_values: nil)
           end

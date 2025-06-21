@@ -88,6 +88,7 @@ RUN apt-get update && apt-get upgrade -y \
   chromium-common \
   dbus \
   dbus-user-session \
+  expect \
   file \
   fonts-dejavu \
   fonts-droid-fallback \
@@ -130,6 +131,7 @@ RUN apt-get update && apt-get upgrade -y \
   tar \
   tzdata \
   vim \
+  zip \
   && rm -rf /var/lib/apt/lists/* \
   && if [ "$(uname -m)" = "aarch64" ]; then \
        ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \

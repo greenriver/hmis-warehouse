@@ -30834,6 +30834,70 @@ ALTER SEQUENCE public.system_colors_id_seq OWNED BY public.system_colors.id;
 
 
 --
+-- Name: system_maintenance_task_runs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_maintenance_task_runs (
+    id bigint NOT NULL,
+    system_maintenance_task_id bigint,
+    started_at timestamp(6) without time zone NOT NULL,
+    completed_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: system_maintenance_task_runs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_maintenance_task_runs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_maintenance_task_runs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_maintenance_task_runs_id_seq OWNED BY public.system_maintenance_task_runs.id;
+
+
+--
+-- Name: system_maintenance_tasks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_maintenance_tasks (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    name character varying NOT NULL,
+    completion_alert_minutes integer,
+    alert_sent_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: system_maintenance_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_maintenance_tasks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_maintenance_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_maintenance_tasks_id_seq OWNED BY public.system_maintenance_tasks.id;
+
+
+--
 -- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -36489,6 +36553,20 @@ ALTER TABLE ONLY public.system_colors ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: system_maintenance_task_runs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_maintenance_task_runs ALTER COLUMN id SET DEFAULT nextval('public.system_maintenance_task_runs_id_seq'::regclass);
+
+
+--
+-- Name: system_maintenance_tasks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_maintenance_tasks ALTER COLUMN id SET DEFAULT nextval('public.system_maintenance_tasks_id_seq'::regclass);
+
+
+--
 -- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -41374,6 +41452,22 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses
 
 ALTER TABLE ONLY public.system_colors
     ADD CONSTRAINT system_colors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_maintenance_task_runs system_maintenance_task_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_maintenance_task_runs
+    ADD CONSTRAINT system_maintenance_task_runs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_maintenance_tasks system_maintenance_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_maintenance_tasks
+    ADD CONSTRAINT system_maintenance_tasks_pkey PRIMARY KEY (id);
 
 
 --
@@ -59470,6 +59564,13 @@ CREATE INDEX idx_on_data_source_id_641ce0c5a9 ON public.hmis_csv_2026_current_li
 
 
 --
+-- Name: idx_on_system_maintenance_task_id_fa76b5b863; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_system_maintenance_task_id_fa76b5b863 ON public.system_maintenance_task_runs USING btree (system_maintenance_task_id);
+
+
+--
 -- Name: idx_services_hud_types; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -69998,6 +70099,13 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_maintenance_tasks_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_system_maintenance_tasks_on_name ON public.system_maintenance_tasks USING btree (name);
+
+
+--
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -73723,6 +73831,14 @@ ALTER TABLE ONLY public.service_history_services_2007
 
 
 --
+-- Name: system_maintenance_task_runs fk_rails_ac76621715; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_maintenance_task_runs
+    ADD CONSTRAINT fk_rails_ac76621715 FOREIGN KEY (system_maintenance_task_id) REFERENCES public.system_maintenance_tasks(id);
+
+
+--
 -- Name: ce_referral_notes fk_rails_aeb72e3413; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -74045,6 +74161,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250520185619'),
 ('20250516193728'),
 ('20250516141401'),
+('20250514223412'),
 ('20250514150515'),
 ('20250513134455'),
 ('20250513132551'),

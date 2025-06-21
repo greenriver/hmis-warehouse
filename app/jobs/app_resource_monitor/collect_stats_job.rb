@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -26,9 +28,12 @@ class AppResourceMonitor::CollectStatsJob < ::BaseJob
   def perform
     return unless active_config?
 
-    prefix = [active_config.path, [ENV.fetch('CLIENT'), Rails.env].map(&:strip).join('-')].join('/')
-    AppResourceMonitor::Report.new.export_to_csv do |directory_name|
-      active_config.s3.upload_directory(directory_name: directory_name, prefix: prefix)
+    instrument_as_maintenance_task do |run|
+      prefix = [active_config.path, [ENV.fetch('CLIENT'), Rails.env].map(&:strip).join('-')].join('/')
+      AppResourceMonitor::Report.new.export_to_csv do |directory_name|
+        active_config.s3.upload_directory(directory_name: directory_name, prefix: prefix)
+      end
+      run.complete!
     end
   end
 end
