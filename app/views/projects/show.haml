@@ -24,26 +24,30 @@
               %em Days served are included in verified additional days
         %tr
           %th Operating Start Date
-          %td.d-flex
-            .project__operating-start-date
-              = @project.OperatingStartDate&.to_date
+          %td
+            .d-flex
+              .project__operating-start-date
+                = @project.OperatingStartDate&.to_date
         %tr
           %th Operating End Date
-          %td.d-flex
-            .project__operating-start-date
-              = @project.OperatingEndDate&.to_date || 'ongoing'
+          %td
+            .d-flex
+              .project__operating-start-date
+                = @project.OperatingEndDate&.to_date || 'ongoing'
         %tr
           %th Continuum Project
-          %td.d-flex
-            .project__continuum-project
-              = checkmark(@project.ContinuumProject == 1)
+          %td
+            .d-flex
+              .project__continuum-project
+                = checkmark(@project.ContinuumProject == 1)
         %tr
           %th Housing Type
-          %td.d-flex
-            .project__housing-type
-              - if @project.HousingType.present?
-                = HudUtility2024.housing_type(@project.HousingType)
-                (#{@project.HousingType})
+          %td
+            .d-flex
+              .project__housing-type
+                - if @project.HousingType.present?
+                  = HudUtility2024.housing_type(@project.HousingType)
+                  (#{@project.HousingType})
         - if project_policy.can_view_imports?
           %tr
             %th Project Contacts

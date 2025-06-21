@@ -2,10 +2,11 @@
   %td
     .project__name.mb-2{id: "project-#{project.id}"}
       = link_to_if can_view_projects?, project.name(current_user, ignore_confidential_status: can_edit_projects?), project_path(project)
-    %td.d-flex
-      .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
-        .service-type__program-type{data: { 'bs-toggle' => :tooltip, title: HudUtility2024.project_type_with_sub_type(project.project_type, project.rrh_sub_type) }}
-          = HudUtility2024.brief_project_type_with_sub_type(project.project_type, project.rrh_sub_type)
+    %td
+      .d-flex
+        .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
+          .service-type__program-type{data: { 'bs-toggle' => :tooltip, title: HudUtility2024.project_type_with_sub_type(project.project_type, project.rrh_sub_type) }}
+            = HudUtility2024.brief_project_type_with_sub_type(project.project_type, project.rrh_sub_type)
     %td.text-center
       %span{data: { 'bs-toggle' => :tooltip, title: project.confidential_hint}}
         = checkmark project.confidential
