@@ -10,7 +10,7 @@ export default class extends Controller {
   }
 
   connect() {
-    this.spoilt = false
+    this.dirty = false
     this.chart = null
     // The original code uses App.util.colorList. We'll use this color palette as a fallback.
     this.colors = ['#45789C', '#F15A24', '#FBB03B', '#8E5EA2', '#3CBA9F', '#2A7F62', '#8BC34A', '#FFC107', '#03A9F4', '#E91E63']
@@ -62,8 +62,8 @@ export default class extends Controller {
       this.tableBodyTarget.innerHTML = '' // Clear loading message
       if (response.ok) {
         const data = await response.json()
-        if (this.spoilt) {
-          this.spoilt = false
+        if (this.dirty) {
+          this.dirty = false
           this.formContainerTarget.innerHTML = data.form
           // re-attach listener after form is replaced
           this.form.addEventListener('submit', this.submit.bind(this))
@@ -100,7 +100,7 @@ export default class extends Controller {
       } else if (response.status === 400) {
         const html = await response.text()
         this.formContainerTarget.innerHTML = html
-        this.spoilt = true
+        this.dirty = true
         // re-attach listener after form is replaced
         this.form.addEventListener('submit', this.submit.bind(this))
 
