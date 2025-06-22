@@ -24,30 +24,10 @@
 @import 'bootstrap/scss/mixins';
 
 // 3. Load dynamic, environment-specific overrides.
-// This allows for client- or environment-specific variable overrides.
+// This allows for environment-specific variable overrides.
 <%
-  # NOTE: This needs to come last as it overrides existing variables.
-  sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', "#{ENV['CLIENT']}.scss")
-  if ENV['CLIENT'].present? && File.exist?(sheet)
-%>
-@import "./_custom/<%=ENV['CLIENT']%>";
-<% end %>
-<%
-  # TODO: disabling this for now, we need a better mechanism to precompile sinc the database isn't available at precompilation time
-  if false
-    # If we've defined further overrides in the theme
-    theme = Rails.cache.fetch('active_theme', expires_in: 1.minutes) do
-      GrdaWarehouse::Theme.find_by(client: ENV['CLIENT'])
-    end
-    if theme
-      sheet = Rails.root.join(theme.scss_file_path, theme.scss_file_name)
-      if File.exist?(sheet)
-%>
-@import "./_custom/theme/<%=theme.scss_file_name%>";
-<%
-      end
-    end
-  end
+  # Client-specific themes are now handled via inline CSS variables in the layout.
+  # The ERB blocks for importing client and theme SCSS have been removed.
 %>
 <%
   sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', 'env', "#{ENV['RAILS_ENV']}.scss")

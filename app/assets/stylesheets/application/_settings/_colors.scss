@@ -22,25 +22,10 @@ $gray: lighten($gray-base, 33.5%) !default; // #555
 $gray-light: lighten($gray-base, 46.7%) !default; // #777
 $gray-lighter: lighten($gray-base, 93.5%) !default; // #eee
 
-$brand-primary: #457687 !default;
-$brand-primary-l: #C3D7DF !default;
-$brand-primary-ll: #d8e7ea !default;
-$brand-primary-d: darken($brand-primary, 5%) !default;
+// THEME COLORS (primary, success, etc.) are now defined as CSS variables
+// in the main application layout. The $brand-* and related Sass variables
+// have been removed from this file.
 $brand-secondary: #7D5226 !default;
-$brand-secondary-l: lighten($brand-secondary, 25%) !default;
-$brand-success: #009f44 !default;
-$brand-success-l: #B1F2C4 !default;
-$brand-success-ll: lighten($brand-success-l, 5%) !default;
-$brand-success-d: #68c27f !default;
-$brand-positive: $brand-success !default;
-$brand-positive-l: $brand-success-l !default;
-$brand-info: $brand-primary-ll !default;
-$brand-warning: #bc6923 !default;
-$brand-warning-l: #ffcb9b !default;
-$brand-warning-d: #e5b17e !default;
-$brand-danger: #bb2716 !default;
-$brand-danger-d: #df9489 !default;
-$brand-danger-l: #FFD1CC !default;
 
 // COB-sg colors
 $cob-sg-freedom-trail-red: rgb(251, 77, 66) !default; // #FB4D42
@@ -77,9 +62,9 @@ $vi-spdat: rgb(147, 12, 0) !default;
 // Tables
 $table-bg: transparent !default;
 $table-border-color: #DDDDDD !default;
-$table-cell-bg-positive: lighten($brand-success-l, 5%);
-$table-cell-bg-warning: lighten($brand-warning-l, 5%);
-$table-cell-bg-danger: lighten($brand-danger-l, 5%);
+$table-cell-bg-positive: rgba(var(--bs-success-rgb), 0.1);
+$table-cell-bg-warning: rgba(var(--bs-warning-rgb), 0.1);
+$table-cell-bg-danger: rgba(var(--bs-danger-rgb), 0.1);
 
 // Tabs
 $tab-bg: #88A6C9 !default; // Primary in HMIS
@@ -93,12 +78,12 @@ $footer-background: $cob-sg-charles-blue;
 $footer-foreground: $white;
 
 $theme-colors: (
-  "primary": $brand-primary,
+  "primary": var(--bs-primary),
   "secondary": $brand-secondary,
-  "success": $brand-success,
-  "info": $brand-info,
-  "warning": $brand-warning,
-  "danger": $brand-danger,
+  "success": var(--bs-success),
+  "info": var(--bs-info),
+  "warning": var(--bs-warning),
+  "danger": var(--bs-danger),
   "light": $white,
   "dark": $gray-080
 );

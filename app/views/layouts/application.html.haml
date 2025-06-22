@@ -20,6 +20,36 @@
     - if colors.present?
       %style{ type: 'text/css' }
         = colors
+    - # This block defines the default theme using CSS variables.
+    - # In the future, this can be dynamically generated from a database query
+    - # to apply client-specific themes.
+    %style{ type: 'text/css' }
+      :css
+        :root {
+          /* Default Bootstrap Theme Colors */
+          --bs-primary: #457687;
+          --bs-primary-rgb: 69, 118, 135;
+          --bs-success: #009f44;
+          --bs-success-rgb: 0, 159, 68;
+          --bs-warning: #bc6923;
+          --bs-warning-rgb: 188, 105, 35;
+          --bs-danger: #bb2716;
+          --bs-danger-rgb: 187, 39, 22;
+          --bs-info: #d8e7ea;
+          --bs-info-rgb: 216, 231, 234;
+
+          /* Custom Color Variants */
+          --brand-primary-l: #C3D7DF;
+          --brand-primary-ll: #d8e7ea;
+          --brand-primary-d: #3b6576;
+          --brand-success-l: #B1F2C4;
+          --brand-success-ll: #c3f5d2;
+          --brand-success-d: #68c27f;
+          --brand-warning-l: #ffcb9b;
+          --brand-warning-d: #e5b17e;
+          --brand-danger-l: #FFD1CC;
+          --brand-danger-d: #df9489;
+        }
     = render 'layouts/favicon'
     = csrf_meta_tags
     = yield :head
