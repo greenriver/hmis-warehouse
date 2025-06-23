@@ -21,7 +21,6 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
     completed_at.present?
   end
 
-  # @param memory_report [MemoryProfiler::Report] if provided, will be saved to the run
   def complete!
     transaction do
       update!(completed_at: Time.current)
