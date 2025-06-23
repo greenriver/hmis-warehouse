@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-require_relative '../../../requests/hmis/login_and_permissions'
-
 require 'rails_helper'
 
 RSpec.describe Hmis::AuthPolicies::StaffAssignmentPolicy, type: :model do

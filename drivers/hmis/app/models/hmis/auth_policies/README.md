@@ -156,6 +156,5 @@ end
 ## Performance Considerations
 
 - **Memoization**: All expensive operations are memoized at the UserContext level
-- **Bulk Loading**: Context loaders fetch data in batches to prevent N+1 queries
+- **Bulk Loading**: Context can support preloading pages of records to avoid N+1 queries
 - **Request Scope**: UserContext is created once per request and reused
-- **Database Views**: Complex permission resolution uses optimized database views
