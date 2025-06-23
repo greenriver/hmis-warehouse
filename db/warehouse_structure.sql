@@ -30822,7 +30822,8 @@ CREATE TABLE public.system_maintenance_task_runs (
     started_at timestamp(6) without time zone NOT NULL,
     completed_at timestamp(6) without time zone,
     memory_allocated_mb integer,
-    memory_retained_mb integer
+    memory_retained_mb integer,
+    allocation_count integer
 );
 
 

@@ -8,8 +8,6 @@
 
 # frozen_string_literal: true
 
-require 'memory_profiler'
-
 # warm cache from db translations
 class BuildTranslationCacheJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -17,11 +15,7 @@ class BuildTranslationCacheJob < BaseJob
 
   def perform(...)
     instrument_as_maintenance_task do |run|
-      performed = false
-      report = MemoryProfiler.report do
-        performed = _perform(...)
-      end
-      run.complete!(memory_report: report) if performed
+      run.complete! if _perform(...)
     end
   end
 

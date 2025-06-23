@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-require 'memory_profiler'
-
 module Importing
   class RunDailyImportsJob < BaseJob
     include ActionView::Helpers::DateHelper
@@ -199,10 +197,8 @@ module Importing
 
     def run_maintenance_task(name, &block)
       instrument_as_maintenance_task(name: name) do |run|
-        report = MemoryProfiler.report do
-          block.call
-        end
-        run.complete!(memory_report: report)
+        block.call
+        run.complete!
       end
     end
 
