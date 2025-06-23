@@ -10,13 +10,6 @@ require 'rails_helper'
 require_relative '../../../requests/hmis/login_and_permissions'
 
 RSpec.describe Hmis::Hud::Enrollment, type: :model do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   let!(:ds1) { create :hmis_primary_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1 }
@@ -137,6 +130,68 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     it 'includes households that I can see, and excludes ones I cant see' do
       viewable = Hmis::Hud::Household.viewable_by(user_with_p1_p2_access).pluck(:household_id)
       expect(viewable).to contain_exactly(e1.household_id, e2.household_id)
+    end
+  end
+
+  describe 'viewable_by scope with include_limited_access_enrollments' do
+    let!(:user) { create(:hmis_user, data_source: ds1) }
+
+    describe 'user has no access' do
+      it 'is empty' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).to be_empty
+      end
+    end
+
+    describe 'user has project access to p1, but no enrollment access' do
+      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_project]) }
+      # cruft: give this user can_view_enrollment_details at another project, so we don't hit the early-return optimization
+      let!(:cruft_access_control) { create_access_control(user, p6, with_permission: [:can_view_enrollment_details]) }
+
+      it 'is empty' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).to be_empty
+      end
+    end
+
+    describe 'user has full enrollment access to p1, but no project access' do
+      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_enrollment_details]) }
+
+      it 'is empty' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).to be_empty
+      end
+    end
+
+    describe 'user has full enrollment access to p1' do
+      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_enrollment_details, :can_view_project]) }
+
+      it 'includes enrollments at p1' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).to contain_exactly(e1)
+      end
+    end
+
+    describe 'user has limited enrollment access to p1' do
+      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_limited_enrollment_details]) }
+
+      it 'includes enrollments at p1' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).to contain_exactly(e1)
+
+        # confirm is empty if flag not passed
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user)
+        expect(viewable_enrollments).to be_empty
+      end
+    end
+
+    describe 'user has access full enrollment access to another project' do
+      let!(:access_control) { create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project]) }
+
+      it 'does not contain p1 enrollments' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).not_to include(e1)
+      end
     end
   end
 end
