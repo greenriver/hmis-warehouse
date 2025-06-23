@@ -177,7 +177,7 @@ class Hmis::Form::DefinitionValidator
     # Only validate conditions that evaluate against another question (as opposed to a local constant)
     return unless condition.key?('question')
     # Only validate conditions that compare to the referenced question's answer codes (as opposed to comparing to numeric value, whether item exists, booleans, etc).
-    return unless condition.values_at('answer_code', 'answer_codes', 'answer_group_condes').flatten.compact.uniq.any?
+    return unless condition.values_at('answer_code', 'answer_codes', 'answer_group_code').flatten.compact.uniq.any?
 
     # Find the referenced question. Since this condition evaluates against the item's answer code, we expect the question to be a CHOICE item with pick lists
     referenced_question = item_hash[condition['question']]
@@ -200,7 +200,7 @@ class Hmis::Form::DefinitionValidator
     answer_codes = condition.values_at('answer_code', 'answer_codes').flatten.compact.uniq
     if answer_codes.any?
       (answer_codes - valid_answer_codes).each do |code|
-        add_issue("Invalid answer code: #{code} in 'enable_when' prop of #{link_id}")
+        add_issue("Item '#{link_id}' has a dependency on question '#{referenced_question['link_id']}', but the dependent answer '#{code}' is no longer a valid choice for that question. Please update the dependency and try again.")
       end
     elsif condition.key?('answer_group_code')
       # This condition is checking against a group code, so we need to validate that the group code is still valid for the referenced question.

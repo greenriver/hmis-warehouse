@@ -141,7 +141,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
 
     it 'should error with an invalid answer code' do
       definition['item'][1]['enable_when'][0]['answer_code'] = 'Nooo'
-      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
+      expect_validation_errors(definition: definition, expected_errors: [/is no longer a valid choice/])
     end
 
     it 'should succeed with a valid answer group code' do
@@ -153,7 +153,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     it 'should error with an invalid answer group code' do
       definition['item'][1]['enable_when'][0].delete('answer_code')
       definition['item'][1]['enable_when'][0]['answer_group_code'] = 'bad group'
-      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer group code/])
+      expect_validation_errors(definition: definition, expected_errors: [/is no longer a valid choice group/])
     end
 
     it 'should succeed with valid autofill' do
@@ -187,7 +187,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
           ],
         }.deep_stringify_keys,
       ]
-      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
+      expect_validation_errors(definition: definition, expected_errors: [/is no longer a valid choice/])
     end
 
     it 'succeeds with valid pick_list_reference' do
@@ -203,7 +203,7 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
       definition['item'][0]['pick_list_reference'] = 'Race'
       definition['item'][1]['enable_when'][0]['answer_code'] = 'Bad value'
 
-      expect_validation_errors(definition: definition, expected_errors: [/Invalid answer code/])
+      expect_validation_errors(definition: definition, expected_errors: [/is no longer a valid choice/])
     end
   end
 
