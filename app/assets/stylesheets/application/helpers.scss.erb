@@ -22,16 +22,3 @@
 @import 'bootstrap/scss/functions';
 @import './_settings/custom_bootstrap_variables';
 @import 'bootstrap/scss/mixins';
-
-// 3. Load dynamic, environment-specific overrides.
-// This allows for environment-specific variable overrides.
-<%
-  # Client-specific themes are now handled via inline CSS variables in the layout.
-  # The ERB blocks for importing client and theme SCSS have been removed.
-%>
-<%
-  sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', 'env', "#{ENV['RAILS_ENV']}.scss")
-  if ENV['RAILS_ENV'].present? && File.exist?(sheet)
-%>
-@import "./_custom/env/<%=ENV['RAILS_ENV']%>";
-<% end %>

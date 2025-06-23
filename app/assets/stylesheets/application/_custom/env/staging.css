@@ -1,0 +1,13 @@
+#non-production-warning {
+  background-color: #303030;
+  color: white;
+}
+
+#non-production-warning .rails-env {
+  font-size: 1.1rem;
+}
+
+#non-production-warning .nav-link {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
