@@ -201,7 +201,7 @@ module Hmis::WorkflowExecution
         step = steps_by_node_id[node.id]
         # Steps may reuse the same form definition, and we always evaluate against the most recently submitted value.
         # For example, if step 1 previously submitted "move_forward = 1" but step 2 submits "move_forward = 0",
-        # the referral should not move forward.
+        # the workflow should not move forward.
         # This relies on the .merge behavior, which overwrites existing keys,
         # combined with the fact that we are walking through the graph sequentially.
         result.merge!(step.submitted_values) if step&.completed?
