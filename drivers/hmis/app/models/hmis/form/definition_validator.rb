@@ -217,6 +217,7 @@ class Hmis::Form::DefinitionValidator
     # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
   end
 
+  # Check that all EnableWhen and AutofillWhen conditions that reference specific Choice option codes are valid.
   def check_conditions(document, item_hash)
     item_check = lambda do |item|
       (item['item'] || []).each do |child_item|
