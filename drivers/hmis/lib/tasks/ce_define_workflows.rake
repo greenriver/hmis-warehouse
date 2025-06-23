@@ -169,21 +169,21 @@ module CeWorkflowBuilder
       }
     )
 
-    review_task = Hmis::WorkflowDefinition::Task.create!(
+    review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Review Individual or Household',
       form_definition_identifier: generic_yes_no_form.identifier,
       template: template,
       swimlane: ce_staff_swimlane,
     )
 
-    project_offer_outcome_task = Hmis::WorkflowDefinition::Task.create!(
+    project_offer_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Project Offer Outcome',
       form_definition_identifier: generic_yes_no_form.identifier,
       template_id: template.id,
       swimlane: project_staff_swimlane,
     )
 
-    create_enrollment_task = Hmis::WorkflowDefinition::Task.create!(
+    create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
       name: 'Create Enrollment Script Task',
       template_id: template.id,
       trigger_config: [

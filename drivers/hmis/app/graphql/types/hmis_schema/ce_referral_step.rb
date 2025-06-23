@@ -8,7 +8,8 @@
 
 module Types
   class HmisSchema::CeReferralStep < Types::BaseObject
-    # object is a Hmis::WorkflowExecution::Step
+    # object is a Hmis::WorkflowExecution::Step.
+    # Only Steps that are backed by UserTasks (not ScriptTasks) should be resolved by the API.
 
     field :id, ID, null: false, description: 'unique identifier for this step based on node and instance'
     field :step_id, ID, null: true, method: :id, description: 'the DB identifier of this step, if it is persisted'
@@ -75,7 +76,7 @@ module Types
 
     private
 
-    # the Hmis::WorkflowDefinition::Task that configures this referral step
+    # the Hmis::WorkflowDefinition::UserTask that configures this referral step
     def workflow_task
       load_ar_association(object, :task)
     end

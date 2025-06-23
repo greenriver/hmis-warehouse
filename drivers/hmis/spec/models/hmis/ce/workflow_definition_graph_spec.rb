@@ -12,10 +12,10 @@ RSpec.describe Hmis::WorkflowDefinition::Graph, type: :model do
   let!(:template) { create(:hmis_workflow_definition_template) }
   let!(:start_event) { create(:hmis_workflow_definition_start_event, template: template, name: 'Start Event') }
   let!(:gateway) { create(:hmis_workflow_definition_gateway, template: template, name: 'Gateway') }
-  let!(:task1) { create(:hmis_workflow_definition_task, template: template, name: 'Task 1') }
-  let!(:task2) { create(:hmis_workflow_definition_task, template: template, name: 'Task 2') }
+  let!(:task1) { create(:hmis_workflow_definition_user_task, template: template, name: 'Task 1') }
+  let!(:task2) { create(:hmis_workflow_definition_user_task, template: template, name: 'Task 2') }
   let!(:end1) { create(:hmis_workflow_definition_end_event, template: template, name: 'End 1') }
-  let!(:task2a) { create(:hmis_workflow_definition_task, template: template, name: 'Task 2a') }
+  let!(:task2a) { create(:hmis_workflow_definition_user_task, template: template, name: 'Task 2a') }
   let!(:end2) { create(:hmis_workflow_definition_end_event, template: template, name: 'End 2') }
 
   #     start_event
@@ -58,7 +58,7 @@ RSpec.describe Hmis::WorkflowDefinition::Graph, type: :model do
     end
 
     it 'stops after a stop condition' do
-      nodes = template.graph.walk(stop_when: lambda(&:task?)).to_a
+      nodes = template.graph.walk(stop_when: lambda(&:user_task?)).to_a
       expect(nodes.count).to eq(4)
       expect(nodes[0]).to eq(start_event)
       expect(nodes[1]).to eq(gateway)
@@ -67,7 +67,7 @@ RSpec.describe Hmis::WorkflowDefinition::Graph, type: :model do
     end
 
     it 'stops on the next node with the stop condition, even if the entrypoint meets the condition' do
-      nodes = template.graph.walk(entrypoint_ids: [task2.id], stop_when: lambda(&:task?)).to_a
+      nodes = template.graph.walk(entrypoint_ids: [task2.id], stop_when: lambda(&:user_task?)).to_a
       expect(nodes.count).to eq(1)
       expect(nodes[0]).to eq(task2a)
     end
