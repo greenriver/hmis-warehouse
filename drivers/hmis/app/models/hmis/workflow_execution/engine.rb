@@ -32,6 +32,19 @@ module Hmis::WorkflowExecution
       log_event('start_workflow', user: user)
     end
 
+    def enable_step!(node)
+      step = instance.steps.find_or_initialize_by(node: node)
+
+      # If the step has already been completed, it may be re-openable, but _only_ if it didn't have any irreversible side effects
+      if step.status == 'completed' && !step.reversible? # rubocop:disable Style/IfUnlessModifier
+        raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
+      end
+
+      step.available_at = Time.current
+      step.enable!
+      step
+    end
+
     def start_step!(step, user:)
       step.assignments.find_or_create_by!(user: user)
       step.started_at = Time.current
@@ -87,7 +100,7 @@ module Hmis::WorkflowExecution
 
     # get all tasks nodes under step but treat those task nodes as leaves and stop searching (bounded depth-first search)
     def next_task_steps(step)
-      nodes = template.graph.walk(entrypoint_ids: [step.node_id], stop_when: lambda(&:task?))
+      nodes = template.graph.walk(entrypoint_ids: [step.node_id], stop_when: lambda { |node| node.user_task? || node.script_task? })
       steps_by_node_id = instance.steps.index_by(&:node_id)
       nodes.map { |node| steps_by_node_id[node.id] }.compact
     end
@@ -144,17 +157,14 @@ module Hmis::WorkflowExecution
 
     def visit_node(node, user)
       case node
-      when Hmis::WorkflowDefinition::Task
-        step = instance.steps.find_or_initialize_by(node: node)
-
-        # If the step has already been completed, it may be re-openable, but _only_ if it didn't have any irreversible side effects
-        if step.status == 'completed' && !step.reversible? # rubocop:disable Style/IfUnlessModifier
-          raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
-        end
-
-        step.available_at = Time.current
-        step.enable!
+      when Hmis::WorkflowDefinition::UserTask
+        step = enable_step!(node)
         assign_task!(step)
+      when Hmis::WorkflowDefinition::ScriptTask
+        step = enable_step!(node)
+        # Immediately complete the step without waiting for user action
+        start_step!(step, user: user)
+        complete_step!(step, user: user, submitted_values: {})
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node, user)
       when Hmis::WorkflowDefinition::StartEvent

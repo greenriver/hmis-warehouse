@@ -308,7 +308,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'when there is another step after the conditional step' do
         let!(:post_provider_acceptance) do
           create(
-            :hmis_workflow_definition_task,
+            :hmis_workflow_definition_user_task,
             template: workflow_template,
             name: 'Post Provider Acceptance',
             swimlane: case_manager_swimlane,
@@ -379,7 +379,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before do
           50.times do |i|
             conditional_task = create(
-              :hmis_workflow_definition_task,
+              :hmis_workflow_definition_user_task,
               template: workflow_template,
               name: "conditional task #{i}",
               swimlane: case_manager_swimlane,
@@ -387,7 +387,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             gateway.connect_to!(conditional_task, condition: 'needs_provider_acceptance = 1')
 
             non_conditional_task = create(
-              :hmis_workflow_definition_task,
+              :hmis_workflow_definition_user_task,
               template: workflow_template,
               name: "nonconditional task #{i}",
               swimlane: case_manager_swimlane,

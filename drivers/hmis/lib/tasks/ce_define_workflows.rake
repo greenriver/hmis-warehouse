@@ -169,21 +169,32 @@ module CeWorkflowBuilder
       }
     )
 
-    review_task = Hmis::WorkflowDefinition::Task.create!(
+    review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Review Individual or Household',
       form_definition_identifier: generic_yes_no_form.identifier,
       template: template,
       swimlane: ce_staff_swimlane,
     )
 
-    project_offer_outcome_task = Hmis::WorkflowDefinition::Task.create!(
+    project_offer_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Project Offer Outcome',
       form_definition_identifier: generic_yes_no_form.identifier,
       template_id: template.id,
       swimlane: project_staff_swimlane,
     )
 
-    accept_event = create_accept_event(template, create_enrollment: true)
+    create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+      name: 'Create Enrollment Script Task',
+      template_id: template.id,
+      trigger_config: [
+        {
+          event: 'complete_step',
+          message: 'create_enrollment',
+        },
+      ]
+    )
+
+    accept_event = create_accept_event(template)
     decline_event = create_decline_event(template)
 
     review_task_gateway = create_gateway(template, 'review_task')
@@ -196,8 +207,10 @@ module CeWorkflowBuilder
     review_task_gateway.connect_to!(decline_event)
 
     project_offer_outcome_task.connect_to!(project_offer_outcome_gateway)
-    project_offer_outcome_gateway.connect_to!(accept_event, condition: 'move_forward = 1')
+    project_offer_outcome_gateway.connect_to!(create_enrollment_task, condition: 'move_forward = 1')
     project_offer_outcome_gateway.connect_to!(decline_event)
+
+    create_enrollment_task.connect_to!(accept_event)
 
     template.validate!
 
