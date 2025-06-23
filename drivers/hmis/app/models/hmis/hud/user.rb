@@ -27,6 +27,8 @@ class Hmis::Hud::User < Hmis::Hud::Base
 
   # Find or create the Hmis::Hud::User corresponding to the provided application user (Hmis::User)
   def self.from_user(user)
+    raise 'cannot create HUD User from application user with no data source' if user.hmis_data_source_id.nil?
+
     Hmis::Hud::User.where(user_email: user.email.downcase, data_source_id: user.hmis_data_source_id).first_or_create do |u|
       u.user_id = Hmis::Hud::Base.generate_uuid
       u.user_first_name = user.first_name
