@@ -892,6 +892,7 @@ type CeParticipationsPaginated {
 type CeReferral {
   access: CeReferralAccess!
   active: Boolean!
+  auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated!
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!
@@ -915,6 +916,46 @@ type CeReferral {
 type CeReferralAccess {
   canViewTargetProject: Boolean!
   id: ID!
+}
+
+type CeReferralAuditEvent {
+  createdAt: ISO8601DateTime!
+  id: ID!
+  stepName: String
+  type: CeReferralAuditEventType!
+  user: ApplicationUser
+}
+
+enum CeReferralAuditEventType {
+  """
+  Accepted Referral
+  """
+  ACCEPT_REFERRAL
+
+  """
+  Completed Task
+  """
+  COMPLETE_STEP
+
+  """
+  Declined Referral
+  """
+  REJECT_REFERRAL
+
+  """
+  Started Referral
+  """
+  START_REFERRAL
+}
+
+type CeReferralAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferralAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 input CeReferralFilterOptions {

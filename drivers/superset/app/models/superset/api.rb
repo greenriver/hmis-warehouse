@@ -17,8 +17,8 @@ class Superset::Api
 
     @host = ENV.fetch('SUPERSET_HOST', fqdn_host)
     @api_suffix = '/api/v1'
-    @username = ENV['SUPERSET_USERNAME']
-    @password = ENV['SUPERSET_PASSWORD']
+    @username = ENV['SUPERSET_ADMIN_USER']
+    @password = ENV['SUPERSET_ADMIN_PASS']
     @provider = 'db'
   end
 

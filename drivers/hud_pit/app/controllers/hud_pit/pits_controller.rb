@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPit
   class PitsController < ::HudReports::BaseController
     include PitConcern
@@ -11,5 +13,10 @@ module HudPit
     before_action :generator, only: [:download]
     before_action :set_report, only: [:show, :destroy, :running, :download]
     before_action :set_reports, except: [:index, :running_all_questions]
+
+    def default_report_version
+      :fy2025
+    end
+    helper_method :default_report_version
   end
 end

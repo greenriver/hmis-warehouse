@@ -7,5 +7,29 @@ module Hmis::WorkflowDefinition
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
     belongs_to :source_node, class_name: 'Hmis::WorkflowDefinition::Node'
     belongs_to :target_node, class_name: 'Hmis::WorkflowDefinition::Node'
+
+    def describe_as_string(source_only: false, target_only: false)
+      str = if source_only
+        source_node.name
+      elsif target_only
+        target_node.name
+      else
+        "#{source_node.name} -> #{target_node.name}"
+      end
+      str += " (IF #{condition})" if condition.present?
+      str += " (#{id})"
+      str
+    end
+
+    # Returns a string representation of the link (arrow) for Mermaid diagrams
+    def to_mermaid_link
+      source = source_node.to_mermaid_node_id
+      target = target_node.to_mermaid_node_id
+      if condition
+        "#{source}-- IF #{condition} --> #{target}"
+      else
+        "#{source}--> #{target}"
+      end
+    end
   end
 end

@@ -25,7 +25,7 @@ FactoryBot.define do
       [
         {
           event: 'end_workflow',
-          message: 'accept_referral',
+          message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
       ]
     end
