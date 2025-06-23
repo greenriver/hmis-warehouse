@@ -174,17 +174,17 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_condition(condition, item_hash, link_id)
-    # Only validate conditions that evaluate against another question
+    # Only validate conditions that evaluate against another question (as opposed to a local constant)
     return unless condition.key?('question')
-    # Only validate conditions that compare to the other question's answer codes (as opposed to comparing to numeric value, whether item exists, booleans, etc).
+    # Only validate conditions that compare to the referenced question's answer codes (as opposed to comparing to numeric value, whether item exists, booleans, etc).
     return unless condition.values_at('answer_code', 'answer_codes', 'answer_group_condes').flatten.compact.uniq.any?
 
-    # Find the referenced question. Since this condition evaluates against the compare questions answer code, we expect the question to be a CHOICE item with pick lists
+    # Find the referenced question. Since this condition evaluates against the item's answer code, we expect the question to be a CHOICE item with pick lists
     referenced_question = item_hash[condition['question']]
-    raise 'unexpected' unless referenced_question # add_issue? not sure if checked elsewhere or in schema
-    raise 'unexpected' unless referenced_question['type'] == 'CHOICE' || referenced_question['type'] == 'OPEN_CHOICE' # add_issue? not sure if checked elsewhere or in schema
-    raise 'unexpected' unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference'] # add_issue? not sure if checked elsewhere or in schema
 
+    return unless referenced_question # validated in check_references; return instead of raising so that the validation error is returned, not a 500 error
+    return unless ['CHOICE', 'OPEN_CHOICE'].include?(referenced_question['type']) # this is allowed, if type is 'STRING', but we don't validate the answer code in that case
+    return unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference'] # validated in schema
 
     if referenced_question['pick_list_reference']
       valid_answer_codes = pick_list_reference_to_allowed_values[referenced_question['pick_list_reference']]
