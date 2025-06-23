@@ -21,9 +21,15 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
     completed_at.present?
   end
 
-  def complete!
+  # @param memory_report [MemoryProfiler::Report] if provided, will be saved to the run
+  def complete!(memory_report: nil)
     transaction do
-      update!(completed_at: Time.current)
+      attrs = { completed_at: Time.current }
+      if memory_report
+        attrs[:memory_allocated_mb] = memory_report.total_allocated_memsize / 1024 / 1024
+        attrs[:memory_retained_mb] = memory_report.total_retained_memsize / 1024 / 1024
+      end
+      update!(**attrs)
       # if the run completed, clear alert_sent_at so it will trigger in the future
       system_maintenance_task.update!(alert_sent_at: nil)
     end
