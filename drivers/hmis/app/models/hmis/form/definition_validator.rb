@@ -202,8 +202,8 @@ class Hmis::Form::DefinitionValidator
       # If options is nil, this picklist falls under case #1, and we don't attempt to validate its dependent questions.
       return if valid_answer_codes.nil?
     else
-      valid_answer_codes = referenced_question['pick_list_options'].map { |opt| opt['code'].to_s }
-      valid_answer_group_codes = referenced_question['pick_list_options'].map { |opt| opt['group_code'].to_s }.uniq
+      valid_answer_codes = referenced_question['pick_list_options'].map { |opt| opt['code'].to_s } # code is required
+      valid_answer_group_codes = referenced_question['pick_list_options'].map { |opt| opt['group_code'].to_s }.compact.uniq
     end
 
     answer_codes = condition.values_at('answer_code', 'answer_codes').flatten.compact.uniq
@@ -215,7 +215,9 @@ class Hmis::Form::DefinitionValidator
       # This condition is checking against a group code, so we need to validate that the group code is still valid for the referenced question.
       # Use safe accessor on valid_answer_group_codes because this should also display a validation error if the referenced question has no valid_answer_group_codes
       group_code = condition['answer_group_code']
-      add_issue("Item '#{link_id}' has a dependency on question '#{referenced_question['link_id']}', but the dependent answer group '#{group_code}' is no longer a valid choice group for that question. Please update the dependency and try again.") unless valid_answer_group_codes&.include?(group_code)
+      unless valid_answer_group_codes&.include?(group_code) # rubocop:disable Style/IfUnlessModifier
+        add_issue("Item '#{link_id}' has a dependency on question '#{referenced_question['link_id']}', but the dependent answer group '#{group_code}' is no longer a valid choice group for that question. Please update the dependency and try again.")
+      end
     end
 
     # TODO: Additional validations. We attempt to ensure this validity in the form property editor,
