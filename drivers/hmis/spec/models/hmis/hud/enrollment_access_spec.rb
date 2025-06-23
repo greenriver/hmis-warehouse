@@ -183,6 +183,18 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user)
         expect(viewable_enrollments).to be_empty
       end
+
+      describe 'and full access to p2' do
+        let!(:access_control2) { create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project]) }
+
+        it 'includes enrollments at p1 (limited access) and p2 (full access)' do
+          viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+          expect(viewable_enrollments).to contain_exactly(e1, e2)
+
+          viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user)
+          expect(viewable_enrollments).to contain_exactly(e2)
+        end
+      end
     end
 
     describe 'user has access full enrollment access to another project' do
