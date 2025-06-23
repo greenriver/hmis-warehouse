@@ -17,7 +17,7 @@
 
 /* Site Menu */
 .site-menu {
-  background-color: $cob-sg-charles-blue;
+  background-color: var(--cob-sg-charles-blue);
 }
 
 .site-menu.nav>.nav-item {
@@ -75,11 +75,11 @@
 }
 
 .site-menu .menu-icon {
-  color: $brand-warning-d;
+  color: var(--brand-warning-d);
 }
 
 .site-menu .group-header {
-  color: $brand-warning-d;
+  color: var(--brand-warning-d);
   margin-bottom: 0.5rem;
 }
 
@@ -112,11 +112,11 @@
   max-width: $nav-side-width;
   flex: 0 0 $nav-side-width;
   align-self: stretch;
-  background-color: $cob-sg-charles-blue;
+  background-color: var(--cob-sg-charles-blue);
   overflow: auto;
   padding: space(6) space(4) space(4);
-  border-top: 2px solid darken($cob-sg-charles-blue, 8%);
-  border-bottom: 2px solid darken($cob-sg-charles-blue, 8%);
+  border-top: 2px solid var(--cob-sg-charles-blue-darker-2);
+  border-bottom: 2px solid var(--cob-sg-charles-blue-darker-2);
   ;
 
   &.on-canvas {
@@ -126,7 +126,7 @@
 }
 
 .o-menu .js-back-to-top {
-  background: rgba($cob-sg-charles-blue, .8);
+  background: rgba(var(--cob-sg-charles-blue-rgb), .8);
   padding: 2em;
   width: $nav-side-width;
   position: fixed;

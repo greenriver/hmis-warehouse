@@ -10,10 +10,10 @@ label {
   font-weight: normal;
   &--info,
   &--optional {
-    color: $brand-primary;
+    color: var(--bs-primary);
   }
   &--required {
-    color: $brand-danger;
+    color: var(--bs-danger);
   }
 }
 
@@ -26,7 +26,7 @@ label {
 }
 
 .label-info {
-  background: $brand-info;
+  background: var(--bs-info);
 }
 
 .label-default {
@@ -34,17 +34,17 @@ label {
 }
 
 .label-primary {
-  background: $brand-primary-l;
+  background: var(--brand-primary-l);
 }
 
 .label-danger {
-  background: $brand-danger-l;
+  background: var(--brand-danger-l);
 }
 
 .label-success {
-  background: $brand-success-l;
+  background: var(--brand-success-l);
 }
 
 .label-warning {
-  background: $brand-warning-l;
+  background: var(--brand-warning-l);
 }

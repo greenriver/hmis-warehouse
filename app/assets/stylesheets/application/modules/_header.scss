@@ -1,11 +1,11 @@
 @import '../helpers';
 
-.o-header--page > .container-fluid {
+.o-header--page>.container-fluid {
   width: 100%;
 }
 
 .o-header--page {
-  background-color: $cob-sg-charles-blue;
+  background-color: var(--cob-sg-charles-blue);
   height: $header-height;
   display: flex;
   align-items: stretch;
@@ -19,11 +19,12 @@
   align-items: stretch;
 }
 
-.o-header__nav > ul {
+.o-header__nav>ul {
   display: flex;
   align-items: stretch;
   margin-bottom: 0;
 }
+
 .o-header__nav form.new_user {
   margin-top: 1rem;
 }
@@ -39,12 +40,14 @@
   display: flex;
   align-items: center;
 }
-.l-content-width-md .c-header-nav__mobile-link  {
+
+.l-content-width-md .c-header-nav__mobile-link {
   @include media-breakpoint-up(lg) {
     display: none;
   }
 }
-.l-content-width-lg .c-header-nav__mobile-link  {
+
+.l-content-width-lg .c-header-nav__mobile-link {
   @include media-breakpoint-up(xl) {
     display: none;
   }
@@ -56,28 +59,29 @@
 }
 
 $nav-btn-states: (
-  info: $brand-info,
-  warning: $brand-warning,
-  danger: $brand-danger,
-  success: $brand-success,
+  info: var(--bs-info),
+  warning: var(--bs-warning),
+  danger: var(--bs-danger),
+  success: var(--bs-success),
 );
 
 @each $name, $color in $nav-btn-states {
   .c-header-nav__item--#{$name} {
     background: $color;
     border-right: 1px solid rgba($gray-020, .5);
+
     &,
     .c-header-nav__link {
-      color: determine-color-for-best-contrast($color);
+      // The `determine-color-for-best-contrast` function cannot be used with CSS
+      // variables, as the calculation happens at compile time.
+      // We set a sensible default here. If a specific theme color requires
+      // a light font, it can be overridden with a specific rule in the layout.
+      color: $black;
     }
-    $hover-color: darken($color, 5%);
+
     &:hover,
     &:focus {
-      background: $hover-color;
-      &,
-      .c-header-nav__link {
-        color: determine-color-for-best-contrast($hover-color);
-      }
+      filter: brightness(95%);
     }
   }
 }
@@ -89,28 +93,34 @@ $nav-btn-states: (
   font-weight: 600;
   padding-left: space(3);
   padding-right: space(3);
+
   .additional-context {
     display: none;
+
     @include media-breakpoint-up(lg) {
       display: inline-block;
       margin-right: space(2);
     }
   }
+
   i {
     font-size: 20px;
   }
+
   a {
     display: flex;
     align-items: center;
   }
+
   &[aria-expanded=true] {
     background: $white;
-    color: $cob-sg-charles-blue;
+    color: var(--cob-sg-charles-blue);
   }
 }
 
 .c-header-nav__item--hidden-mobile {
   display: none;
+
   @include media-breakpoint-up(md) {
     display: flex;
   }
@@ -119,11 +129,12 @@ $nav-btn-states: (
 .site-name {
   min-height: 5rem;
   background-color: #fff;
-  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.30);
+  box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.30);
   padding: 4px 5px;
   align-self: flex-start;
   z-index: $zIndex-2--site-name;
   max-width: 44vw;
+
   @include media-breakpoint-up(sm) {
     min-height: 6rem;
     max-width: 228px;
@@ -139,24 +150,26 @@ $nav-btn-states: (
   text-transform: uppercase;
   font-size: 1.25rem;
   line-height: 1.0555;
+
   @include media-breakpoint-up(lg) {
     font-size: $h2-font-size;
   }
 }
 
 .o-header--page__title a {
-  color: $cob-sg-charles-blue;
+  color: var(--cob-sg-charles-blue);
 }
 
 .o-header--page__title a:hover,
 .o-header--page__title a:focus {
   text-decoration: none;
-  color: lighten($cob-sg-charles-blue, 15);
+  color: var(--cob-sg-charles-blue-lighter);
 }
 
 .o-header--page__sub-title {
   display: none;
   margin-left: 1rem;
+
   @include media-breakpoint-up(sm) {
     display: block;
     color: #fff;
@@ -165,6 +178,7 @@ $nav-btn-states: (
     font-size: rem(14px);
     line-height: 1.1;
   }
+
   @include media-breakpoint-up(lg) {
     // @debug rem(16px);
     font-size: rem(16px);
@@ -174,16 +188,19 @@ $nav-btn-states: (
 .c-header-nav__dropdown {
   display: flex;
   align-items: stretch;
+
   .btn [class^="icon-"] {
     @extend .o-header--page__sub-title;
     padding-top: 22px;
     width: 2rem;
   }
+
   .message-count {
     background-color: white;
     color: $link-blue;
     transform: translate(-50%, -50%);
   }
+
   ul li.message {
     &:last-of-type {
       margin-bottom: space(4);
@@ -193,6 +210,7 @@ $nav-btn-states: (
   .show-all {
     margin: 5px auto;
   }
+
   .dropdown-menu {
     top: 50px;
     padding: space(2);
@@ -202,8 +220,10 @@ $nav-btn-states: (
 
 .email-messages-envelope {
   line-height: 0;
+
   &::after {
-    display: none;;
+    display: none;
+    ;
   }
 }
 
@@ -213,13 +233,14 @@ $nav-btn-states: (
 }
 
 .btn.email-messages-envelope [class^="icon-"]:hover {
-  color:  $cob-sg-optimistic-blue;
+  color: var(--cob-sg-optimistic-blue);
 }
 
 .utility {
   @include media-breakpoint-up(sm) {
     margin-left: 250px;
   }
+
   .alert {
     margin-bottom: space(4);
   }
@@ -232,7 +253,7 @@ $nav-btn-states: (
 .user-state {
   width: 60px;
   height: 59px;
-  background-color: $cob-sg-charles-blue;
+  background-color: var(--cob-sg-charles-blue);
   float: right;
   padding-top: 8px;
 }

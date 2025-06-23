@@ -83,7 +83,7 @@ $table-border-color-secondary: #F0F0F0;
 }
 
 .c-table__cell-icon--active {
-  color: $brand-success;
+  color: var(--bs-success);
 }
 
 .c-table__cell-icon--inactive {

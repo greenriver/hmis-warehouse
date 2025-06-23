@@ -36,7 +36,7 @@ $tag-icon-shadow: $white;
   height: $tag-height;
   width: $tag-height;
   box-shadow: 0 0 0 2px $tag-icon-shadow;
-  background: $brand-success-l;
+  background: var(--brand-success-l);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -64,7 +64,7 @@ $tag-icon-shadow: $white;
   @include open-sans;
   font-weight: $tag-font-weight;
   font-size: $tag-font-size;
-  background: $brand-success-l;
+  background: var(--brand-success-l);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -103,10 +103,10 @@ $tag-icon-shadow: $white;
 
 // We sometimes need the light version of colors to make the tags look reasonable
 $tag-types: (
-  success: $brand-success-l,
-  warning: $brand-warning,
-  danger: $brand-danger-l,
-  info: $brand-info,
+  success: var(--brand-success-l),
+  warning: var(--bs-warning),
+  danger: var(--brand-danger-l),
+  info: var(--bs-info),
 );
 
 

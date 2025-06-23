@@ -1,7 +1,7 @@
 @import '../helpers';
 
 $column-border-color: $gray-020;
-$column-border-color-l: lighten($column-border-color, 5%);
+$column-border-color-l: #f5f4f6;
 $column-header-color: #eff3f8;
 $columns-breakpoint: lg;
 
@@ -88,7 +88,7 @@ $columns-breakpoint: lg;
     border-top: 1px solid $column-border-color-l;
 
     &:hover {
-      background: lighten($gray-015, 2%);
+      background: #f7f7f7;
     }
   }
 
@@ -186,11 +186,11 @@ $columns-breakpoint: lg;
   cursor: pointer;
 
   &:hover {
-    background: lighten($gray-015, 2%);
+    background: #f7f7f7;
 
     span:last-of-type {
       transform: scale(1.5);
-      color: $brand-danger;
+      color: var(--bs-danger);
     }
   }
 }

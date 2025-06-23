@@ -6,7 +6,7 @@
 
 .modal-title {
   font-size: rem(24);
-  color: $brand-primary;
+  color: var(--bs-primary);
   text-transform: uppercase;
   line-height: line-height(26, 24);
   margin-top: 0;

@@ -11,26 +11,26 @@
 
 .patient__engagement-countdown
 {
-  color: $brand-warning-d;
+  color: var(--brand-warning-d);
 }
 
 .patient__engagement-expired
 {
-  color: $brand-danger;
+  color: var(--bs-danger);
 }
 
 .pctp__signature-expired
 {
-  color: $brand-danger;
+  color: var(--bs-danger);
 }
 
 .pctp__signature-pending
 {
-  color: $brand-warning;
+  color: var(--bs-warning);
 }
 .pctp__success
 {
-  color: $brand-success;
+  color: var(--bs-success);
 }
 .health__care-hub-note
 {
@@ -39,15 +39,15 @@
 }
 .pctp__expired
 {
-  color: $brand-danger;
+  color: var(--bs-danger);
 }
 .patient-file__expired
 {
-  color: $brand-warning;
+  color: var(--bs-warning);
 }
 .patient-file__contributing
 {
-  color: $brand-success;
+  color: var(--bs-success);
 }
 
 .opaque-area-chart .bb-area

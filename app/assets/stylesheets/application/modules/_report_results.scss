@@ -1,13 +1,13 @@
 @import '../helpers';
 
-.report-result--results {
+.report-result--results {}
 
-}
 .report-result--results dt {
   clear: left;
   float: left;
   width: 70%;
 }
+
 .report-result--results dd {
   margin-left: 70%;
 }
@@ -17,13 +17,13 @@
 }
 
 .report-result__changed {
-  background-color: lighten($brand-warning, 13.5%);
+  background-color: rgba(var(--bs-warning-rgb), 0.25);
 }
 
 .lightest-gray {
   background-color: $gray-015;
 }
-.page-bg-color
-{
+
+.page-bg-color {
   background-color: $body-bg;
 }

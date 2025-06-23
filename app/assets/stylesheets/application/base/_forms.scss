@@ -77,19 +77,21 @@ label {
   padding-left: 0;
 }
 
-.has-error {
-  /* @include form-control-validation($brand-danger, $brand-danger, $brand-danger); */
-}
+.form-group.has-error {
+  label {
+    color: var(--bs-danger);
+  }
 
-.error .form-control {
-  border-color: $brand-danger;
-  background: rgba($brand-danger-l, .1);
+  .form-control {
+    border-color: var(--bs-danger);
+    background: rgba(var(--bs-danger-rgb), .1);
+  }
 }
 
 .errors,
 .error label,
 .error-block {
-  color: $brand-danger;
+  color: var(--bs-danger);
 }
 
 .form-group .form-group {
@@ -107,7 +109,7 @@ label {
 .contact-on-match--icon-link:hover,
 .contact-on-match--icon-link:focus {
   text-decoration: none;
-  color: darken($text-color, 15);
+  color: $gray-080;
 }
 
 .selected-contact {
@@ -156,7 +158,7 @@ label {
 }
 
 .ui-state-active {
-  background-color: $cob-sg-blue-006;
+  background-color: var(--cob-sg-blue-006);
   color: #FFFFFF;
 }
 
@@ -203,7 +205,7 @@ label {
   }
 
   label input:checked~span {
-    background-color: $brand-primary;
+    background-color: var(--bs-primary);
     color: #FFFFFF;
   }
 }
@@ -228,13 +230,13 @@ label {
   }
 
   label input:checked~span {
-    background-color: $brand-primary;
+    background-color: var(--bs-primary);
     color: #FFFFFF;
   }
 
   label input:hover~span,
   label input:focus~span {
-    background-color: $brand-primary;
+    background-color: var(--bs-primary);
     color: #FFFFFF;
   }
 }

@@ -9,7 +9,7 @@
     height: 20px;
     border-radius: 50%;
     border: 3px solid $white;
-    border-top-color: $brand-primary;
+    border-top-color: var(--bs-primary);
     animation: spinner .6s linear infinite;
   }
 }
@@ -23,7 +23,7 @@
     height: 80px;
     border-radius: 50%;
     border: 12px solid $white;
-    border-top-color: $brand-primary;
+    border-top-color: var(--bs-primary);
     animation: spinner .6s linear infinite;
   }
 }
@@ -39,7 +39,7 @@
 .c-spinner--gray {
   &::before {
     border: 3px solid $gray-020;
-    border-top-color: $brand-primary;
+    border-top-color: var(--bs-primary);
   }
 }
 

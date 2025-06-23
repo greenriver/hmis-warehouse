@@ -310,7 +310,7 @@
 }
 
 .c-card__content-block--danger {
-  background-color: lighten($brand-danger-l, 5%);
+  background-color: rgba(var(--bs-danger-rgb), 0.1);
   padding: space(4);
 }
 
@@ -342,9 +342,9 @@
 }
 
 $levels: (
-  warning: $brand-warning,
-  danger: $brand-danger,
-  info: $brand-info,
+  warning: var(--bs-warning),
+  danger: var(--bs-danger),
+  info: var(--bs-info),
 );
 
 @each $level, $color in $levels {

@@ -70,22 +70,20 @@ input[type=submit].btn-secondary:hover,
 input[type=submit].btn-secondary:focus,
 .btn-secondary:hover,
 .btn-secondary:focus {
-  background-color: darken($gray-030, 10%);
-  border-color: darken($gray-030, 10%);
+  background-color: #b8b8b8;
+  border-color: #b8b8b8;
   color: #000;
 }
 
 .btn-action {
-  background-color: $cob-sg-blue-006;
-  border-color: $cob-sg-blue-006;
-  color: #fff;
-}
+  @extend .btn-secondary;
+  background-color: var(--cob-sg-blue-006);
+  border-color: var(--cob-sg-blue-006);
 
-.btn-action:hover,
-.btn-action:focus {
-  background-color: darken($cob-sg-blue-006, 10%);
-  border-color: darken($cob-sg-blue-006, 10%);
-  color: #fff;
+  &:hover {
+    background-color: var(--cob-sg-blue-006-darker);
+    border-color: var(--cob-sg-blue-006-darker);
+  }
 }
 
 .btn-action-2 {
@@ -96,8 +94,8 @@ input[type=submit].btn-secondary:focus,
 
 .btn-action-2:hover,
 .btn-action-2:focus {
-  background-color: darken($link-blue, 10%);
-  border-color: darken($link-blue, 10%);
+  background-color: #0f66bf;
+  border-color: #0f66bf;
   color: #fff;
 }
 
@@ -158,7 +156,7 @@ input[type=submit].btn-secondary:focus,
 }
 
 .btn-label__primary {
-  color: darken($brand-primary, 10);
+  color: var(--brand-primary-d);
 }
 
 .buttons-row .btn {
@@ -171,13 +169,13 @@ input[type=submit].btn-secondary:focus,
 }
 
 .btn-muted {
-  background-color: $cob-sg-blue-004;
-  border-color: $cob-sg-blue-004;
+  background-color: var(--cob-sg-blue-004);
+  border-color: var(--cob-sg-blue-004);
 }
 
 .btn-primary__reverse {
   background-color: #fff;
-  color: $brand-primary;
+  color: var(--bs-primary);
   border: 1px solid $gray-030;
 }
 
@@ -196,15 +194,15 @@ input[type=submit].btn-secondary:focus,
 
 .btn-rule-condition:hover,
 .btn-rule-condition:focus {
-  background-color: $brand-primary;
-  border-color: $brand-primary;
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
   color: #fff;
 }
 
 .btn-rule-condition.active {
-  border-color: $brand-primary;
+  border-color: var(--bs-primary);
   box-shadow: none;
-  background-color: $brand-primary;
+  background-color: var(--bs-primary);
   color: #fff;
 
 }
@@ -214,21 +212,21 @@ input[type=submit].btn-secondary:focus,
 input[type=submit].btn-primary,
 .btn-default,
 .btn-primary {
-  background: $brand-primary;
-  border-color: $brand-primary-d;
+  background: var(--bs-primary);
+  border-color: var(--brand-primary-d);
   color: $white;
   border-radius: $btn-border-radius;
 
   &:hover {
-    background: darken($brand-primary-l, 25%);
-    border-color: $brand-primary-d;
+    background: var(--brand-primary-l-darker);
+    border-color: var(--brand-primary-d);
     color: $white;
   }
 
   &:disabled,
   &.disabled {
-    background: desaturate($brand-primary-l, 80%);
-    border-color: desaturate($brand-primary, 80%);
+    background: var(--brand-primary-l-desaturated);
+    border-color: var(--bs-primary-desaturated);
     color: rgba($black, .85);
     outline: 0;
   }
@@ -237,8 +235,8 @@ input[type=submit].btn-primary,
   &:active,
   &:focus,
   &:focus:active {
-    background: darken($brand-primary-l, 35%);
-    box-shadow: 0 0 0 2px rgba($brand-primary, .5);
+    background: var(--brand-primary-l-darkest);
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), .5);
     outline: 0;
   }
 
@@ -246,7 +244,7 @@ input[type=submit].btn-primary,
 
     &:hover,
     &:focus {
-      background: rgba($brand-primary-l, 25%);
+      background: rgba(var(--brand-primary-l-rgb), .25);
     }
   }
 }
@@ -254,17 +252,17 @@ input[type=submit].btn-primary,
 input[type=submit].btn-secondary,
 .btn-secondary {
   background: $white;
-  border-color: $brand-primary;
-  color: $brand-primary-d;
+  border-color: var(--bs-primary);
+  color: var(--brand-primary-d);
 
   [class^="icon-"],
   [class*=" icon-"] {
-    color: $brand-primary-d;
+    color: var(--brand-primary-d);
   }
 
   &:hover {
-    background: darken($brand-primary-l, 25%);
-    border-color: $brand-primary-d;
+    background: var(--brand-primary-l-darker);
+    border-color: var(--brand-primary-d);
     color: $white;
 
     [class^="icon-"],
@@ -275,8 +273,8 @@ input[type=submit].btn-secondary,
 
   &:disabled,
   &.disabled {
-    background: desaturate($brand-primary-l, 80%);
-    border-color: desaturate($brand-primary, 80%);
+    background: var(--brand-primary-l-desaturated);
+    border-color: var(--bs-primary-desaturated);
     color: rgba($black, .55);
   }
 
@@ -284,8 +282,8 @@ input[type=submit].btn-secondary,
   &:active,
   &:focus,
   &:focus:active {
-    background: darken($brand-primary-l, 35%);
-    box-shadow: 0 0 0 2px rgba($brand-primary, .5);
+    background: var(--brand-primary-l-darkest);
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), .5);
     color: $white;
     outline: 0;
   }
@@ -294,19 +292,19 @@ input[type=submit].btn-secondary,
 
     &:hover,
     &:focus {
-      background: rgba($brand-primary-l, 25%);
+      background: rgba(var(--brand-primary-l-rgb), .25);
     }
   }
 }
 
 .btn-success {
-  background: $brand-success-l;
-  border-color: $brand-success;
+  background: var(--brand-success-l);
+  border-color: var(--bs-success);
   color: rgba($black, .75);
 
   &:hover {
-    background: $brand-success-d;
-    border-color: $brand-primary-d;
+    background: var(--brand-success-d);
+    border-color: var(--brand-primary-d);
     color: $white;
   }
 
@@ -314,16 +312,16 @@ input[type=submit].btn-secondary,
   &:active,
   &:focus,
   &:focus:active {
-    background: darken($brand-success-l, 35%);
-    box-shadow: 0 0 0 2px rgba($brand-success, .5);
+    background: var(--brand-success-l-darkest);
+    box-shadow: 0 0 0 2px rgba(var(--bs-success-rgb), .5);
     outline: 0;
     color: $white;
   }
 
   &:disabled,
   &.disabled {
-    background: desaturate($brand-success-l, 80%);
-    border-color: desaturate($brand-success, 80%);
+    background: var(--brand-success-l-desaturated);
+    border-color: var(--bs-success-desaturated);
     color: rgba($black, .55);
   }
 
@@ -331,18 +329,18 @@ input[type=submit].btn-secondary,
 
     &:hover,
     &:focus {
-      background: rgba($brand-success-l, 25%);
+      background: rgba(var(--brand-success-l-rgb), 0.25);
     }
   }
 }
 
 .btn-warning {
-  background: $brand-warning-l;
-  border-color: $brand-warning;
+  background: var(--brand-warning-l);
+  border-color: var(--bs-warning);
   color: rgba($black, 55%);
 
   &:hover {
-    background: $brand-warning-d;
+    background: var(--brand-warning-d);
     color: $white;
   }
 
@@ -350,16 +348,16 @@ input[type=submit].btn-secondary,
   &:active,
   &:focus,
   &:focus:active {
-    background: darken($brand-warning-l, 35%);
-    box-shadow: 0 0 0 2px rgba($brand-warning, .5);
+    background: var(--brand-warning-l-darkest);
+    box-shadow: 0 0 0 2px rgba(var(--bs-warning-rgb), .5);
     outline: 0;
     color: $white;
   }
 
   &:disabled,
   &.disabled {
-    background: desaturate($brand-warning-l, 80%);
-    border-color: desaturate($brand-warning, 80%);
+    background: var(--brand-warning-l-desaturated);
+    border-color: var(--bs-warning-desaturated);
     color: $black;
   }
 
@@ -367,18 +365,18 @@ input[type=submit].btn-secondary,
 
     &:hover,
     &:focus {
-      background: rgba($brand-warning-l, 25%);
+      background: rgba(var(--brand-warning-l-rgb), 0.25);
     }
   }
 }
 
 .btn-danger {
-  background: $brand-danger-l;
-  border-color: $brand-danger;
+  background: var(--brand-danger-l);
+  border-color: var(--bs-danger);
   color: rgba($black, 1);
 
   &:hover {
-    background: $brand-danger-d;
+    background: var(--brand-danger-d);
     color: $white;
   }
 
@@ -386,16 +384,16 @@ input[type=submit].btn-secondary,
   &:active,
   &:focus,
   &:focus:active {
-    background: darken($brand-danger-l, 35%);
-    box-shadow: 0 0 0 2px rgba($brand-danger, .5);
+    background: var(--brand-danger-l-darkest);
+    box-shadow: 0 0 0 2px rgba(var(--bs-danger-rgb), .5);
     outline: 0;
     color: $white;
   }
 
   &:disabled,
   &.disabled {
-    background: desaturate($brand-danger-l, 80%);
-    border-color: desaturate($brand-danger, 80%);
+    background: var(--brand-danger-l-desaturated);
+    border-color: var(--bs-danger-desaturated);
     color: rgba($black, .55);
   }
 
@@ -403,7 +401,7 @@ input[type=submit].btn-secondary,
 
     &:hover,
     &:focus {
-      background: rgba($brand-danger-l, 25%);
+      background: rgba(var(--brand-danger-l-rgb), .25);
     }
   }
 }
@@ -411,7 +409,7 @@ input[type=submit].btn-secondary,
 input[type=submit].btn-disabled,
 .btn-disabled {
   background: $white;
-  border-color: desaturate($brand-primary-l, 80%);
+  border-color: var(--brand-primary-l-desaturated);
   color: rgba($black, .55);
 
   [class^="icon-"],
@@ -428,7 +426,7 @@ input[type=submit].btn-disabled,
   &:focus:active,
   &--outline {
     background: $white;
-    border-color: desaturate($brand-primary-l, 80%);
+    border-color: var(--brand-primary-l-desaturated);
     color: rgba($black, .55);
 
     [class^="icon-"],
@@ -445,12 +443,12 @@ input[type=submit].btn-disabled,
 
 .btn-light {
   &:hover {
-    background: $brand-primary-l;
+    background: var(--brand-primary-l);
   }
 
   &:not(:disabled):not(.disabled):active,
   &:not(:disabled):not(.disabled).active {
-    background: darken($brand-primary-l, 25%);
+    background: var(--brand-primary-l-darker);
     color: $white;
   }
 }
@@ -462,14 +460,154 @@ input[type=submit].btn-disabled,
 .show>.btn-secondary.dropdown-toggle,
 .show>.btn-light.dropdown-toggle,
 .show>.dropdown-toggle.btn-default {
-  background: $brand-primary;
+  background: var(--bs-primary);
   color: $white;
 }
 
 .btn-link--danger {
-  color: $brand-danger-d;
+  color: var(--brand-danger-d);
 
   &:hover {
-    color: darken($brand-danger-d, 10%);
+    color: var(--brand-danger-dd);
+  }
+}
+
+.btn-outline-primary {
+  &:hover {
+    color: var(--brand-primary-d);
+  }
+}
+
+.btn-subtle-primary {
+  @extend .btn-subtle;
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
+    background: var(--brand-primary-l-darker) !important;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), .5);
+  }
+
+  &.active {
+    background: var(--brand-primary-l-darker) !important;
+  }
+
+  &:disabled,
+  &.disabled {
+    background: var(--brand-primary-l-desaturated) !important;
+    border-color: var(--bs-primary-desaturated) !important;
+  }
+
+  background: rgba(var(--brand-primary-l-rgb), 0.25);
+}
+
+.btn-subtle-success {
+  @extend .btn-subtle;
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
+    background: var(--brand-success-l-darkest) !important;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(var(--bs-success-rgb), .5);
+  }
+
+  &:disabled,
+  &.disabled {
+    background: var(--brand-success-l-desaturated) !important;
+    border-color: var(--bs-success-desaturated) !important;
+  }
+
+  background: rgba(var(--brand-success-l-rgb), 0.25);
+}
+
+.btn-subtle-warning {
+  @extend .btn-subtle;
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
+    background: var(--brand-warning-l-darkest) !important;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(var(--bs-warning-rgb), .5);
+  }
+
+  &:disabled,
+  &.disabled {
+    background: var(--brand-warning-l-desaturated) !important;
+    border-color: var(--bs-warning-desaturated) !important;
+  }
+
+  background: rgba(var(--brand-warning-l-rgb), 0.25);
+}
+
+.btn-subtle-danger {
+  @extend .btn-subtle;
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
+    background: var(--brand-danger-l-darkest) !important;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(var(--bs-danger-rgb), .5);
+  }
+
+  &:disabled,
+  &.disabled {
+    background: var(--brand-danger-l-desaturated) !important;
+    border-color: var(--bs-danger-desaturated) !important;
+  }
+
+  background: rgba(var(--brand-danger-l-rgb), 0.25);
+}
+
+.btn--outline {
+  border: 1px solid;
+
+  &.btn-primary {
+    border-color: var(--brand-primary-l-desaturated);
+  }
+
+  &.btn-secondary {
+    border-color: $gray-050;
+  }
+}
+
+.btn--outline-disabled {
+
+  &.btn-primary {
+    border-color: var(--brand-primary-l-desaturated);
+  }
+}
+
+.btn-link--danger {
+  color: var(--brand-danger-d);
+
+  &:hover {
+    color: var(--brand-danger-dd);
+  }
+}
+
+.btn-subtle {
+  border: 1px solid transparent;
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
+    border: 1px solid transparent;
   }
 }

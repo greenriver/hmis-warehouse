@@ -30,7 +30,7 @@
 .nav-tabs>li>a:hover,
 .nav-tabs>li>a:focus {
   background: $body-bg;
-  box-shadow: inset 0px 2px 0px 0px darken($brand-primary, 10%);
+  box-shadow: inset 0px 2px 0px 0px var(--brand-primary-d);
   color: $black;
 }
 
@@ -42,10 +42,10 @@
 .nav-tabs>li.nav-item>a.active:focus {
   border: 0;
   border-radius: 0;
-  background: lighten($tab-bg, 30%);
-  color: darken($tab-bg, 40%);
+  background: $nav-tab-active-active-bg;
+  color: $nav-tab-active-color;
   font-weight: 800;
-  box-shadow: inset 0px 2px 0px 0px darken($tab-bg, 10%);
+  box-shadow: inset 0px 2px 0px 0px $nav-tab-active-border-color;
 }
 
 .nav-tabs>li {

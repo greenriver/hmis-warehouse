@@ -12,7 +12,7 @@
 
 .table__detail-row-rollup {
   &.open td {
-    background: lighten($tab-bg, 30%);
+    background: #ffffff;
   }
 }
 
@@ -40,7 +40,7 @@
   }
 
   thead th {
-    background: darken(#f9f9f9, 5%);
+    background: #ebebeb;
     text-align: center;
     font-weight: bold;
     font-size: 20px;

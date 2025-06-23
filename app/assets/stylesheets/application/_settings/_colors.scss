@@ -78,12 +78,14 @@ $footer-background: $cob-sg-charles-blue;
 $footer-foreground: $white;
 
 $theme-colors: (
-  "primary": var(--bs-primary),
+  // Provide Sass with the default colors so it can compile Bootstrap.
+  // The actual theme colors will override these defaults via inline CSS variables.
+  "primary": #457687,
   "secondary": $brand-secondary,
-  "success": var(--bs-success),
-  "info": var(--bs-info),
-  "warning": var(--bs-warning),
-  "danger": var(--bs-danger),
+  "success": #009f44,
+  "info": #d8e7ea,
+  "warning": #bc6923,
+  "danger": #bb2716,
   "light": $white,
   "dark": $gray-080
 );

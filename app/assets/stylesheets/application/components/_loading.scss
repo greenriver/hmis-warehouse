@@ -8,13 +8,13 @@
   padding: space(2);
   transition: background .5s;
   &.saving {
-    background: $brand-warning-l;
+    background: var(--brand-warning-l);
   }
   &.saved {
-    background: $brand-success-l;
+    background: var(--brand-success-l);
   }
   &.error {
-    background: $brand-danger-l;
+    background: var(--brand-danger-l);
   }
 }
 

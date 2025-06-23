@@ -1,9 +1,9 @@
 @import '../helpers';
 
-.all-service-dates .calendar-heading
-{
+.all-service-dates .calendar-heading {
   display: none;
 }
+
 .service-type__bed_night,
 .service-type__service,
 .service-type__entry,
@@ -16,53 +16,54 @@
   display: inline-block;
   padding: 0.75rem;
 }
-.service-type__entry
-{
-  background-color: $cas-blue;
+
+.service-type__entry {
+  background-color: var(--cas-blue);
   color: white;
 }
-.service-type__exit
-{
-  background-color: $cas-red;
+
+.service-type__exit {
+  background-color: var(--cas-red);
   color: white;
 }
-.service-type__extrapolated
-{
+
+.service-type__extrapolated {
   background-color: $gray-040;
 }
-.service-type__first
-{
-  background-color: $brand-primary-ll;
+
+.service-type__first {
+  background-color: var(--brand-primary-ll);
   color: black;
 }
+
 .service-type__program-type {
   background-color: #E6E6E6;
   @include tag-pill;
   color: black;
 }
-.client__client_unique_id
-{
+
+.client__client_unique_id {
   font-size: 0.8rem;
 }
+
 #client__calendar-datepicker__dropdown .datepicker-inline {
   width: auto;
 }
 
-.client__calendar-date
-{
+.client__calendar-date {
   // padding: 0.2em;
 }
 
 .client__calendar-date__previous-month {
   color: rgba(0, 0, 0, 0.30);
 }
-.client__month_of_service-table
-{
+
+.client__month_of_service-table {
   width: 100%;
 }
+
 .client__month_of_service-table td,
-.client__month_of_service-table th
-{
+.client__month_of_service-table th {
   vertical-align: top;
   // border-left: 1px solid $body-bg;
   // border-right: 1px solid $body-bg;
@@ -87,13 +88,9 @@
   height: 100%;
 }
 
-.client__calendar-card__filters {
+.client__calendar-card__filters {}
 
-}
-
-.client__calendar-card__contact-key {
-
-}
+.client__calendar-card__contact-key {}
 
 .client__calendar-card__contact-key__key {
   width: 30px;
@@ -154,13 +151,16 @@ $client-calendar-project-height: 50px;
   z-index: 1;
 
   height: $client-calendar-project-height;
+
   &.client__calendar-project__no-events {
     height: $client-calendar-project-height/2;
   }
+
   &.client__calendar-project__has-start {
     border-top-left-radius: $client-calendar-border-radius;
     border-bottom-left-radius: $client-calendar-border-radius;
   }
+
   &.client__calendar-project__has-end {
     border-top-right-radius: $client-calendar-border-radius;
     border-bottom-right-radius: $client-calendar-border-radius;
@@ -178,9 +178,11 @@ $client-calendar-project-height: 50px;
   .popover .arrow {
     display: none;
   }
+
   .popover {
     white-space: normal;
   }
+
   .popover-body {
     padding: 0px;
   }
@@ -190,13 +192,16 @@ $client-calendar-project-height: 50px;
 .client__calendar-tooltip__table {
   width: 300px;
   margin-bottom: 0px;
+
   thead tr th {
     border-bottom: none;
     border-top: none;
   }
+
   th span {
     font-weight: normal;
   }
+
   tbody tr td:first-child {
     border-right: 1px solid #DDDDDD;
   }
@@ -215,13 +220,14 @@ td.client__calendar-tooltip__table__mro {
 .client__calendar-project__extrapolation {
   height: $client-calendar-project-height;
   position: absolute;
-  top:0;
+  top: 0;
   bottom: 0px;
   right: 0px;
   height: 4px;
   margin-top: 13px;
   background-color: #6A1B9A;
   z-index: 2;
+
   i {
     position: absolute;
     right: -5px;
@@ -233,6 +239,7 @@ td.client__calendar-tooltip__table__mro {
 span.client__calendar-day-event__extrapolation {
   position: relative;
   padding-left: 8px;
+
   &:after {
     content: ' ';
     display: block;
@@ -244,6 +251,7 @@ span.client__calendar-day-event__extrapolation {
     top: 50%;
     margin-top: -1px;
   }
+
   i {
     color: #6A1B9A;
   }
@@ -268,8 +276,10 @@ span.client__calendar-day-event__extrapolation {
   bottom: 0px;
   width: 12px;
   background-color: #880E4F;
-  border-top-left-radius: $client-calendar-border-radius;;
-  border-bottom-left-radius: $client-calendar-border-radius;;
+  border-top-left-radius: $client-calendar-border-radius;
+  ;
+  border-bottom-left-radius: $client-calendar-border-radius;
+  ;
 }
 
 .client__calendar-project__end {
@@ -279,8 +289,10 @@ span.client__calendar-day-event__extrapolation {
   bottom: 0px;
   width: 12px;
   background-color: #880E4F;
-  border-top-right-radius: $client-calendar-border-radius;;
-  border-bottom-right-radius: $client-calendar-border-radius;;
+  border-top-right-radius: $client-calendar-border-radius;
+  ;
+  border-bottom-right-radius: $client-calendar-border-radius;
+  ;
 }
 
 .client__calendar-project__label {
@@ -294,12 +306,15 @@ span.client__calendar-day-event__extrapolation {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
   strong {
     padding-right: 4px;
   }
+
   &.client__calendar-project__label-has-start {
     padding-left: 24px;
   }
+
   &.client__calendar-project__label-has-end {
     padding-right: 24px;
   }
@@ -314,6 +329,7 @@ span.client__calendar-day-event__extrapolation {
   align-items: center;
   overflow: hidden;
   box-sizing: border-box;
+
   &.client__calendar-project__day-events-has-start {
     padding-left: 24px;
   }
@@ -324,6 +340,7 @@ span.client__calendar-day-event__extrapolation {
   margin-right: 8px;
   line-height: 1;
   flex: 0 0 auto;
+
   span {
     display: inline-block;
   }
@@ -343,6 +360,7 @@ span.client__calendar-day-event__current_situations {
   height: 20px;
   text-align: center;
   padding-top: 2px;
+
   i {
     color: white;
     font-size: 14px;
@@ -356,6 +374,7 @@ span.client__calendar-day-event__move_in_dates {
   width: 20px;
   height: 20px;
   padding-top: 2px;
+
   i {
     color: white;
     font-size: 14px;
@@ -363,7 +382,7 @@ span.client__calendar-day-event__move_in_dates {
 }
 
 span.client__calendar-day-event__service_dates {
-  i{
+  i {
     color: #9F2500;
     font-size: 18px;
   }
@@ -374,7 +393,10 @@ span.client__calendar-day-event__ce_events {
   height: 14px;
   border-radius: 50%;
   background-color: #546E7A;
-  i{display: none}
+
+  i {
+    display: none
+  }
 }
 
 span.client__calendar-day-event__custom_events {
@@ -383,7 +405,10 @@ span.client__calendar-day-event__custom_events {
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
   border-bottom: 14px solid #2962FF;
-  i{display: none}
+
+  i {
+    display: none
+  }
 }
 
 .client__service_type_0 {
@@ -394,108 +419,143 @@ span.client__calendar-day-event__custom_events {
     background-color: #96a1fa;
   }
 }
+
 .client__service_type_1 {
+
   /* border-bottom: 1px solid #0074D9; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #80C3FF;
   }
 }
+
 .client__service_type_2 {
+
   /* border-bottom: 1px solid #3c84b7; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #8EE698;
   }
 }
+
 .client__service_type_3 {
+
   /* border-bottom: 1px solid #299b9b; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #4ACFCF;
   }
 }
+
 .client__service_type_4 {
+
   /* border-bottom: 1px solid #3D9970; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #7FCCAB;
   }
 }
+
 .client__service_type_6 {
+
   /* border-bottom: 1px solid #8e7a30; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFE380;
   }
 }
+
 .client__service_type_7 {
+
   /* border-bottom: 1px solid #d36e15; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #DEDEDE;
   }
 }
+
 .client__service_type_8 {
+
   /* border-bottom: 1px solid #FF4136; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #FF9994;
   }
 }
+
 .client__service_type_9 {
+
   /* border-bottom: 1px solid #85144b; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #EF9AC1;
   }
 }
+
 .client__service_type_10 {
+
   /* border-bottom: 1px solid #ce0ea3; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFA680;
   }
 }
+
 .client__service_type_11 {
+
   /* border-bottom: 1px solid #B10DC9; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFDBF7;
   }
 }
+
 .client__service_type_12 {
+
   /* border-bottom: 1px solid #21992f; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #B2CDE1;
   }
 }
+
 .client__service_type_13 {
+
   /* border-bottom: 1px solid #00b750; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #9EFFC5;
   }
 }
+
 .client__service_type_14 {
+
   /* border-bottom: 1px solid #001f3f; */
   &.service-type__program-type,
   .service-type__program-type {
     background-color: #C7E4FF;
   }
 }
+
 .client__potential-match {
   padding-left: 0;
+
   li {
     list-style-type: none;
   }
+
   .form-group {
     margin-bottom: 0.2em;
   }
 }
-#client__previous-addresses { height: 250px; }
-#client__location-history { height: 500px; }
+
+#client__previous-addresses {
+  height: 250px;
+}
+
+#client__location-history {
+  height: 500px;
+}
 
 .merge-row {
   margin-bottom: space(4);
@@ -518,19 +578,24 @@ span.client__calendar-day-event__custom_events {
 }
 
 $client-match-action-row-height: 22px;
+
 .client-match {
   position: relative;
   padding: 0 1em;
   padding-bottom: $client-match-action-row-height;
   min-width: 420px;
+
   .client-match--factors {
     font-size: 12px;
     width: 100%;
     margin-bottom: 10px;
+
     tr {
       /* border-bottom: 1px solid #eee; */
     }
-    td,th {
+
+    td,
+    th {
       vertical-align: top;
       padding: rem(5px) rem(2px);
     }
@@ -547,6 +612,7 @@ $client-match-action-row-height: 22px;
   display: flex;
   align-items: cetner;
   flex-wrap: wrap;
+
   li {
     margin-right: space(3);
     margin-bottom: space(1);
@@ -558,9 +624,11 @@ $client-match-action-row-height: 22px;
   flex-wrap: wrap;
   width: 100%;
   margin-bottom: space(8);
-  > section {
+
+  >section {
     width: 100%;
   }
+
   @include media-breakpoint-up(sm) {
     flex-wrap: nowrap;
     margin-bottom: space(6);
@@ -572,6 +640,7 @@ $client-match-action-row-height: 22px;
   flex-direction: column;
   justify-content: space-between;
   flex-wrap: wrap;
+
   li {
     padding-right: space(4);
     margin-bottom: space(2);
@@ -579,9 +648,11 @@ $client-match-action-row-height: 22px;
     max-width: 100%;
     min-width: rem(175px);
   }
+
   @include media-breakpoint-up(sm) {
     flex-direction: row;
     min-width: 100%;
+
     li {
       flex: 0 0 25%;
       max-width: 25%;
@@ -596,6 +667,7 @@ $client-match-action-row-height: 22px;
 }
 
 $client-image-height: 200px;
+
 .client__image {
   padding: 1em;
   min-width: 100%;
@@ -608,6 +680,7 @@ $client-image-height: 200px;
   flex: 1 1 auto;
   margin-bottom: space(4);
   border-radius: 5px;
+
   @include media-breakpoint-up(sm) {
     background-size: cover;
     max-width: rem($client-image-height);
@@ -621,15 +694,17 @@ $client-image-height: 200px;
 .client__image--w-100 {
   min-width: 100%;
   min-height: 33vh;
+
   @include media-breakpoint-up(md) {
     height: auto;
     min-height: 300px;
   }
 }
 
-.client__details{
+.client__details {
   padding-left: space(4);
   padding-right: space(4);
+
   &:last-child {
     .client__content-block {
       margin-bottom: 0;
@@ -644,6 +719,7 @@ $client-image-height: 200px;
 
 .client__content-block {
   margin-bottom: space(4);
+
   &:empty {
     display: none;
   }
@@ -671,6 +747,7 @@ $client-image-height: 200px;
 .client__client-name .client-primary-name {
   @include font-open-sans-condensed;
   font-size: 2rem;
+
   em {
     align-self: center;
     font-size: inhreit;
@@ -683,8 +760,7 @@ $client-image-height: 200px;
   margin-bottom: .45rem;
 }
 
-.client__client-name-title
-{
+.client__client-name-title {
   font-size: 1.4rem;
 }
 
@@ -705,13 +781,11 @@ $client-image-height: 200px;
   }
 } */
 
-.client__filter-header
-{
+.client__filter-header {
   margin-top: 0;
 }
 
-.client__sort .dropdown-menu.options
-{
+.client__sort .dropdown-menu.options {
   width: 15em;
   padding: 1em;
 }
@@ -744,25 +818,28 @@ $client-image-height: 200px;
   margin-bottom: 24px;
 }
 
-.enrollment__project_type
-{
+.enrollment__project_type {
   display: inline-block;
 }
+
 .enrollment__new-episode {
-  > td {
-    border-bottom: 8px solid darken($table-cell-bg-positive, 10%);
+  >td {
+    border-bottom: 8px solid #b2dba1;
   }
 }
-.enrollment__new-episode--key
-{
-  background-color: darken($table-cell-bg-positive, 10%);
+
+.enrollment__new-episode--key {
+  background-color: #b2dba1;
 }
+
 .assessment__new-type:not(:first-child) {
-  border-top: 2px solid $cob-sg-optimistic-blue;
+  border-top: 2px solid var(--cob-sg-optimistic-blue);
 }
+
 .zero-width {
   width: 0;
 }
+
 .client__enrollment--household {
   max-height: 250px;
   overflow: auto;
@@ -772,13 +849,14 @@ $client-image-height: 200px;
   @include tag-pill;
   color: white;
 }
-.rollup-container:empty
-{
+
+.rollup-container:empty {
   padding: 1rem;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
+
 .rollup-container:empty:before {
   display: block;
   margin: 0.5em 0;
@@ -786,6 +864,7 @@ $client-image-height: 200px;
   font-size: 1.2em;
   font-weight: bold;
 }
+
 .rollup-container:empty:after {
   top: 0;
   left: 0;
@@ -797,6 +876,7 @@ $client-image-height: 200px;
   transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent);
 }
+
 .client--enrollment-history .c-card {
   max-height: 500px;
   overflow-y: auto
@@ -807,16 +887,17 @@ $client-image-height: 200px;
   0% {
     transform: translateX(-100%);
   }
+
   60% {
     transform: translateX(100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
 
-.destination-data-source-tag
-{
+.destination-data-source-tag {
   /* display: inline-block;
   min-height: 10px;
   min-width: 10px;
@@ -826,7 +907,7 @@ $client-image-height: 200px;
 .destination-sqr {
   @include tag-pill;
   color: $white;
-  background-color: $cob-sg-blue-002;
+  background-color: var(--cob-sg-blue-002);
 }
 
 .confidential_project {
@@ -835,17 +916,16 @@ $client-image-height: 200px;
   background-color: #FFC380;
 }
 
-.client__chronic
-{
+.client__chronic {
   text-align: center;
   font-size: 1.2em;
   margin-top: 0.5em;
   margin-bottom: 0.25em;
   padding: 0.5em 0.5em;
 }
-.clients__chronic
-{
-  background-color: $brand-warning;
+
+.clients__chronic {
+  background-color: var(--bs-warning);
   padding: 0.5em;
   margin: 0.5em;
   margin-right: 0;
@@ -875,6 +955,7 @@ $client-image-height: 200px;
 }
 
 $file-thumbnail-size: 75px;
+
 .file-thumbnail {
   width: $file-thumbnail-size;
   height: $file-thumbnail-size;
@@ -884,16 +965,19 @@ $file-thumbnail-size: 75px;
   justify-content: center;
   background: rgba($black, .3);
   border-radius: .2rem;
+
   &::before {
     font-family: 'icons';
     content: '\e9ce'; // Eye
     color: $white;
     font-size: 1.5rem;
   }
+
   &:hover {
     &::before {
       color: $gray-020;
     }
+
     &::after {
       background: rgba($black, .3);
       border-radius: .2rem;
@@ -904,9 +988,11 @@ $file-thumbnail-size: 75px;
 .file-thumbnail--image {
   background-size: cover;
   background-position: center center;
+
   &::before {
     z-index: 5;
   }
+
   &::after {
     content: '';
     z-index: 1;
@@ -923,6 +1009,7 @@ $file-thumbnail-size: 75px;
 .sdh-note__activity {
   &:first-of-type {
     margin-top: -16px;
+
     .sdh-note__activity h5 {
       border-top-left-radius: $border-radius-default;
       border-top-right-radius: $border-radius-default;
@@ -948,13 +1035,13 @@ $file-thumbnail-size: 75px;
   @include open-sans-normal;
   padding-left: 20px;
 }
-.client-tabs__active-alerts {
 
-}
+.client-tabs__active-alerts {}
+
 .service-scanning__active-alerts {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   padding: space(4);
-  background-color: $brand-warning-l;
+  background-color: var(--brand-warning-l);
 }

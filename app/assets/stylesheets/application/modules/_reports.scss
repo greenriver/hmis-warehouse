@@ -9,7 +9,7 @@
 }
 
 .big-block .body {
-  background-color: $cob-sg-charles-blue;
+  background-color: var(--cob-sg-charles-blue);
   color: white;
 }
 
@@ -52,16 +52,16 @@
 {
   background-color: $white;
   padding: 2rem;
-  border-top: 1px solid $brand-primary;
+  border-top: 1px solid var(--bs-primary);
 }
 
 .incomplete-field {
-  background-color: $brand-warning-l;
+  background-color: var(--brand-warning-l);
 }
 .hud-report-options {
   h2 {
     padding-bottom: 0.25em;
-    border-bottom: 2px solid $brand-primary-l;
+    border-bottom: 2px solid var(--brand-primary-l);
   }
 }
 .report-nav {
@@ -76,7 +76,7 @@
 .filter__selected-projects {
   height: 95%;
   overflow: auto;
-  border-left: 2px solid $brand-primary-l;
+  border-left: 2px solid var(--brand-primary-l);
   padding-left: 2em;
 
   .scroll-box {
