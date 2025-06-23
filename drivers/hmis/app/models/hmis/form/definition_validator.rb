@@ -28,7 +28,9 @@ class Hmis::Form::DefinitionValidator
 
     # Check conditions like enable_when and autofill_when.
     # First initialize a FormDefinition to use the logic for generating an item hash, but don't persist it.
-    # item_hash's limitiation is that it does not include groups; see comments below in check_condition.
+    # item_hash's limitiation is that it does not include groups. While the referenced question could be a group
+    # (with an EXISTS condition, for instance), for now we are only validating against pick_list_options and
+    # pick_list_reference (which groups won't have).
     item_hash = Hmis::Form::Definition.new(definition: document).link_id_item_hash
     check_conditions(document, item_hash)
 
@@ -88,6 +90,7 @@ class Hmis::Form::DefinitionValidator
   # FIXME: this element has dummy values that do not validate correctly
   KNOWN_BAD_REFS = Set.new(['mci_clearance_value'])
 
+  # Check that all link_ids referenced in the form (such as in enable_when conditions) really exist
   def check_references(document, all_ids)
     link_check = lambda do |item|
       (item['item'] || []).each do |child_item|
