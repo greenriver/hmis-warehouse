@@ -202,11 +202,11 @@ class Hmis::Form::DefinitionValidator
       (answer_codes - valid_answer_codes).each do |code|
         add_issue("Invalid answer code: #{code} in 'enable_when' prop of #{link_id}")
       end
-    end
-
-    if condition.key?('answer_group_code') && valid_answer_group_codes # rubocop:disable Style/GuardClause
-      code = condition['answer_group_code']
-      add_issue("Invalid answer group code: #{code} in 'enable_when' prop of #{link_id}") unless valid_answer_group_codes.include?(code)
+    elsif condition.key?('answer_group_code')
+      # This condition is checking against a group code, so we need to validate that the group code is still valid for the referenced question.
+      # Use safe accessor on valid_answer_group_codes because this should also display a validation error if the referenced question has no valid_answer_group_codes
+      group_code = condition['answer_group_code']
+      add_issue("Item '#{link_id}' has a dependency on question '#{referenced_question['link_id']}', but the dependent answer group '#{group_code}' is no longer a valid choice group for that question. Please update the dependency and try again.") unless valid_answer_group_codes&.include?(group_code)
     end
 
     # TODO: Additional validations. We attempt to ensure this validity in the form property editor,
