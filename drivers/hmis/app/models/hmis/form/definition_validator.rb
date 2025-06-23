@@ -173,6 +173,12 @@ class Hmis::Form::DefinitionValidator
     link_check.call(document)
   end
 
+  # Validate an EnableWhen condition defined on a form item, ensuring that the referenced question
+  # and dependent answer codes or group codes are valid.
+  #
+  # @param [Hash] condition The condition object to validate (expected to match Types::Forms::EnableWhen shape)
+  # @param [Hash] item_hash A hash mapping link IDs to their corresponding form items
+  # @param [String] link_id The link ID of the item to validate
   def check_condition(condition, item_hash, link_id)
     # Only validate conditions that evaluate against another question (as opposed to a local constant)
     return unless condition.key?('question')
