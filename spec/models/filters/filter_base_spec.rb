@@ -103,6 +103,8 @@ RSpec.describe Filters::FilterBase, type: :model do
   end
 
   describe 'date parsing for :on param' do
+    before { freeze_time }
+    after { travel_back }
     let!(:today) { Date.current }
     let(:base) { Filters::FilterBase.new(user_id: user.id) }
     let(:test_date) { Date.new(2025, 4, 27) }

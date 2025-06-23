@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,7 +8,7 @@
 
 require 'roo'
 module HudCodeGen
-  CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'.freeze
+  CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'
 
   MAP_NAME_OVERRIDES = {
     export_period_types: :period_types,
@@ -30,6 +32,7 @@ module HudCodeGen
     voucher_trackings: :voucher_tracking_options,
     moving_on_assistances: :moving_on_assistance_options,
     races: :race_field_name_to_description,
+    sexual_orientation: :sexual_orientation_options,
   }.stringify_keys.freeze
 
   LOOKUP_FN_OVERRIDES = {
@@ -37,6 +40,7 @@ module HudCodeGen
     when_dv_occurred: :when_d_v_occurred,
     event_type: :event,
     dependent_under6: :dependent_under_6,
+    funding_sources: :funding_source,
   }.stringify_keys.freeze
 
   GRAPHQL_NAME_OVERRIDES = {
@@ -46,9 +50,16 @@ module HudCodeGen
 
   module_function
 
-  def generate_hud_lists(year = '2024')
+  def generate_hud_lists(year)
+    raise ArgumentError, 'Year is required' unless year
+
     source = File.read("lib/data/#{year}_hud_lists.json")
-    all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
+    all_lists = JSON.parse(source)
+
+    all_lists = merge_deprecations(all_lists, year)
+    validate_lists(all_lists)
+
+    all_lists = all_lists.sort_by { |hash| hash['code'] }
     skipped = []
     filename = "lib/util/concerns/hud_lists_#{year}.rb"
     arr = []
@@ -91,8 +102,18 @@ module HudCodeGen
     filename
   end
 
-  def generate_graphql_enums(year = '2024')
+  def generate_graphql_enums(year)
+    raise ArgumentError, 'Year is required' unless year
+
     source = File.read("lib/data/#{year}_hud_lists.json")
+    all_lists = JSON.parse(source)
+
+    all_lists = merge_deprecations(all_lists, year)
+    validate_lists(all_lists)
+
+    # ideally we would sort by code, but this causes a lot of churn
+    # all_lists = all_lists.sort_by { |hash| hash['code'] }
+
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
     hud_utility_class = year == '2022' ? 'HudUtility' : "HudUtility#{year}"
@@ -103,10 +124,11 @@ module HudCodeGen
     arr.push ::Code.copywright_header
     arr.push "
       # frozen_string_literal: true
+      #{CODEGEN_FILE_HEADER}
 
       module Types::HmisSchema::Enums::Hud
     "
-    JSON.parse(source).each do |element|
+    all_lists.each do |element|
       next if skipped.include?(element['code'].to_s)
 
       name = element['name']
@@ -144,6 +166,48 @@ module HudCodeGen
       f.write(contents)
     end
     filename
+  end
+
+  private def validate_lists(all_lists)
+    # Check for duplicate codes between items
+    duplicate_codes = all_lists.group_by { |item| item['code'] }.filter { |_, v| v.many? }.keys
+
+    raise ArgumentError, "Duplicate codes found: #{duplicate_codes.inspect}" if duplicate_codes.any?
+
+    # Check each item for issues
+    all_lists.each do |item|
+      code = item['code']
+      values = item['values'] || []
+
+      # Check for empty values array
+      raise ArgumentError, "Item with code '#{code}' has empty values array" if values.empty?
+
+      # Check for duplicate keys within values
+      duplicate_keys = values.group_by { |i| i['key'] }.filter { |_, v| v.many? }.keys
+      raise ArgumentError, "Duplicate keys found in item '#{code}': #{duplicate_keys.join(', ')}" if duplicate_keys.any?
+    end
+  end
+
+  private def merge_deprecations(all_lists, year)
+    deprecations_file = "lib/data/#{year}_hud_deprecations.json"
+    return all_lists unless File.exist?(deprecations_file)
+
+    deprecations = JSON.parse(File.read(deprecations_file))
+
+    # Merge deprecated values into existing lists when code matches
+    deprecations.each do |deprecated_list|
+      existing_list = all_lists.find { |list| list['code'] == deprecated_list['code'] }
+
+      if existing_list
+        # Merge deprecated values into existing list
+        existing_list['values'] += deprecated_list['values']
+      else
+        # Include deprecated list verbatim if no matching code found in current lists
+        all_lists << deprecated_list
+      end
+    end
+
+    all_lists
   end
 
   private def get_function_names(name)

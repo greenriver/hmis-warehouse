@@ -177,7 +177,7 @@ class Hmis::Form::DefinitionValidator
   # This only validates presence of particular Link IDs, it does NOT validate that they are collecting the correct fields, have the
   # correct type and rule, etc. It is expected that the caller uses `set_hud_requirements` to set the correct HUD rules.
   def check_hud_requirements(all_ids, role)
-    rule_module = HmisUtil::HudAssessmentFormRules2024.new
+    rule_module = HmisUtil::HudAssessmentFormRules2026.new
 
     required_link_ids = rule_module.required_link_ids_for_role(role)
     return unless required_link_ids.any?

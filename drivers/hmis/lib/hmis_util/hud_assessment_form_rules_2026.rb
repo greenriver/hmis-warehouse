@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,7 @@
 ###
 
 module HmisUtil
-  class HudAssessmentFormRules2024
+  class HudAssessmentFormRules2026
     # Keys match Link IDs in our default HUD Assessments.
 
     HUD_LINK_ID_RULES = {
@@ -102,6 +104,7 @@ module HmisUtil
                                    rule: { 'operator' => 'ALL',
                                            '_comment' => 'YHDP-funded program should collect this instead of R5',
                                            'parts' => [{ 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 }] } },
+      # translation
       C4_group: { stages: ['INTAKE'],
                   data_collected_about: 'HOH',
                   rule: { 'operator' => 'ANY',
@@ -396,6 +399,7 @@ module HmisUtil
           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
           { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
+      # 4.02 Income and Sources
       income_and_sources: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
                             data_collected_about: 'HOH_AND_ADULTS',
                             rule: { 'operator' => 'ANY',
@@ -405,6 +409,7 @@ module HmisUtil
             '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
             'parts' =>
                      [
+                       # 'HUD: CoC' includes YHDP
                        { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
                        { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
                        { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },

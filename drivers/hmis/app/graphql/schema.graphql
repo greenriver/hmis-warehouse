@@ -1177,6 +1177,7 @@ type Client {
   race: [Race!]!
   scanCardCodes(limit: Int, offset: Int): ScanCardCodesPaginated!
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  sex: Sex
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: ApplicationUser
@@ -3761,6 +3762,7 @@ type Enrollment {
   livingSituation: PriorLivingSituation
   lockVersion: Int!
   losUnderThreshold: NoYesMissing
+  mentalHealthConsultation: MentalHealthConsultation
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInAddresses: [ClientAddress!]!
@@ -6310,6 +6312,36 @@ type MciClearanceMatch {
   nameSuffix: String
   score: Int!
   ssn: String
+}
+
+"""
+HUD MentalHealthConsultation (V10)
+"""
+enum MentalHealthConsultation {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (3) Mental health consultation being coordinated/arranged with other provider
+  """
+  MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_OTHER_PROVIDER
+
+  """
+  (2) Mental health consultation being coordinated/arranged with VA provider
+  """
+  MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER
+
+  """
+  (1) Mental health consultation completed
+  """
+  MENTAL_HEALTH_CONSULTATION_COMPLETED
+
+  """
+  (4) Offer declined
+  """
+  OFFER_DECLINED
 }
 
 type MergeAuditEvent {
@@ -11624,11 +11656,6 @@ enum ServiceTypeProvided {
   SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE
 
   """
-  (11) General housing stability assistance - emergency supplies [Deprecated]
-  """
-  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED
-
-  """
   (17) Landlord Incentive
   """
   SSVF_FINANCIAL_ASSISTANCE__LANDLORD_INCENTIVE
@@ -11699,6 +11726,11 @@ enum ServiceTypeProvided {
   SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS
 
   """
+  (10) Healthcare Navigation
+  """
+  SSVF_SERVICE__HEALTHCARE_NAVIGATION
+
+  """
   (6) Other (non-TFA) supportive service approved by VA
   """
   SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA
@@ -11754,6 +11786,41 @@ type ServicesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+HUD Sex (4.21)
+"""
+enum Sex {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client prefers not to answer
+  """
+  CLIENT_PREFERS_NOT_TO_ANSWER
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) Female
+  """
+  FEMALE
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Male
+  """
+  MALE
 }
 
 """
