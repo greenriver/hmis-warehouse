@@ -174,15 +174,17 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_condition(condition, item_hash, link_id)
-    return unless condition.key?('question') # Not currently validating conditions with local constants; see below
+    # Only validate conditions that evaluate against another question
+    return unless condition.key?('question')
+    # Only validate conditions that compare to the other question's answer codes (as opposed to comparing to numeric value, whether item exists, booleans, etc).
+    return unless condition.values_at('answer_code', 'answer_codes', 'answer_group_condes').flatten.compact.uniq.any?
 
-    # Find the referenced question.
-    # item_hash does not contain groups, and the referenced question could be a group (with an EXISTS condition, for instance).
-    # But for now we are only validating against pick_list_options and pick_list_reference (which groups won't have).
-    # Therefore, if item_hash doesn't contain the referenced question, just return without raising an error.
+    # Find the referenced question. Since this condition evaluates against the compare questions answer code, we expect the question to be a CHOICE item with pick lists
     referenced_question = item_hash[condition['question']]
-    return if referenced_question.nil?
-    return unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference']
+    raise 'unexpected' unless referenced_question # add_issue? not sure if checked elsewhere or in schema
+    raise 'unexpected' unless referenced_question['type'] == 'CHOICE' || referenced_question['type'] == 'OPEN_CHOICE' # add_issue? not sure if checked elsewhere or in schema
+    raise 'unexpected' unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference'] # add_issue? not sure if checked elsewhere or in schema
+
 
     if referenced_question['pick_list_reference']
       valid_answer_codes = pick_list_reference_to_allowed_values[referenced_question['pick_list_reference']]
