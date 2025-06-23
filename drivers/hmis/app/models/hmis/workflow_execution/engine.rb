@@ -36,6 +36,7 @@ module Hmis::WorkflowExecution
       step.assignments.find_or_create_by!(user: user)
       step.started_at = Time.current
       step.start!
+      # We don't populate the step's updated_by id here, because from the user's perspective, starting the step is just clicking a button, but not updating anything
       process_triggers(node: step.node, event_type: 'start_step', user: user, step: step)
       log_event('start_step', user: user, step: step)
     end
@@ -48,6 +49,7 @@ module Hmis::WorkflowExecution
     def complete_step!(step, user:, submitted_values:)
       step.submitted_values = submitted_values
       step.completed_at = Time.current
+      step.updated_by = user
       step.complete!
       process_triggers(node: step.node, event_type: 'complete_step', user: user, step: step)
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
