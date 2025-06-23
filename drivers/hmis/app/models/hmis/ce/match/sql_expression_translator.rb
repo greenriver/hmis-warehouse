@@ -98,6 +98,10 @@ module Hmis::Ce::Match
     end
 
     def build_comparison(node, left, right)
+      # If either operand is an unknown field (ALWAYS_TRUE),
+      # return ALWAYS_TRUE for the comparison to avoid invalid SQL
+      return ALWAYS_TRUE if left == ALWAYS_TRUE || right == ALWAYS_TRUE
+
       case node
       when Dentaku::AST::LessThan
         left.lt(right)
@@ -119,8 +123,15 @@ module Hmis::Ce::Match
     def build_logical(node, left, right)
       case node
       when Dentaku::AST::And
+        # For AND: if one side is unknown (ALWAYS_TRUE), return the other side
+        return right if left == ALWAYS_TRUE
+        return left if right == ALWAYS_TRUE
+
         left.and(right)
       when Dentaku::AST::Or
+        # For OR: if either side is unknown (ALWAYS_TRUE), the result is ALWAYS_TRUE
+        return ALWAYS_TRUE if left == ALWAYS_TRUE || right == ALWAYS_TRUE
+
         left.or(right)
       else
         raise ArgumentError, "Unsupported logical operation: #{node.class}"

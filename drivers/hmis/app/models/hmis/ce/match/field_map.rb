@@ -1,56 +1,37 @@
 # frozen_string_literal: true
 
+# route the field to the appropriate resolver
 module Hmis::Ce::Match
   class FieldMap
-    def all
-      @all ||= {
-        veteran_status: {
-          instance_value: lambda(&:veteran_status),
-          arel_field: arel.c_t['VeteranStatus'],
-        },
-        current_age: {
-          instance_value: ->(c) { c.age(current_date) },
-          arel_field: age_from('year', current_date, arel.c_t['DOB']),
-        },
-        days_homeless: {
-          instance_value: ->(c) do
-            GrdaWarehouse::Hud::Client.days_homeless(client_id: c.id)
-          end,
-        },
-        aha_score: {
-          instance_value: ->(_) { 20 }, # TODO(#7164) this is just a mocked value to see how things look on the Opportunity page
-        },
-      }
-    end
-
-    def arel
-      Hmis::ArelHelper
-    end
-
     def instance_value(client, field)
-      callback = all.dig(field.to_sym, :instance_value)
-      raise ArgumentError, "Field \"#{field}\" is not supported" unless callback
-
-      callback.call(client)
+      resolver, resolved_field = resolver_for(field)
+      resolver.instance_value(client, resolved_field)
     end
 
     def arel_field(field)
-      all.dig(field.to_sym, :arel_field)
+      resolver, resolved_field = resolver_for(field)
+      resolver.arel_field(resolved_field)
     end
 
-    #  DATE_PART('year', AGE('2024-12-26', "Client"."DOB"))
-    def age_from(_date_part, date, dob_field)
-      Arel::Nodes::NamedFunction.new(
-        'DATE_PART',
-        [
-          Arel::Nodes::Quoted.new('year'),
-          Arel::Nodes::NamedFunction.new('AGE', [Arel::Nodes::Quoted.new(date), dob_field]),
-        ],
-      )
+    protected
+
+    # given a field of 'cde::custom_assessment:xyz', the appropriate resolver
+    def resolver_for(field)
+      # default to the client resolver if the field lacks fq namespaces
+      return [registered_resolvers['client'], field] unless field =~ /\./
+
+      resolver_name, resolved_field = field.split('.', 2)
+      resolver = registered_resolvers[resolver_name]
+      raise ArgumentError, "unknown resolver for \"#{field}\"" unless resolver
+
+      [resolver, resolved_field]
     end
 
-    def current_date
-      @current_date ||= Date.current
+    def registered_resolvers
+      @registered_resolvers ||= {
+        'cde' => Hmis::Ce::Match::CdeFieldMap.new,
+        'client' => Hmis::Ce::Match::ClientFieldMap.new,
+      }
     end
   end
 end

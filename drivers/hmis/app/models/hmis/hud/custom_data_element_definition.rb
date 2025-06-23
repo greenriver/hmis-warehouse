@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -41,4 +43,27 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   scope :for_clients, -> { for_type(Hmis::Hud::Client.sti_name) }
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
+
+  def read_value_from(custom_data_element)
+    case field_type.to_sym
+    when :float
+      custom_data_element.value_float
+    when :integer
+      custom_data_element.value_integer
+    when :boolean
+      custom_data_element.value_boolean
+    when :string
+      custom_data_element.value_string
+    when :text
+      custom_data_element.value_text
+    when :date
+      custom_data_element.value_date
+    when :json
+      custom_data_element.value_json
+    when :file
+      custom_data_element.value_file
+    else
+      raise ArgumentError
+    end
+  end
 end
