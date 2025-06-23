@@ -26,7 +26,6 @@ RSpec.describe Hmis::AuthPolicies::StaffAssignmentPolicy, type: :model do
     end
 
     context 'when project staff assignment configs exist' do
-      # If this factory doesn't exist, this test will fail, and we may need to create one.
       let!(:config) { create(:hmis_project_staff_assignment_config, project: project) }
 
       it 'returns false if user has no access to any projects' do

@@ -1,27 +1,8 @@
 # HMIS Authorization Policy Architecture
 
-This document outlines the authorization policy pattern used within the HMIS driver. The goal is to centralize authorization logic, making it more explicit, maintainable, and performant.
+The goal of the authorization policy is to centralize authorization logic, making it more explicit, maintainable, and performant.
 
 This pattern is inspired by gems like Pundit but is custom-built for our specific needs, particularly around efficient data loading in a complex domain.
-
-## Quick Start
-
-**For consumers (GraphQL resolvers, controllers):**
-```ruby
-# Check if user can view a specific project
-policy = current_user.policy_for(project)
-access_denied! unless policy.can_view?
-
-# Check if user can perform a specific action
-access_denied! unless policy_for(referral).can_perform?(step: step)
-```
-
-**For adding authorization to a new model:**
-```ruby
-class Hmis::MyModel < Hmis::HmisBase
-  def policy_class = Hmis::AuthPolicies::MyModelPolicy
-end
-```
 
 ## Core Components
 
@@ -178,14 +159,3 @@ end
 - **Bulk Loading**: Context loaders fetch data in batches to prevent N+1 queries
 - **Request Scope**: UserContext is created once per request and reused
 - **Database Views**: Complex permission resolution uses optimized database views
-
-## Testing Patterns
-
-Use the `create_access_control` helper in tests:
-```ruby
-# Grant permissions on a specific resource
-create_access_control(user, project, with_permission: [:can_view_project, :can_edit_project])
-
-# Grant permissions on an organization (inherits to projects)
-create_access_control(user, organization, with_permission: [:can_view_project])
-```

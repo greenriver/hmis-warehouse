@@ -12,14 +12,12 @@
 # - A user can also view a referral if they have `:can_view_own_referrals` and are assigned to one of its steps.
 # - Indexing (e.g., for a dashboard) requires a combination of view and perform permissions.
 class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
-  CAN_VIEW_CE_REFERRAL_PERMS = [:can_view_referrals, :can_view_own_referrals].freeze
-  CAN_PERFORM_CE_REFERRAL_TASK_PERMS = [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks].freeze
   def can_index?
     return false unless Hmis::Ce.configuration.enabled?
 
     # require that a user could both view referrals and act on them
-    return false unless (context.potential_permissions & CAN_VIEW_CE_REFERRAL_PERMS).any?
-    return false unless (context.potential_permissions & CAN_PERFORM_CE_REFERRAL_TASK_PERMS).any?
+    return false unless (context.potential_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
+    return false unless (context.potential_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
 
     true
   end

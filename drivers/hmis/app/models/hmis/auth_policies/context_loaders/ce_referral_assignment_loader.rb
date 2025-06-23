@@ -10,7 +10,6 @@ require 'memery'
 module Hmis::AuthPolicies::ContextLoaders
   class CeReferralAssignmentLoader
     include Memery
-    EMPTY_SET = Set.new.freeze
 
     def initialize(user)
       @user = user
