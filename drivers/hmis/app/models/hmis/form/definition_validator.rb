@@ -25,6 +25,15 @@ class Hmis::Form::DefinitionValidator
     check_references(document, all_ids)
     # Check mutually exclusive attributes ("one of" on conditional objects)
     check_mutually_exclusive_attributes(document)
+
+    # Check conditions like enable_when and autofill_when.
+    # First initialize a FormDefinition to use the logic for generating an item hash, but don't persist it.
+    # item_hash's limitiation is that it does not include groups. While the referenced question could be a group
+    # (with an EXISTS condition, for instance), for now we are only validating against pick_list_options and
+    # pick_list_reference (which groups won't have).
+    item_hash = Hmis::Form::Definition.new(definition: document).link_id_item_hash
+    check_conditions(document, item_hash)
+
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
 
@@ -81,6 +90,7 @@ class Hmis::Form::DefinitionValidator
   # FIXME: this element has dummy values that do not validate correctly
   KNOWN_BAD_REFS = Set.new(['mci_clearance_value'])
 
+  # Check that all link_ids referenced in the form (such as in enable_when conditions) really exist
   def check_references(document, all_ids)
     link_check = lambda do |item|
       (item['item'] || []).each do |child_item|
@@ -144,12 +154,6 @@ class Hmis::Form::DefinitionValidator
             msg = "EnableWhen #{idx + 1} on Link ID #{link_id}"
             validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_SOURCES, message_prefix: msg)
             validate_one_of.call(enable_when, ONE_OF_ENABLE_WHEN_ANSWERS, message_prefix: msg)
-            # TODO: validate that the {source}{operator}{answer} are all compatible. We attempt to ensure this validity in the form property editor,
-            # but we do not validate it here. For example:
-            # - if source is a question, the answer field should be compatible with the question type (eg shouldn't compare STRING=DATE)
-            # - if source is a local constant, the answer field should be compatible local constant type (eg shouldn't compare STRING=DATE)
-            # - if operator is special boolean operator (EXISTS/ENABLED), then the answer type should always be boolean
-            # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
           end
         end
 
@@ -172,12 +176,84 @@ class Hmis::Form::DefinitionValidator
     link_check.call(document)
   end
 
+  # Validate an EnableWhen condition defined on a form item, ensuring that the referenced question
+  # and dependent answer codes or group codes are valid.
+  #
+  # @param [Hash] condition The condition object to validate (expected to match Types::Forms::EnableWhen shape)
+  # @param [Hash] item_hash A hash mapping link IDs to their corresponding form items
+  # @param [String] link_id The link ID of the item to validate
+  def check_condition(condition, item_hash, link_id)
+    # Only validate conditions that evaluate against another question (as opposed to a local constant)
+    return unless condition.key?('question')
+    # Only validate conditions that compare to the referenced question's answer codes (as opposed to comparing to numeric value, whether item exists, booleans, etc).
+    return unless condition.values_at('answer_code', 'answer_codes', 'answer_group_code').flatten.compact.uniq.any?
+
+    # Find the referenced question. Since this condition evaluates against the item's answer code, we expect the question to be a CHOICE item with pick lists
+    referenced_question = item_hash[condition['question']]
+
+    return unless referenced_question # validated in check_references; return instead of raising so that the validation error is returned, not a 500 error
+    return unless ['CHOICE', 'OPEN_CHOICE'].include?(referenced_question['type']) # this is allowed, if type is 'STRING', but we don't validate the answer code in that case
+    return unless referenced_question['pick_list_options'] || referenced_question['pick_list_reference'] # validated in schema
+
+    if referenced_question['pick_list_reference']
+      valid_answer_codes = pick_list_reference_to_allowed_values[referenced_question['pick_list_reference']]
+
+      # See comments on pick_list_reference_to_allowed_values.
+      # If options is nil, this picklist falls under case #1, and we don't attempt to validate its dependent questions.
+      return if valid_answer_codes.nil?
+    else
+      valid_answer_codes = referenced_question['pick_list_options'].map { |opt| opt['code'].to_s } # code is required
+      valid_answer_group_codes = referenced_question['pick_list_options'].map { |opt| opt['group_code'].to_s }.compact.uniq
+    end
+
+    answer_codes = condition.values_at('answer_code', 'answer_codes').flatten.compact.uniq
+    if answer_codes.any?
+      (answer_codes - valid_answer_codes).each do |code|
+        add_issue("Item '#{link_id}' has a dependency on question '#{referenced_question['link_id']}', but the dependent answer '#{code}' is no longer a valid choice for that question. Please update the dependency and try again.")
+      end
+    elsif condition.key?('answer_group_code')
+      # This condition is checking against a group code, so we need to validate that the group code is still valid for the referenced question.
+      # Use safe accessor on valid_answer_group_codes because this should also display a validation error if the referenced question has no valid_answer_group_codes
+      group_code = condition['answer_group_code']
+      unless valid_answer_group_codes&.include?(group_code) # rubocop:disable Style/IfUnlessModifier
+        add_issue("Item '#{link_id}' has a dependency on question '#{referenced_question['link_id']}', but the dependent answer group '#{group_code}' is no longer a valid choice group for that question. Please update the dependency and try again.")
+      end
+    end
+
+    # TODO: Additional validations. We attempt to ensure this validity in the form property editor,
+    # but we do not validate it here. For example:
+    # - if source is a question, the answer field should be compatible with the question type (eg shouldn't compare STRING=DATE)
+    # - if source is a local constant, the answer field should be compatible local constant type (eg shouldn't compare STRING=DATE)
+    # - if operator is special boolean operator (EXISTS/ENABLED), then the answer type should always be boolean
+    # - certain comparison operators should only be used for certain question types (eg can't use LESS_THAN on a STRING type)
+  end
+
+  # Check that all EnableWhen and AutofillWhen conditions that reference specific Choice option codes are valid.
+  def check_conditions(document, item_hash)
+    item_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        link_id = child_item['link_id']
+        next if link_id.in?(KNOWN_BAD_REFS)
+
+        enable_conditions = child_item.fetch('enable_when', [])
+        autofill_conditions = child_item.fetch('autofill_values', []).flat_map { |autofill| autofill.fetch('autofill_when', []) }
+        (enable_conditions + autofill_conditions).each do |condition|
+          check_condition(condition, item_hash, link_id)
+        end
+
+        item_check.call(child_item)
+      end
+    end
+
+    item_check.call(document)
+  end
+
   # Fail if there are link_ids that are required for this role that aren't present in the form,
   # For example if Destination missing on the Exit Assessment.
   # This only validates presence of particular Link IDs, it does NOT validate that they are collecting the correct fields, have the
   # correct type and rule, etc. It is expected that the caller uses `set_hud_requirements` to set the correct HUD rules.
   def check_hud_requirements(all_ids, role)
-    rule_module = HmisUtil::HudAssessmentFormRules2024.new
+    rule_module = HmisUtil::HudAssessmentFormRules2026.new
 
     required_link_ids = rule_module.required_link_ids_for_role(role)
     return unless required_link_ids.any?
@@ -186,17 +262,32 @@ class Hmis::Form::DefinitionValidator
     add_issue("Missing required link IDs for role #{role}: #{missing_link_ids.join(', ')}") if missing_link_ids.any?
   end
 
+  # See comments below on pick_list_reference_to_allowed_values
+  def allowed_pick_list_references
+    pick_list_reference_to_allowed_values.keys.to_set
+  end
+
   # Introspect on GraphQL schema to get a superset of allowed values for `pick_list_reference`.
   # This list includes ALL enums in the HUD schema, so it includes some enums
   # that don't make sense as pick lists.
-  def allowed_pick_list_references
-    @allowed_pick_list_references ||= begin
+  # Map them to their allowed values, where possible. There are 2 things pick_list_reference can refer to:
+  # 1. one of Types::Forms::Enums::PickListType.values.keys, which are resolved on the backend by PickListType.
+  # Many of these require additional context (project id, user, enrollment id, etc), so here, we don't attempt to resolve their allowed values.
+  # 2. any GraphQL Enum, which are resolved against the code-generated HmisEnums class on the frontend.
+  # These are the ones we resolve allowed values for below.
+
+  # Special case: exclude Types::HmisSchema::Enums::Hud::ProjectType in favor of Types::HmisSchema::Enums::ProjectType
+  EXCLUDED = Set.new([Types::HmisSchema::Enums::Hud::ProjectType])
+  def pick_list_reference_to_allowed_values
+    @pick_list_reference_to_allowed_values ||= begin
       enums = []
       collect_enums = ->(parent) {
         parent.constants.each do |name|
           child = parent.const_get(name)
           if child.is_a? Class
-            enums << child.graphql_name if child < Types::BaseEnum
+            graphql_name = child.graphql_name # graphql_name is the string referenced by form item, such as 'Race'
+            class_name = child.name.constantize # class name, such as 'Types::HmisSchema::Enums::Race'
+            enums << [graphql_name, class_name] if child < Types::BaseEnum && EXCLUDED.exclude?(child)
           elsif child.is_a? Module
             collect_enums.call(child)
           end
@@ -208,8 +299,11 @@ class Hmis::Form::DefinitionValidator
       # Include all enums in Types::Forms::Enums namespace
       collect_enums.call(Types::Forms::Enums)
       # Include all pick list types
-      enums += Types::Forms::Enums::PickListType.values.keys
-      enums.to_set
+      enums += Types::Forms::Enums::PickListType.values.keys.map { |name| [name, nil] } # nil because these represent case #1 above
+
+      # return a hash mapping the enum name to a list of allowed values.
+      # for example, { "Race" => ["AM_IND_AK_NATIVE", "ASIAN", ...] }
+      enums.to_h.map { |str, klass| [str, klass&.values&.keys] }.to_h
     end
   end
 

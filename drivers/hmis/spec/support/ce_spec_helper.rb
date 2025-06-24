@@ -55,7 +55,7 @@ RSpec.shared_context 'ce spec helper' do
 
   let!(:client_acceptance_task) do
     create(
-      :hmis_workflow_definition_task,
+      :hmis_workflow_definition_user_task,
       template: workflow_template,
       name: 'Client Acceptance',
       swimlane: case_manager_swimlane,
@@ -65,7 +65,7 @@ RSpec.shared_context 'ce spec helper' do
 
   let!(:provider_acceptance_task) do
     create(
-      :hmis_workflow_definition_task,
+      :hmis_workflow_definition_user_task,
       template: workflow_template,
       name: 'Provider Acceptance',
       swimlane: provider_swimlane,

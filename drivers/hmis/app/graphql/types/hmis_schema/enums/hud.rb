@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# THIS FILE WAS GENERATED but we may need manual edits after generation. (Generation should only happen when data standards change).
+
 module Types::HmisSchema::Enums::Hud
   class ExportPeriodType < Types::BaseEnum
     description 'HUD ExportPeriodType (1.1)'
@@ -190,7 +192,6 @@ module Types::HmisSchema::Enums::Hud
     value 'HUD_ESG_HOMELESSNESS_PREVENTION', '(9) HUD: ESG - Homelessness Prevention', value: 9
     value 'HUD_ESG_RAPID_REHOUSING', '(10) HUD: ESG - Rapid Rehousing', value: 10
     value 'HUD_ESG_STREET_OUTREACH', '(11) HUD: ESG - Street Outreach', value: 11
-    value 'HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_DEPRECATED', '(12) HUD: Rural Housing Stability Assistance Program [Deprecated]', value: 12
     value 'HUD_HOPWA_HOTEL_MOTEL_VOUCHERS', '(13) HUD: HOPWA - Hotel/Motel Vouchers', value: 13
     value 'HUD_HOPWA_HOUSING_INFORMATION', '(14) HUD: HOPWA - Housing Information', value: 14
     value 'HUD_HOPWA_PERMANENT_HOUSING', '(15) HUD: HOPWA - Permanent Housing (facility based or TBRA)', value: 15
@@ -222,15 +223,20 @@ module Types::HmisSchema::Enums::Hud
     value 'HUD_COC_JOINT_COMPONENT_TH_RRH', '(44) HUD: CoC - Joint Component TH/RRH', value: 44
     value 'VA_GRANT_PER_DIEM_CASE_MANAGEMENT_HOUSING_RETENTION', '(45) VA: Grant Per Diem - Case Management/Housing Retention', value: 45
     value 'LOCAL_OR_OTHER_FUNDING_SOURCE', '(46) Local or Other Funding Source', value: 46
-    value 'HUD_ESG_CV', '(47) HUD: ESG - CV', value: 47
-    value 'HUD_HOPWA_CV', '(48) HUD: HOPWA - CV', value: 48
-    value 'HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED', '(49) HUD: CoC - Joint Component RRH/PSH [Deprecated]', value: 49
     value 'HUD_HOME', '(50) HUD: HOME', value: 50
     value 'HUD_HOME_ARP', '(51) HUD: HOME (ARP)', value: 51
     value 'HUD_PIH', '(52) HUD: PIH (Emergency Housing Voucher)', value: 52
     value 'HUD_ESG_RUSH', '(53) HUD: ESG - RUSH', value: 53
     value 'HUD_UNSHELTERED_SPECIAL_NOFO', '(54) HUD: Unsheltered Special NOFO', value: 54
     value 'HUD_RURAL_SPECIAL_NOFO', '(55) HUD: Rural Special NOFO', value: 55
+    # TODO(FY2026) Add CoC Builds Funder
+    # value 'HUD_COC_BUILDS', '(56) HUD: CoC Builds', value: 56
+    value 'HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_DEPRECATED', '(12) HUD: Rural Housing Stability Assistance Program [Deprecated]', value: 12
+    # TODO(FY2026) Add deprecation suffice to description
+    value 'HUD_ESG_CV', '(47) HUD: ESG - CV', value: 47
+    # TODO(FY2026) Add deprecation suffice to description
+    value 'HUD_HOPWA_CV', '(48) HUD: HOPWA - CV', value: 48
+    value 'HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED', '(49) HUD: CoC - Joint Component RRH/PSH [Deprecated]', value: 49
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -925,6 +931,17 @@ module Types::HmisSchema::Enums::Hud
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
+  class Sex < Types::BaseEnum
+    description 'HUD Sex (4.21)'
+    graphql_name 'Sex'
+    value 'FEMALE', '(0) Female', value: 0
+    value 'MALE', '(1) Male', value: 1
+    value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
+    value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
+    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
   class RHYServices < Types::BaseEnum
     description 'HUD RHYServices (R14.2)'
     graphql_name 'RHYServices'
@@ -957,7 +974,6 @@ module Types::HmisSchema::Enums::Hud
     value 'TRANSPORTATION_SERVICES_TOKENS_VOUCHERS', '(8) Transportation services: tokens/vouchers', value: 8
     value 'TRANSPORTATION_SERVICES_VEHICLE_REPAIR_MAINTENANCE', '(9) Transportation services: vehicle repair/maintenance', value: 9
     value 'CHILD_CARE', '(10) Child care', value: 10
-    value 'GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED', '(11) General housing stability assistance - emergency supplies [Deprecated]', value: 11
     value 'GENERAL_HOUSING_STABILITY_ASSISTANCE', '(12) General housing stability assistance', value: 12
     value 'EMERGENCY_HOUSING_ASSISTANCE', '(14) Emergency housing assistance', value: 14
     value 'SHALLOW_SUBSIDY_FINANCIAL_ASSISTANCE', '(15) Shallow Subsidy - Financial Assistance', value: 15
@@ -1022,17 +1038,6 @@ module Types::HmisSchema::Enums::Hud
     value 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED', '(1) Successful referral: client accepted', value: 1
     value 'UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED', '(2) Unsuccessful referral: client rejected', value: 2
     value 'UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED', '(3) Unsuccessful referral: provider rejected', value: 3
-    value 'INVALID', 'Invalid Value', value: -999999
-  end
-
-  class EarlyExitReason < Types::BaseEnum
-    description 'HUD EarlyExitReason (R17.A)'
-    graphql_name 'EarlyExitReason'
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_INDEPENDENT_LIVING', '(1) Left for other opportunities - independent living', value: 1
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_EDUCATION', '(2) Left for other opportunities - education', value: 2
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_MILITARY', '(3) Left for other opportunities - military', value: 3
-    value 'LEFT_FOR_OTHER_OPPORTUNITIES_OTHER', '(4) Left for other opportunities - other', value: 4
-    value 'NEEDS_COULD_NOT_BE_MET_BY_PROJECT', '(5) Needs could not be met by project', value: 5
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -1249,21 +1254,6 @@ module Types::HmisSchema::Enums::Hud
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
-  class SexualOrientation < Types::BaseEnum
-    description 'HUD SexualOrientation (R3.1)'
-    graphql_name 'SexualOrientation'
-    value 'HETEROSEXUAL', '(1) Heterosexual', value: 1
-    value 'GAY', '(2) Gay', value: 2
-    value 'LESBIAN', '(3) Lesbian', value: 3
-    value 'BISEXUAL', '(4) Bisexual', value: 4
-    value 'QUESTIONING_UNSURE', '(5) Questioning / unsure', value: 5
-    value 'OTHER', '(6) Other', value: 6
-    value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
-    value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
-    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
-    value 'INVALID', 'Invalid Value', value: -999999
-  end
-
   class LastGradeCompleted < Types::BaseEnum
     description 'HUD LastGradeCompleted (R4.1)'
     graphql_name 'LastGradeCompleted'
@@ -1377,6 +1367,7 @@ module Types::HmisSchema::Enums::Hud
     value 'SHALLOW_SUBSIDY', '(7) Shallow Subsidy', value: 7
     value 'RETURNING_HOME', '(8) Returning Home', value: 8
     value 'RAPID_RESOLUTION', '(9) Rapid Resolution', value: 9
+    value 'HEALTHCARE_NAVIGATION', '(10) Healthcare Navigation', value: 10
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -1702,6 +1693,16 @@ module Types::HmisSchema::Enums::Hud
     value 'VETERAN_IS_INCARCERATED', '(11) Veteran is incarcerated', value: 11
     value 'VETERAN_IS_DECEASED', '(12) Veteran is deceased', value: 12
     value 'OTHER', '(13) Other', value: 13
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
+  class MentalHealthConsultation < Types::BaseEnum
+    description 'HUD MentalHealthConsultation (V10)'
+    graphql_name 'MentalHealthConsultation'
+    value 'MENTAL_HEALTH_CONSULTATION_COMPLETED', '(1) Mental health consultation completed', value: 1
+    value 'MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_VA_PROVIDER', '(2) Mental health consultation being coordinated/arranged with VA provider', value: 2
+    value 'MENTAL_HEALTH_CONSULTATION_BEING_COORDINATED_ARRANGED_WITH_OTHER_PROVIDER', '(3) Mental health consultation being coordinated/arranged with other provider', value: 3
+    value 'OFFER_DECLINED', '(4) Offer declined', value: 4
     value 'INVALID', 'Invalid Value', value: -999999
   end
 
@@ -2148,6 +2149,21 @@ module Types::HmisSchema::Enums::Hud
     value 'ZUNI', '(425) Zuni', value: 425
     value 'ZYPHE', '(426) Zyphe', value: 426
     value 'DIFFERENT_PREFERRED_LANGUAGE', '(21) Different preferred language', value: 21
+    value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
+    value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
+    value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
+    value 'INVALID', 'Invalid Value', value: -999999
+  end
+
+  class SexualOrientation < Types::BaseEnum
+    description 'HUD SexualOrientation (R3.1)'
+    graphql_name 'SexualOrientation'
+    value 'HETEROSEXUAL', '(1) Heterosexual', value: 1
+    value 'GAY', '(2) Gay', value: 2
+    value 'LESBIAN', '(3) Lesbian', value: 3
+    value 'BISEXUAL', '(4) Bisexual', value: 4
+    value 'QUESTIONING_UNSURE', '(5) Questioning / unsure', value: 5
+    value 'OTHER', '(6) Other', value: 6
     value 'CLIENT_DOESN_T_KNOW', "(8) Client doesn't know", value: 8
     value 'CLIENT_PREFERS_NOT_TO_ANSWER', '(9) Client prefers not to answer', value: 9
     value 'DATA_NOT_COLLECTED', '(99) Data not collected', value: 99
