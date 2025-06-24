@@ -9,15 +9,13 @@
     "test": "test"
   },
   "dependencies": {
-    "@ag-grid-community/client-side-row-model": "^31.3.2",
-    "@ag-grid-community/core": "^31.3.2",
+    "ag-grid-community": "^33.3.2",
     "@eonasdan/tempus-dominus": "^6.7.7",
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.4",
     "@popperjs/core": "^2.11.8",
     "@sentry/browser": "^7.101.1",
     "@stimulus/polyfills": "^2.0.0",
-    "ag-grid-community": "^31.3.2",
     "beautifymarker": "^1.0.9",
     "billboard.js": "^3.6.0",
     "bootstrap": "^5.3.3",
