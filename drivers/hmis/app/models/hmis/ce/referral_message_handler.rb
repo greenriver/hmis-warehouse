@@ -10,6 +10,9 @@
 
 module Hmis::Ce
   class ReferralMessageHandler
+    ACCEPT_REFERRAL_MESSAGE = 'accept_referral'
+    REJECT_REFERRAL_MESSAGE = 'reject_referral'
+
     # In general, when accessing `submitted_values` from the message handler, use safe accessor because:
     # - `step` could be nil, when the message is triggered by an event that doesn't involve a step, such as `start_workflow`, `end_workflow`, or `pass_gateway`.
     # - `submitted_values` could be nil, when the step hasn't been submitted yet, for example if the message is triggered by the `start_step` event
@@ -27,12 +30,11 @@ module Hmis::Ce
       case message.type
       when 'start_referral'
         start_referral
-      when 'accept_referral'
+      when Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE
         accept_referral
         reversible = false
-      when 'reject_referral'
-        referral.reject!
-        referral.opportunity.release!
+      when Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE
+        reject_referral
         reversible = false
       when 'send_notification'
         send_notification(message)
@@ -59,8 +61,15 @@ module Hmis::Ce
     end
 
     def accept_referral
+      referral.completed_at = Time.current
       referral.accept!
       referral.opportunity.close!
+    end
+
+    def reject_referral
+      referral.completed_at = Time.current
+      referral.reject!
+      referral.opportunity.release!
     end
 
     def create_unit_assignment(message)
