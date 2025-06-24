@@ -1,9 +1,9 @@
-import { ModuleRegistry, ClientSideRowModelModule, RowStyleModule, RowSelectionModule, CellStyleModule, TextFilterModule, NumberFilterModule, DateFilterModule, CustomFilterModule, TooltipModule, TextEditorModule, ColumnAutoSizeModule, ClientSideRowModelApiModule, createGrid, ValidationModule } from 'ag-grid-community';
+import { ModuleRegistry, AllCommunityModule, createGrid } from 'ag-grid-community';
 
 // Register all Community features
-ModuleRegistry.registerModules([ClientSideRowModelModule, ValidationModule, RowStyleModule, RowSelectionModule, CellStyleModule, TextFilterModule, NumberFilterModule, DateFilterModule, CustomFilterModule, TooltipModule, TextEditorModule, ColumnAutoSizeModule, ClientSideRowModelApiModule]);
+ModuleRegistry.registerModules([AllCommunityModule]);
 
-import { DateCellEditor } from './cohorts/editors/date_cell_editor.ts';
+// import { DateCellEditor } from './cohorts/editors/date_cell_editor.ts';
 import { DateCellRenderer } from './cohorts/viewers/date_cell_renderer.ts';
 import { CheckboxCellEditor } from './cohorts/editors/checkbox_cell_editor.ts';
 import { CheckboxCellRenderer } from './cohorts/viewers/checkbox_cell_renderer.ts';
@@ -57,7 +57,7 @@ interface GridOptions {
   onCellEditingStopped: (params: any) => void;
   getRowStyle: (params: any) => { [key: string]: string };
   components: {
-    dateCellEditor: typeof DateCellEditor;
+    // dateCellEditor: typeof DateCellEditor;
     dateCellRenderer: typeof DateCellRenderer;
     checkboxCellEditor: typeof CheckboxCellEditor;
     checkboxCellRenderer: typeof CheckboxCellRenderer;
@@ -202,7 +202,7 @@ window.App.Cohorts.Cohort = class Cohort {
         return color;
       },
       components: {
-        dateCellEditor: DateCellEditor,
+        // dateCellEditor: DateCellEditor,
         dateCellRenderer: DateCellRenderer,
         checkboxCellEditor: CheckboxCellEditor,
         checkboxCellRenderer: CheckboxCellRenderer,
@@ -239,7 +239,11 @@ window.App.Cohorts.Cohort = class Cohort {
         field: column.field,
         editable: column.editable,
         valueGetter: (params: any) => {
-          return params.data[params.column.colId].value;
+          const rawValue = params.data[params.column.colId]?.value;
+          if (column.renderer === 'date' && rawValue) {
+            return new Date(rawValue);
+          }
+          return rawValue;
         },
         valueSetter: (params: any) => {
           if (params.oldValue !== params.newValue) {
@@ -265,7 +269,12 @@ window.App.Cohorts.Cohort = class Cohort {
           break;
         case 'date':
           header.cellRenderer = 'dateCellRenderer';
-          header.cellEditor = 'dateCellEditor';
+          header.cellEditor = 'agDateCellEditor';
+          header.cellEditorParams = {
+            // Stop editing when a date is selected
+            closeOnApply: true,
+            dateFormat: 'MMM d, yyyy',
+          };
           header.comparator = this.sort_dates;
           header.getQuickFilterText = (params: any) => {
             return params.value;
