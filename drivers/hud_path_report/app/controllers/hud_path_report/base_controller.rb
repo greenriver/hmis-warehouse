@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPathReport
   class BaseController < ::HudReports::BaseController
     before_action :filter
@@ -60,16 +62,20 @@ module HudPathReport
       @filter.set_from_params(filter_params) if filter_params.present?
     end
 
-    def available_report_versions
-      {
-        'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2022' => { slug: :fy2021, active: false },
-        'FY 2024' => { slug: :fy2024, active: true },
-      }.freeze
-    end
+    # This method allow picking the version of the report, we only need this during the transition
+    TodoOrDie('Remove active_report_versions once we are on FY 2026', by: '2025-11-01')
+    def active_report_versions
+      return {} if default_report_version == :fy2026 && ! Rails.env.development?
 
-    def default_report_version
-      :fy2024
+      {
+        fy2024: 'FY 2024',
+        fy2026: 'FY 2026',
+      }.invert.freeze
+    end
+    helper_method :active_report_versions
+
+    def available_report_versions
+      super.except('FY 2023')
     end
 
     private def filter_class
@@ -132,6 +138,7 @@ module HudPathReport
         fy2020: HudPathReport::Generators::Fy2020::Generator,
         fy2021: HudPathReport::Generators::Fy2021::Generator,
         fy2024: HudPathReport::Generators::Fy2024::Generator,
+        fy2026: HudPathReport::Generators::Fy2026::Generator,
       }
     end
   end

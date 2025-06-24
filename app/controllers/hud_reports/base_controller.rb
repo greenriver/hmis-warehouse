@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
@@ -77,6 +79,58 @@ module HudReports
           render template: 'hud_reports/download'
         end
       end
+    end
+
+    # Returns a frozen hash of available report versions for HUD reports.
+    # Each version entry contains:
+    #   - slug: The version identifier (e.g. :fy2024)
+    #   - active: Boolean indicating if this version is currently active
+    #
+    # The active version is determined by default_report_version:
+    # - FY 2024 is active when default_report_version is :fy2024
+    # - FY 2026 is active when default_report_version is :fy2026
+    #
+    # Historical versions (FY 2020, 2022, 2023) are always inactive.
+    # @return [Hash] A frozen hash mapping version names to their configuration
+    # @example
+    #   {
+    #     'FY 2020' => { slug: :fy2020, active: false },
+    #     'FY 2024 (current)' => { slug: :fy2024, active: true }
+    #   }
+    def available_report_versions
+      @available_report_versions ||= {}.tap do |version|
+        version['FY 2020'] = { slug: :fy2020, active: false }
+        version['FY 2022'] = { slug: :fy2021, active: false }
+        version['FY 2023'] = { slug: :fy2023, active: false }
+        # Keep FY 2024 on production until 10/1/2025
+        # Keep FY 2024 on staging until 9/1/2025
+        case default_report_version
+        when :fy2024
+          version['FY 2024 (current)'] = { slug: :fy2024, active: true }
+          version['FY 2026'] = { slug: :fy2026, active: false }
+        when :fy2026
+          version['FY 2024'] = { slug: :fy2024, active: false }
+          version['FY 2026 (current)'] = { slug: :fy2026, active: true }
+        end
+      end.freeze
+    end
+    helper_method :available_report_versions
+
+    # Determines the default report version based on environment and date.
+    # - In production: Uses FY 2024 until October 1, 2025, then switches to FY 2026
+    # - In staging: Uses FY 2024 until September 1, 2025, then switches to FY 2026
+    # - In all other environments: Uses FY 2026
+    # @return [Symbol] The default report version (:fy2024 or :fy2026)
+    # Override as necessary in subclasses
+    def default_report_version
+      return :fy2024 if Rails.env.production? && Date.current <= '2025-10-01'.to_date
+      return :fy2024 if Rails.env.staging? && Date.current <= '2025-09-01'.to_date
+
+      :fy2026
+    end
+
+    protected def filter_class
+      ::Filters::HudFilterBase
     end
 
     def set_reports
@@ -259,11 +313,6 @@ module HudReports
       end.compact
     end
     helper_method :active_report_versions
-
-    private def default_report_version
-      :fy2021
-    end
-    helper_method :default_report_version
 
     private def report_version
       version = filter_params[:report_version].presence ||
