@@ -9,17 +9,26 @@
 module Mutations
   class Ce::CreateCeReferral < CleanBaseMutation
     argument :opportunity_id, ID, required: true
-    argument :client_id, ID, required: true
+    argument :client_id, ID, required: false
+    argument :source_enrollment_id, ID, required: false
     field :referral, Types::HmisSchema::CeReferral, null: false
 
-    def resolve(opportunity_id:, client_id:)
+    def resolve(opportunity_id:, client_id: nil, source_enrollment_id: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
       access_denied! unless current_permission?(permission: :can_start_referrals, entity: opportunity.project)
 
-      client = Hmis::Hud::Client.find(client_id) # Doesn't need to be viewable by the current user
-      access_denied! unless client.data_source_id == current_user.hmis_data_source_id # Needs to be in the same data source, though
+      if source_enrollment_id
+        source_enrollment = Hmis::Hud::Enrollment.find(source_enrollment_id)
+        client = source_enrollment.client
+      elsif client_id
+        client = Hmis::Hud::Client.find(client_id) # Doesn't need to be viewable by the current user
+      else
+        raise 'Either a client_id or a source_enrollment_id is required'
+      end
+
+      access_denied! unless client.data_source_id == current_user.hmis_data_source_id # Needs to be in the same data source
 
       referral = nil
       opportunity.with_lock do
@@ -32,6 +41,7 @@ module Mutations
           workflow_instance: instance,
           referred_by: current_user,
           client: client,
+          source_enrollment: source_enrollment,
         )
 
         referral.workflow_engine.start_workflow!(user: current_user)
