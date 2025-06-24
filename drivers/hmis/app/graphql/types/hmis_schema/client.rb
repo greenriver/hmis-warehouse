@@ -76,6 +76,7 @@ module Types
     hud_field :other_theater, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
     hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
+    field :sex, HmisSchema::Enums::Hud::Sex, null: true
     field :pronouns, [String], null: false
     field :different_identity_text, String, null: true
     field :additional_race_ethnicity, String, null: true

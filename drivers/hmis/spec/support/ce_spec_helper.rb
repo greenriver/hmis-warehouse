@@ -4,6 +4,9 @@ require 'rails_helper'
 require_relative '../requests/hmis/login_and_permissions'
 
 RSpec.shared_context 'ce spec helper' do
+  # This shared context creates a basic CE template, opportunity, and referral.
+  # The template has 2 tasks that are executed sequentially, then a conditional gateway, with 2 possible end events (accept/reject).
+
   include_context 'hmis base setup'
 
   let!(:ds_access_control) do
@@ -46,6 +49,7 @@ RSpec.shared_context 'ce spec helper' do
   end
 
   let!(:case_manager_swimlane) { workflow_template.swimlanes.create!(name: 'Case Managers') }
+  let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
 
   let!(:ce_step_definition) { create(:ce_referral_step_form_definition) }
 
@@ -64,8 +68,31 @@ RSpec.shared_context 'ce spec helper' do
       :hmis_workflow_definition_task,
       template: workflow_template,
       name: 'Provider Acceptance',
-      swimlane: case_manager_swimlane,
-      form_definition: create(:hmis_form_definition),
+      swimlane: provider_swimlane,
+      form_definition: ce_step_definition,
+    )
+  end
+
+  let(:acceptance_gateway) do
+    create(
+      :hmis_workflow_definition_gateway,
+      template: workflow_template,
+      gateway_type: 'exclusive',
+      name: 'acceptance gw',
+    )
+  end
+
+  let(:reject_referral) do
+    create(
+      :hmis_workflow_definition_end_event,
+      template: workflow_template,
+      name: 'reject referral',
+      trigger_config: [
+        {
+          event: 'end_workflow',
+          message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
+        },
+      ],
     )
   end
 
@@ -77,7 +104,7 @@ RSpec.shared_context 'ce spec helper' do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'accept_referral',
+          message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
       ],
     )
@@ -87,7 +114,9 @@ RSpec.shared_context 'ce spec helper' do
   before do
     start_event.connect_to!(client_acceptance_task)
     client_acceptance_task.connect_to!(provider_acceptance_task)
-    provider_acceptance_task.connect_to!(accept_referral)
+    provider_acceptance_task.connect_to!(acceptance_gateway)
+    acceptance_gateway.connect_to!(reject_referral)
+    acceptance_gateway.connect_to!(accept_referral, condition: 'client_accepted = 1')
   end
 
   let!(:referral) do
