@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
       let!(:referral3) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template) }
 
-      let!(:simultaneous_task) { create(:hmis_workflow_definition_task, template: workflow_template, name: 'Simultaneous task') }
+      let!(:simultaneous_task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'Simultaneous task') }
 
       before do
         # Set up a parallel task, so that we can test multiple current steps
