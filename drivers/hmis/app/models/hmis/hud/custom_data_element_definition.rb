@@ -45,6 +45,8 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 
   def read_value_from(custom_data_element)
+    raise ArgumentError, "CustomDataElementDefinition ID mismatch: #{custom_data_element.data_element_definition_id} != #{id}" if custom_data_element.data_element_definition_id != id
+
     case field_type.to_sym
     when :float
       custom_data_element.value_float
@@ -63,7 +65,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     when :file
       custom_data_element.value_file
     else
-      raise ArgumentError
+      raise ArgumentError, "Invalid field type: #{field_type}"
     end
   end
 end

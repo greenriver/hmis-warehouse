@@ -10,7 +10,7 @@ module Hmis::Ce::Match
     include Dentaku::Visitor::Infix
 
     def self.call(expression, field_map)
-      calculator = Dentaku::Calculator.new
+      calculator = Hmis::Ce::Match::CalculatorFactory.build
       ast = calculator.ast(expression)
       visitor = new(field_map)
       visitor.visit(ast)
@@ -34,6 +34,10 @@ module Hmis::Ce::Match
       result = super
       @node_results[node] = result
       result
+    end
+
+    def visit_function(_node)
+      ALWAYS_TRUE
     end
 
     def to_arel

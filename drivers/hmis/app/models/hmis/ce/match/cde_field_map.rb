@@ -18,8 +18,8 @@ module Hmis::Ce::Match
       return nil if cdes.empty?
 
       if cded.repeats
-        # For multi-valued CDEs, return an array-like object that supports comparison
-        MultiValuedCde.new(cdes.map { |cde| cded.read_value_from(cde) })
+        # For multi-valued CDEs, return an array of values
+        cdes.map { |cde| cded.read_value_from(cde) }.compact
       else
         # For single-valued CDEs, return the single value
         cded.read_value_from(cdes.first)
@@ -34,7 +34,7 @@ module Hmis::Ce::Match
 
     protected
 
-    # custom_assessment::xyz
+    # custom_assessment.xyz
     def parse_entity_type(field)
       entity_type, cde_key = field.split('.', 2)
 
@@ -57,41 +57,6 @@ module Hmis::Ce::Match
       @cded_lookup ||= Hmis::Hud::CustomDataElementDefinition.all.
         group_by(&:owner_type).
         transform_values { |definitions| definitions.index_by(&:key) }
-    end
-
-    # Wrapper class that makes multi-valued CDEs work with equality operators
-    class MultiValuedCde
-      def initialize(values)
-        @values = values.compact
-      end
-
-      # Override == to mean "includes"
-      def ==(other)
-        @values.include?(other)
-      end
-
-      # Override != to mean "not includes"
-      def !=(other)
-        !@values.include?(other)
-      end
-
-      # Support other potential operators
-      def include?(value)
-        @values.include?(value)
-      end
-
-      def empty?
-        @values.empty?
-      end
-
-      def to_a
-        @values
-      end
-
-      # For debugging
-      def inspect
-        "#<MultiValuedCde: #{@values.inspect}>"
-      end
     end
   end
 end

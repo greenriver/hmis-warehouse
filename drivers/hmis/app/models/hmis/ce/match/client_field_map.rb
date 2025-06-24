@@ -28,7 +28,7 @@ module Hmis::Ce::Match
         },
         current_age: {
           instance_value: ->(c) { c.age(current_date) },
-          arel_field: age_from('year', current_date, arel.c_t['DOB']),
+          arel_field: age_from(current_date, arel.c_t['DOB']),
         },
         days_homeless: {
           instance_value: ->(c) do
@@ -41,8 +41,8 @@ module Hmis::Ce::Match
       }
     end
 
-    #  DATE_PART('year', AGE('2024-12-26', "Client"."DOB"))
-    def age_from(_date_part, date, dob_field)
+    #  DATE_PART(AGE('2024-12-26', "Client"."DOB"))
+    def age_from(date, dob_field)
       Arel::Nodes::NamedFunction.new(
         'DATE_PART',
         [
