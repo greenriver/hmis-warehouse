@@ -716,6 +716,10 @@ module Concerns::HudLists2026
         54 => 'HUD: Unsheltered Special NOFO',
         55 => 'HUD: Rural Special NOFO',
         56 => 'HUD: CoC Builds',
+        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
+        47 => 'HUD: ESG - CV [Deprecated]',
+        48 => 'HUD: HOPWA - CV [Deprecated]',
+        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
       }.freeze
     end
 
@@ -894,6 +898,26 @@ module Concerns::HudLists2026
 
     def relationship_to_hoh(id, reverse = false, raise_on_missing: false)
       _translate(relationships_to_hoh, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # 3.6.1
+    def genders
+      {
+        0 => 'Woman (Girl, if child)',
+        1 => 'Man (Boy, if child)',
+        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
+        4 => 'Non-Binary',
+        5 => 'Transgender',
+        6 => 'Questioning',
+        3 => 'Different Identity',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
+      }.freeze
+    end
+
+    def gender(id, reverse = false, raise_on_missing: false)
+      _translate(genders, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # 3.917
@@ -1169,6 +1193,9 @@ module Concerns::HudLists2026
       {
         0 => 'Female',
         1 => 'Male',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
       }.freeze
     end
 
@@ -1767,21 +1794,6 @@ module Concerns::HudLists2026
     end
 
     # R17.A
-    def early_exit_reasons
-      {
-        1 => 'Left for other opportunities - independent living',
-        2 => 'Left for other opportunities - education',
-        3 => 'Left for other opportunities - military',
-        4 => 'Left for other opportunities - other',
-        5 => 'Needs could not be met by project',
-      }.freeze
-    end
-
-    def early_exit_reason(id, reverse = false, raise_on_missing: false)
-      _translate(early_exit_reasons, id, reverse, raise_on_missing: raise_on_missing)
-    end
-
-    # R17.A
     def expelled_reasons
       {
         1 => 'Criminal activity/destruction of property/violence',
@@ -1836,6 +1848,25 @@ module Concerns::HudLists2026
 
     def aftercare_provided(id, reverse = false, raise_on_missing: false)
       _translate(aftercare_provideds, id, reverse, raise_on_missing: raise_on_missing)
+    end
+
+    # R3.1
+    def sexual_orientations
+      {
+        1 => 'Heterosexual',
+        2 => 'Gay',
+        3 => 'Lesbian',
+        4 => 'Bisexual',
+        5 => 'Questioning / unsure',
+        6 => 'Other',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
+      }.freeze
+    end
+
+    def sexual_orientation(id, reverse = false, raise_on_missing: false)
+      _translate(sexual_orientations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # R4.1
@@ -1968,7 +1999,7 @@ module Concerns::HudLists2026
     end
 
     # V10
-    def mental_heath_consultations
+    def mental_health_consultations
       {
         1 => 'Mental health consultation completed',
         2 => 'Mental health consultation being coordinated/arranged with VA provider',
@@ -1977,8 +2008,8 @@ module Concerns::HudLists2026
       }.freeze
     end
 
-    def mental_heath_consultation(id, reverse = false, raise_on_missing: false)
-      _translate(mental_heath_consultations, id, reverse, raise_on_missing: raise_on_missing)
+    def mental_health_consultation(id, reverse = false, raise_on_missing: false)
+      _translate(mental_health_consultations, id, reverse, raise_on_missing: raise_on_missing)
     end
 
     # V2.2

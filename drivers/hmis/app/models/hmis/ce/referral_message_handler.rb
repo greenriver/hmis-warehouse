@@ -61,11 +61,13 @@ module Hmis::Ce
     end
 
     def accept_referral
+      referral.completed_at = Time.current
       referral.accept!
       referral.opportunity.close!
     end
 
     def reject_referral
+      referral.completed_at = Time.current
       referral.reject!
       referral.opportunity.release!
     end

@@ -15,6 +15,7 @@ namespace :code do
     puts "Modified #{@modified} #{'record'.pluralize(@modified)}"
   end
 
+  # rails code:generate_hud_lists
   # rails code:generate_hud_list_json\["2024","lib/data/CSV Specifications Machine-Readable_FY2024.xlsx"\]
   desc 'Generate HUD list json file'
   task :generate_hud_list_json, [:year, :csv_file_path] => [:environment, 'log:info_to_stdout'] do |_task, args|
@@ -22,11 +23,11 @@ namespace :code do
   end
 
   desc 'Generate HUD list mapping module'
-  task generate_hud_lists: [:environment, 'log:info_to_stdout'] do
+  task :generate_hud_lists, [:year] => [:environment, 'log:info_to_stdout'] do |_task, args|
     filenames = []
-    filenames << HudCodeGen.generate_hud_lists('2022')
-    filenames << HudCodeGen.generate_hud_lists('2024')
-    filenames << HudCodeGen.generate_hud_lists('2026')
+    ['2022', '2024', '2026'].
+      filter { |year| args.year.nil? || args.year == year }.
+      each { |year| filenames << HudCodeGen.generate_hud_lists(year) }
     exec("bundle exec rubocop -A --format simple #{filenames.join(' ')} > /dev/null")
   end
 
