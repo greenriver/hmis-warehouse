@@ -61,7 +61,7 @@ module CeWorkflowBuilder
           event: 'start_workflow',
           message: 'start_referral',
         },
-      ]
+      ],
     )
   end
 
@@ -75,14 +75,16 @@ module CeWorkflowBuilder
           message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
         *(
-          [
-            {
-              event: 'end_workflow',
-              message: 'create_enrollment',
-            },
-          ] if create_enrollment
-        )
-      ].compact
+          if create_enrollment
+            [
+              {
+                event: 'end_workflow',
+                message: 'create_enrollment',
+              },
+            ]
+          end
+        ),
+      ].compact,
     )
   end
 
@@ -103,7 +105,7 @@ module CeWorkflowBuilder
           event: 'end_workflow',
           message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
         },
-      ]
+      ],
     )
   end
 
@@ -117,6 +119,7 @@ module CeWorkflowBuilder
       definition: definition,
     )
     raise 'Form definition must be present' if definition.blank?
+
     errors = Hmis::Form::DefinitionValidator.perform(definition, form_def.role, skip_cded_validation: true)
     raise "Form definition #{form_def.identifier} is not valid: #{errors.map(&:full_message)}" if errors.any?
 
@@ -137,12 +140,12 @@ module CeWorkflowBuilder
     confirm_success_task_form_identifier = 'ac_workflow_v1_confirm_success_task'
 
     delete_form_definitions([
-      initial_review_task_form_identifier,
-      ce_offer_task_form_identifier,
-      project_offer_task_form_identifier,
-      denial_review_form_identifier,
-      confirm_success_task_form_identifier,
-    ])
+                              initial_review_task_form_identifier,
+                              ce_offer_task_form_identifier,
+                              project_offer_task_form_identifier,
+                              denial_review_form_identifier,
+                              confirm_success_task_form_identifier,
+                            ])
 
     puts "Creating workflow definition template '#{identifier}'"
 
@@ -158,51 +161,51 @@ module CeWorkflowBuilder
     ce_staff_shared_form = {
       "item": [
         {
-          "text": "Date",
-          "type": "DATE",
-          "link_id": "date",
+          "text": 'Date',
+          "type": 'DATE',
+          "link_id": 'date',
           "required": true,
-          "mapping": {"custom_field_key": "ce_task_date"},
+          "mapping": { "custom_field_key": 'ce_task_date' },
         },
         {
-          "text": "Notes",
-          "type": "TEXT",
-          "link_id": "notes",
+          "text": 'Notes',
+          "type": 'TEXT',
+          "link_id": 'notes',
           "required": false,
-          "mapping": {"custom_field_key": "ce_task_notes"}
+          "mapping": { "custom_field_key": 'ce_task_notes' },
         },
         {
-          "text": "Continue with Referral?",
-          "type": "CHOICE",
-          "link_id": "move_forward",
+          "text": 'Continue with Referral?',
+          "type": 'CHOICE',
+          "link_id": 'move_forward',
           "required": true,
           "pick_list_options": [
             {
-              "code": "1",
-              "label": "Yes, continue"
+              "code": '1',
+              "label": 'Yes, continue',
             },
             {
-              "code": "0",
-              "label": "No, decline referral"
-            }
+              "code": '0',
+              "label": 'No, decline referral',
+            },
           ],
-          "mapping": {"custom_field_key": "ce_generic_move_forward"}
+          "mapping": { "custom_field_key": 'ce_generic_move_forward' },
         },
         {
-          "text": "Decline Reason",
-          "type": "CHOICE",
-          "link_id": "admin_decline_reason",
+          "text": 'Decline Reason',
+          "type": 'CHOICE',
+          "link_id": 'admin_decline_reason',
           "required": true,
           "pick_list_options": [
-            { "code": "HMIS user error" },
-            { "code": "Client needs to be reassessed" },
-            { "code": "Does not meet eligibility criteria" },
-            { "code": "No longer interested in this program" },
-            { "code": "No longer experiencing homelessness" },
-            { "code": "Vacancy no longer available" },
+            { "code": 'HMIS user error' },
+            { "code": 'Client needs to be reassessed' },
+            { "code": 'Does not meet eligibility criteria' },
+            { "code": 'No longer interested in this program' },
+            { "code": 'No longer experiencing homelessness' },
+            { "code": 'Vacancy no longer available' },
           ],
-          "mapping": {"custom_field_key": "ac_workflow_v1_admin_decline_reason"},
-          "enable_when": [ { "question": "move_forward", "operator": "EQUAL", "answer_code": "0" } ],
+          "mapping": { "custom_field_key": 'ac_workflow_v1_admin_decline_reason' },
+          "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
         },
       ],
     }
@@ -220,55 +223,55 @@ module CeWorkflowBuilder
       definition: {
         "item": [
           {
-            "text": "Date",
-            "type": "DATE",
-            "link_id": "date",
+            "text": 'Date',
+            "type": 'DATE',
+            "link_id": 'date',
             "required": true,
-            "mapping": {"custom_field_key": "ce_generic_date"},
+            "mapping": { "custom_field_key": 'ce_generic_date' },
           },
           {
-            "text": "Notes",
-            "type": "TEXT",
-            "link_id": "notes",
+            "text": 'Notes',
+            "type": 'TEXT',
+            "link_id": 'notes',
             "required": false,
-            "mapping": {"custom_field_key": "ce_generic_notes"}
+            "mapping": { "custom_field_key": 'ce_generic_notes' },
           },
           {
-            "text": "Decision",
-            "type": "CHOICE",
-            "link_id": "move_forward",
+            "text": 'Decision',
+            "type": 'CHOICE',
+            "link_id": 'move_forward',
             "required": true,
-            "component": "RADIO_BUTTONS",
+            "component": 'RADIO_BUTTONS',
             "pick_list_options": [
               {
-                "code": "1",
-                "label": "Accept - Enroll in Project"
+                "code": '1',
+                "label": 'Accept - Enroll in Project',
               },
               {
-                "code": "0",
-                "label": "Decline - Submit Referral for Denial Review"
-              }
+                "code": '0',
+                "label": 'Decline - Submit Referral for Denial Review',
+              },
             ],
-            "mapping": {"custom_field_key": "ce_generic_move_forward"}
+            "mapping": { "custom_field_key": 'ce_generic_move_forward' },
           },
           {
-            "text": "Decline Reason",
-            "type": "CHOICE",
-            "link_id": "denial_reason",
+            "text": 'Decline Reason',
+            "type": 'CHOICE',
+            "link_id": 'denial_reason',
             "required": true,
             "pick_list_options": [
-              { "code": "HMIS user error" },
-              { "code": "Inability to complete intake" },
-              { "code": "Does not meet eligibility criteria" },
-              { "code": "No longer interested in this program" },
-              { "code": "No longer experiencing homelessness" },
-              { "code": "Estimated vacancy no longer available" },
-              { "code": "Enrolled, but declined HMIS data entry" },
+              { "code": 'HMIS user error' },
+              { "code": 'Inability to complete intake' },
+              { "code": 'Does not meet eligibility criteria' },
+              { "code": 'No longer interested in this program' },
+              { "code": 'No longer experiencing homelessness' },
+              { "code": 'Estimated vacancy no longer available' },
+              { "code": 'Enrolled, but declined HMIS data entry' },
             ],
-            "mapping": {"custom_field_key": "ac_workflow_v1_provider_denial_reason"},
-            "enable_when": [ { "question": "move_forward", "operator": "EQUAL", "answer_code": "0" } ],
+            "mapping": { "custom_field_key": 'ac_workflow_v1_provider_denial_reason' },
+            "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
           },
-        ]
+        ],
       },
     )
 
@@ -277,51 +280,51 @@ module CeWorkflowBuilder
       definition: {
         "item": [
           {
-            "text": "Date",
-            "type": "DATE",
-            "link_id": "date",
+            "text": 'Date',
+            "type": 'DATE',
+            "link_id": 'date',
             "required": true,
-            "mapping": {"custom_field_key": "ce_generic_date"},
+            "mapping": { "custom_field_key": 'ce_generic_date' },
           },
           {
-            "text": "Notes",
-            "type": "TEXT",
-            "link_id": "notes",
+            "text": 'Notes',
+            "type": 'TEXT',
+            "link_id": 'notes',
             "required": false,
-            "mapping": {"custom_field_key": "ce_generic_notes"}
+            "mapping": { "custom_field_key": 'ce_generic_notes' },
           },
           {
-            "text": "Decision",
-            "type": "CHOICE",
-            "link_id": "ac_workflow_v1_denial_review_decision",
+            "text": 'Decision',
+            "type": 'CHOICE',
+            "link_id": 'ac_workflow_v1_denial_review_decision',
             "required": true,
-            "component": "RADIO_BUTTONS",
+            "component": 'RADIO_BUTTONS',
             "pick_list_options": [
               {
-                "code": "1",
-                "label": "Approve Denial"
+                "code": '1',
+                "label": 'Approve Denial',
               },
               {
-                "code": "0",
-                "label": "Send Back"
-              }
+                "code": '0',
+                "label": 'Send Back',
+              },
             ],
-            "mapping": {"custom_field_key": "ac_workflow_v1_denial_review_decision"},
+            "mapping": { "custom_field_key": 'ac_workflow_v1_denial_review_decision' },
           },
           {
-            "text": "Reason for Sending Back",
-            "type": "CHOICE",
-            "link_id": "denial_reason",
-            "component": "RADIO_BUTTONS",
+            "text": 'Reason for Sending Back',
+            "type": 'CHOICE',
+            "link_id": 'denial_reason',
+            "component": 'RADIO_BUTTONS',
             "required": false,
             "pick_list_options": [
-              { "code": "HMIS user error" },
-              { "code": "Client should be eligible" },
+              { "code": 'HMIS user error' },
+              { "code": 'Client should be eligible' },
             ],
-            "mapping": {"custom_field_key": "ac_workflow_v1_denial_review_reason"},
-            "enable_when": [ { "question": "denial_review_decision", "operator": "EQUAL", "answer_code": "0" } ],
+            "mapping": { "custom_field_key": 'ac_workflow_v1_denial_review_reason' },
+            "enable_when": [{ "question": 'denial_review_decision', "operator": 'EQUAL', "answer_code": '0' }],
           },
-        ]
+        ],
       },
     )
     create_step_form(
