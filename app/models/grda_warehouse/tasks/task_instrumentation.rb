@@ -17,8 +17,8 @@ class GrdaWarehouse::Tasks::TaskInstrumentation
         block.call(run)
       end
       run.update!(
-        memory_allocated_mb: report.total_allocated_memsize / 1024 / 1024,
-        memory_retained_mb: report.total_retained_memsize / 1024 / 1024,
+        memory_allocated: report.total_allocated_memsize,
+        memory_retained: report.total_retained_memsize,
         allocation_count: report.total_allocated,
       )
     end
