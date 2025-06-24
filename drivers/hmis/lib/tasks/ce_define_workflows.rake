@@ -92,7 +92,7 @@ module CeWorkflowBuilder
     Hmis::WorkflowDefinition::Gateway.create!(
       template: template,
       gateway_type: gateway_type,
-      name: "gw_#{gateway_type}_#{name}",
+      name: "#{gateway_type.capitalize} Gateway: #{name}",
     )
   end
 
@@ -340,21 +340,21 @@ module CeWorkflowBuilder
     )
 
     ce_make_offer_task = Hmis::WorkflowDefinition::UserTask.create!(
-      name: 'Initial Offer',
+      name: 'Client Acceptance',
       form_definition_identifier: ce_offer_task_form_identifier,
       template_id: template.id,
       swimlane: ce_staff_swimlane,
     )
 
     project_offer_task = Hmis::WorkflowDefinition::UserTask.create!(
-      name: 'Project Offer',
+      name: 'Provider Acceptance',
       form_definition_identifier: project_offer_task_form_identifier,
       template_id: template.id,
       swimlane: project_staff_swimlane,
     )
 
     create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
-      name: 'Create Enrollment Script Task',
+      name: 'Create Enrollment',
       template_id: template.id,
       trigger_config: [
         {
@@ -419,6 +419,7 @@ module CeWorkflowBuilder
     denial_review_gateway.connect_to!(project_offer_task) # Send back. We make this the default task, so that the project offer task doesn't get hidden in the Available Tasks UI due to its conditional inflows...
 
     # Confirm Success Task => Accept Event
+    confirm_success_task.connect_to!(decline_event, condition: 'move_forward = 0')
     confirm_success_task.connect_to!(accept_event)
 
     template.validate!
