@@ -38,8 +38,10 @@
                 %th SSN:
                 %td= masked_ssn(@client.SSN)
         .ml-auto
-          - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
-          = image_tag(logo, width: 250) if logo.present?
+          - logo = GrdaWarehouse::Theme.print_logo
+          - if logo.attached?
+            - content_type = logo.blob.content_type
+            = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_print_logo}", class: :seal, width: 250)
 
       = simple_format(Translation.translate('Open Path ROI content'))
 
@@ -62,8 +64,7 @@
     .landscape
       .d-flex
         .ml-auto.mb-4
-          - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
-          = image_tag(logo, width: 250) if logo.present?
+          = render 'layouts/print_seal'
       .row
         .col-12
           .coc-map

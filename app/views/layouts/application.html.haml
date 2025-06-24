@@ -13,30 +13,18 @@
     = stylesheet_link_tag 'application', media: 'all'
     = stylesheet_link_tag 'print', media: 'print'
 
-    - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
-      - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
-      = stylesheet_link_tag(theme_styles, media: 'all')
     - colors = Rails.cache.fetch('system-colors', expires_in: 5.minutes) { GrdaWarehouse::SystemColor.as_css.html_safe }
     - if colors.present?
       %style{ type: 'text/css' }
         = colors
-    - # This block defines the default theme using CSS variables.
-    - # In the future, this can be dynamically generated from a database query
-    - # to apply client-specific themes.
 
-    - # Select the correct theme stylesheet based on ENV['CLIENT']
-    - # We use a logical path for stylesheet_link_tag, not a full filesystem path.
-    - client_theme_name = ENV['CLIENT'].presence
-    - css_path = ['app', 'assets', 'stylesheets', 'application', '_custom']
-    - css_file = Rails.root.join(File.join(*css_path, "#{client_theme_name}.css"))
-    - sheet_exists = client_theme_name && File.exist?(css_file)
-    - sheet_name = sheet_exists ? client_theme_name : 'default'
-    - css_file = Rails.root.join(File.join(*css_path, "#{sheet_name}.css"))
     %style{ type: 'text/css' }
       :plain
-        /* #{sheet_name} */
-        #{File.read(css_file)}
-    - env_css_path = Rails.root.join(File.join(*css_path, 'env'))
+        /* Theme CSS */
+        #{GrdaWarehouse::Theme.css_file_contents}
+
+    - # Environment-specific CSS
+    - env_css_path = Rails.root.join(File.join(*GrdaWarehouse::Theme.css_path, 'env'))
     - env_css_file = Rails.root.join(File.join(*env_css_path, "#{Rails.env}.css"))
     - env_css_exists = File.exist?(env_css_file)
     - if env_css_exists
