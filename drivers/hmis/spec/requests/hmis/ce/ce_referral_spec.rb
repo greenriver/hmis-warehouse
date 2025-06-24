@@ -124,9 +124,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'workflow with swimlanes' do
-        # case_manager_swimlane is already set up in the CE spec helper
-        let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
-
         it 'returns swimlanes' do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect

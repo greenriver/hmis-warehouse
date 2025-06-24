@@ -32253,7 +32253,8 @@ CREATE TABLE public.wfe_steps (
     submitted_values json,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    available_at timestamp(6) without time zone NOT NULL
+    available_at timestamp(6) without time zone NOT NULL,
+    updated_by_id bigint
 );
 
 
@@ -74114,6 +74115,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250619125706'),
 ('20250612192906'),
 ('20250612153642'),
 ('20250611163755'),

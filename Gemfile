@@ -16,6 +16,10 @@ gem 'observer'
 gem 'csv'
 gem 'abbrev'
 
+# This is included handle invalid utf8 characters in URLs, we should revisit
+# periodically as the functionality may be moved into rails core in the future
+gem 'utf8-cleaner'
+
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
