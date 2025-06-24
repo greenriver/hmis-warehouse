@@ -49,8 +49,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       # Convert input to application timezone for proper comparison with database timestamps
       filter_time = Time.zone.parse(input.on_current_task_since.to_s)
       scope.joins(:current_steps).
-        where(wfe_step_t[:available_at].lt(filter_time)).
-        distinct
+        where(wfe_step_t[:available_at].lt(filter_time))
     end
   end
 end
