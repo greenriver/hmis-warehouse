@@ -1,8 +1,7 @@
-import { ModuleRegistry } from '@ag-grid-community/core';
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
+import { ModuleRegistry, ClientSideRowModelModule, RowStyleModule, RowSelectionModule, CellStyleModule, TextFilterModule, NumberFilterModule, DateFilterModule, CustomFilterModule, TooltipModule, TextEditorModule, ColumnAutoSizeModule, ClientSideRowModelApiModule, createGrid, ValidationModule } from 'ag-grid-community';
 
 // Register all Community features
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
+ModuleRegistry.registerModules([ClientSideRowModelModule, ValidationModule, RowStyleModule, RowSelectionModule, CellStyleModule, TextFilterModule, NumberFilterModule, DateFilterModule, CustomFilterModule, TooltipModule, TextEditorModule, ColumnAutoSizeModule, ClientSideRowModelApiModule]);
 
 import { DateCellEditor } from './cohorts/editors/date_cell_editor.ts';
 import { DateCellRenderer } from './cohorts/viewers/date_cell_renderer.ts';
@@ -212,7 +211,7 @@ window.App.Cohorts.Cohort = class Cohort {
       }
     };
 
-    this.table = agGrid.createGrid($(this.table_selector)[0], this.grid_options);
+    this.table = createGrid($(this.table_selector)[0], this.grid_options);
   }
 
   // Resize columns to fit content

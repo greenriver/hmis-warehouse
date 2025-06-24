@@ -209,6 +209,9 @@ module Types
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :hp_screening_score, Integer, null: true
     field :threshold_score, Integer, null: true
+    # V10
+    field :mental_health_consultation, HmisSchema::Enums::Hud::MentalHealthConsultation, null: true
+
     # C4
     field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true

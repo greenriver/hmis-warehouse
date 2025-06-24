@@ -42,7 +42,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'accept_referral',
+          message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
       ],
     )
@@ -56,7 +56,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'reject_referral',
+          message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
         },
       ],
     )
@@ -113,12 +113,15 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
         engine.start_step!(current_step, user: user)
         expect(current_step).to be_in_progress
+        expect(referral.completed_at).to be_nil
 
         engine.complete_step!(current_step, user: user, submitted_values: task_data)
         expect(current_step).to be_completed
+        expect(current_step.updated_by).to eq(user)
 
         expect(engine.active_steps.count).to be_zero
         expect(referral.status).to eq(expected_referral_end_status)
+        expect(referral.completed_at).not_to be_nil
         expect(opportunity.reload.status).to eq(expected_opportunity_end_status)
       end
     end

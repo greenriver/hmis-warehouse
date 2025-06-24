@@ -123,11 +123,17 @@
           "type": "MAX",
           "question": "faEndDate"
         }
-      ],
+      ]
+    },
+    {
+      "link_id": "date_provided_guidance",
+      "type": "DISPLAY",
+      "text": "Date Provided should reflect the date that the financial assistance was identified as a need.",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
           "local_constant": "$hudRecordType",
-          "operator": "NOT_EQUAL",
+          "operator": "EQUAL",
           "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
         }
       ]
