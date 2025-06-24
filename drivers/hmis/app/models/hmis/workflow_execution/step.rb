@@ -11,9 +11,10 @@ module Hmis::WorkflowExecution
 
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'
-    belongs_to :task, class_name: 'Hmis::WorkflowDefinition::Node', foreign_key: 'node_id' # Could be a UserTask or a ScriptTask
+    belongs_to :user_task, class_name: 'Hmis::WorkflowDefinition::UserTask', foreign_key: 'node_id', optional: true
+    belongs_to :script_task, class_name: 'Hmis::WorkflowDefinition::ScriptTask', foreign_key: 'node_id', optional: true
     belongs_to :form_definition, class_name: 'Hmis::Form::Definition', optional: true # The form definition that was (last) used to submit the step, if it has been submitted
-    has_one :swimlane, through: :task, class_name: 'Hmis::WorkflowDefinition::Swimlane'
+    has_one :swimlane, through: :user_task, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment', dependent: :destroy
 
     scope :open, -> { where(status: ['available', 'in_progress']) }

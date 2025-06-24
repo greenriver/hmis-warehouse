@@ -78,7 +78,7 @@ module Types
 
     # the Hmis::WorkflowDefinition::UserTask that configures this referral step
     def workflow_task
-      load_ar_association(object, :task)
+      load_ar_association(object, :user_task)
     end
   end
 end
