@@ -3,15 +3,13 @@
     - min_date = data.min_date(@client)
     - max_date = data.max_date(@client)
     %h3.mr-4= data.title
-    = link_to '#', class: 'mr-4 dropdown-toggle', id: 'client__calendar-datepicker', data: { 'bs-toggle' => 'dropdown'} do
+    = link_to '#', class: 'mr-4 dropdown-toggle', id: 'client__calendar-datepicker-toggle', data: { 'bs-toggle' => 'dropdown', 'client-history-target': 'datepickerToggle' } do
       %i.icon-calendar
-    .dropdown-menu#client__calendar-datepicker__dropdown
-      %div{data: { provide: :datepicker}, id: 'client__calendar-datepicker__input'}
-
+    .dropdown-menu#client__calendar-datepicker__dropdown{ data: { 'client-history-target': 'datepickerContainer' } }
 
     - prev_date = data.previous_date(@client)
     - if prev_date.present?
-      = link_to client_history_path(@client, **data.filter_params(prev_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(prev_date) do
+      = link_to client_history_path(@client, **data.filter_params(prev_date)), class: 'ml-4 mr-4 js-client__calendar-nav', data: data.filter_params(prev_date) do
         %i.icon-angle-left
     - next_date = data.next_date
     - if next_date.present? && next_date <= max_date
