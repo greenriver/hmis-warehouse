@@ -128,42 +128,42 @@ module Filters
         self.heads_of_household = filter_hoh
         self.hoh_only = filter_hoh
       end
-      self.default_project_type_codes = cleanup_input_array(filters.dig(:default_project_type_codes), input_type: :to_s, default: default_project_type_codes) if filters.key?(:default_project_type_codes)
+      self.default_project_type_codes = normalize_input_array(filters[:default_project_type_codes], &:to_s) || default_project_type_codes if filters.key?(:default_project_type_codes)
       if filters.key?(:project_type_codes)
-        self.project_type_codes = cleanup_input_array(filters.dig(:project_type_codes), input_type: :to_s, default: project_type_codes)
+        self.project_type_codes = normalize_input_array(filters[:project_type_codes], &:to_s) || project_type_codes
       elsif filters.key?(:project_type_numbers)
         self.project_type_codes = []
       else
         self.project_type_codes = project_type_codes
       end
-      self.project_type_numbers = cleanup_input_array(filters.dig(:project_type_numbers), default: project_type_numbers)
-      self.data_source_ids = cleanup_input_array(filters.dig(:data_source_ids), default: data_source_ids)
-      self.organization_ids = cleanup_input_array(filters.dig(:organization_ids), default: organization_ids)
-      self.project_ids = cleanup_input_array(filters.dig(:project_ids), default: project_ids)
-      self.funder_ids = cleanup_input_array(filters.dig(:funder_ids), default: funder_ids)
-      self.funder_others = cleanup_input_array(filters.dig(:funder_others), input_type: :to_s, default: funder_others)
-      self.veteran_statuses = cleanup_input_array(filters.dig(:veteran_statuses), default: veteran_statuses)
-      self.age_ranges = cleanup_input_array(filters.dig(:age_ranges), input_type: :to_sym, default: age_ranges)
-      self.genders = cleanup_input_array(filters.dig(:genders), default: genders)
+      self.project_type_numbers = normalize_input_array(filters[:project_type_numbers]) || project_type_numbers
+      self.data_source_ids = normalize_input_array(filters[:data_source_ids]) || data_source_ids
+      self.organization_ids = normalize_input_array(filters[:organization_ids]) || organization_ids
+      self.project_ids = normalize_input_array(filters[:project_ids]) || project_ids
+      self.funder_ids = normalize_input_array(filters[:funder_ids]) || funder_ids
+      self.funder_others = normalize_input_array(filters[:funder_others], &:to_s) || funder_others
+      self.veteran_statuses = normalize_input_array(filters[:veteran_statuses]) || veteran_statuses
+      self.age_ranges = normalize_input_array(filters[:age_ranges], &:to_sym) || age_ranges
+      self.genders = normalize_input_array(filters[:genders]) || genders
       self.sub_population = filters.dig(:sub_population)&.to_sym || sub_population
       self.races = filters.dig(:races)&.select { |race| HudUtility2024.races(multi_racial: true).keys.include?(race) }.presence || races
-      self.project_group_ids = cleanup_input_array(filters.dig(:project_group_ids), default: project_group_ids)
-      self.prior_living_situation_ids = cleanup_input_array(filters.dig(:prior_living_situation_ids), default: prior_living_situation_ids)
-      self.destination_ids = cleanup_input_array(filters.dig(:destination_ids), default: destination_ids)
-      self.length_of_times = cleanup_input_array(filters.dig(:length_of_times), input_type: :to_sym, default: length_of_times)
-      self.cohort_ids = cleanup_input_array(filters.dig(:cohort_ids), default: cohort_ids)
-      self.secondary_cohort_ids = cleanup_input_array(filters.dig(:secondary_cohort_ids), default: secondary_cohort_ids)
+      self.project_group_ids = normalize_input_array(filters[:project_group_ids]) || project_group_ids
+      self.prior_living_situation_ids = normalize_input_array(filters[:prior_living_situation_ids]) || prior_living_situation_ids
+      self.destination_ids = normalize_input_array(filters[:destination_ids]) || destination_ids
+      self.length_of_times = normalize_input_array(filters[:length_of_times], &:to_sym) || length_of_times
+      self.cohort_ids = normalize_input_array(filters[:cohort_ids]) || cohort_ids
+      self.secondary_cohort_ids = normalize_input_array(filters[:secondary_cohort_ids]) || secondary_cohort_ids
       self.cohort_column = filters.dig(:cohort_column)&.presence || cohort_column
       self.cohort_column_voucher_type = filters.dig(:cohort_column_voucher_type)&.presence || cohort_column_voucher_type
       self.cohort_column_housed_date = filters.dig(:cohort_column_housed_date)&.presence || cohort_column_housed_date
       self.cohort_column_matched_date = filters.dig(:cohort_column_matched_date)&.presence || cohort_column_matched_date
 
-      self.disabilities = cleanup_input_array(filters.dig(:disabilities), default: disabilities)
+      self.disabilities = normalize_input_array(filters[:disabilities]) || disabilities
       # Exclude HIV/AIDS from disabilities unless the user can view HIV/AIDS status
       self.disabilities = disabilities.select { |id| available_disabilities.values.include?(id) } if disabilities.present?
-      self.indefinite_disabilities = cleanup_input_array(filters.dig(:indefinite_disabilities), default: indefinite_disabilities)
-      self.dv_status = cleanup_input_array(filters.dig(:dv_status), default: dv_status)
-      self.currently_fleeing = cleanup_input_array(filters.dig(:currently_fleeing), default: currently_fleeing)
+      self.indefinite_disabilities = normalize_input_array(filters[:indefinite_disabilities]) || indefinite_disabilities
+      self.dv_status = normalize_input_array(filters[:dv_status]) || dv_status
+      self.currently_fleeing = normalize_input_array(filters[:currently_fleeing]) || currently_fleeing
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true]) unless filters.dig(:chronic_status).nil? || filters.dig(:chronic_status) == ''
       self.rrh_move_in = filters.dig(:rrh_move_in).in?(['1', 'true', true]) unless filters.dig(:rrh_move_in).nil?
       self.psh_move_in = filters.dig(:psh_move_in).in?(['1', 'true', true]) unless filters.dig(:psh_move_in).nil?
@@ -176,7 +176,7 @@ module Filters
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
       self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
       self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
-      self.times_homeless_in_last_three_years = cleanup_input_array(filters.dig(:times_homeless_in_last_three_years)) unless filters.dig(:times_homeless_in_last_three_years).nil?
+      self.times_homeless_in_last_three_years = normalize_input_array(filters[:times_homeless_in_last_three_years]) unless filters
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
@@ -185,24 +185,25 @@ module Filters
       self.days_since_contact_min = filters.dig(:days_since_contact_min).to_i unless filters.dig(:days_since_contact_min).blank?
       self.days_since_contact_max = filters.dig(:days_since_contact_max).to_i unless filters.dig(:days_since_contact_max).blank?
       self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
-      self.required_files = cleanup_input_array(filters.dig(:required_files), default: required_files)
-      self.optional_files = cleanup_input_array(filters.dig(:optional_files), default: optional_files)
+      self.required_files = normalize_input_array(filters[:required_files]) || required_files
+      self.optional_files = normalize_input_array(filters[:optional_files]) || optional_files
       self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
-      self.secondary_project_ids = cleanup_input_array(filters.dig(:secondary_project_ids), default: secondary_project_ids)
-      self.secondary_project_group_ids = cleanup_input_array(filters.dig(:secondary_project_group_ids), default: secondary_project_group_ids)
+      self.secondary_project_ids = normalize_input_array(filters[:secondary_project_ids]) || secondary_project_ids
+      self.secondary_project_group_ids = normalize_input_array(filters[:secondary_project_group_ids]) || secondary_project_group_ids
       self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2024.ethnicities.keys.include?(ethnicity.to_s.to_sym) }.presence&.map(&:to_sym) || ethnicities
       self.race_ethnicity_combinations = filters.dig(:race_ethnicity_combinations)&.select { |value| HudUtility2024.race_ethnicity_combinations.keys.include?(value.to_sym) }.presence&.map(&:to_sym) || race_ethnicity_combinations
 
-      self.excluded_project_ids = cleanup_input_array(filters.dig(:excluded_project_ids), default: excluded_project_ids)
-      self.excluded_project_type_numbers = cleanup_input_array(filters.dig(:excluded_project_type_numbers), default: excluded_project_type_numbers)
+      self.excluded_project_ids = normalize_input_array(filters[:excluded_project_ids]) || excluded_project_ids
+      self.excluded_project_type_numbers = normalize_input_array(filters[:excluded_project_type_numbers]) || excluded_project_type_numbers
 
       ensure_dates_work if valid?
       self
     end
     alias_method :set_from_params, :update
 
-    private def cleanup_input_array(dirty, input_type: :to_i, default: [])
-      Array.wrap(dirty).reject(&:blank?).map(&input_type).presence || default
+    private def normalize_input_array(dirty, &normalizer)
+      normalizer ||= proc(&:to_i) # default transformation is to_i
+      Array.wrap(dirty).compact_blank.map(&normalizer).sort.uniq.presence
     end
 
     private def safe_to_date(val)
@@ -423,6 +424,8 @@ module Filters
       secondary_projects: 'Secondary Projects',
       secondary_project_groups: 'Secondary Project Groups',
       race_ethnicity_combinations: 'Race & Ethnicity',
+      excluded_projects: 'Excluded Projects',
+      excluded_project_type_numbers: 'Excluded Project Types',
     }.freeze
 
     private def label(key, labels)
@@ -596,7 +599,7 @@ module Filters
     def reject_excluded_project_ids(project_ids)
       return project_ids if excluded_project_ids.empty? && excluded_project_type_numbers.empty?
 
-      project_ids.reject! { |id| excluded_project_ids.include?(id) }
+      project_ids = project_ids.reject { |id| excluded_project_ids.include?(id) }
       return project_ids if excluded_project_type_numbers.empty?
 
       project_ids.reject { |id| project_type_excluded_project_ids.include?(id) }

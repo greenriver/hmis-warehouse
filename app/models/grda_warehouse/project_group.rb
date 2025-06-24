@@ -51,8 +51,16 @@ module GrdaWarehouse
 
     after_initialize do
       # Initialize filter with excluded project ids and types
-      self.excluded_project_ids = filter&.excluded_project_ids || []
-      self.excluded_project_type_numbers = filter&.excluded_project_type_numbers || []
+      self.excluded_project_ids = excluded_project_ids_form_filter
+      self.excluded_project_type_numbers = excluded_project_type_numbers_from_filter
+    end
+
+    def excluded_project_ids_form_filter
+      filter.excluded_project_ids || []
+    end
+
+    def excluded_project_type_numbers_from_filter
+      filter.excluded_project_type_numbers || []
     end
 
     scope :viewable_by, ->(user) do
@@ -164,6 +172,8 @@ module GrdaWarehouse
         :project_ids,
         :organization_ids,
         :data_source_ids,
+        :excluded_project_ids,
+        :excluded_project_type_numbers,
       ]
       filter.describe_filter_as_html(keys)
     end
