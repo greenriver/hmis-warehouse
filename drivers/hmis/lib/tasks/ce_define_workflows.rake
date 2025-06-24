@@ -29,9 +29,9 @@ module CeWorkflowBuilder
     Hmis::WorkflowExecution::StepAssignment.where(step: steps).destroy_all
     steps.destroy_all
 
-    Hmis::WorkflowDefinition::Swimlane.where(template: templates).destroy_all
     Hmis::WorkflowDefinition::Flow.where(template: templates).destroy_all
     Hmis::WorkflowDefinition::Node.where(template: templates).destroy_all
+    Hmis::WorkflowDefinition::Swimlane.where(template: templates).destroy_all
     templates.destroy_all
   end
 
@@ -230,6 +230,10 @@ task ce_define_workflows: [:environment] do
   ce_enabled.save! if ce_enabled.changed?
 
   data_source = GrdaWarehouse::DataSource.hmis.sole
+
+  # Just putting this here for convenience. It can be removed after everyone has run it once
+  puts 'Fixing polymorphic type for WFD Nodes'
+  Hmis::WorkflowDefinition::Node.where(type: 'Hmis::WorkflowDefinition::Task').update_all(type: 'Hmis::WorkflowDefinition::UserTask')
 
   puts "Creating workflow templates in data source #{data_source.id} (#{data_source.name})"
   CeWorkflowBuilder.create_basic_ce_template(data_source)
