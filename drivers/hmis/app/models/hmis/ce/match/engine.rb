@@ -14,6 +14,8 @@ module Hmis::Ce::Match
     # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
     def call(pool, clients)
+      validate_clients_parameter!(clients)
+
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
       priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
@@ -41,6 +43,10 @@ module Hmis::Ce::Match
     end
 
     protected
+
+    def validate_clients_parameter!(clients)
+      raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == Hmis::Hud::Client
+    end
 
     def import_candidates!(values)
       result = Candidate.import(

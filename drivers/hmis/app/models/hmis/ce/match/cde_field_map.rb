@@ -3,7 +3,6 @@
 # resolve custom data elements (CDEs)
 module Hmis::Ce::Match
   class CdeFieldMap
-
     def instance_value(client, field)
       cded = parse_entity_type(field)
 
@@ -14,11 +13,17 @@ module Hmis::Ce::Match
         last
       return nil unless record
 
-      # FIXME: need to support multi-valued CDEs
-      cde = record.custom_data_elements.where(data_element_definition: cded).first
-      return nil unless cde
+      # Get all CDE values for this definition
+      cdes = record.custom_data_elements.where(data_element_definition: cded)
+      return nil if cdes.empty?
 
-      cded.read_value_from(cde)
+      if cded.repeats
+        # For multi-valued CDEs, return an array-like object that supports comparison
+        MultiValuedCde.new(cdes.map { |cde| cded.read_value_from(cde) })
+      else
+        # For single-valued CDEs, return the single value
+        cded.read_value_from(cdes.first)
+      end
     end
 
     # arel not supported.
@@ -52,6 +57,41 @@ module Hmis::Ce::Match
       @cded_lookup ||= Hmis::Hud::CustomDataElementDefinition.all.
         group_by(&:owner_type).
         transform_values { |definitions| definitions.index_by(&:key) }
+    end
+
+    # Wrapper class that makes multi-valued CDEs work with equality operators
+    class MultiValuedCde
+      def initialize(values)
+        @values = values.compact
+      end
+
+      # Override == to mean "includes"
+      def ==(other)
+        @values.include?(other)
+      end
+
+      # Override != to mean "not includes"
+      def !=(other)
+        !@values.include?(other)
+      end
+
+      # Support other potential operators
+      def include?(value)
+        @values.include?(value)
+      end
+
+      def empty?
+        @values.empty?
+      end
+
+      def to_a
+        @values
+      end
+
+      # For debugging
+      def inspect
+        "#<MultiValuedCde: #{@values.inspect}>"
+      end
     end
   end
 end
