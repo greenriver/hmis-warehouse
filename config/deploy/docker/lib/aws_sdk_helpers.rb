@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-iam'
 require 'aws-sdk-elasticloadbalancingv2'
 require 'aws-sdk-ecr'
@@ -15,7 +17,7 @@ require 'active_support'
 module AwsSdkHelpers
   extend ActiveSupport::Concern
 
-  DEFAULT_AWS_REGION = 'us-east-1'.freeze
+  DEFAULT_AWS_REGION = 'us-east-1'
 
   module ClientMethods
     define_singleton_method(:iam) { Aws::IAM::Client.new }
@@ -124,6 +126,31 @@ module AwsSdkHelpers
     rescue Aws::Errors::MissingCredentialsError
       warn 'Need credentials to sync secrets (or run on a server/container with a role)'
       puts 'ERROR=secretsyncfailed'
+    end
+
+    def self.superset_env_for_warehouse
+      names = [
+        "/#{ENV.fetch('RAILS_ENV')}/tenant/#{ENV.fetch('CLIENT')}/app/superset-sync-jobs/SUPERSET_ADMIN_PASS",
+        "/#{ENV.fetch('RAILS_ENV')}/tenant/#{ENV.fetch('CLIENT')}/app/superset-sync-jobs/SUPERSET_ADMIN_USER",
+      ]
+
+      params = AwsSdkHelpers::ClientMethods.ssm.get_parameters(
+        {
+          names: names,
+          with_decryption: true,
+        },
+      )
+
+      params.parameters.map do |p|
+        env_name = p.name.split('/').last
+        [env_name, p.value].join('=')
+      end
+    rescue Aws::Errors::MissingCredentialsError
+      warn 'Need credentials to sync superset params (or run on a server/container with a role)'
+      return([
+        'SUPERSET_ADMIN_PASS=unknown',
+        'SUPERSET_ADMIN_USER=unknown',
+      ])
     end
   end
 end
