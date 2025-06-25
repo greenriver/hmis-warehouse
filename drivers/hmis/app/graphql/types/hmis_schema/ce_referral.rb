@@ -20,18 +20,7 @@ module Types
     field :current_steps, [HmisSchema::CeReferralStep], null: true
     field :days_on_current_steps, Integer, null: true
     field :updated_by, Application::User, null: true
-
-    # Target enrollment: The enrollment created at the project the user is being referred to.
-    # Does not exist unless and until some referral step creates an enrollment.
-    # Types::HmisSchema::Enrollment because it should not be resolved if the current user doesn't have access to view enrollments at this project.
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
-
-    # Source enrollment: The enrollment the user specified when they started the referral.
-    # May hold info about this user's eligibility for the opportunity, for example in a housing needs assessment.
-    # Types::HmisSchema::CeReferralSourceEnrollment because it is not tied to enrollment object-level authorization.
-    # In other words, users who *cannot* view enrollments at the source project *may* still be able to view this field.
-    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true
-
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
@@ -133,15 +122,6 @@ module Types
     def target_organization_name
       project = load_ar_association(object, :target_project)
       load_ar_association(project, :organization).name
-    end
-
-    def source_enrollment
-      enrollment = load_ar_association(object, :source_enrollment)
-      return nil if enrollment.nil?
-
-      # In this case, don't return the associated assessment dates (unlike when querying a Candidate), since the referral already exists.
-      # If the user has permission to view the relevant assessment details, they will resolve them separately.
-      OpenStruct.new(enrollment: enrollment)
     end
 
     def target_enrollment

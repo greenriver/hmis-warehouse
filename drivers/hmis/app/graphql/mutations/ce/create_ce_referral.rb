@@ -19,11 +19,12 @@ module Mutations
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
       access_denied! unless current_permission?(permission: :can_start_referrals, entity: opportunity.project)
 
+      # client/enrollment don't need to be viewable by the current user
       if source_enrollment_id
         source_enrollment = Hmis::Hud::Enrollment.find(source_enrollment_id)
         client = source_enrollment.client
       elsif client_id
-        client = Hmis::Hud::Client.find(client_id) # Doesn't need to be viewable by the current user
+        client = Hmis::Hud::Client.find(client_id)
       else
         raise 'Either a client_id or a source_enrollment_id is required'
       end

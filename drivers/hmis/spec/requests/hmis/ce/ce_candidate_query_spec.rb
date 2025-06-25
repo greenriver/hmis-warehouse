@@ -7,20 +7,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
   let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
-  let!(:other_hhm) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
-  let!(:solo_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
-  let!(:other_hhm_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: other_hhm }
-  let!(:enrollment_with_household) do
-    create(
-      :hmis_hud_enrollment,
-      data_source: ds1,
-      client: client,
-      household_id: other_hhm_enrollment.household_id,
-      relationship_to_hoh: 3,
-    )
-  end
-  let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client, entry_date: 1.year.ago, exit_date: 6.weeks.ago }
-
+  let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
   let!(:candidate) { create(:hmis_ce_match_candidate, client: client) }
 
   before(:each) do
@@ -61,66 +48,78 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    it 'returns the enrollments' do
-      response, result = post_graphql(**variables) { query }
-      expect(response.status).to eq(200), result.inspect
-      enrollments = result.dig('data', 'ceCandidate', 'enrollments', 'nodes')
-      expect(enrollments).to contain_exactly(
-        a_hash_including(
-          'id' => solo_enrollment.id.to_s,
-          'projectName' => solo_enrollment.project.project_name,
-          'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
-          'householdSize' => 1,
-          'otherHouseholdMemberNames' => [],
-          'entryDate' => solo_enrollment.entry_date.iso8601,
-          'exitDate' => nil,
-          'projectType' => 'ES_NBN',
-        ),
-        a_hash_including(
-          'id' => enrollment_with_household.id.to_s,
-          'projectName' => enrollment_with_household.project.project_name,
-          'relationshipToHoH' => 'SPOUSE_OR_PARTNER',
-          'householdSize' => 2,
-          'otherHouseholdMemberNames' => [other_hhm.brief_name],
-          'entryDate' => enrollment_with_household.entry_date.iso8601,
-          'exitDate' => nil,
-          'projectType' => 'ES_NBN',
-        ),
-        a_hash_including(
-          'id' => exited_enrollment.id.to_s,
-          'projectName' => exited_enrollment.project.project_name,
-          'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
-          'householdSize' => 1,
-          'otherHouseholdMemberNames' => [],
-          'entryDate' => exited_enrollment.entry_date.iso8601,
-          'exitDate' => exited_enrollment.exit_date.iso8601,
-          'projectType' => 'ES_NBN',
-        ),
-      )
+    context 'with enrollments that have different household membership and statuses' do
+      let!(:other_hhm) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
+      let!(:other_hhm_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: other_hhm }
+      let!(:enrollment_with_household) do
+        create(
+          :hmis_hud_enrollment,
+          data_source: ds1,
+          client: client,
+          household_id: other_hhm_enrollment.household_id,
+          relationship_to_hoh: 3,
+        )
+      end
+
+      let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client, entry_date: 1.year.ago, exit_date: 6.weeks.ago }
+
+      it 'correctly returns the enrollment fields' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        enrollments = result.dig('data', 'ceCandidate', 'enrollments', 'nodes')
+        expect(enrollments).to contain_exactly(
+          a_hash_including(
+            'id' => enrollment.id.to_s,
+            'projectName' => enrollment.project.project_name,
+            'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+            'householdSize' => 1,
+            'otherHouseholdMemberNames' => [],
+            'entryDate' => enrollment.entry_date.iso8601,
+            'exitDate' => nil,
+            'projectType' => 'ES_NBN',
+          ),
+          a_hash_including(
+            'id' => enrollment_with_household.id.to_s,
+            'projectName' => enrollment_with_household.project.project_name,
+            'relationshipToHoH' => 'SPOUSE_OR_PARTNER',
+            'householdSize' => 2,
+            'otherHouseholdMemberNames' => [other_hhm.brief_name],
+            'entryDate' => enrollment_with_household.entry_date.iso8601,
+            'exitDate' => nil,
+            'projectType' => 'ES_NBN',
+          ),
+          a_hash_including(
+            'id' => exited_enrollment.id.to_s,
+            'projectName' => exited_enrollment.project.project_name,
+            'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+            'householdSize' => 1,
+            'otherHouseholdMemberNames' => [],
+            'entryDate' => exited_enrollment.entry_date.iso8601,
+            'exitDate' => exited_enrollment.exit_date.iso8601,
+            'projectType' => 'ES_NBN',
+          ),
+        )
+      end
     end
 
-    context 'candidate pool with requirement that refers to a CDE' do
+    context 'with candidate pool expressions that refer to CDEs' do
       let!(:fd1) { create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
       # default form definition factory generates cded "fieldOne"
       let!(:cded_field_one) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'fieldOne', form_definition: fd1 }
 
-      let!(:assmt_fd1_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd1, assessment_date: 2.weeks.ago) }
-      let!(:assmt_fd1_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd1, assessment_date: 3.weeks.ago) }
+      let!(:assmt_fd1_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd1, assessment_date: 2.weeks.ago) }
+      let!(:assmt_fd1_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd1, assessment_date: 3.weeks.ago) }
 
       let!(:fd2) { create(:custom_assessment_with_custom_fields, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
       # custom_assessment_with_custom_fields factory generates cded "custom_question_1"
       let!(:cded_custom_question_1) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'custom_question_1', form_definition: fd2 }
 
-      let!(:assmt_fd2_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd2, assessment_date: 2.weeks.ago) }
-      let!(:assmt_fd2_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd2, assessment_date: 3.weeks.ago) }
+      let!(:assmt_fd2_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd2, assessment_date: 2.weeks.ago) }
+      let!(:assmt_fd2_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd2, assessment_date: 3.weeks.ago) }
 
       # Update the candidate pool to refer to those cdeds
       let!(:pool) { create :hmis_ce_match_candidate_pool, requirement_expression: "`cde.custom_assessment.fieldOne` = '1'", priority_expression: 'cde.custom_assessment.custom_question_1' }
       let!(:candidate) { create(:hmis_ce_match_candidate, client: client, candidate_pool: pool) }
-
-      # just test 1 enrollment for easier debugging
-      let!(:enrollment_with_household) { nil }
-      let!(:exited_enrollment) { nil }
 
       it 'returns the latest assessment per definition' do
         response, result = post_graphql(**variables) { query }
@@ -144,7 +143,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'ceCandidate', 'enrollments', 'nodesCount')).to eq(43)
+          expect(result.dig('data', 'ceCandidate', 'enrollments', 'nodesCount')).to eq(41)
         end.to make_database_queries(count: 20..30)
       end
     end

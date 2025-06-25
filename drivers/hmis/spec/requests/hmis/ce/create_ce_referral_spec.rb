@@ -52,10 +52,6 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
                 name
                 status
               }
-              sourceEnrollment {
-                id
-                projectName
-              }
             }
           }
         }
@@ -111,10 +107,6 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
           expect do
             response, result = post_graphql(**variables) { mutation }
             expect(response.status).to eq(200), result.inspect
-
-            referral_data = result.dig('data', 'createCeReferral', 'referral')
-
-            expect(referral_data.dig('sourceEnrollment', 'id')).to eq(enrollment.id.to_s)
           end.to change(Hmis::Ce::Referral, :count).by(1)
 
           referral = Hmis::Ce::Referral.last

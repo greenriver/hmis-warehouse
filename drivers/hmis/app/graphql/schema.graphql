@@ -908,7 +908,6 @@ type CeReferral {
   id: ID!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
-  sourceEnrollment: CeReferralSourceEnrollment
   status: CeReferralStatus!
   steps: [CeReferralStep!]!
   swimlanes: [CeReferralSwimlane!]!
