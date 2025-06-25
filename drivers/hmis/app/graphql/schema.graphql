@@ -378,9 +378,9 @@ enum AssessmentLevel {
 }
 
 type AssessmentNameWithDate {
-  assessmentName: String!
   date: ISO8601Date!
   id: ID!
+  name: String!
 }
 
 """

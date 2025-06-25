@@ -11,12 +11,12 @@ module Types
     # object is an OpenStruct with the following shape:
     # {
     #   id: ID,
-    #   assessment_name: String,
+    #   name: String,
     #   date: GraphQL::Types::ISO8601Date,
     # }
 
     field :id, ID, null: false
-    field :assessment_name, String, null: false
+    field :name, String, null: false
     field :date, GraphQL::Types::ISO8601Date, null: false
   end
 end

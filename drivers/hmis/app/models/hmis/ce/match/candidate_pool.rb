@@ -9,10 +9,13 @@ module Hmis::Ce::Match
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
 
     def relevant_form_definition_identifiers
-      # expressions = [requirement_expression, priority_expression]
-      # todo @martha - use expressions to get cdeds
-      cdeds = Hmis::Hud::CustomDataElementDefinition.none
-      cdeds.pluck(:form_definition_identifier)
+      expressions = [requirement_expression, priority_expression]
+
+      cded_keys = expressions.map do |expression|
+        expression.scan(/cde\.custom_assessment\.([a-zA-Z0-9_-]+)/).flatten
+      end.flatten
+
+      Hmis::Hud::CustomDataElementDefinition.where(key: cded_keys).pluck(:form_definition_identifier).uniq
     end
   end
 end

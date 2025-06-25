@@ -86,22 +86,23 @@ module Types
     end
 
     def assessments
-      # Returns the most recent assessments relevant to the opportunity, grouped by form.
-      # Even though definition_identifiers could refer to any form type,
-      # we are hard-coding the assumption that only custom assessments will be used.
+      # Returns the most recent assessments relevant to the opportunity, grouped by form definition.
+      # Even though definition_identifiers could refer to any form type, we are hard-coding the assumption that only custom assessments will be used.
+      assessments = object.enrollment.custom_assessments.not_in_progress.
+        joins(:definition).where(definition: { identifier: object.definition_identifiers })
 
-      # todo @martha - we want the most recent per type, but I'm stuck. resolve this in memory maybe
-      object.enrollment.custom_assessments.not_in_progress.
-        joins(:definition).
-        where(definition: { identifier: object.definition_identifiers }).
-        order(:date_updated).
-        map do |assessment|
-          OpenStruct.new(
-            id: assessment.id,
-            assessment_name: assessment.definition.title,
-            date: assessment.assessment_date,
-          )
-        end
+      # We don't expect there to be a lot, so calculate in-memory the latest assessment per definition
+      latest_assessments = assessments.group_by(&:definition).map do |_, group|
+        group.max_by { |assessment| [assessment.assessment_date, assessment.id] }
+      end
+
+      latest_assessments.map do |assessment|
+        OpenStruct.new(
+          id: assessment.id,
+          name: assessment.definition.title,
+          date: assessment.assessment_date,
+        )
+      end
     end
 
     private

@@ -20,7 +20,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
   let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client, entry_date: 1.year.ago, exit_date: 6.weeks.ago }
-  # todo @martha - test assessment
 
   let!(:candidate) { create(:hmis_ce_match_candidate, client: client) }
 
@@ -44,6 +43,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodesCount
               nodes {
                 #{scalar_fields(Types::HmisSchema::CeReferralSourceEnrollment)}
+                assessments {
+                  id
+                  name
+                  date
+                }
               }
             }
           }
@@ -93,6 +97,40 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'projectType' => 'ES_NBN',
         ),
       )
+    end
+
+    context 'candidate pool with requirement that refers to a CDE' do
+      let!(:fd1) { create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
+      # default form definition factory generates cded "fieldOne"
+      let!(:cded_field_one) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'fieldOne', form_definition: fd1 }
+
+      let!(:assmt_fd1_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd1, assessment_date: 2.weeks.ago) }
+      let!(:assmt_fd1_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd1, assessment_date: 3.weeks.ago) }
+
+      let!(:fd2) { create(:custom_assessment_with_custom_fields, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
+      # custom_assessment_with_custom_fields factory generates cded "custom_question_1"
+      let!(:cded_custom_question_1) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'custom_question_1', form_definition: fd2 }
+
+      let!(:assmt_fd2_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd2, assessment_date: 2.weeks.ago) }
+      let!(:assmt_fd2_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: solo_enrollment, definition: fd2, assessment_date: 3.weeks.ago) }
+
+      # Update the candidate pool to refer to those cdeds
+      let!(:pool) { create :hmis_ce_match_candidate_pool, requirement_expression: "`cde.custom_assessment.fieldOne` = '1'", priority_expression: 'cde.custom_assessment.custom_question_1' }
+      let!(:candidate) { create(:hmis_ce_match_candidate, client: client, candidate_pool: pool) }
+
+      # just test 1 enrollment for easier debugging
+      let!(:enrollment_with_household) { nil }
+      let!(:exited_enrollment) { nil }
+
+      it 'returns the latest assessment per definition' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        enrollments = result.dig('data', 'ceCandidate', 'enrollments', 'nodes')
+        expect(enrollments.sole['assessments']).to contain_exactly(
+          { 'id' => assmt_fd1_new.id.to_s, 'name' => fd1.title, 'date' => assmt_fd1_new.assessment_date.iso8601 },
+          { 'id' => assmt_fd2_new.id.to_s, 'name' => fd2.title, 'date' => assmt_fd2_new.assessment_date.iso8601 },
+        )
+      end
     end
 
     context 'with many enrollments' do
