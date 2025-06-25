@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # warm cache from db translations
 class BuildTranslationCacheJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)

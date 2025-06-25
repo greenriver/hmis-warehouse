@@ -55,7 +55,7 @@ module Types
       graph.
         # Stop the search when the node doesn't exist yet and is conditional. We don't want to return this node, or any of its children, if it won't definitely happen.
         walk(stop_when: ->(node) { steps_by_node_id[node.id].nil? && node.conditional_inflows? }).
-        filter(&:task?).
+        filter(&:user_task?).
         map do |node|
         next steps_by_node_id[node.id] if steps_by_node_id[node.id] # task instance already exists
 

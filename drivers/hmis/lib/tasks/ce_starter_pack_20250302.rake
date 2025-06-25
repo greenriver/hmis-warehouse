@@ -36,7 +36,7 @@ def create_event(klass, template, name, event, message)
 end
 
 def create_task(definition, template, name, swimlane)
-  task = Hmis::WorkflowDefinition::Task.find_or_initialize_by(
+  task = Hmis::WorkflowDefinition::UserTask.find_or_initialize_by(
     form_definition_identifier: definition.identifier,
     template_id: template.id,
   )

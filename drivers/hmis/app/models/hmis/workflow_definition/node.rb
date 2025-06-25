@@ -13,12 +13,14 @@ module Hmis::WorkflowDefinition
     scope :entrypoints, -> { where(type: 'Hmis::WorkflowDefinition::StartEvent') }
     scope :endpoints, -> { where(type: 'Hmis::WorkflowDefinition::EndEvent') }
     scope :gateways, -> { where(type: 'Hmis::WorkflowDefinition::Gateway') }
-    scope :tasks, -> { where(type: 'Hmis::WorkflowDefinition::Task') }
+    scope :user_tasks, -> { where(type: 'Hmis::WorkflowDefinition::UserTask') }
+    scope :script_tasks, -> { where(type: 'Hmis::WorkflowDefinition::ScriptTask') }
 
     # helpers to avoid node.is_a?(WidgetType)
     def entrypoint? = false
     def endpoint? = false
-    def task? = false
+    def user_task? = false
+    def script_task? = false
     def gateway? = false
     def join_inflows? = false
     def exclusive_outflows? = false

@@ -22,6 +22,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
 
     @project_group = FactoryBot.create :project_group, name: 'P Group', options: ::Filters::HudFilterBase.new(user_id: ExportHelper2026.user.id).update(project_ids: ExportHelper2026.projects.first(3).map(&:id)).to_h, projects: ExportHelper2026.projects.first(3)
     @involved_project_ids = @project_group.project_ids
+
     @exporter = HmisCsvTwentyTwentySix::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
