@@ -35,9 +35,7 @@ module Hmis::Ce::Match
             GrdaWarehouse::Hud::Client.days_homeless(client_id: c.id)
           end,
         },
-        aha_score: {
-          instance_value: ->(_) { 20 }, # TODO(#7164) this is just a mocked value to see how things look on the Opportunity page
-        },
+        # Add support for more client fields here...
       }
     end
 
