@@ -2,13 +2,14 @@
 = content_for(:title, title)
 = render 'breadcrumbs'
 
+
+%h1= title
+- if @project_group.used_for_cas_sync?
+  .alert.alert-warning
+    %p
+      This project group is used for syncing clients to CAS. Changes made here will affect who is synced to CAS.
 .row
   .col-sm-6
-    %h1= title
-    - if @project_group.used_for_cas_sync?
-      .alert.alert-warning
-        %p
-          This project group is used for syncing clients to CAS. Changes made here will affect who is synced to CAS.
     = simple_form_for @project_group, as: :filters, url: project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
@@ -22,58 +23,54 @@
             This project group cannot be deleted, it is used to populate a cohort, or in determining CAS availability.
         = f.button :submit, class: 'btn btn-primary ml-auto', value: 'Save Project Group'
 
-  .col-sm-6.pt-2
-    - if @project_group.projects.exists?
+  .col-sm-6
+    - count = @project_group.projects.count
+    - if count.positive?
       %h3 Summary
       .well
-        %dl
-          %dt
-            PIT Count
-            %i.icon-info{data: { toggle: :tooltip, title: 'The sum of all PITCount columuns as reported from HMIS for all projects included.' }}
-          %dd.mb-4= @project_group.projects.map(&:PITCount).compact.sum
-          %dt Project Count
-          %dd.mb-4= @project_group.projects.count
-          %dt Projects
-          %dd
-            - @project_group.projects.map(&:ProjectName).sort.each do |name|
-              = name
-              %br
+        %h3.mb-4= "Included Projects (#{count})"
+        - if count.positive?
+          - @project_group.projects.preload(:organization).map { |p| p.organization_and_name(current_user) }.sort.each do |name|
+            = name
+            %br
+        - else
+          There are no projects in this group.
 
-- if @project_group.any_contacts?
-  .mt-6
-    %h3 Contacts
-    %p Contacts are inherited from included projects.
-    .card
-      %table.table.table-striped
-        %thead
-          %tr
-            %th Name
-            %th Email
-        %tbody
-          - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
-            %tr
-              %td
-                = name
-              %td
-                = email
-.mt-6
-  - if @reports&.any?
-    %h3 Project Data Quality Reports
-    .table-responsive
-      %table.table.table-striped
-        %thead
-          %tr
-            %th Date Range
-            %th Run On
-            %th Completed On
-        %tbody
-          - @reports.each do |report|
-            %tr
-              %td
-                = link_to report.status, project_group_data_quality_report_path(project_group_id: @project_group.id, id: report.id)
-              %td
-                = report.started_at
-              %td
-                = report.completed_at
-  - else
-    .none-found No reports on file
+    - if @project_group.any_contacts?
+      .mt-6
+        %h3 Contacts
+        %p Contacts are inherited from included projects.
+        .card
+          %table.table.table-striped
+            %thead
+              %tr
+                %th Name
+                %th Email
+            %tbody
+              - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
+                %tr
+                  %td
+                    = name
+                  %td
+                    = email
+    .mt-6
+      - if @reports&.any?
+        %h3 Project Data Quality Reports
+        .table-responsive
+          %table.table.table-striped
+            %thead
+              %tr
+                %th Date Range
+                %th Run On
+                %th Completed On
+            %tbody
+              - @reports.each do |report|
+                %tr
+                  %td
+                    = link_to report.status, project_group_data_quality_report_path(project_group_id: @project_group.id, id: report.id)
+                  %td
+                    = report.started_at
+                  %td
+                    = report.completed_at
+      - else
+        .none-found No reports on file
