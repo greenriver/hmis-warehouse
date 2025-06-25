@@ -158,6 +158,7 @@ module GrdaWarehouse
     end
 
     def filter
+      # NOTE: not memoized as memoization breaks tests, also this is not an expensive operation
       @filter = begin
         f = ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
         f.coc_codes = []

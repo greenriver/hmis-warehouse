@@ -176,7 +176,7 @@ module Filters
       vispdat_limit = filters.dig(:limit_to_vispdat)&.to_sym
       self.limit_to_vispdat = vispdat_limit if vispdat_limit.present? && available_vispdat_limits.values.include?(vispdat_limit)
       self.ph = filters.dig(:ph).in?(['1', 'true', true]) unless filters.dig(:ph).nil?
-      self.times_homeless_in_last_three_years = normalize_input_array(filters[:times_homeless_in_last_three_years]) unless filters
+      self.times_homeless_in_last_three_years = normalize_input_array(filters[:times_homeless_in_last_three_years]) unless filters.dig(:times_homeless_in_last_three_years).nil?
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
