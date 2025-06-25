@@ -139,9 +139,9 @@ module Types
       enrollment = load_ar_association(object, :source_enrollment)
       return nil if enrollment.nil?
 
-      OpenStruct.new(
-        enrollment: enrollment,
-      )
+      # In this case, don't return the associated assessment dates (unlike when querying a Candidate), since the referral already exists.
+      # If the user has permission to view the relevant assessment details, they will resolve them separately.
+      OpenStruct.new(enrollment: enrollment)
     end
 
     def target_enrollment

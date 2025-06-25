@@ -560,6 +560,20 @@ module Types
       Hmis::Ce::Opportunity.viewable_by(current_user).find_by(id: id)
     end
 
+    field :ce_candidate, HmisSchema::CeCandidate, null: true do
+      argument :id, ID, required: true
+    end
+
+    def ce_candidate(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      # Candidates aren't tied to a specific project, so check if the user can_view_prioritized_client_lists in any project.
+      # The client name and details will be obfuscated unless they have permission.
+      access_denied! unless current_user.can_view_prioritized_client_lists?
+
+      Hmis::Ce::Match::Candidate.find_by(id: id)
+    end
+
     field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
       argument :id, ID, required: true
     end

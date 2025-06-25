@@ -377,6 +377,12 @@ enum AssessmentLevel {
   INVALID
 }
 
+type AssessmentNameWithDate {
+  assessmentName: String!
+  date: ISO8601Date!
+  id: ID!
+}
+
 """
 Form Roles that are used for assessments. These types of forms are submitted using SubmitAssessment.
 """
@@ -724,6 +730,7 @@ type CeCandidate {
   """
   client: Client
   clientId: ID!
+  enrollments(limit: Int, offset: Int): CeReferralSourceEnrollmentsPaginated!
   id: ID!
   priorityScore: Int!
 }
@@ -974,6 +981,7 @@ input CeReferralParticipantInput {
 }
 
 type CeReferralSourceEnrollment {
+  assessments: [AssessmentNameWithDate!]!
   autoExited: Boolean!
   entryDate: ISO8601Date!
   exitDate: ISO8601Date
@@ -982,6 +990,7 @@ type CeReferralSourceEnrollment {
   inProgress: Boolean!
   otherHouseholdMemberNames: [String!]!
   projectName: String!
+  projectType: ProjectType!
   relationshipToHoH: RelationshipToHoH!
 }
 
@@ -9613,6 +9622,7 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  ceCandidate(id: ID!): CeCandidate
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
