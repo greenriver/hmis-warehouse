@@ -127,9 +127,14 @@ module CeWorkflowBuilder
     form_def
   end
 
+  # This method builds the QA housing workflow version 1, which is a referral workflow for housing opportunities.
+  # Future improvements:
+  # - Generate Custom Data Element Definitions (CDEDs) for the form fields, for reporting. Update field keys as appropriate.
+  # - Refine forms and workflow
+  # - Clean up decline reasons, they are copy-pasted across forms
   def self.build_housing_workflow_v1(data_source)
     identifier = 'housing_workflow_v1'
-    template_name = 'Housing Referral Workflow'
+    template_name = 'Housing Referral Workflow V1'
     delete_template_and_associated_data(identifier)
 
     # form identifiers
@@ -205,6 +210,7 @@ module CeWorkflowBuilder
             { "code": 'Vacancy no longer available' },
           ],
           "mapping": { "custom_field_key": 'ac_workflow_v1_admin_decline_reason' },
+          "enable_behavior": 'ALL',
           "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
         },
       ],
@@ -259,6 +265,7 @@ module CeWorkflowBuilder
             "type": 'CHOICE',
             "link_id": 'denial_reason',
             "required": true,
+            "component": 'RADIO_BUTTONS',
             "pick_list_options": [
               { "code": 'HMIS user error' },
               { "code": 'Inability to complete intake' },
@@ -269,7 +276,16 @@ module CeWorkflowBuilder
               { "code": 'Enrolled, but declined HMIS data entry' },
             ],
             "mapping": { "custom_field_key": 'ac_workflow_v1_provider_denial_reason' },
+            "enable_behavior": 'ALL',
             "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
+          },
+          {
+            "text": 'The client will be enrolled in the project when this form is submitted.',
+            "type": 'DISPLAY',
+            "component": 'ALERT_INFO',
+            "link_id": 'enroll_message',
+            "enable_behavior": 'ALL',
+            "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '1' }],
           },
         ],
       },
@@ -322,6 +338,7 @@ module CeWorkflowBuilder
               { "code": 'Client should be eligible' },
             ],
             "mapping": { "custom_field_key": 'ac_workflow_v1_denial_review_reason' },
+            "enable_behavior": 'ALL',
             "enable_when": [{ "question": 'denial_review_decision', "operator": 'EQUAL', "answer_code": '0' }],
           },
         ],
@@ -329,7 +346,60 @@ module CeWorkflowBuilder
     )
     create_step_form(
       identifier: confirm_success_task_form_identifier,
-      definition: ce_staff_shared_form,
+      definition: {
+        "item": [
+          {
+            "text": 'Date',
+            "type": 'DATE',
+            "link_id": 'date',
+            "required": true,
+            "mapping": { "custom_field_key": 'ce_generic_date' },
+          },
+          {
+            "text": 'Notes',
+            "type": 'TEXT',
+            "link_id": 'notes',
+            "required": false,
+            "mapping": { "custom_field_key": 'ce_generic_notes' },
+          },
+          {
+            "text": 'Decision',
+            "type": 'CHOICE',
+            "link_id": 'move_forward',
+            "required": true,
+            "component": 'RADIO_BUTTONS',
+            "pick_list_options": [
+              {
+                "code": '1',
+                "label": 'Confirm - Individual or Household Successfully Enrolled',
+              },
+              {
+                "code": '0',
+                "label": 'Decline Referral',
+              },
+            ],
+            "mapping": { "custom_field_key": 'ce_generic_move_forward' },
+          },
+          {
+            "text": 'Decline Reason',
+            "type": 'CHOICE',
+            "link_id": 'admin_decline_reason',
+            "required": true,
+            "pick_list_options": [
+              { "code": 'HMIS user error' },
+              { "code": 'Client needs to be reassessed' },
+              { "code": 'Does not meet eligibility criteria' },
+              { "code": 'No longer interested in this program' },
+              { "code": 'No longer experiencing homelessness' },
+              { "code": 'Vacancy no longer available' },
+            ],
+            "component": 'RADIO_BUTTONS',
+            "mapping": { "custom_field_key": 'ac_workflow_v1_admin_decline_reason_2' },
+            "enable_behavior": 'ALL',
+            "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
+          },
+        ],
+      },
     )
 
     initial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
