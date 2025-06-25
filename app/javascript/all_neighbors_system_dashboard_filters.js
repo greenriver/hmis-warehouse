@@ -45,7 +45,9 @@ class AllNeighborsSystemDashboardFilters {
       if (filter.type === 'select' || filter.type === 'year') {
         this.state[filter.name] = this.filters[filter.name].val()
       }
+
       if (filter.type === 'dateRange') {
+        // NOTE: this brings in the datepicker library via CDN
         let startDp = this.filters[filter.name].start.datepicker('getDate')
         startDp = new Date(startDp.getFullYear(), startDp.getMonth(), 1);
         let endDp = this.filters[filter.name].end.datepicker('getDate')

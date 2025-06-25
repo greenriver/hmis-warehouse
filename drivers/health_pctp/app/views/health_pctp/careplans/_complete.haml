@@ -52,7 +52,9 @@
         if($(e.target).is(':checked')) {
           signature_date = $('#health_pctp_careplan_patient_signed_on')
           if(signature_date.val() == '') {
-            $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            signature_date.val(formattedDate);
           }
         };
       });

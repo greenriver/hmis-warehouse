@@ -30820,7 +30820,10 @@ CREATE TABLE public.system_maintenance_task_runs (
     id bigint NOT NULL,
     system_maintenance_task_id bigint,
     started_at timestamp(6) without time zone NOT NULL,
-    completed_at timestamp(6) without time zone
+    completed_at timestamp(6) without time zone,
+    memory_allocated integer,
+    memory_retained integer,
+    allocation_count integer
 );
 
 
@@ -74115,6 +74118,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250623193057'),
 ('20250619125706'),
 ('20250612192906'),
 ('20250612153642'),

@@ -7,7 +7,7 @@ FactoryBot.define do
     end
 
     association(:instance, factory: :hmis_workflow_execution_instance)
-    association(:node, factory: :hmis_workflow_definition_task)
+    association(:node, factory: :hmis_workflow_definition_user_task)
 
     status { 'available' }
     available_at { Time.current }

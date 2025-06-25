@@ -14,7 +14,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
   let!(:accept) { create(:hmis_workflow_definition_end_event, template: template, name: 'Client Accepted') }
   let!(:reject) { create(:hmis_workflow_definition_end_event, template: template, name: 'Client Rejected') }
   let!(:step_def) { create(:ce_referral_step_form_definition) }
-  let!(:task) { create(:hmis_workflow_definition_task, template: template, name: 'Client Acceptance', form_definition: step_def) }
+  let!(:task) { create(:hmis_workflow_definition_user_task, template: template, name: 'Client Acceptance', form_definition: step_def) }
   let!(:gateway) { create(:hmis_workflow_definition_gateway, template: template, name: 'Gateway') }
 
   # Basic valid workflow. The rest of the tests modify it to be invalid in different ways
@@ -61,7 +61,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
   end
 
   describe 'Workflow with start event that has an inflow' do
-    let!(:invalid_task) { create(:hmis_workflow_definition_task, template: template, name: 'Invalid Task') }
+    let!(:invalid_task) { create(:hmis_workflow_definition_user_task, template: template, name: 'Invalid Task') }
 
     before do
       invalid_task.connect_to!(start)
@@ -109,7 +109,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
   end
 
   describe 'Workflow with end event that has outflows' do
-    let!(:invalid_task) { create(:hmis_workflow_definition_task, template: template, name: 'Invalid Task') }
+    let!(:invalid_task) { create(:hmis_workflow_definition_user_task, template: template, name: 'Invalid Task') }
 
     before do
       accept.connect_to!(invalid_task)
@@ -123,7 +123,7 @@ RSpec.describe Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator, 
   end
 
   describe 'Workflow with unreachable node' do
-    let!(:unreachable) { create(:hmis_workflow_definition_task, template: template, name: 'Unreachable') }
+    let!(:unreachable) { create(:hmis_workflow_definition_user_task, template: template, name: 'Unreachable') }
 
     it 'is not valid' do
       template.validate
