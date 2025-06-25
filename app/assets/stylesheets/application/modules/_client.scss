@@ -46,8 +46,13 @@
   font-size: 0.8rem;
 }
 
-#client__calendar-datepicker__dropdown .datepicker-inline {
-  width: auto;
+#client__calendar-datepicker__dropdown {
+  padding: 0;
+}
+
+#client__calendar-datepicker__dropdown .tempus-dominus-widget.inline {
+  display: block !important;
+  min-width: 250px;
 }
 
 .client__calendar-date {

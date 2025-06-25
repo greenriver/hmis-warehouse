@@ -251,6 +251,8 @@ gem 'hashdiff'
 # https://github.com/k8s-ruby/k8s-ruby/pull/57
 gem 'k8s-ruby', github: 'k8s-ruby/k8s-ruby', branch: 'master'
 
+gem 'memory_profiler', require: false
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -280,7 +282,7 @@ group :development do
   gem 'list_matcher', require: false # for the forms:desmush rake task
 
   gem 'ruby-prof', require: false
-  gem 'memory_profiler', require: false
+
   gem 'get_process_mem', require: false
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph', require: false

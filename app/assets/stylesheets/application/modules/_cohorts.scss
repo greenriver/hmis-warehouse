@@ -115,3 +115,16 @@ li.draggable-list__item {
 .cohorts .warning {
   color: var(--bs-warning);
 }
+
+// ag-grid's filter input inherits a flex: 1 0 0% from bootstrap's .form-control
+// which causes the input to be very short, and the icon to be overlayed over the
+// placeholder text.  This overrides that.
+.ag-text-field-input,
+.ag-text-field-input:placeholder-shown {
+  flex: 1 1 auto;
+}
+
+.ag-text-field-input {
+  padding: 0.5rem 0.25rem;
+  margin-left: 2.5rem;
+}

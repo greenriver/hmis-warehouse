@@ -16,7 +16,7 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
   let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
   let!(:provider_acceptance_task) do
     create(
-      :hmis_workflow_definition_task,
+      :hmis_workflow_definition_user_task,
       template: workflow_template,
       name: 'Provider Acceptance',
       swimlane: provider_swimlane,
