@@ -982,6 +982,7 @@ input CeReferralParticipantInput {
 type CeReferralSourceEnrollment {
   assessments: [AssessmentNameWithDate!]!
   autoExited: Boolean!
+  clientName: String!
   entryDate: ISO8601Date!
   exitDate: ISO8601Date
   householdSize: Int!

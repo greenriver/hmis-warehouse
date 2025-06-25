@@ -25,6 +25,8 @@ module Types
 
     field :id, ID, null: false
 
+    field :client_name, String, null: false
+
     field :project_name, String, null: false
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: false
 
@@ -41,6 +43,13 @@ module Types
 
     def id
       object.enrollment.id
+    end
+
+    def client_name
+      # Source enrollments could be from different data sources, so return the client name.
+      # TODO(#7591) - ensure that this works correctly
+      client = load_ar_association(object.enrollment, :client)
+      current_permission?(permission: :can_view_client_name, entity: client) ? client.brief_name : client.masked_name
     end
 
     def project_name
