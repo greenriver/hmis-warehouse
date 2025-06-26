@@ -34,7 +34,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
 
   let!(:client_acceptance_task) do
     create(
-      :hmis_workflow_definition_task,
+      :hmis_workflow_definition_user_task,
       template: template,
       name: 'Client Acceptance',
       swimlane: swimlane,

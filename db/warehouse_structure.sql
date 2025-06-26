@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -30841,7 +30841,10 @@ CREATE TABLE public.system_maintenance_task_runs (
     id bigint NOT NULL,
     system_maintenance_task_id bigint,
     started_at timestamp(6) without time zone NOT NULL,
-    completed_at timestamp(6) without time zone
+    completed_at timestamp(6) without time zone,
+    memory_allocated integer,
+    memory_retained integer,
+    allocation_count integer
 );
 
 
@@ -32274,7 +32277,8 @@ CREATE TABLE public.wfe_steps (
     submitted_values json,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    available_at timestamp(6) without time zone NOT NULL
+    available_at timestamp(6) without time zone NOT NULL,
+    updated_by_id bigint
 );
 
 
@@ -74150,6 +74154,8 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250617234921'),
+('20250623193057'),
+('20250619125706'),
 ('20250612192906'),
 ('20250612153642'),
 ('20250611163755'),
@@ -74320,4 +74326,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-

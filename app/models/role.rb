@@ -670,6 +670,12 @@ class Role < ApplicationRecord
         category: 'Cohorts',
         sub_category: 'Cohort Usage',
       },
+      can_receive_cohort_note_notifications: {
+        description: 'Can receive notifications from Client Notes and Notes in Cohorts',
+        administrative: false,
+        category: 'Cohorts',
+        sub_category: 'Cohort Usage',
+      },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',
         administrative: false,

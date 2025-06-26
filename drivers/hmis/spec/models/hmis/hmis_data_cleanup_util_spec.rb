@@ -611,7 +611,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       assessment_with_nil_values.form_processor.update!(income_benefit: income_with_nil_values)
     end
 
-    xit 'corrects total income records via form processor' do
+    it 'corrects total income records via form processor' do
       expect { HmisDataCleanup::Util.correct_total_income_records! }.to(
         [
           change { income_benefit.reload.total_monthly_income.to_i }.from(250).to(300),

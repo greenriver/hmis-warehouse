@@ -86,7 +86,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   # Includes any HMIS projects where the user has the specified permission(s)
-  # NOTE: Pass kwarg "mode: 'all'" if all permissions must be present. Default is 'any'.
+  # NOTE: Pass kwarg "mode: :all" if all permissions must be present. Default is 'any'.
   #
   # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
   scope :with_access, ->(user, *permissions, **kwargs) do

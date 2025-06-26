@@ -116,6 +116,8 @@ class Hmis::User < ApplicationRecord
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)
+    raise ArgumentError, "unknown mode #{mode.inspect}" unless mode&.in?([:all, :any])
+
     method_name = mode == :all ? :all? : :any?
     permissions.send(method_name) { |perm| yield(perm) }
   end
