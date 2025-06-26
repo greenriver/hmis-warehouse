@@ -21,9 +21,29 @@ module Admin
 
     def update
       @theme = GrdaWarehouse::Theme.where(client: ENV.fetch('CLIENT')).first
-      @theme.update(allowed_params)
-      @theme.logo.attach(allowed_params[:logo]) if allowed_params[:logo].present?
-      @theme.print_logo.attach(allowed_params[:print_logo]) if allowed_params[:print_logo].present?
+      theme_params = allowed_params
+      css_contents = theme_params[:css_file_contents]
+      update_attributes = theme_params.to_h.except(:logo, :print_logo, :careplan_logo)
+
+      if css_contents.present?
+        # Wrap css in a style tag so loofah can sanitize it as a block
+        fragment = Loofah.fragment("<style>#{css_contents}</style>")
+        sanitized_css = fragment.scrub!(:strip).to_s # Use a standard scrubber, this will convert <div> to &lt;div&gt;
+
+        begin
+          parser = CssParser::Parser.new
+          parser.load_string!(sanitized_css)
+          update_attributes[:css_file_contents] = sanitized_css
+        rescue CssParser::ParseError => e
+          @theme.assign_attributes(theme_params)
+          @theme.errors.add(:css_file_contents, "is not valid CSS. The parser reported: #{e.message}")
+          render :edit and return
+        end
+      end
+
+      @theme.update(update_attributes)
+      @theme.logo.attach(theme_params[:logo]) if theme_params[:logo].present?
+      @theme.print_logo.attach(theme_params[:print_logo]) if theme_params[:print_logo].present?
       respond_with(@theme, location: edit_admin_theme_path)
     end
 
