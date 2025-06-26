@@ -152,5 +152,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end.to make_database_queries(count: 20..30)
       end
     end
+
+    context 'user does not have can_view_prioritized_client_lists permission' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_view_prioritized_client_lists) }
+
+      it 'returns an error' do
+        expect_gql_error(post_graphql(**variables) { query }, message: 'access denied')
+      end
+    end
+
+    context 'candidate is not in this opportunitys pool' do
+      let!(:other_candidate) { create(:hmis_ce_match_candidate) }
+
+      let(:variables) do
+        {
+          opportunityId: opportunity.id,
+          candidateId: other_candidate.id,
+        }
+      end
+
+      it 'does not return' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'ceOpportunity', 'candidateLookup')).to be_nil
+      end
+    end
   end
 end
