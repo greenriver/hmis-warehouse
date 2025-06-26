@@ -23,7 +23,7 @@ module Mutations
       access_denied! unless current_user.permissions_for?(project, :can_manage_units)
 
       opportunities = Hmis::Ce::Opportunity.active.
-        where(owner_type: 'Hmis::Unit', owner_id: unit_ids).
+        where(unit_id: unit_ids).
         preload(:active_referral)
 
       raise 'Not found' unless opportunities.any?

@@ -4,13 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::DisabilityCalculations
   extend ActiveSupport::Concern
   included do
     def disability_detail_hash
       hash = {}.tap do |hashes|
-        HudUtility2024.disability_types.each do |key, title|
+        @filter.available_disabilities.each do |title, key|
           hashes["disability_#{key}"] = {
             title: "Disability #{title}",
             can_view_details: can_view_client_disability?(@filter.user, key),
@@ -84,7 +86,7 @@ module
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
       rows['*Indefinite and Impairing Disabilities'] += ['Disability', nil, 'Count', 'Percentage', nil]
-      ::HudUtility2024.disability_types.each do |id, title|
+      @filter.available_disabilities.each do |title, id|
         rows["_Disabilities_data_#{title}"] ||= []
         rows["_Disabilities_data_#{title}"] += [
           title,
@@ -122,7 +124,7 @@ module
 
     private def disability_breakdowns
       @disability_breakdowns ||= {}.tap do |disabilities|
-        ::HudUtility2024.disability_types.keys.each do |d|
+        @filter.available_disabilities.each_value do |d|
           disabilities[d] ||= Set.new
           client_disabilities.each do |id, ds|
             disabilities[d] << id if ds.include?(d)

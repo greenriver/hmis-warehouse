@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class CreateUnits < BaseMutation
     argument :input, Types::HmisSchema::UnitInput, required: true
@@ -25,12 +27,15 @@ module Mutations
       errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
       return { errors: errors.errors } if errors.any?
 
+      unit_group = project.unit_groups.find(input.unit_group_id) if input.unit_group_id.present?
+
       # Create Units
       common = { user_id: current_user.id, created_at: Time.now, updated_at: Time.now }
       units = (1..input.count).map do
         Hmis::Unit.new(
           project_id: project.id,
           unit_type_id: unit_type&.id,
+          hmis_unit_group_id: unit_group&.id, # optional
           **common,
         )
       end

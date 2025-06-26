@@ -156,6 +156,8 @@ module Filters
       self.cohort_column_matched_date = filters.dig(:cohort_column_matched_date)&.presence || cohort_column_matched_date
 
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
+      # Exclude HIV/AIDS from disabilities unless the user can view HIV/AIDS status
+      self.disabilities = disabilities.select { |id| available_disabilities.values.include?(id) } if disabilities.present?
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map(&:to_i).presence || dv_status
       self.currently_fleeing = filters.dig(:currently_fleeing)&.reject(&:blank?)&.map(&:to_i).presence || currently_fleeing
@@ -1587,7 +1589,14 @@ module Filters
     end
 
     def available_disabilities
-      HudUtility2024.disability_types.invert
+      @available_disabilities ||= {}.tap do |disabilities|
+        HudUtility2024.disability_types.each do |id, title|
+          next if id == 8 && !user.can_view_hiv_status? # HIV/AIDS
+
+          # Invert for select input
+          disabilities[title] = id
+        end
+      end
     end
 
     def available_indefinite_disabilities

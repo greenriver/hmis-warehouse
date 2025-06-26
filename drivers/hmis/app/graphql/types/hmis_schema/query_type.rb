@@ -291,11 +291,16 @@ module Types
 
     field :current_user, Application::User, null: true
 
+    field :user_dashboard, Types::Application::UserDashboard, null: false
+    def user_dashboard
+      current_user
+    end
+
     access_field do
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
-      field :can_view_my_dashboard, Boolean, null: false
+      field :can_view_my_dashboard, Boolean, null: false, deprecation_reason: 'Replaced with new UserDashboard type'
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
       field :can_view_coordinated_entry, Boolean, null: false
     end
@@ -576,6 +581,20 @@ module Types
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
+    end
+
+    field :unit_group, HmisSchema::UnitGroup, null: true do
+      argument :id, ID, required: true
+    end
+    def unit_group(id:)
+      Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :unit, HmisSchema::Unit, null: true do
+      argument :id, ID, required: true
+    end
+    def unit(id:)
+      Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
   end
 end

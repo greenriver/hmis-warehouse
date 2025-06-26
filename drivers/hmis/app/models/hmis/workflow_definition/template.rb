@@ -37,6 +37,11 @@ module Hmis::WorkflowDefinition
     scope :ce, -> { where(template_type: 'ce_referral') }
     scope :published, -> { where(status: 'published') }
 
+    scope :latest_versions, -> do
+      # Returns the most recent Template version per identifier
+      one_for_column([:version], source_arel_table: arel_table, group_on: :identifier)
+    end
+
     def graph(preloads: nil) # Caller can optionally pass additional attributes to preload, to avoid n+1s
       Hmis::WorkflowDefinition::Graph.new(nodes.preload(:outflows, *preloads))
     end
@@ -49,6 +54,17 @@ module Hmis::WorkflowDefinition
         exists?
 
       errors.add(:base, "There can only be one #{status} template for the identifier #{identifier}.")
+    end
+
+    def validate
+      # Run validations that don't run on lifecycle hooks. (See comments in WorkflowTemplateValidator)
+      Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator.new.validate(self)
+    end
+
+    def validate!
+      # Run validations that don't run on lifecycle hooks, and raise if they result in any errors.
+      validate
+      raise ActiveRecord::RecordInvalid, self if errors.any?
     end
   end
 end
