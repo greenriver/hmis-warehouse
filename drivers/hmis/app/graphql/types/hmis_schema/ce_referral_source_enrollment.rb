@@ -40,6 +40,7 @@ module Types
     field :other_household_member_names, [String], null: false
 
     field :assessments, [Types::HmisSchema::AssessmentNameWithDate], null: false
+    field :assessments, [Types::HmisSchema::AssessmentSummary], null: false
 
     def id
       object.enrollment.id
@@ -101,16 +102,8 @@ module Types
         joins(:definition).where(definition: { identifier: object.definition_identifiers })
 
       # We don't expect there to be a lot, so calculate in-memory the latest assessment per definition
-      latest_assessments = assessments.group_by(&:definition).map do |_, group|
+      assessments.group_by(&:definition).map do |_, group|
         group.max_by { |assessment| [assessment.assessment_date, assessment.id] }
-      end
-
-      latest_assessments.map do |assessment|
-        OpenStruct.new(
-          id: assessment.id,
-          name: assessment.definition.title,
-          date: assessment.assessment_date,
-        )
       end
     end
 

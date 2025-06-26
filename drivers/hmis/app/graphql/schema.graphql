@@ -377,12 +377,6 @@ enum AssessmentLevel {
   INVALID
 }
 
-type AssessmentNameWithDate {
-  date: ISO8601Date!
-  id: ID!
-  name: String!
-}
-
 """
 Form Roles that are used for assessments. These types of forms are submitted using SubmitAssessment.
 """
@@ -431,6 +425,12 @@ enum AssessmentSortOption {
   Last Updated: Most Recent First
   """
   DATE_UPDATED
+}
+
+type AssessmentSummary {
+  assessmentDate: ISO8601Date!
+  assessmentName: String!
+  id: ID!
 }
 
 """
@@ -981,7 +981,7 @@ input CeReferralParticipantInput {
 }
 
 type CeReferralSourceEnrollment {
-  assessments: [AssessmentNameWithDate!]!
+  assessments: [AssessmentSummary!]!
   autoExited: Boolean!
   clientName: String!
   entryDate: ISO8601Date!

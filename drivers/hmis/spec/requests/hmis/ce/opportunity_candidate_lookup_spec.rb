@@ -36,8 +36,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   #{scalar_fields(Types::HmisSchema::CeReferralSourceEnrollment)}
                   assessments {
                     id
-                    name
-                    date
+                    assessmentName
+                    assessmentDate
                   }
                 }
               }
@@ -131,8 +131,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         enrollments = result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodes')
         expect(enrollments.sole['assessments']).to contain_exactly(
-          { 'id' => assmt_fd1_new.id.to_s, 'name' => fd1.title, 'date' => assmt_fd1_new.assessment_date.iso8601 },
-          { 'id' => assmt_fd2_new.id.to_s, 'name' => fd2.title, 'date' => assmt_fd2_new.assessment_date.iso8601 },
+          { 'id' => assmt_fd1_new.id.to_s, 'assessmentName' => fd1.title, 'assessmentDate' => assmt_fd1_new.assessment_date.iso8601 },
+          { 'id' => assmt_fd2_new.id.to_s, 'assessmentName' => fd2.title, 'assessmentDate' => assmt_fd2_new.assessment_date.iso8601 },
         )
       end
     end
