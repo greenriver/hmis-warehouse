@@ -22,9 +22,16 @@ module Types
     def enrollments # not for batch
       form_definition_identifiers = object.candidate_pool.relevant_form_definition_identifiers
 
+      # For now, resolve all current and historical enrollments for this client (including open, exited, and wip).
+      # Resolve broad scope because candidate pool calculation takes into account all of these enrollments,
+      # so it's possible that someone is eligible based on an old exited enrollment.
+      # In the future, we may want to limit this scope (possibly based on a configuration),
+      # but ideally this scope should align with the scope of enrollments used for candidate pool membership evaluation.
       # TODO(#7671) - adjust this to fetch all enrollments from all clients
       object.client.enrollments.
-        viewable_by(current_user). # For now, filter enrollments to those viewable by the current user. Future workflows may require more access.
+        # For now, filter enrollments to those viewable by the current user.
+        # In the future we may need to update this to support resolving enrollments that are NOT viewable to the current user.
+        viewable_by(current_user).
         sort_by_option(:most_recent).
         map do |enrollment|
         OpenStruct.new(
