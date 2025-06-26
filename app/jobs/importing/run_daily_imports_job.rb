@@ -19,25 +19,21 @@ module Importing
       super
     end
 
-    def advisory_lock_key
-      'run_daily_imports_job'
+    def perform
+      with_lock do
+        @start_time = Time.current
+        settle_imports
+
+        # now run this jobs tasks
+        _perform
+        finish_processing
+      end
     end
 
-    def perform
-      # refuse to run if there's already a nightly process running
-      if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
-        msg = 'Nightly process already running EXITING!!!'
-        @notifier.ping(msg)
-        return
-      end
-      GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
-        lock_checks = 4
-        while active_imports? && lock_checks.positive?
-          sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
-          lock_checks -= 1
-        end
-        @start_time = Time.current
+    protected
 
+    def _perform
+      run_maintenance_task('Update Client ROIs') do
         # expire client consent form if past 1 year
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         @notifier.ping('Revoked expired client consent if appropriate')
@@ -46,19 +42,24 @@ module Importing
           GrdaWarehouse::HmisClient.maintain_client_consent
           @notifier.ping('Set client consent if appropriate')
         end
+      end
 
+      run_maintenance_task('Update HMIS forms') do
         update_from_hmis_forms
-        sync_with_cas
+      end
 
-        # Importers::Samba.new.run!
+      run_maintenance_task('Sync with CAS') do
+        sync_with_cas
+      end
+
+      run_maintenance_task('Identify Duplicates') do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
         GrdaWarehouse::ClientMatch.auto_process!
         @notifier.ping('Duplicates identified')
+      end
 
-        # We will need this twice
-        dest_clients = GrdaWarehouse::Hud::Client.destination.pluck(:id)
-
+      run_maintenance_task('Clean projects & clients') do
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
         # on large data operations, and any other project data cleanup
@@ -69,16 +70,19 @@ module Importing
         # bungle up the service history generation, among other things
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned')
+      end
 
+      run_maintenance_task('Generate service history and related records') do
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
         # Make sure there are no unprocessed invalidated enrollments
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
-
         @notifier.ping('Service history generated')
+
         # Fix anyone who received a new exit or entry added prior to the last year
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
+        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: destination_client_ids).run!
         @notifier.ping('Full sanity check complete')
+
         # Rebuild residential first dates
         GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
         @notifier.ping('Earliest residential services generated')
@@ -86,7 +90,7 @@ module Importing
         # Update the materialized view that we use to search by client_id and project_type
         @notifier.ping('Refreshing Service History Materialized View')
         GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
-        GrdaWarehouse::ServiceHistoryServiceMaterialized.new.double_check_materialized_view(dest_clients.sample(500))
+        GrdaWarehouse::ServiceHistoryServiceMaterialized.new.double_check_materialized_view(destination_client_ids.sample(500))
         @notifier.ping('Done Refreshing Service History Materialized View')
 
         # Maintain some summary data to speed up searches and history display and other things
@@ -94,17 +98,23 @@ module Importing
         # When we sanity check and rebuild using the per-client method, this gets correctly maintained
         @notifier.ping('Updating service history summaries')
         GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
-
         @notifier.ping('Updated service history summaries')
+      end
 
+      run_maintenance_task('Maintain name search maintenance') do
         Nickname.populate!
         @notifier.ping('Nicknames updated')
+
         UniqueName.update!
         @notifier.ping('Unique names generated')
+      end
 
+      run_maintenance_task('Import Census') do
         GrdaWarehouse::Tasks::CensusImport.new.run!
         @notifier.ping('Census imported')
+      end
 
+      run_maintenance_task('Chronically Homeless at Entry') do
         # Pre-calculate Chronically Homeless at Entry
         @notifier.ping('Pre-calculating Chronically Homeless at Entry')
         GrdaWarehouse::ChEnrollment.maintain!
@@ -128,6 +138,9 @@ module Importing
           end
           @notifier.ping('Chronically homeless calculated')
         end
+      end
+
+      run_maintenance_task('Finalize client history') do
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned (again)')
 
@@ -137,7 +150,7 @@ module Importing
         # and then re-checks itself.
         # For now we are checking all destination clients.  This should catch any old
         # entries or exits that were added or removed.
-        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: dest_clients).run!
+        GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: destination_client_ids).run!
         @notifier.ping('Sanity checked')
 
         # pre-populate the cache for data source date spans
@@ -145,7 +158,9 @@ module Importing
         # @notifier.ping('Data source date spans set')
 
         warm_cache
+      end
 
+      run_maintenance_task('Legacy reporting setup') do
         ReportingSetupJob.set(priority: 15).perform_later unless Delayed::Job.queued?('ReportingSetupJob')
 
         @notifier.ping('Rebuilding reporting tables...')
@@ -157,7 +172,9 @@ module Importing
           @notifier.ping('Updating dashboards')
           Reporting::PopulationDashboardPopulateJob.set(priority: 10).perform_later(sub_population: 'all')
         end
+      end
 
+      run_maintenance_task('System maintenance') do
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
         Health::PruneDocumentExportsJob.perform_later
@@ -171,15 +188,42 @@ module Importing
 
         create_statistical_matches
         generate_logging_info
-
-        finish_processing
       end
     end
 
-    def active_imports?
-      GrdaWarehouse::DataSource.importable.map do |ds|
-        ds.class.advisory_lock_exists?("hud_import_#{ds.id}")
-      end.include?(true)
+    def destination_client_ids
+      @destination_client_ids ||= GrdaWarehouse::Hud::Client.destination.pluck(:id)
+    end
+
+    def run_maintenance_task(name, &block)
+      instrument_as_maintenance_task(name: name) do |run|
+        block.call
+        run.complete!
+      end
+    end
+
+    def with_lock
+      lock_name = 'run_daily_imports_job'
+      did_run = false
+      GrdaWarehouse::DataSource.with_advisory_lock(lock_name, timeout_seconds: 1) do
+        yield
+        did_run = true
+      end
+      return if did_run
+
+      # refuse to run if there's already a nightly process running
+      msg = 'Nightly process already running EXITING!!!'
+      @notifier.ping(msg)
+    end
+
+    def settle_imports
+      klass = GrdaWarehouse::DataSource
+      4.times do
+        #  break if no imports are active
+        break if klass.importable.none? { |ds| klass.advisory_lock_exists?("hud_import_#{ds.id}") }
+
+        sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
+      end
     end
 
     def last_saturday_of_month(month, year)
@@ -197,6 +241,7 @@ module Importing
       # take snapshots of client enrollments
       GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
+      # FIXME - refactor the 'queue_batch' pattern to support task monitoring #7815
       @notifier.ping('Potentially queuing confidence generation')
       GrdaWarehouse::Confidence::DaysHomeless.queue_batch
       GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
