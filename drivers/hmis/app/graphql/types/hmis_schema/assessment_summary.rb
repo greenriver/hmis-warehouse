@@ -15,6 +15,8 @@ module Types
     field :id, ID, null: false
     field :assessment_name, String, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: true
 
     def assessment_name
       load_ar_association(object, :definition).title
