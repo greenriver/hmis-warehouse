@@ -55,7 +55,7 @@ module Types
       # For now, we only resolve the name if the client is in the user's current data source. (Restricted by the permission check.)
       # In the future, we plan to add more nuanced permission checking against different data sources.
       client = load_ar_association(object.enrollment, :client)
-      can_view_name = current_permission?(permission: :can_view_client, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+      can_view_name = current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
       can_view_name ? client.brief_name : client.masked_name
     end
 
