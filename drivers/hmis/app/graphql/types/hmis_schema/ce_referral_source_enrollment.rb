@@ -10,7 +10,7 @@ module Types
   class HmisSchema::CeReferralSourceEnrollment < Types::BaseObject
     # object is an OpenStruct with the following shape:
     # {
-    #   enrollment: Hmis::Hud::Enrollment,
+    #   enrollment: Hmis::Hud::Enrollment, # MAY be an enrollment in a different data source than the current user!
     #   definition_identifiers: [String],
     # }
 
@@ -64,13 +64,15 @@ module Types
     end
 
     def project_name
+      project = load_ar_association(object.enrollment, :project)
+
       return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
 
       project.project_name
     end
 
     def project_type
-      project.project_type
+      load_ar_association(object.enrollment, :project).project_type
     end
 
     def entry_date
@@ -78,11 +80,11 @@ module Types
     end
 
     def exit_date
-      exit&.exit_date
+      load_ar_association(object.enrollment, :exit)&.exit_date
     end
 
     def auto_exited
-      exit&.auto_exited || false
+      load_ar_association(object.enrollment, :exit)&.auto_exited || false
     end
 
     def in_progress
@@ -94,12 +96,17 @@ module Types
     end
 
     def household_size
+      household = load_ar_association(object.enrollment, :household)
+      household_members = load_ar_association(household, :enrollments)
       household_members.map(&:personal_id).uniq.size
     end
 
     def other_household_member_names
       # Only resolve household member names if this user has permission to view full enrollment details.
       return [] unless can_view_enrollment_details
+
+      household = load_ar_association(object.enrollment, :household)
+      household_members = load_ar_association(household, :enrollments)
 
       household_members.filter do |enrollment|
         enrollment.id != object.enrollment.id
@@ -121,19 +128,6 @@ module Types
     end
 
     private
-
-    def household_members
-      household = load_ar_association(object.enrollment, :household)
-      @household_members ||= load_ar_association(household, :enrollments)
-    end
-
-    def exit
-      @exit ||= load_ar_association(object.enrollment, :exit)
-    end
-
-    def project
-      @project ||= load_ar_association(object.enrollment, :project)
-    end
 
     def can_view_enrollment_details
       current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
