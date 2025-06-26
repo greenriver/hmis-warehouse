@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthComprehensiveAssessment
   class AssessmentsController < IndividualPatientController
     include AjaxModalRails::Controller
@@ -32,7 +34,7 @@ module HealthComprehensiveAssessment
       @assessment.update(ca_params)
       # Generate a completed QA if the assessment is newly completed, or the completion date was changed
       @patient.qa_factory_factory.complete_ca(@assessment) if @assessment.completed_on.present? && @assessment.completed_on != prior_completion
-      respond_with @assessment, location: client_health_careplans_path(@client)
+      respond_with @assessment, location: client_health_careplans_path(@client) unless request.xhr?
     end
 
     def show
