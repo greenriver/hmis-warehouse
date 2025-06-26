@@ -3,7 +3,6 @@
 # resolve custom data elements (CDEs)
 module Hmis::Ce::Match
   class CdeFieldMap
-
     # Possible reasons why this could this return nil:
     # * the question was left empty on the form
     # * the question was disabled by conditional logic on the form
@@ -11,9 +10,9 @@ module Hmis::Ce::Match
     def instance_value(client, field)
       cded = parse_entity_type(field)
 
-      cde_values = custom_assessment_cdes(cded, client)
-        .map { |cde| cded.read_value_from(cde) }
-        .compact_blank
+      cde_values = custom_assessment_cdes(cded, client).
+        map { |cde| cded.read_value_from(cde) }.
+        compact_blank
 
       # For multi-valued CDEs, return an array of values
       return cde_values if cded.repeats?
@@ -30,12 +29,16 @@ module Hmis::Ce::Match
 
     protected
 
+    # client is a destination client
     def custom_assessment_cdes(cded, client)
       # choose the assessment that was most recently updated
-      record = client.custom_assessments.joins(:definition).
-          where(definition: { identifier: cded.form_definition_identifier }).
-          order(:date_updated, :id).
-          last
+      Hmis::Hud::Client.arel_table
+      record = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
+        where(warehouse_clients: { destination_id: client.id }).
+        joins(:definition).
+        where(definition: { identifier: cded.form_definition_identifier }).
+        order(:date_updated, :id).
+        last
       return [] unless record
 
       record.custom_data_elements.where(data_element_definition: cded).to_a

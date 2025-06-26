@@ -6,6 +6,8 @@ require 'active_support/testing/time_helpers'
 RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   include ActiveSupport::Testing::TimeHelpers
 
+  # must exist for identify duplicates, we match on destination clients
+  let!(:destination_data_source) { create :destination_data_source }
   let(:data_source) { create(:hmis_data_source) }
   let(:fd) { create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
   let(:project) { create(:hmis_hud_project, data_source: data_source) }
@@ -22,6 +24,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   let(:priority_expression) { '0' }
 
   def generate_candidates(pool, clients)
+    # create destination clients
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     described_class.call(pool, clients)
     pool.candidates
   end
@@ -87,7 +91,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       it 'returns all candidates' do
         results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id).sort).to eq(clients.map(&:id).sort)
+        expect(results.map(&:client_id).sort).to eq(clients.map { |c| c.destination_client.id }.sort)
       end
     end
 
@@ -96,7 +100,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       it 'excludes minors from candidates' do
         results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id).sort).to eq(adult_clients.map(&:id).sort)
+        expect(results.map(&:client_id).sort).to eq(adult_clients.map { |c| c.destination_client.id }.sort)
       end
     end
 
@@ -105,7 +109,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       it 'only includes senior veterans' do
         results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_senior_veteran.id])
+        expect(results.map(&:client_id)).to eq([client_senior_veteran.destination_client.id])
       end
 
       it 'updates the candidates_generated_at timestamp' do
@@ -136,7 +140,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       it 'filters based on CDE value' do
         results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_interested_in_ph.id])
+        expect(results.map(&:client_id)).to eq([client_interested_in_ph.destination_client.id])
       end
     end
   end
@@ -160,7 +164,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       it 'matches clients with the specified language among multiple values' do
         results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_english_spanish.id])
+        expect(results.map(&:client_id)).to eq([client_english_spanish.destination_client.id])
       end
     end
 
@@ -169,7 +173,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       it 'excludes clients who have the specified language' do
         results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_english_spanish.id])
+        expect(results.map(&:client_id)).to eq([client_english_spanish.destination_client.id])
       end
     end
   end
