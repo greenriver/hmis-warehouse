@@ -2,9 +2,9 @@
 
 $color-key-swatch-size: 20px;
 $swatch-colors: (
-  positive: $table-cell-bg-positive,
-  warning: $table-cell-bg-warning,
-  danger: $table-cell-bg-danger,
+  positive: rgba(var(--bs-success-rgb), 0.1),
+  warning: rgba(var(--bs-warning-rgb), 0.1),
+  danger: rgba(var(--bs-danger-rgb), 0.1),
 );
 
 .c-color-key {
@@ -20,9 +20,10 @@ $swatch-colors: (
 .c-color-key__swatch {
   height: $color-key-swatch-size;
   width: $color-key-swatch-size;
-  background: $table-cell-bg-positive;
+  background: rgba(var(--bs-success-rgb), 0.1);
   margin-right: space(2);
-  border: 1px solid $table-border-color;
+  border: 1px solid var(--table-border-color);
+
   @each $name, $color in $swatch-colors {
     &--#{$name} {
       background-color: $color;

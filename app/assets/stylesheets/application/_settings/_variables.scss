@@ -75,9 +75,9 @@ $font-weights: (
   bold : 700,
 );
 
-$input-bg: $white !default;
+$input-bg: var(--white, white) !default;
 $input-disabled: #eeeeee !default;
-$input-disabled-bg: $gray-025 !default;
+$input-disabled-bg: var(--gray-025, rgb(242, 242, 242)) !default;
 
 
 // Cards

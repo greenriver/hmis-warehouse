@@ -5,7 +5,7 @@
 }
 
 .o-header--page {
-  background-color: var(--cob-sg-charles-blue);
+  background-color: var(--theme-background);
   height: $header-height;
   display: flex;
   align-items: stretch;
@@ -114,7 +114,7 @@ $nav-btn-states: (
 
   &[aria-expanded=true] {
     background: $white;
-    color: var(--cob-sg-charles-blue);
+    color: var(--theme-background);
   }
 }
 
@@ -157,13 +157,13 @@ $nav-btn-states: (
 }
 
 .o-header--page__title a {
-  color: var(--cob-sg-charles-blue);
+  color: var(--theme-background);
 }
 
 .o-header--page__title a:hover,
 .o-header--page__title a:focus {
   text-decoration: none;
-  color: var(--cob-sg-charles-blue-lighter);
+  color: var(--theme-background-lighter);
 }
 
 .o-header--page__sub-title {
@@ -253,7 +253,7 @@ $nav-btn-states: (
 .user-state {
   width: 60px;
   height: 59px;
-  background-color: var(--cob-sg-charles-blue);
+  background-color: var(--theme-background);
   float: right;
   padding-top: 8px;
 }

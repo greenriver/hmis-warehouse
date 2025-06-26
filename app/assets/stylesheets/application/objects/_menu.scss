@@ -17,7 +17,7 @@
 
 /* Site Menu */
 .site-menu {
-  background-color: var(--cob-sg-charles-blue);
+  background-color: var(--theme-background);
 }
 
 .site-menu.nav>.nav-item {
@@ -112,11 +112,11 @@
   max-width: $nav-side-width;
   flex: 0 0 $nav-side-width;
   align-self: stretch;
-  background-color: var(--cob-sg-charles-blue);
+  background-color: var(--theme-background);
   overflow: auto;
   padding: space(6) space(4) space(4);
-  border-top: 2px solid var(--cob-sg-charles-blue-darker-2);
-  border-bottom: 2px solid var(--cob-sg-charles-blue-darker-2);
+  border-top: 2px solid var(--theme-background-darker-2);
+  border-bottom: 2px solid var(--theme-background-darker-2);
   ;
 
   &.on-canvas {
@@ -126,7 +126,7 @@
 }
 
 .o-menu .js-back-to-top {
-  background: rgba(var(--cob-sg-charles-blue-rgb), .8);
+  background: rgba(var(--theme-background-rgb), .8);
   padding: 2em;
   width: $nav-side-width;
   position: fixed;

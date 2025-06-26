@@ -1,4 +1,4 @@
-// colors
+// // colors
 $light-body-text: lighten(#404040, 40%) !default;
 
 $white: rgba(255, 255, 255, 1) !default;
@@ -22,51 +22,13 @@ $gray: lighten($gray-base, 33.5%) !default; // #555
 $gray-light: lighten($gray-base, 46.7%) !default; // #777
 $gray-lighter: lighten($gray-base, 93.5%) !default; // #eee
 
-// THEME COLORS (primary, success, etc.) are now defined as CSS variables
-// in the main application layout. The $brand-* and related Sass variables
-// have been removed from this file.
-$brand-secondary: #7D5226 !default;
-
-// COB-sg colors
-$cob-sg-freedom-trail-red: rgb(251, 77, 66) !default; // #FB4D42
-$cob-sg-charles-blue: rgb(9, 31, 47) !default; // #091F2F
-$cob-sg-optimistic-blue: rgb(40, 139, 238) !default; // #288BE4
-
-// supporting blues
-$cob-sg-blue-002: #061622 !default;
-$cob-sg-blue-003: #0C2639 !default;
-$cob-sg-blue-004: #45789C !default; // desaturated
-$cob-sg-blue-005: #51ACFF !default; // brightest for blue on dark bg
-$cob-sg-blue-006: #495F79 !default; // action button
-
 $link-blue: #1275D9 !default;
 
-// initial cas colors from GR
-// $cas-blue: rgb(73, 95, 121); // #495F79
-$cas-blue: $cob-sg-charles-blue !default;
-$cas-red: rgb(119, 55, 71) !default; // #773747
-$cas-green: rgb(50, 88, 71) !default; // #495F79
-$cas-red-green: rgb(231, 223, 221) !default; // #E7DFDD
-
-// additional cas colors
-$cas-blue-007: #90A4BC !default;
-
-// Data Source Colors
-$dnd: rgb(86, 114, 170) !default; // #5672AA
-$bphc: rgb(45, 118, 124) !default; // #2D767C
-$nechv: rgb(112, 76, 112) !default; // #704C70
-$ma-state: rgb(120, 115, 39) !default; // #787327
-$vi-spdat: rgb(147, 12, 0) !default;
-// next rgb(143, 78, 69); // #8F4E45
-
-// Tables
+// // Tables
 $table-bg: transparent !default;
 $table-border-color: #DDDDDD !default;
-$table-cell-bg-positive: rgba(var(--bs-success-rgb), 0.1);
-$table-cell-bg-warning: rgba(var(--bs-warning-rgb), 0.1);
-$table-cell-bg-danger: rgba(var(--bs-danger-rgb), 0.1);
 
-// Tabs
+// // Tabs
 $tab-bg: #88A6C9 !default; // Primary in HMIS
 
 // Modals
@@ -74,21 +36,8 @@ $modal-header-bg: $gray-015;
 $modal-border: $gray-025;
 $modal-content-bg: lighten($gray-015, 3%);
 
-$footer-background: $cob-sg-charles-blue;
-$footer-foreground: $white;
-
-$theme-colors: (
-  // Provide Sass with the default colors so it can compile Bootstrap.
-  // The actual theme colors will override these defaults via inline CSS variables.
-  "primary": #457687,
-  "secondary": $brand-secondary,
-  "success": #009f44,
-  "info": #d8e7ea,
-  "warning": #bc6923,
-  "danger": #bb2716,
-  "light": $white,
-  "dark": $gray-080
-);
+// $footer-background: $cob-sg-charles-blue;
+// $footer-foreground: $white;
 
 // Charts
 $map-colors: (
@@ -111,6 +60,3 @@ $chart-colors: (
   6: #D17200,
   7: #000000,
 );
-
-// Dropdowns
-$dropdown-link-hover-bg: $gray-025;

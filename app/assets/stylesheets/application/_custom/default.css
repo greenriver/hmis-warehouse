@@ -24,15 +24,18 @@
   --brand-danger-d: #df9489;
 
   /* New variable sets */
-  --cob-sg-charles-blue: #1B325D;
-  --cob-sg-charles-blue-rgb: 9, 31, 47;
-  --cob-sg-charles-blue-lighter: #1b3a57;
+  --highlight-red: rgb(119, 55, 71);
+  --highlight-red-green: rgb(231, 223, 221);
+  --theme-background: #1B325D;
+  --theme-background-rgb: 9, 31, 47;
+  --theme-background-lighter: #1b3a57;
+  --theme-foreground: white;
   --brand-primary-ll-rgb: 216, 231, 234;
-  --cas-blue-007-darker: #7c91ac;
-  --cob-sg-charles-blue-darker-2: #05141f;
-  --cob-sg-blue-006-darker: #0c56a8;
-  --cob-sg-blue-006-darker-2: #05141f;
-  --cob-sg-charles-blue-darker: #0f1c29;
+  --theme-alt-background-muted-darker: #7c91ac;
+  --theme-background-darker-2: #05141f;
+  --theme-background-highlight-darker: #0c56a8;
+  --theme-background-highlight-darker-2: #05141f;
+  --theme-background-darker: #0f1c29;
 
   /* Button Variants */
   --brand-primary-l-darker: #a1c3d1;

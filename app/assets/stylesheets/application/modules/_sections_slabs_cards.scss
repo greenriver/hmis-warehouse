@@ -62,7 +62,7 @@
 }
 
 .section-expander-block__separator {
-  border-bottom: 3px solid var(--cas-blue-007);
+  border-bottom: 3px solid var(--theme-alt-background-muted);
   margin-top: 0;
   margin-bottom: 24px;
 }
@@ -98,7 +98,7 @@
 
 .health__team-member__action a,
 .health-careplan__goal-action a {
-  color: var(--cob-sg-blue-006);
+  color: var(--theme-background-highlight);
 }
 
 .health__team-member__action a:hover,
@@ -107,7 +107,7 @@
 .health-careplan__goal-action a:hover,
 .health-careplan__goal-action a:active,
 .health-careplan__goal-action a:focus {
-  color: var(--cob-sg-blue-006-darker-2);
+  color: var(--theme-background-highlight-darker-2);
 }
 
 .panel-collapsible .panel-heading [class^="icon-"],

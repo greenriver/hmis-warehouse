@@ -34,12 +34,12 @@
   color: black;
 
   .goal-list__number {
-    background-color: var(--cas-blue-007-darker);
+    background-color: var(--theme-alt-background-muted-darker);
   }
 }
 
 .goal-list__number {
-  background-color: var(--cas-blue-007);
+  background-color: var(--theme-alt-background-muted);
   border-radius: 50%;
   line-height: 1.7;
   color: #f5f5f5;

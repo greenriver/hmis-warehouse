@@ -2,7 +2,7 @@
 
 th .fa {
   padding-left: 4px;
-  color: var(--cas-blue);
+  color: var(--theme-alt-background);
 }
 
 .info a {
@@ -24,6 +24,7 @@ a.icon-cross:link {
 .control-label.required {
   display: inline-flex;
   flex-direction: row-reverse;
+
   abbr {
     color: var(--bs-danger);
     text-decoration: none;

@@ -18,12 +18,12 @@
 }
 
 .service-type__entry {
-  background-color: var(--cas-blue);
+  background-color: var(--theme-alt-background);
   color: white;
 }
 
 .service-type__exit {
-  background-color: var(--cas-red);
+  background-color: var(--highlight-red);
   color: white;
 }
 
@@ -912,7 +912,7 @@ $client-image-height: 200px;
 .destination-sqr {
   @include tag-pill;
   color: $white;
-  background-color: var(--cob-sg-blue-002);
+  background-color: var(--brand-primary-d);
 }
 
 .confidential_project {

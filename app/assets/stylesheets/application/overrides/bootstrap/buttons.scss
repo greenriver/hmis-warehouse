@@ -77,12 +77,12 @@ input[type=submit].btn-secondary:focus,
 
 .btn-action {
   @extend .btn-secondary;
-  background-color: var(--cob-sg-blue-006);
-  border-color: var(--cob-sg-blue-006);
+  background-color: var(--theme-background-highlight);
+  border-color: var(--theme-background-highlight);
 
   &:hover {
-    background-color: var(--cob-sg-blue-006-darker);
-    border-color: var(--cob-sg-blue-006-darker);
+    background-color: var(--theme-background-highlight-darker);
+    border-color: var(--theme-background-highlight-darker);
   }
 }
 

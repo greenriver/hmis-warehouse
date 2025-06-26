@@ -1,4 +1,4 @@
-@import 'application/_settings/colors';
+@import "../helpers";
 
 .ssm__row__question {
   line-height: 1.2;
@@ -51,6 +51,7 @@
   display: flex;
   padding-top: 1em;
   padding-bottom: 0.5em;
+
   p {
     margin: 0;
   }
@@ -60,11 +61,14 @@
   margin-top: 20px;
   display: flex;
   justify-content: center;
-  > div {
+
+  >div {
     margin: 1em 3em;
+
     .ssm__row__question.ssm__row__question--scoreLabel {
       font-size: 14px;
     }
+
     .ssm__row__question.ssm__row__question--scoreValue {
       font-size: 24px;
     }

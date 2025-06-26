@@ -20,7 +20,9 @@
 
     %style{ type: 'text/css' }
       :plain
-        /* Theme CSS */
+        /* Default Theme CSS */
+        #{File.read(Rails.root.join('app/assets/stylesheets/application/_custom/default.css'))}
+        /* Theme CSS Overrides */
         #{GrdaWarehouse::Theme.css_file_contents}
 
     - # Environment-specific CSS
