@@ -806,6 +806,7 @@ type CeOpportunitiesPaginated {
 
 type CeOpportunity {
   active: Boolean!
+  candidateLookup(id: ID!): CeCandidate
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
@@ -9622,7 +9623,6 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
-  ceCandidate(id: ID!): CeCandidate
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral

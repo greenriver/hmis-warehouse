@@ -8,7 +8,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
-  let!(:candidate) { create(:hmis_ce_match_candidate, client: client) }
+
+  let!(:pool) { create :hmis_ce_match_candidate_pool }
+  let!(:opportunity) { create :hmis_ce_opportunity, data_source: ds1, candidate_pool: pool }
+  let!(:candidate) { create(:hmis_ce_match_candidate, client: client, candidate_pool: pool) }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -19,21 +22,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create_access_control(hmis_user, ds1)
   end
 
-  describe 'GetCeCandidate query' do
+  describe 'candidateLookup query' do
     let(:query) do
       <<~GRAPHQL
-        query GetCeCandidate($id: ID!) {
-          ceCandidate(id: $id) {
+        query GetOpportunityCandidate($opportunityId: ID!, $candidateId: ID!) {
+          ceOpportunity(id: $opportunityId) {
             id
-            clientId
-            enrollments {
-              nodesCount
-              nodes {
-                #{scalar_fields(Types::HmisSchema::CeReferralSourceEnrollment)}
-                assessments {
-                  id
-                  name
-                  date
+            candidateLookup(id: $candidateId) {
+              id
+              enrollments {
+                nodesCount
+                nodes {
+                  #{scalar_fields(Types::HmisSchema::CeReferralSourceEnrollment)}
+                  assessments {
+                    id
+                    name
+                    date
+                  }
                 }
               }
             }
@@ -44,7 +49,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let(:variables) do
       {
-        id: candidate.id,
+        opportunityId: opportunity.id,
+        candidateId: candidate.id,
       }
     end
 
@@ -66,7 +72,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'correctly returns the enrollment fields' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
-        enrollments = result.dig('data', 'ceCandidate', 'enrollments', 'nodes')
+        enrollments = result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodes')
         expect(enrollments).to contain_exactly(
           a_hash_including(
             'id' => enrollment.id.to_s,
@@ -119,12 +125,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       # Update the candidate pool to refer to those cdeds
       let!(:pool) { create :hmis_ce_match_candidate_pool, requirement_expression: "`cde.custom_assessment.fieldOne` = '1'", priority_expression: 'cde.custom_assessment.custom_question_1' }
-      let!(:candidate) { create(:hmis_ce_match_candidate, client: client, candidate_pool: pool) }
 
       it 'returns the latest assessment per definition' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
-        enrollments = result.dig('data', 'ceCandidate', 'enrollments', 'nodes')
+        enrollments = result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodes')
         expect(enrollments.sole['assessments']).to contain_exactly(
           { 'id' => assmt_fd1_new.id.to_s, 'name' => fd1.title, 'date' => assmt_fd1_new.assessment_date.iso8601 },
           { 'id' => assmt_fd2_new.id.to_s, 'name' => fd2.title, 'date' => assmt_fd2_new.assessment_date.iso8601 },
@@ -143,7 +148,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'ceCandidate', 'enrollments', 'nodesCount')).to eq(41)
+          expect(result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodesCount')).to eq(41)
         end.to make_database_queries(count: 20..30)
       end
     end
