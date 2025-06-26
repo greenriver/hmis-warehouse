@@ -985,7 +985,13 @@ input CeReferralParticipantInput {
 type CeReferralSourceEnrollment {
   assessments: [AssessmentSummary!]!
   autoExited: Boolean!
+
+  """
+  The name of the client on the source enrollment. Masked like "Client 123" if
+  the user does not have permission to view the client name.
+  """
   clientName: String!
+  dataSource: DataSource!
   entryDate: ISO8601Date!
   exitDate: ISO8601Date
   householdSize: Int!
@@ -995,6 +1001,11 @@ type CeReferralSourceEnrollment {
   projectName: String!
   projectType: ProjectType!
   relationshipToHoH: RelationshipToHoH!
+
+  """
+  The client id on the source enrollment, which is not necessarily in the current data source.
+  """
+  sourceClientId: ID!
 }
 
 type CeReferralSourceEnrollmentsPaginated {
@@ -2620,6 +2631,12 @@ enum DataCollectionStage {
   (2) Update
   """
   UPDATE
+}
+
+type DataSource {
+  id: ID!
+  isCurrentDataSource: Boolean!
+  name: String!
 }
 
 """

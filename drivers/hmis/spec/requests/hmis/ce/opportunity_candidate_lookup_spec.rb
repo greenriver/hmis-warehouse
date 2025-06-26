@@ -39,6 +39,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                     assessmentName
                     assessmentDate
                   }
+                  dataSource {
+                    id
+                    name
+                    isCurrentDataSource
+                  }
                 }
               }
             }
@@ -149,7 +154,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 20..30)
+        end.to make_database_queries(count: 30..35)
       end
     end
 

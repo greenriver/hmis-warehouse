@@ -25,7 +25,9 @@ module Types
 
     field :id, ID, null: false
 
-    field :client_name, String, null: false
+    field :source_client_id, ID, null: false, description: 'The client id on the source enrollment, which is not necessarily in the current data source.'
+    field :client_name, String, null: false, description: 'The name of the client on the source enrollment. Masked like "Client 123" if the user does not have permission to view the client name.'
+    field :data_source, ::Types::Application::DataSource, null: false
 
     field :project_name, String, null: false
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: false
@@ -39,11 +41,14 @@ module Types
     field :household_size, Integer, null: false
     field :other_household_member_names, [String], null: false
 
-    field :assessments, [Types::HmisSchema::AssessmentNameWithDate], null: false
     field :assessments, [Types::HmisSchema::AssessmentSummary], null: false
 
     def id
       object.enrollment.id
+    end
+
+    def source_client_id
+      load_ar_association(object.enrollment, :client).id
     end
 
     def client_name
@@ -51,6 +56,10 @@ module Types
       # TODO(#7591) - ensure that this works correctly
       client = load_ar_association(object.enrollment, :client)
       current_permission?(permission: :can_view_client_name, entity: client) ? client.brief_name : client.masked_name
+    end
+
+    def data_source
+      load_ar_association(object.enrollment, :data_source)
     end
 
     def project_name
@@ -88,6 +97,9 @@ module Types
     end
 
     def other_household_member_names
+      # Only resolve household member names if this user has permission to view full enrollment details.
+      return [] unless can_view_enrollment_details
+
       household_members.filter do |enrollment|
         enrollment.id != object.enrollment.id
       end.map do |enrollment|
@@ -120,6 +132,10 @@ module Types
 
     def project
       @project ||= load_ar_association(object.enrollment, :project)
+    end
+
+    def can_view_enrollment_details
+      current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
     end
   end
 end
