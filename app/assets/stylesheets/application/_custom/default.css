@@ -1,3 +1,9 @@
+/*
+* Note: not all Bootstrap colors are available as CSS variables.
+* See https://getbootstrap.com/docs/5.3/customize/css-variables/
+* for a list of available variables.
+*/
+
 :root {
   /* Default Bootstrap Theme Colors */
   --bs-primary: #457687;
@@ -12,6 +18,7 @@
   --bs-info-rgb: 216, 231, 234;
 
   /* Custom Color Variants */
+  --brand-primary: #457687;
   --brand-primary-l: #C3D7DF;
   --brand-primary-ll: #d8e7ea;
   --brand-primary-d: #3b6576;
@@ -53,7 +60,5 @@
   --bs-danger-desaturated: #c6cdd0;
 
   /* Component Style Overrides to match legacy theme */
-  --bs-pagination-active-bg: var(--brand-primary-d);
-  --bs-pagination-active-border-color: var(--brand-primary-d);
   --nav-tab-active-border-color: var(--brand-primary-d);
 }

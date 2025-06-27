@@ -3,3 +3,14 @@
 .o-pagination--centered {
   text-align: center;
 }
+
+.page-link.active,
+.active>.page-link {
+  background-color: var(--bs-info);
+  color: var(--brand-primary-d);
+}
+
+.page-link:hover {
+  background-color: var(--brand-primary-ll);
+  color: var(--brand-primary-d);
+}
