@@ -28,11 +28,19 @@ module Types
       # In the future, we may want to limit this scope (possibly based on a configuration),
       # but ideally this scope should align with the scope of enrollments used for candidate pool membership evaluation.
       # TODO(#7671) - adjust this to fetch all enrollments from all clients
-      object.client.enrollments.
-        # For now, filter enrollments to those viewable by the current user.
-        # In the future we may need to update this to support resolving enrollments that are NOT viewable to the current user.
-        viewable_by(current_user).
-        sort_by_option(:most_recent).
+
+      # For now, filter enrollments to those viewable by the current user.
+      # In the future we may need to update this to support resolving enrollments that are NOT viewable to the current user.
+      base_scope = object.client.enrollments.viewable_by(current_user)
+
+      # float those with a relevant assessment to the top.
+      with_assessment_ids = base_scope.joins(custom_assessments: :definition).
+        where(definition: { identifier: form_definition_identifiers }).pluck(:id).uniq
+
+      with_assessment = base_scope.where(id: with_assessment_ids).sort_by_option(:most_recent)
+      others = base_scope.where.not(id: with_assessment_ids).sort_by_option(:most_recent)
+
+      (with_assessment + others).
         map do |enrollment|
         OpenStruct.new(
           enrollment: enrollment,
