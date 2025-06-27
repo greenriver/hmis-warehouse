@@ -1007,6 +1007,11 @@ type CeReferralSourceEnrollment {
   The client id on the source enrollment, which is not necessarily in the current data source.
   """
   sourceClientId: ID!
+
+  """
+  Whether the source client on their own meets the eligibility criteria for the opportunity.
+  """
+  sourceClientMeetsEligibility: Boolean!
 }
 
 type CeReferralSourceEnrollmentAccess {

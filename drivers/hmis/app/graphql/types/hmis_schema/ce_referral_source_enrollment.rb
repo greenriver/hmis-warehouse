@@ -43,6 +43,8 @@ module Types
 
     field :assessments, [Types::HmisSchema::AssessmentSummary], null: false
 
+    field :source_client_meets_eligibility, Boolean, null: false, description: 'Whether the source client on their own meets the eligibility criteria for the opportunity.'
+
     access_field do
       field :can_view_enrollment_details, Boolean, null: false
     end
@@ -135,6 +137,12 @@ module Types
       {
         can_view_enrollment_details: can_view_enrollment_details,
       }
+    end
+
+    def source_client_meets_eligibility
+      # Stubbed for now, nice-to-have for MVP.
+      # This will require adding an additional field with information about the candidate pool to the OpenStruct underlying this Schema type.
+      true
     end
 
     private
