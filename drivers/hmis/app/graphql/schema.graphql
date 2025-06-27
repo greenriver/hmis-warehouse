@@ -430,8 +430,8 @@ enum AssessmentSortOption {
 type AssessmentSummary {
   assessmentDate: ISO8601Date!
   assessmentName: String!
-  dateCreated: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
   id: ID!
 }
 
