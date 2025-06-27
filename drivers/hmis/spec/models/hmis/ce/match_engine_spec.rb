@@ -120,6 +120,48 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         end
       end
     end
+
+    describe 'with missing demographic data' do
+      let!(:client_with_missing_dob) { create(:hmis_hud_client, veteran_status: 1, dob: nil) }
+      let!(:client_with_missing_veteran_status) { create(:hmis_hud_client, veteran_status: nil, dob: 20.years.ago) }
+
+      let(:clients_with_missing_data) do
+        Hmis::Hud::Client.where(id: all_clients.map(&:id) + [client_with_missing_dob.id, client_with_missing_veteran_status.id])
+      end
+
+      context 'when expression requires age' do
+        let(:requirement_expression) { 'current_age > 18' }
+
+        it 'excludes clients with missing DOB' do
+          results = generate_candidates(pool, clients_with_missing_data)
+
+          expected_dest_client_ids = [
+            client_adult_non_veteran.destination_client.id,
+            client_adult_veteran.destination_client.id,
+            client_senior_veteran.destination_client.id,
+            client_with_missing_veteran_status.destination_client.id,
+          ]
+
+          expect(results.map(&:client_id).sort).to eq(expected_dest_client_ids.sort)
+        end
+      end
+
+      context 'when expression requires veteran status' do
+        let(:requirement_expression) { 'veteran_status = 1' }
+
+        it 'excludes clients with missing veteran status' do
+          results = generate_candidates(pool, clients_with_missing_data)
+
+          expected_dest_client_ids = [
+            client_adult_veteran.destination_client.id,
+            client_senior_veteran.destination_client.id,
+            client_with_missing_dob.destination_client.id,
+          ]
+
+          expect(results.map(&:client_id).sort).to eq(expected_dest_client_ids.sort)
+        end
+      end
+    end
   end
 
   context 'when evaluating single-valued CDE policies' do

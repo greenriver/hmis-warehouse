@@ -32,7 +32,6 @@ module Hmis::Ce::Match
     # client is a destination client
     def custom_assessment_cdes(cded, client)
       # choose the assessment that was most recently updated
-      Hmis::Hud::Client.arel_table
       record = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
         where(warehouse_clients: { destination_id: client.id }).
         joins(:definition).
