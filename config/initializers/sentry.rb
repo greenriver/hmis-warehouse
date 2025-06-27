@@ -93,6 +93,7 @@ if sentry_dsn
         target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
         dev_user: (ENV.fetch('SENTRY_DEV_USER', '[DEV_USER not found]') if Rails.env.development?),
         cluster_type: cluster_type,
+        service: 'backend',
       }.compact,
     )
   end

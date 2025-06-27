@@ -24,9 +24,9 @@ Rails.application.config.queued_tasks[:hmis_disabling_condition_and_race_cleanup
   HmisDataCleanup::Util.fix_race_gender_99s!
 end
 
-# TodoOrDie('Remove one-time job', by: '2025-07-01')
-# if ENV['ENABLE_HMIS_API'] == 'true'
-#   Rails.application.config.queued_tasks[:hmis_correct_total_income_20250602] = -> do
-#     HmisDataCleanup::Util.correct_total_income_records!
-#   end
-# end
+TodoOrDie('Remove one-time job', by: '2025-07-01')
+if ENV['ENABLE_HMIS_API'] == 'true'
+  Rails.application.config.queued_tasks[:hmis_correct_total_income_20250602] = -> do
+    HmisDataCleanup::Util.correct_total_income_records!
+  end
+end
