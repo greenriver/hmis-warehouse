@@ -7787,6 +7787,37 @@ ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
 
 
 --
+-- Name: client_change_markers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_change_markers (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    current_version integer NOT NULL,
+    processed_version integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: client_change_markers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_change_markers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_change_markers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_change_markers_id_seq OWNED BY public.client_change_markers.id;
+
+
+--
 -- Name: client_contacts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -33547,6 +33578,13 @@ ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: client_change_markers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_change_markers ALTER COLUMN id SET DEFAULT nextval('public.client_change_markers_id_seq'::regclass);
+
+
+--
 -- Name: client_contacts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -37579,6 +37617,14 @@ ALTER TABLE ONLY public.chronics
 
 ALTER TABLE ONLY public.clh_locations
     ADD CONSTRAINT clh_locations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_change_markers client_change_markers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_change_markers
+    ADD CONSTRAINT client_change_markers_pkey PRIMARY KEY (id);
 
 
 --
@@ -61248,6 +61294,13 @@ CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_loca
 
 
 --
+-- Name: index_client_change_markers_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_change_markers_on_client_id ON public.client_change_markers USING btree (client_id);
+
+
+--
 -- Name: index_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74118,6 +74171,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250627132413'),
 ('20250623193057'),
 ('20250619125706'),
 ('20250612192906'),

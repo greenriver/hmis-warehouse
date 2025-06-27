@@ -17,6 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  let!(:destination_data_source) { create :destination_data_source }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
@@ -89,6 +90,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(e1.custom_assessments.first.created_by_hud_user).to eq(hud_user)
         expect(e1.custom_assessments.first.updated_by_hud_user).to eq(hud_user)
       end
+    end
+
+    it 'marks the client as dirty' do
+      expect do
+        perform_enqueued_jobs do
+          response, result = post_graphql(input: { input: test_input }) { mutation }
+        end
+        warehouse_client = Hmis::WarehouseClient.find_by!(source: c1)
+        destination_client = warehouse_client.destination
+        expect(response.status).to eq(200), result&.inspect
+        expect(result.dig('data', 'submitAssessment', 'errors')).to be_empty
+      end.to change { GrdaWarehouse::ClientChangeMarker.dirty.count }.by(1)
+      expect(GrdaWarehouse::ClientChangeMarker.dirty.pluck(:client_id)).to eq(c1.destination_client.id)
     end
   end
 

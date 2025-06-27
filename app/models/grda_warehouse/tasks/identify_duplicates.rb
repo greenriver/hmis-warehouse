@@ -9,6 +9,8 @@
 # frozen_string_literal: true
 
 require 'memery'
+
+# See ./README_FOR_IDENTIFY_DUPLICATES.md for documentation
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper
@@ -144,6 +146,10 @@ module GrdaWarehouse::Tasks
           new_warehouse_clients[source_id][:destination_id] = destination_id
         end
         GrdaWarehouse::WarehouseClient.import(new_warehouse_clients.values)
+
+        post_process_clients(
+          client_ids: destination_client_updates.map(&:id) + matched_ids + new_destination_ids,
+        )
         GrdaWarehouse::Hud::Client.where(id: matched_ids).find_each(&:invalidate_service_history)
       end
       # Cleanup any proposed matches that might have been affected
@@ -218,11 +224,16 @@ module GrdaWarehouse::Tasks
           end
         end
         ClientCleanupJob.set(priority: 6).perform_later(batch.flatten)
+        post_process_clients(client_ids: batch.map(&:first))
       end
       Rails.logger.info '=== Completed match_existing! ==='
       return unless @run_post_processing
 
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
+    end
+
+    private def post_process_clients(client_ids)
+      GrdaWarehouse::ClientChangeMarker.upsert_or_bump_version(client_ids: client_ids)
     end
 
     memoize private def previous_candidate_matches
