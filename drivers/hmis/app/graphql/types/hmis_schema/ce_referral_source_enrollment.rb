@@ -43,6 +43,10 @@ module Types
 
     field :assessments, [Types::HmisSchema::AssessmentSummary], null: false
 
+    access_field do
+      field :can_view_enrollment_details, Boolean, null: false
+    end
+
     def id
       object.enrollment.id
     end
@@ -125,6 +129,12 @@ module Types
       assessments.group_by(&:definition).map do |_, group|
         group.max_by { |assessment| [assessment.assessment_date, assessment.id] }
       end
+    end
+
+    def access
+      {
+        can_view_enrollment_details: can_view_enrollment_details,
+      }
     end
 
     private

@@ -983,6 +983,7 @@ input CeReferralParticipantInput {
 }
 
 type CeReferralSourceEnrollment {
+  access: CeReferralSourceEnrollmentAccess!
   assessments: [AssessmentSummary!]!
   autoExited: Boolean!
 
@@ -1006,6 +1007,11 @@ type CeReferralSourceEnrollment {
   The client id on the source enrollment, which is not necessarily in the current data source.
   """
   sourceClientId: ID!
+}
+
+type CeReferralSourceEnrollmentAccess {
+  canViewEnrollmentDetails: Boolean!
+  id: ID!
 }
 
 type CeReferralSourceEnrollmentsPaginated {
