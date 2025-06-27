@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class SelectTwoInput < CollectionSelectInput
   def input_html_classes
     super.push('stimulus-select')
@@ -24,10 +26,11 @@ class SelectTwoInput < CollectionSelectInput
       existing_classes << 'd-block'
       existing_classes << 'readonly-value'
       if value.present?
-        template.label_tag('p', value, label_html_options.merge(class: existing_classes))
+        text_tag = template.label_tag('p', value, label_html_options.merge(class: existing_classes))
       else
-        template.content_tag(:em, 'Blank', label_html_options)
+        text_tag = template.content_tag(:em, 'Blank', label_html_options)
       end
+      text_tag + @builder.hidden_field(attribute_name, disabled: true, 'data-stimulus-select-target': 'element')
     else
       options = input_html_options
       options[:data] ||= {}

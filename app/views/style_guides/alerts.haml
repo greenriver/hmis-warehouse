@@ -1,159 +1,163 @@
 = render 'breadcrumbs'
-%section.mb-6
-  %h1 Alerts
-  %article.px-2
-    %h2 Default collection with close button on right
-    .alert.alert-success.alert-dismissible.fade.show{role:'alert'}
-      Hi this needs a link
-      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
-        %span{'aria-hidden':'true'} &times;
 
-    .alert.alert-info.alert-dismissible.fade.show{role:'alert'}
-      Hi this needs a link
-      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
-        %span{'aria-hidden':'true'} &times;
+%h1 Alerts
+.row
+  .col-sm-10
+    %section.mb-6
+      %article.px-2
+        %h2 Default collection with close button on right
+        .alert.alert-success.alert-dismissible.fade.show{role:'alert'}
+          Hi this needs a link
+          %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+            %span{'aria-hidden':'true'} &times;
 
-    .alert.alert-warning.alert-dismissible.fade.show{role:'alert'}
-      Hi this needs a link
-      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
-        %span{'aria-hidden':'true'} &times;
+        .alert.alert-info.alert-dismissible.fade.show{role:'alert'}
+          Hi this needs a link
+          %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+            %span{'aria-hidden':'true'} &times;
 
-    .alert.alert-danger.alert-dismissible.fade.show{role:'alert'}
-      Hi this needs a link
-      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
-        %span{'aria-hidden':'true'} &times;
+        .alert.alert-warning.alert-dismissible.fade.show{role:'alert'}
+          Hi this needs a link
+          %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+            %span{'aria-hidden':'true'} &times;
 
-  %article.px-2
-    %h2 Alert With custom button
-    .alert.alert-success{role:'alert'}
-      Hi this needs a link
-      %button.btn.btn-default.ml-auto{type: 'button'}
-        Call to action
+        .alert.alert-danger.alert-dismissible.fade.show{role:'alert'}
+          Hi this needs a link
+          %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+            %span{'aria-hidden':'true'} &times;
 
-.mb-6
-  %h3 Checkboxes
-  .row
-    .col-sm-6
-      %p
-        Icon font
-        %br
-        = checkmark_or_x(true)
-        \-- True
-        %br
-        = checkmark_or_x(false)
-        \-- False
-        %br
-        = checkmark_or_x(true, 'With tooltip!')
-        \-- With tooltip
-        %br
-        = checkmark_or_x(false, size: :sm)
-        \-- Small
-        %br
-        = checkmark_or_x(false, size: :md)
-        \-- Medium
-        %br
-        = checkmark_or_x(false, size: :lg)
-        \-- Large
-    .col-sm-6
-      %p
-        SVG
-        %br
-        = checkmark_or_x(true, style: :svg)
-        \-- True
-        %br
-        = checkmark_or_x(false, style: :svg)
-        \-- False
-        %br
-        = checkmark_or_x(true, 'With tooltip!', style: :svg)
-        \-- With tooltip
-        %br
-        = checkmark_or_x(false, style: :svg, size: :sm)
-        \-- Small
-        %br
-        = checkmark_or_x(false, style: :svg, size: :md)
-        \-- Medium
-        %br
-        = checkmark_or_x(false, style: :svg, size: :lg)
-        \-- Large
-.mb-6
-  = render 'buttons'
+      %article.px-2
+        %h2 Alert With custom button
+        .alert.alert-success{role:'alert'}
+          Hi this needs a link
+          %button.btn.btn-default.ml-auto{type: 'button'}
+            Call to action
 
-.mb-6
-  .d-flex.mr-3.mb-5
-    .c-tag.c-tag--warning.client-flag
-      .c-tag__wrapper
-        .c-tag__icon
-          .icon-clock-o
-        .c-tag__content
-          %span Long-term Stayer
+    .mb-6
+      %h3 Checkboxes
+      .row
+        .col-sm-6
+          %p
+            Icon font
+            %br
+            = checkmark_or_x(true)
+            \-- True
+            %br
+            = checkmark_or_x(false)
+            \-- False
+            %br
+            = checkmark_or_x(true, 'With tooltip!')
+            \-- With tooltip
+            %br
+            = checkmark_or_x(false, size: :sm)
+            \-- Small
+            %br
+            = checkmark_or_x(false, size: :md)
+            \-- Medium
+            %br
+            = checkmark_or_x(false, size: :lg)
+            \-- Large
+        .col-sm-6
+          %p
+            SVG
+            %br
+            = checkmark_or_x(true, style: :svg)
+            \-- True
+            %br
+            = checkmark_or_x(false, style: :svg)
+            \-- False
+            %br
+            = checkmark_or_x(true, 'With tooltip!', style: :svg)
+            \-- With tooltip
+            %br
+            = checkmark_or_x(false, style: :svg, size: :sm)
+            \-- Small
+            %br
+            = checkmark_or_x(false, style: :svg, size: :md)
+            \-- Medium
+            %br
+            = checkmark_or_x(false, style: :svg, size: :lg)
+            \-- Large
+    .mb-6
+      = render 'buttons'
 
-  .d-flex.mr-3.mb-5
-    .c-tag.c-tag--info.client-flag
-      .c-tag__wrapper
-        .c-tag__icon
-          .icon-clock-o
-        .c-tag__content
-          %span
-            Chronically Homeless &amp; in CAS
-            = link_to 'View in CAS', "#", class: 'ml-4'
+    .mb-6
+      .d-flex.mr-3.mb-5
+        .c-tag.c-tag--warning.client-flag
+          .c-tag__wrapper
+            .c-tag__icon
+              .icon-clock-o
+            .c-tag__content
+              %span Long-term Stayer
 
-  .d-flex.mr-3.mb-5
-    .c-tag.c-tag--success.client-flag
-      .c-tag__wrapper
-        .c-tag__icon
-          .icon-house
-        .c-tag__content
-          %span #{Translation.translate('Housed in CAS')} on #{Date.current}
-.mb-6
-  .label.label-success 44
-  .label.label-warning 44
-  .label.label-danger 44
-  .label.label-info 44
+      .d-flex.mr-3.mb-5
+        .c-tag.c-tag--info.client-flag
+          .c-tag__wrapper
+            .c-tag__icon
+              .icon-clock-o
+            .c-tag__content
+              %span
+                Chronically Homeless &amp; in CAS
+                = link_to 'View in CAS', "#", class: 'ml-4'
 
-.mb-6
-  = render 'tags'
+      .d-flex.mr-3.mb-5
+        .c-tag.c-tag--success.client-flag
+          .c-tag__wrapper
+            .c-tag__icon
+              .icon-house
+            .c-tag__content
+              %span #{Translation.translate('Housed in CAS')} on #{Date.current}
+    .mb-6
+      .label.label-success 44
+      .label.label-warning 44
+      .label.label-danger 44
+      .label.label-info 44
 
-.cohorts.mb-6
-  %h3 Cohort Table
-  %table.table-sm.table-striped.table-right-border
-    %thead
-      %tr
-        %th Header
-        %th Header
-        %th Header
-    %tbody
-      %tr.odd
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
-      %tr.odd.homeless_inactive
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
-      %tr.homeless_inactive
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
-      %tr.cohort_client_ineligible
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
-      %tr.cohort_client_ineligible.homeless_inactive
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
-      %tr.cohort_client_ineligible.homeless_inactive.odd
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
-      %tr.cohort_client_ineligible.homeless_inactive.odd.cohort-client-selected
-        %td Test
-        %td Test
-        %td
-          %a{href: '#'} This goes no where.
+    .mb-6
+      = render 'tags'
+
+    .cohorts.mb-6
+      %h3 Cohort Table
+      %table.table-sm.table-striped.table-right-border
+        %thead
+          %tr
+            %th Header
+            %th Header
+            %th Header
+        %tbody
+          %tr.odd
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+          %tr.odd.homeless_inactive
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+          %tr.homeless_inactive
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+          %tr.cohort_client_ineligible
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+          %tr.cohort_client_ineligible.homeless_inactive
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+          %tr.cohort_client_ineligible.homeless_inactive.odd
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+          %tr.cohort_client_ineligible.homeless_inactive.odd.cohort-client-selected
+            %td Test
+            %td Test
+            %td
+              %a{href: '#'} This goes no where.
+  .col-sm-2= render 'pages'

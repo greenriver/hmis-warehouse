@@ -73,4 +73,24 @@
     --bs-warning-bg-subtle: var(--brand-warning-lll);
     --bs-danger-bg-subtle: var(--brand-danger-lll);
   }
+
+  .pagination {
+    --bs-pagination-active-bg: var(--brand-primary-d);
+    --bs-pagination-active-border-color: var(--brand-primary-d);
+    --bs-pagination-hover-bg: var(--bs-gray-200);
+  }
+
+  .btn {
+    --bs-btn-active-border-color: var(--brand-primary-l-darkest);
+    --bs-btn-active-border-color: var(--brand-primary-l-darkest);
+    --bs-btn-hover-bg: var(--brand-primary-l-darker);
+    --bs-btn-hover-border-color: var(--brand-primary-l-darker);
+  }
+
+  .btn-outline-primary {
+    --bs-btn-border-color: var(--brand-primary-d);
+    --bs-btn-color: var(--brand-primary-d);
+    --bs-btn-hover-bg: var(--brand-primary-d);
+    --bs-btn-hover-color: white;
+  }
 }

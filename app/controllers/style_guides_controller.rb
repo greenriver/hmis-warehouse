@@ -50,14 +50,6 @@ class StyleGuidesController < ApplicationController
     @form = OpenStruct.new
   end
 
-  def health_team
-    @member = Health::Team::Member.new
-    @patient = Health::Patient.pilot.first
-    @client = @patient.client
-    @team = @patient.teams.build
-    @careplan = @patient.careplans.first_or_create
-  end
-
   def health_dashboard
     @name = Faker::Name.name
     timeline_date_range = ((Date.today - 3.months)..Date.today)
@@ -153,7 +145,6 @@ class StyleGuidesController < ApplicationController
       careplan: 'Careplan',
       client_dashboard: 'Client Dashboard',
       form: 'Form Elements',
-      health_team: 'Health Team',
       health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',
       pagination: 'Pagination',

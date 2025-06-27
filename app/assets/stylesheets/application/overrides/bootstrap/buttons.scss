@@ -472,12 +472,6 @@ input[type=submit].btn-disabled,
   }
 }
 
-.btn-outline-primary {
-  &:hover {
-    color: var(--brand-primary-d);
-  }
-}
-
 .btn-subtle-primary {
   @extend .btn-subtle;
 

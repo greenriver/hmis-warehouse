@@ -888,7 +888,6 @@ Rails.application.routes.draw do
       get :client_dashboard
       get :form
       get :health_dashboard
-      get :health_team
       get :icon_font
       get :menu
       get :modals
