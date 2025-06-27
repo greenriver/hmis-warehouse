@@ -24,11 +24,15 @@
   --brand-primary-d: #3b6576;
   --brand-success-l: #B1F2C4;
   --brand-success-ll: #c3f5d2;
+  --brand-success-lll: #f5faf7;
   --brand-success-d: #68c27f;
   --brand-warning-l: #ffcb9b;
+  --brand-warning-lll: #fbf3ec;
   --brand-warning-d: #e5b17e;
   --brand-danger-l: #FFD1CC;
+  --brand-danger-lll: #fbf3ec;
   --brand-danger-d: #df9489;
+  --brand-info-lll: #e9f1f2;
 
   /* New variable sets */
   --highlight-red: rgb(119, 55, 71);
@@ -61,4 +65,12 @@
 
   /* Component Style Overrides to match legacy theme */
   --nav-tab-active-border-color: var(--brand-primary-d);
+
+  /* Note: these are namespaced within .alert */
+  .alert {
+    --bs-success-bg-subtle: var(--brand-success-lll);
+    --bs-info-bg-subtle: var(--brand-info-lll);
+    --bs-warning-bg-subtle: var(--brand-warning-lll);
+    --bs-danger-bg-subtle: var(--brand-danger-lll);
+  }
 }
