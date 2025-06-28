@@ -58,10 +58,7 @@ module Mutations
         end
 
         # If there are no remaining enrollments in the donor household, reassign any staff assignments to the receiving household.
-        unless remaining_enrollments.any?
-          staff_assignments = Hmis::StaffAssignment.where(household_id: donor_household.household_id)
-          staff_assignments.update_all(household_id: receiving_household_id)
-        end
+        merge_staff_assignments(receiving_household_id, donor_household.household_id) unless remaining_enrollments.any?
 
         receiving_household.reload
         receiving_after_state = receiving_household.snapshot_household_state
@@ -97,6 +94,32 @@ module Mutations
         receiving_household: receiving_household,
         donor_household: remaining_enrollments.any? ? donor_household : nil,
       }
+    end
+
+    # When the donor household no longer exists after the join, update its staff assignments.
+    def merge_staff_assignments(receiving_household_id, donor_household_id)
+      # Do this in memory to simplify, since we don't expect there to be a lot of assignments
+      donor_assignments = Hmis::StaffAssignment.where(household_id: donor_household_id).to_a
+      receiving_assignments = Hmis::StaffAssignment.where(household_id: receiving_household_id).to_a
+
+      # Staff assignments that the receiving household already has, mapped by user_id and relationship_id
+      existing_keys = receiving_assignments.map do |assignment|
+        [assignment.user_id, assignment.hmis_staff_assignment_relationship_id]
+      end.to_set
+
+      # Partition the donor's assignments into:
+      # - assignments_to_delete: staff assignments that the receiving household already has, so they don't need to be duplicated
+      # - assignments_to_update: staff assignments that should be updated to point at the receiving household ID
+      assignments_to_delete, assignments_to_update = donor_assignments.partition do |donor_assignment|
+        key = [donor_assignment.user_id, donor_assignment.hmis_staff_assignment_relationship_id]
+        existing_keys.include?(key)
+      end
+
+      ids_to_delete = assignments_to_delete.map(&:id)
+      Hmis::StaffAssignment.where(id: ids_to_delete).delete_all if ids_to_delete.any?
+
+      ids_to_update = assignments_to_update.map(&:id)
+      Hmis::StaffAssignment.where(id: ids_to_update).update_all(household_id: receiving_household_id) if ids_to_update.any?
     end
   end
 end
