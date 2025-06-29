@@ -44,110 +44,106 @@ The system provides two distinct operations that handle different deduplication 
 
 ### Operation 1: `identify_duplicates` - Process New/Unprocessed Clients
 
-**Purpose**: "We have new clients, where do they belong?"
-**Entry Point**: `run!` method calls this automatically
-**Triggers**:
-- New client created: `after_create :warehouse_identify_duplicate_clients`
-- Manual execution: Via admin interface or scheduled jobs calling `run!`
-- Post-import processing: After HMIS CSV imports
+**Purpose**: Handles newly imported clients that need to be linked to existing destinations or have new destinations created
 
-**Process**:
-1. **Restore Deleted Destinations**: Re-activates destination clients that were soft-deleted but still have active source clients
-2. **Load Unprocessed Clients**: Finds source clients without WarehouseClient records
-3. **Find Merge Candidates**: Uses exact matching on SSN, name, and DOB
-4. **Match or Create**: Either links to existing destination or creates new one
-5. **Update Destination**: Enriches destination client with source data (SSN, DOB, names)
+**When it runs**:
+- Automatically when new clients are created
+- During data imports
+- Via manual execution
+
+**What it does**:
+1. Restores previously deleted destinations that still have active source clients
+2. Finds source clients that haven't been processed yet
+3. Matches them against existing destinations using matching criteria
+4. Either links to existing destinations or creates new ones
+5. Updates destination records with enriched data from sources
 
 ### Operation 2: `match_existing!` - Merge Existing Destinations
 
-**Purpose**: "PII changed, do relationships need updating?"
-**Entry Point**: Must be called separately (not part of the main `run!` flow)
-**Triggers**:
-- Client updated: `after_update :warehouse_match_existing_clients` (if PII changed)
-- Manual execution: Via admin interface or separate scheduled jobs calling `match_existing!` directly
+**Purpose**: Re-evaluates existing destination clients when their identifying information changes
 
-**Process**:
-1. **Find Merge Candidates**: Identifies destination clients that should be merged
-2. **Group Merge Chains**: Handles complex merge scenarios (A→B, B→C becomes A→C)
-3. **Split on Limits**: Ensures no destination exceeds MAX_SOURCE_CLIENTS (50)
-4. **Perform Merges**: Uses `destination.merge_from(source)` with cleanup
-5. **Update Service History**: Rebuilds affected service history records
+**When it runs**:
+- When client personally identifiable information is updated
+- Via manual execution for reconciliation
+
+**What it does**:
+1. Identifies destination clients that should now be considered the same person
+2. Handles complex merge scenarios and chains
+3. Respects system limits on destination client size
+4. Performs merges with proper cleanup
+5. Rebuilds affected service history records
 
 ### Why Two Separate Operations?
 
 **Logical Separation**:
-- **`identify_duplicates`**: Handles incremental processing of newly imported/created source clients
-- **`match_existing!`**: Handles reconciliation when personally identifiable information changes
+- **New client processing**: Handles incremental addition of clients from data sources
+- **Existing client reconciliation**: Handles changes to identifying information that affect existing relationships
 
 **Performance Benefits**:
-1. **Avoids unnecessary work**: New clients don't trigger expensive re-evaluation of all existing destination relationships
-2. **Separates expensive operations**: `match_existing!` involves complex merge chains and service history rebuilds - only runs when PII actually changes
-3. **Batch efficiency**: New clients (often arriving during imports) can be processed together efficiently
-4. **Prevents performance degradation**: Without this separation, every new client would require full relationship analysis across all destinations
+- Avoids expensive re-evaluation of all relationships when processing new clients
+- Separates costly merge operations from routine client processing
+- Enables efficient batch processing of imports
+- Prevents performance degradation as the system scales
 
 ## Matching Criteria
 
-The system requires **2 of 3** exact matches across:
+The system requires **2 of 3** exact matches across these normalized fields:
 
-### 1. Social Security Number (SSN)
-- Must be valid (passes `HudUtility2024.valid_social?`)
-- Excludes obvious test values: '000000000', '111111111', '999xxxxxx'
-- Excludes values with 'X' characters
+### Social Security Number
+- Must pass validation checks
+- Excludes obvious test values and placeholders
 
-### 2. Full Name (First + Last)
-- Normalized: `lower(trim(unaccent(name)))`
+### Full Name
+- Normalized to handle variations in formatting and accented characters
 - Strips non-alphanumeric characters
-- Handles accented characters (José → jose)
 
-### 3. Date of Birth (DOB)
-- Must be after 1920
-- Exact date match required
+### Date of Birth
+- Must be reasonable (after 1920)
+- Requires exact date match
 
 ## Configuration and Constraints
 
-### Configuration Options
-- **`enable_auto_deduplication`**: Master switch for automatic processing
-- **`auto_de_duplication_enabled`**: Controls automatic match processing
-- **`auto_de_duplication_accept_threshold`**: Auto-accept similarity threshold
-- **`auto_de_duplication_reject_threshold`**: Auto-reject similarity threshold
+### System Controls
+- Master switches to enable/disable automatic processing
+- Thresholds for automatic acceptance/rejection of matches
+- Limits on maximum sources per destination client
 
-### Constraints and Safeguards
-- **MAX_SOURCE_CLIENTS = 50**: Prevents any destination from having too many sources
-- **Advisory Locking**: Prevents concurrent execution
-- **Split History**: Respects manual administrative decisions
-- **Auto-deduplication Toggle**: Can be disabled via configuration
+### Safeguards
+- Prevents concurrent execution
+- Respects manual administrative decisions about client splits
+- Maintains audit trails of operations
 
 ## Performance Optimizations
 
-### Database-Level Processing
-- Uses PostgreSQL CTEs (Common Table Expressions) for matching
-- Pushes filtering logic to database level
-- Minimizes Ruby object creation
+### Database Processing
+- Pushes matching logic to the database level
+- Uses efficient query structures for large datasets
+- Minimizes object creation in application code
 
-### Batch Processing
-- Processes clients in batches using `find_in_batches`
-- Limits merge operations to 500 pairs per batch
-- Uses bulk import for warehouse client creation
+### Batch Operations
+- Processes clients in manageable batches
+- Limits operation sizes to prevent resource exhaustion
+- Uses bulk operations where possible
 
 ### Memory Management
-- Memoizes expensive lookups (`previous_candidate_matches`)
-- Indexes lookups by client ID for O(1) access
-- Limits working set size through batching
+- Caches expensive lookups during processing
+- Optimizes data structure access patterns
+- Controls working set sizes
 
 ## Service History Impact
 
-When clients are merged:
-1. **Invalidation**: `client.invalidate_service_history` marks records for rebuild
-2. **Rebuild**: `ServiceHistory::Add` recreates service history with new client IDs
-3. **Cleanup**: `ClientCleanupJob` handles orphaned records
+When clients are merged, the system:
+1. Marks affected service history for rebuilding
+2. Recreates service history with updated client relationships
+3. Handles cleanup of orphaned records
 
-## Error Handling and Monitoring
+## Monitoring and Error Handling
 
 ### Logging
-- Sentry integration for production error tracking
-- Run statistics logged to `IdentifyDuplicatesLog`
+- Tracks operation statistics and performance
+- Integrates with error monitoring systems
 
-### Safeguards
-- Graceful handling of missing clients
-- Transaction safety for critical operations
-- Production alerts for edge cases (MAX_SOURCE_CLIENTS violations)
+### Safety Measures
+- Handles missing or invalid data gracefully
+- Uses database transactions for critical operations
+- Provides alerts for edge cases and system limits
