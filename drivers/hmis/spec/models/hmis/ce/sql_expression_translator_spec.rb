@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'rails_helper'
+
 RSpec.describe Hmis::Ce::Match::SqlExpressionTranslator do
   let(:field_map) { Hmis::Ce::Match::FieldMap.new }
 
@@ -93,6 +95,11 @@ RSpec.describe Hmis::Ce::Match::SqlExpressionTranslator do
         expect(sql).to include('(1 = 1) OR')
         expect(sql).to include('DATE_PART')
         expect(sql).to include('> 18')
+      end
+
+      it 'handles ANY with unresolvable field by making the expression always true' do
+        result = described_class.call('ANY(open_enrollment_project_types, project_type, project_type = 1)', field_map)
+        expect(result.to_sql).to eq('(1 = 1)')
       end
 
       it 'handles multiple unresolvable fields in an AND expression' do

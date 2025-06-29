@@ -55,6 +55,9 @@ module Hmis::Ce::Match
       when Dentaku::AST::Numeric, Dentaku::AST::String, Dentaku::AST::Logical
         handle_literal(node)
       end
+      # TODO: performance improvement, support translating ANY and ALL arel expressions into SQL?
+      # when Dentaku::AST::Any, Dentaku::AST::All
+      #   handle_any_all(node)
     end
 
     ALWAYS_TRUE = Arel::Nodes::Equality.new(1, 1).freeze

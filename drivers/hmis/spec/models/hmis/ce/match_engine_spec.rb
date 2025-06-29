@@ -44,6 +44,41 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:adult_clients) { clients.where.not(id: client_minor_non_veteran.id) }
   end
 
+  shared_context 'with enrolled test clients' do
+    let(:es_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+    let(:ce_project) { create(:hmis_hud_project, data_source: data_source, project_type: 14) }
+    let(:ph_project) { create(:hmis_hud_project, data_source: data_source, project_type: 9) }
+    let(:client_enrolled_in_ce_and_es) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, exit_date: nil, client: client)
+      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client)
+      client
+    end
+    let(:client_enrolled_in_es) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client)
+      client
+    end
+    let(:client_enrolled_in_ph) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: ph_project, exit_date: nil, client: client)
+      client
+    end
+    let(:client_exited_from_ce) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, exit_date: 1.week.ago, client: client)
+      client
+    end
+    let(:client_unenrolled) { create(:hmis_hud_client, data_source: data_source) }
+
+    let(:all_clients) do
+      [client_enrolled_in_ce_and_es, client_enrolled_in_es, client_enrolled_in_ph, client_exited_from_ce, client_unenrolled]
+    end
+
+    let(:clients) { Hmis::Hud::Client.where(id: all_clients.map(&:id)) }
+    let(:clients_not_enrolled_in_ph) { clients.where.not(id: client_enrolled_in_ph.id) }
+  end
+
   shared_context 'with CDE assessment setup' do
     let(:cded) do
       create(
@@ -218,5 +253,49 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         expect(results.map(&:client_id)).to eq([client_english_spanish.destination_client.id])
       end
     end
+  end
+
+  context 'when evaluating enrollment-based policies' do
+    include_context 'with enrolled test clients'
+
+    describe 'project-type-based filtering' do
+      describe 'when requiring ANY open enrollment to be in a CE (14) project' do
+        # Requirement: must have open enrollment in Coordinated Entry (14) project type
+        let(:requirement_expression) { 'ANY(open_enrollment_project_types, project_type, project_type = 14)' }
+
+        it 'includes clients with open enrollments at the correct project type' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id).sort).to eq([client_enrolled_in_ce_and_es.destination_client.id].sort)
+        end
+
+        it 'excludes clients with exited enrollments at the correct project type' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id)).not_to include(client_exited_from_ce.destination_client.id)
+        end
+
+        it 'excludes clients with no enrollments' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id)).not_to include(client_unenrolled.destination_client.id)
+        end
+
+        it 'excludes clients that are only enrolled in projects of other types' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id)).not_to include(client_enrolled_in_es.destination_client.id)
+        end
+      end
+
+      describe 'when requiring ALL open enrollments to not be in PH project types' do
+        # Requirement: must NOT have open enrollment in any Permanent Housing project (3, 9, 10, 13)
+        let(:requirement_expression) { 'ALL(open_enrollment_project_types, project_type, project_type != 3 AND project_type != 9 AND project_type != 10 AND project_type != 13)' }
+
+        it 'excludes client with open enrollment in PH ' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id).sort).to eq(clients_not_enrolled_in_ph.map { |c| c.destination_client.id }.sort)
+          expect(results.map(&:client_id)).not_to include(client_enrolled_in_ph.destination_client.id)
+        end
+      end
+    end
+
+    # TODO add spec for open_referral_project_types filtering
   end
 end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# resolve fields from the client table
+# resolve fields from the client, enrollment, and project table
+#
+# - Question: should we move Enrollment/Project/Referral-related fields to another FieldMap? They require additional joins
 module Hmis::Ce::Match
   class ClientFieldMap
     def instance_value(client, field)
@@ -35,7 +37,24 @@ module Hmis::Ce::Match
             GrdaWarehouse::Hud::Client.days_homeless(client_id: c.id)
           end,
         },
-        # Add support for more client fields here...
+        # Resolves an array of project types at which the Client has an open Enrollment (excluding WIP enrollments)
+        # Note: this does not include WIP enrollments. We may need to support that in the future, in which case we could
+        # introduce another field like `open_and_incomplete_enrollment_project_types` (or maybe it should be the default for this? discuss)
+        open_enrollment_project_types: {
+          instance_value: ->(c) do
+            c.source_enrollments.ongoing.joins(:project).pluck(arel.p_t['ProjectType'])
+          end,
+        },
+        # Resolves an array of project types at which the Client has an active Referral (a.k.a. not yet declined or accepted)
+        open_referral_project_types: {
+          instance_value: ->(c) do
+            Hmis::Ce::Referral.joins(client: :warehouse_client_source).
+              where(warehouse_clients: { destination_id: c.id }).
+              active.
+              joins(:target_project).
+              pluck(arel.p_t['ProjectType'])
+          end,
+        },
       }
     end
 
