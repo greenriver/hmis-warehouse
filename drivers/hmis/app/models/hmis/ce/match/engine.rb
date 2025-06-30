@@ -53,7 +53,7 @@ module Hmis::Ce::Match
     protected
 
     def validate_clients_parameter!(clients)
-      raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == Hmis::Hud::Client
+      raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client
     end
 
     def import_proxies!(values)
