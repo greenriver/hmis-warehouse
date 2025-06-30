@@ -17,11 +17,10 @@ module Hmis::Ce
     # In the future, we will add more client types (e.g. VSP)
     belongs_to :client, polymorphic: true, optional: false
 
-    validates :client, presence: true, uniqueness: true
+    validates :client_id, presence: true, uniqueness: { scope: [:client_type] }
     validate :client_is_destination
 
     def client_is_destination
-      # todo @martha - spec this and confirm assumption that there will only be 1 destination data source
       errors.add :client, 'must be destination client' unless GrdaWarehouse::DataSource.destination_data_source_ids.include?(client.data_source_id)
     end
   end
