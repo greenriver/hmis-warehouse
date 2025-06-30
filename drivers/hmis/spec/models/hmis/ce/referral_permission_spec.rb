@@ -19,7 +19,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
   let!(:other_project) { create :hmis_hud_project, data_source: ds1 }
   let!(:other_referral) do
     opportunity = create(:hmis_ce_opportunity, data_source: ds1, project: other_project, workflow_template: workflow_template)
-    create(:hmis_ce_referral, opportunity: opportunity)
+    create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1)
   end
 
   # Grant user access to view all projects, but not view any referrals

@@ -10,7 +10,7 @@ module Hmis::Ce::Match
     include Dentaku::Visitor::Infix
 
     def self.call(expression, field_map)
-      calculator = Dentaku::Calculator.new
+      calculator = Hmis::Ce::Match::CalculatorFactory.build
       ast = calculator.ast(expression)
       visitor = new(field_map)
       visitor.visit(ast)
@@ -34,6 +34,10 @@ module Hmis::Ce::Match
       result = super
       @node_results[node] = result
       result
+    end
+
+    def visit_function(_node)
+      ALWAYS_TRUE
     end
 
     def to_arel
@@ -98,6 +102,10 @@ module Hmis::Ce::Match
     end
 
     def build_comparison(node, left, right)
+      # If either operand could not be resolved into a SQL expression (is ALWAYS_TRUE),
+      # then the entire comparison is also considered unresolvable in SQL.
+      return ALWAYS_TRUE if left == ALWAYS_TRUE || right == ALWAYS_TRUE
+
       case node
       when Dentaku::AST::LessThan
         left.lt(right)
@@ -119,8 +127,15 @@ module Hmis::Ce::Match
     def build_logical(node, left, right)
       case node
       when Dentaku::AST::And
+        # For AND: if one side is unresolvable in SQL (ALWAYS_TRUE), return the other side
+        return right if left == ALWAYS_TRUE
+        return left if right == ALWAYS_TRUE
+
         left.and(right)
       when Dentaku::AST::Or
+        # For OR: if either side is unresolvable in SQL (ALWAYS_TRUE), the result is unresolvable
+        return ALWAYS_TRUE if left == ALWAYS_TRUE || right == ALWAYS_TRUE
+
         left.or(right)
       else
         raise ArgumentError, "Unsupported logical operation: #{node.class}"
