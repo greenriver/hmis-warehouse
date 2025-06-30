@@ -111,6 +111,7 @@ module GrdaWarehouse::Hud
     has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
     has_many :window_source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
+    # todo @martha - add assoc with deletion instructions to candidate proxy
 
     # Must be included after source_clients is defined...
     include Eto::TouchPoints
