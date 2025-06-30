@@ -15,8 +15,7 @@ module Types
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
 
     def client_name
-      # todo @martha - spec test for this
-      # Current permission logic: "For this destination client, are there any source clients you can view?"
+      # Current permission logic: "For this destination client, are there any source clients you can currently view?"
       # In the future, we want to check permissions more broadly across data sources:
       # "Find all source clients, and if you have any HMIS access or warehouse access to any of them
       # (even if not in the current data source that you're logged into), then show the client name."
@@ -29,7 +28,6 @@ module Types
       end
     end
 
-    # todo @Martha - need to spec/check the changes in this method
     def enrollments # not for batch
       # Find any "relevant" Forms, meaning forms that collect Custom Data Elements that are used for eligibility or prioritization of this candidate pool. There may not be any associated forms, if eligibility is determined by other factors.
       form_definition_identifiers = object.candidate_pool.relevant_form_definition_identifiers
@@ -72,7 +70,8 @@ module Types
     def source_clients
       client_proxy = load_ar_association(object, :client_proxy)
       destination_client = load_ar_scope(scope: GrdaWarehouse::Hud::Client.all, id: client_proxy.client_id)
-      load_ar_association(destination_client, :source_clients).viewable_by(current_user) # todo @martha - n+1
+      source_client_ids = load_ar_association(destination_client, :source_clients).map(&:id)
+      Hmis::Hud::Client.where(id: source_client_ids).viewable_by(current_user) # todo @martha - n+1
     end
   end
 end

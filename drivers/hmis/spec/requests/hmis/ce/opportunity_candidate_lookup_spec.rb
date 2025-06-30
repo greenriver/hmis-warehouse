@@ -6,12 +6,13 @@ require_relative '../login_and_permissions'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
-  let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
+  let!(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1, user: u1 }
   let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
 
   let!(:pool) { create :hmis_ce_match_candidate_pool }
   let!(:opportunity) { create :hmis_ce_opportunity, data_source: ds1, candidate_pool: pool }
-  let!(:candidate) { create(:hmis_ce_match_candidate, client: client, candidate_pool: pool) }
+  let!(:proxy) { create(:hmis_ce_client_proxy, client: client.destination_client) }
+  let!(:candidate) { create(:hmis_ce_match_candidate, client_proxy: proxy, candidate_pool: pool) }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -113,6 +114,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'without permission to see client name' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_view_client_name) }
+
+      it 'returns masked client name' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+        enrollments = result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodes')
+        expect(enrollments.first['clientName']).to eq(client.masked_name)
+      end
+    end
+
     context 'with candidate pool expressions that refer to CDEs' do
       let!(:fd1) { create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
       # default form definition factory generates cded "fieldOne"
@@ -154,7 +166,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 30..35)
+        end.to make_database_queries(count: 35..40)
       end
     end
 

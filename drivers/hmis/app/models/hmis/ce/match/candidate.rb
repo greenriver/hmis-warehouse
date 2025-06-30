@@ -5,7 +5,7 @@ module Hmis::Ce::Match
   class Candidate < GrdaWarehouseBase
     self.table_name = 'ce_match_candidates'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
-    belongs_to :ce_client_proxy, class_name: 'Hmis::Ce::ClientProxy'
+    belongs_to :client_proxy, class_name: 'Hmis::Ce::ClientProxy'
 
     # order by descending priority, NULL values last. Use id as a tie-breaker
     scope :prioritized, -> {
