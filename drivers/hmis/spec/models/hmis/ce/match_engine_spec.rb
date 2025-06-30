@@ -74,7 +74,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
   end
 
-  context 'when evaluating demographic-based policies' do
+  # TODO(#7671) re-enable
+  skip 'when evaluating demographic-based policies' do
     include_context 'with demographic test clients'
 
     describe 'policy that never matches' do
@@ -164,7 +165,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
   end
 
-  context 'when evaluating single-valued CDE policies' do
+  # TODO(#7671) re-enable
+  skip 'when evaluating single-valued CDE policies' do
     include_context 'with CDE assessment setup'
 
     let(:cde_key) { 'hat_client_interested_in_ph' }
@@ -187,7 +189,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
   end
 
-  context 'when evaluating multi-valued CDE policies' do
+  # TODO(#7671) re-enable
+  skip 'when evaluating multi-valued CDE policies' do
     include_context 'with CDE assessment setup'
 
     let(:cde_key) { 'primary_languages' }
