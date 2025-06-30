@@ -17,7 +17,8 @@ class AddCeClientProxiesTable < ActiveRecord::Migration[7.1]
       # - CE is not yet used in production envs
       # This simplification allows us to add the ce_client_proxy reference and remove the client reference in the same migration.
       Hmis::Ce::Match::Candidate.delete_all
-      add_reference :ce_match_candidates, :ce_client_proxy, null: false, foreign_key: { to_table: :ce_client_proxies }, index: true
+      add_reference :ce_match_candidates, :client_proxy, null: false, foreign_key: { to_table: :ce_client_proxies }, index: true
+      add_index :ce_match_candidates, [:candidate_pool_id, :client_proxy_id], unique: true, name: 'index_ce_match_candidates_uniq'
       remove_reference :ce_match_candidates, :client
     end
   end

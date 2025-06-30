@@ -37,7 +37,7 @@ module Hmis::Ce::Match
           score = priority_evaluator.call(client)
           candidates << {
             candidate_pool_id: pool.id,
-            ce_client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
+            client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
             priority_score: score,
             created_at: now,
             updated_at: now,
@@ -61,7 +61,8 @@ module Hmis::Ce::Match
       raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
 
       # return a map of [client_id, client_type] to ClientProxy
-      Hmis::Ce::ClientProxy.where(id: result.ids).each_with_object({}) do |record, hash|
+      # re-query the Hmis::Ce::ClientProxy table by client ID, not result ID, since duplicate clients would not be included in result.ids
+      Hmis::Ce::ClientProxy.where(client: values.map(&:client)).each_with_object({}) do |record, hash|
         key = [record.client_id, record.client_type] # Composite key because client is polymorphic
         hash[key] = record
       end
@@ -70,7 +71,7 @@ module Hmis::Ce::Match
     def import_candidates!(values)
       result = Candidate.import(
         values, on_duplicate_key_update: {
-          conflict_target: [:candidate_pool_id, :client_id],
+          conflict_target: [:candidate_pool_id, :client_proxy_id],
           columns: [:priority_score, :updated_at],
         }
       )

@@ -6898,7 +6898,7 @@ CREATE TABLE public.ce_match_candidates (
     priority_score integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    ce_client_proxy_id bigint NOT NULL
+    client_proxy_id bigint NOT NULL
 );
 
 
@@ -61016,10 +61016,17 @@ CREATE UNIQUE INDEX index_ce_match_candidate_pools_uniq ON public.ce_match_candi
 
 
 --
--- Name: index_ce_match_candidates_on_ce_client_proxy_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_match_candidates_on_client_proxy_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_ce_match_candidates_on_ce_client_proxy_id ON public.ce_match_candidates USING btree (ce_client_proxy_id);
+CREATE INDEX index_ce_match_candidates_on_client_proxy_id ON public.ce_match_candidates USING btree (client_proxy_id);
+
+
+--
+-- Name: index_ce_match_candidates_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_match_candidates_uniq ON public.ce_match_candidates USING btree (candidate_pool_id, client_proxy_id);
 
 
 --
@@ -73248,14 +73255,6 @@ ALTER TABLE ONLY public.service_history_services_2014
 
 
 --
--- Name: ce_match_candidates fk_rails_1503edc3f6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidates
-    ADD CONSTRAINT fk_rails_1503edc3f6 FOREIGN KEY (ce_client_proxy_id) REFERENCES public.ce_client_proxies(id);
-
-
---
 -- Name: service_history_services_2016 fk_rails_16de1abefc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -73565,6 +73564,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 ALTER TABLE ONLY public.wfe_steps
     ADD CONSTRAINT fk_rails_6b6b8ac13d FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
+
+
+--
+-- Name: ce_match_candidates fk_rails_6b79ce2be4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_match_candidates
+    ADD CONSTRAINT fk_rails_6b79ce2be4 FOREIGN KEY (client_proxy_id) REFERENCES public.ce_client_proxies(id);
 
 
 --
