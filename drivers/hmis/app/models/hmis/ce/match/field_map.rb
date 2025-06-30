@@ -16,6 +16,9 @@
 #
 module Hmis::Ce::Match
   class FieldMap
+    CDE = 'cde'
+    CLIENT = 'client'
+
     def instance_value(client, field)
       resolver, resolved_field = resolver_for(field)
       resolver.instance_value(client, resolved_field)
@@ -35,10 +38,10 @@ module Hmis::Ce::Match
     # @raise [ArgumentError] if the field type is not recognized
     def self.field_type_for(field)
       # Default to client field type if the field lacks namespace prefixes
-      return [FieldType::CLIENT, field] unless field =~ /\./
+      return [CLIENT, field] unless field =~ /\./
 
       field_type, resolved_field = field.split('.', 2)
-      raise ArgumentError, "unknown resolver for \"#{field}\"" unless [FieldType::CDE, FieldType::CLIENT].include?(field_type)
+      raise ArgumentError, "unknown resolver for \"#{field}\"" unless [CDE, CLIENT].include?(field_type)
 
       [field_type, resolved_field]
     end
@@ -60,8 +63,8 @@ module Hmis::Ce::Match
     # Registry of available field resolvers.
     def registered_resolvers
       @registered_resolvers ||= {
-        FieldType::CDE => Hmis::Ce::Match::CdeFieldMap.new,
-        FieldType::CLIENT => Hmis::Ce::Match::ClientFieldMap.new,
+        CDE => Hmis::Ce::Match::CdeFieldMap.new,
+        CLIENT => Hmis::Ce::Match::ClientFieldMap.new,
       }
     end
   end

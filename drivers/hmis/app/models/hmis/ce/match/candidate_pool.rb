@@ -22,7 +22,7 @@ module Hmis::Ce::Match
         fields.map do |field|
           # Use the FieldMap to map each field to its type, and skip if it isn't CDE
           field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field)
-          next unless field_type == Hmis::Ce::Match::FieldType::CDE
+          next unless field_type == Hmis::Ce::Match::FieldMap::CDE
 
           resolved_field
         end.uniq

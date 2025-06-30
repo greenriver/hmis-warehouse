@@ -34,14 +34,21 @@ module Types
       # In the future we may need to update this to support resolving enrollments that are NOT viewable to the current user.
       base_scope = object.client.enrollments.viewable_by(current_user)
 
-      # float those with a relevant assessment to the top.
-      with_assessment_ids = base_scope.joins(custom_assessments: :definition).
-        where(definition: { identifier: form_definition_identifiers }).pluck(:id).uniq
+      # Source Enrollment IDs that should be prioritized because they are the enrollment(s) where the most recently updated
+      # Eligibility/Prioritization Assessment was taken for this client
+      prioritized_enrollment_ids = object.client.custom_assessments.
+        with_form_definition_identifier(form_definition_identifiers).
+        preload(:definition, :enrollment).
+        group_by { |a| a.definition.identifier }.
+        transform_values do |assessments|
+          most_recent = assessments.max_by(&:DateUpdated)
+          most_recent.enrollment.id
+        end.values
 
-      with_assessment = base_scope.where(id: with_assessment_ids).sort_by_option(:most_recent)
-      others = base_scope.where.not(id: with_assessment_ids).sort_by_option(:most_recent)
+      prioritized = base_scope.where(id: prioritized_enrollment_ids).sort_by_option(:most_recent)
+      others = base_scope.where.not(id: prioritized_enrollment_ids).sort_by_option(:most_recent)
 
-      (with_assessment + others).
+      (prioritized + others).
         map do |enrollment|
         OpenStruct.new(
           enrollment: enrollment,

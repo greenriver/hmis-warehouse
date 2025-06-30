@@ -124,6 +124,7 @@ module Types
     def assessments
       # Returns the most recent assessments relevant to the opportunity, grouped by form definition.
       # Even though definition_identifiers could refer to any form type, we are hard-coding the assumption that only custom assessments will be used.
+      # Causes n+1, but we decided not to optimize yet since we will resolve small page sizes
       assessments = object.enrollment.custom_assessments.not_in_progress.
         joins(:definition).where(definition: { identifier: object.definition_identifiers })
 
