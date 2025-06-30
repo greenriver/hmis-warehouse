@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -17,9 +19,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-  let!(:destination_data_source) { create :destination_data_source }
   let!(:access_control) { create_access_control(hmis_user, p1) }
-  let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:fd1) do
     # maybe can be replaced by:
@@ -92,17 +93,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'marks the client as dirty' do
-      expect do
-        perform_enqueued_jobs do
+    describe 'with a destination warehouse client' do
+      let!(:destination_data_source) { create :destination_data_source }
+      before do
+        # creates warehouse clients
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        # mark clean
+        GrdaWarehouse::ClientChangeMarker.mark_processed(GrdaWarehouse::ClientChangeMarker.all)
+      end
+      it 'marks the client as dirty' do
+        expect do
           response, result = post_graphql(input: { input: test_input }) { mutation }
-        end
-        warehouse_client = Hmis::WarehouseClient.find_by!(source: c1)
-        destination_client = warehouse_client.destination
-        expect(response.status).to eq(200), result&.inspect
-        expect(result.dig('data', 'submitAssessment', 'errors')).to be_empty
-      end.to change { GrdaWarehouse::ClientChangeMarker.dirty.count }.by(1)
-      expect(GrdaWarehouse::ClientChangeMarker.dirty.pluck(:client_id)).to eq(c1.destination_client.id)
+          expect(response.status).to eq(200), result&.inspect
+          expect(result.dig('data', 'submitAssessment', 'errors')).to be_empty
+        end.to change { GrdaWarehouse::ClientChangeMarker.dirty.where(client_id: c1.destination_client.id).count }.by(1)
+      end
     end
   end
 

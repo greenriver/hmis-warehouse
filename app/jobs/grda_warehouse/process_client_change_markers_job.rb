@@ -6,14 +6,14 @@
 
 # frozen_string_literal: true
 
-# Processes client records from the dirty processing queue
+# Processes dirty client records
 module GrdaWarehouse
   class ProcessClientChangeMarkersJob < BaseJob
-    def self.enqueue_if_not_already_running
-      perform_later if Delayed::Job.jobs_for_class(klass.sti_name).empty?
+    def self.enqueue_if_not_already_running(...)
+      perform_later(...) if Delayed::Job.jobs_for_class(name).empty?
     end
 
-    def perform(limit: 5_000, cursor_id: 0, wait_time: 5.minutes)
+    def perform(limit: 5_000, cursor_id: 0, wait_time: nil)
       instrument_as_maintenance_task do |run|
         with_lock do
           dirty_scope = ::GrdaWarehouse::ClientChangeMarker.dirty
@@ -26,10 +26,12 @@ module GrdaWarehouse
           ::GrdaWarehouse::ClientChangeMarker.mark_processed(batch)
 
           # requeue job for the future with the next batch
-          next_cursor_id = batch.any? ? (batch.map(&:client_id).max + 1) : 0
-          ::GrdaWarehouse::ProcessClientChangeMarkersJob.
-            set(wait: wait_time).
-            perform_later(cursor_id: next_cursor_id)
+          if wait_time
+            next_cursor_id = batch.any? ? (batch.map(&:client_id).max + 1) : 0
+            ::GrdaWarehouse::ProcessClientChangeMarkersJob.
+              set(wait: wait_time).
+              perform_later(cursor_id: next_cursor_id, wait_time: wait_time)
+          end
 
           run.complete!
         end

@@ -232,7 +232,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
-    private def post_process_clients(client_ids)
+    private def post_process_clients(client_ids:)
       GrdaWarehouse::ClientChangeMarker.upsert_or_bump_version(client_ids: client_ids)
     end
 

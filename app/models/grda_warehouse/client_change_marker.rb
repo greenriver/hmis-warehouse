@@ -14,8 +14,10 @@ class GrdaWarehouse::ClientChangeMarker < GrdaWarehouseBase
 
   scope :dirty, -> { where(arel_table[:current_version].gt(arel_table[:processed_version])) }
 
-  def self.mark_processed(batch)
-    records = batch.map do |record|
+  def self.mark_processed(marks)
+    return if marks.empty?
+
+    records = marks.map do |record|
       {
         client_id: record.client_id,
         current_version: 1, # not used but cannot be null
@@ -33,6 +35,8 @@ class GrdaWarehouse::ClientChangeMarker < GrdaWarehouseBase
   end
 
   def self.upsert_or_bump_version(client_ids:)
+    return if client_ids.empty?
+
     records = client_ids.uniq.map do |client_id|
       {
         client_id: client_id,

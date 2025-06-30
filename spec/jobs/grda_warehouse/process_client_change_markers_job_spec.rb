@@ -22,7 +22,7 @@ RSpec.describe GrdaWarehouse::ProcessClientChangeMarkersJob, type: :job do
 
   let!(:pool) { create(:hmis_ce_match_candidate_pool) }
   let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: pool) }
-  let(:now) {Time.current}
+  let(:now) { Time.current }
 
   before do
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
@@ -36,7 +36,7 @@ RSpec.describe GrdaWarehouse::ProcessClientChangeMarkersJob, type: :job do
   it 'processes dirty clients' do
     # Freeze time to check wait time for re-enqueued job
     travel_to now do
-      described_class.perform_now
+      described_class.perform_now(wait_time: 5.minutes)
 
       # Check markers are processed
       expect(marker1.reload.processed_version).to eq(1)

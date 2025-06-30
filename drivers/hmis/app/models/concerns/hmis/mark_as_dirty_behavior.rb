@@ -17,6 +17,8 @@ module Hmis::MarkAsDirtyBehavior
 
   def mark_destination_client_dirty
     # find the destination client
+    # Note, if the destination client does not exist yet, this will be a no-op and we rely on
+    # IdentifyDuplicates to mark the client as dirty
     identity_scope = Hmis::Hud::Client.where(data_source: data_source_id, personal_id: personal_id)
     client_ids = Hmis::WarehouseClient.
       joins(:source).

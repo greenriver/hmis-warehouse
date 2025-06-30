@@ -408,7 +408,7 @@ namespace :grda_warehouse do
     if HmisEnforcement.hmis_enabled?
       safely_execute do
         # This should run periodically and re-enqueue itself after completion. Kick off a processor if it's not already running
-        GrdaWarehouse::ProcessClientChangeMarkersJob.enqueue_if_not_already_running
+        GrdaWarehouse::ProcessClientChangeMarkersJob.enqueue_if_not_already_running(wait_time: 10.minutes)
       end
     end
 
