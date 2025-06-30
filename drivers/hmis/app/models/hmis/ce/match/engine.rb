@@ -37,7 +37,7 @@ module Hmis::Ce::Match
           score = priority_evaluator.call(client)
           candidates << {
             candidate_pool_id: pool.id,
-            client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
+            ce_client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
             priority_score: score,
             created_at: now,
             updated_at: now,
