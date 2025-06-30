@@ -26,6 +26,23 @@ module Hmis::Ce::Match
       resolver.arel_field(resolved_field)
     end
 
+    # Parses a field name and returns the appropriate field type and resolved field name.
+    # Used internally by resolver_for; also exposed publicly for convenience,
+    # so external callers can determine the relevant form definitions for a specific match.
+    #
+    # @param field [String] The field name to parse
+    # @return [Array<Object, String>] A tuple of [field_type, resolved_field_name]
+    # @raise [ArgumentError] if the field type is not recognized
+    def self.field_type_for(field)
+      # Default to client field type if the field lacks namespace prefixes
+      return [FieldType::CLIENT, field] unless field =~ /\./
+
+      field_type, resolved_field = field.split('.', 2)
+      raise ArgumentError, "unknown resolver for \"#{field}\"" unless [FieldType::CDE, FieldType::CLIENT].include?(field_type)
+
+      [field_type, resolved_field]
+    end
+
     protected
 
     # Parses a field name and returns the appropriate resolver and resolved field name.
@@ -34,12 +51,8 @@ module Hmis::Ce::Match
     # @return [Array<Object, String>] A tuple of [resolver_instance, resolved_field_name]
     # @raise [ArgumentError] if the resolver name is not recognized
     def resolver_for(field)
-      # Default to the client resolver if the field lacks namespace prefixes
-      return [registered_resolvers['client'], field] unless field =~ /\./
-
-      resolver_name, resolved_field = field.split('.', 2)
-      resolver = registered_resolvers[resolver_name]
-      raise ArgumentError, "unknown resolver for \"#{field}\"" unless resolver
+      field_type, resolved_field = field_type_for(field)
+      resolver = registered_resolvers[field_type]
 
       [resolver, resolved_field]
     end
@@ -47,8 +60,8 @@ module Hmis::Ce::Match
     # Registry of available field resolvers.
     def registered_resolvers
       @registered_resolvers ||= {
-        'cde' => Hmis::Ce::Match::CdeFieldMap.new,
-        'client' => Hmis::Ce::Match::ClientFieldMap.new,
+        FieldType::CDE => Hmis::Ce::Match::CdeFieldMap.new,
+        FieldType::CLIENT => Hmis::Ce::Match::ClientFieldMap.new,
       }
     end
   end

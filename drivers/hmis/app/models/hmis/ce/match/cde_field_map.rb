@@ -21,6 +21,12 @@ module Hmis::Ce::Match
       return cde_values.first
     end
 
+    def cdeds_for(fields)
+      fields.map do |field|
+        parse_entity_type(field)
+      end.uniq
+    end
+
     # arel not supported.
     # Enhancement: if expression requires certain CDEs to be present then we could take a rough pass to filter out clients that lack the relevant assessments
     def arel_field(_field)

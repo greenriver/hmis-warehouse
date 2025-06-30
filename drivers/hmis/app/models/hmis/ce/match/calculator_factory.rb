@@ -6,7 +6,7 @@ module Hmis::Ce::Match
   module CalculatorFactory
     # calculator with custom functions
     def self.build
-      calculator = Dentaku::Calculator.new
+      calculator = Dentaku::Calculator.new(case_sensitive: true) # CDED keys are case sensitive, so Dentaku expressions should be too
       calculator.add_function(
         :includes,
         :logical,
