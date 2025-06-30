@@ -35,12 +35,24 @@ module Hmis::Ce::Match
             GrdaWarehouse::Hud::Client.days_homeless(client_id: c.id)
           end,
         },
-        # Resolves an array of project types at which the Client has an open Enrollment (excluding WIP enrollments)
-        # Note: this does not include WIP enrollments. We may need to support that in the future, in which case we could
-        # introduce another field like `open_and_incomplete_enrollment_project_types` (or maybe it should be the default for this? discuss)
+        # Array of Project Types at which the Client has an open Enrollment, including WIP enrollments.
         open_enrollment_project_types: {
           instance_value: ->(c) do
-            c.source_enrollments.ongoing.joins(:project).pluck(arel.p_t['ProjectType'])
+            Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
+              where(warehouse_clients: { destination_id: c.id }).
+              open_including_wip.
+              joins(:project).
+              pluck(arel.p_t['ProjectType'])
+          end,
+        },
+        # Array of Project Types at which the Client has an open Enrollment, excluding WIP enrollments.
+        open_enrollment_project_types_excluding_incomplete: {
+          instance_value: ->(c) do
+            Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
+              where(warehouse_clients: { destination_id: c.id }).
+              open_excluding_wip.
+              joins(:project).
+              pluck(arel.p_t['ProjectType'])
           end,
         },
         # Resolves an array of project types at which the Client has an active Referral (a.k.a. not yet declined or accepted)
