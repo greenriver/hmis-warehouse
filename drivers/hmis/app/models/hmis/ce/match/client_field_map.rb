@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-# resolve fields from the client, enrollment, and project table
-#
-# - Question: should we move Enrollment/Project/Referral-related fields to another FieldMap? They require additional joins
+# resolve fields from the client (and associated enrollments)
 module Hmis::Ce::Match
   class ClientFieldMap
     def instance_value(client, field)
