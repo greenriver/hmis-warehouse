@@ -579,4 +579,17 @@ module ApplicationHelper
       input_attrs: input_attrs,
     )
   end
+
+  def event_badge_class(event)
+    case event.to_s.downcase
+    when 'create'
+      'badge-success'
+    when 'update'
+      'badge-warning'
+    when 'destroy'
+      'badge-danger'
+    else
+      'badge-secondary'
+    end
+  end
 end

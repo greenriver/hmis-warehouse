@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # AccessControl is part of the "new" permissions system
 #
 # An AccessControl includes:
@@ -15,6 +17,7 @@ class AccessControl < ApplicationRecord
   include ActionView::Helpers::TagHelper
   include UserPermissionCache
   include ArelHelper
+  include HistoryDescriptions
 
   acts_as_paranoid
   has_paper_trail

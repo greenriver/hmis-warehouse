@@ -1,6 +1,11 @@
 = render 'breadcrumbs'
 
 %h1 Edit Access Control #{@access_control.name}
+.pull-right
+  = link_to admin_access_control_audit_path(@access_control), class: 'btn btn-info mb-3' do
+    %i.fa.fa-history
+    %span.icon-eye
+    History
 = render 'admin/access_controls/description', entity_type: 'warehouse'
 .well
   = simple_form_for @access_control, as: :access_control, url: admin_access_control_path do |f|

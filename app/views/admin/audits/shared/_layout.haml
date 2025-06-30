@@ -1,0 +1,11 @@
+= render 'admin/audits/shared/breadcrumbs', entity_type: entity_type, entity_path: entity_path
+- title = "#{entity_type} Audit History"
+- content_for :title, title
+= render_display_title "#{entity_name} Audit History"
+
+.text-right.mb-3
+  = link_to "Export CSV", "#{request.path}/export.csv", class: "btn btn-outline-primary btn-sm"
+
+= render 'common/pagination_top', item_name: 'audit event'
+= render 'admin/audits/shared/list'
+= render 'common/pagination_bottom', item_name: 'audit event' 
