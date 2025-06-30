@@ -20,6 +20,7 @@ module Types
     end
 
     def enrollments # not for batch
+      # Find any "relevant" Forms, meaning forms that collect Custom Data Elements that are used for eligibility or prioritization of this candidate pool. There may not be any associated forms, if eligibility is determined by other factors.
       form_definition_identifiers = object.candidate_pool.relevant_form_definition_identifiers
 
       # For now, resolve all current and historical enrollments for this client (including open, exited, and wip).
