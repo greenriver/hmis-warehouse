@@ -54,7 +54,7 @@ module Hmis::Ce::Match
     # @return [Array<Object, String>] A tuple of [resolver_instance, resolved_field_name]
     # @raise [ArgumentError] if the resolver name is not recognized
     def resolver_for(field)
-      field_type, resolved_field = field_type_for(field)
+      field_type, resolved_field = self.class.field_type_for(field)
       resolver = registered_resolvers[field_type]
 
       [resolver, resolved_field]
