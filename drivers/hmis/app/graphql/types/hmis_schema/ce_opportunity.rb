@@ -38,6 +38,17 @@ module Types
       arg :workflow_template, [String]
     end
 
+    field :candidate_lookup, Types::HmisSchema::CeCandidate, null: true do
+      argument :id, ID, required: true
+    end
+
+    # View candidate details when creating a referral. (Source enrollment selection step)
+    def candidate_lookup(id:)
+      access_denied! unless current_permission?(permission: :can_view_prioritized_client_lists, entity: object.project)
+
+      Hmis::Ce::Match::Candidate.for_opportunity(object).find_by(id: id)
+    end
+
     def candidates # not for batch
       permission_from_project = current_permission?(permission: :can_view_prioritized_client_lists, entity: object.project)
       return Hmis::Ce::Match::Candidate.none unless permission_from_project
