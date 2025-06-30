@@ -22,7 +22,7 @@ module Types
 
       # todo @martha - need to check permission on ANY, not just FIRST source client
       if source_clients.any? && current_permission?(permission: :can_view_client_name, entity: source_clients.first)
-        client.brief_name
+        source_clients.first.brief_name
       else
         "Candidate #{object.id}"
       end
