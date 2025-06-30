@@ -728,10 +728,9 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   """
-  Null if the user lacks permission to view the client
+  Masked as "Candidate 123" unless the user has permission to view
   """
-  client: Client
-  clientId: ID!
+  clientName: String!
   enrollments(limit: Int, offset: Int): CeReferralSourceEnrollmentsPaginated!
   id: ID!
   priorityScore: Int!

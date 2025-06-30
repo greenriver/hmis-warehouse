@@ -358,7 +358,7 @@ task ce_starter_pack_20250302: [:environment] do
   Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
 
   puts 'Running the CE match engine'
-  clients = Hmis::Hud::Client.hmis.limit(100) # modify this if you want to include different or specific clients
+  clients = Hmis::Hud::Client.where(data_source_id: GrdaWarehouse::DataSource.destination_data_source_ids).limit(100)
   Hmis::Ce::Match::CandidatePool.all.each do |pool|
     Hmis::Ce::Match::Engine.call(pool, clients)
   end
