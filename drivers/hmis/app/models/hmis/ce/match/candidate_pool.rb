@@ -26,7 +26,7 @@ module Hmis::Ce::Match
 
           resolved_field
         end.uniq
-      end.flatten.uniq
+      end.flatten.compact.uniq
 
       # Gather all the CDEDs referenced by all CDE fields and return their form definition identifiers
       cdeds = Hmis::Ce::Match::CdeFieldMap.new.cdeds_for(cde_fields)
