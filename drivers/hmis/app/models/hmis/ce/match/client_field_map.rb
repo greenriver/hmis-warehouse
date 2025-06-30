@@ -55,7 +55,7 @@ module Hmis::Ce::Match
               pluck(arel.p_t['ProjectType'])
           end,
         },
-        # Resolves an array of project types at which the Client has an active Referral (a.k.a. not yet declined or accepted)
+        # Array of Project Types at which the Client has an active Referral (e.g. not yet declined or accepted)
         open_referral_project_types: {
           instance_value: ->(c) do
             Hmis::Ce::Referral.joins(client: :warehouse_client_source).

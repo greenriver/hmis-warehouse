@@ -79,6 +79,35 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:clients_not_enrolled_in_ph) { clients.where.not(id: client_enrolled_in_ph.id) }
   end
 
+  shared_context 'with referred test clients' do
+    let(:ph_project) { create(:hmis_hud_project, data_source: data_source, project_type: 9) }
+    let(:es_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+    let(:client_referred_to_ph) do
+      client = create(:hmis_hud_client, data_source: data_source, with_enrollment_at: es_project)
+      create(:hmis_ce_referral, data_source: data_source, project: ph_project, client: client, status: 'in_progress')
+      create(:hmis_ce_referral, data_source: data_source, project: es_project, client: client, status: 'in_progress') # additional referral to ES
+      client
+    end
+    let(:client_referred_to_es) do
+      client = create(:hmis_hud_client, data_source: data_source, with_enrollment_at: es_project)
+      create(:hmis_ce_referral, data_source: data_source, project: es_project, client: client, status: 'in_progress')
+      client
+    end
+    let(:client_previously_referred_to_ph) do
+      client = create(:hmis_hud_client, data_source: data_source, with_enrollment_at: es_project)
+      create(:hmis_ce_referral, data_source: data_source, project: ph_project, client: client, status: 'rejected') # previous referral, should be ignored
+      create(:hmis_ce_referral, data_source: data_source, project: es_project, client: client, status: 'in_progress') # additional referral to ES
+      client
+    end
+
+    let(:all_clients) do
+      [client_referred_to_ph, client_previously_referred_to_ph, client_referred_to_es]
+    end
+
+    let(:clients) { Hmis::Hud::Client.where(id: all_clients.map(&:id)) }
+    let(:clients_not_referred_to_ph) { clients.where.not(id: client_referred_to_ph.id) }
+  end
+
   shared_context 'with CDE assessment setup' do
     let(:cded) do
       create(
@@ -296,6 +325,23 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       end
     end
 
-    # TODO add spec for open_referral_project_types filtering
+    context 'when evaluating referral-based policies' do
+      include_context 'with referred test clients'
+
+      describe 'project-type-based filtering' do
+        describe 'when requiring no open referral in a PH (9) project' do
+          let(:requirement_expression) { 'excludes(open_referral_project_types, 9)' }
+
+          it 'excludes clients with open referrals to PH (9) projects' do
+            results = generate_candidates(pool, clients)
+            expect(results.map(&:client_id)).not_to include(client_referred_to_ph.destination_client.id)
+          end
+          it 'includes clients without open referrals to PH (9) projects' do
+            results = generate_candidates(pool, clients)
+            expect(results.map(&:client_id)).to eq(clients_not_referred_to_ph.map { |c| c.destination_client.id })
+          end
+        end
+      end
+    end
   end
 end
