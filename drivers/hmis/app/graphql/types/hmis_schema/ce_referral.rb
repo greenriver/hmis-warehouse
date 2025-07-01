@@ -24,6 +24,7 @@ module Types
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
+    field :notes, HmisSchema::CeReferralNote.page_type, null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -171,6 +172,10 @@ module Types
       object.audit_events.
         where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
         order(created_at: :desc)
+    end
+
+    def notes
+      object.notes.order(created_at: :desc)
     end
 
     private

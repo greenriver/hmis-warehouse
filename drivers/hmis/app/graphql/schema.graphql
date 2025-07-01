@@ -909,6 +909,7 @@ type CeReferral {
   currentSteps: [CeReferralStep!]
   daysOnCurrentSteps: Int
   id: ID!
+  notes(limit: Int, offset: Int): CeReferralNotesPaginated!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
   status: CeReferralStatus!
@@ -975,6 +976,27 @@ input CeReferralFilterOptions {
   projectType: [ProjectType!]
   status: [CeReferralStatus!]
   workflowTemplate: [String!]
+}
+
+type CeReferralNote {
+  createdAt: ISO8601DateTime!
+  id: ID!
+  note: String!
+
+  """
+  The user who created the note
+  """
+  user: ApplicationUser
+}
+
+type CeReferralNotesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferralNote!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 input CeReferralParticipantInput {
