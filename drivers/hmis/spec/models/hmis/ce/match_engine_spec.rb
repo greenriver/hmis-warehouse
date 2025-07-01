@@ -290,7 +290,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     describe 'project-type-based filtering' do
       describe 'when requiring open enrollment in a CE (14) project' do
         # Requirement: must have open enrollment in Coordinated Entry (14) project type
-        let(:requirement_expression) { 'includes(open_enrollment_project_types, 14)' }
+        let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, PROJECT_TYPE("CE"))' }
 
         it 'includes clients with open enrollments at the correct project type' do
           results = generate_candidates(pool, clients)
@@ -315,7 +315,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       describe 'when requiring no open enrollments in PH project types' do
         # Requirement: must NOT have open enrollment in any Permanent Housing project (3, 9, 10, 13)
-        let(:requirement_expression) { 'excludes(open_enrollment_project_types, 3) AND excludes(open_enrollment_project_types, 9) AND excludes(open_enrollment_project_types, 10) AND excludes(open_enrollment_project_types, 13)' }
+        let(:requirement_expression) { 'EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PSH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_OPH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_RRH"))' }
 
         it 'excludes client with open enrollment in PH ' do
           results = generate_candidates(pool, clients)
@@ -330,7 +330,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       describe 'project-type-based filtering' do
         describe 'when requiring no open referral in a PH (9) project' do
-          let(:requirement_expression) { 'excludes(open_referral_project_types, 9)' }
+          let(:requirement_expression) { 'EXCLUDES(open_referral_project_types, 9)' }
 
           it 'excludes clients with open referrals to PH (9) projects' do
             results = generate_candidates(pool, clients)

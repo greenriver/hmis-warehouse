@@ -97,8 +97,8 @@ RSpec.describe Hmis::Ce::Match::SqlExpressionTranslator do
         expect(sql).to include('> 18')
       end
 
-      it 'handles `includes` with unresolvable field by making the expression always true' do
-        result = described_class.call('includes(open_enrollment_project_types, 14)', field_map)
+      it 'handles INCLUDES with unresolvable field by making the expression always true' do
+        result = described_class.call('INCLUDES(open_enrollment_project_types, 14)', field_map)
         expect(result.to_sql).to eq('1 = 1')
       end
 
