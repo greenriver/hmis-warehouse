@@ -20,15 +20,18 @@ module Types
     end
 
     def client_name
-      # Current permission logic: For this destination client, are there any source clients whose names you can view?
-      # If so, show the *destination* client's name.
-      # In the future, we want to check permissions more broadly across data sources.
-      # (viewable_by scope only accounts for permissions in current data source.)
+      # For this destination client, are there any source clients whose names you can view? If so, return the *destination* client's name.
+      # In the future, we want to check permissions more broadly across data sources. (viewable_by scope only accounts for permissions in current data source.)
 
-      if named_source_clients.any?
-        # Use name directly, instead of PII provider.
-        # The user has permission to see this client's name in some source system.
-        # But we don't want to display the source name, because it could be inaccurate.
+      # Iterate through source clients avoids n+1 issues with viewable_by scope
+      can_view_any_source_client_name = source_clients.filter do |client|
+        current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+      end.any?
+
+      if can_view_any_source_client_name
+        # Return the destination client's first and last names directly, instead of using the client PII provider.
+        # The user may not have permission to view the destination client name, but we know they have permission to view the client's name in some source system.
+        # We don't want to return the source client name, because it's less accurate. This Candidate represents a Destination Client, so return the destination name.
         "#{destination_client.FirstName} #{destination_client.LastName}"
       else
         "Candidate #{object.id}"
@@ -80,15 +83,7 @@ module Types
     end
 
     def source_clients
-      source_clients = load_ar_association(destination_client, :source_clients) # These are source clients, but they are GrdaWarehouse::Hud::Client objects
-      # todo @martha - this is an n+1 issue after all, because we need the Hmis::Hud::Client object, not GrdaWarehouse::Hud::Client
-      Hmis::Hud::Client.where(id: source_clients.pluck(:id))
-    end
-
-    def named_source_clients
-      source_clients.filter do |client|
-        current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
-      end
+      load_ar_association(destination_client, :hmis_source_clients)
     end
   end
 end

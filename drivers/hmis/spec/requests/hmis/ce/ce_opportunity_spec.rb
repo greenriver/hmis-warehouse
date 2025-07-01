@@ -248,19 +248,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has lots of candidates' do
       before do
-        200.times do
+        50.times do
           client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
           create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client.destination_client, priority_score: rand(80..100))
         end
       end
 
-      # todo @martha - n+1
-      xit 'queries the db a reasonable amount' do
+      it 'queries the db a reasonable amount' do
         expect do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
-        end.to make_database_queries(count: 25..35)
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(50)
+        end.to make_database_queries(count: 20..30)
       end
     end
 

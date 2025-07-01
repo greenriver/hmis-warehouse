@@ -19,6 +19,10 @@ module Hmis::GrdaWarehouse::Hud
       has_many :ce_client_proxies, as: :client, class_name: 'Hmis::Ce::ClientProxy', dependent: :destroy
       has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', through: :ce_client_proxies
 
+      # HMIS source clients represented as Hmis::Hud::Client
+      # (Normal source_clients are represented as GrdaWarehouse::Hud::Client)
+      has_many :hmis_source_clients, -> { hmis }, class_name: 'Hmis::Hud::Client', through: :warehouse_client_destination, source: :source
+
       def as_hmis
         Hmis::Hud::Client.find(id)
       end
