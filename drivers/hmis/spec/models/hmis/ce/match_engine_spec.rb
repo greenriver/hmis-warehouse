@@ -24,8 +24,6 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   let(:priority_expression) { '0' }
 
   def generate_candidates(pool, clients)
-    # create destination clients
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     described_class.call(pool, clients)
     candidates = pool.candidates
     # return results mapped to client IDs for easier comparison
@@ -34,20 +32,21 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end.sort
   end
 
+  def destination_clients_for(clients)
+    # create destination clients
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+    # get the GrdaWarehouse::Hud::Client destination client for each source client
+    GrdaWarehouse::Hud::Client.where(id: clients.map { |c| c.destination_client.id })
+  end
+
   shared_context 'with demographic test clients' do
-    let(:client_adult_non_veteran) { create(:hmis_hud_client_with_warehouse_client, veteran_status: 0, dob: 20.years.ago) }
-    let(:client_minor_non_veteran) { create(:hmis_hud_client_with_warehouse_client, veteran_status: 0, dob: 10.years.ago) }
-    let(:client_adult_veteran) { create(:hmis_hud_client_with_warehouse_client, veteran_status: 1, dob: 20.years.ago) }
-    let(:client_senior_veteran) { create(:hmis_hud_client_with_warehouse_client, veteran_status: 1, dob: 68.years.ago) }
+    let(:client_adult_non_veteran) { create(:hmis_hud_client, veteran_status: 0, dob: 20.years.ago) }
+    let(:client_minor_non_veteran) { create(:hmis_hud_client, veteran_status: 0, dob: 10.years.ago) }
+    let(:client_adult_veteran) { create(:hmis_hud_client, veteran_status: 1, dob: 20.years.ago) }
+    let(:client_senior_veteran) { create(:hmis_hud_client, veteran_status: 1, dob: 68.years.ago) }
 
     let(:clients) { [client_adult_non_veteran, client_minor_non_veteran, client_adult_veteran, client_senior_veteran] }
-
-    let(:destination_clients) do
-      ids = clients.map do |c|
-        c.destination_client.id
-      end
-      GrdaWarehouse::Hud::Client.where(id: ids)
-    end
+    let(:destination_clients) { destination_clients_for(clients) }
 
     let(:adult_clients) { destination_clients.where.not(id: client_minor_non_veteran.destination_client.id) }
   end
@@ -130,8 +129,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     describe 'with missing demographic data' do
-      let!(:client_with_missing_dob) { create(:hmis_hud_client_with_warehouse_client, veteran_status: 1, dob: nil) }
-      let!(:client_with_missing_veteran_status) { create(:hmis_hud_client_with_warehouse_client, veteran_status: nil, dob: 20.years.ago) }
+      let!(:client_with_missing_dob) { create(:hmis_hud_client, veteran_status: 1, dob: nil) }
+      let!(:client_with_missing_veteran_status) { create(:hmis_hud_client, veteran_status: nil, dob: 20.years.ago) }
 
       let(:clients_with_missing_data) do
         GrdaWarehouse::Hud::Client.where(id: destination_clients.map(&:id) + [client_with_missing_dob.destination_client.id, client_with_missing_veteran_status.destination_client.id])
@@ -176,9 +175,9 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     include_context 'with CDE assessment setup'
 
     let(:cde_key) { 'hat_client_interested_in_ph' }
-    let(:client_interested_in_ph) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-    let(:client_not_interested_in_ph) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-    let(:destination_clients) { GrdaWarehouse::Hud::Client.where(id: [client_interested_in_ph.destination_client.id, client_not_interested_in_ph.destination_client.id]) }
+    let(:client_interested_in_ph) { create(:hmis_hud_client, data_source: data_source) }
+    let(:client_not_interested_in_ph) { create(:hmis_hud_client, data_source: data_source) }
+    let(:destination_clients) { destination_clients_for([client_interested_in_ph, client_not_interested_in_ph]) }
 
     before do
       create_assessment_with_cde(client_interested_in_ph, '1')
@@ -200,9 +199,9 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
     let(:cde_key) { 'primary_languages' }
     let(:multi_valued_cde) { true }
-    let(:client_english_spanish) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-    let(:client_french_only) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-    let(:destination_clients) { GrdaWarehouse::Hud::Client.where(id: [client_english_spanish.destination_client.id, client_french_only.destination_client.id]) }
+    let(:client_english_spanish) { create(:hmis_hud_client, data_source: data_source) }
+    let(:client_french_only) { create(:hmis_hud_client, data_source: data_source) }
+    let(:destination_clients) { destination_clients_for([client_english_spanish, client_french_only]) }
 
     before do
       create_assessment_with_cde(client_english_spanish, ['English', 'Spanish'])
