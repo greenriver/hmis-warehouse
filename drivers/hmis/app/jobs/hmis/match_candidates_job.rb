@@ -32,8 +32,7 @@ module Hmis
       # Find candidate pools for these opportunities
       candidate_pool_ids = opportunities.reload.pluck(:candidate_pool_id).compact.uniq
       candidate_pool_scope = Hmis::Ce::Match::CandidatePool.where(id: candidate_pool_ids)
-      # todo @martha - this is untested as a job, but running it with perform_now in the rails console was failing because it can't find GrdaWarehouse::Hud::Client
-      client_scope = ::GrdaWarehouse::Hud::Client.where(data_source_id: GrdaWarehouse::DataSource.destination_data_source_ids)
+      client_scope = ::GrdaWarehouse::Hud::Client.where(data_source_id: ::GrdaWarehouse::DataSource.destination_data_source_ids)
 
       log("Running the CE match engine for #{candidate_pool_scope.count} candidate pools")
       candidate_pool_scope.find_each do |pool|

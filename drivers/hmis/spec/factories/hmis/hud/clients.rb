@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'faker'
 
 FactoryBot.define do
@@ -73,7 +75,8 @@ FactoryBot.define do
   # HMIS Source Client that is linked to a destination client (Via WarehouseClient)
   factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
     after(:create) do |client|
-      destination = create(:destination_client, personal_id: client.personal_id)
+      # todo @martha - to discuss: can we just trust that the warehouse client will have all the correct attributes? age, dob, veteran status?
+      destination = create(:destination_client, personal_id: client.personal_id, dob: client.dob, veteran_status: client.veteran_status)
       create(:hmis_warehouse_client, data_source: client.data_source, source: client, destination: destination)
     end
   end
