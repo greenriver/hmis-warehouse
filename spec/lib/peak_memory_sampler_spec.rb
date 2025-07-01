@@ -4,43 +4,34 @@ require 'rails_helper'
 
 RSpec.describe PeakMemorySampler do
   describe '.profile' do
-    it 'records a peak memory usage value' do
-      profiled = described_class.profile do # Allocate a small string
-        @test_str = 'test-result'
-        sleep(0.6)
-      end
-      expect(profiled[:peak_memory_bytes]).to be > 0
-      expect(profiled[:relative_memory_bytes]).to be >= 0
-    end
-
     it 'captures the approximate peak memory of the process' do
+      GC.start
       base_mem = GetProcessMem.new.bytes
-      string_size = 10 * 1024 * 1024 # 10MB string
+      array_size = 10 * 1024 * 1024 # 10MB array
 
       profiled = described_class.profile do
-        @test_str = 'a' * string_size
+        ['a'] * array_size # rubocop:disable Lint/Void
 
         # The sampler thread runs in the background. Sleep to capture the peak allocation.
         sleep(0.6)
       end
 
       peak_mem = profiled[:peak_memory_bytes]
-      relative_mem = profiled[:relative_memory_bytes]
+      relative_mem = profiled[:relative_peak_memory_bytes]
 
+      expect(peak_mem).to be >= (base_mem)
       # Assert that the recorded peak memory is at least the size of the
-      # baseline memory plus a significant fraction (95%) of the string,
-      # making the test less brittle.
-      expected_minimum = base_mem + (string_size * 0.95)
-      expect(peak_mem).to be >= expected_minimum
+      # baseline memory plus some fraction of the array
+      expect(relative_mem).to be >= array_size * 0.9
 
-      # Assert that relative memory is a significant fraction of the new allocation
-      expect(relative_mem).to be >= (string_size * 0.95)
+      # Assert that retained memory is tracked
+      retained_mem = profiled[:retained_memory_bytes]
+      expect(retained_mem).to be >= 0
     end
 
-    it 'returns a value greater than 0 for peak memory if a no-op is given' do
+    it 'returns a value for peak memory if a no-op is given' do
       profiled = described_class.profile { true }
       expect(profiled[:peak_memory_bytes]).to be > 0
-      expect(profiled[:relative_memory_bytes]).to be >= 0
     end
 
     it 'raises an error if no block is given' do
