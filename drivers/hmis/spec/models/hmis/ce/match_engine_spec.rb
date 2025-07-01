@@ -61,7 +61,6 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:client_wip_enrolled_in_ce) do
       client = create(:hmis_hud_client, data_source: data_source)
       create(:hmis_hud_wip_enrollment, data_source: data_source, project: ce_project, exit_date: nil, client: client)
-      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client) # non-WIP enrollment so destination client gets created
       client
     end
     let(:client_enrolled_in_es) do
