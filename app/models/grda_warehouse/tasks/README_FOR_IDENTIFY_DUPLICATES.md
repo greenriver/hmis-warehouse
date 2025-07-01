@@ -1,6 +1,6 @@
 # Duplicate Client Identification Algorithm
 
-The `IdentifyDuplicates` deduplicates client records by identifying and merging clients that represent the same person across different data sources.
+The `IdentifyDuplicates` deduplicates client records by identifying and linking clients that represent the same person across different data sources.
 
 ## Architecture Overview
 
@@ -44,27 +44,29 @@ The system provides two distinct operations that handle different deduplication 
 
 ### Operation 1: `identify_duplicates` - Process New/Unprocessed Clients
 
-**Purpose**: Handles newly imported clients that need to be linked to existing destinations or have new destinations created
+**Purpose**: Handles newly imported or created clients that need to be linked to existing destinations or have new destinations created
 
 **When it runs**:
 - Automatically when new clients are created
 - During data imports
 - Via manual execution
+- As part of the daily processing script
 
 **What it does**:
 1. Restores previously deleted destinations that still have active source clients
 2. Finds source clients that haven't been processed yet
-3. Matches them against existing destinations using matching criteria
-4. Either links to existing destinations or creates new ones
+3. Matches them against existing destinations using deterministic matching criteria
+4. Either links to existing destinations or creates new destination records
 5. Updates destination records with enriched data from sources
 
 ### Operation 2: `match_existing!` - Merge Existing Destinations
 
-**Purpose**: Re-evaluates existing destination clients when their identifying information changes
+**Purpose**: Re-evaluates existing source clients when their identifying information changes
 
 **When it runs**:
 - When client personally identifiable information is updated
 - Via manual execution for reconciliation
+- As part of the daily processing script
 
 **What it does**:
 1. Identifies destination clients that should now be considered the same person
@@ -76,8 +78,8 @@ The system provides two distinct operations that handle different deduplication 
 ### Why Two Separate Operations?
 
 **Logical Separation**:
-- **New client processing**: Handles incremental addition of clients from data sources
-- **Existing client reconciliation**: Handles changes to identifying information that affect existing relationships
+- **New client processing**: Handles incremental addition of clients over time, and additional bulk imports of client data.
+- **Existing client reconciliation**: Handles changes to existing client records that are updated.  Sometimes an update to an existing source record causes a deterministic match to another existing client pair.
 
 **Performance Benefits**:
 - Avoids expensive re-evaluation of all relationships when processing new clients
@@ -104,9 +106,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 ## Configuration and Constraints
 
 ### System Controls
-- Master switches to enable/disable automatic processing
-- Thresholds for automatic acceptance/rejection of matches
-- Limits on maximum sources per destination client
+- Configuration to enable/disable automatic processing
 
 ### Safeguards
 - Prevents concurrent execution
