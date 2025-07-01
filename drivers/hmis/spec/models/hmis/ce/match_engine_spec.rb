@@ -226,4 +226,22 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       end
     end
   end
+
+  context 'when destination client has multiple source clients' do
+    let(:personal_id) { '100' }
+    let(:dob) { '1999-12-01' }
+    let(:ssn) { '123-45-6789' }
+
+    let!(:source_1) { create(:hmis_hud_client_with_warehouse_client, personal_id: personal_id, data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: dob, ssn: ssn) }
+    let!(:source_2) { create(:hmis_hud_client, personal_id: personal_id, data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: dob, ssn: ssn) }
+
+    let(:destination_clients) { destination_clients_for([source_1, source_2]) }
+
+    # todo @martha - figure this out, how does identify duplicates work
+    xit 'deduplicates on the waitlist' do
+      expect(destination_clients.count).to eq(1)
+      results = generate_candidates(pool, destination_clients)
+      expect(results).to eq([destination_clients.sole.id])
+    end
+  end
 end
