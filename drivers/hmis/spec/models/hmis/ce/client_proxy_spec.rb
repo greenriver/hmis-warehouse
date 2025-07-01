@@ -29,4 +29,19 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
       end.to raise_error(ActiveRecord::RecordInvalid, /must be destination client/)
     end
   end
+
+  describe 'Client deletion behavior' do
+    let!(:proxy) { create(:hmis_ce_client_proxy, client: destination_client) }
+    let!(:candidate) { create(:hmis_ce_match_candidate, client_proxy: proxy) }
+
+    it 'deletes associated proxies and candidates' do
+      expect do
+        destination_client.destroy!
+      end.to change(Hmis::Ce::Match::Candidate, :count).by(-1).
+        and change(Hmis::Ce::ClientProxy, :count).by(-1)
+
+      expect(Hmis::Ce::ClientProxy.find_by(id: proxy.id)).to be_nil
+      expect(Hmis::Ce::Match::Candidate.find_by(id: candidate.id)).to be_nil
+    end
+  end
 end

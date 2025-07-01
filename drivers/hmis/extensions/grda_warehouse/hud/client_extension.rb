@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::GrdaWarehouse::Hud
   module ClientExtension
     extend ActiveSupport::Concern
@@ -14,6 +16,7 @@ module Hmis::GrdaWarehouse::Hud
       has_many :hmis_custom_assessments, through: :enrollments
       has_many :hmis_source_custom_assessments, through: :source_enrollments, source: :hmis_custom_assessments
       has_many :custom_services, through: :source_enrollments
+      has_many :ce_client_proxies, as: :client, class_name: 'Hmis::Ce::ClientProxy', dependent: :destroy
 
       def as_hmis
         Hmis::Hud::Client.find(id)
