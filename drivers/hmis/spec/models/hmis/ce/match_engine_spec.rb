@@ -52,10 +52,16 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:es_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
     let(:ce_project) { create(:hmis_hud_project, data_source: data_source, project_type: 14) }
     let(:ph_project) { create(:hmis_hud_project, data_source: data_source, project_type: 9) }
-    let(:client_enrolled_in_ce_and_es) do
+    let(:client_enrolled_in_ce) do
       client = create(:hmis_hud_client, data_source: data_source)
       create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, exit_date: nil, client: client)
-      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client)
+      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client) # cruft: ES enrollment
+      client
+    end
+    let(:client_wip_enrolled_in_ce) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_wip_enrollment, data_source: data_source, project: ce_project, exit_date: nil, client: client)
+      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client) # non-WIP enrollment so destination client gets created
       client
     end
     let(:client_enrolled_in_es) do
@@ -76,7 +82,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:client_unenrolled) { create(:hmis_hud_client, data_source: data_source) }
 
     let(:all_clients) do
-      [client_enrolled_in_ce_and_es, client_enrolled_in_es, client_enrolled_in_ph, client_exited_from_ce, client_unenrolled]
+      [client_enrolled_in_ce, client_wip_enrolled_in_ce, client_enrolled_in_es, client_enrolled_in_ph, client_exited_from_ce, client_unenrolled]
     end
 
     let(:clients) { Hmis::Hud::Client.where(id: all_clients.map(&:id)) }
@@ -298,7 +304,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
         it 'includes clients with open enrollments at the correct project type' do
           results = generate_candidates(pool, clients)
-          expect(results.map(&:client_id).sort).to eq([client_enrolled_in_ce_and_es.destination_client.id].sort)
+          expected_clients = [client_enrolled_in_ce, client_wip_enrolled_in_ce]
+          expect(results.map(&:client_id).sort).to eq(expected_clients.map { |c| c.destination_client.id }.sort)
         end
 
         it 'excludes clients with exited enrollments at the correct project type' do
@@ -314,6 +321,21 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         it 'excludes clients that are only enrolled in projects of other types' do
           results = generate_candidates(pool, clients)
           expect(results.map(&:client_id)).not_to include(client_enrolled_in_es.destination_client.id)
+        end
+      end
+
+      describe 'when requiring open enrollment in a CE (14) project, excluding WIP enrollments' do
+        # Requirement: must have open enrollment in Coordinated Entry (14) project type, excluding WIP enrollments
+        let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types_excluding_incomplete, PROJECT_TYPE("CE"))' }
+
+        it 'excludes clients with WIP (incomplete) enrollments at the project type' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id)).not_to include(client_wip_enrolled_in_ce.destination_client.id)
+        end
+
+        it 'includes clients with open enrollments at the correct project type' do
+          results = generate_candidates(pool, clients)
+          expect(results.map(&:client_id).sort).to eq([client_enrolled_in_ce.destination_client.id])
         end
       end
 
