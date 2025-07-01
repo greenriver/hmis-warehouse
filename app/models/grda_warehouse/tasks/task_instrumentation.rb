@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'memory_profiler'
 class GrdaWarehouse::Tasks::TaskInstrumentation
   include Singleton
 
@@ -10,17 +9,14 @@ class GrdaWarehouse::Tasks::TaskInstrumentation
   def call(name, alert_threshold:, &block)
     task = find_or_create_maintenance_task(name, alert_threshold: alert_threshold)
     run = task.system_maintenance_task_runs.create!(started_at: Time.current)
+
     if Rails.env.production?
       block.call(run)
     else
-      report = MemoryProfiler.report do
+      profile_data = PeakMemorySampler.profile do
         block.call(run)
       end
-      run.update!(
-        memory_allocated: report.total_allocated_memsize,
-        memory_retained: report.total_retained_memsize,
-        allocation_count: report.total_allocated,
-      )
+      run.update!(memory_allocated: profile_data[:peak_memory_bytes])
     end
   end
 
