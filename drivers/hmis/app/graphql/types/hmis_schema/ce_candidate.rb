@@ -10,19 +10,26 @@ module Types
   class HmisSchema::CeCandidate < Types::BaseObject
     # object is a Hmis::Ce::Match::Candidate
     field :id, ID, null: false
+    field :destination_client_id, ID, null: false
     field :client_name, String, null: false, description: 'Masked as "Candidate 123" unless the user has permission to view'
     field :priority_score, Integer, null: false
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
 
-    def client_name
-      # Current permission logic: "For this destination client, are there any source clients you can currently view?"
-      # In the future, we want to check permissions more broadly across data sources:
-      # "Find all source clients, and if you have any HMIS access or warehouse access to any of them
-      # (even if not in the current data source that you're logged into), then show the client name."
+    def destination_client_id
+      destination_client.id
+    end
 
-      # todo @martha - need to check permission on ANY, not just FIRST source client
-      if source_clients.any? && current_permission?(permission: :can_view_client_name, entity: source_clients.first)
-        source_clients.first.brief_name
+    def client_name
+      # Current permission logic: For this destination client, are there any source clients whose names you can view?
+      # If so, show the *destination* client's name.
+      # In the future, we want to check permissions more broadly across data sources.
+      # (viewable_by scope only accounts for permissions in current data source.)
+
+      if named_source_clients.any?
+        # Use name directly, instead of PII provider.
+        # The user has permission to see this client's name in some source system.
+        # But we don't want to display the source name, because it could be inaccurate.
+        "#{destination_client.FirstName} #{destination_client.LastName}"
       else
         "Candidate #{object.id}"
       end
@@ -67,11 +74,21 @@ module Types
 
     private
 
-    def source_clients
+    def destination_client
       client_proxy = load_ar_association(object, :client_proxy)
-      destination_client = load_ar_scope(scope: GrdaWarehouse::Hud::Client.all, id: client_proxy.client_id)
-      source_client_ids = load_ar_association(destination_client, :source_clients).map(&:id)
-      Hmis::Hud::Client.where(id: source_client_ids).viewable_by(current_user) # todo @martha - n+1
+      load_ar_scope(scope: GrdaWarehouse::Hud::Client.all, id: client_proxy.client_id)
+    end
+
+    def source_clients
+      source_clients = load_ar_association(destination_client, :source_clients) # These are source clients, but they are GrdaWarehouse::Hud::Client objects
+      # todo @martha - this is an n+1 issue after all, because we need the Hmis::Hud::Client object, not GrdaWarehouse::Hud::Client
+      Hmis::Hud::Client.where(id: source_clients.pluck(:id))
+    end
+
+    def named_source_clients
+      source_clients.filter do |client|
+        current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+      end
     end
   end
 end

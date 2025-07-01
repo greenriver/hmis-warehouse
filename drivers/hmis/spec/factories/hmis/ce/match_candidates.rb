@@ -2,8 +2,11 @@
 
 FactoryBot.define do
   factory :hmis_ce_match_candidate, class: 'Hmis::Ce::Match::Candidate' do
+    transient do
+      client { build :destination_client }
+    end
     association(:candidate_pool, factory: :hmis_ce_match_candidate_pool)
-    association(:client_proxy, factory: :hmis_ce_client_proxy)
+    client_proxy { build(:hmis_ce_client_proxy, client: client) }
     priority_score { 1 }
   end
 end

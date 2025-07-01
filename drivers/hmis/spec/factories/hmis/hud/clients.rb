@@ -75,8 +75,17 @@ FactoryBot.define do
   # HMIS Source Client that is linked to a destination client (Via WarehouseClient)
   factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
     after(:create) do |client|
-      # todo @martha - to discuss: can we just trust that the warehouse client will have all the correct attributes? age, dob, veteran status?
-      destination = create(:destination_client, personal_id: client.personal_id, dob: client.dob, veteran_status: client.veteran_status)
+      # Copy over some basic attributes for ease in using this factory for other factories.
+      # More complex use cases should probably rely on running `GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!` in the test,
+      # see match_engine_spec.rb for example.
+      destination = create(
+        :destination_client,
+        personal_id: client.personal_id,
+        dob: client.dob,
+        veteran_status: client.veteran_status,
+        first_name: client.first_name,
+        last_name: client.last_name,
+      )
       create(:hmis_warehouse_client, data_source: client.data_source, source: client, destination: destination)
     end
   end
