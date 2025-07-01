@@ -10,6 +10,9 @@ module HmisUtil
       opportunities = Hmis::Ce::Opportunity.active
       Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
 
+      # Delete orphaned pools (to clear out any misconfigured match expressions)
+      Hmis::Ce::Match::CandidatePool.where.missing(:opportunities).find_each(&:destroy!)
+
       # Run the match engine for each candidate pool
       clients ||= Hmis::Hud::Client.hmis
       Hmis::Ce::Match::CandidatePool.all.each do |pool|
