@@ -330,7 +330,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
       describe 'project-type-based filtering' do
         describe 'when requiring no open referral in a PH (9) project' do
-          let(:requirement_expression) { 'EXCLUDES(open_referral_project_types, PROJECT_TYPE("PH_PH")' }
+          let(:requirement_expression) { 'EXCLUDES(open_referral_project_types, PROJECT_TYPE("PH_PH"))' }
 
           it 'excludes clients with open referrals to PH (9) projects' do
             results = generate_candidates(pool, clients)
