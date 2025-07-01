@@ -47,7 +47,6 @@ module Hmis::Ce::Match
     protected
 
     # TODO: remove this in #7671
-    # Resolve as a GrdaWarehouse destination client. Hmis::Hud::Client model isn't meant to be used with Destination clients
     def translate_source_to_destination_scope(clients)
       GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
         where(warehouse_clients: { source_id: clients.select(:id) })
