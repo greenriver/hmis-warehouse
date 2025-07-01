@@ -28,7 +28,7 @@ module Hmis::Ce::Match
         end
         proxies_by_client = import_proxies!(proxies)
 
-        # Iterate through a second time to import matches
+        # Iterate through a second time to import candidate matches
         candidates = []
         batch.each do |client|
           # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently

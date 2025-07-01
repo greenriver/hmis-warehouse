@@ -25,6 +25,8 @@ module Hmis
     # @param opportunity_ids [Array] an array of opportunity IDs to build candidate pools for.
     # If nil, builds pools for all active Opportunities
     def _perform(opportunity_ids: nil)
+      raise unless Hmis::Ce.configuration.enabled?
+
       opportunities = opportunity_ids ? Hmis::Ce::Opportunity.where(id: opportunity_ids) : Hmis::Ce::Opportunity.active
       log("Building candidate pools for #{opportunities.count} opportunities")
       Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
