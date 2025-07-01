@@ -1,0 +1,20 @@
+# frozen_string_literal: true
+
+# place for storing utility methods that we need to run manually/locally until all CE configuration functionality is in place
+module HmisUtil
+  class CeBuilder
+    # Run this after changing/adding/removing match expressions
+    # HmisUtil::CeBuilder.build_candidate_pools(clients: Hmis::Hud::Project.find_by(ProjectName: "CE Assessor Project").clients)
+    def self.build_candidate_pools(clients: nil)
+      # Build candidate pools
+      opportunities = Hmis::Ce::Opportunity.active
+      Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
+
+      # Run the match engine for each candidate pool
+      clients ||= Hmis::Hud::Client.hmis
+      Hmis::Ce::Match::CandidatePool.all.each do |pool|
+        Hmis::Ce::Match::Engine.call(pool, clients)
+      end
+    end
+  end
+end
