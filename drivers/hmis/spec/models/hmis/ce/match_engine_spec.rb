@@ -228,20 +228,22 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   end
 
   context 'when destination client has multiple source clients' do
-    let(:personal_id) { '100' }
-    let(:dob) { '1999-12-01' }
-    let(:ssn) { '123-45-6789' }
+    def create_client_and_deduplicate
+      client = create(:hmis_hud_client, personal_id: '100', data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: '1999-12-01', ssn: '123-45-6789')
+      # Run deduplication after each client creation to ensure that duplicates are correctly recognized
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      client
+    end
 
-    let!(:source_1) { create(:hmis_hud_client_with_warehouse_client, personal_id: personal_id, data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: dob, ssn: ssn) }
-    let!(:source_2) { create(:hmis_hud_client, personal_id: personal_id, data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: dob, ssn: ssn) }
-
+    let!(:source_1) { create_client_and_deduplicate }
+    let!(:source_2) { create_client_and_deduplicate }
     let(:destination_clients) { destination_clients_for([source_1, source_2]) }
 
-    # todo @martha - figure this out, how does identify duplicates work
-    xit 'deduplicates on the waitlist' do
+    it 'deduplicates on the waitlist' do
       expect(destination_clients.count).to eq(1)
       results = generate_candidates(pool, destination_clients)
-      expect(results).to eq([destination_clients.sole.id])
+      expect(results.size).to eq(1)
+      expect(results.sole).to eq(destination_clients.sole.id)
     end
   end
 end
