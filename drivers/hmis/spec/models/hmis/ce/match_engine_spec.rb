@@ -270,7 +270,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     describe 'multi-valued CDE inclusion matching' do
-      let(:requirement_expression) { "includes(`cde.custom_assessment.primary_languages`, 'English')" }
+      let(:requirement_expression) { "INCLUDES(`cde.custom_assessment.primary_languages`, 'English')" }
 
       it 'matches clients with the specified language among multiple values' do
         results = generate_candidates(pool, clients)
@@ -279,7 +279,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     describe 'multi-valued CDE exclusion matching' do
-      let(:requirement_expression) { "excludes(`cde.custom_assessment.primary_languages`, 'French')" }
+      let(:requirement_expression) { "EXCLUDES(`cde.custom_assessment.primary_languages`, 'French')" }
 
       it 'excludes clients who have the specified language' do
         results = generate_candidates(pool, clients)
