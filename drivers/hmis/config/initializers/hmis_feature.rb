@@ -15,6 +15,11 @@
 
 RailsDrivers.loaded << :hmis
 
-# Rails.application.config.queued_tasks[:hmis_check_constraints] = -> do
-#   Hmis::Tasks::CheckConstraints.check_hud_constraints
-# end
+Rails.application.config.queued_tasks[:hmis_check_constraints] = -> do
+  Hmis::Tasks::CheckConstraints.check_hud_constraints
+end
+
+Rails.application.config.queued_tasks[:hmis_disabling_condition_and_race_cleanup_2_2025] = -> do
+  HmisDataCleanup::Util.fix_disabling_condition_nils!
+  HmisDataCleanup::Util.fix_race_gender_99s!
+end
