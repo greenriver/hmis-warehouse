@@ -16,7 +16,7 @@ class GrdaWarehouse::Tasks::TaskInstrumentation
       profile_data = PeakMemorySampler.profile do
         block.call(run)
       end
-      run.update!(memory_allocated: profile_data[:peak_memory_bytes])
+      run.update!(memory_allocated: profile_data[:relative_memory_bytes])
     end
   end
 

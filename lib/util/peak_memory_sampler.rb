@@ -12,9 +12,10 @@ module PeakMemorySampler
 
   # @return [Hash] with keys :result and :peak_memory_bytes
   def self.profile(poll_interval: 0.5)
-    return { peak_memory_bytes: 0 } unless block_given?
+    raise ArgumentError, 'a block is required' unless block_given?
 
-    monitor_state = { running: true, peak_memory_bytes: 0 }
+    initial_memory_bytes = current_mem_bytes
+    monitor_state = { running: true, peak_memory_bytes: initial_memory_bytes }
 
     monitor_thread = Thread.new do
       while monitor_state[:running]
@@ -29,7 +30,11 @@ module PeakMemorySampler
 
     begin
       yield
-      { peak_memory_bytes: monitor_state[:peak_memory_bytes] }
+      peak_memory = monitor_state[:peak_memory_bytes]
+      {
+        peak_memory_bytes: peak_memory,
+        relative_memory_bytes: peak_memory - initial_memory_bytes,
+      }
     ensure
       # This ensures the monitor stops even if the block raises an error
       monitor_state[:running] = false
