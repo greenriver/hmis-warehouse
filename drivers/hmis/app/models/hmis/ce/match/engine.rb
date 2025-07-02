@@ -15,7 +15,9 @@ module Hmis::Ce::Match
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
     def call(pool, clients)
       validate_clients_parameter!(clients)
-      # TODO: remove this in #7671
+      # TODO: remove this in #7671. store mapping of { destination_id => hmis_source_client_id }
+      destination_to_source_map = build_destination_to_source_map(clients)
+      # TODO: remove this in #7671. translate `clients` scope of source clients into a scope of destination clients
       clients = translate_source_to_destination_scope(clients)
 
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
@@ -29,9 +31,12 @@ module Hmis::Ce::Match
           next unless eligibility_evaluator.call(client)
 
           score = priority_evaluator.call(client)
+
+          source_client_id = destination_to_source_map[client.id] # TODO: remove this in #7671
+
           matches << {
             candidate_pool_id: pool.id,
-            client_id: client.id,
+            client_id: source_client_id,
             priority_score: score,
             created_at: now,
             updated_at: now,
@@ -48,8 +53,16 @@ module Hmis::Ce::Match
 
     # TODO: remove this in #7671
     def translate_source_to_destination_scope(clients)
-      Hmis::Hud::Client.joins(:warehouse_client_destination).
+      GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
         where(warehouse_clients: { source_id: clients.select(:id) })
+    end
+
+    # TODO: remove this in #7671
+    def build_destination_to_source_map(clients)
+      GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
+        where(warehouse_clients: { source_id: clients.select(:id) }).
+        pluck(:id, 'warehouse_clients.source_id').
+        to_h
     end
 
     def validate_clients_parameter!(clients)
