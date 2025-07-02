@@ -140,7 +140,12 @@ module Types
       # For now, only resolve source enrollment if the user can view it. We may want to expand this to be viewable to all Referral participants, TBD.
       # This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment.
       enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
-      OpenStruct.new(enrollment: enrollment) # no need to pass form def identifiers..
+
+      OpenStruct.new(
+        enrollment: enrollment,
+        # tell CeReferralSourceEnrollment which assessment metadata is relevant to resolve
+        definition_identifiers: object.opportunity.candidate_pool.relevant_form_definition_identifiers,
+      )
     end
 
     def referred_by
