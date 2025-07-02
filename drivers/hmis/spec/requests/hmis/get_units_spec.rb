@@ -87,7 +87,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'when the unit has an opportunity with a referral in progress' do
       let!(:unit) { create(:hmis_unit, project: project) }
       let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
-      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
       it 'returns the unit with the opportunity and referral' do
         response, result = post_graphql(id: project.id) { query }
@@ -144,7 +144,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       context 'when the unit has an opportunity with referrals in progress' do
         let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked) }
-        let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress) }
+        let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
 
         it 'acceptingCeReferrals is false' do
           _, result = post_graphql(id: project.id) { query }
@@ -159,7 +159,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       context 'when the unit has a closed opportunity, but no open one' do
         let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :closed) }
-        let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, status: :accepted) }
+        let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :accepted) }
 
         it 'acceptingCeReferrals is false' do
           _, result = post_graphql(id: project.id) { query }
@@ -178,7 +178,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         50.times do
           unit = create :hmis_unit, project: project
           opportunity = create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :locked)
-          create(:hmis_ce_referral, opportunity: opportunity, status: :in_progress)
+          create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress)
         end
       end
 
