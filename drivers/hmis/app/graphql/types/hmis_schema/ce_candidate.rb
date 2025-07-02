@@ -20,22 +20,15 @@ module Types
     end
 
     def client_name
-      # For this destination client, are there any source clients whose names you can view? If so, return the *destination* client's name.
+      # For this destination client, are there any source clients whose names you can view? If so, return the first viewable name.
       # In the future, we want to check permissions more broadly across data sources. (viewable_by scope only accounts for permissions in current data source.)
 
       # Iterate through source clients avoids n+1 issues with viewable_by scope
-      can_view_any_source_client_name = source_clients.filter do |client|
+      first_viewable_name = source_clients.sort_by(&:id).find do |client|
         current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
-      end.any?
+      end&.brief_name
 
-      if can_view_any_source_client_name
-        # Return the destination client's first and last names directly, instead of using the client PII provider.
-        # The user may not have permission to view the destination client name, but we know they have permission to view the client's name in some source system.
-        # We don't want to return the source client name, because it's less accurate. This Candidate represents a Destination Client, so return the destination name.
-        "#{destination_client.FirstName} #{destination_client.LastName}"
-      else
-        "Candidate #{object.id}"
-      end
+      first_viewable_name || "Candidate #{object.id}"
     end
 
     def enrollments # not for batch
