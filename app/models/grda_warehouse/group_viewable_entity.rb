@@ -24,6 +24,15 @@ module GrdaWarehouse
       where(access_group_id: user.access_groups.pluck(:id))
     end
 
+    def self.item_type(item)
+      record = with_deleted.find_by(id: item.item_id)
+      if record&.entity_type
+        record.entity_type
+      else
+        item.item_type
+      end
+    end
+
     def entity_name
       collection_name = collection&.name || 'Unknown Collection'
       entity_display_name = case entity_type
@@ -36,7 +45,7 @@ module GrdaWarehouse
       when 'GrdaWarehouse::DataSource'
         "Data Source: #{entity&.name || entity_id}"
       when 'GrdaWarehouse::ProjectAccessGroup'
-        "Project Group: #{entity&.name || entity_id}"
+        "Project Group for Project Access: #{entity&.name || entity_id}"
       when 'GrdaWarehouse::WarehouseReports::ReportDefinition'
         "Report: #{entity&.name || entity_id}"
       when 'GrdaWarehouse::Cohort'
@@ -51,18 +60,29 @@ module GrdaWarehouse
     end
 
     def self.describe_changes(version, _changes, _excluded_fields = [])
+      # PaperTrail stores changes in object_changes as: { field_name => [old_value, new_value] }
+      # Examples:
+      # - Create: { 'entity_id' => [nil, 123], 'entity_type' => [nil, 'GrdaWarehouse::Hud::Project'] }
+      # - Update: { 'entity_id' => [123, 456], 'entity_type' => ['GrdaWarehouse::Hud::Project', 'GrdaWarehouse::Hud::Organization'] }
+      # - Destroy: { 'entity_id' => [123, nil], 'entity_type' => ['GrdaWarehouse::Hud::Project', nil] }
+      #
+      # For create events: use index 1 (new value)
+      # For destroy events: use index 0 (old value)
+      # For update events: use index 1 (new value)
+      index = version.event == 'destroy' ? 0 : 1
+
       # Get the entity name from the version's item or object_changes
       entity_name = if version.item
         get_entity_display_name(version.item.entity_type, version.item.entity_id, version.item.entity)
-      elsif version.object_changes&.dig('entity_id', 1)
-        # For create events, get the entity name from the new entity_id
-        entity_id = version.object_changes['entity_id'][1]
-        entity_type = version.object_changes['entity_type']&.last || version.object_changes['entity_type']&.first
-        get_entity_display_name(entity_type, entity_id)
-      elsif version.object_changes&.dig('entity_id', 0)
-        # For destroy events, get the entity name from the original entity_id
-        entity_id = version.object_changes['entity_id'][0]
-        entity_type = version.object_changes['entity_type']&.first
+      elsif ['create', 'destroy', 'update'].include?(version.event)
+        # if object is present, use it to get the entity data otherwise use object_changes
+        if version.object.present?
+          entity_id = version.object['entity_id']
+          entity_type = version.object['entity_type']
+        else
+          entity_id = version.object_changes['entity_id'][index]
+          entity_type = version.object_changes['entity_type'][index]
+        end
         get_entity_display_name(entity_type, entity_id)
       else
         'Unknown Entity'
@@ -71,13 +91,8 @@ module GrdaWarehouse
       # Get the collection name
       collection_name = if version.item
         version.item.collection&.name || "Collection ID #{version.item.collection_id}"
-      elsif version.object_changes&.dig('collection_id', 1)
-        collection_id = version.object_changes['collection_id'][1]
-        collection = Collection.with_deleted.find_by(id: collection_id)
-        collection&.name || "Collection ID #{collection_id}"
-      elsif version.object_changes&.dig('collection_id', 0)
-        # For destroy events, get the collection name from the original collection_id
-        collection_id = version.object_changes['collection_id'][0]
+      elsif ['create', 'destroy'].include?(version.event)
+        collection_id = version.object_changes['collection_id'][index]
         collection = Collection.with_deleted.find_by(id: collection_id)
         collection&.name || "Collection ID #{collection_id}"
       else

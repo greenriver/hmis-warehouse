@@ -1,5 +1,5 @@
 = render 'admin/audits/shared/layout', 
-  entity_type: 'Collection', 
-  entity_name: @collection.name,
+  entity_type: 'Collection',
   entity_path: admin_collections_path,
-  export_path: export_admin_collection_audit_path(@collection, format: :csv)
+  export_path: export_admin_collection_audit_path(@collection, format: :csv),
+  item: @collection

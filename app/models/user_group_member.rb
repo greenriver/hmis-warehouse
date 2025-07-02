@@ -52,10 +52,6 @@ class UserGroupMember < ApplicationRecord
 
   def self.render_changed_value(_field, value)
     return 'nil' if value.nil?
-    return 'true' if value == true
-    return 'false' if value == false
-    return value.to_s if value.is_a?(Numeric)
-    return value.to_s if value.is_a?(String)
 
     return value.to_s
   end

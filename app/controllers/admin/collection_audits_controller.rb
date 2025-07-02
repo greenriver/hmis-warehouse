@@ -9,29 +9,26 @@
 module Admin
   class CollectionAuditsController < ::ApplicationController
     before_action :require_can_audit_users!
-    before_action :set_collection
+    before_action :set_variables
     include AuditHistory
 
     def show
-      @history = Audit::Versions.new(@collection, collection_audit_config)
-      @pagy, @versions = pagy_array(@history.version_scope)
     end
 
     def export
-      @history = Audit::Versions.new(@collection, collection_audit_config)
-      @versions = @history.version_scope
-
       respond_to do |format|
         format.csv do
-          send_data generate_csv, filename: "#{@collection.name.parameterize}-audit-history-#{Date.current}.csv"
+          send_data generate_audit_csv(@versions, @history), filename: "#{@collection.name.parameterize}-audit-history-#{Date.current.to_fs(:db)}.csv"
         end
       end
     end
 
     private
 
-    def set_collection
+    def set_variables
       @collection = Collection.find(params[:collection_id].to_i)
+      @history = Audit::Versions.new(@collection, collection_audit_config)
+      @versions = @history.version_array.sort_by(&:created_at).reverse
     end
   end
 end

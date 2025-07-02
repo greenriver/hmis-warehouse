@@ -105,6 +105,10 @@ class AccessControl < ApplicationRecord
     where(id: ids)
   end
 
+  scope :visible_to, ->(_user) do
+    return all
+  end
+
   # If all entities are system entities, this is a system Access Control
   def system?
     [user_group&.system?, role&.system?, collection&.system?].all?

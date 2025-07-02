@@ -58,12 +58,23 @@ module AuditHistory
     }
   end
 
+  def csv_headers
+    [
+      'Date Changed',
+      'Editor',
+      'Entity Type',
+      'Entity Name',
+      'Changed Entity Type',
+      'Changed Entity Name',
+      'Event',
+      'Changes',
+    ]
+  end
+
   # Generate CSV for standard audit exports
   def generate_audit_csv(versions, history, include_headers: true)
-    require 'csv'
-
     CSV.generate(headers: include_headers) do |csv|
-      csv << ['Date Changed', 'Editor', 'Entity Type', 'Entity Name', 'Changed Entity Type', 'Changed Entity Name', 'Event', 'Changes'] if include_headers
+      csv << csv_headers if include_headers
 
       history.wrap_display_versions(versions).each do |item|
         changes_text = if item.error

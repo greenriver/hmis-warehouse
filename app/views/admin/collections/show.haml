@@ -5,14 +5,13 @@
   = link_to admin_collections_path do
     &laquo; Manage Collections
 
-.o-page
-  .o-page__title
-    %h1= content_for :title
-.pull-right
-  = link_to admin_collection_audit_path(@collection), class: 'btn btn-info mb-3' do
-    %i.fa.fa-history
-    %span.icon-eye
-    History
+.d-flex
+  %h1= content_for :title
+  .ml-auto
+    = link_to admin_collection_audit_path(@collection), class: 'btn btn-info mb-3' do
+      %i.fa.fa-history
+      %span.icon-eye
+      History
 
 .well
   .row

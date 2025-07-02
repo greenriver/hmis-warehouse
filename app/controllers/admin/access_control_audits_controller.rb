@@ -9,29 +9,26 @@
 module Admin
   class AccessControlAuditsController < ::ApplicationController
     before_action :require_can_audit_users!
-    before_action :set_access_control
+    before_action :set_variables
     include AuditHistory
 
     def show
-      @history = Audit::Versions.new(@access_control, access_control_component_config)
-      @pagy, @versions = pagy_array(@history.version_scope)
     end
 
     def export
-      @history = Audit::Versions.new(@access_control, access_control_component_config)
-      @versions = @history.version_scope
-
       respond_to do |format|
         format.csv do
-          send_data generate_audit_csv(@versions, @history), filename: "access-control-#{@access_control.id}-component-history-#{Date.current}.csv"
+          send_data generate_audit_csv(@versions, @history), filename: "access-control-#{@access_control.id}-component-history-#{Date.current.to_fs(:db)}.csv"
         end
       end
     end
 
     private
 
-    def set_access_control
+    def set_variables
       @access_control = AccessControl.find(params[:access_control_id].to_i)
+      @history = Audit::Versions.new(@access_control, access_control_component_config)
+      @versions = @history.version_array.sort_by(&:created_at).reverse
     end
   end
 end

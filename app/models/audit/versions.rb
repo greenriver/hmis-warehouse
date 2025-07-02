@@ -17,7 +17,7 @@ class Audit::Versions
 
   # Versions to display on the audit page
   # Includes changes to the record itself and related entities based on configuration
-  def version_scope
+  def version_array
     # Collect all version IDs from different sources, tracking their version class
     gr_paper_trail_ids = []
     grda_warehouse_ids = []
@@ -121,8 +121,13 @@ class Audit::Versions
       model_class = model_config[:class]
       association_name = model_config[:association]
 
-      # Get the related record
-      related_record = record.send(association_name)
+      # Get the related record (including deleted ones)
+      related_record = if record.respond_to?("#{association_name}_id")
+        # Query directly to include soft-deleted records
+        model_class.with_deleted.find_by(id: record.send("#{association_name}_id"))
+      else
+        record.send(association_name)
+      end
       next unless related_record
 
       version_ids = collect_version_ids_by_class(model_class, [related_record.id])
@@ -170,8 +175,8 @@ class Audit::Versions
       parent_record = record.send(parent_association)
       next unless parent_record
 
-      # Get the IDs of nested records
-      nested_record_ids = parent_record.send(nested_association).pluck(:id)
+      # Get the IDs of nested records (including deleted ones)
+      nested_record_ids = parent_record.send(nested_association).with_deleted.pluck(:id)
       next if nested_record_ids.blank?
 
       version_ids = collect_version_ids_by_class(model_class, nested_record_ids)

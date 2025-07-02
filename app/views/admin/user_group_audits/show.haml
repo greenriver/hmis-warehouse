@@ -1,5 +1,5 @@
 = render 'admin/audits/shared/layout', 
-  entity_type: 'User Group', 
-  entity_name: @user_group.name,
+  entity_type: 'User Group',
   entity_path: admin_user_groups_path,
-  export_path: export_admin_user_group_audit_path(@user_group, format: :csv)
+  export_path: export_admin_user_group_audit_path(@user_group, format: :csv),
+  item: @user_group

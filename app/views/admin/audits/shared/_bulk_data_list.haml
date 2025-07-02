@@ -11,6 +11,8 @@
         %th Event
         %th Description
     %tbody
-      - record = @history.record
-      - list.each do |item|
+      - list.each do |data|
+        - history = data[:history]
+        - item = data[:version]
+        - record = history.record
         = render 'admin/audits/shared/row', item: item, record: record

@@ -17,10 +17,12 @@ class Audit::DisplayItem
     @version = version
     @excluded_fields = excluded_fields
 
+    impersonating = version.clean_true_user_id.present? && version.clean_user_id.to_s != version.clean_true_user_id.to_s
+
     true_username = compute_username(users_by_id, version.clean_true_user_id)
     username = compute_username(users_by_id, version.clean_user_id)
     @username = true_username || username || version.whodunnit.presence
-    @impersonating = username if true_username && username != true_username
+    @impersonating = username if true_username && impersonating
 
     begin
       klass = version.item_type.constantize
@@ -60,20 +62,9 @@ class Audit::DisplayItem
 
   def compute_entity_name(klass)
     # Special handling for GroupViewableEntity - show the referenced entity type
-    if klass == GrdaWarehouse::GroupViewableEntity
-      begin
-        record = klass.with_deleted.find_by(id: version.item_id)
-        if record&.entity_type
-          record.entity_type
-        else
-          version.item_type
-        end
-      rescue StandardError
-        version.item_type
-      end
-    else
-      klass.name
-    end
+    return GrdaWarehouse::GroupViewableEntity.item_type(version) if klass == GrdaWarehouse::GroupViewableEntity
+
+    klass.name
   end
 
   def compute_entity_display_name(klass)
@@ -119,10 +110,6 @@ class Audit::DisplayItem
 
   def render_changed_value(_field, value)
     return 'nil' if value.nil?
-    return 'true' if value == true
-    return 'false' if value == false
-    return value.to_s if value.is_a?(Numeric)
-    return value.to_s if value.is_a?(String)
 
     return value.to_s
   end

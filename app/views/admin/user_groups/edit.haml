@@ -1,11 +1,12 @@
 = render 'breadcrumbs'
 
-%h1 Edit User Group #{@group.name}
-.pull-right
-  = link_to admin_user_group_audit_path(@group), class: 'btn btn-info mb-3' do
-    %i.fa.fa-history
-    %span.icon-eye
-    History
+.d-flex
+  %h1 Edit User Group #{@group.name}
+  .ml-auto
+    = link_to admin_user_group_audit_path(@group), class: 'btn btn-info mb-3' do
+      %i.fa.fa-history
+      %span.icon-eye
+      History
 
 = render 'admin/user_groups/description', entity_type: 'warehouse'
 = simple_form_for @group, as: :user_group, url: admin_user_group_path do |f|
