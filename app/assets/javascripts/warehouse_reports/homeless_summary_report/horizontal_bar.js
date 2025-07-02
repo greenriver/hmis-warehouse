@@ -7,7 +7,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
     this._selector_exists = this._selector_exists.bind(this);
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
     this.chart_selector = chart_selector;
-    ;
     this.truncate_labels = (options != null && options.truncate_labels != null) ? options.truncate_labels : 0;
     this.color_map = {};
     this.next_color = 0;
