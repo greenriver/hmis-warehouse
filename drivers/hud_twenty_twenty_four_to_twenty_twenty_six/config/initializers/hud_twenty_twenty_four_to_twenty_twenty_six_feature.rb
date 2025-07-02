@@ -27,6 +27,7 @@ Rails.application.reloader.to_prepare do
     '2024v1.2',
     'FY 2024 1.3',
     'FY2024',
+    'Y2024',
   ].each do |version|
     Importers::HmisAutoMigrate.add_migration(version, 'HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer')
   end

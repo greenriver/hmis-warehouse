@@ -3022,6 +3022,18 @@
       {
         "key": 1,
         "description": "Male"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
       }
     ]
   },
@@ -3292,32 +3304,6 @@
       {
         "key": 3,
         "description": "Unsuccessful referral: provider rejected"
-      }
-    ]
-  },
-  {
-    "name": "EarlyExitReason",
-    "code": "R17.A",
-    "values": [
-      {
-        "key": 1,
-        "description": "Left for other opportunities - independent living"
-      },
-      {
-        "key": 2,
-        "description": "Left for other opportunities - education"
-      },
-      {
-        "key": 3,
-        "description": "Left for other opportunities - military"
-      },
-      {
-        "key": 4,
-        "description": "Left for other opportunities - other"
-      },
-      {
-        "key": 5,
-        "description": "Needs could not be met by project"
       }
     ]
   },
@@ -5222,7 +5208,7 @@
     ]
   },
   {
-    "name": "MentalHeathConsultation",
+    "name": "MentalHealthConsultation",
     "code": "V10",
     "values": [
       {

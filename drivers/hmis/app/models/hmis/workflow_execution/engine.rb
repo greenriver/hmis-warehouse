@@ -32,10 +32,24 @@ module Hmis::WorkflowExecution
       log_event('start_workflow', user: user)
     end
 
+    def enable_step!(node)
+      step = instance.steps.find_or_initialize_by(node: node)
+
+      # If the step has already been completed, it may be re-openable, but _only_ if it didn't have any irreversible side effects
+      if step.status == 'completed' && !step.reversible? # rubocop:disable Style/IfUnlessModifier
+        raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
+      end
+
+      step.available_at = Time.current
+      step.enable!
+      step
+    end
+
     def start_step!(step, user:)
       step.assignments.find_or_create_by!(user: user)
       step.started_at = Time.current
       step.start!
+      # We don't populate the step's updated_by id here, because from the user's perspective, starting the step is just clicking a button, but not updating anything
       process_triggers(node: step.node, event_type: 'start_step', user: user, step: step)
       log_event('start_step', user: user, step: step)
     end
@@ -48,6 +62,7 @@ module Hmis::WorkflowExecution
     def complete_step!(step, user:, submitted_values:)
       step.submitted_values = submitted_values
       step.completed_at = Time.current
+      step.updated_by = user
       step.complete!
       process_triggers(node: step.node, event_type: 'complete_step', user: user, step: step)
       log_event('complete_step', user: user, step: step, event_data: submitted_values)
@@ -87,7 +102,7 @@ module Hmis::WorkflowExecution
 
     # get all tasks nodes under step but treat those task nodes as leaves and stop searching (bounded depth-first search)
     def next_task_steps(step)
-      nodes = template.graph.walk(entrypoint_ids: [step.node_id], stop_when: lambda(&:task?))
+      nodes = template.graph.walk(entrypoint_ids: [step.node_id], stop_when: lambda { |node| node.user_task? || node.script_task? })
       steps_by_node_id = instance.steps.index_by(&:node_id)
       nodes.map { |node| steps_by_node_id[node.id] }.compact
     end
@@ -108,7 +123,13 @@ module Hmis::WorkflowExecution
           user: user,
         )
 
-        log_event('message_sent', event_data: trigger.to_h) if result[:success?]
+        # Log audit event only if the message was successfully sent
+        if result[:success?]
+          log_event('message_sent', user: user, event_data: trigger.to_h, step: step)
+          # Log specific message for the end of a workflow
+          log_event('end_workflow', user: user, event_data: trigger.to_h, step: step) if event_type == 'end_workflow'
+        end
+
         result
       end
 
@@ -138,17 +159,14 @@ module Hmis::WorkflowExecution
 
     def visit_node(node, user)
       case node
-      when Hmis::WorkflowDefinition::Task
-        step = instance.steps.find_or_initialize_by(node: node)
-
-        # If the step has already been completed, it may be re-openable, but _only_ if it didn't have any irreversible side effects
-        if step.status == 'completed' && !step.reversible? # rubocop:disable Style/IfUnlessModifier
-          raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
-        end
-
-        step.available_at = Time.current
-        step.enable!
+      when Hmis::WorkflowDefinition::UserTask
+        step = enable_step!(node)
         assign_task!(step)
+      when Hmis::WorkflowDefinition::ScriptTask
+        step = enable_step!(node)
+        # Immediately complete the step without waiting for user action
+        start_step!(step, user: user)
+        complete_step!(step, user: user, submitted_values: {})
       when Hmis::WorkflowDefinition::Gateway
         traverse_node(node, user)
       when Hmis::WorkflowDefinition::StartEvent
@@ -171,6 +189,10 @@ module Hmis::WorkflowExecution
 
       calculator = Dentaku::Calculator.new
       defaults = calculator.dependencies(expression).to_h { |k| [k.to_sym, nil] }
+
+      # Evaluate conditions against *all* submitted values. This is important because when we reach a gateway,
+      # we need to evaluate which branch(es) to take based on the submitted values of the previous tasks;
+      # the gateway itself doesn't have submitted values.
       calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
     end
 
@@ -179,6 +201,11 @@ module Hmis::WorkflowExecution
       steps_by_node_id = instance.steps.index_by(&:node_id)
       template.graph.walk.each.with_object({}) do |node, result|
         step = steps_by_node_id[node.id]
+        # Steps may reuse the same form definition, and we always evaluate against the most recently submitted value.
+        # For example, if step 1 previously submitted "move_forward = 1" but step 2 submits "move_forward = 0",
+        # the workflow should not move forward.
+        # This relies on the .merge behavior, which overwrites existing keys,
+        # combined with the fact that we are walking through the graph sequentially.
         result.merge!(step.submitted_values) if step&.completed?
       end
     end

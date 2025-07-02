@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ProjectGroupsController < ApplicationController
   before_action :require_can_edit_some_project_groups!
   before_action :require_can_import_project_groups!, only: [:maintenance, :import]
@@ -32,13 +34,14 @@ class ProjectGroupsController < ApplicationController
   end
 
   def create
-    @project_group = project_group_source.new
-    project_group_source.transaction do
-      @project_group.assign_attributes(name: group_params[:name])
-      filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
-      filter.coc_codes = []
-      @project_group.options = filter.to_h
-      if @project_group.save!
+    begin
+      @project_group = project_group_source.new
+      project_group_source.transaction do
+        @project_group.assign_attributes(name: group_params[:name])
+        filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
+        filter.coc_codes = []
+        @project_group.options = filter.to_h
+        @project_group.save!
         editors = user_params[:editor_ids]&.reject(&:blank?)&.map(&:to_i)
         # If the user can't edit all project groups, make sure we add the user so they can access it later
         editors << current_user.id
@@ -54,11 +57,14 @@ class ProjectGroupsController < ApplicationController
         AccessGroup.maintain_system_groups(group: :project_groups)
         # END_ACL
       end
-    rescue Exception => e
+    rescue StandardError => e
       flash[:error] = e.message
       render action: :new
+      raise e if Rails.env.test?
+
       return
     end
+
     respond_with(@project_group, location: edit_project_group_path(@project_group.id))
   end
 
@@ -67,12 +73,13 @@ class ProjectGroupsController < ApplicationController
   end
 
   def update
-    project_group_source.transaction do
-      @project_group.assign_attributes(name: group_params[:name])
-      filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
-      filter.coc_codes = []
-      @project_group.options = filter.to_h
-      if @project_group.save
+    begin
+      project_group_source.transaction do
+        @project_group.assign_attributes(name: group_params[:name])
+        filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
+        filter.coc_codes = []
+        @project_group.options = filter.to_h
+        @project_group.save!
         # START_ACL remove when ACL transition complete
         users = user_params[:users]&.reject(&:empty?)
         @project_group.update_access(users.map(&:to_i)) if users.present?
@@ -83,7 +90,7 @@ class ProjectGroupsController < ApplicationController
         end
         @project_group.maintain_projects!
       end
-    rescue Exception => e
+    rescue StandardError => e
       flash[:error] = e.message
       render action: :edit
       return

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :hmis_workflow_definition_task, class: 'Hmis::WorkflowDefinition::Task' do
+  factory :hmis_workflow_definition_user_task, class: 'Hmis::WorkflowDefinition::UserTask' do
     sequence(:name) { |n| "Step #{n}" }
     trigger_config { [] }
     association(:template, factory: :hmis_workflow_definition_template)
@@ -11,6 +11,12 @@ FactoryBot.define do
     after(:build) do |task, evaluator|
       task.form_definition_identifier = evaluator.form_definition.identifier
     end
+  end
+
+  factory :hmis_workflow_definition_script_task, class: 'Hmis::WorkflowDefinition::ScriptTask' do
+    sequence(:name) { |n| "Script Task #{n}" }
+    trigger_config { [] }
+    association(:template, factory: :hmis_workflow_definition_template)
   end
 
   factory :hmis_workflow_definition_start_event, class: 'Hmis::WorkflowDefinition::StartEvent' do
@@ -25,7 +31,7 @@ FactoryBot.define do
       [
         {
           event: 'end_workflow',
-          message: 'accept_referral',
+          message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
       ]
     end

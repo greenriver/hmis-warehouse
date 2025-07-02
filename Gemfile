@@ -16,6 +16,10 @@ gem 'observer'
 gem 'csv'
 gem 'abbrev'
 
+# This is included handle invalid utf8 characters in URLs, we should revisit
+# periodically as the functionality may be moved into rails core in the future
+gem 'utf8-cleaner'
+
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
@@ -254,6 +258,8 @@ gem 'hashdiff'
 # https://github.com/k8s-ruby/k8s-ruby/pull/57
 gem 'k8s-ruby', github: 'k8s-ruby/k8s-ruby', branch: 'master'
 
+gem 'get_process_mem', require: false
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -284,7 +290,7 @@ group :development do
 
   gem 'ruby-prof', require: false
   gem 'memory_profiler', require: false
-  gem 'get_process_mem', require: false
+
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph', require: false
   gem 'stackprof', require: false

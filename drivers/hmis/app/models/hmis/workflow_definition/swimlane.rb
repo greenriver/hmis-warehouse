@@ -4,6 +4,6 @@
 module Hmis::WorkflowDefinition
   class Swimlane < GrdaWarehouseBase
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
-    has_many :tasks, class_name: 'Hmis::WorkflowDefinition::Task', dependent: :nullify
+    has_many :tasks, class_name: 'Hmis::WorkflowDefinition::UserTask', dependent: :nullify
   end
 end
