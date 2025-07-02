@@ -55,6 +55,8 @@ module Hmis::Ce
     # Which opportunities are available for a given client
     scope :for_client, ->(client) {
       eligible_pool_ids = client.destination_client&.as_warehouse&.ce_match_candidates&.select(:candidate_pool_id)
+      return Hmis::Ce::Opportunity.none if eligible_pool_ids.blank?
+
       scope = self.open.where(candidate_pool_id: eligible_pool_ids)
 
       exclude_ids = []
