@@ -796,6 +796,19 @@ enum CeMatchRuleOwner {
   UNIT_GROUP
 }
 
+type CeMatchValue {
+  """
+  Name of this field
+  """
+  fieldName: String!
+
+  """
+  String representation of the value for this field
+  """
+  fieldValue: String
+  id: ID!
+}
+
 type CeOpportunitiesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -906,11 +919,13 @@ type CeReferral {
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!
+  currentMatchValues: [CeMatchValue!]
   currentSteps: [CeReferralStep!]
   daysOnCurrentSteps: Int
   id: ID!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
+  sourceEnrollment: CeReferralSourceEnrollment
   status: CeReferralStatus!
   steps: [CeReferralStep!]!
   swimlanes: [CeReferralSwimlane!]!

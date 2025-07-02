@@ -21,9 +21,13 @@ module Types
     field :days_on_current_steps, Integer, null: true
     field :updated_by, Application::User, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
+    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
+
+    # generically resolve current values for any fields referenced by Match Rule expressions
+    field :current_match_values, [HmisSchema::CeMatchValue], null: true
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -125,10 +129,18 @@ module Types
     end
 
     def target_enrollment
-      enrollment = load_ar_association(object, :target_enrollment)
-      return nil unless enrollment.present?
+      return unless object.target_enrollment_id
 
-      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: enrollment.id)
+      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.target_enrollment_id)
+    end
+
+    def source_enrollment
+      return unless object.source_enrollment_id
+
+      # For now, only resolve source enrollment if the user can view it. We may want to expand this to be viewable to all Referral participants, TBD.
+      # This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment.
+      enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
+      OpenStruct.new(enrollment: enrollment) # no need to pass form def identifiers..
     end
 
     def referred_by
