@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthPctp
   class CareplansController < IndividualPatientController
     include AjaxModalRails::Controller
@@ -58,8 +60,12 @@ module HealthPctp
       @patient.qa_factory_factory.complete_careplan(@careplan) if @careplan.completed? && @careplan.patient_signed_on != prior_completion
       @patient.qa_factory_factory.review_careplan(@careplan) if @careplan.reviewed? && @careplan.reviewed_by_ccm_on != prior_review
       @patient.qa_factory_factory.approve_careplan(@careplan) if @careplan.approved? && @careplan.reviewed_by_rn_on != prior_approval
-    ensure
-      respond_with @careplan, location: client_health_careplans_path(@client)
+
+      if request.xhr?
+        render json: { status: 'success' }
+      else
+        respond_with @careplan, location: client_health_careplans_path(@client)
+      end
     end
 
     def show
