@@ -22,7 +22,10 @@ if (config.dsn) {
     environment: config.environment || 'development',
     release: config.release,
     initialScope: {
-      tags: { hostname },
+      tags: {
+        hostname,
+        service: 'frontend',
+      },
     },
     tracesSampler: (samplingContext) => {
       if (samplingContext.parentSampled !== undefined) {
@@ -62,4 +65,4 @@ if (config.dsn) {
 }
 
 // Export Sentry for use in other files
-export default Sentry; 
+export default Sentry;
