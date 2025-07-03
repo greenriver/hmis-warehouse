@@ -52,6 +52,7 @@ module Superset
 
   def self.ignored_roles
     [
+      'Admin',
       'Public',
       'Alpha',
       'Gamma',
