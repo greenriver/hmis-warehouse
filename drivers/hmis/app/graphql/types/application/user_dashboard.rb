@@ -43,20 +43,19 @@ module Types
     def ce_referral_steps
       return Hmis::WorkflowExecution::Step.none unless show_referrals
 
-      step_scope = Hmis::WorkflowExecution::Step.
-        joins(:assignments).
-        merge(object.workflow_step_assignments).
-        open.
-        order(available_at: :desc, id: :desc)
+      # Scope open steps that are assigned to the current user
+      step_scope = Hmis::WorkflowExecution::Step.open.
+        assigned_to(current_user.id)
 
       # Join to referrals for
       # - permission checking
       # - ensuring we only resolve CE steps and not other workflow types
       # For performance, rely on assumption that only active referrals have active steps.
       referral_scope = Hmis::Ce::Referral.active.viewable_by(current_user)
-      instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
+      viewable_instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
+      step_scope = step_scope.where(instance_id: viewable_instance_ids)
 
-      step_scope.where(instance_id: instance_ids)
+      step_scope.order(available_at: :desc, id: :desc)
     end
 
     private

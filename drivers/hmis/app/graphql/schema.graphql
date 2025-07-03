@@ -206,7 +206,6 @@ type ApplicationUser {
   manageAccountUrl: String!
   name: String!
   recentItems: [OmnisearchResult!]!
-  staffAssignments(limit: Int, offset: Int): StaffAssignmentsPaginated @deprecated(reason: "Replaced with new UserDashboard type")
 }
 
 type ApplicationUserAuditEvent {
@@ -5373,6 +5372,24 @@ type GeolocationCoordinates {
   longitude: String!
 }
 
+type GlobalFeatureFlags {
+  """
+  Whether Coordinated Entry is enabled
+  """
+  coordinatedEntryEnabled: Boolean!
+
+  """
+  Whether an external referral integration is enabled
+  """
+  externalReferralsEnabled: Boolean!
+  id: ID!
+
+  """
+  Whether MCI ID integration is enabled
+  """
+  mciIdEnabled: Boolean!
+}
+
 """
 HUD HMISParticipationType (2.08.1)
 """
@@ -7271,6 +7288,7 @@ enum PickListType {
   Open Projects that can receive referrals
   """
   PROJECTS_RECEIVING_REFERRALS
+  PROJECT_CONFIG_TYPES
   REFERRAL_OUTCOME
 
   """
@@ -9105,11 +9123,31 @@ type Project {
   active: Boolean!
   affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+
+  """
+  Whether auto-enter is enabled in this project
+  """
+  autoEnterEnabled: Boolean!
+
+  """
+  The number of days of inactivity after which a client will be auto-exited from this project
+  """
+  autoExitDaysThreshold: Int
+
+  """
+  Whether auto-exit is enabled in this project
+  """
+  autoExitEnabled: Boolean!
   ceOpportunities(filters: ProjectCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   ceReferrals(filters: ProjectCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   contactInformation: String
   continuumProject: NoYes
+
+  """
+  Whether Coordinated Entry is enabled in this project
+  """
+  coordinatedEntryEnabled: Boolean!
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
@@ -9156,6 +9194,10 @@ type Project {
   """
   serviceTypes: [ServiceType!]!
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+
+  """
+  Whether staff assignment is enabled in this project
+  """
   staffAssignmentsEnabled: Boolean!
   targetPopulation: TargetPopulation
   unitGroups(limit: Int, offset: Int): UnitGroupsPaginated!
@@ -9258,12 +9300,19 @@ Project Config
 type ProjectConfig {
   configOptions: JSON
   configType: ProjectConfigType!
+  createdAt: ISO8601DateTime!
   id: ID!
   organization: Organization
   organizationId: ID
   project: Project
   projectId: ID
   projectType: ProjectType
+  updatedAt: ISO8601DateTime!
+}
+
+input ProjectConfigFilterOptions {
+  configType: [ProjectConfigType!]
+  project: [ID!]
 }
 
 """
@@ -9287,6 +9336,11 @@ enum ProjectConfigType {
   Auto Exit
   """
   AUTO_EXIT
+
+  """
+  Coordinated Entry
+  """
+  COORDINATED_ENTRY
 
   """
   Staff Assignment
@@ -9532,6 +9586,7 @@ type Query {
   Funder lookup
   """
   funder(id: ID!): Funder
+  globalFeatureFlags: GlobalFeatureFlags!
 
   """
   Household lookup
@@ -9576,7 +9631,7 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
-  projectConfigs(limit: Int, offset: Int): ProjectConfigsPaginated!
+  projectConfigs(filters: ProjectConfigFilterOptions, limit: Int, offset: Int): ProjectConfigsPaginated!
   projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
 
   """
@@ -9677,14 +9732,13 @@ type QueryAccess {
   canViewClientName: Boolean!
   canViewClientPhoto: Boolean!
   canViewClients: Boolean!
-  canViewCoordinatedEntry: Boolean!
+  canViewCoordinatedEntry: Boolean! @deprecated(reason: "Replaced with Project-level coordinatedEntryEnabled field and global feature flag")
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewEnrollmentLocationMap: Boolean!
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
   canViewLimitedEnrollmentDetails: Boolean!
-  canViewMyDashboard: Boolean! @deprecated(reason: "Replaced with new UserDashboard type")
   canViewOpenEnrollmentSummary: Boolean!
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
@@ -12130,6 +12184,17 @@ type UnassignStaffPayload {
 
 type Unit {
   acceptingCeReferrals: Boolean!
+
+  """
+  Whether the unit can be marked available for a future date
+  """
+  canBeMarkedAvailable: Boolean!
+
+  """
+  Whether the unit can be marked available for referrals now
+  """
+  canBeMarkedAvailableToday: Boolean!
+  canBeMarkedUnavailable: Boolean!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   deletable: Boolean!

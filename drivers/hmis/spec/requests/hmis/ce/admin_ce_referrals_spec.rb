@@ -74,6 +74,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_gql_error(post_graphql { query }, message: 'access denied')
     end
 
+    context 'when referrals have varying statuses' do
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'in_progress', updated_at: 1.month.ago) }
+      let!(:referral_accepted) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'accepted', updated_at: 1.week.ago) }
+      let!(:referral_rejected) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'rejected', updated_at: 1.day.ago) }
+
+      it 'sorts referrals by status, then by date updated' do
+        response, result = post_graphql { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.map { |r| r['status'] }).to eq(['in_progress', 'rejected', 'accepted'])
+      end
+
+      it 'supports filtering referrals by status' do
+        variables = { filters: { status: ['accepted'] } }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referrals = result.dig('data', 'ceReferrals', 'nodes')
+        expect(referrals.size).to eq(1)
+        expect(referrals.first['status']).to eq('accepted')
+      end
+    end
+
     context 'when querying by workflow template' do
       let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
       let!(:referral2) { create(:hmis_ce_referral, project: project, data_source: ds1, workflow_template: workflow_template_1) }
