@@ -15,7 +15,7 @@ module PerformanceMeasurement
     KNOWN_SPM_CELLS = {
       '1a' => ['D2', 'G2'],
       '1b' => ['D2', 'G2'],
-      '2a and 2b' => ['B7', 'C7', 'E7', 'G7'], # TODO: confirm if we want to pivot from G7 to I7
+      '2a and 2b' => ['B7', 'C7', 'E7', 'I7'],
       # '3.2' => ['C2'], # actually using the PIT counts
       '4.1' => ['C2', 'C3'],
       '4.2' => ['C2', 'C3'],
@@ -23,7 +23,7 @@ module PerformanceMeasurement
       '4.4' => ['C2', 'C3'],
       '4.5' => ['C2', 'C3'],
       '4.6' => ['C2', 'C3'],
-      '5.1' => ['C4'], # TODO: confirm if we want to pivot to 5.2
+      '5.1' => ['C4'],
       '7a.1' => ['C2', 'C3', 'C4'],
       '7b.1' => ['C2', 'C3'],
       '7b.2' => ['C2', 'C3'],

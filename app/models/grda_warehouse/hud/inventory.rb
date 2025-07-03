@@ -142,7 +142,7 @@ module GrdaWarehouse::Hud
 
     def inventory_by_date(range:, field:)
       count = self[field]
-      return 0 if count.blank? || count < 1
+      return {} if count.blank? || count < 1
 
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, computed_end_date].compact.min

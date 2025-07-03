@@ -60,7 +60,7 @@ module PerformanceMeasurement
     end
 
     def self.default_project_type_codes
-      HudUtility2024.spm_project_type_codes
+      HudUtility2026.spm_project_type_codes
     end
 
     def run_and_save!
@@ -215,7 +215,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      HudUtility2024.spm_project_type_codes
+      HudUtility2026.spm_project_type_codes
     end
 
     def report_path_array
@@ -304,11 +304,11 @@ module PerformanceMeasurement
 
     private def spm_enrollments_from_answer_member(member)
       case member
-      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment
+      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment, HudSpmReport::Fy2026::SpmEnrollment
         [member]
-      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode
+      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode, HudSpmReport::Fy2026::Episode
         member.enrollments
-      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return
+      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return, HudSpmReport::Fy2026::Return
         [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"
@@ -492,11 +492,11 @@ module PerformanceMeasurement
       child = ages.any? { |age| age.present? && age.between?(0, 18) }
       unknown = ages.any?(&:blank?)
 
-      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return HudUtility2026.household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
-      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudUtility2026.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
 
-      HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+      HudUtility2026.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment
@@ -1065,10 +1065,10 @@ module PerformanceMeasurement
       child = ages.any? { |age| age.present? && age.between?(0, 18) }
       unknown = ages.any?(&:blank?)
 
-      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return HudUtility2026.household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
-      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
-      return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+      return HudUtility2026.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudUtility2026.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment
@@ -1298,9 +1298,11 @@ module PerformanceMeasurement
             },
           ],
           # This needs to introspect on the number of days to re-entry and save off extra client_project records
+          # Note: we don't actually get the counts from the SPM Measure 2 fields, but we use the SPM Return records
+          # for the appropriate report and pull the clients based on the number of days to return
           client_project_rows: [
             ->(spm_return) {
-              return unless days_to_return_calculation.call(spm_return)&.between?(1, 180)
+              return unless days_to_return_calculation.call(spm_return)&.between?(0, 180) # Aligns with Measure 2 B7
 
               {
                 project_id: spm_return.exit_enrollment.enrollment.project.id,
@@ -1308,7 +1310,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_return) {
-              return unless days_to_return_calculation.call(spm_return)&.between?(1, 365)
+              return unless days_to_return_calculation.call(spm_return)&.between?(181, 365) # Aligns with Measure 2 E7
 
               {
                 project_id: spm_return.exit_enrollment.enrollment.project.id,
@@ -1316,7 +1318,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_return) {
-              return unless days_to_return_calculation.call(spm_return)&.between?(1, 730)
+              return unless days_to_return_calculation.call(spm_return)&.between?(0, 730) # Aligns with Measure 2 I7
 
               {
                 project_id: spm_return.exit_enrollment.enrollment.project.id,

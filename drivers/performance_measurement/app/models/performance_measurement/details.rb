@@ -395,7 +395,7 @@ module PerformanceMeasurement::Details
           calculation_description: 'The difference (as a percentage) between the number of persons who entered a homeless project with no prior enrollments in HMIS (via the CoC\'s ES, SH, TH, and PH projects) during the reporting range and comparison range.',
           calculation_column: :first_time,
           measure: 'Measure 5',
-          table: '5.1', # TODO: confirm if we want to pivot to 5.2
+          table: '5.1',
           cell: 'C4',
           detail_columns: [
             'first_time',
@@ -822,7 +822,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Recidivism',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People Who Returned to Homelessness Within Six Months',
+          title: 'Percentage of People Who Returned to Homelessness in Less than Six Months',
           goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO in less than 6 months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
@@ -846,7 +846,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Recidivism',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People Who Returned to Homelessness Within Twelve Months',
+          title: 'Percentage of People Who Returned to Homelessness from Six to Twelve Months',
           goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within from 6 to 12 months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
@@ -883,7 +883,7 @@ module PerformanceMeasurement::Details
           measure: 'Measure 2',
           table: '2a and 2b',
           cell_denominator: 'B7',
-          cell_numerator: 'G7',
+          cell_numerator: 'I7',
           detail_columns: [
             'days_to_return',
             'prior_destination',
