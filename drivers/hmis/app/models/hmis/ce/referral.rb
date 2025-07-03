@@ -21,6 +21,7 @@ module Hmis::Ce
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
     belongs_to :target_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
+    belongs_to :source_enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
     has_one :target_project, class_name: 'Hmis::Hud::Project', through: :opportunity, source: :project
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
@@ -74,6 +75,7 @@ module Hmis::Ce
     validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity
     validate :ce_template
+    validate :consistent_data_source
 
     state_machine_config column: 'status' do
       state :initialized, initial: true
@@ -131,6 +133,17 @@ module Hmis::Ce
       return if workflow_instance.template.template_type == 'ce_referral'
 
       errors.add(:workflow_instance, 'must be a CE template')
+    end
+
+    def consistent_data_source
+      msg = 'must be in same data source as opportunity'
+
+      # Opportunity takes the workflow template data source as the "source of truth", so do the same here
+      data_source = opportunity.workflow_template.data_source
+
+      errors.add(:client, msg) unless data_source == client.data_source
+      errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source
+      # Source enrollment doesn't necessarily need to be in the same data source as the opportunity
     end
   end
 end
