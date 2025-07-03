@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -7304,7 +7304,8 @@ CREATE TABLE public.ce_referrals (
     target_enrollment_id bigint,
     completed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    source_enrollment_id bigint
 );
 
 
@@ -73104,6 +73105,14 @@ ALTER TABLE ONLY public.service_history_services_2023
 
 
 --
+-- Name: ce_referrals fk_rails_07deeb981a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_07deeb981a FOREIGN KEY (source_enrollment_id) REFERENCES public."Enrollment"(id);
+
+
+--
 -- Name: service_history_services_2000 fk_rails_07fab86018; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -74119,6 +74128,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250623193057'),
+('20250620132952'),
 ('20250619125706'),
 ('20250612192906'),
 ('20250612153642'),
@@ -74290,4 +74300,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-
