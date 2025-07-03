@@ -106,7 +106,7 @@ class AccessControl < ApplicationRecord
   end
 
   scope :visible_to, ->(_user) do
-   all
+    all
   end
 
   # If all entities are system entities, this is a system Access Control
