@@ -12,7 +12,7 @@ module HudSpmReport::HudReports
 
     included do
       TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-10-01')
-      active_version = HudReports::BaseController.new.default_report_version
+      active_version = ::HudReports::BaseController.new.default_report_version
       enrollment_class_name = if active_version == :fy2026
         'HudSpmReport::Fy2026::SpmEnrollment'
       else
