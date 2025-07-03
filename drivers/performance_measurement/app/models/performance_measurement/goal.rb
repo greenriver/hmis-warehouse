@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement
   class Goal < GrdaWarehouseBase
     acts_as_paranoid
@@ -80,7 +82,7 @@ module PerformanceMeasurement
     end
 
     def coc_name
-      name = ::HudUtility2024.coc_name(coc_code)
+      name = ::HudUtility2026.coc_name(coc_code)
       return "#{name} (#{coc_code})" unless name == coc_code
 
       coc_code

@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 require_relative 'lsa_sql_server' unless ENV['NO_LSA_RDS'].present?
 module LsaSqlServer
@@ -32,7 +40,7 @@ module LsaSqlServer
         TimesHomeless: 'Distinct count of enrollments with an invalid times homeless',
         MonthsHomeless: 'Distinct count of enrollments with an invalid months homeless',
         Destination: 'Distinct count of enrollments with invalid Destinations',
-        NotOneHoH: 'Distinct count of households with an ivalid number of heads of household',
+        NotOneHoH: 'Distinct count of households with an invalid number of heads of household',
         MoveInDate: 'Count of HoH with a Move-in Date outside acceptable range',
       }
     end
