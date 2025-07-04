@@ -31,18 +31,20 @@
           $(this).closest('.jSelectPair').find('.jOther').hide();
         }
       });
-    });
-    $(document).change(function() {
-      form = $('.jCaForm');
-      $.ajax({
-        url: form.attr('action'),
-        type: 'PATCH',
-        data: form.serialize(),
-        success: function() {
-          console.debug('done');
-        },
-        error: function(e) {
-          console.error(e);
-        }
+
+      $(document).change('.jCaForm', function() {
+        var form = $('.jCaForm');
+        var url = form.attr('action');
+        $.ajax({
+          url: url,
+          type: 'PATCH',
+          data: form.serialize(),
+          success: function() {
+            console.debug('done', url);
+          },
+          error: function(e) {
+            console.error('failed', url, e);
+          }
+        });
       });
     });
