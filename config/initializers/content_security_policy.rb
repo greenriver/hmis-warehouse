@@ -13,14 +13,13 @@
 #
 # EXTERNAL ASSET CATEGORIES:
 # - Core Application: Assets required for basic app functionality
-# - Public Reports: External CDN assets required for public-facing reports and dashboards
+# - Data Visualization & Analytics: Assets for charts, maps, and data analysis features
 # - Authentication: Assets required for auth flows (Okta, reCAPTCHA, etc.)
 # - Monitoring: Assets for error tracking and monitoring (Sentry)
-# - Maps & Visualization: Assets for geographic and data visualization features
+# - Public Reports: External CDN assets specifically for public-facing reports and dashboards
 #
-# Many external asset rules exist specifically to support public reports, which require
-# various charting libraries, mapping tools, and UI frameworks that are loaded from CDNs
-# for performance and reliability reasons.
+# Most external asset rules support core application functionality including internal operations,
+# administrative reporting, data visualization, and public-facing dashboards.
 
 # allow whitespace to make the configuration easier to read
 # rubocop:disable Layout/EmptyLinesAroundArguments
@@ -53,13 +52,11 @@ Rails.application.config.content_security_policy do |policy|
   ) # Prevents external clickjacking while allowing legitimate embedding
 
   policy.frame_src(
-    *[
-      :self,
+    :self,
 
-      # Authentication
-      'https://www.google.com/recaptcha/', # Google reCAPTCHA iframe for form protection
-      'https://recaptcha.google.com/recaptcha/', # Google reCAPTCHA fallback iframe
-    ].compact_blank,
+    # Authentication
+    'https://www.google.com/recaptcha/', # Google reCAPTCHA iframe for form protection
+    'https://recaptcha.google.com/recaptcha/', # Google reCAPTCHA fallback iframe
   )
 
   policy.font_src(
@@ -81,7 +78,7 @@ Rails.application.config.content_security_policy do |policy|
       'https://fonts.gstatic.com', # Google Fonts icons and font images
       public_s3_url, # S3 bucket for uploaded images and assets (if configured)
 
-      # Public Reports - Maps
+      # Data Visualization & Analytics
       'https://*.openstreetmap.org', # OpenStreetMap tile images for location visualizations
     ].compact_blank,
   )
@@ -99,12 +96,10 @@ Rails.application.config.content_security_policy do |policy|
     'https://unpkg.com/ag-grid-community@', # Data grid component for large datasets
     'https://cdnjs.cloudflare.com/ajax/libs/chance/', # Random data generation for development
 
-    # Public Reports - Data Visualization
-    'https://d3js.org', # D3.js for custom data visualizations and charts
-    'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js charting library
-
-    # Public Reports - Maps
-    'https://unpkg.com/leaflet@', # Leaflet mapping library for location visualizations
+    # Data Visualization & Analytics
+    'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
+    'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js library for system dashboards, health analytics, public reports, and HMIS data quality visualization
+    'https://unpkg.com/leaflet@', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
 
     # Public Reports - UI Components
     'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework for responsive UI
@@ -126,10 +121,8 @@ Rails.application.config.content_security_policy do |policy|
       :unsafe_inline, # Required for inline styles in HAML templates
       public_s3_url, # S3 bucket for uploaded assets (if configured)
 
-      # Public Reports - Data Visualization
+      # Data Visualization & Analytics
       'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
-
-      # Public Reports - Maps
       'https://unpkg.com/leaflet@', # Leaflet mapping library styles
 
       # Public Reports - UI Components
