@@ -47,7 +47,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.frame_ancestors(
     *[
       :self, # Self-embedding for public reports
-      superset_base_url, # Allow Superset to embed warehouse content
+      # superset_base_url, # In the future, we plan to allow warehouse to embed Superset content
     ].compact_blank,
   ) # Prevents external clickjacking while allowing legitimate embedding
 
