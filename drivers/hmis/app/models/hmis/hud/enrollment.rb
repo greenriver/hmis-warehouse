@@ -265,7 +265,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   after_create :warehouse_trigger_processing
   after_update :warehouse_trigger_processing
 
-  include ::Hmis::MarkAsDirtyBehavior
+  include ::Hmis::MarkClientAsDirtyBehavior
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

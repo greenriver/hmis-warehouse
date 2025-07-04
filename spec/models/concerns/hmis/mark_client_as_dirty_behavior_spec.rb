@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::MarkAsDirtyBehavior do
+RSpec.describe Hmis::MarkClientAsDirtyBehavior do
   include_context 'hmis base setup'
 
   let!(:destination_data_source) { create :destination_data_source }

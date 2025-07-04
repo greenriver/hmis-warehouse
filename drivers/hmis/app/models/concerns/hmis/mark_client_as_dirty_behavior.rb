@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-module Hmis::MarkAsDirtyBehavior
+module Hmis::MarkClientAsDirtyBehavior
   extend ActiveSupport::Concern
 
   included do

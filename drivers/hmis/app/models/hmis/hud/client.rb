@@ -19,8 +19,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::HudConcerns::Client
   include ClientSearch
-  # this is also invoked through IdentifyDuplicates
-  include ::Hmis::MarkAsDirtyBehavior
+  # this may be invoked multiple times for the same record as IdentifyDuplicates may also mark clients as dirty
+  include ::Hmis::MarkClientAsDirtyBehavior
 
   has_paper_trail(meta: { client_id: :id })
 

@@ -74250,9 +74250,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250627132413'),
 ('20250703125916'),
 ('20250701185134'),
+('20250627132413'),
 ('20250625170425'),
 ('20250623193057'),
 ('20250620132952'),
