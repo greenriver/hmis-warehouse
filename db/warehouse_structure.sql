@@ -7264,9 +7264,10 @@ CREATE TABLE public.ce_referral_notes (
     id bigint NOT NULL,
     referral_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    submitted_form_data jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    note text,
+    wfe_step_id bigint
 );
 
 
@@ -61128,6 +61129,13 @@ CREATE INDEX index_ce_referral_notes_on_user_id ON public.ce_referral_notes USIN
 
 
 --
+-- Name: index_ce_referral_notes_on_wfe_step_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referral_notes_on_wfe_step_id ON public.ce_referral_notes USING btree (wfe_step_id);
+
+
+--
 -- Name: index_ce_referral_participants_on_referral_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -73335,6 +73343,14 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 
 --
+-- Name: ce_referral_notes fk_rails_31c91759f7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referral_notes
+    ADD CONSTRAINT fk_rails_31c91759f7 FOREIGN KEY (wfe_step_id) REFERENCES public.wfe_steps(id);
+
+
+--
 -- Name: service_history_services_remainder fk_rails_330ff927f7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -74182,6 +74198,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250703125916'),
+('20250701185134'),
 ('20250625170425'),
 ('20250623193057'),
 ('20250620132952'),
