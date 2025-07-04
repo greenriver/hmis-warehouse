@@ -4,7 +4,7 @@
 module HmisUtil
   class CeBuilder
     # Run this after changing/adding/removing match expressions
-    # HmisUtil::CeBuilder.build_candidate_pools(clients: Hmis::Hud::Project.find_by(ProjectName: "CE Assessor Project").clients)
+    # Accepts optional GrdaWarehouse::Hud::Client scope
     def self.build_candidate_pools(clients: nil)
       # Build candidate pools
       opportunities = Hmis::Ce::Opportunity.active
@@ -14,7 +14,7 @@ module HmisUtil
       Hmis::Ce::Match::CandidatePool.where.missing(:opportunities).find_each(&:destroy!)
 
       # Run the match engine for each candidate pool
-      clients ||= Hmis::Hud::Client.hmis
+      clients ||= GrdaWarehouse::Hud::Client.destination
       Hmis::Ce::Match::CandidatePool.all.each do |pool|
         Hmis::Ce::Match::Engine.call(pool, clients)
       end
