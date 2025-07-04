@@ -42,6 +42,7 @@ module Hmis::Ce::Match
               where(warehouse_clients: { destination_id: c.id }).
               open_including_wip.
               joins(:project).
+              distinct.
               pluck(arel.p_t['ProjectType'])
           end,
         },
@@ -52,6 +53,7 @@ module Hmis::Ce::Match
               where(warehouse_clients: { destination_id: c.id }).
               open_excluding_wip.
               joins(:project).
+              distinct.
               pluck(arel.p_t['ProjectType'])
           end,
         },
@@ -62,6 +64,7 @@ module Hmis::Ce::Match
               where(warehouse_clients: { destination_id: c.id }).
               active.
               joins(:target_project).
+              distinct.
               pluck(arel.p_t['ProjectType'])
           end,
         },
