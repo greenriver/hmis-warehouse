@@ -13,9 +13,9 @@ module Hmis::Ce::Match
       calculator = Hmis::Ce::Match::CalculatorFactory.build
       begin
         ast = calculator.ast(expression)
-      rescue Dentaku::Error => e
-        err_with_context = "Error parsing expression '#{expression}': #{e.message}"
-        raise $ERROR_INFO, err_with_context, $ERROR_INFO.backtrace
+      rescue Dentaku::Error => err
+        err_with_context = "Error parsing expression '#{expression}': #{err.message}"
+        raise err, err_with_context, err.backtrace
       end
       visitor = new(field_map)
       visitor.visit(ast)
