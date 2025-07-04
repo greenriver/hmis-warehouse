@@ -22,6 +22,8 @@
 # various charting libraries, mapping tools, and UI frameworks that are loaded from CDNs
 # for performance and reliability reasons.
 
+# allow whitespace to make the configuration easier to read
+# rubocop:disable Layout/EmptyLinesAroundArguments
 Rails.application.config.content_security_policy do |policy|
   public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
 
@@ -127,10 +129,13 @@ Rails.application.config.content_security_policy do |policy|
       # Public Reports - Data Visualization
       'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
 
+      # Public Reports - Maps
+      'https://unpkg.com/leaflet@', # Leaflet mapping library styles
+
       # Public Reports - UI Components
       'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework styles
       'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap icon font
-    ].compact_blank
+    ].compact_blank,
   )
 
   policy.connect_src(
@@ -146,7 +151,7 @@ Rails.application.config.content_security_policy do |policy|
 
       # Public Reports - UI Components
       'https://ka-f.fontawesome.com/releases/', # FontAwesome asset loading and updates
-    ].compact_blank
+    ].compact_blank,
   )
 
   # Report CSP violations to a specified URI
@@ -175,3 +180,4 @@ if Rails.env.production? || Rails.env.staging?
 else
   Rails.application.config.content_security_policy_report_only = false
 end
+# rubocop:enable Layout/EmptyLinesAroundArguments
