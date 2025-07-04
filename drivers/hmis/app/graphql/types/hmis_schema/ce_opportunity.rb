@@ -55,7 +55,7 @@ module Types
 
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).
-        order(priority_score: :desc, client_id: :desc)
+        order(priority_score: :desc, id: :desc)
     end
 
     def referral

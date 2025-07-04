@@ -4,10 +4,6 @@ require 'rails_helper'
 require 'active_support/testing/time_helpers'
 
 RSpec.describe Hmis::Ce::Match::Engine, type: :model do
-  before(:each) do
-    # TODO(#7671) re-enable, fix destination references
-    skip 'Skipping the test suite due to ongoing refactoring'
-  end
   include ActiveSupport::Testing::TimeHelpers
 
   # must exist for identify duplicates, we match on destination clients
@@ -28,10 +24,19 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   let(:priority_expression) { '0' }
 
   def generate_candidates(pool, clients)
+    described_class.call(pool, clients)
+    candidates = pool.candidates
+    # return results mapped to client IDs for easier comparison
+    candidates.map do |candidate|
+      candidate.client_proxy.client_id
+    end.sort
+  end
+
+  def destination_clients_for(clients)
     # create destination clients
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    described_class.call(pool, clients)
-    pool.candidates
+    # get the GrdaWarehouse::Hud::Client destination client for each source client
+    GrdaWarehouse::Hud::Client.where(id: clients.map { |c| c.destination_client.id })
   end
 
   shared_context 'with demographic test clients' do
@@ -40,12 +45,10 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:client_adult_veteran) { create(:hmis_hud_client, veteran_status: 1, dob: 20.years.ago) }
     let(:client_senior_veteran) { create(:hmis_hud_client, veteran_status: 1, dob: 68.years.ago) }
 
-    let(:all_clients) do
-      [client_adult_non_veteran, client_minor_non_veteran, client_adult_veteran, client_senior_veteran]
-    end
+    let(:clients) { [client_adult_non_veteran, client_minor_non_veteran, client_adult_veteran, client_senior_veteran] }
+    let(:destination_clients) { destination_clients_for(clients) }
 
-    let(:clients) { Hmis::Hud::Client.where(id: all_clients.map(&:id)) }
-    let(:adult_clients) { clients.where.not(id: client_minor_non_veteran.id) }
+    let(:adult_clients) { destination_clients.where.not(id: client_minor_non_veteran.destination_client.id) }
   end
 
   shared_context 'with CDE assessment setup' do
@@ -85,7 +88,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { '1=0' }
 
       it 'returns no candidates' do
-        results = generate_candidates(pool, clients)
+        results = generate_candidates(pool, destination_clients)
         expect(results).to be_empty
       end
     end
@@ -94,8 +97,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { '1=1' }
 
       it 'returns all candidates' do
-        results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id).sort).to eq(clients.map { |c| c.destination_client.id }.sort)
+        results = generate_candidates(pool, destination_clients)
+        expect(results).to eq(destination_clients.map(&:id).sort)
       end
     end
 
@@ -103,8 +106,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { 'current_age > 18' }
 
       it 'excludes minors from candidates' do
-        results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id).sort).to eq(adult_clients.map { |c| c.destination_client.id }.sort)
+        results = generate_candidates(pool, destination_clients)
+        expect(results).to eq(adult_clients.map(&:id).sort)
       end
     end
 
@@ -112,14 +115,14 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { 'current_age >= 65 AND veteran_status = 1' }
 
       it 'only includes senior veterans' do
-        results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_senior_veteran.destination_client.id])
+        results = generate_candidates(pool, destination_clients)
+        expect(results).to eq([client_senior_veteran.destination_client.id])
       end
 
       it 'updates the candidates_generated_at timestamp' do
         freeze_time do
           expect do
-            generate_candidates(pool, clients)
+            generate_candidates(pool, destination_clients)
           end.to change(pool, :candidates_generated_at).from(nil).to(Time.current)
         end
       end
@@ -130,7 +133,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let!(:client_with_missing_veteran_status) { create(:hmis_hud_client, veteran_status: nil, dob: 20.years.ago) }
 
       let(:clients_with_missing_data) do
-        Hmis::Hud::Client.where(id: all_clients.map(&:id) + [client_with_missing_dob.id, client_with_missing_veteran_status.id])
+        GrdaWarehouse::Hud::Client.where(id: destination_clients.map(&:id) + [client_with_missing_dob.destination_client.id, client_with_missing_veteran_status.destination_client.id])
       end
 
       context 'when expression requires age' do
@@ -146,7 +149,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
             client_with_missing_veteran_status.destination_client.id,
           ]
 
-          expect(results.map(&:client_id).sort).to eq(expected_dest_client_ids.sort)
+          expect(results).to eq(expected_dest_client_ids.sort)
         end
       end
 
@@ -162,7 +165,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
             client_with_missing_dob.destination_client.id,
           ]
 
-          expect(results.map(&:client_id).sort).to eq(expected_dest_client_ids.sort)
+          expect(results).to eq(expected_dest_client_ids.sort)
         end
       end
     end
@@ -174,7 +177,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:cde_key) { 'hat_client_interested_in_ph' }
     let(:client_interested_in_ph) { create(:hmis_hud_client, data_source: data_source) }
     let(:client_not_interested_in_ph) { create(:hmis_hud_client, data_source: data_source) }
-    let(:clients) { Hmis::Hud::Client.where(id: [client_interested_in_ph, client_not_interested_in_ph].map(&:id)) }
+    let(:destination_clients) { destination_clients_for([client_interested_in_ph, client_not_interested_in_ph]) }
 
     before do
       create_assessment_with_cde(client_interested_in_ph, '1')
@@ -185,8 +188,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { "`cde.custom_assessment.hat_client_interested_in_ph` = '1'" }
 
       it 'filters based on CDE value' do
-        results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_interested_in_ph.destination_client.id])
+        results = generate_candidates(pool, destination_clients)
+        expect(results).to eq([client_interested_in_ph.destination_client.id])
       end
     end
   end
@@ -198,7 +201,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:multi_valued_cde) { true }
     let(:client_english_spanish) { create(:hmis_hud_client, data_source: data_source) }
     let(:client_french_only) { create(:hmis_hud_client, data_source: data_source) }
-    let(:clients) { Hmis::Hud::Client.where(id: [client_english_spanish, client_french_only].map(&:id)) }
+    let(:destination_clients) { destination_clients_for([client_english_spanish, client_french_only]) }
 
     before do
       create_assessment_with_cde(client_english_spanish, ['English', 'Spanish'])
@@ -209,8 +212,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { "includes(`cde.custom_assessment.primary_languages`, 'English')" }
 
       it 'matches clients with the specified language among multiple values' do
-        results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_english_spanish.destination_client.id])
+        results = generate_candidates(pool, destination_clients)
+        expect(results).to eq([client_english_spanish.destination_client.id])
       end
     end
 
@@ -218,9 +221,29 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { "excludes(`cde.custom_assessment.primary_languages`, 'French')" }
 
       it 'excludes clients who have the specified language' do
-        results = generate_candidates(pool, clients)
-        expect(results.map(&:client_id)).to eq([client_english_spanish.destination_client.id])
+        results = generate_candidates(pool, destination_clients)
+        expect(results).to eq([client_english_spanish.destination_client.id])
       end
+    end
+  end
+
+  context 'when destination client has multiple source clients' do
+    def create_client_and_deduplicate
+      client = create(:hmis_hud_client, personal_id: '100', data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: '1999-12-01', ssn: '123-45-6789')
+      # Run deduplication after each client creation to ensure that duplicates are correctly recognized
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      client
+    end
+
+    let!(:source_1) { create_client_and_deduplicate }
+    let!(:source_2) { create_client_and_deduplicate }
+    let(:destination_clients) { destination_clients_for([source_1, source_2]) }
+
+    it 'deduplicates on the waitlist' do
+      expect(destination_clients.count).to eq(1)
+      results = generate_candidates(pool, destination_clients)
+      expect(results.size).to eq(1)
+      expect(results.sole).to eq(destination_clients.sole.id)
     end
   end
 end
