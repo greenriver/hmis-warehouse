@@ -6,6 +6,22 @@
 # For further information see the following documentation
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 
+# CSP DOCUMENTATION STANDARDS:
+# =================================
+# Every CSP rule MUST include an inline comment explaining its purpose and rationale.
+# Comments should be specific enough to understand why the rule exists and what functionality it enables.
+#
+# EXTERNAL ASSET CATEGORIES:
+# - Core Application: Assets required for basic app functionality
+# - Public Reports: External CDN assets required for public-facing reports and dashboards
+# - Authentication: Assets required for auth flows (Okta, reCAPTCHA, etc.)
+# - Monitoring: Assets for error tracking and monitoring (Sentry)
+# - Maps & Visualization: Assets for geographic and data visualization features
+#
+# Many external asset rules exist specifically to support public reports, which require
+# various charting libraries, mapping tools, and UI frameworks that are loaded from CDNs
+# for performance and reliability reasons.
+
 Rails.application.config.content_security_policy do |policy|
   public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
 
@@ -34,53 +50,102 @@ Rails.application.config.content_security_policy do |policy|
     ].compact_blank,
   ) # Prevents external clickjacking while allowing legitimate embedding
 
+  policy.frame_src(
+    *[
+      :self,
+
+      # Authentication
+      'https://www.google.com/recaptcha/', # Google reCAPTCHA iframe for form protection
+      'https://recaptcha.google.com/recaptcha/', # Google reCAPTCHA fallback iframe
+    ].compact_blank,
+  )
+
   policy.font_src(
     :self,
-    :data,
-    'https://fonts.gstatic.com', # Google font files
-    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.6.1/font/fonts/bootstrap-icons.woff',
+    :data, # Data URIs for inline fonts (base64 encoded)
+
+    # Core Application
+    'https://fonts.gstatic.com', # Google Fonts font files
+
+    # Public Reports - UI Components
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons', # Bootstrap Icons font files
   )
   policy.img_src(
     *[
       :self,
-      :data,
-      'https://*.openstreetmap.org',
-      'https://fonts.gstatic.com', # Google font images/icons
-      public_s3_url,
+      :data, # Data URIs for inline images (base64 encoded)
+
+      # Core Application
+      'https://fonts.gstatic.com', # Google Fonts icons and font images
+      public_s3_url, # S3 bucket for uploaded images and assets (if configured)
+
+      # Public Reports - Maps
+      'https://*.openstreetmap.org', # OpenStreetMap tile images for location visualizations
     ].compact_blank,
   )
+
   policy.script_src(
     :self,
-    'https://browser.sentry-cdn.com',
-    'https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js',
-    'https://unpkg.com/ag-grid-community@27.3.0/dist/ag-grid-community.min.noStyle.js',
-    'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js'
-    'https://kit.fontawesome.com', # fonts in public reports
-    'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js', # Bootstrap and other libraries for public reports
-    'https://d3js.org', # D3.js for data visualization in public reports
-    :unsafe_inline,
-    :unsafe_eval,
+    # Monitoring
+    'https://browser.sentry-cdn.com', # Sentry error tracking and monitoring
+
+    # Authentication
+    'https://www.google.com/recaptcha/', # Google reCAPTCHA form protection
+    'https://www.gstatic.com/recaptcha/', # Google reCAPTCHA static assets
+
+    # Core Application
+    'https://unpkg.com/ag-grid-community@', # Data grid component for large datasets
+    'https://cdnjs.cloudflare.com/ajax/libs/chance/', # Random data generation for development
+
+    # Public Reports - Data Visualization
+    'https://d3js.org', # D3.js for custom data visualizations and charts
+    'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js charting library
+
+    # Public Reports - Maps
+    'https://unpkg.com/leaflet@', # Leaflet mapping library for location visualizations
+
+    # Public Reports - UI Components
+    'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework for responsive UI
+    'https://cdn.jsdelivr.net/npm/bootstrap-datepicker@', # Date picker component
+    'https://code.jquery.com', # jQuery for DOM manipulation and event handling
+    'https://kit.fontawesome.com/b8b025dd15.js', # FontAwesome icons for public reports
+
+    :unsafe_inline, # Required for inline scripts in HAML templates
+    :unsafe_eval, # Required for some JavaScript libraries that use eval()
   )
+
   policy.style_src(
     *[
       :self,
-      'https://fonts.googleapis.com',
-      'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-grid.css',
-      'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-theme-balham.css',
-      'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css',
-      :unsafe_inline,
-      public_s3_url,
+
+      # Core Application
+      'https://fonts.googleapis.com', # Google Fonts for typography
+      'https://unpkg.com/ag-grid-community@', # AG Grid component styles
+      :unsafe_inline, # Required for inline styles in HAML templates
+      public_s3_url, # S3 bucket for uploaded assets (if configured)
+
+      # Public Reports - Data Visualization
+      'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
+
+      # Public Reports - UI Components
+      'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework styles
+      'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap icon font
     ].compact_blank
   )
 
   policy.connect_src(
     *[
       :self,
-      :data, # allows fetch() from data uris, probably for d3
-      ("wss://#{ENV['FQDN']}" if ENV['FQDN']),
-      'https://sentry.io/',
-      'https://*.ingest.sentry.io/',
-      'https://*.ingest.us.sentry.io',
+      :data, # Data URIs for fetch() requests
+      ("wss://#{ENV['FQDN']}" if ENV['FQDN']), # WebSocket connections for real-time features
+
+      # Monitoring
+      'https://sentry.io/', # Sentry error reporting
+      'https://*.ingest.sentry.io/', # Sentry data ingestion endpoints
+      'https://*.ingest.us.sentry.io', # Sentry US region ingestion endpoints
+
+      # Public Reports - UI Components
+      'https://ka-f.fontawesome.com/releases/', # FontAwesome asset loading and updates
     ].compact_blank
   )
 
