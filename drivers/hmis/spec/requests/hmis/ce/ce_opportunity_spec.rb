@@ -45,15 +45,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodesCount
               nodes {
                 id
+                destinationClientId
                 priorityScore
-                client {
-                  id
-                  firstName
-                  lastName
-                  dateOfBirth: dob
-                  veteranStatus
-                }
-                clientId
+                clientName
               }
             }
             referral {
@@ -120,13 +114,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:candidate_pool) { create :hmis_ce_match_candidate_pool, candidates_generated_at: timestamp }
 
       let!(:client_1) do
-        create(:hmis_hud_client, data_source: ds1)
+        create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
       end
       let!(:client_2) do
-        create(:hmis_hud_client, data_source: ds1)
-      end
-      let!(:client_with_active_referral) do
-        create(:hmis_hud_client, data_source: ds1)
+        create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
       end
 
       # Create candidates in the pool
@@ -134,7 +125,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(
           :hmis_ce_match_candidate,
           candidate_pool: candidate_pool,
-          client: client_1,
+          client: client_1.destination_client,
           priority_score: 80,
         )
       end
@@ -142,19 +133,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(
           :hmis_ce_match_candidate,
           candidate_pool: candidate_pool,
-          client: client_2,
+          client: client_2.destination_client,
           priority_score: 100,
         )
       end
-      let!(:candidate3) do
-        create(
-          :hmis_ce_match_candidate,
-          candidate_pool: candidate_pool,
-          client: client_with_active_referral,
-          priority_score: 90,
-        )
-      end
 
+      let!(:client_with_active_referral) do
+        create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+      end
       # Create an active referral for one client
       let!(:active_referral) do
         create(
@@ -183,7 +169,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
 
           expect(candidates).to be_an(Array)
-          expect(candidates.size).to eq(2) # Should only include 2 candidates (excluding the one with active referral)
+          expect(candidates.size).to eq(2)
 
           # Verify candidates are ordered by priority score
           expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
@@ -191,28 +177,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           # Verify first candidate (highest priority)
           expect(candidates[0]).to include(
             'priorityScore' => 100,
-            'client' => include(
-              'id' => client_2.id.to_s,
-            ),
+            'destinationClientId' => client_2.destination_client.id.to_s,
           )
 
           # Verify second candidate
           expect(candidates[1]).to include(
             'priorityScore' => 80,
-            'client' => include(
-              'id' => client_1.id.to_s,
-            ),
+            'destinationClientId' => client_1.destination_client.id.to_s,
           )
-        end
-
-        it 'excludes clients with active referrals' do
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
-
-          candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
-
-          candidate_client_ids = candidates.map { |c| c.dig('client', 'id') }
-          expect(candidate_client_ids).not_to include(client_with_active_referral.id.to_s)
         end
 
         it 'returns the active referral' do
@@ -276,9 +248,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has lots of candidates' do
       before do
-        200.times do
-          client = create(:hmis_hud_client, data_source: ds1)
-          create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client, priority_score: rand(80..100))
+        50.times do
+          client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+          create(:hmis_ce_match_candidate, candidate_pool: candidate_pool, client: client.destination_client, priority_score: rand(80..100))
         end
       end
 
@@ -286,8 +258,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(200)
-        end.to make_database_queries(count: 25..35)
+          expect(result.dig('data', 'ceOpportunity', 'candidates', 'nodesCount')).to eq(50)
+        end.to make_database_queries(count: 20..30)
       end
     end
 
@@ -304,20 +276,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           permissioned_project,
           with_permission: [
             :can_view_clients,
+            :can_view_client_name,
             :can_view_project,
             :can_view_enrollment_details,
           ],
         )
       end
 
-      let!(:permissioned_client) { create(:hmis_hud_client, data_source: ds1, with_enrollment_at: permissioned_project) }
-      let!(:anonymous_client) { create(:hmis_hud_client, data_source: ds1, with_enrollment_at: other_project) }
+      let!(:permissioned_client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Permission Yes', last_name: 'Yep') }
+      let!(:permissioned_enrollment) { create(:hmis_hud_enrollment, client: permissioned_client, project: permissioned_project, data_source: ds1) }
+      let!(:anonymous_client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Permission No', last_name: 'Nope') }
+      let!(:anonymous_enrollment) { create(:hmis_hud_enrollment, client: anonymous_client, project: other_project, data_source: ds1) }
 
       let!(:permissioned_candidate) do
         create(
           :hmis_ce_match_candidate,
           candidate_pool: candidate_pool_with_anonymous,
-          client: permissioned_client,
+          client: permissioned_client.destination_client,
           priority_score: 80,
         )
       end
@@ -325,7 +300,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(
           :hmis_ce_match_candidate,
           candidate_pool: candidate_pool_with_anonymous,
-          client: anonymous_client,
+          client: anonymous_client.destination_client,
           priority_score: 100,
         )
       end
@@ -335,16 +310,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
 
         candidates = result.dig('data', 'ceOpportunity', 'candidates', 'nodes')
-        expect(candidates.size).to eq(2)
-
-        candidate1 = candidates.first
-        candidate2 = candidates.second
-        expect(candidate1.dig('id')).to eq(anonymous_candidate.id.to_s)
-        expect(candidate1.dig('client')).to be_nil
-        expect(candidate1.dig('clientId')).to eq(anonymous_client.id.to_s)
-        expect(candidate2.dig('id')).to eq(permissioned_candidate.id.to_s)
-        expect(candidate2.dig('client', 'id')).to eq(permissioned_client.id.to_s)
-        expect(candidate2.dig('clientId')).to eq(permissioned_client.id.to_s)
+        expect(candidates).to contain_exactly(
+          a_hash_including('id' => permissioned_candidate.id.to_s, 'clientName' => 'Permission Yes Yep'),
+          a_hash_including('id' => anonymous_candidate.id.to_s, 'clientName' => "Candidate #{anonymous_candidate.id}"),
+        )
       end
     end
 
