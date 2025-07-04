@@ -6823,6 +6823,38 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 
 
 --
+-- Name: ce_client_proxies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_client_proxies (
+    id bigint NOT NULL,
+    client_type character varying NOT NULL,
+    client_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_client_proxies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_client_proxies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_client_proxies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_client_proxies_id_seq OWNED BY public.ce_client_proxies.id;
+
+
+--
 -- Name: ce_match_candidate_pools; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6863,10 +6895,10 @@ ALTER SEQUENCE public.ce_match_candidate_pools_id_seq OWNED BY public.ce_match_c
 CREATE TABLE public.ce_match_candidates (
     id bigint NOT NULL,
     candidate_pool_id bigint NOT NULL,
-    client_id bigint NOT NULL,
     priority_score integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    client_proxy_id bigint NOT NULL
 );
 
 
@@ -7232,9 +7264,10 @@ CREATE TABLE public.ce_referral_notes (
     id bigint NOT NULL,
     referral_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    submitted_form_data jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    note text,
+    wfe_step_id bigint
 );
 
 
@@ -33425,6 +33458,13 @@ ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: ce_client_proxies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_proxies ALTER COLUMN id SET DEFAULT nextval('public.ce_client_proxies_id_seq'::regclass);
+
+
+--
 -- Name: ce_match_candidate_pools id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -37442,6 +37482,14 @@ ALTER TABLE ONLY public.cas_vacancies
 
 ALTER TABLE ONLY public.ce_assessments
     ADD CONSTRAINT ce_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_client_proxies ce_client_proxies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_client_proxies
+    ADD CONSTRAINT ce_client_proxies_pkey PRIMARY KEY (id);
 
 
 --
@@ -61001,6 +61049,13 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_ce_client_proxies_on_client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_client_proxies_on_client ON public.ce_client_proxies USING btree (client_type, client_id);
+
+
+--
 -- Name: index_ce_match_candidate_pools_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61008,17 +61063,17 @@ CREATE UNIQUE INDEX index_ce_match_candidate_pools_uniq ON public.ce_match_candi
 
 
 --
--- Name: index_ce_match_candidates_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_match_candidates_on_client_proxy_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_ce_match_candidates_on_client_id ON public.ce_match_candidates USING btree (client_id);
+CREATE INDEX index_ce_match_candidates_on_client_proxy_id ON public.ce_match_candidates USING btree (client_proxy_id);
 
 
 --
--- Name: index_ce_match_candidates_uniq; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_match_candidates_proxy_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_match_candidates_uniq ON public.ce_match_candidates USING btree (candidate_pool_id, client_id);
+CREATE UNIQUE INDEX index_ce_match_candidates_proxy_uniq ON public.ce_match_candidates USING btree (candidate_pool_id, client_proxy_id);
 
 
 --
@@ -61117,6 +61172,13 @@ CREATE INDEX index_ce_referral_notes_on_referral_id ON public.ce_referral_notes 
 --
 
 CREATE INDEX index_ce_referral_notes_on_user_id ON public.ce_referral_notes USING btree (user_id);
+
+
+--
+-- Name: index_ce_referral_notes_on_wfe_step_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referral_notes_on_wfe_step_id ON public.ce_referral_notes USING btree (wfe_step_id);
 
 
 --
@@ -73318,14 +73380,6 @@ ALTER TABLE ONLY public."Enrollment"
 
 
 --
--- Name: ce_match_candidates fk_rails_272464c2ce; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ce_match_candidates
-    ADD CONSTRAINT fk_rails_272464c2ce FOREIGN KEY (client_id) REFERENCES public."Client"(id);
-
-
---
 -- Name: service_history_services_2018 fk_rails_2dbd22e951; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -73339,6 +73393,14 @@ ALTER TABLE ONLY public.service_history_services_2018
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT fk_rails_2df98dd2c6 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
+-- Name: ce_referral_notes fk_rails_31c91759f7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referral_notes
+    ADD CONSTRAINT fk_rails_31c91759f7 FOREIGN KEY (wfe_step_id) REFERENCES public.wfe_steps(id);
 
 
 --
@@ -73571,6 +73633,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 ALTER TABLE ONLY public.wfe_steps
     ADD CONSTRAINT fk_rails_6b6b8ac13d FOREIGN KEY (form_definition_id) REFERENCES public.hmis_form_definitions(id);
+
+
+--
+-- Name: ce_match_candidates fk_rails_6b79ce2be4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_match_candidates
+    ADD CONSTRAINT fk_rails_6b79ce2be4 FOREIGN KEY (client_proxy_id) REFERENCES public.ce_client_proxies(id);
 
 
 --
@@ -74182,6 +74252,8 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250627132413'),
 ('20250703125916'),
+('20250701185134'),
+('20250625170425'),
 ('20250623193057'),
 ('20250620132952'),
 ('20250619125706'),
@@ -74355,3 +74427,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+
