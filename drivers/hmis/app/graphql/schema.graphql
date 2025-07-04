@@ -427,6 +427,14 @@ enum AssessmentSortOption {
   DATE_UPDATED
 }
 
+type AssessmentSummary {
+  assessmentDate: ISO8601Date!
+  assessmentName: String!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+}
+
 """
 HUD AssessmentType (4.19.3)
 """
@@ -724,6 +732,7 @@ type CeCandidate {
   """
   client: Client
   clientId: ID!
+  enrollments(limit: Int, offset: Int): CeReferralSourceEnrollmentsPaginated!
   id: ID!
   priorityScore: Int!
 }
@@ -799,6 +808,7 @@ type CeOpportunitiesPaginated {
 
 type CeOpportunity {
   active: Boolean!
+  candidateLookup(id: ID!): CeCandidate
   candidates(limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
@@ -970,6 +980,53 @@ input CeReferralFilterOptions {
 input CeReferralParticipantInput {
   swimlaneId: ID!
   userId: ID!
+}
+
+type CeReferralSourceEnrollment {
+  access: CeReferralSourceEnrollmentAccess!
+  assessments: [AssessmentSummary!]!
+  autoExited: Boolean!
+
+  """
+  The name of the client on the source enrollment. Masked like "Client 123" if
+  the user does not have permission to view the client name.
+  """
+  clientName: String!
+  dataSource: DataSource!
+  entryDate: ISO8601Date!
+  exitDate: ISO8601Date
+  householdSize: Int!
+  id: ID!
+  inProgress: Boolean!
+  otherHouseholdMemberNames: [String!]!
+  projectName: String!
+  projectType: ProjectType!
+  relationshipToHoH: RelationshipToHoH!
+
+  """
+  The client id on the source enrollment, which is not necessarily in the current data source.
+  """
+  sourceClientId: ID!
+
+  """
+  Whether the source client on their own meets the eligibility criteria for the opportunity.
+  """
+  sourceClientMeetsEligibility: Boolean!
+}
+
+type CeReferralSourceEnrollmentAccess {
+  canViewEnrollmentDetails: Boolean!
+  id: ID!
+}
+
+type CeReferralSourceEnrollmentsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeReferralSourceEnrollment!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum CeReferralStatus {
@@ -2585,6 +2642,12 @@ enum DataCollectionStage {
   (2) Update
   """
   UPDATE
+}
+
+type DataSource {
+  id: ID!
+  isCurrentDataSource: Boolean!
+  name: String!
 }
 
 """
@@ -6634,7 +6697,7 @@ type Mutation {
     """
     input: ClearRecentItemsInput!
   ): ApplicationUser
-  createCeReferral(clientId: ID!, opportunityId: ID!): CreateCeReferralPayload
+  createCeReferral(clientId: ID, opportunityId: ID!, sourceEnrollmentId: ID): CreateCeReferralPayload
   createClientAlert(input: ClientAlertInput!): CreateClientAlertPayload
   createDirectUpload(
     """
