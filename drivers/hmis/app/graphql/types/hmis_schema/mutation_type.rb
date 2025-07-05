@@ -100,6 +100,7 @@ module Types
     field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
     field :submit_ce_referral_step, mutation: Mutations::Ce::SubmitCeReferralStep
     field :assign_referral_participants, mutation: Mutations::Ce::AssignReferralParticipants
+    field :create_ce_referral_note, mutation: Mutations::Ce::CreateCeReferralNote
 
     # CE Unit management
     field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable

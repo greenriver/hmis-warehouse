@@ -15,34 +15,35 @@ module Hmis::Ce::Match
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
     def call(pool, clients)
       validate_clients_parameter!(clients)
-      # TODO: remove this in #7671. store mapping of { destination_id => hmis_source_client_id }
-      destination_to_source_map = build_destination_to_source_map(clients)
-      # TODO: remove this in #7671. translate `clients` scope of source clients into a scope of destination clients
-      clients = translate_source_to_destination_scope(clients)
 
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
       priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
       now = DateTime.current
       crude_eligibility_filter(pool.requirement_expression, clients).in_batches do |batch|
-        matches = []
+        # First iterate through the batch to import any Client Proxies that aren't present in the db already
+        proxies = []
+        batch.each do |client|
+          proxies << Hmis::Ce::ClientProxy.new(client: client)
+        end
+        proxies_by_client = import_proxies!(proxies)
+
+        # Iterate through a second time to import candidate matches
+        candidates = []
         batch.each do |client|
           # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently
           next unless eligibility_evaluator.call(client)
 
           score = priority_evaluator.call(client)
-
-          source_client_id = destination_to_source_map[client.id] # TODO: remove this in #7671
-
-          matches << {
+          candidates << {
             candidate_pool_id: pool.id,
-            client_id: source_client_id,
+            client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
             priority_score: score,
             created_at: now,
             updated_at: now,
           }
         end
-        import_candidates!(matches)
+        import_candidates!(candidates)
       end
       # remove old candidates that no longer match
       pool.candidates.where(updated_at: ...now).delete_all
@@ -51,28 +52,26 @@ module Hmis::Ce::Match
 
     protected
 
-    # TODO: remove this in #7671
-    def translate_source_to_destination_scope(clients)
-      GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
-        where(warehouse_clients: { source_id: clients.select(:id) })
-    end
-
-    # TODO: remove this in #7671
-    def build_destination_to_source_map(clients)
-      GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
-        where(warehouse_clients: { source_id: clients.select(:id) }).
-        pluck(:id, 'warehouse_clients.source_id').
-        to_h
-    end
-
     def validate_clients_parameter!(clients)
-      raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == Hmis::Hud::Client
+      raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client
+    end
+
+    def import_proxies!(values)
+      result = Hmis::Ce::ClientProxy.import(values, on_duplicate_key_ignore: true)
+      raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
+
+      # return a map of [client_id, client_type] to ClientProxy
+      # re-query the Hmis::Ce::ClientProxy table by client ID, not result ID, since duplicate clients would not be included in result.ids
+      Hmis::Ce::ClientProxy.where(client: values.map(&:client)).each_with_object({}) do |record, hash|
+        key = [record.client_id, record.client_type] # Composite key because client is polymorphic
+        hash[key] = record
+      end
     end
 
     def import_candidates!(values)
       result = Candidate.import(
         values, on_duplicate_key_update: {
-          conflict_target: [:candidate_pool_id, :client_id],
+          conflict_target: [:candidate_pool_id, :client_proxy_id],
           columns: [:priority_score, :updated_at],
         }
       )

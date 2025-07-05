@@ -25,6 +25,7 @@ module Types
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
+    field :notes, HmisSchema::CeReferralNote.page_type, null: false
 
     # generically resolve current values for any fields referenced by Match Rule expressions
     field :current_match_values, [HmisSchema::CeMatchValue], null: true
@@ -188,6 +189,10 @@ module Types
       object.audit_events.
         where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
         order(created_at: :desc)
+    end
+
+    def notes
+      object.notes.order(created_at: :desc)
     end
 
     private

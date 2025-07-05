@@ -16,7 +16,7 @@ module Hmis::Ce
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
-    has_many :notes, class_name: 'Hmis::Ce::ReferralNote'
+    has_many :notes, class_name: 'Hmis::Ce::ReferralNote', dependent: :destroy
     has_many :participants, class_name: 'Hmis::Ce::ReferralParticipant', dependent: :destroy
     belongs_to :client, class_name: 'Hmis::Hud::Client'
     belongs_to :referred_by, class_name: 'Hmis::User'
