@@ -51,6 +51,77 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:adult_clients) { destination_clients.where.not(id: client_minor_non_veteran.destination_client.id) }
   end
 
+  shared_context 'with enrolled test clients' do
+    let(:es_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+    let(:ce_project) { create(:hmis_hud_project, data_source: data_source, project_type: 14) }
+    let(:ph_project) { create(:hmis_hud_project, data_source: data_source, project_type: 9) }
+    let(:client_enrolled_in_ce) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, exit_date: nil, client: client)
+      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client) # cruft: ES enrollment
+      client
+    end
+    let(:client_wip_enrolled_in_ce) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_wip_enrollment, data_source: data_source, project: ce_project, exit_date: nil, client: client)
+      client
+    end
+    let(:client_enrolled_in_es) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: es_project, exit_date: nil, client: client)
+      client
+    end
+    let(:client_enrolled_in_ph) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: ph_project, exit_date: nil, client: client)
+      client
+    end
+    let(:client_exited_from_ce) do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, exit_date: 1.week.ago, client: client)
+      client
+    end
+    let(:client_unenrolled) { create(:hmis_hud_client, data_source: data_source) }
+
+    let(:all_clients) do
+      [client_enrolled_in_ce, client_wip_enrolled_in_ce, client_enrolled_in_es, client_enrolled_in_ph, client_exited_from_ce, client_unenrolled]
+    end
+
+    let(:clients) { Hmis::Hud::Client.where(id: all_clients.map(&:id)) }
+    let(:destination_clients) { destination_clients_for(clients) }
+    let(:clients_not_enrolled_in_ph) { clients.where.not(id: client_enrolled_in_ph.id) }
+  end
+
+  shared_context 'with referred test clients' do
+    let(:ph_project) { create(:hmis_hud_project, data_source: data_source, project_type: 9) }
+    let(:es_project) { create(:hmis_hud_project, data_source: data_source, project_type: 1) }
+    let(:client_referred_to_ph) do
+      client = create(:hmis_hud_client, data_source: data_source, with_enrollment_at: es_project)
+      create(:hmis_ce_referral, data_source: data_source, project: ph_project, client: client, status: 'in_progress')
+      create(:hmis_ce_referral, data_source: data_source, project: es_project, client: client, status: 'in_progress') # additional referral to ES
+      client
+    end
+    let(:client_referred_to_es) do
+      client = create(:hmis_hud_client, data_source: data_source, with_enrollment_at: es_project)
+      create(:hmis_ce_referral, data_source: data_source, project: es_project, client: client, status: 'in_progress')
+      client
+    end
+    let(:client_previously_referred_to_ph) do
+      client = create(:hmis_hud_client, data_source: data_source, with_enrollment_at: es_project)
+      create(:hmis_ce_referral, data_source: data_source, project: ph_project, client: client, status: 'rejected') # previous referral, should be ignored
+      create(:hmis_ce_referral, data_source: data_source, project: es_project, client: client, status: 'in_progress') # additional referral to ES
+      client
+    end
+
+    let(:all_clients) do
+      [client_referred_to_ph, client_previously_referred_to_ph, client_referred_to_es]
+    end
+
+    let(:clients) { Hmis::Hud::Client.where(id: all_clients.map(&:id)) }
+    let(:destination_clients) { destination_clients_for(clients) }
+    let(:clients_not_referred_to_ph) { clients.where.not(id: client_referred_to_ph.id) }
+  end
+
   shared_context 'with CDE assessment setup' do
     let(:cded) do
       create(
@@ -209,7 +280,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     describe 'multi-valued CDE inclusion matching' do
-      let(:requirement_expression) { "includes(`cde.custom_assessment.primary_languages`, 'English')" }
+      let(:requirement_expression) { "INCLUDES(`cde.custom_assessment.primary_languages`, 'English')" }
 
       it 'matches clients with the specified language among multiple values' do
         results = generate_candidates(pool, destination_clients)
@@ -218,11 +289,88 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     describe 'multi-valued CDE exclusion matching' do
-      let(:requirement_expression) { "excludes(`cde.custom_assessment.primary_languages`, 'French')" }
+      let(:requirement_expression) { "EXCLUDES(`cde.custom_assessment.primary_languages`, 'French')" }
 
       it 'excludes clients who have the specified language' do
         results = generate_candidates(pool, destination_clients)
         expect(results).to eq([client_english_spanish.destination_client.id])
+      end
+    end
+  end
+
+  context 'when evaluating enrollment-based policies' do
+    include_context 'with enrolled test clients'
+
+    describe 'project-type-based filtering' do
+      describe 'when requiring open enrollment in a CE (14) project' do
+        # Requirement: must have open enrollment in Coordinated Entry (14) project type
+        let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, PROJECT_TYPE("CE"))' }
+
+        it 'includes clients with open enrollments at the correct project type' do
+          results = generate_candidates(pool, destination_clients)
+          expected_clients = [client_enrolled_in_ce, client_wip_enrolled_in_ce]
+          expect(results.sort).to eq(expected_clients.map { |c| c.destination_client.id }.sort)
+        end
+
+        it 'excludes clients with exited enrollments at the correct project type' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results).not_to include(client_exited_from_ce.destination_client.id)
+        end
+
+        it 'excludes clients with no enrollments' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results).not_to include(client_unenrolled.destination_client.id)
+        end
+
+        it 'excludes clients that are only enrolled in projects of other types' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results).not_to include(client_enrolled_in_es.destination_client.id)
+        end
+      end
+
+      describe 'when requiring open enrollment in a CE (14) project, excluding WIP enrollments' do
+        # Requirement: must have open enrollment in Coordinated Entry (14) project type, excluding WIP enrollments
+        let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types_excluding_incomplete, PROJECT_TYPE("CE"))' }
+
+        it 'excludes clients with WIP (incomplete) enrollments at the project type' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results).not_to include(client_wip_enrolled_in_ce.destination_client.id)
+        end
+
+        it 'includes clients with open enrollments at the correct project type' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results.sort).to eq([client_enrolled_in_ce.destination_client.id])
+        end
+      end
+
+      describe 'when requiring no open enrollments in PH project types' do
+        # Requirement: must NOT have open enrollment in any Permanent Housing project (3, 9, 10, 13)
+        let(:requirement_expression) { 'EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PSH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_OPH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_RRH"))' }
+
+        it 'excludes client with open enrollment in PH ' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results.sort).to eq(clients_not_enrolled_in_ph.map { |c| c.destination_client.id }.sort)
+          expect(results).not_to include(client_enrolled_in_ph.destination_client.id)
+        end
+      end
+    end
+  end
+
+  context 'when evaluating referral-based policies' do
+    include_context 'with referred test clients'
+
+    describe 'project-type-based filtering' do
+      describe 'when requiring no open referral in a PH (9) project' do
+        let(:requirement_expression) { 'EXCLUDES(open_referral_project_types, PROJECT_TYPE("PH_PH"))' }
+
+        it 'excludes clients with open referrals to PH (9) projects' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results).not_to include(client_referred_to_ph.destination_client.id)
+        end
+        it 'includes clients without open referrals to PH (9) projects' do
+          results = generate_candidates(pool, destination_clients)
+          expect(results).to eq(clients_not_referred_to_ph.map { |c| c.destination_client.id })
+        end
       end
     end
   end
