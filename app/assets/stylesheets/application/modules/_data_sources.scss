@@ -3,7 +3,7 @@
 [class^='ds'] {
   @include tag-pill;
   text-decoration: none;
-  background-color: $gray-065;
+  background-color: var(--gray-065);
   color: white;
   min-width: 3.75rem;
   text-align: center;

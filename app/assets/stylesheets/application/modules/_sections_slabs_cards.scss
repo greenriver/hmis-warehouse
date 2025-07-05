@@ -2,7 +2,7 @@
 
 .slab {
   padding: 12px 12px 2px 12px;
-  background-color: $gray-015;
+  background-color: var(--gray-015);
   margin-bottom: 24px;
 }
 
@@ -41,7 +41,7 @@
 .section-expander-block__header a:visited,
 .section-expander-block__header a:hover,
 .section-expander-block__header a:active {
-  color: $gray-070;
+  color: var(--gray-070);
 }
 
 .section-expander-block__expander-region {

@@ -29,17 +29,17 @@
   &::before {
     content: '';
     display: block;
-    background: $white;
-    border: 2px solid $gray-040;
+    background: var(--white);
+    border: 2px solid var(--gray-040);
     transition: .15s ease-in-out;
-    color: $gray-025;
+    color: var(--gray-025);
     border-radius: $border-radius;
   }
 
   &::after {
     font-family: 'icons';
     content: get-icon-code('checkmark');
-    color: $gray-020;
+    color: var(--gray-020);
   }
 
   span {

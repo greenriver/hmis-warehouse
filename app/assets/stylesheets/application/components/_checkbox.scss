@@ -158,12 +158,12 @@
   }
 
   .c-checkbox__check-container {
-    background: $white;
+    background: var(--white);
   }
 
   .c-checkbox__check-icon {
     border-radius: 50%;
-    background: $gray-020;
+    background: var(--gray-020);
     transform: scale(.65);
   }
 }
@@ -186,7 +186,7 @@
   display: block;
   font-style: italic;
   font-size: 13px;
-  color: $gray-060;
+  color: var(--gray-060);
 }
 
 .custom-checkbox {

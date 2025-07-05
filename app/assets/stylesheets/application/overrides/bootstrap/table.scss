@@ -36,7 +36,7 @@
   }
 
   thead tr {
-    border-color: $white;
+    border-color: var(--white);
   }
 
   thead th {
@@ -44,9 +44,9 @@
     text-align: center;
     font-weight: bold;
     font-size: 20px;
-    border-color: $white;
-    border-right: 2px solid $white;
-    border-left: 2px solid $white;
+    border-color: var(--white);
+    border-right: 2px solid var(--white);
+    border-left: 2px solid var(--white);
 
     &:last-of-type {
       border-right: 0;

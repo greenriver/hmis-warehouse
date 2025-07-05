@@ -66,11 +66,11 @@
   }
 
   a {
-    color: $black;
+    color: var(--black);
 
     &:focus,
     &:hover {
-      color: rgba($black, .8);
+      color: rgba(var(--black), .8);
     }
   }
 
@@ -80,7 +80,7 @@
 }
 
 .c-save-table__submit-container-error-text {
-  color: rgba($black, .9);
+  color: rgba(var(--black), .9);
   font-weight: bold;
   flex: 1 0 auto;
   padding-left: space(4);

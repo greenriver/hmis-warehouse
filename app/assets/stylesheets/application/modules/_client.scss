@@ -10,7 +10,7 @@
 .service-type__exit,
 .service-type__extrapolated,
 .service-type__first {
-  background-color: $gray-020;
+  background-color: var(--gray-020);
   margin: 0.2em 0;
   font-size: 0.7em;
   display: inline-block;
@@ -28,7 +28,7 @@
 }
 
 .service-type__extrapolated {
-  background-color: $gray-040;
+  background-color: var(--gray-040);
 }
 
 .service-type__first {
@@ -816,7 +816,7 @@ $client-image-height: 200px;
 }
 
 .client__assessment-section-heading {
-  border-bottom: 1px solid $gray-040;
+  border-bottom: 1px solid var(--gray-040);
   font: Open Sans;
   font-size: 17px;
   font-weight: 600;
@@ -911,7 +911,7 @@ $client-image-height: 200px;
 
 .destination-sqr {
   @include tag-pill;
-  color: $white;
+  color: var(--white);
   background-color: var(--brand-primary-d);
 }
 
@@ -968,23 +968,23 @@ $file-thumbnail-size: 75px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba($black, .3);
+  background: rgba(var(--black), .3);
   border-radius: .2rem;
 
   &::before {
     font-family: 'icons';
     content: '\e9ce'; // Eye
-    color: $white;
+    color: var(--white);
     font-size: 1.5rem;
   }
 
   &:hover {
     &::before {
-      color: $gray-020;
+      color: var(--gray-020);
     }
 
     &::after {
-      background: rgba($black, .3);
+      background: rgba(var(--black), .3);
       border-radius: .2rem;
     }
   }
@@ -1002,7 +1002,7 @@ $file-thumbnail-size: 75px;
     content: '';
     z-index: 1;
     position: absolute;
-    background: rgba($black, .5);
+    background: rgba(var(--black), .5);
     top: 0;
     bottom: 0;
     left: 0;

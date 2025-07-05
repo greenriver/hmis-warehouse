@@ -21,7 +21,7 @@
 }
 
 .site-menu.nav>.nav-item {
-  border-bottom: 1px solid $gray-020;
+  border-bottom: 1px solid var(--gray-020);
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
 }
@@ -84,7 +84,7 @@
 }
 
 .site-menu .group {
-  border-left: 2px solid $gray-050;
+  border-left: 2px solid var(--gray-050);
 }
 
 .site-menu .icon-wrapper {
@@ -148,7 +148,7 @@
 .o-menu__group {
   padding-bottom: space(4);
   margin-bottom: space(4);
-  border-bottom: 1px solid rgba($white, .25);
+  border-bottom: 1px solid rgba(var(--white), .25);
 }
 
 .o-menu__item {
@@ -171,14 +171,14 @@
     height: 5px;
     width: 5px;
     transform: translateX(-5px);
-    background: rgba($white, 0);
+    background: rgba(var(--white), 0);
     border-radius: 50%;
   }
 
   &:focus,
   &:hover {
     &::before {
-      background: rgba($white, .5);
+      background: rgba(var(--white), .5);
     }
   }
 }
@@ -188,7 +188,7 @@
   bottom: space(8);
   right: $nav-side-width / 2;
   transform: translateX(50%);
-  color: $white;
+  color: var(--white);
   z-index: $zIndex-10*2;
   opacity: 0;
   visibility: hidden;

@@ -40,7 +40,7 @@ form.inline-form {
 }
 
 label {
-  color: $gray-070;
+  color: var(--gray-070);
   /* @include open-sans-medium; */
 }
 
@@ -109,7 +109,7 @@ label {
 .contact-on-match--icon-link:hover,
 .contact-on-match--icon-link:focus {
   text-decoration: none;
-  color: $gray-080;
+  color: var(--gray-080);
 }
 
 .selected-contact {
@@ -123,7 +123,7 @@ label {
 
 .input__button-size {
   padding: 6px 12px;
-  border: 1px solid $gray-030;
+  border: 1px solid var(--gray-030);
   vertical-align: bottom;
 }
 
@@ -179,7 +179,7 @@ label {
   span {
     display: inline-block;
     padding: 6px 12px;
-    background-color: $gray-020;
+    background-color: var(--gray-020);
     color: $text-color;
     text-transform: uppercase;
   }
@@ -267,7 +267,7 @@ textarea.form-control {
 .form-control-faux {
   display: flex;
   align-items: center;
-  border-color: $gray-020;
+  border-color: var(--gray-020);
 }
 
 .form-control:focus {

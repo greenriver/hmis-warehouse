@@ -1,7 +1,7 @@
 @import '../helpers';
 
 label {
-  color: $gray-070;
+  color: var(--gray-070);
 }
 
 .label-helper {
@@ -32,7 +32,7 @@ label {
 }
 
 .label-default {
-  background: $gray-030;
+  background: var(--gray-030);
 }
 
 .label-primary {

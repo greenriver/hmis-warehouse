@@ -55,7 +55,6 @@
 
 .c-header-nav__item {
   white-space: nowrap;
-  // border-right: 1px solid rgba($gray-020, .5);
 }
 
 $nav-btn-states: (
@@ -68,7 +67,7 @@ $nav-btn-states: (
 @each $name, $color in $nav-btn-states {
   .c-header-nav__item--#{$name} {
     background: $color;
-    border-right: 1px solid rgba($gray-020, .5);
+    border-right: 1px solid color-mix(in srgb, var(--gray-020) 50%, transparent);
 
     &,
     .c-header-nav__link {
@@ -76,7 +75,7 @@ $nav-btn-states: (
       // variables, as the calculation happens at compile time.
       // We set a sensible default here. If a specific theme color requires
       // a light font, it can be overridden with a specific rule in the layout.
-      color: $black;
+      color: var(--black);
     }
 
     &:hover,
@@ -113,7 +112,7 @@ $nav-btn-states: (
   }
 
   &[aria-expanded=true] {
-    background: $white;
+    background: var(--white);
     color: var(--theme-background);
   }
 }
@@ -269,6 +268,6 @@ $nav-btn-states: (
 
 .user-state--link:hover,
 .user-state--link:focus {
-  color: $gray-030;
+  color: var(--gray-030);
   text-decoration: none;
 }

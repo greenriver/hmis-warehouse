@@ -74,21 +74,21 @@
   &:focus,
   &:hover {
     background: $body-bg;
-    color: $black;
+    color: var(--black);
 
     &::after {
-      color: $gray-050;
+      color: var(--gray-050);
     }
   }
 }
 
 .form__nav .list-group-item.active {
   background: $body-bg;
-  border-color: $gray-025;
+  border-color: var(--gray-025);
   border-left: 3px solid $nav-tab-active-border-color;
 
   .nav-link {
-    color: $black;
+    color: var(--black);
     pointer-events: none;
   }
 }
@@ -186,10 +186,10 @@
 }
 
 .qa-ignored {
-  border-left: 4px solid $gray;
+  border-left: 4px solid;
 
   td {
-    background-color: $gray-lighter;
+    background-color: var(--gray-020);
   }
 }
 

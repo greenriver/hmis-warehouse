@@ -2,7 +2,7 @@
 
 .warehouse-reports__client {
   margin: 1em 0;
-  border: 1px solid $gray-040;
+  border: 1px solid var(--gray-040);
 }
 
 .warehouse-reports__client .row {
@@ -14,7 +14,7 @@
 }
 
 .warehouse-reports__client-name {
-  background-color: $gray-015;
+  background-color: var(--gray-015);
   padding: 1em;
 }
 
@@ -125,7 +125,7 @@
       &.parameter-label,
       &.parameter-value {
         background: transparent;
-        color: $gray-darker;
+        color: var(--gray-090);
       }
 
       &.parameter-label {
@@ -169,7 +169,7 @@
 .table-bordered>thead>tr>th.agency-performance__date-effected,
 .table-bordered>tbody>tr>td.agency-performance__date-effected,
 .table-bordered>tfoot>tr>td.agency-performance__date-effected {
-  border-left: 4px solid $gray-050;
+  border-left: 4px solid var(--gray-050);
 }
 
 .agency-performance__without {
@@ -295,7 +295,7 @@
 
 .performance-measurement--target-guage {
   border-radius: 100px;
-  background-color: $gray-lighter;
+  background-color: var(--gray-020);
   height: 15px;
   position: relative;
 }
@@ -315,7 +315,7 @@
 }
 
 .performance-measurement--target-guage-target {
-  background-color: $gray-dark;
+  background-color: var(--gray-080);
   height: 15px;
   width: 2px;
   position: absolute;

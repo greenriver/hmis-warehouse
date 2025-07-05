@@ -39,31 +39,31 @@ input[type=submit].btn-sm {
 }
 
 .btn-default {
-  color: $gray-060;
+  color: var(--gray-060);
 }
 
 .btn-default:hover {
-  color: $gray-070;
+  color: var(--gray-070);
 }
 
 .btn-default:active,
 .btn-default:focus,
 .btn-default:active:hover,
 .open>.btn-default.dropdown-toggle:focus {
-  background-color: $gray-050;
+  background-color: var(--gray-050);
   color: #FFF;
 }
 
 .open>.btn-default.dropdown-toggle {
-  background-color: $gray-050;
+  background-color: var(--gray-050);
   color: #FFF;
 }
 
 input[type=submit].btn-secondary,
 .btn-secondary {
-  background-color: $gray-030;
+  background-color: var(--gray-030);
   color: $text-color;
-  border-color: $gray-030;
+  border-color: var(--gray-030);
 }
 
 input[type=submit].btn-secondary:hover,
@@ -176,7 +176,7 @@ input[type=submit].btn-secondary:focus,
 .btn-primary__reverse {
   background-color: #fff;
   color: var(--bs-primary);
-  border: 1px solid $gray-030;
+  border: 1px solid var(--gray-030);
 }
 
 .btn__number {
@@ -186,10 +186,10 @@ input[type=submit].btn-secondary:focus,
 }
 
 .btn-rule-condition {
-  border: 1px solid $gray-040;
+  border: 1px solid var(--gray-040);
   background-color: #fff;
   border-radius: 0;
-  color: $gray-065;
+  color: var(--gray-065);
 }
 
 .btn-rule-condition:hover,
@@ -214,20 +214,20 @@ input[type=submit].btn-primary,
 .btn-primary {
   background: var(--bs-primary);
   border-color: var(--brand-primary-d);
-  color: $white;
+  color: var(--white);
   border-radius: $btn-border-radius;
 
   &:hover {
     background: var(--brand-primary-ll);
     border-color: var(--brand-primary-d);
-    color: $white;
+    color: var(--white);
   }
 
   &:disabled,
   &.disabled {
     background: var(--brand-primary-l-desaturated);
     border-color: var(--bs-primary-desaturated);
-    color: rgba($black, .85);
+    color: rgba(var(--black), .85);
     outline: 0;
   }
 
@@ -251,7 +251,7 @@ input[type=submit].btn-primary,
 
 input[type=submit].btn-secondary,
 .btn-secondary {
-  background: $white;
+  background: var(--white);
   border-color: var(--bs-primary);
   color: var(--brand-primary-d);
 
@@ -263,11 +263,11 @@ input[type=submit].btn-secondary,
   &:hover {
     background: var(--brand-primary-ll);
     border-color: var(--brand-primary-d);
-    color: $white;
+    color: var(--white);
 
     [class^="icon-"],
     [class*=" icon-"] {
-      color: $white;
+      color: var(--white);
     }
   }
 
@@ -275,7 +275,7 @@ input[type=submit].btn-secondary,
   &.disabled {
     background: var(--brand-primary-l-desaturated);
     border-color: var(--bs-primary-desaturated);
-    color: rgba($black, .55);
+    color: rgba(var(--black), .55);
   }
 
   &.active,
@@ -284,7 +284,7 @@ input[type=submit].btn-secondary,
   &:focus:active {
     background: var(--brand-primary-l);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-primary) 50%, transparent);
-    color: $white;
+    color: var(--white);
     outline: 0;
   }
 
@@ -300,12 +300,12 @@ input[type=submit].btn-secondary,
 .btn-success {
   background: var(--brand-success-l);
   border-color: var(--bs-success);
-  color: rgba($black, .75);
+  color: rgba(var(--black), .75);
 
   &:hover {
     background: var(--brand-success-l);
     border-color: var(--brand-primary-d);
-    color: $white;
+    color: var(--white);
   }
 
   &.active,
@@ -315,14 +315,14 @@ input[type=submit].btn-secondary,
     background: var(--brand-success-ll);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-success) 50%, transparent);
     outline: 0;
-    color: $white;
+    color: var(--white);
   }
 
   &:disabled,
   &.disabled {
     background: var(--brand-success-l-desaturated);
     border-color: var(--bs-success-desaturated);
-    color: rgba($black, .55);
+    color: rgba(var(--black), .55);
   }
 
   &--outline {
@@ -337,11 +337,11 @@ input[type=submit].btn-secondary,
 .btn-warning {
   background: var(--brand-warning-lll);
   border-color: var(--bs-warning);
-  color: rgba($black, 55%);
+  color: rgba(var(--black), 55%);
 
   &:hover {
     background: var(--brand-warning-l);
-    color: $white;
+    color: var(--white);
   }
 
   &.active,
@@ -351,14 +351,14 @@ input[type=submit].btn-secondary,
     background: var(--brand-warning-ll);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-warning) 50%, transparent);
     outline: 0;
-    color: $white;
+    color: var(--white);
   }
 
   &:disabled,
   &.disabled {
     background: var(--brand-warning-l-desaturated);
     border-color: var(--bs-warning-desaturated);
-    color: $black;
+    color: var(--black);
   }
 
   &--outline {
@@ -373,11 +373,11 @@ input[type=submit].btn-secondary,
 .btn-danger {
   background: var(--brand-danger-lll);
   border-color: var(--bs-danger);
-  color: rgba($black, 1);
+  color: rgba(var(--black), 1);
 
   &:hover {
     background: var(--brand-danger-l);
-    color: $white;
+    color: var(--white);
   }
 
   &.active,
@@ -387,14 +387,14 @@ input[type=submit].btn-secondary,
     background: var(--brand-danger-ll);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-danger) 50%, transparent);
     outline: 0;
-    color: $white;
+    color: var(--white);
   }
 
   &:disabled,
   &.disabled {
     background: var(--brand-danger-l-desaturated);
     border-color: var(--bs-danger-desaturated);
-    color: rgba($black, .55);
+    color: rgba(var(--black), .55);
   }
 
   &--outline {
@@ -408,13 +408,13 @@ input[type=submit].btn-secondary,
 
 input[type=submit].btn-disabled,
 .btn-disabled {
-  background: $white;
+  background: var(--white);
   border-color: var(--brand-primary-l-desaturated);
-  color: rgba($black, .55);
+  color: rgba(var(--black), .55);
 
   [class^="icon-"],
   [class*=" icon-"] {
-    color: rgba($black, .55);
+    color: rgba(var(--black), .55);
   }
 
   &:hover,
@@ -425,13 +425,13 @@ input[type=submit].btn-disabled,
   &:focus,
   &:focus:active,
   &--outline {
-    background: $white;
+    background: var(--white);
     border-color: var(--brand-primary-l-desaturated);
-    color: rgba($black, .55);
+    color: rgba(var(--black), .55);
 
     [class^="icon-"],
     [class*=" icon-"] {
-      color: rgba($black, .55);
+      color: rgba(var(--black), .55);
     }
   }
 }
@@ -449,7 +449,7 @@ input[type=submit].btn-disabled,
   &:not(:disabled):not(.disabled):active,
   &:not(:disabled):not(.disabled).active {
     background: var(--brand-primary-ll);
-    color: $white;
+    color: var(--white);
   }
 }
 
@@ -461,7 +461,7 @@ input[type=submit].btn-disabled,
 .show>.btn-light.dropdown-toggle,
 .show>.dropdown-toggle.btn-default {
   background: var(--bs-primary);
-  color: $white;
+  color: var(--white);
 }
 
 .btn-link--danger {
@@ -576,7 +576,7 @@ input[type=submit].btn-disabled,
   }
 
   &.btn-secondary {
-    border-color: $gray-050;
+    border-color: var(--gray-050);
   }
 }
 

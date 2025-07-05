@@ -52,7 +52,7 @@
 }
 
 .pdq_actions {
-  background-color: $white;
+  background-color: var(--white);
   padding: 2rem;
   border-top: 1px solid var(--bs-primary);
 }

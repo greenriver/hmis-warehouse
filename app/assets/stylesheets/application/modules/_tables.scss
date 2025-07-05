@@ -134,11 +134,11 @@ table.dataTable thead .sorting_desc:after {
 
     &,
     i {
-      color: $gray-060;
+      color: var(--gray-060);
       font-size: 1.5rem;
 
       &:hover {
-        color: $black;
+        color: var(--black);
       }
     }
 
@@ -154,7 +154,7 @@ table.dataTable thead .sorting_desc:after {
 }
 
 .public-agencies .dataTable {
-  border: 1px solid $gray-034;
+  border: 1px solid var(--gray-034);
   margin-bottom: 2rem !important;
   margin-top: 1rem !important;
 }

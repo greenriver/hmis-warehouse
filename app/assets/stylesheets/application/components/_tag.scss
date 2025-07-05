@@ -3,13 +3,13 @@
 $tag-height: 35px;
 $tag-font-size: rem(14px);
 $tag-font-weight: 600;
-$tag-text-color: $gray-080;
+$tag-text-color: var(--gray-080);
 $tag-correction: $tag-height / 2;
 $tag-padding-left: 20px;
 $tag-icon-space: rem($tag-padding-left + $tag-correction);
 $tag-has-min-width: false;
 
-$tag-icon-shadow: $white;
+$tag-icon-shadow: var(--white);
 
 .c-tag {
   display: flex;
@@ -103,7 +103,7 @@ $tag-icon-shadow: $white;
 .c-tag__icon-svg,
 .c-tag__content span,
 .c-tag__content a {
-  color: rgba($black, .8);
+  color: rgba(var(--black), .8);
 }
 
 // We sometimes need the light version of colors to make the tags look reasonable
@@ -138,6 +138,6 @@ $tag-types: (
 
   .c-tag-pill--#{$type} {
     background-color: $color;
-    color: rgba($black, .95);
+    color: rgba(var(--black), .95);
   }
 }

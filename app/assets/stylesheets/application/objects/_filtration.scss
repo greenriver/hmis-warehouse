@@ -17,7 +17,7 @@ $filtrationn-container-offset: -16px;
   background-color: var(--brand-primary-llll);
 
   &:hover {
-    color: $gray-darker;
+    color: var(--gray-090);
   }
 }
 
@@ -77,7 +77,7 @@ $filtrationn-container-offset: -16px;
   padding-right: $filtrationn-container-padding;
   padding-left: $filtrationn-container-padding;
   padding-bottom: space(2);
-  border-bottom: 1px solid $gray-030;
+  border-bottom: 1px solid var(--gray-030);
   margin-bottom: space(5);
 }
 
@@ -98,5 +98,5 @@ $filtrationn-container-offset: -16px;
   margin-left: $filtrationn-container-offset;
   margin-bottom: $filtrationn-container-offset;
   padding: $filtrationn-container-padding;
-  border-top: 1px solid $gray-030;
+  border-top: 1px solid var(--gray-030);
 }

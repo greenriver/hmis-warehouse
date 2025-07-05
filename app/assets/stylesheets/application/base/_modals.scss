@@ -14,7 +14,7 @@
 
 .modal-title--secondary {
   font-size: rem(18);
-  color: $gray-060;
+  color: var(--gray-060);
   margin: 0;
 }
 
@@ -40,16 +40,17 @@
 
 .modal-icon-close {
   font-style: normal;
+
   &::before {
     @include icon;
     content: '\ea0f';
     font-size: rem(18);
-    color: $gray-070;
+    color: var(--gray-070);
   }
 }
 
 .modal-content {
-  background: $white;
+  background: var(--white);
 }
 
 .modal-dialog-scrollable .modal-content {
@@ -75,7 +76,7 @@
 }
 
 .modal-dialog [class^="icon-"],
-.modal-dialog  [class*=" icon-"] {
+.modal-dialog [class*=" icon-"] {
   font-size: rem(12);
   color: #000;
   margin-right: 12px;
@@ -108,6 +109,7 @@
     border-top: 0;
     border-bottom: 1px solid $modal-border;
   }
+
   &:last-of-type td {
     border: 0;
   }
@@ -115,6 +117,7 @@
 
 .modal-xxl {
   max-width: 85vw;
+
   @include media-breakpoint-up(lg) {
     max-width: 992px;
   }
@@ -122,6 +125,7 @@
 
 @for $i from 1 through length($indicator-colors) {
   $color: nth($indicator-colors, $i);
+
   .modal-header--highlight-#{$i} {
     background: $color;
   }
@@ -130,29 +134,34 @@
 [class^=modal-header--highlight] {
   padding: space(4) space(4) space(2) space(4);
   min-height: 30px;
+
   .modal-header__content {
     flex: 1 1 100%;
     position: relative;
   }
+
   .modal-title {
     text-transform: none;
-    border-bottom: 1px solid $white;
+    border-bottom: 1px solid var(--white);
     margin-bottom: space(2);
     display: flex;
     align-items: center;
     padding-bottom: space(2);
   }
+
   .modal-title--primary {
-    color: $black;
+    color: var(--black);
     padding-right: space(2);
-    border-right: 1px solid $white;
+    border-right: 1px solid var(--white);
     margin-right: space(2);
   }
+
   .modal-title--secondary {
-    color: $black;
+    color: var(--black);
     font-weight: normal;
-    font-family:  $font-family-sans-serif;
+    font-family: $font-family-sans-serif;
   }
+
   .close {
     position: absolute;
     top: - space(4);
@@ -161,6 +170,7 @@
     font-size: 30px;
     padding: space(2) space(4);
   }
+
   .note {
     font-weight: bold;
     margin: 0;

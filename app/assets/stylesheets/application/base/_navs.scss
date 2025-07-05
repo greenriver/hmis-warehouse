@@ -6,8 +6,8 @@
   margin-bottom: space(4);
   padding-left: $container-padding;
   padding-right: $container-padding;
-  background: $white;
-  border-bottom: 1px solid $gray-015;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-015);
   margin-top: space(4);
   margin-bottom: space(4);
   width: calc(100% + 60px);
@@ -31,7 +31,7 @@
 .nav-tabs>li>a:focus {
   background: $body-bg;
   box-shadow: inset 0px 2px 0px 0px var(--brand-primary-d);
-  color: $black;
+  color: var(--black);
 }
 
 .nav-tabs>li.nav-item.active>a,

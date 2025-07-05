@@ -5,19 +5,19 @@
 }
 
 .o-color--white {
-  color: $white;
+  color: var(--white);
 }
 
 .o-color--gray-l {
-  color: $gray-020;
+  color: var(--gray-020);
 }
 
 .o-color--gray-m {
-  color: $gray-034;
+  color: var(--gray-034);
 }
 
 .o-color--gray-d {
-  color: $gray-065;
+  color: var(--gray-065);
 }
 
 .o-color--positive,

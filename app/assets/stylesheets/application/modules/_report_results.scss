@@ -13,7 +13,7 @@
 }
 
 .report-result__section-header {
-  background-color: $gray-015;
+  background-color: var(--gray-015);
 }
 
 .report-result__changed {
@@ -21,7 +21,7 @@
 }
 
 .lightest-gray {
-  background-color: $gray-015;
+  background-color: var(--gray-015);
 }
 
 .page-bg-color {

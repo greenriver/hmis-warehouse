@@ -24,8 +24,8 @@
 
   /* Success: #009f44 */
   --bs-success-hue: 142;
-  --bs-success-saturation: 100%;
-  --bs-success-lightness: 31%;
+  --bs-success-saturation: 60%;
+  --bs-success-lightness: 60%;
   --bs-success: hsl(var(--bs-success-hue), var(--bs-success-saturation), var(--bs-success-lightness));
 
   /* Warning: #bc6923 */
@@ -58,8 +58,8 @@
   /* Lighter */
   --brand-primary-l: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 55%);
   --brand-primary-ll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 60%);
-  --brand-primary-lll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 70%);
-  --brand-primary-llll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 80%);
+  --brand-primary-lll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 90%);
+  --brand-primary-llll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 95%);
 
   /* Desaturated */
   --brand-primary-l-desaturated: hsl(var(--bs-primary-hue), 5%, var(--bs-primary-lightness));
@@ -67,9 +67,9 @@
 
   /* Brand Success Variants */
   --brand-success: var(--bs-success);
-  --brand-success-l: hsl(var(--bs-success-hue), var(--bs-success-saturation), 50%);
-  --brand-success-ll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 65%);
-  --brand-success-lll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 80%);
+  --brand-success-l: hsl(var(--bs-success-hue), var(--bs-success-saturation), 70%);
+  --brand-success-ll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 80%);
+  --brand-success-lll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 85%);
   --brand-success-llll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 90%);
 
   /* Desaturated */
@@ -132,10 +132,35 @@
   --theme-background-highlight-d: hsl(var(--theme-background-hue), 80%, 40%);
   --theme-background-highlight-dd: hsl(var(--theme-background-hue), var(--theme-background-saturation), 15%);
 
-
-
   /* Component Style Overrides to match legacy theme */
-  --nav-tab-active-border-color: hsl
+  --nav-tab-active-border-color: var(--brand-primary-d);
+
+  --white: rgba(255, 255, 255, 1);
+  /* #f2f2f2 COB-sg lightest gray (bg) */
+  --gray-015: rgb(242, 242, 242);
+  /* #E9E7ED */
+  --gray-020: rgb(233, 231, 237);
+  /* #e4e4e4 COB-sg 2nd-to-lightest gray */
+  --gray-025: rgb(228, 228, 228);
+  /* #D8D5DB */
+  --gray-030: rgb(216, 213, 219);
+  /* #d2d2d2 COB-sg 2nd darkest gray */
+  --gray-034: rgb(210, 210, 210);
+  /* #C4C1C7 */
+  --gray-040: rgb(196, 193, 199);
+  /* #9E9CA1 */
+  --gray-050: rgb(158, 156, 161);
+  /* #828282 COB-sg darkest gray (body) */
+  --gray-060: rgb(130, 130, 130);
+  /* #666 */
+  --gray-065: rgb(102, 102, 102);
+  /* #404040 */
+  --gray-070: rgb(64, 64, 64);
+  /* #333 */
+  --gray-080: rgb(51, 51, 51);
+  /* #222 */
+  --gray-090: rgb(34, 34, 34);
+  --black: rgba(0, 0, 0, 1);
 }
 
 /* Note: these are namespaced within .alert to override the default Bootstrap colors */
@@ -183,6 +208,9 @@
   --bs-btn-hover-color: white;
 }
 
+.dropdown-menu {
+  --bs-dropdown-bg: var(--white);
+}
 
 /*
 TODO:

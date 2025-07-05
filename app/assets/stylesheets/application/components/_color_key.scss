@@ -14,7 +14,7 @@ $swatch-colors: (
   padding: space(2);
   flex: 0 0 auto;
   border-radius: 3px;
-  border: 1px solid $gray-020;
+  border: 1px solid var(--gray-020);
 }
 
 .c-color-key__swatch {

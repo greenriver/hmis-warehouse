@@ -23,7 +23,7 @@
   justify-content: center;
   display: flex;
   padding-bottom: 4px;
-  color: $gray-light;
+  color: var(--gray-060);
   font-size: 12px;
   font-weight: normal;
 }
@@ -43,7 +43,7 @@
 }
 
 .ssm__row {
-  border-bottom: 1px solid $gray-040;
+  border-bottom: 1px solid var(--gray-040);
   padding: .8em;
 }
 
