@@ -7821,37 +7821,6 @@ ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
 
 
 --
--- Name: client_change_markers; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.client_change_markers (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    current_version integer NOT NULL,
-    processed_version integer DEFAULT 0 NOT NULL
-);
-
-
---
--- Name: client_change_markers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.client_change_markers_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: client_change_markers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.client_change_markers_id_seq OWNED BY public.client_change_markers.id;
-
-
---
 -- Name: client_contacts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17074,6 +17043,38 @@ CREATE SEQUENCE public.hmis_case_notes_id_seq
 --
 
 ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
+
+
+--
+-- Name: hmis_ce_change_markers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_ce_change_markers (
+    id bigint NOT NULL,
+    trackable_type character varying NOT NULL,
+    trackable_id bigint NOT NULL,
+    current_version integer NOT NULL,
+    processed_version integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: hmis_ce_change_markers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_ce_change_markers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_ce_change_markers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_ce_change_markers_id_seq OWNED BY public.hmis_ce_change_markers.id;
 
 
 --
@@ -33619,13 +33620,6 @@ ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- Name: client_change_markers id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.client_change_markers ALTER COLUMN id SET DEFAULT nextval('public.client_change_markers_id_seq'::regclass);
-
-
---
 -- Name: client_contacts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -34897,6 +34891,13 @@ ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.hmis_case_notes ALTER COLUMN id SET DEFAULT nextval('public.hmis_case_notes_id_seq'::regclass);
+
+
+--
+-- Name: hmis_ce_change_markers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_ce_change_markers ALTER COLUMN id SET DEFAULT nextval('public.hmis_ce_change_markers_id_seq'::regclass);
 
 
 --
@@ -37669,14 +37670,6 @@ ALTER TABLE ONLY public.clh_locations
 
 
 --
--- Name: client_change_markers client_change_markers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.client_change_markers
-    ADD CONSTRAINT client_change_markers_pkey PRIMARY KEY (id);
-
-
---
 -- Name: client_contacts client_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -39138,6 +39131,14 @@ ALTER TABLE ONLY public.hmis_auto_exit_configs
 
 ALTER TABLE ONLY public.hmis_case_notes
     ADD CONSTRAINT hmis_case_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_ce_change_markers hmis_ce_change_markers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_ce_change_markers
+    ADD CONSTRAINT hmis_ce_change_markers_pkey PRIMARY KEY (id);
 
 
 --
@@ -61357,13 +61358,6 @@ CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_loca
 
 
 --
--- Name: index_client_change_markers_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_client_change_markers_on_client_id ON public.client_change_markers USING btree (client_id);
-
-
---
 -- Name: index_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63601,6 +63595,13 @@ CREATE INDEX index_hmis_case_notes_on_source ON public.hmis_case_notes USING btr
 --
 
 CREATE INDEX index_hmis_case_notes_on_user_id ON public.hmis_case_notes USING btree (user_id);
+
+
+--
+-- Name: index_hmis_ce_change_markers_on_trackable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_ce_change_markers_on_trackable ON public.hmis_ce_change_markers USING btree (trackable_type, trackable_id);
 
 
 --

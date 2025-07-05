@@ -342,8 +342,11 @@ namespace :grda_warehouse do
     end
 
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
-      # Generate CE candidate pools and run the match engine daily in the early morning
-      Hmis::MatchCandidatesJob.perform_later
+      # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
+      # 1) Rebuild pools for all active opportunities
+      Hmis::Ce::Match::CandidatePoolBuilder.new(Hmis::Ce::Opportunity.active).perform
+      # 2) Mark all active pools as dirty to force daily re-processing.
+      Hmis::Ce::Match::CandidatePool.active.mark_all_dirty
     end
 
     # Purge old soft-deleted records
@@ -407,8 +410,7 @@ namespace :grda_warehouse do
 
     if HmisEnforcement.hmis_enabled?
       safely_execute do
-        # This should self-sustain once running
-        GrdaWarehouse::ProcessClientChangeMarkersJob.enqueue_if_not_already_running(wait_time: 10.minutes)
+        Hmis::Ce::ProcessChangesJob.enqueue_if_not_already_running(wait_time: 10.minutes)
       end
     end
 

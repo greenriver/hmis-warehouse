@@ -10,26 +10,16 @@ module Hmis::Ce::Match
       new.call(...)
     end
 
-    def call(pool, clients, lock_timeout_seconds: 0)
-      validate_clients_parameter!(clients)
-      total_evaluated = nil # returning nil indicates we couldn't acquire the lock
-      with_lock(pool, timeout_seconds: lock_timeout_seconds) do
-        total_evaluated = process_client_pool(pool, clients)
-      end
-      total_evaluated
-    end
-
-    protected
-
     # Take a two-step approach to evaluating eligibility to achieve better performance.
     # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    def process_client_pool(pool, clients)
-      total_evaluated = 0
-      now = Time.current
+    def call(pool, clients)
+      validate_clients_parameter!(clients)
+
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
       priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
+      now = DateTime.current
       crude_eligibility_filter(pool.requirement_expression, clients).in_batches do |batch|
         # First iterate through the batch to import any Client Proxies that aren't present in the db already
         proxies = []
@@ -44,7 +34,6 @@ module Hmis::Ce::Match
           # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently
           next unless eligibility_evaluator.call(client)
 
-          total_evaluated += 1
           score = priority_evaluator.call(client)
           candidates << {
             candidate_pool_id: pool.id,
@@ -59,13 +48,9 @@ module Hmis::Ce::Match
       # remove old candidates that no longer match
       pool.candidates.where(updated_at: ...now).delete_all
       pool.update!(candidates_generated_at: Time.current)
-      total_evaluated
     end
 
-    def with_lock(pool, timeout_seconds:) do
-      lock_name = "#{self.class.name}::Pool::#{pool.id}"
-      ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds, &block)
-    end
+    protected
 
     def validate_clients_parameter!(clients)
       raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client

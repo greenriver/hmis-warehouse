@@ -42,17 +42,20 @@ module Mutations
 
         result = Hmis::Ce::Opportunity.import!(opportunities)
 
-        # Find all the opportunities that need to be updated
-        opportunity_ids = opportunity_ids_to_update(opportunity_scope: Hmis::Ce::Opportunity.where(id: result.ids))
-
-        # If there are any, run the match engine/candidate generation job
-        Hmis::MatchCandidatesJob.perform_later(opportunity_ids: opportunity_ids) if opportunity_ids.any?
+        imported_opportunities = Hmis::Ce::Opportunity.where(id: result.ids)
+        post_process(imported_opportunities)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
     end
 
     private
+
+    def post_process(opportunities)
+      dirty_pool_ids = Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
+
+      Hmis::Ce::Match::CandidatePool.where(id: dirty_pool_ids).mark_all_dirty if dirty_pool_ids.any?
+    end
 
     def build_opportunity_for_unit(unit, template, candidate_pool_resolver)
       raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?

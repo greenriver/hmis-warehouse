@@ -99,14 +99,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # creates warehouse clients
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         # mark clean
-        GrdaWarehouse::ClientChangeMarker.mark_processed(GrdaWarehouse::ClientChangeMarker.all)
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
       end
       it 'marks the client as dirty' do
+        destination_client = GrdaWarehouse::Hud::Client.find(c1.destination_client.id) # so trackable sti matches STI
         expect do
           response, result = post_graphql(input: { input: test_input }) { mutation }
           expect(response.status).to eq(200), result&.inspect
           expect(result.dig('data', 'submitAssessment', 'errors')).to be_empty
-        end.to change { GrdaWarehouse::ClientChangeMarker.dirty.where(client_id: c1.destination_client.id).count }.by(1)
+        end.to change { Hmis::Ce::ChangeMarker.dirty.where(trackable: destination_client).count }.by(1)
       end
     end
   end

@@ -11,11 +11,15 @@ module Hmis::Ce::Match
 
     # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
     def perform
+      updated_ids = []
       with_lock do
+        now = Time.current
         Hmis::Ce::Match::CandidatePool.transaction do
           _perform
         end
+        updated_ids = Hmis::Ce::Match::CandidatePool.where(configuration_updated_at: now...).pluck(:id)
       end
+      updated_ids
     end
 
     protected

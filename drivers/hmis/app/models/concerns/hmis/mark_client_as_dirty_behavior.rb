@@ -20,12 +20,12 @@ module Hmis::MarkClientAsDirtyBehavior
     # Note, if the destination client does not exist yet, this will be a no-op and we rely on
     # IdentifyDuplicates to mark the client as dirty
     identity_scope = Hmis::Hud::Client.where(data_source: data_source_id, personal_id: personal_id)
-    client_ids = Hmis::WarehouseClient.
+    client_ids = GrdaWarehouse::WarehouseClient.
       joins(:source).
       merge(identity_scope).
       pluck(:destination_id)
 
     # enqueue
-    GrdaWarehouse::ClientChangeMarker.upsert_or_bump_version(client_ids: client_ids)
+    Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
   end
 end

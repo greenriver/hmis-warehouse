@@ -233,7 +233,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def post_process_clients(client_ids:)
-      GrdaWarehouse::ClientChangeMarker.upsert_or_bump_version(client_ids: client_ids)
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
     memoize private def previous_candidate_matches

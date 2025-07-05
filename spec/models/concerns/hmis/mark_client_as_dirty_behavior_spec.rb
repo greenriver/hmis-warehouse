@@ -13,19 +13,22 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
 
   let!(:destination_data_source) { create :destination_data_source }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:destination_client) do
+    GrdaWarehouse::Hud::Client.find(c1.destination_client.id)
+  end
 
   before do
     # Create warehouse clients to enable dirty marking
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     # Mark everything clean
-    GrdaWarehouse::ClientChangeMarker.mark_processed(GrdaWarehouse::ClientChangeMarker.all)
+    Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
   end
 
-  shared_examples 'marks client as dirty' do |model_factory, model_attrs={}|
+  shared_examples 'marks client as dirty' do |model_factory, model_attrs = {}|
     it "marks destination client dirty when #{model_factory} is saved" do
       expect do
         create model_factory, client: c1, data_source: ds1, **model_attrs
-      end.to change { GrdaWarehouse::ClientChangeMarker.where(client_id: c1.destination_client.id ).dirty.count }.by(1)
+      end.to change { Hmis::Ce::ChangeMarker.where(trackable: destination_client).dirty.count }.by(1)
     end
   end
 
