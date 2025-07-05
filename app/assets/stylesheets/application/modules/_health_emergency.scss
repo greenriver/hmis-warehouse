@@ -1,7 +1,7 @@
 @import '../helpers';
 
 .client-tabs__health-emergency {
-  background-color: rgba(var(--bs-danger-rgb), 0.05);
+  background-color: var(--brand-danger-lll);
   margin-bottom: - space(4);
   margin-left: -30px;
   margin-right: -30px;

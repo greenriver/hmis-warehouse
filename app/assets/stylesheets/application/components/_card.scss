@@ -314,7 +314,7 @@
 }
 
 .c-card__content-block--danger {
-  background-color: rgba(var(--bs-danger-rgb), 0.1);
+  background-color: var(--brand-danger-lll);
   padding: space(4);
 }
 

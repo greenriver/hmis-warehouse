@@ -1,11 +1,26 @@
 :root {
-  --bs-primary: #387E92;
-  --bs-primary-rgb: 56, 126, 146;
-  --bs-success: #529452;
-  --bs-success-rgb: 82, 148, 82;
-  --bs-warning: #94713B;
-  --bs-warning-rgb: 148, 113, 59;
-  --bs-danger: #943A43;
-  --bs-danger-rgb: 148, 58, 67;
-  --theme-background-rgb: 27, 50, 93;
+  /* Primary: #387E92 */
+  --bs-primary-hue: 194;
+  --bs-primary-saturation: 44%;
+  --bs-primary-lightness: 41%;
+
+  /* Success: #529452 */
+  --bs-success-hue: 120;
+  --bs-success-saturation: 44%;
+  --bs-success-lightness: 41%;
+
+  /* Warning: #94713B */
+  --bs-warning-hue: 39;
+  --bs-warning-saturation: 41%;
+  --bs-warning-lightness: 41%;
+
+  /* Danger: #943A43 */
+  --bs-danger-hue: 353;
+  --bs-danger-saturation: 44%;
+  --bs-danger-lightness: 41%;
+
+  /* Theme Background: #1B325D (from default) */
+  --theme-background-hue: 222;
+  --theme-background-saturation: 55%;
+  --theme-background-lightness: 24%;
 }

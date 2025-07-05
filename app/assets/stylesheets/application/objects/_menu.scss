@@ -75,11 +75,11 @@
 }
 
 .site-menu .menu-icon {
-  color: var(--brand-warning-d);
+  color: var(--brand-warning-l);
 }
 
 .site-menu .group-header {
-  color: var(--brand-warning-d);
+  color: var(--brand-warning-l);
   margin-bottom: 0.5rem;
 }
 
@@ -115,8 +115,8 @@
   background-color: var(--theme-background);
   overflow: auto;
   padding: space(6) space(4) space(4);
-  border-top: 2px solid var(--theme-background-darker-2);
-  border-bottom: 2px solid var(--theme-background-darker-2);
+  border-top: 2px solid var(--theme-background-d);
+  border-bottom: 2px solid var(--theme-background-d);
   ;
 
   &.on-canvas {
@@ -126,7 +126,7 @@
 }
 
 .o-menu .js-back-to-top {
-  background: rgba(var(--theme-background-rgb), .8);
+  background: var(--theme-background-d);
   padding: 2em;
   width: $nav-side-width;
   position: fixed;

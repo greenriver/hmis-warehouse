@@ -1,20 +1,34 @@
 :root {
-  --bs-primary: #14558f;
-  --bs-primary-rgb: 20, 85, 143;
-  --brand-primary-l: #8AAAC7;
-  --brand-primary-ll: #E7EEF4;
-  --brand-primary-d: #0d375e;
-  --bs-success: #388557;
-  --bs-success-rgb: 56, 133, 87;
-  --brand-success-l: #97C2A9;
-  --brand-success-ll: #D6E7DD;
-  --bs-warning: #F6C51B;
-  --bs-warning-rgb: 246, 197, 27;
-  --brand-warning-l: #FBE28D;
-  --bs-danger: #CD0D0D;
-  --bs-danger-rgb: 205, 13, 13;
-  --brand-danger-l: #AD7E88;
-  --brand-danger-d: #680A1D;
-  --theme-background: #14558f;
-  --theme-background-rgb: 20, 85, 143;
+  /* Primary: #14558f */
+  --bs-primary-hue: 211;
+  --bs-primary-saturation: 75%;
+  --bs-primary-lightness: 32%;
+
+  /* Success: #388557 */
+  --bs-success-hue: 141;
+  --bs-success-saturation: 58%;
+  --bs-success-lightness: 37%;
+
+  /* Warning: #F6C51B */
+  --bs-warning-hue: 48;
+  --bs-warning-saturation: 92%;
+  --bs-warning-lightness: 53%;
+
+  /* Danger: #CD0D0D */
+  --bs-danger-hue: 0;
+  --bs-danger-saturation: 90%;
+  --bs-danger-lightness: 43%;
+
+  /* Theme Background: #14558f */
+  --theme-background-hue: 211;
+  --theme-background-saturation: 75%;
+  --theme-background-lightness: 32%;
+
+  /* Custom overrides */
+  --brand-primary-lll: #8AAAC7;
+  --brand-primary-llll: #E7EEF4;
+  --brand-success-lll: #D6E7DD;
+  --brand-warning-lll: #FBE28D;
+  --brand-danger-lll: #AD7E88;
+  --brand-danger-l: #680A1D;
 }

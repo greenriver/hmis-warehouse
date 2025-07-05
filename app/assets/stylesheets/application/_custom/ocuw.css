@@ -1,6 +1,11 @@
 :root {
-  --bs-primary: #0E499D;
-  --bs-primary-rgb: 14, 73, 157;
-  --theme-background: #0E499D;
-  --theme-background-rgb: 14, 73, 157;
+  /* Primary: #0E499D */
+  --bs-primary-hue: 218;
+  --bs-primary-saturation: 85%;
+  --bs-primary-lightness: 34%;
+
+  /* Theme Background: #0E499D */
+  --theme-background-hue: 218;
+  --theme-background-saturation: 85%;
+  --theme-background-lightness: 34%;
 }

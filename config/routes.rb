@@ -886,6 +886,7 @@ Rails.application.routes.draw do
       get :buttons
       get :careplan
       get :client_dashboard
+      get :colors
       get :form
       get :health_dashboard
       get :icon_font

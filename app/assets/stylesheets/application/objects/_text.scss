@@ -4,10 +4,6 @@
   color: var(--bs-primary);
 }
 
-/* .o-color--secondary {
-  color: var(--bs-secondary);
-} */
-
 .o-color--white {
   color: $white;
 }
@@ -26,15 +22,15 @@
 
 .o-color--positive,
 .o-color--success {
-  color: var(--brand-success-d);
+  color: var(--brand-success-l);
 }
 
 .o-color--danger {
-  color: var(--brand-danger-d);
+  color: var(--brand-danger-l);
 }
 
 .o-color--warning {
-  color: var(--brand-warning-d);
+  color: var(--brand-warning-l);
 }
 
 .o-text--normal {

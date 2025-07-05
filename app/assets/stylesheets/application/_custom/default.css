@@ -2,95 +2,207 @@
 * Note: not all Bootstrap colors are available as CSS variables.
 * See https://getbootstrap.com/docs/5.3/customize/css-variables/
 * for a list of available variables.
+*
+* In the below file, colors are defined in the following format:
+* First we define the hue, saturation, and lightness values.
+* --bs-primary-hue: 196;
+* --bs-primary-saturation: 32%;
+* --bs-primary-lightness: 40%;
+* Then we convert the HSL values to a CSS color value.
+* --bs-primary: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), var(--bs-primary-lightness));
+*
+* This should be flexible enough for computing variations as necessary.
 */
 
 :root {
-  /* Default Bootstrap Theme Colors */
-  --bs-primary: #457687;
-  --bs-primary-rgb: 69, 118, 135;
-  --bs-success: #009f44;
-  --bs-success-rgb: 0, 159, 68;
-  --bs-warning: #bc6923;
-  --bs-warning-rgb: 188, 105, 35;
-  --bs-danger: #bb2716;
-  --bs-danger-rgb: 187, 39, 22;
-  --bs-info: #d8e7ea;
-  --bs-info-rgb: 216, 231, 234;
+  /* Default Bootstrap Theme Colors and Variants*/
+  /* Primary: #457687 */
+  --bs-primary-hue: 196;
+  --bs-primary-saturation: 32%;
+  --bs-primary-lightness: 40%;
+  --bs-primary: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), var(--bs-primary-lightness));
+
+  /* Success: #009f44 */
+  --bs-success-hue: 142;
+  --bs-success-saturation: 100%;
+  --bs-success-lightness: 31%;
+  --bs-success: hsl(var(--bs-success-hue), var(--bs-success-saturation), var(--bs-success-lightness));
+
+  /* Warning: #bc6923 */
+  --bs-warning-hue: 29;
+  --bs-warning-saturation: 68%;
+  --bs-warning-lightness: 45%;
+  --bs-warning: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), var(--bs-warning-lightness));
+
+  /* Danger: #bb2716 */
+  --bs-danger-hue: 6;
+  --bs-danger-saturation: 79%;
+  --bs-danger-lightness: 42%;
+  --bs-danger: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), var(--bs-danger-lightness));
+
+  /* Info: #d8e7ea */
+  --bs-info-hue: 196;
+  --bs-info-saturation: 25%;
+  --bs-info-lightness: 88%;
+  --bs-info: hsl(var(--bs-info-hue), var(--bs-info-saturation), var(--bs-info-lightness));
 
   /* Custom Color Variants */
-  --brand-primary: #457687;
-  --brand-primary-l: #C3D7DF;
-  --brand-primary-ll: #d8e7ea;
-  --brand-primary-d: #3b6576;
-  --brand-success-l: #B1F2C4;
-  --brand-success-ll: #c3f5d2;
-  --brand-success-lll: #f5faf7;
-  --brand-success-d: #68c27f;
-  --brand-warning-l: #ffcb9b;
-  --brand-warning-lll: #fbf3ec;
-  --brand-warning-d: #e5b17e;
-  --brand-danger-l: #FFD1CC;
-  --brand-danger-lll: #fbf3ec;
-  --brand-danger-d: #df9489;
-  --brand-info-lll: #e9f1f2;
+
+  /* Brand Primary Variants */
+
+  /* Darker */
+  --brand-primary-d: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 25%);
+  /* default: 196°, 32%, 40% */
+  --brand-primary: var(--bs-primary);
+
+  /* Lighter */
+  --brand-primary-l: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 55%);
+  --brand-primary-ll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 60%);
+  --brand-primary-lll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 70%);
+  --brand-primary-llll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 80%);
+
+  /* Desaturated */
+  --brand-primary-l-desaturated: hsl(var(--bs-primary-hue), 5%, var(--bs-primary-lightness));
+  --bs-primary-desaturated: hsl(var(--bs-primary-hue), 10%, 70%);
+
+  /* Brand Success Variants */
+  --brand-success: var(--bs-success);
+  --brand-success-l: hsl(var(--bs-success-hue), var(--bs-success-saturation), 50%);
+  --brand-success-ll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 65%);
+  --brand-success-lll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 80%);
+  --brand-success-llll: hsl(var(--bs-success-hue), var(--bs-success-saturation), 90%);
+
+  /* Desaturated */
+  --brand-success-l-desaturated: hsl(var(--bs-success-hue), 35%, 97%);
+  --bs-success-desaturated: hsl(var(--bs-success-hue), 10%, 70%);
+
+  /* Brand Warning Variants */
+  --brand-warning: var(--bs-warning);
+  /* Lighter */
+  --brand-warning-l: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 60%);
+  --brand-warning-ll: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 65%);
+  --brand-warning-lll: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 70%);
+
+  /* Desaturated */
+  --brand-warning-l-desaturated: hsl(var(--bs-warning-hue), 68%, 95%);
+  --bs-warning-desaturated: hsl(var(--bs-warning-hue), 10%, 70%);
+
+  /* Brand Danger Variants */
+  --brand-danger: var(--bs-danger);
+  /* Darker */
+  --brand-danger-d: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 40%);
+  /* Lighter */
+  --brand-danger-l: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 55%);
+  --brand-danger-ll: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 65%);
+  --brand-danger-lll: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 70%);
+
+  /* Desaturated */
+  --brand-danger-l-desaturated: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 95%);
+  --bs-danger-desaturated: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 70%);
+
+  /* Brand Info Variants */
+  --brand-info: var(--bs-info);
+  /* Lighter */
+  --brand-info-l: hsl(var(--bs-info-hue), var(--bs-info-saturation), 80%);
+  /* Desaturated */
+  --bs-info-desaturated: hsl(var(--bs-info-hue), var(--bs-info-saturation), 93%);
 
   /* New variable sets */
   --highlight-red: rgb(119, 55, 71);
   --highlight-red-green: rgb(231, 223, 221);
-  --theme-background: #1B325D;
-  --theme-background-rgb: 9, 31, 47;
-  --theme-background-lighter: #1b3a57;
-  --theme-foreground: white;
-  --brand-primary-ll-rgb: 216, 231, 234;
-  --theme-alt-background-muted-darker: #7c91ac;
-  --theme-background-darker-2: #05141f;
-  --theme-background-highlight-darker: #0c56a8;
-  --theme-background-highlight-darker-2: #05141f;
-  --theme-background-darker: #0f1c29;
 
-  /* Button Variants */
-  --brand-primary-l-darker: #a1c3d1;
-  --brand-primary-l-darkest: #8fb4c6;
-  --brand-primary-l-desaturated: #e1e2e3;
-  --bs-primary-desaturated: #c6cdd0;
-  --brand-success-l-darkest: #8ddbb1;
-  --brand-success-l-desaturated: #e1e2e3;
-  --bs-success-desaturated: #c6cdd0;
-  --brand-warning-l-darkest: #f8b87a;
-  --brand-warning-l-desaturated: #e1e2e3;
-  --bs-warning-desaturated: #c6cdd0;
-  --brand-danger-l-darkest: #f8b87a;
-  --brand-danger-l-desaturated: #e1e2e3;
-  --bs-danger-desaturated: #c6cdd0;
+  /* Theme Colors */
+  --theme-bright-blue: hsl(210, 85%, 54%);
+
+  /* Theme Background: #091F2F */
+  --theme-background-hue: 205;
+  --theme-background-saturation: 68%;
+  --theme-background-lightness: 11%;
+  --theme-background: hsl(var(--theme-background-hue), var(--theme-background-saturation), var(--theme-background-lightness));
+  --theme-background-l: hsl(var(--theme-background-hue), var(--theme-background-saturation), 35%);
+  --theme-foreground: white;
+
+  /* 495e79 */
+  --theme-alt-background-hue: 213;
+  --theme-alt-background-saturation: 25%;
+  --theme-alt-background-lightness: 38%;
+  --theme-alt-background: hsl(var(--theme-alt-background-hue), var(--theme-alt-background-saturation), var(--theme-alt-background-lightness));
+
+  --theme-background-d: hsl(var(--theme-background-hue), var(--theme-background-saturation), 5%);
+  --theme-background-highlight-d: hsl(var(--theme-background-hue), 80%, 40%);
+  --theme-background-highlight-dd: hsl(var(--theme-background-hue), var(--theme-background-saturation), 15%);
+
+
 
   /* Component Style Overrides to match legacy theme */
-  --nav-tab-active-border-color: var(--brand-primary-d);
-
-  /* Note: these are namespaced within .alert */
-  .alert {
-    --bs-success-bg-subtle: var(--brand-success-lll);
-    --bs-info-bg-subtle: var(--brand-info-lll);
-    --bs-warning-bg-subtle: var(--brand-warning-lll);
-    --bs-danger-bg-subtle: var(--brand-danger-lll);
-  }
-
-  .pagination {
-    --bs-pagination-active-bg: var(--brand-primary-d);
-    --bs-pagination-active-border-color: var(--brand-primary-d);
-    --bs-pagination-hover-bg: var(--bs-gray-200);
-  }
-
-  .btn {
-    --bs-btn-active-border-color: var(--brand-primary-l-darkest);
-    --bs-btn-active-border-color: var(--brand-primary-l-darkest);
-    --bs-btn-hover-bg: var(--brand-primary-l-darker);
-    --bs-btn-hover-border-color: var(--brand-primary-l-darker);
-  }
-
-  .btn-outline-primary {
-    --bs-btn-border-color: var(--brand-primary-d);
-    --bs-btn-color: var(--brand-primary-d);
-    --bs-btn-hover-bg: var(--brand-primary-d);
-    --bs-btn-hover-color: white;
-  }
+  --nav-tab-active-border-color: hsl
 }
+
+/* Note: these are namespaced within .alert to override the default Bootstrap colors */
+.alert {
+  --bs-success-bg-subtle: var(--brand-success-l-desaturated);
+
+  --bs-danger-bg-subtle: var(--brand-danger-lll);
+}
+
+.alert-info {
+  --bs-info-bg-subtle: var(--bs-info-desaturated);
+  --bs-alert-border-color: var(--brand-info-l);
+}
+
+.alert-warning {
+  --bs-warning-bg-subtle: var(--brand-warning-l-desaturated);
+  --bs-alert-border-color: var(--brand-warning-l);
+}
+
+.alert-danger {
+  --bs-danger-bg-subtle: var(--brand-danger-l-desaturated);
+  --bs-alert-border-color: var(--brand-danger-l);
+}
+
+
+/* Note: these are namespaced within .pagination to override the default Bootstrap colors */
+.pagination {
+  --bs-pagination-active-bg: var(--brand-primary-d);
+  --bs-pagination-active-border-color: var(--brand-primary-d);
+  --bs-pagination-hover-bg: var(--bs-gray-200);
+}
+
+/* Note: these are namespaced within .btn to override the default Bootstrap colors */
+.btn {
+  --bs-btn-active-border-color: var(--brand-primary-l);
+  --bs-btn-hover-bg: var(--brand-primary-ll);
+  --bs-btn-hover-border-color: var(--brand-primary-ll);
+}
+
+/* Note: these are namespaced within .btn-outline-primary to override the default Bootstrap colors */
+.btn-outline-primary {
+  --bs-btn-border-color: var(--brand-primary-d);
+  --bs-btn-color: var(--brand-primary-d);
+  --bs-btn-hover-bg: var(--brand-primary-d);
+  --bs-btn-hover-color: white;
+}
+
+
+/*
+TODO:
+* fix missing colors
+* Find all uses of rgba where the intention was to lighten and replace with real colors in default css.
+rgba(var(--bs-danger-rgb), 0.1);
+* fix up color for episode breaks
+    .enrollment__new-episode {
+      >td {
+        border-bottom: 8px solid #b2dba1;
+      }
+    }
+
+    .enrollment__new-episode--key {
+      background-color: #b2dba1;
+* use a variable for table backgrounds?
+  .table__detail-row-rollup {
+      &.open td {
+        background: #ffffff;
+
+* Replace instances of the following:
+--brand-success-l-rgb
+*/

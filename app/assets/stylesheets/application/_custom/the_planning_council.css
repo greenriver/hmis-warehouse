@@ -1,6 +1,17 @@
 :root {
-  --bs-primary: #0065a6;
-  --bs-primary-rgb: 0, 101, 166;
-  --brand-primary-d: #004d7e;
-  --theme-background-rgb: 27, 50, 93;
+  /* Primary: #0065a6 */
+  --bs-primary-hue: 203;
+  --bs-primary-saturation: 100%;
+  --bs-primary-lightness: 33%;
+
+  /* Theme Background: #1B325D (from default) */
+  --theme-background-hue: 222;
+  --theme-background-saturation: 55%;
+  --theme-background-lightness: 24%;
+}
+
+footer {
+  background-color: white;
+  box-shadow: none;
+  color: black;
 }

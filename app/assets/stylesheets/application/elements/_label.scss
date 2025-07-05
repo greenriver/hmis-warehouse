@@ -8,10 +8,12 @@ label {
   font-style: italic;
   font-size: 95%;
   font-weight: normal;
+
   &--info,
   &--optional {
     color: var(--bs-primary);
   }
+
   &--required {
     color: var(--bs-danger);
   }
@@ -34,11 +36,11 @@ label {
 }
 
 .label-primary {
-  background: var(--brand-primary-l);
+  background: var(--brand-primary-lll);
 }
 
 .label-danger {
-  background: var(--brand-danger-l);
+  background: var(--brand-danger-lll);
 }
 
 .label-success {
@@ -46,5 +48,5 @@ label {
 }
 
 .label-warning {
-  background: var(--brand-warning-l);
+  background: var(--brand-warning-lll);
 }

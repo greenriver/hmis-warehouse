@@ -136,6 +136,9 @@ class StyleGuidesController < ApplicationController
   def system_colors
   end
 
+  def colors
+  end
+
   private def guide_routes
     @guide_routes ||= {
       add_goal: 'Add Goal',
@@ -144,6 +147,7 @@ class StyleGuidesController < ApplicationController
       buttons: 'Buttons',
       careplan: 'Careplan',
       client_dashboard: 'Client Dashboard',
+      colors: 'Colors',
       form: 'Form Elements',
       health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',

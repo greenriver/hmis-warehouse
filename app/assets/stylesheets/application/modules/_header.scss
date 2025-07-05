@@ -163,7 +163,7 @@ $nav-btn-states: (
 .o-header--page__title a:hover,
 .o-header--page__title a:focus {
   text-decoration: none;
-  color: var(--theme-background-lighter);
+  color: var(--theme-background-l);
 }
 
 .o-header--page__sub-title {
@@ -233,7 +233,7 @@ $nav-btn-states: (
 }
 
 .btn.email-messages-envelope [class^="icon-"]:hover {
-  color: var(--cob-sg-optimistic-blue);
+  color: var(--theme-bright-blue);
 }
 
 .utility {

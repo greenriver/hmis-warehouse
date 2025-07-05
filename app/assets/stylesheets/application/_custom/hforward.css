@@ -1,21 +1,35 @@
 :root {
-  --bs-primary: #4F2C1D;
-  --bs-primary-rgb: 79, 44, 29;
-  --brand-primary-l: #d39f89;
-  --brand-primary-ll: #e9cfc4;
-  --bs-success: #66CDAA;
-  --bs-success-rgb: 102, 205, 170;
-  --brand-success-l: #c1ebdd;
-  --brand-success-ll: #e0f5ee;
-  --bs-warning: #EAAA00;
-  --bs-warning-rgb: 234, 170, 0;
-  --brand-warning-l: #ffefc7;
-  --bs-danger: #D22630;
-  --bs-danger-rgb: 210, 38, 48;
-  --brand-danger-l: #eea6aa;
-  --brand-danger-d: #4b1c11;
-  --theme-background: #4F2C1D;
-  --theme-background-rgb: 79, 44, 29;
+  /* Primary: #4F2C1D */
+  --bs-primary-hue: 20;
+  --bs-primary-saturation: 46%;
+  --bs-primary-lightness: 21%;
+
+  /* Success: #66CDAA */
+  --bs-success-hue: 160;
+  --bs-success-saturation: 51%;
+  --bs-success-lightness: 73%;
+
+  /* Warning: #EAAA00 */
+  --bs-warning-hue: 44;
+  --bs-warning-saturation: 100%;
+  --bs-warning-lightness: 46%;
+
+  /* Danger: #D22630 */
+  --bs-danger-hue: 357;
+  --bs-danger-saturation: 75%;
+  --bs-danger-lightness: 52%;
+
+  /* Theme Background: #4F2C1D */
+  --theme-background-hue: 20;
+  --theme-background-saturation: 46%;
+  --theme-background-lightness: 21%;
+
+  /* Custom overrides */
+  --brand-primary-lll: #d39f89;
+  --brand-primary-llll: #e9cfc4;
+  --brand-success-lll: #e0f5ee;
+  --brand-warning-lll: #ffefc7;
+  --brand-danger-lll: #eea6aa;
 }
 
 footer {

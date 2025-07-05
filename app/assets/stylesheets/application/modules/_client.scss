@@ -32,7 +32,7 @@
 }
 
 .service-type__first {
-  background-color: var(--brand-primary-ll);
+  background-color: var(--brand-primary-llll);
   color: black;
 }
 
@@ -838,7 +838,7 @@ $client-image-height: 200px;
 }
 
 .assessment__new-type:not(:first-child) {
-  border-top: 2px solid var(--cob-sg-optimistic-blue);
+  border-top: 2px solid var(--theme-bright-blue);
 }
 
 .zero-width {
@@ -1048,5 +1048,5 @@ $file-thumbnail-size: 75px;
   flex-wrap: wrap;
   justify-content: center;
   padding: space(4);
-  background-color: var(--brand-warning-l);
+  background-color: var(--brand-warning-lll);
 }

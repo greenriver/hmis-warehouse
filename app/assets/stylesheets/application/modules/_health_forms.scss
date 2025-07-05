@@ -169,7 +169,7 @@
   border-left: 4px solid var(--bs-danger);
 
   .qa__procedure-code {
-    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    background-color: var(--brand-danger-lll);
   }
 }
 
@@ -178,11 +178,11 @@
 }
 
 .qa-valid-unpayable {
-  border-left: 4px solid var(--cob-sg-blue-005);
+  border-left: 4px solid var(--brand-primary-lll);
 }
 
 .qa-valid-unpayable-text {
-  color: var(--cob-sg-blue-005);
+  color: var(--brand-primary-lll);
 }
 
 .qa-ignored {
@@ -194,7 +194,7 @@
 }
 
 .health_claims__success {
-  color: var(--cob-sg-optimistic-blue);
+  color: var(--theme-bright-blue);
 }
 
 .health_claims__rejection {

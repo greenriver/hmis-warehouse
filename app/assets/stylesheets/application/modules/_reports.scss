@@ -58,13 +58,13 @@
 }
 
 .incomplete-field {
-  background-color: var(--brand-warning-l);
+  background-color: var(--brand-warning-lll);
 }
 
 .hud-report-options {
   h2 {
     padding-bottom: 0.25em;
-    border-bottom: 2px solid var(--brand-primary-l);
+    border-bottom: 2px solid var(--brand-primary-lll);
   }
 }
 
@@ -81,7 +81,7 @@
 .filter__selected-projects {
   height: 95%;
   overflow: auto;
-  border-left: 2px solid var(--brand-primary-l);
+  border-left: 2px solid var(--brand-primary-lll);
   padding-left: 2em;
 
   .scroll-box {

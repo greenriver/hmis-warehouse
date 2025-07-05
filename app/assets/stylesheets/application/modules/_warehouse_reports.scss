@@ -104,7 +104,7 @@
 }
 
 .report-hightlight {
-  background-color: var(--brand-warning-l);
+  background-color: var(--brand-warning-lll);
 }
 
 .report-parameters {
@@ -173,7 +173,7 @@
 }
 
 .agency-performance__without {
-  background-color: rgba(var(--brand-primary-ll-rgb), 0.5);
+  background-color: var(--brand-primary-lll);
 }
 
 .nav-tabs>li.active.payable>a,
@@ -306,11 +306,11 @@
   position: absolute;
 
   &.success {
-    background-color: var(--brand-success-ll);
+    background-color: var(--brand-success-lll);
   }
 
   &.danger {
-    background-color: var(--brand-danger-l);
+    background-color: var(--brand-danger-lll);
   }
 }
 

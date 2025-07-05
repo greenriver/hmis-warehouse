@@ -73,7 +73,7 @@ li.draggable-list__item {
 }
 
 .cohorts .homeless_inactive {
-  background-color: rgba(var(--bs-warning-rgb), 0.2);
+  background-color: var(--brand-warning-lll);
 }
 
 .cohorts .cohort_client_ineligible,
@@ -102,7 +102,7 @@ li.draggable-list__item {
 
 .cohorts tr.cohort-client-selected,
 .table-striped>tbody>tr.cohort-client-selected:nth-of-type(odd) {
-  background-color: var(--cob-sg-blue-004);
+  background-color: var(--bs-primary-desaturated);
   color: white;
 }
 

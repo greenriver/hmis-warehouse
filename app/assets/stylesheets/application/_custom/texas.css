@@ -1,19 +1,33 @@
 :root {
-  --bs-primary: #003D79;
-  --bs-primary-rgb: 0, 61, 121;
-  --brand-primary-l: #9BB8CF;
-  --brand-primary-ll: #E7EEF4;
-  --brand-primary-d: #00264c;
-  --bs-success: #50A191;
-  --bs-success-rgb: 80, 161, 145;
-  --brand-success-l: #BFD9C9;
-  --brand-success-ll: #D6E7DD;
-  --bs-warning: #FAD672;
-  --bs-warning-rgb: 250, 214, 114;
-  --brand-warning-l: #FBE28D;
-  --bs-danger: #F3696E;
-  --bs-danger-rgb: 243, 105, 110;
-  --brand-danger-d: #680A1D;
-  --theme-background: #003D79;
-  --theme-background-rgb: 0, 61, 121;
+  /* Primary: #003D79 */
+  --bs-primary-hue: 213;
+  --bs-primary-saturation: 100%;
+  --bs-primary-lightness: 24%;
+
+  /* Success: #50A191 */
+  --bs-success-hue: 168;
+  --bs-success-saturation: 34%;
+  --bs-success-lightness: 65%;
+
+  /* Warning: #FAD672 */
+  --bs-warning-hue: 48;
+  --bs-warning-saturation: 93%;
+  --bs-warning-lightness: 73%;
+
+  /* Danger: #F3696E */
+  --bs-danger-hue: 356;
+  --bs-danger-saturation: 85%;
+  --bs-danger-lightness: 68%;
+
+  /* Theme Background: #003D79 */
+  --theme-background-hue: 213;
+  --theme-background-saturation: 100%;
+  --theme-background-lightness: 24%;
+
+  /* Custom overrides */
+  --brand-primary-lll: #9BB8CF;
+  --brand-primary-llll: #E7EEF4;
+  --brand-success-lll: #D6E7DD;
+  --brand-warning-lll: #FBE28D;
+  --brand-danger-l: #680A1D;
 }

@@ -66,7 +66,7 @@
   &:hover,
   &:focus {
     &::before {
-      background: rgba(var(--brand-success-l-rgb), .5);
+      background: var(--brand-success-ll);
       transform: scale(.95);
     }
 
@@ -94,7 +94,7 @@
   &:focus {
     &::before {
       transform: scale(.95);
-      background: rgba(var(--brand-success-l-rgb), .5);
+      background: var(--brand-success-ll);
       border-color: var(--bs-success);
     }
 
@@ -118,7 +118,7 @@
 
 @mixin checkbox-checked-dirty() {
   &::before {
-    background: var(--brand-warning-l);
+    background: var(--brand-warning-lll);
     border-color: var(--bs-warning);
   }
 
@@ -130,7 +130,7 @@
   &:hover,
   &:focus {
     &::before {
-      background: rgba(var(--brand-warning-l-rgb), .5);
+      background: var(--brand-warning-ll);
     }
 
     &::after {

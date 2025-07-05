@@ -7,19 +7,21 @@
   align-items: center;
   padding: space(2);
   transition: background .5s;
+
   &.saving {
-    background: var(--brand-warning-l);
+    background: var(--brand-warning-lll);
   }
+
   &.saved {
     background: var(--brand-success-l);
   }
+
   &.error {
-    background: var(--brand-danger-l);
+    background: var(--brand-danger-lll);
   }
 }
 
-.cha__saving-indicator
-{
+.cha__saving-indicator {
   position: fixed;
   top: 0;
   right: 50%;

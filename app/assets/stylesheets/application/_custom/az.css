@@ -1,19 +1,33 @@
 :root {
-  --bs-primary: #002664;
-  --bs-primary-rgb: 0, 38, 100;
-  --brand-primary-l: #73B7D3;
-  --brand-primary-ll: #BFE2FF;
-  --bs-success: #00A3E0;
-  --bs-success-rgb: 0, 163, 224;
-  --brand-success-l: #00b2f7;
-  --brand-success-ll: #1ac0ff;
-  --bs-warning: #fed700;
-  --bs-warning-rgb: 254, 215, 0;
-  --brand-warning-l: #fee34d;
-  --bs-danger: #c82a52;
-  --bs-danger-rgb: 200, 42, 82;
-  --brand-danger-d: #bb133e;
-  --brand-danger-l: #e04f76;
-  --theme-background: #002664;
-  --theme-background-rgb: 0, 38, 100;
+  /* Primary: #002664 */
+  --bs-primary-hue: 225;
+  --bs-primary-saturation: 100%;
+  --bs-primary-lightness: 20%;
+
+  /* Success: #00A3E0 */
+  --bs-success-hue: 197;
+  --bs-success-saturation: 100%;
+  --bs-success-lightness: 44%;
+
+  /* Warning: #fed700 */
+  --bs-warning-hue: 51;
+  --bs-warning-saturation: 100%;
+  --bs-warning-lightness: 50%;
+
+  /* Danger: #c82a52 */
+  --bs-danger-hue: 337;
+  --bs-danger-saturation: 65%;
+  --bs-danger-lightness: 47%;
+
+  /* Theme Background: #002664 */
+  --theme-background-hue: 225;
+  --theme-background-saturation: 100%;
+  --theme-background-lightness: 20%;
+
+  /* Custom overrides */
+  --brand-primary-lll: #73B7D3;
+  --brand-primary-llll: #BFE2FF;
+  --brand-success-lll: #1ac0ff;
+  --brand-warning-lll: #fee34d;
+  --brand-danger-lll: #e04f76;
 }

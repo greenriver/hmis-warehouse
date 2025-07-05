@@ -143,11 +143,11 @@ table.dataTable thead .sorting_desc:after {
     }
 
     &.btn-link--danger {
-      color: var(--brand-danger-d);
+      color: var(--brand-danger-l);
       font-size: 1.75rem;
 
       &:hover {
-        color: var(--brand-danger-dd);
+        color: var(--brand-danger-d);
       }
     }
   }

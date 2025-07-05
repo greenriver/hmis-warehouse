@@ -43,6 +43,7 @@ $tag-icon-shadow: $white;
   justify-content: center;
   z-index: 2;
   font-size: rem($tag-height - 15);
+
   &--sm {
     font-size: rem($tag-height - 21);
   }
@@ -58,9 +59,11 @@ $tag-icon-shadow: $white;
 
 .c-tag__content {
   min-height: $tag-height;
+
   @if ($tag-has-min-width) {
     min-width: rem(175px);
   }
+
   @include open-sans;
   font-weight: $tag-font-weight;
   font-size: $tag-font-size;
@@ -78,7 +81,8 @@ $tag-icon-shadow: $white;
   margin-right: (-$tag-correction);
 
 }
-.c-tag__icon-svg + .c-tag__content {
+
+.c-tag__icon-svg+.c-tag__content {
   padding-left: space(6);
 }
 
@@ -89,6 +93,7 @@ $tag-icon-shadow: $white;
 
 .c-tag__content a {
   font-weight: bold;
+
   &:hover {
     text-decoration: underline;
   }
@@ -105,7 +110,7 @@ $tag-icon-shadow: $white;
 $tag-types: (
   success: var(--brand-success-l),
   warning: var(--bs-warning),
-  danger: var(--brand-danger-l),
+  danger: var(--brand-danger-lll),
   info: var(--bs-info),
 );
 
@@ -123,12 +128,14 @@ $tag-types: (
 
 @each $type, $color in $tag-types {
   .c-tag--#{$type} {
+
     .c-tag__content,
     .c-tag__icon,
     .c-tag__icon-svg {
       background-color: $color;
     }
   }
+
   .c-tag-pill--#{$type} {
     background-color: $color;
     color: rgba($black, .95);

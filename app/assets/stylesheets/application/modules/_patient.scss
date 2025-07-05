@@ -3,54 +3,49 @@
 .patient__demographics {
   flex-basis: 250px;
 }
-.patient__engagement
-{
+
+.patient__engagement {
   display: inline-block;
   font-size: 1rem;
 }
 
-.patient__engagement-countdown
-{
-  color: var(--brand-warning-d);
+.patient__engagement-countdown {
+  color: var(--brand-warning-l);
 }
 
-.patient__engagement-expired
-{
+.patient__engagement-expired {
   color: var(--bs-danger);
 }
 
-.pctp__signature-expired
-{
+.pctp__signature-expired {
   color: var(--bs-danger);
 }
 
-.pctp__signature-pending
-{
+.pctp__signature-pending {
   color: var(--bs-warning);
 }
-.pctp__success
-{
+
+.pctp__success {
   color: var(--bs-success);
 }
-.health__care-hub-note
-{
+
+.health__care-hub-note {
   padding: 1em;
   background-color: $gray-025;
 }
-.pctp__expired
-{
+
+.pctp__expired {
   color: var(--bs-danger);
 }
-.patient-file__expired
-{
+
+.patient-file__expired {
   color: var(--bs-warning);
 }
-.patient-file__contributing
-{
+
+.patient-file__contributing {
   color: var(--bs-success);
 }
 
-.opaque-area-chart .bb-area
-{
+.opaque-area-chart .bb-area {
   opacity: 1 !important;
 }
