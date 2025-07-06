@@ -4,3 +4,11 @@
   .col-sm-10
     = render 'client_dashboard_summary'
   .col-sm-2= render 'pages'
+
+%hr
+
+%h2 Residential Enrollments Table
+%p This table demonstrates the various design elements used in the enrollment table for residential projects.
+
+.rollup-container.c-card.c-card--flush.c-card--block
+  = render 'clients/enrollment_table', enrollments: @sample_enrollments, include_links: @include_links

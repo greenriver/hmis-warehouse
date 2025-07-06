@@ -212,6 +212,7 @@
 
 /*
 TODO:
+* test other themes
 * fix missing colors
 * Find all uses of rgba where the intention was to lighten and replace with real colors in default css.
 rgba(var(--bs-danger-rgb), 0.1);
@@ -229,6 +230,4 @@ rgba(var(--bs-danger-rgb), 0.1);
       &.open td {
         background: #ffffff;
 
-* Replace instances of the following:
---brand-success-l-rgb
 */

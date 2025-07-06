@@ -27,6 +27,7 @@ Rails.application.config.content_security_policy do |policy|
     :self,
     :data,
     'https://*.openstreetmap.org',
+    'https://*.pravatar.cc',
   )
   policy.script_src(
     :self,
