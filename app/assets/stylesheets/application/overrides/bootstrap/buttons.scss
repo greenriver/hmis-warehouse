@@ -298,12 +298,12 @@ input[type=submit].btn-secondary,
 }
 
 .btn-success {
-  background: var(--brand-success-l);
+  background: var(--brand-success-lll);
   border-color: var(--bs-success);
   color: rgba(var(--black), .75);
 
   &:hover {
-    background: var(--brand-success-l);
+    background: var(--brand-success);
     border-color: var(--brand-primary-d);
     color: var(--white);
   }

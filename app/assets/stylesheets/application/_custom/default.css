@@ -24,8 +24,8 @@
 
   /* Success: #009f44 */
   --bs-success-hue: 142;
-  --bs-success-saturation: 60%;
-  --bs-success-lightness: 60%;
+  --bs-success-saturation: 50%;
+  --bs-success-lightness: 50%;
   --bs-success: hsl(var(--bs-success-hue), var(--bs-success-saturation), var(--bs-success-lightness));
 
   /* Warning: #bc6923 */
@@ -81,7 +81,7 @@
   /* Lighter */
   --brand-warning-l: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 60%);
   --brand-warning-ll: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 65%);
-  --brand-warning-lll: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 70%);
+  --brand-warning-lll: hsl(var(--bs-warning-hue), var(--bs-warning-saturation), 80%);
 
   /* Desaturated */
   --brand-warning-l-desaturated: hsl(var(--bs-warning-hue), 68%, 95%);
@@ -94,7 +94,7 @@
   /* Lighter */
   --brand-danger-l: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 55%);
   --brand-danger-ll: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 65%);
-  --brand-danger-lll: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 70%);
+  --brand-danger-lll: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 85%);
 
   /* Desaturated */
   --brand-danger-l-desaturated: hsl(var(--bs-danger-hue), var(--bs-danger-saturation), 95%);
@@ -166,8 +166,6 @@
 /* Note: these are namespaced within .alert to override the default Bootstrap colors */
 .alert {
   --bs-success-bg-subtle: var(--brand-success-l-desaturated);
-
-  --bs-danger-bg-subtle: var(--brand-danger-lll);
 }
 
 .alert-info {
