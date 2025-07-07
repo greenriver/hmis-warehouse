@@ -408,8 +408,9 @@ namespace :grda_warehouse do
 
     BuildTranslationCacheJob.perform_later
 
-    if HmisEnforcement.hmis_enabled?
+    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       safely_execute do
+        # enqueue CE processor if it's not already running. Once enqueued it should self-sustain
         Hmis::Ce::ProcessChangesJob.enqueue_if_not_already_running(wait_time: 10.minutes)
       end
     end

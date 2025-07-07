@@ -20,9 +20,7 @@ module Hmis::Ce
     end
 
     def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil)
-      raise unless Hmis::Ce.configuration.enabled?
-      return unless ::HmisEnforcement.hmis_enabled?
-      return unless ::Hmis::Ce.configuration.enabled?
+      raise unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
 
       instrument_as_maintenance_task do |run|
         # ensure only one instance of this job runs simultaneously
@@ -83,7 +81,7 @@ module Hmis::Ce
       end
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)
-      markers.any? ? (markers.map(&:trackable_id).max + 1) : 0
+      markers.map(&:trackable_id).max + 1
     end
 
     def process_dirty_clients(markers, skip_pool_ids:)
