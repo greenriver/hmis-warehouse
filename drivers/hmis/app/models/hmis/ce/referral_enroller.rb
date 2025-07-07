@@ -8,11 +8,6 @@
 
 module Hmis::Ce
   class ReferralEnroller
-    # If this link id is used on a referral workflow form, the engine will attempt to store the value on the target Enrollment
-    # (and raise if there is no target enrollment).
-    MOVE_IN_DATE_LINK_ID = 'move_in_date'
-    # TODO(#7485): Use mappings, similar to assessment processing
-
     attr_reader :referral
 
     def initialize(referral)
@@ -55,11 +50,18 @@ module Hmis::Ce
 
     # this is not actually an accessor method, even though RuboCop thinks it is
     def set_move_in_date(message) # rubocop:disable Naming/AccessorMethodName
-      project = referral.target_project
-      raise 'access denied' unless message.user.can_edit_enrollments_for?(project)
+      # No need to check permission for editing the enrollment.
+      # If the user can complete this step, they can do its side effects, even if they don't have direct permission
 
+      # Find the form item corresponding to move-in date
+      form_definition = message.step.form_definition # The form definition most recently used to complete the step
+      move_in_date_item = form_definition.link_id_item_hash.values.find do |item|
+        item['mapping']['field_name'] == 'moveInDate' && item['mapping']['record_type'] == 'ENROLLMENT'
+      end
+      raise "Trying to set move-in date for referral #{referral.id}, step #{message.step.id}, but form definition #{form_definition.id} doesn't collect it. This probably indicates a mistake in the workflow configuration." unless move_in_date_item.present?
+
+      date_string = message.step&.submitted_values&.fetch(move_in_date_item.link_id, nil)
       # This doesn't raise if the move-in date is missing. If the field is required, it should have already been caught by form validation.
-      date_string = message.step&.submitted_values&.fetch(MOVE_IN_DATE_LINK_ID, nil)
       return unless date_string.present?
 
       date = HmisUtil::Dates.safe_parse_date(date_string: date_string)
