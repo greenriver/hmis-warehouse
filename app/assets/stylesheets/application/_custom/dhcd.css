@@ -1,26 +1,17 @@
 :root {
   /* Primary: #387E92 */
-  --bs-primary-hue: 194;
-  --bs-primary-saturation: 44%;
-  --bs-primary-lightness: 41%;
-
-  /* Success: #529452 */
-  --bs-success-hue: 120;
-  --bs-success-saturation: 44%;
-  --bs-success-lightness: 41%;
-
-  /* Warning: #94713B */
-  --bs-warning-hue: 39;
-  --bs-warning-saturation: 41%;
-  --bs-warning-lightness: 41%;
-
-  /* Danger: #943A43 */
-  --bs-danger-hue: 353;
-  --bs-danger-saturation: 44%;
-  --bs-danger-lightness: 41%;
+  --bs-primary-hue: 208;
+  --bs-primary-saturation: 75%;
+  --bs-primary-lightness: 32%;
 
   /* Theme Background: #1B325D (from default) */
-  --theme-background-hue: 222;
-  --theme-background-saturation: 55%;
-  --theme-background-lightness: 24%;
+  --theme-background-hue: 208;
+  --theme-background-saturation: 75%;
+  --theme-background-lightness: 32%;
+}
+
+footer {
+  background-color: #091f2f;
+  box-shadow: none;
+  color: white;
 }

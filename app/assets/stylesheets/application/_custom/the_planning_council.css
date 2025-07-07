@@ -1,13 +1,13 @@
 :root {
   /* Primary: #0065a6 */
-  --bs-primary-hue: 203;
-  --bs-primary-saturation: 100%;
-  --bs-primary-lightness: 33%;
+  --bs-primary-hue: 183;
+  --bs-primary-saturation: 94%;
+  --bs-primary-lightness: 27%;
 
   /* Theme Background: #1B325D (from default) */
-  --theme-background-hue: 222;
-  --theme-background-saturation: 55%;
-  --theme-background-lightness: 24%;
+  --theme-background-hue: 183;
+  --theme-background-saturation: 94%;
+  --theme-background-lightness: 27%;
 }
 
 footer {
