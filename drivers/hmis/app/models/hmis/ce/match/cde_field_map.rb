@@ -27,6 +27,10 @@ module Hmis::Ce::Match
       end.uniq
     end
 
+    def cded_for(field)
+      parse_entity_type(field)
+    end
+
     # arel not supported.
     # Enhancement: if expression requires certain CDEs to be present then we could take a rough pass to filter out clients that lack the relevant assessments
     def arel_field(_field)

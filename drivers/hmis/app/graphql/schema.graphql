@@ -806,7 +806,13 @@ type CeMatchValue {
   String representation of the value for this field
   """
   fieldValue: String
+
+  """
+  Unique identifier for this match value
+  """
   id: ID!
+  ruleId: ID!
+  ruleName: String!
 }
 
 type CeOpportunitiesPaginated {

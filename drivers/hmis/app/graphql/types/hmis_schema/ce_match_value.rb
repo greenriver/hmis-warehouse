@@ -11,15 +11,14 @@ module Types
     # object is an OpenStruct
     # used to generically resolve Key-value pairs for fields referenced by Match Rule expressions
 
-    # logic to implement:
-    # 1. Find all ce_match_rules (or expressions logged somewhere?) that were applicable at the time what this referral was created
-    # 2. For each expression, resolve it into a set of referenced fields
-    # 3. For each field, evaluate it against this client (really, their destination client) using the FieldMap
-    # 4. For each field, translate the field name into a human-readable name (using CDE Label if appropriate)
-    # 5. Resolve key-value pairs in an array on the CeReferral type (put on the Referral model, probably)
-
-    field :id, ID, null: false
+    field :id, ID, null: false, description: 'Unique identifier for this match value'
+    field :rule_id, ID, null: false
+    field :rule_name, String, null: false
     field :field_name, String, null: false, description: 'Name of this field'
     field :field_value, String, null: true, description: 'String representation of the value for this field'
+
+    def id
+      "#{object.rule_id}-#{object.field_name}"
+    end
   end
 end

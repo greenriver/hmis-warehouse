@@ -207,6 +207,39 @@ module Types
       object.notes.order(created_at: :desc)
     end
 
+    # Resolves array of fields referenced by Match Rules for this referral's opportunity, with their current values for this client
+    def current_match_values
+      # Fetch all match rules applicable to the opportunity
+      # FIXME: this should really be the rules _as they were_ when the referral was created, not the current rules
+      match_rules = Hmis::Ce::Match::Rule.for_opportunity(object.opportunity)
+      field_map = Hmis::Ce::Match::FieldMap.new
+      cde_field_map = Hmis::Ce::Match::CdeFieldMap.new
+      destination_client = object.client.destination_client.as_warehouse
+      match_values = []
+
+      seen_field_names = Set.new # To deduplicate fields. No need to resolve the same field multiple times.
+      match_rules.sort_by(&:id).each do |rule|
+        evaluator = Hmis::Ce::Match::ClientExpressionEvaluator.new(rule.expression, field_map)
+        evaluator.resolve_client_values(destination_client).each do |field_name, current_value|
+          next if seen_field_names.include?(field_name) # skip if seen, eg could have "household_size = 1 OR household_size = 2"
+
+          seen_field_names.add(field_name) # mark this field as seen
+          field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field_name)
+          next unless field_type == Hmis::Ce::Match::FieldMap::CDE # For now, only include CDE fields?
+
+          custom_data_element_label = cde_field_map.cded_for(resolved_field)&.label
+          # OpenStruct to resolve as HmisSchema::CeMatchValue
+          match_values << OpenStruct.new(
+            rule_id: rule.id, # ID of rule that references this field
+            rule_name: rule.name, # Name of rule that references this field
+            field_name: custom_data_element_label || field_name,
+            field_value: current_value,
+          )
+        end
+      end
+      match_values
+    end
+
     private
 
     def participants_by_swimlane_id
