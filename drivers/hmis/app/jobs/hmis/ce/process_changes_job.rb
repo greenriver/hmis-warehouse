@@ -10,8 +10,8 @@
 # Hmis::Ce::ProcessChangesJob
 #
 # Continuously processes dirty CE (Coordinated Entry) clients and candidate pools to maintain
-# up-to-date eligibility calculations. This job implements a self-scheduling pattern to ensure
-# continuous processing while using advisory locks to prevent concurrent execution.
+# up-to-date eligibility calculations. This job self-schedules to ensure  continuous processing
+# while using advisory locks to prevent concurrent execution.
 #
 # See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 #
@@ -33,7 +33,6 @@ module Hmis::Ce
     # @param next_client_id [Integer] Starting client ID for batch processing (pagination)
     # @param wait_time [ActiveSupport::Duration, nil] Time to wait before scheduling next batch.
     #        If nil, job will not reschedule itself.
-    # @raise [RuntimeError] if HMIS enforcement is not enabled
     def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil)
       raise unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
 

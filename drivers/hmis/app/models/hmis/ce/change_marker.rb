@@ -9,9 +9,9 @@
 #
 # Hmis::Ce::ChangeMarker
 #
-# Tracks changes to CE-related records using a versioning system to enable efficient
-# incremental processing. Each tracked record has a current_version that increments
-# when changes occur, and a processed_version that tracks the last processed state.
+# Tracks changes to CE-related records using a versioning system to enable incremental
+# processing. Each tracked record has a current_version that increments when changes
+# occur, and a processed_version that tracks the last processed state.
 #
 # Records are considered "dirty" when current_version > processed_version.
 #

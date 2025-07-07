@@ -16,7 +16,11 @@ module Hmis::Ce::Match
       where(id: active_ids)
     }
 
-    scope :orphaned, -> { left_outer_joins(:opportunities).where(opportunities: { id: nil }) }
+    scope :orphaned, -> {
+      where.not(
+        id: ::Hmis::Ce::Opportunity.active.select(:candidate_pool_id).where.not(candidate_pool_id: nil),
+      )
+    }
 
     def self.mark_all_dirty
       Hmis::Ce::ChangeMarker.upsert_or_bump_version(

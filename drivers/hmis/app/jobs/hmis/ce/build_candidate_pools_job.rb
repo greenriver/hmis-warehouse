@@ -10,7 +10,6 @@
 # Hmis::Ce::BuildCandidatePoolsJob
 #
 # Builds candidate pools for opportunities and marks them as dirty for processing.
-# This job is designed to be lightweight and fast, typically triggered by user actions
 #
 module Hmis::Ce
   class BuildCandidatePoolsJob < BaseJob
