@@ -476,7 +476,7 @@ module ApplicationHelper
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
   #
   def render_paginated_list(scope:, item_name:, list_partial:)
-    pagy_sym = :pagy_array if scope.is_a?(Array)
+    pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
     pagy, list = controller.send(pagy_sym, scope)
     render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial)
   end
