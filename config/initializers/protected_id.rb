@@ -27,6 +27,9 @@ module ProtectedId
     module_function :encoded?
 
     def decode(encoded)
+      # Sanitize input to remove null bytes that could cause bcrypt issues
+      encoded = sanitize_value(encoded)
+      
       encoded.map { |part| decode(part) }.compact if encoded.is_a?(Enumerable)
       return encoded unless encoded?(encoded)
 
@@ -67,6 +70,14 @@ module ProtectedId
       [id_part, day_stamp]
     end
     module_function :deobfuscate
+
+    private def sanitize_value(value)
+      return value unless value.is_a?(String)
+  
+      # Remove null bytes and other control characters that could cause issues with bcrypt
+      value.gsub(/[[:cntrl:]]/, '').strip
+    end
+    module_function :sanitize_value
   end
 
   module Labeler

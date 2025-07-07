@@ -20,9 +20,7 @@ class IdProtector
         next unless key == :id || key.to_s.ends_with?('_id')
 
         begin
-          # Sanitize the value to remove null bytes and other control characters
-          sanitized_value = sanitize_value(value)
-          params[key] = ProtectedId::Encoder.decode(sanitized_value)
+          params[key] = ProtectedId::Encoder.decode(value)
         rescue OpenSSL::Cipher::CipherError => e
           # Suppress Cipher Errors so the response is handled by the controller as an unfound id.
           # Still capture the error in Sentry.
@@ -38,15 +36,6 @@ class IdProtector
       end
     end
     @app.call(env)
-  end
-
-  private
-
-  def sanitize_value(value)
-    return value unless value.is_a?(String)
-
-    # Remove null bytes and other control characters that could cause issues with bcrypt
-    value.gsub(/[[:cntrl:]]/, '').strip
   end
 end
 
