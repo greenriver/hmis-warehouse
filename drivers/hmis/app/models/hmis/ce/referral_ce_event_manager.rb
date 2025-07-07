@@ -20,9 +20,6 @@ module Hmis::Ce
 
       target_project = referral.target_project
 
-      # todo @martha - data dictionary says: where 2.09.2 Project Receives CE Referrals = "Yes" as of the "Date of event"
-      # raise unless referral.target_project.ce_participations.any?
-
       enrollment.events.create!(
         event_date: Date.current,
         event: project_to_event_type(target_project), # TODO(#7527) determine event type from configuration if present
