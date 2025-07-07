@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module Mutations
   class JoinHousehold < CleanBaseMutation
     argument :receiving_household_id, ID, required: true
@@ -55,12 +53,6 @@ module Mutations
           enrollment.assign_unit(unit: receiving_unit, start_date: Date.current, user: current_user) if receiving_unit
 
           enrollment.save!
-        end
-
-        # If there are no remaining enrollments in the donor household, reassign any staff assignments to the receiving household.
-        unless remaining_enrollments.any?
-          staff_assignments = Hmis::StaffAssignment.where(household_id: donor_household.household_id)
-          staff_assignments.update_all(household_id: receiving_household_id)
         end
 
         receiving_household.reload
