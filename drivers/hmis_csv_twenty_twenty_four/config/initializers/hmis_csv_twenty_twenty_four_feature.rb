@@ -19,6 +19,8 @@ Rails.application.reloader.to_prepare do
 end
 
 Rails.application.config.hmis_data_lakes['2024'] = 'HmisCsvTwentyTwentyFour'
+Rails.application.config.hmis_importers['2024'] = 'HmisCsvImporter::Importer::Importer'
+Rails.application.config.hmis_loaders['2024'] = 'HmisCsvImporter::Loader::Loader'
 
 Rails.application.config.queued_tasks[:hmis_twenty_twenty_four_upgrade_recurring_exports] = -> do
   HmisCsvTwentyTwentyFour::Tasks::UpgradeRecurringExports.upgrade!

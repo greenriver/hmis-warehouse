@@ -187,7 +187,7 @@ module HmisCsvImporter::Loader
     end
 
     private def importer_class
-      HmisCsvImporter::Importer::Importer
+      self.class.importer_class_for_version(@current_version)
     end
 
     private def load_source_file_pg(read_from:, klass:, original_file_path:)
@@ -373,6 +373,7 @@ module HmisCsvImporter::Loader
         data_source_id: data_source.id,
         started_at: Time.current,
         status: :started,
+        summary: {}, # Initialize empty summary hash
       )
     end
 

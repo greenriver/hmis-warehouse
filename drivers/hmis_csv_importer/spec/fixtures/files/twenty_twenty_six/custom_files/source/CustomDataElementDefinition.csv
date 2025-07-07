@@ -1,0 +1,2 @@
+CustomDataElementDefinitionID,RecordType,FieldType,Label,Repeats,ExportID
+reason_for_exit,Enrollment,string,Reason for Exit,false,31a77b417911747e41ef9936f9a4b657

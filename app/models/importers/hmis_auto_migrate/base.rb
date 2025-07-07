@@ -19,6 +19,10 @@ module Importers::HmisAutoMigrate
 
       expand_upload
 
+      # Determine version after files are extracted but before creating loader
+      @current_version = Importers::HmisAutoMigrate.calculate_current_version(@local_path)
+      @loader_class = HmisCsvImporter::Loader::Loader.loader_class_for_version(@current_version)
+
       @upload.update(percent_complete: 1)
 
       import_log = import(
@@ -48,17 +52,13 @@ module Importers::HmisAutoMigrate
       @notifier.ping(message)
     end
 
-    private def loader_class
-      ::HmisCsvImporter::Loader::Loader
-    end
-
     private def import(file_path, data_source_id, upload, deidentified:)
       log = ::HmisCsvImporter::ImportLog.create(
         created_at: Time.current,
         upload_id: upload.id,
         data_source_id: data_source_id,
       )
-      loader = loader_class.new(
+      loader = @loader_class.new(
         file_path: file_path,
         data_source_id: data_source_id,
         deidentified: deidentified,
