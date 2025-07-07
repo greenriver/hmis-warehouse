@@ -139,15 +139,77 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
     engine.complete_step!(current_step, user: hmis_user, submitted_values: submitted_values)
   end
 
-  describe 'side effect that creates a event' do
-    it 'creates the event' do
-      expect do
-        submit_current_step
-      end.to change(referral.source_enrollment.events, :count).from(0).to(1)
+  describe 'side effect that creates an event' do
+    # These shared examples test the logic described in the Data Dictionary section 4.20.2
 
-      event = referral.source_enrollment.events.first
-      expect(event.event).to eq(10)
-      expect(event.location_crisis_or_ph_housing).to eq(referral.target_project.id.to_s)
+    # Shared example that submits the current referral step, and expects that an appropriate CE event got created
+    shared_examples 'creates a CE event' do |expected_event|
+      it "creates a CE event of type #{expected_event}" do
+        submit_current_step
+        event = referral.source_enrollment.events.first
+        expect(event.event).to eq(expected_event)
+      end
+    end
+
+    # Shared example that asserts that the appropriate event type was created based on the project type
+    shared_examples 'creates a CE event for project type' do |project_type, expected_event|
+      let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: project_type }
+
+      it_behaves_like 'creates a CE event', expected_event
+    end
+
+    # Shared example that asserts that the appropriate event type was created based on the project type AND funders
+    shared_examples 'creates a CE event for joint TH/RRH funder' do |funder_id, expected_event|
+      let!(:funder) { create(:hmis_hud_funder, data_source: ds1, project: project, funder: funder_id) }
+
+      it_behaves_like 'creates a CE event', expected_event
+    end
+
+    context 'project is ES' do
+      include_examples 'creates a CE event for project type', 0, 10
+      include_examples 'creates a CE event for project type', 1, 10
+      include_examples 'creates a CE event for project type', 8, 10
+    end
+
+    context 'project is TH' do
+      let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 2 }
+      it_behaves_like 'creates a CE event', 11
+
+      context 'and project has joint TH/RRH funder' do
+        include_examples 'creates a CE event for joint TH/RRH funder', 45, 12
+        include_examples 'creates a CE event for joint TH/RRH funder', 54, 12
+        include_examples 'creates a CE event for joint TH/RRH funder', 55, 12
+
+        context 'but funding source is ended' do
+          let!(:funder) { create(:hmis_hud_funder, data_source: ds1, project: project, funder: 45, end_date: 2.years.ago) }
+          it_behaves_like 'creates a CE event', 11
+        end
+      end
+    end
+
+    context 'project is RRH' do
+      let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 13 }
+      it_behaves_like 'creates a CE event', 13
+
+      context 'and project has joint TH/RRH funder' do
+        include_examples 'creates a CE event for joint TH/RRH funder', 45, 12
+        include_examples 'creates a CE event for joint TH/RRH funder', 54, 12
+        include_examples 'creates a CE event for joint TH/RRH funder', 55, 12
+
+        context 'but funding source is ended' do
+          let!(:funder) { create(:hmis_hud_funder, data_source: ds1, project: project, funder: 45, end_date: 2.years.ago) }
+          it_behaves_like 'creates a CE event', 13
+        end
+      end
+    end
+
+    context 'project is PSH' do
+      include_examples 'creates a CE event for project type', 3, 14
+    end
+
+    context 'project is OPH' do
+      include_examples 'creates a CE event for project type', 9, 15
+      include_examples 'creates a CE event for project type', 10, 15
     end
 
     context 'if there is no source enrollment' do
