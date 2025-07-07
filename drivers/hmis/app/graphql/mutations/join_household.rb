@@ -107,19 +107,14 @@ module Mutations
         [assignment.user_id, assignment.hmis_staff_assignment_relationship_id]
       end.to_set
 
-      # Partition the donor's assignments into:
-      # - assignments_to_delete: staff assignments that the receiving household already has, so they don't need to be duplicated
-      # - assignments_to_update: staff assignments that should be updated to point at the receiving household ID
-      assignments_to_delete, assignments_to_update = donor_assignments.partition do |donor_assignment|
-        key = [donor_assignment.user_id, donor_assignment.hmis_staff_assignment_relationship_id]
-        existing_keys.include?(key)
+      donor_assignments.each do |assignment|
+        key = [assignment.user_id, assignment.hmis_staff_assignment_relationship_id]
+        if existing_keys.include?(key)
+          assignment.really_destroy!
+        else
+          assignment.update!(household_id: receiving_household_id)
+        end
       end
-
-      ids_to_delete = assignments_to_delete.map(&:id)
-      Hmis::StaffAssignment.where(id: ids_to_delete).delete_all if ids_to_delete.any?
-
-      ids_to_update = assignments_to_update.map(&:id)
-      Hmis::StaffAssignment.where(id: ids_to_update).update_all(household_id: receiving_household_id) if ids_to_update.any?
     end
   end
 end
