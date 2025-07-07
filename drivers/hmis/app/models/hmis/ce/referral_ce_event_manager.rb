@@ -38,7 +38,7 @@ module Hmis::Ce
       raise "Expected to find CE event of type #{event_type} for enrollment #{enrollment.id}" unless event
 
       referral_result = message.params['referral_result']&.to_i
-      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtility2024.ce_event_referral_results.include?(referral_result)
+      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtility2024.referral_results.keys.include?(referral_result)
 
       event.update!(
         result_date: Date.current,
@@ -51,20 +51,20 @@ module Hmis::Ce
     def project_to_event_type(project)
       case project.project_type
       when *(HudUtility2024.residential_project_type_numbers_by_code[:es] + HudUtility2024.residential_project_type_numbers_by_code[:sh])
-        HudUtility2024.ce_event_types_by_code[:es]
+        HudUtility2024.ce_events_by_code[:es]
       when *(HudUtility2024.residential_project_type_numbers_by_code[:th] + HudUtility2024.residential_project_type_numbers_by_code[:rrh])
         # todo @martha - fix and test logic
         # AND the presence of an open funder 44, 54 or 55 (see data dict)
         # if it's either one of these AND has a specific funder, on date event_date, then
-        # HudUtility2024.ce_event_types_by_code[:th_rrh]
+        # HudUtility2024.ce_events_by_code[:th_rrh]
         # else if it's th,
-        # then HudUtility2024.ce_event_types_by_code[:th]
+        # then HudUtility2024.ce_events_by_code[:th]
         # else if it's rrh,
-        # then  HudUtility2024.ce_event_types_by_code[:rrh]
+        # then  HudUtility2024.ce_events_by_code[:rrh]
       when *HudUtility2024.residential_project_type_numbers_by_code[:psh]
-        HudUtility2024.ce_event_types_by_code[:psh]
+        HudUtility2024.ce_events_by_code[:psh]
       when *HudUtility2024.residential_project_type_numbers_by_code[:oph]
-        HudUtility2024.ce_event_types_by_code[:oph]
+        HudUtility2024.ce_events_by_code[:oph]
       else
         raise "Unexpected target project type #{project.project_type} on project #{project.id} for referral #{referral.id}"
       end
