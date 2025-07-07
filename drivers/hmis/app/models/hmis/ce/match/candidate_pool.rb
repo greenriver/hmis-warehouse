@@ -17,7 +17,7 @@ module Hmis::Ce::Match
 
     def self.mark_all_dirty
       Hmis::Ce::ChangeMarker.upsert_or_bump_version(
-        trackable_type: 'Hmis::Ce::Match::CandidatePool',
+        'Hmis::Ce::Match::CandidatePool',
         trackable_ids: pluck(:id),
       )
     end

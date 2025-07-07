@@ -6,6 +6,15 @@
 
 # frozen_string_literal: true
 
+#
+# Hmis::Ce::ChangeMarker
+#
+# Tracks changes to CE-related records using a versioning system to enable efficient
+# incremental processing. Each tracked record has a current_version that increments
+# when changes occur, and a processed_version that tracks the last processed state.
+#
+# Records are considered "dirty" when current_version > processed_version.
+#
 class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   self.table_name = 'hmis_ce_change_markers'
 
@@ -18,6 +27,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
 
   scope :batch, ->(start_id:, limit:) { order(:trackable_id).where(trackable_id: start_id..).limit(limit) }
 
+  # Updates processed_version to match current_version, marking records as clean
   def self.mark_processed(marks)
     return if marks.empty?
 
@@ -39,6 +49,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
     )
   end
 
+  # Creates new markers or increments current_version for existing ones
   def self.upsert_or_bump_version(trackable_type, trackable_ids:)
     raise ArgumentError, "Trackable type not supported \"#{trackable_type}\"" unless trackable_type.in?(['GrdaWarehouse::Hud::Client', 'Hmis::Ce::Match::CandidatePool'])
     return if trackable_ids.empty?

@@ -41,21 +41,13 @@ module Mutations
         end
 
         result = Hmis::Ce::Opportunity.import!(opportunities)
-
-        imported_opportunities = Hmis::Ce::Opportunity.where(id: result.ids)
-        post_process(imported_opportunities)
+        Hmis::Ce::BuildCandidatePoolsJob.perform_later(opportunity_ids: result.ids)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
     end
 
     private
-
-    def post_process(opportunities)
-      dirty_pool_ids = Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
-
-      Hmis::Ce::Match::CandidatePool.where(id: dirty_pool_ids).mark_all_dirty if dirty_pool_ids.any?
-    end
 
     def build_opportunity_for_unit(unit, template, candidate_pool_resolver)
       raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
@@ -72,22 +64,6 @@ module Mutations
 
       opportunity.candidate_pool = candidate_pool_resolver.candidate_pool_for_opportunity(opportunity: opportunity)
       opportunity
-    end
-
-    def opportunity_ids_to_update(opportunity_scope:) # Find any opportunities that need to be updated
-      opp_t = Hmis::Ce::Opportunity.arel_table
-      cp_t = Hmis::Ce::Match::CandidatePool.arel_table
-
-      # Check for opportunities that don't have a candidate pool, meaning there isn't an existing pool in the database matching this opportunity's requirements
-      nil_condition = opp_t[:candidate_pool_id].eq(nil)
-      # Check for opportunities whose candidate pool is "stale," aka the candidates were last generated > 24 hours ago
-      stale_condition = cp_t[:candidates_generated_at].lt(Time.current - 24.hours).
-        or(cp_t[:candidates_generated_at].eq(nil))
-
-      opportunity_scope.
-        left_outer_joins(:candidate_pool).
-        where(nil_condition.or(stale_condition)).
-        pluck(:id)
     end
   end
 end

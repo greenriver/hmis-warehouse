@@ -8,17 +8,51 @@
 
 #
 # Hmis::Ce::ProcessChangesJob
-# Processes dirty client and pools
+#
+# Continuously processes dirty CE (Coordinated Entry) clients and candidate pools to maintain
+# up-to-date eligibility calculations. This job implements a self-scheduling pattern to ensure
+# continuous processing while using advisory locks to prevent concurrent execution.
+#
+# ## Workflow
+# 1. Acquires an advisory lock to prevent multiple instances running simultaneously
+# 2. Loads batches of dirty candidate pools and clients using pagination
+# 3. Processes dirty pools first against all destination clients
+# 4. Processes dirty clients against remaining (non-processed) pools
+# 5. Marks processed records as clean
+# 6. Schedules the next batch if wait_time is provided
+#
+# ## Batch Processing Strategy
+# - Pools are processed in smaller batches (100) since they're more expensive to process
+# - Clients are processed in larger batches (1,000) for better throughput
+# - Snapshot approach prevents race conditions where new dirty markers appear during processing
+# - Skips pools that were already processed in the current cycle to avoid duplicate work
+#
+# ## Self-Scheduling
+# When wait_time is provided, the job reschedules itself to run continuously. This creates
+# a persistent processing loop that handles changes as they occur rather than waiting for
+# the next cron cycle.
 #
 module Hmis::Ce
   class ProcessChangesJob < BaseJob
     include NotifierConfig
 
-    # lets cron kick off the job if not already running
+    # Enqueues the job only if no other instance is currently queued or running.
+    # This prevents job queue buildup while ensuring the processing continues.
+    #
+    # @param args [Hash] Arguments to pass to perform_later
     def self.enqueue_if_not_already_running(...)
       perform_later(...) if Delayed::Job.jobs_for_class(name).empty?
     end
 
+    # Processes batches of dirty clients and candidate pools for CE eligibility updates.
+    #
+    # @param next_pool_id [Integer] Starting pool ID for batch processing (pagination)
+    # @param next_client_id [Integer] Starting client ID for batch processing (pagination)
+    # @param wait_time [ActiveSupport::Duration, nil] Time to wait before scheduling next batch.
+    #        If nil, job will not reschedule itself.
+    #
+    # @raise [RuntimeError] if CE configuration is not enabled
+    # @raise [RuntimeError] if HMIS enforcement is not enabled
     def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil)
       raise unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
 
@@ -60,6 +94,11 @@ module Hmis::Ce
 
     protected
 
+    # Schedules the next batch of processing if wait_time is provided.
+    #
+    # @param next_pool_id [Integer] Starting pool ID for next batch
+    # @param next_client_id [Integer] Starting client ID for next batch
+    # @param wait_time [ActiveSupport::Duration, nil] Time to wait before next execution
     def schedule_next_batch(next_pool_id: 0, next_client_id: 0, wait_time: nil)
       return unless wait_time
 
@@ -70,6 +109,10 @@ module Hmis::Ce
       )
     end
 
+    # Processes dirty candidate pools by running the match engine against all destination clients.
+    #
+    # @param markers [Array<Hmis::Ce::ChangeMarker>] Dirty pool markers to process
+    # @return [Integer, nil] Next pool ID for pagination, or nil if no markers processed
     def process_dirty_pools(markers)
       return nil if markers.empty?
 
@@ -84,6 +127,11 @@ module Hmis::Ce
       markers.map(&:trackable_id).max + 1
     end
 
+    # Processes dirty clients by running the match engine against active candidate pools.
+    #
+    # @param markers [Array<Hmis::Ce::ChangeMarker>] Dirty client markers to process
+    # @param skip_pool_ids [Array<Integer>] Pool IDs to skip (already processed in this cycle)
+    # @return [Integer, nil] Next client ID for pagination, or nil if no markers processed
     def process_dirty_clients(markers, skip_pool_ids:)
       return nil if markers.empty?
 

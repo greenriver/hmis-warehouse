@@ -343,10 +343,7 @@ namespace :grda_warehouse do
 
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
-      # 1) Rebuild pools for all active opportunities
-      Hmis::Ce::Match::CandidatePoolBuilder.new(Hmis::Ce::Opportunity.active).perform
-      # 2) Mark all active pools as dirty to force daily re-processing.
-      Hmis::Ce::Match::CandidatePool.active.mark_all_dirty
+      Hmis::Ce::BuildCandidatePoolsJob.perform_now
     end
 
     # Purge old soft-deleted records

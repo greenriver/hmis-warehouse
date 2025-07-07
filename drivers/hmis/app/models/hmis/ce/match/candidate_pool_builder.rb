@@ -62,7 +62,7 @@ module Hmis::Ce::Match
         attrs,
         on_duplicate_key_update: {
           conflict_target: [:priority_expression, :requirement_expression],
-          columns: [:configuration_updated_at],
+          columns: [], # Don't update anything for existing pools
         },
       )
       raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
