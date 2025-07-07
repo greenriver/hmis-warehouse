@@ -924,7 +924,17 @@ type CeReferral {
   user otherwise has access to view this full client.
   """
   client: Client
+
+  """
+  Age of client being referred. Available even if the user does not have permission to view the full client record.
+  """
+  clientAge: Int
   clientId: ID!
+
+  """
+  Name of client being referred. Available even if the user does not have permission to view the full client record.
+  """
+  clientName: String!
   createdAt: ISO8601DateTime!
   currentMatchValues: [CeMatchValue!]
   currentSteps: [CeReferralStep!]

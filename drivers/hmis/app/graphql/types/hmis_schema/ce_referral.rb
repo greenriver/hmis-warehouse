@@ -9,14 +9,17 @@
 module Types
   class HmisSchema::CeReferral < Types::BaseObject
     # object is a Hmis::Ce::Referral
+
+    # TODO add object-level auth to this type, it exposes a lot
+
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
     field :client_id, ID, null: false
+    field :client_name, String, null: false, description: 'Name of client being referred. Available even if the user does not have permission to view the full client record.'
+    field :client_age, Integer, null: true, description: 'Age of client being referred. Available even if the user does not have permission to view the full client record.'
     field :client, Types::HmisSchema::Client, null: true, description: 'The client associated with this referral. This is only present if the current user otherwise has access to view this full client.'
-    # field :client_name, String, null: true
-    # field :client_age, Integer, null: true
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
 
     field :current_steps, [HmisSchema::CeReferralStep], null: true
@@ -85,15 +88,16 @@ module Types
       load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
 
-    # def client_name
-    #   # TODO: potentially expand this to show name even if current user does not have permission to view the client
-    #   client&.brief_name || client&.masked_name
-    # end
+    # NOTE: This field intentionally does not check can_view_clients
+    def client_name
+      c = load_ar_association(object, :client)
+      c&.brief_name || c&.masked_name
+    end
 
-    # def client_age
-    #   # TODO: potentially expand this to show age even if current user does not have permission to view the client
-    #   client&.age
-    # end
+    # NOTE: This field intentionally does not check can_view_clients
+    def client_age
+      load_ar_association(object, :client)&.age
+    end
 
     def current_steps
       load_ar_association(object, :current_steps).sort_by { |step| [step.available_at, step.id] }
@@ -207,10 +211,12 @@ module Types
       object.notes.order(created_at: :desc)
     end
 
-    # Resolves array of fields referenced by Match Rules for this referral's opportunity, with their current values for this client
+    # Resolves array of fields referenced by Match Rules for this referral's opportunity,
+    # with their current values for the referred Client's _Destination_ Client record.
+    # NOTE: This field intentionally exposes data that the current user may not otherwise have permission to view.
     def current_match_values
       # Fetch all match rules applicable to the opportunity
-      # FIXME: this should really be the rules _as they were_ when the referral was created, not the current rules
+      # TODO: this should really be the rules _as they were_ when the referral was created, not the current rules
       match_rules = Hmis::Ce::Match::Rule.for_opportunity(object.opportunity)
       field_map = Hmis::Ce::Match::FieldMap.new
       cde_field_map = Hmis::Ce::Match::CdeFieldMap.new
@@ -218,26 +224,29 @@ module Types
       match_values = []
 
       seen_field_names = Set.new # To deduplicate fields. No need to resolve the same field multiple times.
-      match_rules.sort_by(&:id).each do |rule|
+      match_rules.sort_by(&:id).map do |rule|
         evaluator = Hmis::Ce::Match::ClientExpressionEvaluator.new(rule.expression, field_map)
-        evaluator.resolve_client_values(destination_client).each do |field_name, current_value|
-          next if seen_field_names.include?(field_name) # skip if seen, eg could have "household_size = 1 OR household_size = 2"
+        evaluator.resolve_client_values(destination_client).map do |field_name, current_value|
+          # Skip if Field has already been processed, for example expression "household_size = 1 OR household_size = 2"
+          next if seen_field_names.include?(field_name)
 
-          seen_field_names.add(field_name) # mark this field as seen
+          seen_field_names.add(field_name)
           field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field_name)
-          next unless field_type == Hmis::Ce::Match::FieldMap::CDE # For now, only include CDE fields?
+
+          # Skip if Field does not not reference a CDE (Custom Data Element)
+          next unless field_type == Hmis::Ce::Match::FieldMap::CDE
 
           custom_data_element_label = cde_field_map.cded_for(resolved_field)&.label
-          # OpenStruct to resolve as HmisSchema::CeMatchValue
-          match_values << OpenStruct.new(
-            rule_id: rule.id, # ID of rule that references this field
+
+          # OpenStruct resolves as HmisSchema::CeMatchValue
+          OpenStruct.new(
+            rule_id: rule.id,     # ID of rule that references this field
             rule_name: rule.name, # Name of rule that references this field
             field_name: custom_data_element_label || field_name,
             field_value: current_value,
           )
         end
-      end
-      match_values
+      end.flatten.compact
     end
 
     private
