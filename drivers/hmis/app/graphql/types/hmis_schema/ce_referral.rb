@@ -233,17 +233,27 @@ module Types
           seen_field_names.add(field_name)
           field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field_name)
 
-          # Skip if Field does not not reference a CDE (Custom Data Element)
-          next unless field_type == Hmis::Ce::Match::FieldMap::CDE
+          # Transform field name into human-readable label
+          label = case field_type
+          when Hmis::Ce::Match::FieldMap::CDE
+            cde_field_map.cded_for(resolved_field)&.label
+          when Hmis::Ce::Match::FieldMap::CLIENT
+            resolved_field.humanize
+          else
+            field_name
+          end
 
-          custom_data_element_label = cde_field_map.cded_for(resolved_field)&.label
+          # For fields that resolve to an array of project types, translate numeric project types to human-readable strings
+          if field_type == Hmis::Ce::Match::FieldMap::CLIENT && Hmis::Ce::Match::ClientFieldMap::PROJECT_TYPE_FIELDS.include?(resolved_field.to_sym)
+              current_value = Array.wrap(current_value).map { |project_type| HudUtility2026.project_type(project_type) }
+          end
 
           # OpenStruct resolves as HmisSchema::CeMatchValue
           OpenStruct.new(
             rule_id: rule.id,     # ID of rule that references this field
             rule_name: rule.name, # Name of rule that references this field
-            field_name: custom_data_element_label || field_name,
-            field_value: current_value,
+            field_name: label,
+            field_values: Array.wrap(current_value),
           )
         end
       end.flatten.compact

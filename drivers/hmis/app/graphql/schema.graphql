@@ -803,9 +803,9 @@ type CeMatchValue {
   fieldName: String!
 
   """
-  String representation of the value for this field
+  String representations of the value(s) for this field
   """
-  fieldValue: String
+  fieldValues: [String!]!
   id: ID!
   ruleId: ID!
   ruleName: String!

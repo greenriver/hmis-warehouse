@@ -3,6 +3,13 @@
 # resolve fields from the client (and associated enrollments)
 module Hmis::Ce::Match
   class ClientFieldMap
+    # Fields that resolve lists of project types
+    PROJECT_TYPE_FIELDS = [
+      :open_enrollment_project_types,
+      :open_enrollment_project_types_excluding_incomplete,
+      :open_referral_project_types,
+    ]
+
     def instance_value(client, field)
       callback = all.dig(field.to_sym, :instance_value)
       raise ArgumentError, "Field \"#{field}\" is not supported" unless callback
