@@ -58,12 +58,12 @@
             %td= link_to 'View', map_client_location_history_project_path(@project)
         %tr
           %th
-            %span{data: { 'bs-toggle' => :tooltip, title: @project.confidential_hint}} Confidential Project?
+            %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @project.confidential_hint}} Confidential Project?
           %td= checkmark @project.confidential?
         - if @project.combine_enrollments
           %tr
             %th
-              %span{data: { 'bs-toggle' => :tooltip, title: @project.combine_enrollments_hint}} Combine enrollments?
+              %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @project.combine_enrollments_hint}} Combine enrollments?
             %td= checkmark @project.combine_enrollments?
         - if @project.data_quality_reports.any?
           %tr
@@ -105,12 +105,12 @@
         %tr
           %th Household Type
           %td
-            %span{data: { 'bs-toggle' => :tooltip, title: 'Determined based on related inventory files'}}
+            %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Determined based on related inventory files'}}
               = @project.main_population
         - unless @project.data_source.hmis?
           %tr
             %th
-              %span{data: { 'bs-toggle' => :tooltip, title: 'PITCount value from most recent Project.csv import'}} PIT Count
+              %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'PITCount value from most recent Project.csv import'}} PIT Count
             %td= @project.PITCount
   .col-sm-4.text-right
     - if project_policy.can_edit?

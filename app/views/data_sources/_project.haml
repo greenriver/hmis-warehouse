@@ -5,10 +5,10 @@
     %td
       .d-flex
         .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
-          .service-type__program-type{data: { 'bs-toggle' => :tooltip, title: HudUtility2024.project_type_with_sub_type(project.project_type, project.rrh_sub_type) }}
+          .service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudUtility2024.project_type_with_sub_type(project.project_type, project.rrh_sub_type) }}
             = HudUtility2024.brief_project_type_with_sub_type(project.project_type, project.rrh_sub_type)
     %td.text-center
-      %span{data: { 'bs-toggle' => :tooltip, title: project.confidential_hint}}
+      %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => project.confidential_hint}}
         = checkmark project.confidential
 
     - if can_edit_projects?
@@ -21,6 +21,6 @@
       - if can_see_raw_hmis_data?
         = link_to 'HMIS', source_datum_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
       - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(project, @overrides)
-        %i.icon-info{data: { 'bs-toggle' => :tooltip, title: "Overrides Active"}}
+        %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Overrides Active"}}
       - if @data_source.hmis_link_available?
         = hmis_external_link(project, user: current_user, wrapper_class: 'mb-2 mt-2 text-teeny')

@@ -17,7 +17,7 @@
         %th.text-right
           - if any_homeless
             Homeless / Adjusted Days
-            %i.icon-info{data: { 'bs-toggle' => :tooltip, title: "Days homeless is a count of the unique dates homeless.  Adjusted days, is the number of days in the project type that don't overlap other enrollments within the same project type."}}
+            %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Days homeless is a count of the unique dates homeless.  Adjusted days, is the number of days in the project type that don't overlap other enrollments within the same project type."}}
           - else
             Adjusted Days
         %th.text-right Months Served

@@ -20,7 +20,7 @@
                     .project-duplicate-warning
                       - additional_sources = @collection.project_duplicated(entity.id, entity_type)
                       - if additional_sources.present?
-                        %span{data: { 'bs-toggle' => :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
+                        %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Additional Sources <br /> #{additional_sources}", 'bs-html' => :true }}
                           %i.icon-warning
                     .project.pl-4.mb-4= entity.ProjectName
                 - else
@@ -32,7 +32,7 @@
                         .project-duplicate-warning
                           - additional_sources = @collection.project_duplicated(project.id, entity_type)
                           - if additional_sources.present?
-                            %span{data: { 'bs-toggle' => :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
+                            %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Additional Sources <br /> #{additional_sources}", 'bs-html' => :true }}
                               %i.icon-warning
                         .project= project.ProjectName
                   = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'

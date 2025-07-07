@@ -67,5 +67,5 @@
                         :ruby
                           class_name = appt[:scheduled] ? "active" : ""
                           title = details_title_attr(appt[:metadata])
-                        .c-cal__day{class: class_name, title: title, data: ({'bs-toggle' => 'tooltip', html: "true"} if title.present?) }=appt[:date].day
+                        .c-cal__day{class: class_name, data: ({'bs-toggle' => 'tooltip', 'bs-html' => "true", 'bs-title' => title } if title.present?) }=appt[:date].day
   .col-sm-2= render 'pages'

@@ -53,7 +53,7 @@
               - if show_client_notes
                 %td
                   - note_count = @client_notes[client[:id]]&.count || 0
-                  %span.badge.badge-primary.mt-1{data: { 'bs-toggle' => :tooltip, title: @client_notes[client[:id]]&.join(', ')}}
+                  %span.badge.badge-primary.mt-1{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client_notes[client[:id]]&.join(', ')}}
                     = pluralize(note_count, 'note')
               - if show_removal_reason
                 %td= @removal_reasons[client[:id]]

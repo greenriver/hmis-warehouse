@@ -45,6 +45,6 @@
               - if can_see_raw_hmis_data? && !inventory.manual_entry?
                 = link_to 'HMIS', source_datum_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
               - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(inventory)
-                %i.icon-info{data: { 'bs-toggle' => :tooltip, title: "Overrides Active"}}
+                %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Overrides Active"}}
   - else
     %h4.text-center No inventory

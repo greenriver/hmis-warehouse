@@ -14,7 +14,7 @@ module StyleGuidesHelper
     if tooltip
       value_tooltip_attrs = {
         title: tooltip,
-        data: { 'bs-toggle' => 'tooltip', html: 'true' },
+        data: { 'bs-toggle' => 'tooltip', 'bs-html' => 'true' },
       }
     end
     value_el = tag.div(value, class: "#{base_class}__value")
