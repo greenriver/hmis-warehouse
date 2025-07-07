@@ -74,6 +74,7 @@ module Hmis::Ce::Match
 
       expiration_date = now - duration.days
       Hmis::Ce::Match::CandidatePool.
+        orphaned.
         where(configuration_updated_at: ...expiration_date).
         find_each(&:destroy!)
     end

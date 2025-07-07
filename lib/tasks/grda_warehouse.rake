@@ -343,7 +343,7 @@ namespace :grda_warehouse do
 
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
-      Hmis::Ce::BuildCandidatePoolsJob.perform_now
+      Hmis::Ce::BuildCandidatePoolsJob.perform_later
     end
 
     # Purge old soft-deleted records

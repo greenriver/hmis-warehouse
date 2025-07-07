@@ -13,24 +13,7 @@
 # up-to-date eligibility calculations. This job implements a self-scheduling pattern to ensure
 # continuous processing while using advisory locks to prevent concurrent execution.
 #
-# ## Workflow
-# 1. Acquires an advisory lock to prevent multiple instances running simultaneously
-# 2. Loads batches of dirty candidate pools and clients using pagination
-# 3. Processes dirty pools first against all destination clients
-# 4. Processes dirty clients against remaining (non-processed) pools
-# 5. Marks processed records as clean
-# 6. Schedules the next batch if wait_time is provided
-#
-# ## Batch Processing Strategy
-# - Pools are processed in smaller batches (100) since they're more expensive to process
-# - Clients are processed in larger batches (1,000) for better throughput
-# - Snapshot approach prevents race conditions where new dirty markers appear during processing
-# - Skips pools that were already processed in the current cycle to avoid duplicate work
-#
-# ## Self-Scheduling
-# When wait_time is provided, the job reschedules itself to run continuously. This creates
-# a persistent processing loop that handles changes as they occur rather than waiting for
-# the next cron cycle.
+# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 #
 module Hmis::Ce
   class ProcessChangesJob < BaseJob
@@ -50,8 +33,6 @@ module Hmis::Ce
     # @param next_client_id [Integer] Starting client ID for batch processing (pagination)
     # @param wait_time [ActiveSupport::Duration, nil] Time to wait before scheduling next batch.
     #        If nil, job will not reschedule itself.
-    #
-    # @raise [RuntimeError] if CE configuration is not enabled
     # @raise [RuntimeError] if HMIS enforcement is not enabled
     def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil)
       raise unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
@@ -59,6 +40,8 @@ module Hmis::Ce
       instrument_as_maintenance_task do |run|
         # ensure only one instance of this job runs simultaneously
         with_lock do
+          reconcile_untracked_records
+
           # get a the batch of dirty clients
           dirty_client_markers = Hmis::Ce::ChangeMarker.dirty.clients.batch(
             start_id: next_client_id,
@@ -153,6 +136,30 @@ module Hmis::Ce
     def with_lock(&block)
       lock_name = self.class.name.to_s
       ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
+    end
+
+    private
+
+    # Safeguard to ensure data integrity: finds active pools and destination clients that should be
+    # tracked but are missing a change marker. Ensures that all relevant records are eventually processed
+    # by the CE engine.
+    def reconcile_untracked_records
+      # Find untracked active pools
+      untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active.
+        left_outer_joins(:change_marker).
+        where(hmis_ce_change_markers: { id: nil })
+
+      untracked_pools_scope.in_batches do |relation|
+        Hmis::Ce::ChangeMarker.upsert_or_bump_version('Hmis::Ce::Match::CandidatePool', trackable_ids: relation.pluck(:id))
+      end
+
+      # Find untracked destination clients
+      untracked_clients_scope = GrdaWarehouse::Hud::Client.destination.
+        left_outer_joins(:change_marker).
+        where(hmis_ce_change_markers: { id: nil })
+      untracked_clients_scope.in_batches do |relation|
+        Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: relation.pluck(:id))
+      end
     end
   end
 end

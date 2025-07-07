@@ -6,6 +6,7 @@
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
     self.table_name = 'ce_match_candidate_pools'
+    has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
 
@@ -14,6 +15,8 @@ module Hmis::Ce::Match
       active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
       where(id: active_ids)
     }
+
+    scope :orphaned, -> { left_outer_joins(:opportunities).where(opportunities: { id: nil }) }
 
     def self.mark_all_dirty
       Hmis::Ce::ChangeMarker.upsert_or_bump_version(
