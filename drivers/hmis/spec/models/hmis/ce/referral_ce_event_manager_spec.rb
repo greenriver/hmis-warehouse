@@ -224,20 +224,24 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
   end
 
   describe 'side effect that updates the event' do
+    shared_examples 'updates the event with referral result' do |submitted_values, expected_result|
+      it "updates the event with referral result #{expected_result}" do
+        event = referral.source_enrollment.events.first
+        expect do
+          submit_current_step(submitted_values)
+          event.reload
+        end.to change(event, :result_date).from(nil).
+          and change(event, :referral_result).from(nil).to(expected_result)
+      end
+    end
+
     before(:each) do
       submit_current_step # Submit the ce creation step
       expect(referral.source_enrollment.events.count).to eq(1)
     end
 
     context 'when the client rejects the referral' do
-      it 'updates the event with the client rejection result' do
-        event = referral.source_enrollment.events.first
-        expect do
-          submit_current_step({ client_accepted: 0 })
-          event.reload
-        end.to change(event, :result_date).from(nil).
-          and change(event, :referral_result).from(nil).to(2)
-      end
+      include_examples 'updates the event with referral result', { client_accepted: 0 }, 2
     end
 
     context 'when the provider rejects the referral' do
@@ -245,14 +249,7 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
         submit_current_step({ client_accepted: 1 }) # Client accepts the referral
       end
 
-      it 'updates the event with the provider rejection result' do
-        event = referral.source_enrollment.events.first
-        expect do
-          submit_current_step({ provider_accepted: 0 })
-          event.reload
-        end.to change(event, :result_date).from(nil).
-          and change(event, :referral_result).from(nil).to(3)
-      end
+      include_examples 'updates the event with referral result', { provider_accepted: 0 }, 3
     end
 
     context 'when everybody accepts' do
@@ -260,14 +257,7 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
         submit_current_step({ client_accepted: 1 }) # Client accepts the referral
       end
 
-      it 'updates the event with the acceptance result' do
-        event = referral.source_enrollment.events.first
-        expect do
-          submit_current_step({ provider_accepted: 1 }) # Provider accepts the referral
-          event.reload
-        end.to change(event, :result_date).from(nil).
-          and change(event, :referral_result).from(nil).to(1)
-      end
+      include_examples 'updates the event with referral result', { provider_accepted: 1 }, 1
     end
   end
 end
