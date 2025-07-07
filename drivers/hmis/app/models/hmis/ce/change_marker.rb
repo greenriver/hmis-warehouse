@@ -15,6 +15,7 @@
 #
 # Records are considered "dirty" when current_version > processed_version.
 #
+# See ./README_FOR_CHANGE_MARKER.md
 class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   self.table_name = 'hmis_ce_change_markers'
 
