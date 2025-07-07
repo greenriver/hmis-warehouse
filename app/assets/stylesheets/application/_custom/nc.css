@@ -4,31 +4,8 @@
   --bs-primary-saturation: 55%;
   --bs-primary-lightness: 24%;
 
-  /* Success: #388557 */
-  --bs-success-hue: 141;
-  --bs-success-saturation: 58%;
-  --bs-success-lightness: 37%;
-
-  /* Warning: #F6C51B */
-  --bs-warning-hue: 48;
-  --bs-warning-saturation: 92%;
-  --bs-warning-lightness: 53%;
-
-  /* Danger: #CD0D0D */
-  --bs-danger-hue: 0;
-  --bs-danger-saturation: 90%;
-  --bs-danger-lightness: 43%;
-
   /* Theme Background: #1B325D */
   --theme-background-hue: 222;
   --theme-background-saturation: 55%;
   --theme-background-lightness: 24%;
-
-  /* Custom overrides */
-  --brand-primary-lll: #8AAAC7;
-  --brand-primary-llll: #E7EEF4;
-  --brand-success-lll: #D6E7DD;
-  --brand-warning-lll: #FBE28D;
-  --brand-danger-lll: #AD7E88;
-  --brand-danger-l: #680A1D;
 }

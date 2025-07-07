@@ -62,7 +62,7 @@
   --brand-primary-llll: hsl(var(--bs-primary-hue), var(--bs-primary-saturation), 95%);
 
   /* Desaturated */
-  --brand-primary-l-desaturated: hsl(var(--bs-primary-hue), 5%, var(--bs-primary-lightness));
+  --brand-primary-l-desaturated: hsl(var(--bs-primary-hue), 5%, 80%);
   --bs-primary-desaturated: hsl(var(--bs-primary-hue), 10%, 70%);
 
   /* Brand Success Variants */
@@ -166,6 +166,7 @@
 /* Note: these are namespaced within .alert to override the default Bootstrap colors */
 .alert {
   --bs-success-bg-subtle: var(--brand-success-l-desaturated);
+  --bs-success-border-subtle: var(--brand-success-l);
 }
 
 .alert-info {

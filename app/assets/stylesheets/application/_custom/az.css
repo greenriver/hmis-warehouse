@@ -1,7 +1,6 @@
-/* FIXME */
 :root {
   /* Primary: #002664 */
-  --bs-primary-hue: 225;
+  --bs-primary-hue: 217;
   --bs-primary-saturation: 100%;
   --bs-primary-lightness: 20%;
 
@@ -21,14 +20,7 @@
   --bs-danger-lightness: 47%;
 
   /* Theme Background: #002664 */
-  --theme-background-hue: 225;
+  --theme-background-hue: 217;
   --theme-background-saturation: 100%;
   --theme-background-lightness: 20%;
-
-  /* Custom overrides */
-  --brand-primary-lll: #73B7D3;
-  --brand-primary-llll: #BFE2FF;
-  --brand-success-lll: #1ac0ff;
-  --brand-warning-lll: #fee34d;
-  --brand-danger-lll: #e04f76;
 }
