@@ -126,7 +126,7 @@ module Hmis::Ce
       end
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)
-      markers.any? ? (markers.map(&:trackable_id).max + 1) : 0
+      markers.map(&:trackable_id).max + 1
     end
 
     def log(message)

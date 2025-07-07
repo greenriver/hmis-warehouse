@@ -37,7 +37,7 @@ sequenceDiagram
     alt Client or Pool Changes
         UserAction->>+RailsApp: Mark Units Available
         RailsApp->>+BuildCandidatePoolsJob: Enqueues job
-        BuildCandidatePoolsJob->>+ChangeMarker: Marks new/stale pools dirty
+        BuildCandidatePoolsJob->>+ChangeMarker: Marks new pools dirty
         ChangeMarker-->>-BuildCandidatePoolsJob: Done
         BuildCandidatePoolsJob-->>-RailsApp: Done
     end

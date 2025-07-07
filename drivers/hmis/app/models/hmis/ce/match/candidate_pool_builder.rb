@@ -13,11 +13,9 @@ module Hmis::Ce::Match
     def perform
       updated_ids = []
       with_lock do
-        now = Time.current
         Hmis::Ce::Match::CandidatePool.transaction do
-          _perform
+          updated_ids = _perform
         end
-        updated_ids = Hmis::Ce::Match::CandidatePool.where(configuration_updated_at: now...).pluck(:id)
       end
       updated_ids
     end
@@ -31,9 +29,10 @@ module Hmis::Ce::Match
 
     def _perform
       grouped = @candidate_pool_resolver.opportunities_by_key(opportunity_scope: @opportunities)
-      update_pools!(grouped.keys)
+      created_ids = update_pools!(grouped.keys)
       update_opportunity_pools!(grouped)
       cleanup_orphan_pools
+      created_ids
     end
 
     # Update the opportunity records with their candidate pools
@@ -50,6 +49,7 @@ module Hmis::Ce::Match
     end
 
     # Create candidate pools, if they don't exist, for the given [priority, requirement] keys
+    # Returns the IDs of newly created pools
     def update_pools!(values)
       attrs = values.map do |priority_expression, requirement_expression|
         {
@@ -65,6 +65,8 @@ module Hmis::Ce::Match
         },
       )
       raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+      result.ids
     end
 
     # Delete pools that haven't been used in a while

@@ -71,4 +71,6 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
       },
     )
   end
+
+  def dirty? = current_version > processed_version
 end

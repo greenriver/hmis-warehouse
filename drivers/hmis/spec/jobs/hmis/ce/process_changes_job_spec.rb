@@ -60,6 +60,9 @@ RSpec.describe Hmis::Ce::ProcessChangesJob, type: :job do
   context 'when no dirty clients' do
     it 'does not call the match engine' do
       create(:hmis_ce_change_marker, trackable: client1, current_version: 1, processed_version: 1)
+      create(:hmis_ce_change_marker, trackable: client2, current_version: 1, processed_version: 1)
+      create(:hmis_ce_change_marker, trackable: client3, current_version: 1, processed_version: 1)
+      create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 1)
       expect(Hmis::Ce::Match::Engine).not_to receive(:call)
       described_class.perform_now
     end
@@ -77,27 +80,17 @@ RSpec.describe Hmis::Ce::ProcessChangesJob, type: :job do
     end
   end
 
-  context 'with both dirty pools and dirty clients' do
-    let!(:dirty_pool) { create(:hmis_ce_match_candidate_pool) }
-    let!(:opportunity_for_dirty_pool) { create(:hmis_ce_opportunity, candidate_pool: dirty_pool) }
-
-    it 'processes dirty pools first, then dirty clients against remaining pools' do
-      create(:hmis_ce_change_marker, trackable: dirty_pool)
+  context 'with untracked records' do
+    it 'creates change markers for them' do
+      # client2, client3 and pool are untracked
       create(:hmis_ce_change_marker, trackable: client1)
+      expect do
+        described_class.perform_now
+      end.to change(Hmis::Ce::ChangeMarker, :count).by(3) # client2, client3 and pool
 
-      all_clients_scope = GrdaWarehouse::Hud::Client.where(id: [client1.id, client2.id, client3.id])
-      dirty_client_scope = GrdaWarehouse::Hud::Client.where(id: client1.id)
-
-      # Expect the dirty pool to be processed against ALL clients
-      expect(Hmis::Ce::Match::Engine).to receive(:call).with(dirty_pool, an_object_matching(->(scope) { scope.to_a.map(&:id).sort == all_clients_scope.to_a.map(&:id).sort })).once
-
-      # Expect the dirty client to be processed only against the other active (but clean) pool from the shared context
-      expect(Hmis::Ce::Match::Engine).to receive(:call).with(pool, an_object_matching(->(scope) { scope.to_a.map(&:id).sort == dirty_client_scope.to_a.map(&:id).sort })).once
-
-      described_class.perform_now
-
-      expect(Hmis::Ce::ChangeMarker.find_by(trackable: dirty_pool).processed_version).to eq(1)
-      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client1).processed_version).to eq(1)
+      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client2)).to be_present
+      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client3)).to be_present
+      expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool)).to be_present
     end
   end
 end
