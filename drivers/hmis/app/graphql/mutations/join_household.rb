@@ -110,6 +110,8 @@ module Mutations
       donor_assignments.each do |assignment|
         key = [assignment.user_id, assignment.hmis_staff_assignment_relationship_id]
         if existing_keys.include?(key)
+          # really_destroy! because we use soft-deleted assignment records to show the assignment history,
+          # but displaying the duplicate record as part of the history would be confusing.
           assignment.really_destroy!
         else
           assignment.update!(household_id: receiving_household_id)
