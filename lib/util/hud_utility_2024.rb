@@ -718,6 +718,21 @@ module HudUtility2024
     ]
   end
 
+  def ce_event_types_by_code
+    {
+      es: 10,
+      th: 11,
+      th_rrh: 12,
+      rrh: 13,
+      psh: 14,
+      oph: 15,
+    }.freeze
+  end
+
+  def ce_event_referral_results
+    [1, 2, 3]
+  end
+
   def service_types_provided_map
     {
       141 => {
