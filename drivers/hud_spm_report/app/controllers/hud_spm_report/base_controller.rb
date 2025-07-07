@@ -11,7 +11,7 @@ module HudSpmReport
     before_action :filter
 
     private def relevant_project_types
-      HudUtility2024.spm_project_type_numbers
+      HudUtility2026.spm_project_type_numbers
     end
 
     def cell_value(cell, path)

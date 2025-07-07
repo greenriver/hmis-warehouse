@@ -130,8 +130,8 @@ module AwsSdkHelpers
 
     def self.superset_env_for_warehouse
       names = [
-        "/#{ENV.fetch('RAILS_ENV')}/tenant/#{ENV.fetch('CLIENT')}/app/superset-sync-jobs/SUPERSET_ADMIN_PASS",
-        "/#{ENV.fetch('RAILS_ENV')}/tenant/#{ENV.fetch('CLIENT')}/app/superset-sync-jobs/SUPERSET_ADMIN_USER",
+        "/#{ENV.fetch('RAILS_ENV')}/tenant/#{ENV.fetch('TF_TENANT')}/app/superset-sync-jobs/SUPERSET_ADMIN_PASS",
+        "/#{ENV.fetch('RAILS_ENV')}/tenant/#{ENV.fetch('TF_TENANT')}/app/superset-sync-jobs/SUPERSET_ADMIN_USER",
       ]
 
       params = AwsSdkHelpers::ClientMethods.ssm.get_parameters(
