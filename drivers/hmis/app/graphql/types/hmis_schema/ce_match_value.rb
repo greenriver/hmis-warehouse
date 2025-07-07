@@ -11,10 +11,10 @@ module Types
     # object is an OpenStruct
     # used to generically resolve Key-value pairs for fields referenced by Match Rule expressions
 
-    field :id, ID, null: false, description: 'Unique identifier for this match value'
+    field :id, ID, null: false
     field :rule_id, ID, null: false
     field :rule_name, String, null: false
-    field :field_name, String, null: false, description: 'Name of this field'
+    field :field_name, String, null: false, description: 'Human-readable label for this field'
     field :field_value, String, null: true, description: 'String representation of the value for this field'
 
     def id

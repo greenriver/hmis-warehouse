@@ -798,7 +798,7 @@ enum CeMatchRuleOwner {
 
 type CeMatchValue {
   """
-  Name of this field
+  Human-readable label for this field
   """
   fieldName: String!
 
@@ -806,10 +806,6 @@ type CeMatchValue {
   String representation of the value for this field
   """
   fieldValue: String
-
-  """
-  Unique identifier for this match value
-  """
   id: ID!
   ruleId: ID!
   ruleName: String!
