@@ -60,9 +60,8 @@ module Hmis::Ce::Match
       end
       result = Hmis::Ce::Match::CandidatePool.import(
         attrs,
-        on_duplicate_key_update: {
+        on_duplicate_key_ignore: {
           conflict_target: [:priority_expression, :requirement_expression],
-          columns: [], # Don't update anything for existing pools
         },
       )
       raise "Failed: #{result.failed_instances}" if result.failed_instances.present?

@@ -32,6 +32,10 @@ RSpec.describe Hmis::Ce::ProcessChangesJob, type: :job do
   include ActiveJob::TestHelper
   include_context 'with ce processing setup'
 
+  before do
+    Hmis::Ce::ChangeMarker.delete_all
+  end
+
   it 'processes dirty clients' do
     create(:hmis_ce_change_marker, trackable: client1, current_version: 1, processed_version: 0)
     create(:hmis_ce_change_marker, trackable: client2, current_version: 2, processed_version: 1)
