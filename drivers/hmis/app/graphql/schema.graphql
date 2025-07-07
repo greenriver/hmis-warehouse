@@ -916,6 +916,11 @@ type CeReferral {
   access: CeReferralAccess!
   active: Boolean!
   auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated!
+
+  """
+  The client associated with this referral. This is only present if the current
+  user otherwise has access to view this full client.
+  """
   client: Client
   clientId: ID!
   createdAt: ISO8601DateTime!

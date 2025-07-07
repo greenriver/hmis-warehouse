@@ -14,7 +14,9 @@ module Types
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
     field :client_id, ID, null: false
-    field :client, Types::HmisSchema::Client, null: true
+    field :client, Types::HmisSchema::Client, null: true, description: 'The client associated with this referral. This is only present if the current user otherwise has access to view this full client.'
+    # field :client_name, String, null: true
+    # field :client_age, Integer, null: true
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
 
     field :current_steps, [HmisSchema::CeReferralStep], null: true
@@ -82,6 +84,16 @@ module Types
     def client
       load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
+
+    # def client_name
+    #   # TODO: potentially expand this to show name even if current user does not have permission to view the client
+    #   client&.brief_name || client&.masked_name
+    # end
+
+    # def client_age
+    #   # TODO: potentially expand this to show age even if current user does not have permission to view the client
+    #   client&.age
+    # end
 
     def current_steps
       load_ar_association(object, :current_steps).sort_by { |step| [step.available_at, step.id] }
