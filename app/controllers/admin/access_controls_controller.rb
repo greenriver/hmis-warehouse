@@ -4,9 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
   include ArelHelper
+  include AuditHistory
 
   before_action :require_can_edit_users!
   before_action :set_access_control, only: [:edit, :update, :destroy]
@@ -51,6 +54,23 @@ class Admin::AccessControlsController < ApplicationController
     redirect_to action: :index
   end
 
+  def audits
+    data
+  end
+
+  def export
+    respond_to do |format|
+      format.csv do
+        audit_history = []
+        histories.each_with_index do |history, index|
+          csv_data = generate_audit_csv(history.version_array, history, include_headers: index == 0)
+          audit_history << csv_data
+        end
+        send_data audit_history.join, filename: "access-controls-component-history-#{Date.current.to_fs(:db)}.csv"
+      end
+    end
+  end
+
   private def access_control_scope
     AccessControl.user_managed
   end
@@ -76,5 +96,23 @@ class Admin::AccessControlsController < ApplicationController
 
   private def set_access_control
     @access_control = access_control_scope.find(params[:id].to_i)
+  end
+
+  private def histories
+    @histories ||= AccessControl.visible_to(current_user).map do |access_control|
+      Audit::Versions.new(access_control, access_control_component_config)
+    end
+  end
+
+  private def data
+    @data ||= histories.flat_map do |history|
+      versions = history.version_array
+      history.wrap_display_versions(versions).map do |version|
+        {
+          history: history,
+          version: version,
+        }
+      end
+    end.sort_by { |h| h[:version]&.created_at }.reverse
   end
 end
