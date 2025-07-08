@@ -26,6 +26,7 @@ module Hmis::Ce
     has_many :swimlanes, through: :workflow_instance, class_name: 'Hmis::WorkflowDefinition::Swimlane'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
+    belongs_to :custom_status, class_name: 'Hmis::Ce::CustomReferralStatus', foreign_key: :custom_referral_status_id, optional: true
 
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
 
@@ -71,6 +72,7 @@ module Hmis::Ce
       ]
       order(acase(conditions, elsewise: 3), updated_at: :desc, id: :asc)
     end
+    # todo @martha - add status
 
     validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity
@@ -144,6 +146,8 @@ module Hmis::Ce
       errors.add(:client, msg) unless data_source == client.data_source
       errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source
       # Source enrollment doesn't necessarily need to be in the same data source as the opportunity
+
+      errors.add(:custom_status, msg) if custom_status && data_source != custom_status.data_source
     end
   end
 end
