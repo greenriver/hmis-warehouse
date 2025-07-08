@@ -1,0 +1,37 @@
+# config/hmis_csv_twenty_twenty_six_custom_files.yml
+custom_files:
+  - filename: "CustomDataElementDefinition.csv"
+    class_name: "CustomDataElementDefinition"
+    required: false
+    description: "Definitions for custom data elements"
+    augments_warehouse_table: "GrdaWarehouse::Hud::Client"
+    warehouse_class_name: "Hmis::Hud::CustomDataElementDefinition"
+    columns:
+      - name: "CustomDataElementDefinitionID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+      - name: "RecordType"
+        type: "string"
+        required: true
+        validations:
+          - class: "InclusionInSet"
+            arguments:
+              valid_options:
+                ["Client", "Enrollment", "Exit", "Project", "Organization"]
+      - name: "FieldType"
+        type: "string"
+        required: true
+        validations:
+          - class: "InclusionInSet"
+            arguments:
+              valid_options: ["string", "integer", "date", "boolean", "text"]
+      - name: "Label"
+        type: "string"
+        required: true
+        max_length: 255
+      - name: "Repeats"
+        type: "boolean"
+        required: true
+      - name: "ExportID"
+        type: "string"

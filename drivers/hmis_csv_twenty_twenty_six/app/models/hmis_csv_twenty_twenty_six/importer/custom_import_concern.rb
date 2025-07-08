@@ -13,30 +13,16 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
     def as_destination_record
       config = self.class.custom_file_config
 
-      if config['key_value_store']
-        # Key-value stores are processed differently
-        nil
-      elsif config['augments_warehouse_table']
-        as_augmentation_record
-      elsif config['creates_warehouse_table']
-        super
-      end
+      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present?
+
+      as_augmentation_record
     end
 
     private
 
     def as_augmentation_record
       config = self.class.custom_file_config
-      warehouse_class = config['augments_warehouse_table'].constantize
-      augment_key = config['augment_key']
-
-      # Find the existing warehouse record
-      existing_record = warehouse_class.find_by(
-        data_source_id: data_source_id,
-        augment_key => self[augment_key],
-      )
-
-      return nil unless existing_record
+      klass = self.class.reflect_on_association(:destination_record).klass
 
       # Apply all column mappings using the generic mapper
       mapped_attributes = {}
@@ -46,34 +32,23 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
         config['columns'],
       )
 
-      # Apply mapped attributes to the existing record
-      existing_record.assign_attributes(mapped_attributes)
-      existing_record.source_hash = calculate_source_hash
-      existing_record
+      record = klass.new(mapped_attributes)
+
+      # We explicitly don't update the source hash since that would cause future
+      # imports to the augmented class to appear modified
+      # We also don't set the source_id as it would cause the source data drill-down
+      # to break
+      # record.source_hash = source_hash
+      # # Note which record we're sending this from for error checking
+      # record.source_id = id
+
+      record
     end
   end
 
   class_methods do
-    def involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
-      config = custom_file_config
-
-      if config['key_value_store']
-        # Key-value stores don't follow normal scoping
-        none
-      elsif config['augments_warehouse_table']
-        warehouse_class = config['augments_warehouse_table'].constantize
-        if warehouse_class == GrdaWarehouse::Hud::Client
-          # Special handling for Client augmentation
-          warehouse_class.importable.joins(:source_enrollments).
-            merge(GrdaWarehouse::Hud::Enrollment.joins(:project).
-              merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
-              open_during_range(date_range.range)).distinct
-        else
-          warehouse_class.where(data_source_id: data_source_id)
-        end
-      else
-        super
-      end
+    def custom_import_class
+      warehouse_class
     end
 
     def warehouse_class
@@ -87,8 +62,54 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
       end
     end
 
-    def hud_key
-      custom_file_config['columns'].first['name'].to_sym
+    def create_columns
+      config = custom_file_config
+
+      config['columns'].map(&:name) - [
+        'DateCreated',
+        'DateUpdated',
+        'DateDeleted',
+        'ExportID',
+      ]
+    end
+
+    # Delegate to the class we are augmenting
+    def involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
+      config = custom_file_config
+
+      # At this time, we only support augmentations
+      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present? && config['augment_import_class'].present?
+
+      augment_import_class = config['augment_import_class'].constantize
+      augment_import_class.involved_warehouse_scope(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
+    end
+
+    def prevent_import_deletions?
+      config = custom_file_config
+      # Prevent deletions for augmentation classes since we only want to update existing records
+      config['augments_warehouse_table'].present?
+    end
+
+    # Delegate to the class we are augmenting
+    def existing_data(data_source_id:, project_ids:, date_range:)
+      config = custom_file_config
+
+      # At this time, we only support augmentations
+      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present? && config['augment_import_class'].present?
+
+      augment_import_class = config['augment_import_class'].constantize
+      augment_import_class.existing_data(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
+    end
+
+    # Delegate to the class we are augmenting
+    def existing_destination_data(data_source_id:, project_ids:, date_range:)
+      config = custom_file_config
+
+      # At this time, we only support augmentations
+      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present? && config['augment_import_class'].present?
+
+      augment_import_class = config['augment_import_class'].constantize
+      augment_import_class.existing_destination_data(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
     end
   end
 end

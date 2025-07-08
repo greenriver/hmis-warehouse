@@ -376,8 +376,6 @@ module HmisCsvImporter::Importer
           destination['importer_log_id'] = importer_log_id
           destination['pre_processed_at'] = pre_processed_at
 
-          # FIXME: are we sure this source_hash algo matches
-          # existing import logic. If not all records will be considered modified on the next run
           destination['source_hash'] = klass.new(destination).calculate_source_hash
 
           row_failures = run_row_validations(klass, destination, file_name, importer_log)
@@ -671,7 +669,7 @@ module HmisCsvImporter::Importer
               # outside of the range, but are necessary to calculate the correctly aggregated set
               upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
               columns = batch.first.attributes.keys - ['id']
-              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert, import_klass: import_klass_for(klass))
               batch = []
             end
           end
@@ -683,7 +681,7 @@ module HmisCsvImporter::Importer
           if batch.present?
             upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
             columns = batch.first.attributes.keys - ['id']
-            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
+            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert, import_klass: import_klass_for(klass)) # ensure we get the last batch
           end
         end
         records = summary_for(file_name, 'added') || 0
@@ -791,6 +789,7 @@ module HmisCsvImporter::Importer
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
+        # FIXME: need to figure out how to set the import_klass here
         # existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
@@ -823,7 +822,7 @@ module HmisCsvImporter::Importer
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, import_klass: import_klass_for(klass))
               end
               batch = []
             end
@@ -840,7 +839,7 @@ module HmisCsvImporter::Importer
             end
             note_processed(file_name, batch.count, 'updated')
           else
-            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, import_klass: import_klass_for(klass))
           end
         end
 
@@ -925,20 +924,21 @@ module HmisCsvImporter::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names)
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names, import_klass: klass)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
+
       klass.logger.silence(Logger::WARN) do
         if upsert
-          klass.import(
+          import_klass.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: klass.conflict_target,
+              conflict_target: import_klass.conflict_target,
               columns: columns,
             },
             validate: use_ar_model_validations,
           )
         else
-          klass.import(batch, validate: use_ar_model_validations)
+          import_klass.import(batch, validate: use_ar_model_validations)
         end
         note_processed(file_name, batch.count, type)
       end
@@ -948,17 +948,17 @@ module HmisCsvImporter::Importer
       errors = []
       batch.each do |row|
         if upsert
-          klass.import(
+          import_klass.import(
             Array.wrap(row),
             on_duplicate_key_update: {
-              conflict_target: klass.conflict_target,
+              conflict_target: import_klass.conflict_target,
               columns: columns,
             },
             validate: use_ar_model_validations,
             batch_size: 1,
           )
         else
-          klass.import(Array.wrap(row), validate: use_ar_model_validations, batch_size: 1)
+          import_klass.import(Array.wrap(row), validate: use_ar_model_validations, batch_size: 1)
         end
         note_processed(file_name, 1, type)
       rescue ActiveRecord::ActiveRecordError, PG::Error => e
@@ -1139,6 +1139,15 @@ module HmisCsvImporter::Importer
         message: "Error importing #{klass}",
         details: message,
       )
+    end
+
+    # Handle the situation where the data is coming in from a custom file that augments
+    # a warehouse table.  We'll import using the warehouse class, but only touch the
+    # columns associated with the custom file.
+    private def import_klass_for(klass)
+      return klass.custom_import_class if klass.respond_to?(:custom_import_class)
+
+      klass
     end
   end
 end

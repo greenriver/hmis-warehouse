@@ -6,11 +6,15 @@ custom_files:
     description: "Gender identity data in FY2024 format"
     augments_warehouse_table: "GrdaWarehouse::Hud::Client"
     augment_key: "PersonalID"
+    augment_import_class: "HmisCsvTwentyTwentySix::Importer::Client"
     columns:
       - name: "PersonalID"
         type: "string"
         required: true
         validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "PersonalID"
       - name: "Woman"
         type: "integer"
         warehouse_column_mapping:

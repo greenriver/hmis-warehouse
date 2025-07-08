@@ -8,6 +8,14 @@
 
 module HmisCsvTwentyTwentySix::Importer
   class Importer < HmisCsvImporter::Importer::Importer
+    def initialize(**kwargs)
+      super(**kwargs)
+    end
+
+    private def importable_files
+      HmisCsvTwentyTwentySix.importable_files
+    end
+
     private def ingest!
       super
 
@@ -26,7 +34,8 @@ module HmisCsvTwentyTwentySix::Importer
         if file_config['key_value_store']
           process_key_value_store(klass, file_config)
         elsif file_config['augments_warehouse_table']
-          process_augmentation(klass, file_config)
+          # Augmentations are handled natively by the importer
+          # process_augmentation(klass, file_config)
         end
       end
     end
@@ -48,23 +57,8 @@ module HmisCsvTwentyTwentySix::Importer
         # Save the augmented warehouse record
         augmented_record.save!
 
-        # Mark client as demographically dirty if we updated client
+        # Mark client demographics as dirty if we updated client
         augmented_record.update(demographic_dirty: true) if file_config['augments_warehouse_table'] == 'GrdaWarehouse::Hud::Client'
-      end
-    end
-
-    # Override to include custom files in the importable files map
-    private def importable_files
-      @importable_files ||= begin
-        standard_files = HmisCsvTwentyTwentySix.base_importable_files_map.transform_values do |name|
-          HmisCsvTwentyTwentySix.data_lake_file_class(name, 'Importer')
-        end
-
-        custom_files = HmisCsvTwentyTwentySix.custom_importable_files_map.transform_values do |name|
-          "HmisCsvTwentyTwentySix::Importer::#{name}".constantize
-        end
-
-        standard_files.merge(custom_files)
       end
     end
   end

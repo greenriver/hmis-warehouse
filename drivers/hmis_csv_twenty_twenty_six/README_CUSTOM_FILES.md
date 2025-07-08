@@ -182,84 +182,121 @@ warehouse_column_mapping:
 
 Combines multiple source values into a single target field.
 
-## Migration Requirements
+## Database Setup
 
-For each custom file, you'll need to create database migrations:
+The system provides automatic migration generation to create the necessary database tables for your custom files.
 
-### Loader Table Migration
+### Automatic Migration Generation
+
+After creating your YAML configuration files, run:
 
 ```ruby
-# db/migrate/xxx_create_custom_example_loader_table.rb
-class CreateCustomExampleLoaderTable < ActiveRecord::Migration[7.0]
+HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_migrations!
+```
+
+This will:
+- Read all YAML files in the `config/custom/` directory
+- Check if the required tables exist in the database
+- Generate migration files for any missing tables
+- Use the correct table naming conventions
+
+### Table Naming Conventions
+
+The system follows consistent naming patterns:
+
+- **Loader tables**: `hmis_csv_2026_[plural_class_name]` (e.g., `hmis_csv_2026_custom_genders`)
+- **Importer tables**: `hmis_2026_[plural_class_name]` (e.g., `hmis_2026_custom_genders`)
+- **Warehouse tables**: `[plural_class_name]` (e.g., `custom_data_elements`)
+
+### Generated Migration Example
+
+For a `CustomGender` configuration, the system generates:
+
+```ruby
+# db/warehouse/migrate/20250115120000_create_custom_gender_custom_tables.rb
+class CreateCustomGenderCustomTables < ActiveRecord::Migration[7.1]
   def change
-    create_table :hmis_csv_twenty_twenty_six_custom_examples do |t|
-      t.references :data_source, null: false, foreign_key: true
-      t.references :loader, null: true
-      t.integer :row_number
+    # CustomGender loader table
+    create_table :hmis_csv_2026_custom_genders do |t|
+      t.string "PersonalID"
+      t.string "Woman"
+      t.string "Man"
+      t.string "NonBinary"
+      t.string "CulturallySpecific"
+      t.string "Transgender"
+      t.string "Questioning"
+      t.string "DifferentIdentity"
+      t.string "GenderNone"
+      t.string "DifferentIdentityText"
+      t.string "DateCreated"
+      t.string "DateUpdated"
+      t.string "UserID"
+      t.string "DateDeleted"
+      t.string "ExportID"
 
-      # CSV columns as strings
-      t.string :PersonalID
-      t.string :CustomField
-      t.string :DateCreated
-      t.string :ExportID
-
-      t.timestamps
+      # Standard loader columns
+      t.references :data_source, null: false, index: true
+      t.datetime :loaded_at, null: false
+      t.references :loader, null: false, index: true
     end
 
-    add_index :hmis_csv_twenty_twenty_six_custom_examples, :data_source_id
-    add_index :hmis_csv_twenty_twenty_six_custom_examples, :PersonalID
+    # Add indexes for loader table
+    add_index :hmis_csv_2026_custom_genders, [:PersonalID, :data_source_id], name: "idx_custom_genders_id_ds"
+
+    # CustomGender importer table
+    create_table :hmis_2026_custom_genders do |t|
+      t.string "PersonalID"
+      t.integer "Woman"
+      t.integer "Man"
+      t.integer "NonBinary"
+      t.integer "CulturallySpecific"
+      t.integer "Transgender"
+      t.integer "Questioning"
+      t.integer "DifferentIdentity"
+      t.integer "GenderNone"
+      t.string "DifferentIdentityText"
+      t.datetime "DateCreated"
+      t.datetime "DateUpdated"
+      t.string "UserID"
+      t.datetime "DateDeleted"
+      t.string "ExportID"
+
+      # Standard importer columns
+      t.references :data_source, null: false, index: true
+      t.references :importer_log, null: false, index: true
+      t.datetime :pre_processed_at, null: false
+      t.string :source_hash
+      t.references :source, null: false, index: false
+      t.string :source_type, null: false
+      t.timestamp :dirty_at
+      t.timestamp :clean_at
+      t.boolean :should_import, default: true
+    end
+
+    # Add indexes for importer table
+    add_index :hmis_2026_custom_genders, [:PersonalID, :data_source_id], name: "idx_custom_genders_imp_id_ds"
+    add_index :hmis_2026_custom_genders, [:source_type, :source_id], name: "idx_custom_genders_source"
   end
 end
 ```
 
-### Importer Table Migration
+### Running the Migrations
 
-```ruby
-# db/migrate/xxx_create_custom_example_importer_table.rb
-class CreateCustomExampleImporterTable < ActiveRecord::Migration[7.0]
-  def change
-    create_table :hmis_twenty_twenty_six_custom_examples do |t|
-      t.references :data_source, null: false, foreign_key: true
-      t.references :importer_log, null: true
+After generation, run the migrations:
 
-      # CSV columns with proper types
-      t.string :PersonalID, null: false
-      t.integer :CustomField
-      t.datetime :DateCreated
-      t.string :ExportID
-
-      t.timestamps
-    end
-
-    add_index :hmis_twenty_twenty_six_custom_examples, :data_source_id
-    add_index :hmis_twenty_twenty_six_custom_examples, :PersonalID
-  end
-end
+```bash
+bundle exec rails db:migrate
 ```
 
-### Warehouse Table Migration (if creates_warehouse_table: true)
+### Manual Migration Creation
 
-```ruby
-# db/migrate/xxx_create_custom_example_warehouse_table.rb
-class CreateCustomExampleWarehouseTable < ActiveRecord::Migration[7.0]
-  def change
-    create_table :custom_examples do |t|
-      t.references :data_source, null: false, foreign_key: true
-      t.string :PersonalID, null: false
-      t.integer :CustomField
-      t.datetime :DateCreated
-      t.datetime :DateUpdated
-      t.datetime :DateDeleted
-      t.string :ExportID
+If you need to create migrations manually, follow these patterns:
 
-      t.timestamps
-    end
-
-    add_index :custom_examples, :data_source_id
-    add_index :custom_examples, :PersonalID
-    add_index :custom_examples, :DateDeleted
-  end
-end
+#### Key Points:
+- **Loader tables**: All columns are strings (raw CSV data)
+- **Importer tables**: Proper column types based on YAML configuration
+- **Standard columns**: Always include the required framework columns
+- **Indexes**: Add indexes for foreign keys and lookup columns
 
 
 

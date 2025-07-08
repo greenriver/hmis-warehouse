@@ -126,21 +126,56 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.importable_files
-    base_importable_files_map.transform_values do |name|
-      data_lake_file_class(name, 'Importer')
-    end.merge(custom_importable_files)
+    base_files = base_importable_files_map.transform_values do |name|
+      klass = data_lake_file_class(name, 'Importer')
+      Rails.logger.info "DEBUG: Found base importer class #{klass.name} for #{name}"
+      klass
+    rescue StandardError => e
+      Rails.logger.error "ERROR: Failed to load base importer class for #{name}: #{e.message}"
+      nil
+    end
+
+    custom_files = custom_importable_files
+
+    result = base_files.merge(custom_files)
+    Rails.logger.info "DEBUG: Final importable_files = #{result.transform_values { |v| v&.name || 'NIL' }}"
+
+    # Remove any nil values to prevent errors
+    result.compact
   end
 
   def self.custom_loadable_files
-    custom_importable_files_map.transform_values do |name|
-      "HmisCsvTwentyTwentySix::Loader::#{name}".constantize
-    end
+    custom_importable_files_map.filter_map do |filename, name|
+      class_name = "HmisCsvTwentyTwentySix::Loader::#{name}"
+      begin
+        klass = class_name.constantize
+        [filename, klass]
+      rescue NameError
+        # Class doesn't exist yet - custom models haven't been generated
+        # This can happen during initialization before generate_custom_models! is called
+        Rails.logger.info "Custom loader class #{class_name} not found - skipping for now"
+        nil
+      end
+    end.to_h
   end
 
   def self.custom_importable_files
-    custom_importable_files_map.transform_values do |name|
-      "HmisCsvTwentyTwentySix::Importer::#{name}".constantize
-    end
+    Rails.logger.info "DEBUG: custom_importable_files_map = #{custom_importable_files_map}"
+    result = custom_importable_files_map.filter_map do |filename, name|
+      class_name = "HmisCsvTwentyTwentySix::Importer::#{name}"
+      begin
+        klass = class_name.constantize
+        Rails.logger.info "DEBUG: Found custom importer class #{class_name}"
+        [filename, klass]
+      rescue NameError => e
+        # Class doesn't exist yet - custom models haven't been generated
+        # This can happen during initialization before generate_custom_models! is called
+        Rails.logger.warn "Custom importer class #{class_name} not found: #{e.message}"
+        nil
+      end
+    end.to_h
+    Rails.logger.info "DEBUG: custom_importable_files result = #{result.keys}"
+    result
   end
 
   def self.data_lake_file_class(name, phase)

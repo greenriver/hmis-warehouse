@@ -16,11 +16,33 @@ module HmisCsvTwentyTwentySix::Loader
     # Default table name prefix for FY2026 loaders
     self.table_name_prefix = 'hmis_csv_2026_'
 
-    # Method to be overridden by CustomFileManager when setting up generated classes
-    # This allows the setup_model_for_file proc to be called in the class context
+    # Method called by CustomFileManager when setting up generated classes
+    # This executes the configuration logic directly in the class context
     def self.setup_model_for_file(file_config)
-      # This will be called by CustomFileManager's setup_model_for_file proc
-      # when generating custom loader classes
+      self.table_name = "hmis_csv_2026_#{file_config['class_name'].underscore.pluralize}"
+
+      # Generate hud_csv_headers method based on YAML column configuration
+      column_names = file_config['columns'].map { |col| col['name'] }
+
+      define_singleton_method(:hud_csv_headers) do
+        column_names
+      end
+
+      # Generate hmis_structure method based on YAML column configuration
+      # This returns a hash where keys are column names (as symbols) and values are column metadata
+      hmis_structure_hash = file_config['columns'].each_with_object({}) do |col, hash|
+        hash[col['name'].to_sym] = {
+          type: col['type'] || 'string',
+          required: col['required'] || false,
+        }
+      end
+
+      define_singleton_method(:hmis_structure) do
+        hmis_structure_hash
+      end
+
+      # Loader tables store raw CSV data as strings
+      # All validation and type conversion happens in the importer phase
     end
   end
 end

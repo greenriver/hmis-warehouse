@@ -16,6 +16,24 @@ RailsDrivers.loaded << :hmis_csv_twenty_twenty_six
 
 Rails.application.reloader.to_prepare do
   Filters::HmisExport.register_version('HMIS 2026', '2026', 'HmisCsvTwentyTwentySix::ExportJob')
+
+  # Generate custom models used for import.  It only runs at boot time, reading any YAML available.
+  # New custom files need:
+  # 1. A YAML file in drivers/hmis_csv_twenty_twenty_six/config/custom/ describing the CSV
+  # 2. To run HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_migrations! to create the migrations
+  begin
+    custom_files = HmisCsvTwentyTwentySix.custom_files_config['custom_files']
+    if custom_files.any?
+      Rails.logger.info "Generating FY2026 custom models at boot time for #{custom_files.count} files: #{custom_files.map { |f| f['class_name'] }.join(', ')}"
+      HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_models!
+      Rails.logger.info 'Successfully generated FY2026 custom models'
+    else
+      Rails.logger.debug 'No custom files configured for FY2026'
+    end
+  rescue StandardError => e
+    Rails.logger.error "Failed to generate FY2026 custom models at boot time: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+  end
 end
 
 Rails.application.config.hmis_data_lakes['2026'] = 'HmisCsvTwentyTwentySix'
