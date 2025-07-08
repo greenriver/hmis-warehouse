@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisUtil
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException
 
-    DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
+    DATA_DIR = 'drivers/hmis/lib/form_data'
 
     def initialize(env_key: nil)
       @env_key = env_key if env_key.presence # allow override for testing
@@ -183,7 +185,7 @@ module HmisUtil
     def apply_form_patches(definition, patches, identifier:)
       result = definition.deep_dup
       applied_patches = []
-      patches.filter { |patch| patch['form_identifier'] == identifier && !patch.key?('link_id')}.each do |patch|
+      patches.filter { |patch| patch['form_identifier'] == identifier && !patch.key?('link_id') }.each do |patch|
         result['item'].unshift(*patch['prepend_items']) if patch['prepend_items'].present?
         result['item'].push(*patch['append_items']) if patch['append_items'].present?
         applied_patches << patch['form_identifier']
