@@ -24,15 +24,22 @@ sequenceDiagram
     participant UserAction as User Action<br/>(e.g., Edit Client)
     participant RailsApp as Rails Application
     participant MarkClientAsDirtyBehavior as MarkClientAsDirtyBehavior
+    participant IdentifyDuplicates as IdentifyDuplicates
     participant ChangeMarker as Hmis::Ce::ChangeMarker
     participant BuildCandidatePoolsJob as Hmis::Ce::BuildCandidatePoolsJob
     participant ProcessChangesJob as Hmis::Ce::ProcessChangesJob
 
     UserAction->>+RailsApp: Submits a change (e.g., assessment)
     RailsApp->>+MarkClientAsDirtyBehavior: after_save callback
-    MarkClientAsDirtyBehavior->>+ChangeMarker: upsert_or_bump_version
+    MarkClientAsDirtyBehavior->>+ChangeMarker: upsert_or_bump_version (source client)
     ChangeMarker-->>-MarkClientAsDirtyBehavior: Increments `current_version`
     MarkClientAsDirtyBehavior-->>-RailsApp: Done
+
+    Note over RailsApp,IdentifyDuplicates: Client creation/update triggers deduplication
+    RailsApp->>+IdentifyDuplicates: Runs periodically or on client changes
+    IdentifyDuplicates->>+ChangeMarker: upsert_or_bump_version (destination client)
+    ChangeMarker-->>-IdentifyDuplicates: Marks destination client dirty
+    IdentifyDuplicates-->>-RailsApp: Done
 
     alt Client or Pool Changes
         UserAction->>+RailsApp: Mark Units Available
@@ -69,10 +76,23 @@ The `Hmis::Ce::ProcessChangesJob` is designed to run continuously without relyin
 
 - When the job finishes a batch, it re-enqueues itself with a configurable delay (e.g., 10 minutes).
 - Cron calls `enqueue_if_not_already_running` periodically to ensure that the job is always enqueued.
-- An advisory guarantees that only one instance of the job can execute at a time, preventing race conditions.
+- An advisory lock guarantees that only one instance of the job can execute at a time, preventing race conditions.
+- The job processes in batches. It does stops after completing a batch of records to avoid hogging resources, requeueing itself to continue work.
+- A data integrity safeguard (`reconcile_untracked_records`) ensures all active pools and destination clients have change markers.
 
 #### 3. Integration with Application Models
 
-The `Hmis::MarkClientAsDirtyBehavior` concern is the primary mechanism for flagging client changes. It is included in any `Hmis::Hud` model that, when updated, should trigger a re-evaluation of the client's eligibility.
+The `Hmis::MarkClientAsDirtyBehavior` concern is the primary mechanism for flagging client changes. It is included in HUD models that, when updated, should trigger a re-evaluation of the client's eligibility
 
 When a record with this concern is saved, an `after_save` callback triggers `Hmis::Ce::ChangeMarker.upsert_or_bump_version`, which either creates a new marker or increments the `current_version` of an existing one.
+
+#### 4. Client Deduplication Integration
+
+The `GrdaWarehouse::Tasks::IdentifyDuplicates` task flags changes to destination clients. When clients are created or updated, this task manages the updating the destination clients. Afterwards client `IdentifyDuplicates` marks the affected destination clients as dirty. This is necessary as CE matches on destination client records, not source HMIS clients.
+
+#### 5. Relationship with Daily Full Refresh
+
+The incremental change tracking system works alongside the existing daily full refresh mechanism:
+
+- **Incremental Processing**: The `ProcessChangesJob` runs frequently to process only dirty records, providing near real-time updates.
+- **Daily Full Refresh**: The `BuildCandidatePoolsJob` runs daily at to rebuild all candidate pools, serving as a comprehensive backup and catch-all for any missed changes.

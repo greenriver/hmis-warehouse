@@ -19,6 +19,8 @@ module Hmis::Ce
   class ProcessChangesJob < BaseJob
     include NotifierConfig
 
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     # Enqueues the job only if no other instance is currently queued or running.
     # This prevents job queue buildup while ensuring the processing continues.
     #
@@ -33,12 +35,14 @@ module Hmis::Ce
     # @param next_client_id [Integer] Starting client ID for batch processing (pagination)
     # @param wait_time [ActiveSupport::Duration, nil] Time to wait before scheduling next batch.
     #        If nil, job will not reschedule itself.
-    def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil)
+    # @param progress [Boolean] Whether to display progress bar (development aid)
+    def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil, progress: false)
       raise unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
 
       instrument_as_maintenance_task do |run|
         # ensure only one instance of this job runs simultaneously
         with_lock do
+          @progress = progress
           reconcile_untracked_records
 
           # get a the batch of dirty clients
@@ -53,7 +57,7 @@ module Hmis::Ce
           # load the dirty pools
           dirty_pool_markers = Hmis::Ce::ChangeMarker.dirty.pools.batch(
             start_id: next_pool_id,
-            limit: 100,
+            limit: 50,
           ).to_a
           # process dirty pools
           next_pool_id = process_dirty_pools(dirty_pool_markers)
@@ -102,7 +106,7 @@ module Hmis::Ce
       client_scope = ::GrdaWarehouse::Hud::Client.destination
 
       candidate_pool_scope.find_each do |pool|
-        Hmis::Ce::Match::Engine.call(pool, client_scope)
+        Hmis::Ce::Match::Engine.call(pool, client_scope, progress: @progress)
       end
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)
@@ -121,7 +125,7 @@ module Hmis::Ce
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where.not(id: skip_pool_ids)
 
       candidate_pool_scope.find_each do |pool|
-        Hmis::Ce::Match::Engine.call(pool, client_scope)
+        Hmis::Ce::Match::Engine.call(pool, client_scope, progress: @progress)
       end
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)

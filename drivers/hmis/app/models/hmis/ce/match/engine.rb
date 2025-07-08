@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'progress_bar'
+
 # * Find all clients that match the given pools's eligibility requirements.
 # * Score each client based on that pools's prioritization formula.
 # * Persist the results as MatchCandidate records to be consumed by opportunities.
@@ -13,14 +15,17 @@ module Hmis::Ce::Match
     # Take a two-step approach to evaluating eligibility to achieve better performance.
     # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    def call(pool, clients)
+    def call(pool, clients, progress: false)
       validate_clients_parameter!(clients)
 
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
       priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
+      filtered_clients = crude_eligibility_filter(pool.requirement_expression, clients)
+      bar = new_progress_bar(filtered_clients.count) if progress
+
       now = DateTime.current
-      crude_eligibility_filter(pool.requirement_expression, clients).in_batches do |batch|
+      filtered_clients.in_batches do |batch|
         # First iterate through the batch to import any Client Proxies that aren't present in the db already
         proxies = []
         batch.each do |client|
@@ -31,6 +36,7 @@ module Hmis::Ce::Match
         # Iterate through a second time to import candidate matches
         candidates = []
         batch.each do |client|
+          bar&.increment!
           # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently
           next unless eligibility_evaluator.call(client)
 
@@ -85,6 +91,10 @@ module Hmis::Ce::Match
 
     def field_map
       @field_map ||= FieldMap.new
+    end
+
+    def new_progress_bar(total)
+      ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
     end
   end
 end
