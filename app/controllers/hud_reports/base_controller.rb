@@ -119,12 +119,13 @@ module HudReports
     # Determines the default report version based on environment and date.
     # - In production: Uses FY 2024 until October 1, 2025, then switches to FY 2026
     # - In staging: Uses FY 2024 until September 1, 2025, then switches to FY 2026
+    # - In test: Uses FY 2024 until September 1, 2025, then switches to FY 2026, we may bring this forward, but don't have test kits yet
     # - In all other environments: Uses FY 2026
     # @return [Symbol] The default report version (:fy2024 or :fy2026)
     # Override as necessary in subclasses
     def default_report_version
       return :fy2024 if Rails.env.production? && Date.current <= '2025-10-01'.to_date
-      return :fy2024 if Rails.env.staging? && Date.current <= '2025-09-01'.to_date
+      return :fy2024 if Rails.env.staging? || Rails.env.test? && Date.current <= '2025-09-01'.to_date
 
       :fy2026
     end
