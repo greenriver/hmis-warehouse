@@ -23,6 +23,7 @@ class Role < ApplicationRecord
   has_paper_trail
 
   include UserPermissionCache
+  include HistoryDescriptions
 
   # Keep for health roles
   has_many :user_roles
