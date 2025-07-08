@@ -4,7 +4,7 @@ $table-border-color-primary: rgb(203, 203, 203);
 $table-border-color-secondary: #F0F0F0;
 
 .c-table {
-  background: $white;
+  background: var(--white);
   border: 1px solid $table-border-color-secondary;
 }
 
@@ -35,7 +35,7 @@ $table-border-color-secondary: #F0F0F0;
 }
 
 .c-table__header>th {
-  background: $white;
+  background: var(--white);
   padding: space(2) space(4);
   border-bottom: 2px solid $table-border-color;
   @include font-open-sans-condensed($size: 16px, $weight: 800);
@@ -50,7 +50,7 @@ $table-border-color-secondary: #F0F0F0;
 }
 
 .c-table__header--secondary>th {
-  background: $white;
+  background: var(--white);
   white-space: nowrap;
   border-bottom-width: 1px;
   @include font-open-sans($size: 14px, $weight: 600);
@@ -83,17 +83,17 @@ $table-border-color-secondary: #F0F0F0;
 }
 
 .c-table__cell-icon--active {
-  color: $brand-success;
+  color: var(--bs-success);
 }
 
 .c-table__cell-icon--inactive {
-  color: $gray-050;
+  color: var(--gray-050);
   font-size: rem(22px);
 }
 
 .c-table__icon-key {
   @include font-default(14px);
-  color: $gray-065;
+  color: var(--gray-065);
 }
 
 .c-table__icon-key--right {
@@ -111,7 +111,7 @@ table.table-fixed {
 .table-fixed th {
   position: sticky;
   top: 0;
-  background-color: $white;
+  background-color: var(--white);
   z-index: 100;
 
 }

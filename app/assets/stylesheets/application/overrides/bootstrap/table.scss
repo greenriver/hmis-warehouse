@@ -12,7 +12,7 @@
 
 .table__detail-row-rollup {
   &.open td {
-    background: lighten($tab-bg, 30%);
+    background: #ffffff;
   }
 }
 
@@ -36,17 +36,17 @@
   }
 
   thead tr {
-    border-color: $white;
+    border-color: var(--white);
   }
 
   thead th {
-    background: darken(#f9f9f9, 5%);
+    background: #ebebeb;
     text-align: center;
     font-weight: bold;
     font-size: 20px;
-    border-color: $white;
-    border-right: 2px solid $white;
-    border-left: 2px solid $white;
+    border-color: var(--white);
+    border-right: 2px solid var(--white);
+    border-left: 2px solid var(--white);
 
     &:last-of-type {
       border-right: 0;

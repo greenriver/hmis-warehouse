@@ -19,10 +19,10 @@ export class HtmlCellRenderer {
     wrapper.innerHTML = this.params?.value || '';
     if (this.row?.comments) {
       wrapper.setAttribute('data-bs-toggle', 'tooltip');
-      wrapper.setAttribute('data-title', this.row.comments);
-      wrapper.setAttribute('data-placement', 'left');
-      wrapper.setAttribute('data-container', 'body');
-      wrapper.setAttribute('data-boundary', 'viewport');
+      wrapper.setAttribute('data-bs-title', this.row.comments);
+      wrapper.setAttribute('data-bs-placement', 'left');
+      wrapper.setAttribute('data-bs-container', 'body');
+      wrapper.setAttribute('data-bs-boundary', 'viewport');
       $(wrapper).tooltip();
     }
     this.eGui = wrapper;

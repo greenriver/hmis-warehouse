@@ -7,8 +7,8 @@
     = pii.brief_name
     - if pii.image?
       - image = image_tag(polymorphic_path([:image, :source_client], id: client.id), width: '250').html_safe
-      =# image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'opacity: 1; width: 250px', data: { 'bs-toggle' => :tooltip, html: :true, placement: :right, title: image}}
-      = image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'width: 50px', data: { 'bs-toggle' => :tooltip, html: :true, placement: :right, title: image})
+      =# image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'opacity: 1; width: 250px', data: { 'bs-toggle' => :tooltip, 'bs-html' => :true, 'bs-placement' => :right, 'bs-title' => image}}
+      = image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'width: 50px', data: { 'bs-toggle' => :tooltip, 'bs-html' => :true, 'bs-placement' => :right, 'bs-title' => image})
 
   %td= pii.ssn
   %td= pii.dob_and_age

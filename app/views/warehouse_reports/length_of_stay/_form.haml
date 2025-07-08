@@ -11,7 +11,7 @@
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update View', class: [:jSubmit, 'btn-primary'], data: { disable_with: 'Update View' }
-    = link_to(filter_params.merge( format: :xlsx), { class: 'btn btn-secondary jXls', data: { 'bs-toggle' => 'tooltip', title: 'download the data currently displayed', 'length-of-stay-chart-target' => 'downloadLink' } } ) do
+    = link_to(filter_params.merge( format: :xlsx), { class: 'btn btn-secondary jXls', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'download the data currently displayed', 'length-of-stay-chart-target' => 'downloadLink' } } ) do
       Download Excel File
 
   = render 'warehouse_reports/filters', f:f

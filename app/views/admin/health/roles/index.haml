@@ -41,7 +41,7 @@
               %span.mr-1
                 = permission.to_s.humanize
                 - if Role.administrative?(permission: permission)
-                  %i.icon-lock.ml-2{data: { 'bs-toggle' => :tooltip, title: 'Administrative Permission'}}
+                  %i.icon-lock.ml-2{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Administrative Permission'}}
             .c-table__cell-description
               = Role.description_for(permission: permission)
           - @roles.each do |role|

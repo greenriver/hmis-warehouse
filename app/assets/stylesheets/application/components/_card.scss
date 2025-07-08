@@ -27,7 +27,7 @@
 }
 
 .c-card__header--bordered {
-  border-bottom: $gray-015 1px solid;
+  border-bottom: var(--gray-015) 1px solid;
 }
 
 .c-card__header--external {
@@ -121,7 +121,7 @@
   &:focus,
   &:hover {
     color: $text-color;
-    box-shadow: 0 2px 8px rgba($black, .1);
+    box-shadow: 0 2px 8px rgba(var(--black), .1);
   }
 
   &:active {
@@ -280,7 +280,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  border-top: $gray-015 1px solid;
+  border-top: var(--gray-015) 1px solid;
   flex-wrap: wrap;
   padding: 0 space(4);
 
@@ -314,7 +314,7 @@
 }
 
 .c-card__content-block--danger {
-  background-color: lighten($brand-danger-l, 5%);
+  background-color: var(--brand-danger-lll);
   padding: space(4);
 }
 
@@ -346,9 +346,9 @@
 }
 
 $levels: (
-  warning: $brand-warning,
-  danger: $brand-danger,
-  info: $brand-info,
+  warning: var(--bs-warning),
+  danger: var(--bs-danger),
+  info: var(--bs-info),
 );
 
 @each $level, $color in $levels {

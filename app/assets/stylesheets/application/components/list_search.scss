@@ -1,9 +1,9 @@
 @import '../helpers';
 
 .c-list-search {
-  background: $white;
+  background: var(--white);
   border-radius: $border-radius;
-  border: 2px solid $white;
+  border: 2px solid var(--white);
 }
 
 .c-list-search__header {
@@ -56,7 +56,7 @@
 
 .c-list-search__filtration-nav {
   background: $body-bg;
-  border-right: 5px solid $white;
+  border-right: 5px solid var(--white);
   position: relative;
   flex: 0 1 300px;
 }
@@ -85,8 +85,8 @@
     }
 
     &[aria-pressed=true] {
-      color: $white;
-      background: $brand-primary;
+      color: var(--white);
+      background: var(--bs-primary);
       font-weight: bold;
     }
   }
@@ -119,12 +119,12 @@
 .c-list-search__list-group--recently-viewed,
 .c-list-search__list-group--favorites {
   .c-list-search__list-group-header {
-    background: $brand-primary-ll;
+    background: var(--brand-primary-llll);
   }
 }
 
 .c-list-search__list-group-header {
-  background: $gray-015;
+  background: var(--gray-015);
   padding: space(4);
   position: sticky;
   top: 0;
@@ -194,7 +194,7 @@
     border: none;
 
     i {
-      color: $cob-sg-optimistic-blue;
+      color: var(--theme-bright-blue);
     }
   }
 }
@@ -202,6 +202,6 @@
 .c-list-search__no-results {
   text-align: center;
   font-style: italic;
-  background: $gray-015;
+  background: var(--gray-015);
   padding: space(4);
 }

@@ -32,7 +32,7 @@
                     .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
               %td
                 - project = service.project
-                %span{ data: { 'bs-toggle' => 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
+                %span{ data: { 'bs-toggle' => 'tooltip', 'bs-title' => project&.organization_and_name(current_user), project: projects[project] } }
                   = project&.name(current_user) || 'Unable to determine project name'
               %td= service.enrollment.EntryDate
               %td= service.DateProvided

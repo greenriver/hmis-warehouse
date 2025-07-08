@@ -31,7 +31,7 @@
         %tr
           %th Project
           - @headers.each_with_index do |header, i|
-            %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { 'bs-toggle' => 'tooltip', title: 'days in project' } if header == 'average' ) }
+            %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { 'bs-toggle' => 'tooltip', 'bs-title' => 'days in project' } if header == 'average' ) }
               = header
       %tbody{ "data-length-of-stay-chart-target" => "tableBody" }
 

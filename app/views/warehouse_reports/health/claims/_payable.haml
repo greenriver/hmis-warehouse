@@ -31,5 +31,5 @@
                     - if qa.procedure_valid?
                       = qa.procedure_with_modifiers
                     - else
-                      %span{data: { 'bs-toggle' => :tooltip, title: "#{qa.procedure_with_modifiers} is not a valid Procedure Code"}}
+                      %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "#{qa.procedure_with_modifiers} is not a valid Procedure Code"}}
                         = qa.procedure_with_modifiers

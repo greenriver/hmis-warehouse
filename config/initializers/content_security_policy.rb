@@ -16,7 +16,7 @@ Rails.application.config.content_security_policy do |policy|
       ENV['OKTA_DOMAIN'], # okta auth form redirect location
     ].compact_blank,
   )
-  policy.frame_ancestors(:none) # Prevents clickjacking attacks (UI redressing attacks)
+  policy.frame_ancestors(:self) # Prevents clickjacking attacks (UI redressing attacks), but allows iframes from the same domain
 
   policy.font_src(
     :self,
@@ -27,6 +27,7 @@ Rails.application.config.content_security_policy do |policy|
     :self,
     :data,
     'https://*.openstreetmap.org',
+    'https://*.pravatar.cc',
   )
   policy.script_src(
     :self,

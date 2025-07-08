@@ -16,10 +16,49 @@
 = simple_form_for @theme, as: :theme, url: admin_theme_path do |f|
   %h3 Warehouse Theme
   .well
-    %p This file contains any overrides for SCSS variables, usually it is used to set the overall color scheme
-    = f.input :scss_file_contents, as: :text, label: 'SCSS file', input_html: { rows: 30 }
-    %p This file is integrated at the end of the CSS and will override anything that comes before.
+    %p This file is integrated at the beginning of the CSS and provides css variables used in Bootstrap as well as any other custom styles necessary.
     = f.input :css_file_contents, as: :text, label: 'CSS file', input_html: { rows: 30 }
+  %h4 Logos
+  .well
+    .row
+      .col
+        = f.input :logo, as: :file, label: 'Logo'
+        %p The logo will be displayed at 85px tall, with a max width of 450px
+      - if @theme.logo.attached?
+        .col
+          %h5 Current Logo
+          .seal-image
+            - logo = @theme.logo
+            - if logo.attached?
+              - content_type = logo.blob.content_type
+              = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_logo}", class: :seal)
+
+    %hr
+    .row.mb-4
+      .col
+        = f.input :print_logo, as: :file, label: 'Print Logo'
+        %p The print logo will be displayed in the header of the printed reports.
+      - if @theme.print_logo.attached?
+        .col
+          %h5 Current Print Logo
+          .seal-image
+            - logo = @theme.print_logo
+            - if logo.attached?
+              - content_type = logo.blob.content_type
+              = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_print_logo}", class: :seal)
+    %hr
+    .row.mb-4
+      .col
+        = f.input :careplan_logo, as: :file, label: 'Careplan Logo'
+        %p The careplan logo will be displayed in the header of the careplan documents.
+      - if @theme.careplan_logo.attached?
+        .col
+          %h5 Current Careplan Logo
+          .seal-image
+            - logo = @theme.careplan_logo
+            - if logo.attached?
+              - content_type = logo.blob.content_type
+              = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_careplan_logo}", class: :seal)
   %h3 HMIS Theme
   .well
     = f.input :hmis_origin
