@@ -1,0 +1,16 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Date changed
+        %th Editor
+        %th Entity Type
+        %th Entity Name
+        %th Changed Entity Type
+        %th Changed Entity Name
+        %th Event
+        %th Description
+    %tbody
+      - record = @history.record
+      - list.each do |item|
+        = render 'admin/audits/shared/row', item: item, record: record
