@@ -516,7 +516,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'has the same first-time homeless count in both reports for ES, SH, TH' do
       # SPM report first-time homeless in ES, SH, TH
-      spm_count = @spm_report.answer(question: '5.1', cell: 'C4').summary
+      spm_count = @spm_report.answer(question: '5.1', cell: 'C4').summary # TODO: confirm if we want to pivot to 5.2
 
       # PM report first-time homeless
       pm_result = @pm_report.result_for(:first_time_homeless_clients)
@@ -528,7 +528,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'counts the same total entries in the reporting period' do
       # SPM report total universe
-      spm_count = @spm_report.answer(question: '5.1', cell: 'C2').summary
+      spm_count = @spm_report.answer(question: '5.1', cell: 'C2').summary # TODO: confirm if we want to pivot to 5.2
 
       # Count from PM report
       # This may need adjustment depending on exactly how PM tracks this

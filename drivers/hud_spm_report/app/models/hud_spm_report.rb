@@ -8,8 +8,12 @@
 
 module HudSpmReport
   def self.current_generator
-    TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Generators::Fy2026::Generator'", by: '2025-09-01')
     TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Generators::Fy2026::Generator'", by: '2025-10-01')
-    HudSpmReport::Generators::Fy2024::Generator
+    active_version = ::HudReports::BaseController.new.default_report_version
+    if active_version == :fy2026
+      HudSpmReport::Generators::Fy2026::Generator
+    else
+      HudSpmReport::Generators::Fy2024::Generator
+    end
   end
 end

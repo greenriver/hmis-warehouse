@@ -163,6 +163,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end.to not_change(assignee.staff_assignments, :count).
         and change(assignment, :household_id).from(donor_household_id).to(receiving_enrollment.household_id)
     end
+
+    context 'and the receiving household had a duplicate staff assignment' do
+      let!(:receiving_assignment) do
+        create(
+          :hmis_staff_assignment,
+          staff_assignment_relationship: assignment.staff_assignment_relationship,
+          user: assignee,
+          data_source: ds1,
+          enrollment: receiving_enrollment,
+        )
+      end
+
+      it 'does not error' do
+        expect do
+          perform_mutation
+          assignee.reload
+        end.to change(assignee.staff_assignments, :count).by(-1)
+
+        expect do
+          assignment.reload
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
   end
 
   describe 'unit assignment' do

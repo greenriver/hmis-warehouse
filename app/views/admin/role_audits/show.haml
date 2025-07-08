@@ -1,0 +1,5 @@
+= render 'admin/audits/shared/layout', 
+  entity_type: 'Role',
+  entity_path: admin_roles_path,
+  export_path: export_admin_role_audit_path(@role, format: :csv),
+  item: @role
