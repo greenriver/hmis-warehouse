@@ -46,6 +46,8 @@ module Hmis::Ce
       when 'set_move_in_date'
         # Can be triggered on the same step as create_enrollment, or a later step
         referral_enroller.set_move_in_date(message)
+      when 'set_custom_referral_status'
+        set_custom_referral_status(message)
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -91,6 +93,14 @@ module Hmis::Ce
       #   referral_id: self.id,
       #   user_id: event.user.id,
       # ).deliver_later
+    end
+
+    def set_custom_referral_status(message) # rubocop:disable Naming/AccessorMethodName
+      status_key = message.params['custom_status_key']
+      return unless status_key
+
+      status = Hmis::Ce::CustomReferralStatus.find_by(key: status_key)
+      referral.update!(custom_status: status)
     end
 
     private def referral_enroller
