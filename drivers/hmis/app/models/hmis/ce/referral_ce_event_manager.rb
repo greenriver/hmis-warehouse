@@ -31,7 +31,7 @@ module Hmis::Ce
     def set_ce_event_result(message) # rubocop:disable Naming/AccessorMethodName
       enrollment = referral.source_enrollment
       event_type = project_to_event_type(referral.target_project)
-      event = enrollment.events.where(event: event_type).first
+      event = enrollment.events.where(event: event_type).order(:date_created).last # We don't have a precise way to map to the CE Event that was created earlier in this workflow, so just expect it to be the most recently created one.
       raise "Expected to find CE event of type #{event_type} for enrollment #{enrollment.id}" unless event
 
       referral_result = message.params['referral_result']&.to_i
