@@ -170,7 +170,9 @@ module Types
 
     def audit_events
       object.audit_events.
-        where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
+        where(event_type: 'end_workflow').
+        where("event_data->>'message' IN (?)", [Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE, Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE]).
+        or(object.audit_events.where(event_type: ['complete_step', 'start_workflow'])).
         order(created_at: :desc)
     end
 
