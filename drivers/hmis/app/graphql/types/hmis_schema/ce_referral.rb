@@ -10,30 +10,28 @@ module Types
   class HmisSchema::CeReferral < Types::BaseObject
     # object is a Hmis::Ce::Referral
 
-    # TODO add object-level auth to this type, it exposes a lot
-
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
     field :client_id, ID, null: false
-    field :client_name, String, null: false, description: 'Name of client being referred. Available even if the user does not have permission to view the full client record.'
-    field :client_age, Integer, null: true, description: 'Age of client being referred. Available even if the user does not have permission to view the full client record.'
-    field :client, Types::HmisSchema::Client, null: true, description: 'The client associated with this referral. This is only present if the current user otherwise has access to view this full client.'
+    field :client_name, String, null: false, description: 'The name of the referred client. Always available, even without full client record access.'
+    field :client_age, Integer, null: true, description: 'The age of the referred client. Always available, even without full client record access.'
+    field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
 
     field :current_steps, [HmisSchema::CeReferralStep], null: true
     field :days_on_current_steps, Integer, null: true
     field :updated_by, Application::User, null: true
-    field :target_enrollment, Types::HmisSchema::Enrollment, null: true
-    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true
+    field :target_enrollment, Types::HmisSchema::Enrollment, null: true, description: 'Target enrollment, if the user has permission to view it.'
+    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
     field :notes, HmisSchema::CeReferralNote.page_type, null: false
 
     # generically resolve current values for any fields referenced by Match Rule expressions
-    field :current_match_values, [HmisSchema::CeMatchValue], null: true
+    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.'
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -154,15 +152,11 @@ module Types
     def source_enrollment
       return unless object.source_enrollment_id
 
-      # For now, only resolve source enrollment if the user can view it. We may want to expand this to be viewable to all Referral participants, TBD.
-      # This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment.
-      enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
+      # Resolve source Enrollment without checking viewable_by.This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment
+      enrollment = load_ar_association(object, :source_enrollment)
 
-      OpenStruct.new(
-        enrollment: enrollment,
-        # tell CeReferralSourceEnrollment which assessment metadata is relevant to resolve
-        definition_identifiers: object.opportunity.candidate_pool.relevant_form_definition_identifiers,
-      )
+      # Not passing definition_identifiers because we don't need to resolve assessment data in this context (for now)
+      OpenStruct.new(enrollment: enrollment, definition_identifiers: [])
     end
 
     def referred_by
@@ -209,54 +203,6 @@ module Types
 
     def notes
       object.notes.order(created_at: :desc)
-    end
-
-    # Resolves array of fields referenced by Match Rules for this referral's opportunity,
-    # with their current values for the referred Client's _Destination_ Client record.
-    # NOTE: This field intentionally exposes data that the current user may not otherwise have permission to view.
-    def current_match_values
-      # Fetch all match rules applicable to the opportunity
-      # TODO: this should really be the rules _as they were_ when the referral was created, not the current rules
-      match_rules = Hmis::Ce::Match::Rule.for_opportunity(object.opportunity)
-      field_map = Hmis::Ce::Match::FieldMap.new
-      cde_field_map = Hmis::Ce::Match::CdeFieldMap.new
-      destination_client = object.client.destination_client.as_warehouse
-      match_values = []
-
-      seen_field_names = Set.new # To deduplicate fields. No need to resolve the same field multiple times.
-      match_rules.sort_by(&:id).map do |rule|
-        evaluator = Hmis::Ce::Match::ClientExpressionEvaluator.new(rule.expression, field_map)
-        evaluator.resolve_client_values(destination_client).map do |field_name, current_value|
-          # Skip if Field has already been processed, for example expression "household_size = 1 OR household_size = 2"
-          next if seen_field_names.include?(field_name)
-
-          seen_field_names.add(field_name)
-          field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field_name)
-
-          # Transform field name into human-readable label
-          label = case field_type
-          when Hmis::Ce::Match::FieldMap::CDE
-            cde_field_map.cded_for(resolved_field)&.label
-          when Hmis::Ce::Match::FieldMap::CLIENT
-            resolved_field.humanize
-          else
-            field_name
-          end
-
-          # For fields that resolve to an array of project types, translate numeric project types to human-readable strings
-          if field_type == Hmis::Ce::Match::FieldMap::CLIENT && Hmis::Ce::Match::ClientFieldMap::PROJECT_TYPE_FIELDS.include?(resolved_field.to_sym)
-              current_value = Array.wrap(current_value).map { |project_type| HudUtility2026.project_type(project_type) }
-          end
-
-          # OpenStruct resolves as HmisSchema::CeMatchValue
-          OpenStruct.new(
-            rule_id: rule.id,     # ID of rule that references this field
-            rule_name: rule.name, # Name of rule that references this field
-            field_name: label,
-            field_values: Array.wrap(current_value),
-          )
-        end
-      end.flatten.compact
     end
 
     private
