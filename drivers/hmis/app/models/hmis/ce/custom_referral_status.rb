@@ -12,7 +12,7 @@ module Hmis::Ce
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     scope :viewable_by, ->(user) do
-      # todo @martha - by data source?
+      where(data_source_id: user.hmis_data_source_id)
     end
   end
 end

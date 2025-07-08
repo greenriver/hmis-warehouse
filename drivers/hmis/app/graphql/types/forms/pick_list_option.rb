@@ -86,6 +86,8 @@ module Types
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
+      when 'CE_REFERRAL_STATUSES'
+        Hmis::Ce::CustomReferralStatus.viewable_by(user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
