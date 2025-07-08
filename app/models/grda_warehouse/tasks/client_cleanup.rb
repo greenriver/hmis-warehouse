@@ -461,12 +461,18 @@ module GrdaWarehouse::Tasks
       status = calculate_best_veteran_status(dest_attr[:verified_veteran_status], dest_attr[:va_verified_veteran], sorted_source_clients)
       dest_attr[:VeteranStatus] = status
 
+      # status is 1 if dest_attr[:va_verified_veteran] is true or if any source client has VeteranStatus == 1
       if status == 1
         most_recent_vet = sorted_source_clients.detect { |c| c[:VeteranStatus] == 1 }
-        veteran_related_columns.each do |col|
-          dest_attr[col] = most_recent_vet[col]
+        # if a source client has VeteranStatus == 1, set the veteran-related columns to the values from that source client.
+        # Otherwise, leave the destination client's veteran-related columns as is because the status is coming from the destination client.
+        if most_recent_vet.present?
+          veteran_related_columns.each do |col|
+            dest_attr[col] = most_recent_vet[col]
+          end
         end
       else
+        # if the veteran status is not 1, set the veteran-related columns to nil
         veteran_related_columns.each do |col|
           dest_attr[col] = nil
         end
