@@ -118,7 +118,7 @@ module Hmis::Ce
     #
     # NOTE: This field intentionally does not check viewable_by scopes on the associated data;
     # it is resolved in the GraphQL API to expose pertinent data that the current user may not otherwise have permission to view.
-    def current_match_values
+    def resolve_match_rule_fields
       # Fetch all match rules applicable to the opportunity
       # TODO: this should really be the rules _as they were_ when the referral was created, not the current rules
       match_rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity)

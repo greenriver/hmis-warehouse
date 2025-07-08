@@ -920,22 +920,25 @@ type CeReferral {
   auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated!
 
   """
-  The client associated with this referral. This is only present if the current
-  user otherwise has access to view this full client.
+  The full client record, if the user has permission to view it.
   """
   client: Client
 
   """
-  Age of client being referred. Available even if the user does not have permission to view the full client record.
+  The age of the referred client. Always available, even without full client record access.
   """
   clientAge: Int
   clientId: ID!
 
   """
-  Name of client being referred. Available even if the user does not have permission to view the full client record.
+  The name of the referred client. Always available, even without full client record access.
   """
   clientName: String!
   createdAt: ISO8601DateTime!
+
+  """
+  Eligibility-related field values. May expose data beyond normal permissions.
+  """
   currentMatchValues: [CeMatchValue!]
   currentSteps: [CeReferralStep!]
   daysOnCurrentSteps: Int
@@ -943,10 +946,18 @@ type CeReferral {
   notes(limit: Int, offset: Int): CeReferralNotesPaginated!
   opportunity: CeOpportunity!
   referredBy: ApplicationUser
+
+  """
+  Limited details about the source enrollment. Available even without full access to the source record.
+  """
   sourceEnrollment: CeReferralSourceEnrollment
   status: CeReferralStatus!
   steps: [CeReferralStep!]!
   swimlanes: [CeReferralSwimlane!]!
+
+  """
+  Target enrollment, if the user has permission to view it.
+  """
   targetEnrollment: Enrollment
   targetOrganizationName: String!
   targetProjectId: ID!

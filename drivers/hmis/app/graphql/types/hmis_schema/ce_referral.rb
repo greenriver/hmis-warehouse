@@ -31,7 +31,7 @@ module Types
     field :notes, HmisSchema::CeReferralNote.page_type, null: false
 
     # generically resolve current values for any fields referenced by Match Rule expressions
-    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.'
+    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.', method: :resolve_match_rule_fields
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
