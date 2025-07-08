@@ -1,5 +1,5 @@
 -# qa.validity_class
--#%div{data: { 'bs-toggle' => :tooltip, title: qa.describe_validity_reasons.join(', ').humanize}}= qa.date_of_activity.to_date
+-#%div{data: { 'bs-toggle' => :tooltip, 'bs-title' => qa.describe_validity_reasons.join(', ').humanize}}= qa.date_of_activity.to_date
 -#= qa.claim_submitted_on&.to_date
 -#= qa.title_for_activity
 -#= qa.title_for_mode_of_contact

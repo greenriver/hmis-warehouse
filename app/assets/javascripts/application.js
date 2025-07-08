@@ -18,7 +18,6 @@
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
-//= require chart.js/dist/Chart.bundle.min
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete

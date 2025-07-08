@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
-const { bb, bar, pie, donut } = window.bb;
 import rfdc from 'rfdc'
+import { bb, bar, pie, donut } from "billboard.js";
+import "billboard.js/dist/billboard.css";
 
 export default class extends Controller {
   static get targets() {

@@ -9,14 +9,13 @@
           %h4.modal-title
             %i.icon-upload2
             Upload Consent Form
-          %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
-            %i.modal-icon-close{"aria-hidden" => "true"}
+          %button.btn-close{"aria-label" => "Close", "data-bs-dismiss" => "modal", :type => "button"}
         .modal-body
           = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
           = f.input :effective_date, as: :date_picker
           = f.input :client_file, as: :file, required: true
         .modal-footer
-          %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+          %button.btn.btn-default{"data-bs-dismiss" => "modal", :type => "button"} Close
           %button.btn.btn-primary(type='submit') Upload
 
 = simple_form_for @vispdat, url: path, wrapper: (readonly || SimpleForm.default_wrapper), html: { class: 'vispdat-form', data: { url: polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id, format: :js) }}  do |f|

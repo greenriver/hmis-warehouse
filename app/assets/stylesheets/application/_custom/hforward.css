@@ -1,0 +1,39 @@
+:root {
+  /* Primary: #4F2C1D */
+  --bs-primary-hue: 20;
+  --bs-primary-saturation: 46%;
+  --bs-primary-lightness: 21%;
+
+  /* Success: #66CDAA */
+  --bs-success-hue: 160;
+  --bs-success-saturation: 51%;
+  --bs-success-lightness: 73%;
+
+  /* Warning: #EAAA00 */
+  --bs-warning-hue: 44;
+  --bs-warning-saturation: 100%;
+  --bs-warning-lightness: 46%;
+
+  /* Danger: #D22630 */
+  --bs-danger-hue: 357;
+  --bs-danger-saturation: 75%;
+  --bs-danger-lightness: 52%;
+
+  /* Theme Background: #4F2C1D */
+  --theme-background-hue: 20;
+  --theme-background-saturation: 46%;
+  --theme-background-lightness: 21%;
+
+  /* Custom overrides */
+  --brand-primary-lll: #d39f89;
+  --brand-primary-llll: #e9cfc4;
+  --brand-success-lll: #e0f5ee;
+  --brand-warning-lll: #ffefc7;
+  --brand-danger-lll: #eea6aa;
+}
+
+footer {
+  background-color: #FFFAEB;
+  box-shadow: none;
+  color: rgb(28, 26, 27);
+}

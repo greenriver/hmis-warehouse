@@ -1,4 +1,4 @@
-@mixin button($color: $brand-primary) {
+@mixin button($color: var(--bs-primary)) {
   color: $body-color;
   // Custom styles
   @include custom-button-styles;

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class LengthOfStayController < ApplicationController
     include ArelHelper
@@ -11,6 +13,7 @@ module WarehouseReports
     before_action :load_mo
 
     def index
+      @per_page_js = ['length_of_stay']
       length_of_stay if request.format.xlsx?
       respond_to :html, :xlsx
     end

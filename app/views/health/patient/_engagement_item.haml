@@ -4,9 +4,9 @@
   = if_link_to(link, url, data) do
     - case status
     - when :no_signed_form, :in_progress
-      %span.icon-checkmark.mr-1.o-color--gray-l{data: { 'bs-toggle' => :tooltip, title:tooltip}}
+      %span.icon-checkmark.mr-1.o-color--gray-l{data: { 'bs-toggle' => :tooltip, 'bs-title' =>tooltip}}
     - when :too_old, :expired, :being_updated
-      %span.icon-hourglass.mr-1.o-color--gray-d{data: { 'bs-toggle' => :tooltip, title:tooltip}}
+      %span.icon-hourglass.mr-1.o-color--gray-d{data: { 'bs-toggle' => :tooltip, 'bs-title' =>tooltip}}
     - else
-      %span.icon-checkmark.o-color--positive.mr-1{data: { 'bs-toggle' => :tooltip, title:tooltip}}
+      %span.icon-checkmark.o-color--positive.mr-1{data: { 'bs-toggle' => :tooltip, 'bs-title' =>tooltip}}
     = label

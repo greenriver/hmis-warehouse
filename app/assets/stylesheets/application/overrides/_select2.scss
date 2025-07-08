@@ -43,7 +43,7 @@
 }
 
 .select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
-  background-color: $brand-primary;
+  background-color: var(--bs-primary);
 }
 
 .select2-container--default [aria-multiselectable="true"] .select2-results__group {
@@ -103,7 +103,7 @@
   &,
   b {
     position: static;
-    border-color: $brand-primary transparent transparent transparent;
+    border-color: var(--bs-primary) transparent transparent transparent;
   }
 }
 

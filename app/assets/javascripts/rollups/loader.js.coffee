@@ -12,11 +12,11 @@ class App.Rollups.Loader
             $e.find('.rollup-container').append data
             for el in $e.find('[data-bs-toggle=tooltip]')
               $el = $(el)
-              if $el.data('title')
+              if $el.data('bs-title')
                 options =
                   html: true
-                  title: $el.data('title')
-                  placement: $el.data('placement') || 'top'
+                  title: $el.data('bs-title')
+                  placement: $el.data('bs-placement') || 'top'
                   fallbackPlacements: ['top', 'bottom', 'right', 'left']
                 new bootstrap.Tooltip(el, options)
             # dress up all the id dots

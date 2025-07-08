@@ -28,8 +28,6 @@ $input-btn-xs-padding-y: .15rem;
 $input-btn-xs-padding-x: .5rem;
 $input-padding-y: $input-btn-padding-y;
 $input-padding-x: $input-btn-padding-x;
-$input-border-color: $brand-primary-l;
-$input-border: $input-border-color;
 $input-height-base: 40px;
 
 // Buttons
@@ -38,14 +36,8 @@ $btn-padding-y : $input-btn-padding-y;
 $btn-padding-x-sm: 1.5rem;
 $btn-padding-y-sm: .4rem;
 
-// Theme Colors
-$primary: $brand-primary;
-$secondary: $brand-secondary;
-$success: $brand-success;
-$info: $brand-info;
-$warning: $brand-warning;
-$danger: $brand-danger;
-
+// Theme Colors are now controlled by CSS variables.
+// The Sass variables that assigned them are removed.
 $light: $gray-015;
 $dark: $gray-080;
 
@@ -61,15 +53,17 @@ $heading-color: $gray-070;
 $link-color: $link-blue;
 $link-hover-decoration: none;
 
-// Labels
-$label-default-bg: lighten($gray-light, 30%);
-$label-primary-bg: $brand-primary-l;
+// Labels & Pagination - Legacy variables.
+// This styling is now controlled by utility classes and CSS variables.
+// The legacy Sass variables have been removed to prevent compilation errors.
+// $label-default-bg: lighten($gray-light, 30%);
+// $label-primary-bg: $brand-primary-l;
 
 // Pagination
 $pagination-padding-y: .65rem;
 $pagination-padding-x: 1rem;
 $pagination-color: $link-color;
-$pagination-active-bg: $brand-primary-d;
+// $pagination-active-bg: $brand-primary-d;
 
 $font-size-base: 1rem !default;
 $font-size-large: ceil(($font-size-base * 1.25)) !default; // ~18px

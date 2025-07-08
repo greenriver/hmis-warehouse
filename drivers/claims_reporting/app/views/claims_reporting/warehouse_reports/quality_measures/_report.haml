@@ -25,10 +25,10 @@
               %div= f.format_pct(data[:value] * 100.0)
               - if data[:denominator].present?
                 %small.text-muted.text-nowrap
-                  %span{data: { 'bs-toggle' => :tooltip, title: info.numerator}}
+                  %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => info.numerator}}
                     =  f.format_i(data[:numerator])
                   = "/"
-                  %span{data: { 'bs-toggle' => :tooltip, title: info.denominator}}
+                  %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => info.denominator}}
                     = f.format_i(data[:denominator])
           - else
             .h3

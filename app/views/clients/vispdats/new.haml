@@ -9,7 +9,7 @@
     %small VI-SPDAT
     = render 'type_warning'
   .o-page__action
-    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'Back', data: { 'bs-toggle' => 'tooltip' }
+    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', 'bs-title' => 'Back', data: { 'bs-toggle' => 'tooltip' }
 
   = render 'clients/tab_navigation', current: polymorphic_path(vispdats_path_generator, client_id: @client)
 

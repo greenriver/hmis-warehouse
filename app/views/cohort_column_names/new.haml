@@ -33,7 +33,7 @@
             - type = column_type(column)
             = type
             - if type == 'Read only'
-              %i.icon-info{ data: { 'bs-toggle' => :tooltip, title: 'Calculation cannot be adjusted.  The description and column name should only be changed to increase clarity of the calculation.'}}
+              %i.icon-info{ data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Calculation cannot be adjusted.  The description and column name should only be changed to increase clarity of the calculation.'}}
           %td
             = f.input "#{column.column}_active", label: false, as: :boolean, input_html: { checked: column.active? }
 

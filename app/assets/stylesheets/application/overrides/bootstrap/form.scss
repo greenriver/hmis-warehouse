@@ -15,7 +15,7 @@
 
 .input-group>.form-control+button {
   background: #d8e7ea;
-  color: $brand-primary-d;
+  color: var(--brand-primary-d);
 }
 
 .input-group>.form-control+* [class^='icon'] {

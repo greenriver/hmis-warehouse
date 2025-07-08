@@ -2,32 +2,32 @@
   - content_for :filters_col_full do
     .row.w-100.mb-4
       .col-sm-4
-        = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source'}, as: :select_two
+        = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source', data: { 'missing-values-chart-target' => 'sourceSelect', action: 'change->missing-values-chart#hideHideable' } }, as: :select_two
       .col-sm-6
-        .hideable.datas.mb-4
+        .hideable.datas.mb-4{ data: { 'missing-values-chart-target' => 'hideable' } }
           = f.input :data_source, collection: @query.all_sources[:data_sources], as: :select_two
-        .hideable.org.mb-4
+        .hideable.org.mb-4{ data: { 'missing-values-chart-target' => 'hideable' } }
           = f.input :organization, collection: @query.all_sources[:organizations], as: :select_two
-        .hideable.proj.mb-4
+        .hideable.proj.mb-4{ data: { 'missing-values-chart-target' => 'hideable' } }
           = f.input :project, collection: @query.all_sources[:projects], as: :select_two
     .row.w-100
       .col-sm-12
-        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns'}, as: :select_two
+        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns', data: { 'missing-values-chart-target' => 'columnsSelect' } }, as: :select_two
 
   - content_for :filter_actions do
     = f.submit 'Count missing fields', class: 'btn btn-primary'
-    %a#clear-cols.btn.btn-default{ href: '#' } Clear
-    %a#client-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'add all fields from the HUD Client table' } }
+    %a#clear-cols.btn.btn-default{ href: '#', data: { action: 'click->missing-values-chart#clearColumns' } } Clear
+    %a#client-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'add all fields from the HUD Client table', action: 'click->missing-values-chart#selectClientColumns' } }
       Client fields
-    %a#enrollment-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'add all fields from the HUD Enrollment table' } }
+    %a#enrollment-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'add all fields from the HUD Enrollment table', action: 'click->missing-values-chart#selectEnrollmentColumns' } }
       Enrollment fields
-    %a#default-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'add the fields chosen by default' } }
+    %a#default-cols.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'add the fields chosen by default', action: 'click->missing-values-chart#selectDefaultColumns' } }
       Default fields
-    %a#reset.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', title: 'reload the page to show the columns currently displayed' } }
+    %a#reset.btn.btn-default{ href: '#', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'reload the page to show the columns currently displayed', action: 'click->missing-values-chart#reset' } }
       Reset
 
     .ml-auto
-      = link_to( query_params.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { 'bs-toggle' => 'tooltip', title: 'download the data currently displayed' } } ) do
+      = link_to( query_params.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'download the data currently displayed' } } ) do
         Download Excel
 
   = render 'warehouse_reports/filters', f:f
