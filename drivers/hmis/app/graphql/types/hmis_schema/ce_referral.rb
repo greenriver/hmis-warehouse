@@ -89,12 +89,12 @@ module Types
     # NOTE: This field intentionally does not check can_view_clients
     def client_name
       c = load_ar_association(object, :client)
-      c&.brief_name || c&.masked_name
+      c.brief_name.presence || c.masked_name
     end
 
     # NOTE: This field intentionally does not check can_view_clients
     def client_age
-      load_ar_association(object, :client)&.age
+      load_ar_association(object, :client).age
     end
 
     def current_steps
