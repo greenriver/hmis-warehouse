@@ -45,20 +45,9 @@ context.potential_permissions                # => All permissions user could hav
   - `HmisProjectAccessGroupLoader` - loads access groups for projects
   - `CeReferralAssignmentLoader` - loads referral assignments for users
 
-### 4. **Models**
-- **Responsibility**: Declare their policy class via `policy_class` method
-- **Convention**: Keep authorization logic OUT of models - delegate to policies
-
-```ruby
-class Hmis::Hud::Project < Hmis::Hud::Base
-  def self.policy_class = Hmis::AuthPolicies::HmisProjectPolicy
-  def policy_class = self.class.policy_class
-end
-```
-
-### 5. **Consumers** (GraphQL/Controllers)
+### 4. **Consumers** (GraphQL/Controllers)
 - **Location**: GraphQL Resolvers, Controllers, etc.
-- **Usage**: Call `user.policy_for(resource)` then check permissions
+- **Usage**: Call `user.policy_for(resource, policy_class: MyPolicy)` then check permissions
 
 ## Architecture Flow
 
@@ -69,7 +58,7 @@ graph TD;
     end
 
     subgraph Authorization Framework
-        B["current_user.policy_for(resource)"]
+        B["current_user.policy_for(resource, policy_class: MyPolicy)"]
         C["Policy Class<br>(e.g., CeReferralPolicy)"]
         D["UserContext<br>(Request-level cache)"]
         E["Context Loaders<br>(Bulk data loading)"]
@@ -91,7 +80,7 @@ graph TD;
 # In a GraphQL mutation
 def resolve(referral_id:)
   referral = Hmis::Ce::Referral.find(referral_id)
-  access_denied! unless policy_for(referral).can_view?
+  access_denied! unless policy_for(referral, policy_class: Hmis::AuthPolicies::CeReferralPolicy).can_view?
   # ... continue with business logic
 end
 ```
@@ -100,7 +89,7 @@ end
 ```ruby
 # Check if user can perform any staff assignments
 def staff_assignments
-  return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment).can_index?
+  return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment, policy_class: Hmis::AuthPolicies::StaffAssignmentPolicy).can_index?
   # ... return assignments
 end
 ```
@@ -131,20 +120,13 @@ class Hmis::AuthPolicies::MyResourcePolicy < Hmis::AuthPolicies::BasePolicy
 end
 ```
 
-2. **Link the model to the policy:**
-```ruby
-class Hmis::MyResource < Hmis::HmisBase
-  def policy_class = Hmis::AuthPolicies::MyResourcePolicy
-end
-```
-
-3. **Write tests:**
+2. **Write tests:**
 ```ruby
 # spec/models/hmis/auth_policies/my_resource_policy_spec.rb
 RSpec.describe Hmis::AuthPolicies::MyResourcePolicy do
   let(:user) { create(:hmis_user) }
-  let(:resource) { create(:hmis_my_resource) }
-  let(:policy) { user.policy_for(resource) }
+  let(:resource) { create(:my_resource) }
+  let(:policy) { user.policy_for(resource, policy_class: Hmis::AuthPolicies::MyResourcePolicy) }
 
   it 'allows viewing with proper permissions' do
     create_access_control(user, resource, with_permission: [:can_view_my_resource])

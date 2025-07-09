@@ -50,7 +50,7 @@ module Types
     end
 
     def candidates # not for batch
-      return Hmis::Ce::Match::Candidate.none unless policy_for(object).can_view_candidates?
+      return Hmis::Ce::Match::Candidate.none unless policy_for(object, policy_class: Hmis::AuthPolicies::CeOpportunityPolicy).can_view_candidates?
 
       Hmis::Ce::Match::Candidate.
         for_opportunity(object).

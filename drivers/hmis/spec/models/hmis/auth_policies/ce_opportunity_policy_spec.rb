@@ -8,9 +8,9 @@ RSpec.describe Hmis::AuthPolicies::CeOpportunityPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, data_source: data_source) }
-  let(:policy) { user.policy_for(opportunity) }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }
   let(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+  let(:policy) { user.policy_for(opportunity, policy_class: Hmis::AuthPolicies::CeOpportunityPolicy) }
 
   describe '#can_create_referral?' do
     let(:client) { create(:hmis_hud_client_complete, data_source: data_source) }

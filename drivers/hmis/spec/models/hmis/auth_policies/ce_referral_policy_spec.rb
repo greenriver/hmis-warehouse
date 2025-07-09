@@ -9,7 +9,6 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
 
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
-  let(:policy) { user.policy_for(referral) }
   let(:client) { create :hmis_hud_client_complete, data_source: data_source }
   let(:project) { create :hmis_hud_project, data_source: data_source }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }
@@ -25,6 +24,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       status: 'initialized',
     )
   end
+  let(:policy) { user.policy_for(referral, policy_class: Hmis::AuthPolicies::CeReferralPolicy) }
 
   describe '#can_index?' do
     it 'returns true if user has both view and perform permissions' do

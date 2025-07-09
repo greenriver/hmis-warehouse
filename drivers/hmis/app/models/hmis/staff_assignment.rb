@@ -22,7 +22,4 @@ class Hmis::StaffAssignment < Hmis::HmisBase
   scope :open_on_date, ->(date = Date.current) do
     joins(:household).merge(Hmis::Hud::Household.open_on_date(date))
   end
-
-  def self.policy_class = Hmis::AuthPolicies::StaffAssignmentPolicy
-  def policy_class = self.class.policy_class
 end

@@ -11,7 +11,7 @@ require 'rails_helper'
 RSpec.describe Hmis::AuthPolicies::StaffAssignmentPolicy, type: :model do
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_user, hmis_data_source_id: data_source.id) }
-  let(:policy) { user.policy_for(Hmis::StaffAssignment) }
+  let(:policy) { user.policy_for(Hmis::StaffAssignment, policy_class: Hmis::AuthPolicies::StaffAssignmentPolicy) }
 
   let(:organization) { create(:hmis_hud_organization, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
