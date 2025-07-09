@@ -1,0 +1,26 @@
+%tr
+  %td= item.created_at.to_fs
+  %td
+    - if item.username
+      = item.username
+      - if item.impersonating
+        .small= "Impersonating #{item.impersonating}"
+    - else
+      %span.light N/A
+  %td= record.class.name
+  %td= record.name
+  %td= item.entity_name
+  %td= item.entity_display_name
+  %td
+    %span.badge{class: event_badge_class(item.event)}
+      = item.event.titleize
+  %td
+    - if item.error
+      .text-danger= 'Load error'
+      %p Sorry, we couldn't load the change details for this version.
+    - elsif item.changes
+      %ul.list-unstyled
+        - item.changes.each do |change|
+          %li= change
+    - else
+      %span.light N/A
