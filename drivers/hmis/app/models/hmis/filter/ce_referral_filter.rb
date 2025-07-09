@@ -12,7 +12,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
     scope = ensure_scope(scope)
     scope.
-      yield_self(&method(:with_statuses)).
+      yield_self(&method(:with_referral_statuses)).
       yield_self(&method(:with_projects)).
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_workflow_template_identifiers)).
@@ -22,9 +22,18 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   protected
 
-  def with_statuses(scope)
-    # todo @martha - fix this
-    with_filter(scope, :status) { scope.where(status: input.status) }
+  def with_referral_statuses(scope)
+    with_filter(scope, :referral_status) do
+      all_defaults = Hmis::Ce::Referral.state_machine_states
+
+      default_statuses, custom_keys = input.referral_status.partition { |status| all_defaults.include?(status.to_sym) }
+      custom_statuses = Hmis::Ce::CustomReferralStatus.where(key: custom_keys)
+
+      missing_keys = custom_keys - custom_statuses.pluck(:key)
+      raise "Received unknown custom status(es): #{missing_keys.join(', ')}" if missing_keys.any?
+
+      scope.where(status: default_statuses, custom_status: nil).or(scope.where(custom_status: custom_statuses))
+    end
   end
 
   def with_projects(scope)
