@@ -71,12 +71,16 @@ RSpec.describe Hmis::Ce::ProcessChangesJob, type: :job do
   context 'with dirty pools' do
     it 'processes dirty pools against all clients' do
       create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
-      all_clients_scope = GrdaWarehouse::Hud::Client.where(id: [client1.id, client2.id, client3.id])
 
-      expect(Hmis::Ce::Match::Engine).to receive(:call).with(pool, an_object_matching(->(scope) { scope.to_a.map(&:id).sort == all_clients_scope.to_a.map(&:id).sort }))
-      described_class.perform_now
+      # We expect the job to create candidates for all 3 clients.
+      expect { described_class.perform_now }.to change(Hmis::Ce::Match::Candidate, :count).by(3)
 
       expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
+
+      # Verify that candidates were created for the correct clients.
+      client_ids = [client1.id, client2.id, client3.id]
+      candidate_client_ids = Hmis::Ce::Match::Candidate.joins(:client_proxy).where(candidate_pool: pool).pluck('ce_client_proxies.client_id')
+      expect(candidate_client_ids).to match_array(client_ids)
     end
   end
 
