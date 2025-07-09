@@ -6862,7 +6862,6 @@ CREATE TABLE public.ce_match_candidate_pools (
     id bigint NOT NULL,
     requirement_expression character varying NOT NULL,
     priority_expression character varying NOT NULL,
-    configuration_updated_at timestamp(6) without time zone,
     candidates_generated_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL

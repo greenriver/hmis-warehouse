@@ -55,7 +55,6 @@ module Hmis::Ce::Match
         {
           priority_expression: priority_expression,
           requirement_expression: requirement_expression,
-          configuration_updated_at: now,
         }
       end
       result = Hmis::Ce::Match::CandidatePool.import(
@@ -77,7 +76,7 @@ module Hmis::Ce::Match
       expiration_date = now - duration.days
       Hmis::Ce::Match::CandidatePool.
         orphaned.
-        where(configuration_updated_at: ...expiration_date).
+        where(created_at: ...expiration_date).
         find_each(&:destroy!)
     end
   end
