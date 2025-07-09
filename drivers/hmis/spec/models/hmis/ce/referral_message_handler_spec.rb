@@ -15,7 +15,7 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
     let!(:custom_status) { create(:hmis_ce_custom_referral_status, data_source: ds1) }
 
     let!(:client_acceptance_task) do
-      # Modify task set up in 'ce spec helper' to have a side effect that creates an enrollment
+      # Modify task set up in 'ce spec helper' to have a side effect that sets custom status
       create(
         :hmis_workflow_definition_user_task,
         template: workflow_template,

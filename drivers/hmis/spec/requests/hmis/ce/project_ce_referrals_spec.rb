@@ -149,6 +149,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           referrals = result.dig('data', 'project', 'ceReferrals', 'nodes')
           expect(referrals.count).to eq(3)
+
+          expect(referrals).to contain_exactly(
+            a_hash_including('id' => referral.id.to_s),
+            a_hash_including('id' => in_progress_referral.id.to_s),
+            a_hash_including('id' => custom_status_referral.id.to_s),
+          )
         end
       end
     end

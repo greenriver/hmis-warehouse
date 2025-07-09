@@ -437,6 +437,7 @@ module CeWorkflowBuilder
     denied_pending_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
       key: 'denied_pending',
       name: 'Denied Pending',
+      data_source: data_source,
     )
 
     denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
