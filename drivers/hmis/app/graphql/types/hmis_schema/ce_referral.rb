@@ -13,6 +13,7 @@ module Types
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
+    field :custom_status, HmisSchema::CeCustomReferralStatus, null: true
     field :client_id, ID, null: false
     field :client, Types::HmisSchema::Client, null: true
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
@@ -40,12 +41,16 @@ module Types
     end
 
     available_filter_options do
-      arg :status, [HmisSchema::Enums::CeReferralStatus]
+      arg :referral_status, [String]
       arg :project, [ID]
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
+    end
+
+    def custom_status
+      load_ar_association(object, :custom_status)
     end
 
     def steps # Don't resolve in batch

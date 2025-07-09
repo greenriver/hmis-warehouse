@@ -72,7 +72,6 @@ module Hmis::Ce
       ]
       order(acase(conditions, elsewise: 3), updated_at: :desc, id: :asc)
     end
-    # todo @martha - add status
 
     validates :workflow_instance, uniqueness: true
     validate :unique_referral_per_opportunity

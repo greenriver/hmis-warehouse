@@ -23,6 +23,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_statuses(scope)
+    # todo @martha - fix this
     with_filter(scope, :status) { scope.where(status: input.status) }
   end
 
