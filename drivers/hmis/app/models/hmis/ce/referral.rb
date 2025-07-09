@@ -119,51 +119,30 @@ module Hmis::Ce
     # NOTE: This field intentionally does not check viewable_by scopes on the associated data;
     # it is resolved in the GraphQL API to expose pertinent data that the current user may not otherwise have permission to view.
     def resolve_match_rule_fields
+      destination_client = client.destination_client&.as_warehouse
+      return [] unless destination_client # if for whatever reason the client doesn't have a destination client, we cannot resolve the fields
+
+      field_map = Hmis::Ce::Match::FieldMap.new
+      calculator = Hmis::Ce::Match::CalculatorFactory.build
+      seen_field_names = Set.new
+
       # Fetch all match rules applicable to the opportunity
       # TODO: this should really be the rules _as they were_ when the referral was created, not the current rules
       match_rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity)
-      field_map = Hmis::Ce::Match::FieldMap.new
-      cde_field_map = Hmis::Ce::Match::CdeFieldMap.new
-      destination_client = client.destination_client.as_warehouse
-      seen_field_names = Set.new
-
       match_rules.sort_by(&:id).map do |rule|
-        evaluator = Hmis::Ce::Match::ClientExpressionEvaluator.new(rule.expression, field_map)
-        evaluator.resolve_client_values(destination_client).map do |field_name, current_value|
+        calculator.dependencies(rule.expression).map do |field|
           # Skip if Field has already been processed, for example expression "household_size = 1 OR household_size = 2"
-          next if seen_field_names.include?(field_name)
+          next if seen_field_names.include?(field)
 
-          seen_field_names.add(field_name)
-          field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field_name) # ['cde', 'custom_assessment.something']
-
-          # Transform field name into human-readable label
-          label = case field_type
-          when Hmis::Ce::Match::FieldMap::CDE
-            cde_field_map.cded_for(resolved_field)&.label
-          when Hmis::Ce::Match::FieldMap::CLIENT
-            resolved_field.humanize
-          else
-            field_name
-          end
-
-          # if current_value is an array of project type IDs, translate them into human-readable labels
-          # rubocop:disable Style/IfUnlessModifier
-          if field_type == Hmis::Ce::Match::FieldMap::CLIENT && Hmis::Ce::Match::ClientFieldMap::PROJECT_TYPE_FIELDS.include?(resolved_field.to_sym)
-            current_value = Array.wrap(current_value).map { |project_type| HudUtility2026.project_type(project_type) }
-          end
-
-          # if current_value is a boolean, convert it to 'Yes' or 'No' for display
-          if current_value.is_a?(TrueClass) || current_value.is_a?(FalseClass)
-            current_value = current_value ? 'Yes' : 'No'
-          end
-          # rubocop:enable Style/IfUnlessModifier
+          seen_field_names.add(field)
+          label, value = field_map.resolve_field_for_display(destination_client, field)
 
           # OpenStruct resolves as HmisSchema::CeMatchValue
           OpenStruct.new(
             rule_id: rule.id,     # ID of rule that references this field
             rule_name: rule.name, # Name of rule that references this field
             field_name: label,
-            field_values: Array.wrap(current_value),
+            field_values: Array.wrap(value),
           )
         end
       end.flatten.compact

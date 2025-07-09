@@ -13,20 +13,16 @@ module Hmis::Ce::Match
     end
 
     def call(client)
-      client_values = resolve_client_values(client)
+      # construct client values for the expression.
+      # Note, this isn't lazy so it's less performant that it could be
+      client_values = @calculator.dependencies(expression).to_h do |field|
+        [field, field_map.instance_value(client, field)]
+      end
 
       # evaluate the expression, for example:
       # evaluate!('current_age >= 65 AND veteran_status = 1', {current_age: 50, veteran_status: 1})
       # => false
       @calculator.evaluate!(expression, **client_values)
-    end
-
-    # construct client values for the expression.
-    # Note, this isn't lazy so it's less performant that it could be
-    def resolve_client_values(client)
-      @calculator.dependencies(expression).to_h do |field|
-        [field, field_map.instance_value(client, field)]
-      end
     end
   end
 end

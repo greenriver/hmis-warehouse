@@ -27,8 +27,25 @@ module Hmis::Ce::Match
       end.uniq
     end
 
-    def cded_for(field)
-      parse_entity_type(field)
+    # Label for user-facing display of resolved field
+    def label_for(field)
+      parse_entity_type(field)&.label
+    end
+
+    # Value for user-facing display of resolved field
+    def instance_value_for_display(client, field)
+      value = instance_value(client, field)
+      Array.wrap(value).map do |v|
+        if v.is_a?(TrueClass)
+          'Yes'
+        elsif v.is_a?(FalseClass)
+          'No'
+        elsif v.is_a?(Date)
+          v.strftime('%m/%d/%Y')
+        else
+          v.to_s
+        end
+      end
     end
 
     # arel not supported.
