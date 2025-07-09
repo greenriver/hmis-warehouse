@@ -33,12 +33,12 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     context 'with orphaned candidate pools' do
       let(:expiration_days) { 30 }
       let!(:old_orphaned_pool) do
-        create(:hmis_ce_match_candidate_pool, created_at: (expiration_days + 1).days.ago)
+        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago)
       end
       let!(:new_orphaned_pool) do
-        create(:hmis_ce_match_candidate_pool, created_at: (expiration_days - 1).days.ago)
+        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days - 1).days.ago)
       end
-      let!(:active_pool) { create(:hmis_ce_match_candidate_pool, created_at: (expiration_days + 1).days.ago) }
+      let!(:active_pool) { create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago) }
       let!(:opportunity_with_pool) { create(:hmis_ce_opportunity, candidate_pool: active_pool) }
 
       before do

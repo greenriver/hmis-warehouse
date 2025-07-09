@@ -62,12 +62,13 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
         current_version: 1,
       }
     end
+    safe_table_name = connection.quote_table_name(table_name)
     import!(
       records,
       validate: false,
       on_duplicate_key_update: {
         conflict_target: [:trackable_id, :trackable_type],
-        columns: "current_version = #{table_name}.current_version + 1",
+        columns: "current_version = #{safe_table_name}.current_version + 1",
       },
     )
   end

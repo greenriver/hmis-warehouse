@@ -36,8 +36,11 @@ module Hmis::Ce
     # @param wait_time [ActiveSupport::Duration, nil] Time to wait before scheduling next batch.
     #        If nil, job will not reschedule itself.
     # @param progress [Boolean] Whether to display progress bar (development aid)
-    def perform(next_pool_id: 0, next_client_id: 0, wait_time: nil, progress: false)
+    def perform(next_pool_id: nil, next_client_id: nil, wait_time: nil, progress: false)
       raise unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
+
+      next_pool_id ||= 0
+      next_client_id ||= 0
 
       instrument_as_maintenance_task do |run|
         # ensure only one instance of this job runs simultaneously
@@ -98,9 +101,9 @@ module Hmis::Ce
     # Processes dirty candidate pools by running the match engine against all destination clients.
     #
     # @param markers [Array<Hmis::Ce::ChangeMarker>] Dirty pool markers to process
-    # @return [Integer, nil] Next pool ID for pagination, or nil if no markers processed
+    # @return [Integer, nil] Next pool ID for pagination
     def process_dirty_pools(markers)
-      return nil if markers.empty?
+      return 0 if markers.empty?
 
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where(id: markers.map(&:trackable_id))
       client_scope = ::GrdaWarehouse::Hud::Client.destination
@@ -117,9 +120,9 @@ module Hmis::Ce
     #
     # @param markers [Array<Hmis::Ce::ChangeMarker>] Dirty client markers to process
     # @param skip_pool_ids [Array<Integer>] Pool IDs to skip (already processed in this cycle)
-    # @return [Integer, nil] Next client ID for pagination, or nil if no markers processed
+    # @return [Integer, nil] Next client ID for pagination
     def process_dirty_clients(markers, skip_pool_ids:)
-      return nil if markers.empty?
+      return 0 if markers.empty?
 
       client_scope = ::GrdaWarehouse::Hud::Client.destination.where(id: markers.map(&:trackable_id))
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where.not(id: skip_pool_ids)
