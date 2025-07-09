@@ -45,8 +45,12 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
 
     return true if project_permissions.include?(:can_perform_any_referral_tasks)
 
-    project_permissions.include?(:can_perform_own_referral_tasks) && context.assigned_referral_step_ids.include?(step.id)
+    return context.assigned_referral_step_ids.include?(step.id) if step && project_permissions.include?(:can_perform_own_referral_tasks)
+
+    false
   end
+
+  def can_create_note?(...) = can_perform?(...)
 
   protected
 

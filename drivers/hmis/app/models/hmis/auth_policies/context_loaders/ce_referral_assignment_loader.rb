@@ -28,7 +28,7 @@ module Hmis::AuthPolicies::ContextLoaders
     def assigned_referral_steps
       Hmis::WorkflowExecution::Step.
         excluding_unavailable.
-        joins(:task, :assignments).
+        joins(:user_task, :assignments).
         where(assignments: { user_id: @user.id })
     end
   end

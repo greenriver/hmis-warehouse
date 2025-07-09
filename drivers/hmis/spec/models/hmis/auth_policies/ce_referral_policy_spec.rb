@@ -62,7 +62,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
 
     context 'with can_view_own_referrals permission' do
       let(:task) do
-        create(:hmis_workflow_definition_task, template: workflow_template, name: 'task')
+        create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task')
       end
       let(:step) do
         create(:hmis_wfe_step, instance: referral.workflow_instance, node: task)
@@ -87,7 +87,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   end
 
   describe '#can_perform?' do
-    let(:task) { create(:hmis_workflow_definition_task, template: workflow_template, name: 'task') }
+    let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
 
     context 'when user has :can_perform_any_referral_tasks permission' do

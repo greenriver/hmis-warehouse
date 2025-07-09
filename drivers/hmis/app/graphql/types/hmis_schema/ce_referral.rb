@@ -48,6 +48,10 @@ module Types
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
+    def self.authorized?(object, ctx)
+      super && ctx[:current_user].policy_for(object, policy: :ce_referral).can_view?
+    end
+
     def steps # Don't resolve in batch
       instance = object.workflow_instance
       steps_by_node_id = instance.steps.index_by(&:node_id)
