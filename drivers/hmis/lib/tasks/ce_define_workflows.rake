@@ -5,6 +5,7 @@
 # Usage: rails driver:hmis:ce_define_workflows
 
 module CeWorkflowBuilder
+  # todo @martha - discussed moving these helpers out
   def self.delete_template_and_associated_data(template_identifier)
     puts "Deleting existing CE data associated with #{template_identifier}"
 
@@ -434,11 +435,23 @@ module CeWorkflowBuilder
       ],
     )
 
+    denied_pending_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+      key: 'denied_pending',
+      name: 'Denied Pending',
+    )
+
     denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Denial Review',
       form_definition_identifier: denial_review_form_identifier,
       template_id: template.id,
       swimlane: ce_staff_swimlane,
+      trigger_config: [
+        {
+          event: 'make_step_available', # todo @martha - consider using this for the CE Events too, can it simplify the workflow?
+          message: 'set_custom_referral_status',
+          params: { 'custom_status_key': denied_pending_status.key },
+        },
+      ],
     )
 
     confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
