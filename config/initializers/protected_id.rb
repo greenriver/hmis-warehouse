@@ -6,9 +6,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ProtectedId
   PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
-  INITIAL_DELIMITER = '=='
+  INITIAL_DELIMITER = '=='.freeze
 
   module Encoder
     def encode(id)
@@ -20,7 +22,7 @@ module ProtectedId
     module_function :encode
 
     def encoded?(id)
-      false if id.blank?
+      return false if id.blank?
       # confirm that the string is encoded
       id.starts_with?(INITIAL_DELIMITER)
     end
@@ -95,11 +97,11 @@ module ProtectedId
 
     def find(*args, &block)
       id = decode(args.first)
-      super(id, *args[1..-1], &block)
+      super(id, *args[1..-1], &block) # rubocop:disable Style/SlicingWithRange
     end
   end
 end
 
-ActiveRecord::Base.send(:include, ProtectedId::Labeler)
-#ActiveRecord::Base.extend(ProtectedId::Finder)
-#ActiveRecord::Relation.send(:include, ProtectedId::Finder)
+ActiveRecord::Base.include(ProtectedId::Labeler)
+# ActiveRecord::Base.extend(ProtectedId::Finder)
+# ActiveRecord::Relation.send(:include, ProtectedId::Finder)
