@@ -26,13 +26,13 @@ module Types
     def user_dashboard_config
       {
         id: object.id,
-        show_staff_assignment: policy_for(Hmis::StaffAssignment, policy_class: Hmis::AuthPolicies::StaffAssignmentPolicy).can_index?,
-        show_referrals: policy_for(Hmis::Ce::Referral, policy_class: Hmis::AuthPolicies::CeReferralPolicy).can_index?,
+        show_staff_assignment: policy_for(Hmis::StaffAssignment, policy: :staff_assignment).can_index?,
+        show_referrals: policy_for(Hmis::Ce::Referral, policy: :ce_referral).can_index?,
       }
     end
 
     def staff_assignments
-      return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment, policy_class: Hmis::AuthPolicies::StaffAssignmentPolicy).can_index?
+      return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment, policy: :staff_assignment).can_index?
 
       object.staff_assignments.
         viewable_by(current_user). # Only resolve assignments where the user has access to view the household
@@ -41,7 +41,7 @@ module Types
     end
 
     def ce_referral_steps
-      return Hmis::WorkflowExecution::Step.none unless policy_for(Hmis::Ce::Referral, policy_class: Hmis::AuthPolicies::CeReferralPolicy).can_index?
+      return Hmis::WorkflowExecution::Step.none unless policy_for(Hmis::Ce::Referral, policy: :ce_referral).can_index?
 
       # Scope open steps that are assigned to the current user
       step_scope = Hmis::WorkflowExecution::Step.open.

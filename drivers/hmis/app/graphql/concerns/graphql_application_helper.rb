@@ -26,8 +26,8 @@ module GraphqlApplicationHelper
     raise message
   end
 
-  def policy_for(resource, policy_class:)
-    current_user.policy_for(resource, policy_class: policy_class)
+  def policy_for(resource, policy:)
+    current_user.policy_for(resource, policy: policy)
   end
 
   # Does the current user have the given permission on entity?

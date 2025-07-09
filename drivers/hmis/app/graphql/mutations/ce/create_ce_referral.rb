@@ -28,7 +28,7 @@ module Mutations
         raise 'Either a client_id or a source_enrollment_id is required'
       end
 
-      access_denied! unless policy_for(opportunity, policy_class: Hmis::AuthPolicies::CeOpportunityPolicy).can_create_referral?(client: client)
+      access_denied! unless policy_for(opportunity, policy: :ce_opportunity).can_create_referral?(client: client)
 
       referral = nil
       opportunity.with_lock do
