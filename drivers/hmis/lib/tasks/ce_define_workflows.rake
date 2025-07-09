@@ -5,7 +5,6 @@
 # Usage: rails driver:hmis:ce_define_workflows
 
 module CeWorkflowBuilder
-  # todo @martha - discussed moving these helpers out
   def self.delete_template_and_associated_data(template_identifier)
     puts "Deleting existing CE data associated with #{template_identifier}"
 
@@ -447,7 +446,7 @@ module CeWorkflowBuilder
       swimlane: ce_staff_swimlane,
       trigger_config: [
         {
-          event: 'make_step_available', # todo @martha - consider using this for the CE Events too, can it simplify the workflow?
+          event: 'make_step_available',
           message: 'set_custom_referral_status',
           params: { 'custom_status_key': denied_pending_status.key },
         },
