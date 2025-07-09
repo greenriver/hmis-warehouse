@@ -4,16 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement::EquityAnalysis
   class Data
     include ArelHelper
     include GrdaWarehouse::UsCensusApi::Aggregates
 
-    RACES = HudUtility2024.races.except('HispanicLatinaeo')
-    ETHNICITIES = HudUtility2024.ethnicities.except(:unknown)
-    RACE_ETHNICITY_COMBINATIONS = HudUtility2024.race_ethnicity_combinations
+    RACES = HudUtility2026.races.except('HispanicLatinaeo')
+    ETHNICITIES = HudUtility2026.ethnicities.except(:unknown)
+    RACE_ETHNICITY_COMBINATIONS = HudUtility2026.race_ethnicity_combinations
     AGES = Filters::FilterBase.available_census_age_ranges
-    GENDERS = HudUtility2024.genders
+    GENDERS = HudUtility2026.genders
 
     GENDER_ID_TO_SCOPE = {
       0 => :gender_woman,
@@ -28,7 +30,7 @@ module PerformanceMeasurement::EquityAnalysis
       99 => :gender_unknown,
     }.freeze
 
-    HOUSEHOLD_TYPES = HudUtility2024.household_types.merge(nil => 'Unknown household type')
+    HOUSEHOLD_TYPES = HudUtility2026.household_types.merge(nil => 'Unknown household type')
 
     INVESTIGATE_BY = {
       race: RACES,
