@@ -10,7 +10,7 @@
 
 module ProtectedId
   PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
-  INITIAL_DELIMITER = '=='.freeze
+  INITIAL_DELIMITER = '=='
 
   module Encoder
     def encode(id)
@@ -23,6 +23,7 @@ module ProtectedId
 
     def encoded?(id)
       return false if id.blank?
+
       # confirm that the string is encoded
       id.starts_with?(INITIAL_DELIMITER)
     end
@@ -31,7 +32,7 @@ module ProtectedId
     def decode(encoded)
       # Sanitize input to remove null bytes that could cause bcrypt issues
       encoded = sanitize_value(encoded)
-      
+
       encoded.map { |part| decode(part) }.compact if encoded.is_a?(Enumerable)
       return encoded unless encoded?(encoded)
 
@@ -75,7 +76,7 @@ module ProtectedId
 
     private def sanitize_value(value)
       return value unless value.is_a?(String)
-  
+
       # Remove null bytes and other control characters that could cause issues with bcrypt
       value.gsub(/[[:cntrl:]]/, '').strip
     end
