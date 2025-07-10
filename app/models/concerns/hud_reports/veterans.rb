@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -43,7 +45,7 @@ module HudReports::Veterans
 
     private def all_household_adults_non_veterans?(universe_client)
       household_adults(universe_client).all? do |member|
-        member['veteran_status'].zero?
+        member['veteran_status']&.zero?
       end
     end
 
@@ -60,13 +62,13 @@ module HudReports::Veterans
       return [] unless household_members
 
       household_members.select do |member|
-        member['veteran_status'].zero?
+        member['veteran_status']&.zero?
       end
     end
 
     private def household_adults_refused_veterans(universe_client)
       household_adults(universe_client).select do |member|
-        member['veteran_status'].in?([8, 9])
+        member['veteran_status']&.in?([8, 9])
       end
     end
 
