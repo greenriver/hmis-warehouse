@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool
   class Event < ::HudReports::ReportClientBase
     self.table_name = 'hmis_dqt_events'
@@ -15,5 +17,6 @@ module HmisDataQualityTool
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :event, class_name: 'GrdaWarehouse::Hud::Event', optional: true
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
   end
 end
