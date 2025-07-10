@@ -62,8 +62,145 @@ class Audit::Versions
 
   def wrap_display_versions(versions)
     users_by_id = build_user_lookup(versions)
-    versions.map do |version|
-      Audit::DisplayItem.new(version, users_by_id, config[:excluded_fields])
+    Audit::DisplayItem.batch_create(versions, users_by_id, config[:excluded_fields])
+  end
+
+  # Class method to create multiple Audit::Versions objects with optimized loading
+  def self.batch_create(records, config = {})
+    return [] if records.blank?
+
+    # Batch load all versions for all records
+    batch_load_versions(records, config)
+
+    # Create Audit::Versions objects
+    records.map { |record| new(record, config) }
+  end
+
+  def self.batch_load_versions(records, config)
+    return if records.blank?
+
+    record_ids = records.map(&:id)
+    record_class = records.first.class
+
+    # Batch load versions for records themselves
+    version_class = get_version_class_for_model(record_class)
+    version_class.where(
+      item_id: record_ids,
+      item_type: record_class.sti_name,
+    ).load
+
+    # Batch load versions for related models
+    batch_load_related_versions(records, config)
+
+    # Batch load versions for referenced models
+    batch_load_referenced_versions(records, config)
+
+    # Batch load versions for nested models
+    batch_load_nested_versions(records, config)
+  end
+
+  def self.batch_load_related_versions(records, config)
+    return unless config[:related_models].present?
+
+    process_related_models(records, config[:related_models]) do |model_class, related_ids|
+      version_class = get_version_class_for_model(model_class)
+      version_class.where(
+        item_id: related_ids,
+        item_type: model_class.sti_name,
+      ).load
+    end
+  end
+
+  def self.batch_load_referenced_versions(records, config)
+    return unless config[:referenced_models].present?
+
+    process_referenced_models(records, config[:referenced_models]) do |model_class, referenced_ids|
+      version_class = get_version_class_for_model(model_class)
+      version_class.where(
+        item_id: referenced_ids,
+        item_type: model_class.sti_name,
+      ).load
+    end
+  end
+
+  def self.batch_load_nested_versions(records, config)
+    return unless config[:nested_models].present?
+
+    process_nested_models(records, config[:nested_models]) do |model_class, nested_ids|
+      version_class = get_version_class_for_model(model_class)
+      version_class.where(
+        item_id: nested_ids,
+        item_type: model_class.sti_name,
+      ).load
+    end
+  end
+
+  def self.process_related_models(records, model_configs)
+    model_configs.each do |model_config|
+      model_class = model_config[:class]
+      association = model_config[:association]
+
+      related_ids = collect_related_ids(records, association)
+      next if related_ids.blank?
+
+      yield(model_class, related_ids)
+    end
+  end
+
+  def self.process_referenced_models(records, model_configs)
+    model_configs.each do |model_config|
+      model_class = model_config[:class]
+      association = model_config[:association]
+
+      referenced_ids = collect_referenced_ids(records, association)
+      next if referenced_ids.blank?
+
+      yield(model_class, referenced_ids)
+    end
+  end
+
+  def self.process_nested_models(records, model_configs)
+    model_configs.each do |model_config|
+      model_class = model_config[:class]
+      parent_association = model_config[:parent_association]
+      nested_association = model_config[:nested_association]
+
+      nested_ids = collect_nested_ids(records, parent_association, nested_association)
+      next if nested_ids.blank?
+
+      yield(model_class, nested_ids)
+    end
+  end
+
+  def self.collect_related_ids(records, association)
+    records.map do |record|
+      if record.respond_to?("#{association}_id")
+        record.send("#{association}_id")
+      else
+        related_record = record.send(association)
+        related_record&.id
+      end
+    end.compact.uniq
+  end
+
+  def self.collect_referenced_ids(records, association)
+    records.flat_map do |record|
+      record.send(association).with_deleted.pluck(:id) if record.respond_to?(association)
+    end.compact.uniq
+  end
+
+  def self.collect_nested_ids(records, parent_association, nested_association)
+    records.flat_map do |record|
+      parent = record.send(parent_association) if record.respond_to?(parent_association)
+      parent.send(nested_association).with_deleted.pluck(:id) if parent.respond_to?(nested_association)
+    end.compact.uniq
+  end
+
+  def self.get_version_class_for_model(model_class)
+    if model_class < GrdaWarehouseBase
+      GrdaWarehouse::Version
+    else
+      GrPaperTrail::Version
     end
   end
 
@@ -117,20 +254,8 @@ class Audit::Versions
     gr_paper_trail_ids = []
     grda_warehouse_ids = []
 
-    config[:related_models].each do |model_config|
-      model_class = model_config[:class]
-      association_name = model_config[:association]
-
-      # Get the related record (including deleted ones)
-      related_record = if record.respond_to?("#{association_name}_id")
-        # Query directly to include soft-deleted records
-        model_class.with_deleted.find_by(id: record.send("#{association_name}_id"))
-      else
-        record.send(association_name)
-      end
-      next unless related_record
-
-      version_ids = collect_version_ids_by_class(model_class, [related_record.id])
+    self.class.process_related_models([record], config[:related_models]) do |model_class, related_ids|
+      version_ids = collect_version_ids_by_class(model_class, related_ids)
       gr_paper_trail_ids.concat(version_ids[:gr_paper_trail])
       grda_warehouse_ids.concat(version_ids[:grda_warehouse])
     end
@@ -144,15 +269,8 @@ class Audit::Versions
     gr_paper_trail_ids = []
     grda_warehouse_ids = []
 
-    config[:referenced_models].each do |model_config|
-      model_class = model_config[:class]
-      association_name = model_config[:association]
-
-      # Get the IDs of referenced records (including deleted ones)
-      referenced_record_ids = record.send(association_name).with_deleted.pluck(:id)
-      next if referenced_record_ids.blank?
-
-      version_ids = collect_version_ids_by_class(model_class, referenced_record_ids)
+    self.class.process_referenced_models([record], config[:referenced_models]) do |model_class, referenced_ids|
+      version_ids = collect_version_ids_by_class(model_class, referenced_ids)
       gr_paper_trail_ids.concat(version_ids[:gr_paper_trail])
       grda_warehouse_ids.concat(version_ids[:grda_warehouse])
     end
@@ -166,20 +284,8 @@ class Audit::Versions
     gr_paper_trail_ids = []
     grda_warehouse_ids = []
 
-    config[:nested_models].each do |model_config|
-      model_class = model_config[:class]
-      parent_association = model_config[:parent_association]
-      nested_association = model_config[:nested_association]
-
-      # Get the parent record
-      parent_record = record.send(parent_association)
-      next unless parent_record
-
-      # Get the IDs of nested records (including deleted ones)
-      nested_record_ids = parent_record.send(nested_association).with_deleted.pluck(:id)
-      next if nested_record_ids.blank?
-
-      version_ids = collect_version_ids_by_class(model_class, nested_record_ids)
+    self.class.process_nested_models([record], config[:nested_models]) do |model_class, nested_ids|
+      version_ids = collect_version_ids_by_class(model_class, nested_ids)
       gr_paper_trail_ids.concat(version_ids[:gr_paper_trail])
       grda_warehouse_ids.concat(version_ids[:grda_warehouse])
     end

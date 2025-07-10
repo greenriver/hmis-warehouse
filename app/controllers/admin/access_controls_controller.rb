@@ -99,9 +99,25 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   private def histories
-    @histories ||= AccessControl.visible_to(current_user).map do |access_control|
-      Audit::Versions.new(access_control, access_control_component_config)
+    @histories ||= begin
+      # Preload access controls with their associations
+      access_controls = AccessControl.visible_to(current_user).
+        preload(*access_control_audit_preloads)
+
+      # Use the optimized batch creation method
+      Audit::Versions.batch_create(access_controls, access_control_component_config)
     end
+  end
+
+  def access_control_audit_preloads
+    [
+      :user_group,
+      :role,
+      :collection,
+      { user_group: :user_group_members },
+      { role: :user_roles },
+      { collection: :group_viewable_entities },
+    ]
   end
 
   private def data
