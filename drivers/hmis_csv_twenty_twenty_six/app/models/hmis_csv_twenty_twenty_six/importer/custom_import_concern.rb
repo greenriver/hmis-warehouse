@@ -15,12 +15,6 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
 
       raise 'Unknown custom import type' unless config['augments_warehouse_table'].present?
 
-      as_augmentation_record
-    end
-
-    private
-
-    def as_augmentation_record
       config = self.class.custom_file_config
       klass = self.class.reflect_on_association(:destination_record).klass
 
@@ -47,6 +41,24 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
   end
 
   class_methods do
+    # Augmented data should never return new data since it should only update existing records
+    def incoming_data(importer_log_id:)
+      return none if augments?
+
+      where(importer_log_id: importer_log_id).should_import
+    end
+
+    # Augmented data should never delete records since it should only update existing records
+    def pending_deletions(data_source_id:, project_ids:, date_range:)
+      return none if augments?
+
+      involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).delete_pending
+    end
+
     def custom_import_class
       warehouse_class
     end
@@ -78,16 +90,15 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
       config = custom_file_config
 
       # At this time, we only support augmentations
-      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present? && config['augment_import_class'].present?
+      raise 'Unknown custom import type' unless augments? && config['augment_import_class'].present?
 
       augment_import_class = config['augment_import_class'].constantize
       augment_import_class.involved_warehouse_scope(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
     end
 
+    # Prevent deletions for augmentation classes since we only want to update existing records
     def prevent_import_deletions?
-      config = custom_file_config
-      # Prevent deletions for augmentation classes since we only want to update existing records
-      config['augments_warehouse_table'].present?
+      augments?
     end
 
     # Delegate to the class we are augmenting
@@ -95,7 +106,7 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
       config = custom_file_config
 
       # At this time, we only support augmentations
-      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present? && config['augment_import_class'].present?
+      raise 'Unknown custom import type' unless augments? && config['augment_import_class'].present?
 
       augment_import_class = config['augment_import_class'].constantize
       augment_import_class.existing_data(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
@@ -106,10 +117,18 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
       config = custom_file_config
 
       # At this time, we only support augmentations
-      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present? && config['augment_import_class'].present?
+      raise 'Unknown custom import type' unless augments? && config['augment_import_class'].present?
 
       augment_import_class = config['augment_import_class'].constantize
-      augment_import_class.existing_destination_data(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
+      augment_import_class.involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).with_deleted
+    end
+
+    def augments?
+      custom_file_config['augments_warehouse_table'].present?
     end
   end
 end

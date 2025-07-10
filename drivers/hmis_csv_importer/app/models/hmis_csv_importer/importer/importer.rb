@@ -642,6 +642,9 @@ module HmisCsvImporter::Importer
 
     def add_new_data
       importable_files.each do |file_name, klass|
+        # Augmentation classes will always be updating existing records
+        next if custom_augmentation?(klass)
+
         destination_class = klass.reflect_on_association(:destination_record).klass
         # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
@@ -669,7 +672,7 @@ module HmisCsvImporter::Importer
               # outside of the range, but are necessary to calculate the correctly aggregated set
               upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
               columns = batch.first.attributes.keys - ['id']
-              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert, import_klass: import_klass_for(klass))
+              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
               batch = []
             end
           end
@@ -681,7 +684,7 @@ module HmisCsvImporter::Importer
           if batch.present?
             upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
             columns = batch.first.attributes.keys - ['id']
-            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert, import_klass: import_klass_for(klass)) # ensure we get the last batch
+            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
           end
         end
         records = summary_for(file_name, 'added') || 0
@@ -719,6 +722,8 @@ module HmisCsvImporter::Importer
       importable_files.each do |file_name, klass|
         # Never delete Exports
         next if klass.hud_key == :ExportID
+        # Augmented data should never delete records since it should only update existing records
+        next if custom_augmentation?(klass)
 
         # If the klass does not allow deletions through the import process, remove the pending deletion flag from all klass records associated with this import.
         if klass.prevent_import_deletions?
@@ -789,8 +794,6 @@ module HmisCsvImporter::Importer
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
-        # FIXME: need to figure out how to set the import_klass here
-        # existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
@@ -822,7 +825,7 @@ module HmisCsvImporter::Importer
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, import_klass: import_klass_for(klass))
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
               end
               batch = []
             end
@@ -839,7 +842,7 @@ module HmisCsvImporter::Importer
             end
             note_processed(file_name, batch.count, 'updated')
           else
-            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, import_klass: import_klass_for(klass))
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
           end
         end
 
@@ -865,6 +868,8 @@ module HmisCsvImporter::Importer
     private def mark_unchanged(klass, file_name)
       # We always bring over Exports
       return if klass.hud_key == :ExportID
+      # Augmented data will always appear changed as the source hash won't match the destination source hash
+      return if custom_augmentation?(klass)
 
       existing = existing_destination_data_scope(klass).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
@@ -891,6 +896,9 @@ module HmisCsvImporter::Importer
     private def mark_incoming_older(klass, file_name)
       # Doesn't apply to Exports
       return if klass.hud_key == :ExportID
+      # Augmented data will always appear changed as the source hash won't match the destination source hash
+      return if custom_augmentation?(klass)
+
       return if most_recent_export_for_ds?
 
       existing = existing_destination_data_scope(klass).pluck(klass.hud_key, :DateUpdated).to_h
@@ -924,21 +932,20 @@ module HmisCsvImporter::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names, import_klass: klass)
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
-
       klass.logger.silence(Logger::WARN) do
         if upsert
-          import_klass.import(
+          klass.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: import_klass.conflict_target,
+              conflict_target: klass.conflict_target,
               columns: columns,
             },
             validate: use_ar_model_validations,
           )
         else
-          import_klass.import(batch, validate: use_ar_model_validations)
+          klass.import(batch, validate: use_ar_model_validations)
         end
         note_processed(file_name, batch.count, type)
       end
@@ -948,17 +955,17 @@ module HmisCsvImporter::Importer
       errors = []
       batch.each do |row|
         if upsert
-          import_klass.import(
+          klass.import(
             Array.wrap(row),
             on_duplicate_key_update: {
-              conflict_target: import_klass.conflict_target,
+              conflict_target: klass.conflict_target,
               columns: columns,
             },
             validate: use_ar_model_validations,
             batch_size: 1,
           )
         else
-          import_klass.import(Array.wrap(row), validate: use_ar_model_validations, batch_size: 1)
+          klass.import(Array.wrap(row), validate: use_ar_model_validations, batch_size: 1)
         end
         note_processed(file_name, 1, type)
       rescue ActiveRecord::ActiveRecordError, PG::Error => e
@@ -1141,13 +1148,10 @@ module HmisCsvImporter::Importer
       )
     end
 
-    # Handle the situation where the data is coming in from a custom file that augments
-    # a warehouse table.  We'll import using the warehouse class, but only touch the
-    # columns associated with the custom file.
-    private def import_klass_for(klass)
-      return klass.custom_import_class if klass.respond_to?(:custom_import_class)
-
-      klass
+    # A helper to determine if the class is simply augmenting an existing warehouse class
+    # These classes add data to a subset of columns to an existing warehouse class
+    private def custom_augmentation?(klass)
+      klass.respond_to?(:augments?) && klass.augments?
     end
   end
 end

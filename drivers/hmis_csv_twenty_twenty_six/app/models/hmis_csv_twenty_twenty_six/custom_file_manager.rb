@@ -83,13 +83,10 @@ module HmisCsvTwentyTwentySix
       return if loader_class_exists?(class_name)
 
       # Create loader class
-      loader_class = Class.new(HmisCsvTwentyTwentySix::Loader::Base) do
+      loader_class = Class.new(HmisCsvTwentyTwentySix::Loader::CustomBase) do
         include HmisStructure::Base
 
-        define_singleton_method(:hud_key) do
-          file_config['augment_key'] || file_config['warehouse_key'] || file_config['columns'].first['name']
-        end
-
+        # All configuration-driven setup is now handled in setup_model_for_file
         setup_model_for_file(file_config)
       end
 
@@ -111,33 +108,12 @@ module HmisCsvTwentyTwentySix
       return if importer_class_exists?(class_name)
 
       # Create importer class
-      importer_class = Class.new(HmisCsvTwentyTwentySix::Importer::Base) do
+      importer_class = Class.new(HmisCsvTwentyTwentySix::Importer::CustomBase) do
         include HmisStructure::Base
         include HmisCsvTwentyTwentySix::Importer::CustomImportConcern
+
+        # All configuration-driven setup is now handled in setup_model_for_file
         setup_model_for_file(file_config)
-
-        define_singleton_method(:custom_file_config) { file_config }
-
-        define_singleton_method(:hud_key) do
-          file_config['augment_key'] || file_config['warehouse_key'] || file_config['columns'].first['name']
-        end
-
-        # Set up destination_record association based on file configuration
-        if file_config['augments_warehouse_table']
-          # For files that augment existing warehouse tables
-          warehouse_class = file_config['augments_warehouse_table']
-          key_column = file_config['augment_key'] || file_config['columns'].first['name']
-          model_name = warehouse_class.split('::').last
-
-          has_one :destination_record, **hud_assoc(key_column.to_sym, model_name)
-        elsif file_config['creates_warehouse_table']
-          # For files that create new warehouse tables
-          warehouse_class_name = file_config['warehouse_class_name']
-          key_column = file_config['warehouse_key'] || file_config['columns'].first['name']
-          model_name = warehouse_class_name.split('::').last
-
-          has_one :destination_record, **hud_assoc(key_column.to_sym, model_name)
-        end
       end
 
       # Register the class

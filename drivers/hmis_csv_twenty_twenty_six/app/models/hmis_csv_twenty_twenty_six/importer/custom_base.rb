@@ -7,23 +7,50 @@
 # frozen_string_literal: true
 
 module HmisCsvTwentyTwentySix::Importer
-  class Base < GrdaWarehouse::Hud::Base
+  class CustomBase < GrdaWarehouse::Hud::Base
     include ImportConcern
 
-    # Base class for all FY2026 importer classes, including dynamically generated ones
-    # This provides common functionality for both standard and custom importer classes
+    # Base class for all FY2026 custom importer classes, including dynamically generated ones
+    # This provides common functionality for custom importer classes only
+    # Standard importer classes inherit directly from GrdaWarehouse::Hud::Base
 
     # Default table name prefix for FY2026 importers
     self.table_name_prefix = 'hmis_2026_'
 
     # Method called by CustomFileManager when setting up generated classes
     # This executes the configuration logic directly in the class context
+    #
+    # Method Organization for Custom Importer Classes:
+    #
+    # 1. setup_model_for_file (this method) - All configuration-driven setup
+    #    - Table names, column definitions, validations
+    #    - Methods that depend on YAML configuration
+    #
+    # 2. CustomImportConcern - Behavioral overrides only
+    #    - Methods that change how the import process works
+    #    - Overrides for augmentation vs. new table creation
+    #    - Delegation to other classes
+    #
+    # 3. generate_importer_class (custom_file_manager.rb) - Class creation only
+    #    - Class instantiation and module inclusion
+    #    - Calls setup_model_for_file
+    #    - Registers the class in the namespace
     def self.setup_model_for_file(file_config)
-      self.table_name = "hmis_2026_#{file_config['class_name'].underscore.pluralize}"
+      setup_table_name(file_config)
+      setup_configuration_methods(file_config)
+      setup_class_methods(file_config)
+      setup_associations(file_config)
+      setup_validations(file_config)
+    end
 
+    private_class_method def self.setup_table_name(file_config)
+      self.table_name = "hmis_2026_#{file_config['class_name'].underscore.pluralize}"
+    end
+
+    # Generate configuration-driven singleton methods based on YAML column configuration
+    private_class_method def self.setup_configuration_methods(file_config)
       # Generate hud_csv_headers method based on YAML column configuration
       column_names = file_config['columns'].map { |col| col['name'] }
-
       define_singleton_method(:hud_csv_headers) do
         column_names
       end
@@ -44,26 +71,48 @@ module HmisCsvTwentyTwentySix::Importer
       # Generate upsert_column_names method based on YAML column configuration
       # This returns the columns that should be included in upsert operations
       define_singleton_method(:upsert_column_names) do |version: hud_csv_version| # rubocop:disable Lint/UnusedBlockArgument
-        # Return all HMIS data columns plus framework columns for upserts
+        # Return all HMIS data columns
+        # Remove DateCreated, DateUpdated, DateDeleted, ExportID, UserID if this is an augmentation
         # Note: version parameter is required by ImportConcern interface but not used
         # for custom files since structure comes from YAML configuration
+        excluded_augmentation_columns = ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID', 'UserID']
         hmis_columns = file_config['columns'].map { |col| col['name'] }
-        framework_columns = [
-          'data_source_id',
-          'importer_log_id',
-          'pre_processed_at',
-          'source_hash',
-          'source_id',
-          'source_type',
-          'dirty_at',
-          'clean_at',
-          'should_import',
-        ]
 
-        (hmis_columns + framework_columns).map(&:to_sym)
+        excluded_columns = augments? ? excluded_augmentation_columns : []
+        (hmis_columns - excluded_columns).map(&:to_sym)
       end
+    end
 
-      # Define column mappings and validations
+    # Generate class-specific singleton methods that depend on file configuration
+    private_class_method def self.setup_class_methods(file_config)
+      define_singleton_method(:custom_file_config) { file_config }
+
+      define_singleton_method(:hud_key) do
+        (file_config['augment_key'] || file_config['warehouse_key'] || file_config['columns'].first['name'])&.to_sym
+      end
+    end
+
+    # Set up destination_record association based on file configuration
+    private_class_method def self.setup_associations(file_config)
+      if file_config['augments_warehouse_table']
+        # For files that augment existing warehouse tables
+        warehouse_class = file_config['augments_warehouse_table']
+        key_column = file_config['augment_key'] || file_config['columns'].first['name']
+        model_name = warehouse_class.split('::').last
+
+        has_one :destination_record, **hud_assoc(key_column.to_sym, model_name)
+      elsif file_config['creates_warehouse_table']
+        # For files that create new warehouse tables
+        warehouse_class_name = file_config['warehouse_class_name']
+        key_column = file_config['warehouse_key'] || file_config['columns'].first['name']
+        model_name = warehouse_class_name.split('::').last
+
+        has_one :destination_record, **hud_assoc(key_column.to_sym, model_name)
+      end
+    end
+
+    # Define column mappings and validations based on YAML configuration
+    private_class_method def self.setup_validations(file_config)
       file_config['columns'].each do |column_config|
         column_name = column_config['name']
         column_type = column_config['type']
