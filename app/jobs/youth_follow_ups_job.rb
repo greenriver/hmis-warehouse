@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -13,7 +15,14 @@ class YouthFollowUpsJob < BaseJob
     super
   end
 
-  def perform
+  def perform(...)
+    instrument_as_maintenance_task do |run|
+      _perform
+      run.complete!
+    end
+  end
+
+  def _perform
     @notifier.ping('Processing youth follow ups') if @send_notifications
 
     # Process all clients with a youth intake to update their follow up history for the last 90 days

@@ -17,17 +17,20 @@
 
 - content_for :page_js do
   :javascript
-    $(document).change(function() {
-      form = $('.jCareplanForm');
-      $.ajax({
-        url: form.attr('action'),
-        type: form.attr('method'),
-        data: form.serialize(),
-        success: function() {
-          console.debug('done');
-        },
-        error: function(e) {
-          console.error(e);
-        }
+    $(document).ready(function() {
+      $(document).change('.jCareplanForm', function() {
+        var form = $('.jCareplanForm');
+        var url = form.attr('action');
+        $.ajax({
+          url: url,
+          type: form.attr('method'),
+          data: form.serialize(),
+          success: function() {
+            console.debug('done', url);
+          },
+          error: function(e) {
+            console.error('failed', url, e);
+          }
+        });
       });
     });
