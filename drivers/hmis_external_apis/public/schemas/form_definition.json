@@ -967,7 +967,8 @@
                 "EMAIL",
                 "PHONE",
                 "MCI",
-                "SSN"
+                "SSN",
+                "AHA"
               ]
             }
           }
