@@ -44,7 +44,7 @@
                       = link_to appropriate_client_path(item[k]) do
                         = value
                       %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
-                        %i.icon-infoexit
+                        %i.icon-info
                     - elsif k.to_s == 'hmis_enrollment_id'
                       = hmis_external_link(item.enrollment, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value
                     - elsif k.to_s == 'personal_id'
