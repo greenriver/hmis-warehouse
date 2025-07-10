@@ -58,7 +58,7 @@ module Types
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
-    field :aha_score, mutation: Mutations::AcHmis::AhaScore
+    field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients

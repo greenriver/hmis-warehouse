@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class AcHmis::AhaScore < CleanBaseMutation
+  class AcHmis::FetchAhaScore < CleanBaseMutation
     description 'Return AHA score for client'
 
     argument :client_id, ID, required: true
