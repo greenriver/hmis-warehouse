@@ -82,6 +82,8 @@ FactoryBot.define do
         personal_id: client.personal_id,
         first_name: client.first_name,
         last_name: client.last_name,
+        dob: client.dob,
+        veteran_status: client.veteran_status,
       )
       create(:hmis_warehouse_client, data_source: client.data_source, source: client, destination: destination)
     end
