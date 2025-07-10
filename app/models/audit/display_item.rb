@@ -52,7 +52,7 @@ class Audit::DisplayItem
   end
 
   # Class method to create multiple display items with optimized loading
-  def self.batch_create(versions, users_by_id, excluded_fields = [])
+  def self.build_batch(versions, users_by_id, excluded_fields = [])
     return [] if versions.blank?
 
     # Pre-load all records referenced in versions

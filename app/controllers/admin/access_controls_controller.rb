@@ -105,7 +105,7 @@ class Admin::AccessControlsController < ApplicationController
         preload(*access_control_audit_preloads)
 
       # Use the optimized batch creation method
-      Audit::Versions.batch_create(access_controls, access_control_component_config)
+      Audit::Versions.build_batch(access_controls, access_control_component_config)
     end
   end
 

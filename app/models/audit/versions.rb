@@ -62,11 +62,11 @@ class Audit::Versions
 
   def wrap_display_versions(versions)
     users_by_id = build_user_lookup(versions)
-    Audit::DisplayItem.batch_create(versions, users_by_id, config[:excluded_fields])
+    Audit::DisplayItem.build_batch(versions, users_by_id, config[:excluded_fields])
   end
 
   # Class method to create multiple Audit::Versions objects with optimized loading
-  def self.batch_create(records, config = {})
+  def self.build_batch(records, config = {})
     return [] if records.blank?
 
     # Batch load all versions for all records
