@@ -34,12 +34,12 @@ module Hmis::AuthPolicies::ContextLoaders
       visited = Set.new
 
       permissions.delete_if do |permission|
-        !has_requirements_met?(permission, permissions, visited)
+        !requirements_met?(permission, permissions, visited)
       end
     end
 
     # Recursively checks that a permission and all its transitive requirements are satisfied
-    def has_requirements_met?(permission, permissions, visited)
+    def requirements_met?(permission, permissions, visited)
       raise 'cycle detected' if visited.include?(permission) # This shouldn't occur
 
       required = role_config[permission][:requirements]
@@ -49,7 +49,7 @@ module Hmis::AuthPolicies::ContextLoaders
       # check that all requirements are satisfied
       visited.add(permission)
       result = required.all? do |req|
-        permissions.include?(req) && has_requirements_met?(req, permissions, visited)
+        permissions.include?(req) && requirements_met?(req, permissions, visited)
       end
       visited.delete(permission)
 
