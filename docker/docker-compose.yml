@@ -109,7 +109,7 @@ services:
     <<: *backend 
     profiles:
       - eks
-    entrypoint: '/usr/bin/entrypoint.dj-eks-test.sh'
+    entrypoint: 'tini -- /usr/bin/entrypoint.dj-eks-test.sh'
     command: "delayed_job run --pool=*:1"
     ports:
       # visit localhost:34533/metrics
