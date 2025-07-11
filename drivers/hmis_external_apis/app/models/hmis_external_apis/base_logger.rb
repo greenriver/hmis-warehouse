@@ -29,7 +29,6 @@ module HmisExternalApis
       end
 
       if result
-        # todo @martha - not ideal that this is repeated, kind of calls for a refactor but it's messy
         # result is either a Faraday::Response or OAuth2::Response
         content_type = result.respond_to?(:content_type) ? result.content_type : result.headers['content-type']
 

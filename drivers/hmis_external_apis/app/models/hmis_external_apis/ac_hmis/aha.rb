@@ -13,27 +13,30 @@ module HmisExternalApis::AcHmis
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
 
     def fetch_score(client)
-      mci_id = client.ac_hmis_mci_ids.first&.value # todo @martha - what if there are multiple MCI IDs? what if none?
+      mci_ids = client.ac_hmis_mci_ids.map(&:value)
+      return nil if mci_ids.empty?
 
       payload = {
-        'mc_id__eq': mci_id,
+        'mc_id__in': mci_ids,
       }
 
-      # todo @Martha - rack app that can locally mimic external api?
       result = conn.post('api/v1/clients/scores', payload).
         then { |r| handle_error(r) }
 
-      # todo @martha - what if multiple clients are returned?
-      # todo @martha - special case if score is -999
-      result.parsed_body.first&.dig('score') if result.parsed_body.is_a?(Array)
-      # todo @martha - this should probably have responded with "Failed to connect to AHA"
-      ''
+      return nil if result.http_status == 404
+
+      # Find first score that's not -999, return nil if all are -999 or no data
+      scores = result.parsed_body&.dig('data')&.map { |c| c.dig('score') } || []
+      scores = scores.compact.uniq.filter { |s| s != -999 }
+      scores.first || nil # If multiple non -999 scores were returned, just return the first one
     end
 
-    # todo @martha - MCI ID AND AHA are both required
-    # def self.enabled?
-    #   ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
-    # end
+    def self.enabled?
+      # Both MCI and AHA credentials need to be exist for AHA api to be enabled, since we query the API by MCI ID.
+      aha_cred = ::GrdaWarehouse::RemoteCredentials::ApiKey.active.where(slug: SYSTEM_ID)
+      mci_cred = ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
+      aha_cred.exists? && mci_cred.exists?
+    end
 
     private
 

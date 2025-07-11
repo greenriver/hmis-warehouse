@@ -30,7 +30,7 @@ module HmisExternalApis
       end
 
       create_result(result, verb, url, merged_headers, request_log)
-    rescue Faraday::TimeoutError => e
+    rescue Faraday::TimeoutError, Faraday::ConnectionFailed => e
       create_connection_error_result(e, request_log)
     rescue Faraday::Error => e
       create_http_error_result(e, result, request_log)
