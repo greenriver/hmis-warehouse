@@ -16,7 +16,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
           'Data Element',
           '# of Records',
           '# of Inactive Records',
-          '# % of Inactive Records',
+          '% of Inactive Records',
         ],
         row_labels: [
           'Contact (Adults and Heads of Household in Street Outreach or PATH-funded SSO)',
