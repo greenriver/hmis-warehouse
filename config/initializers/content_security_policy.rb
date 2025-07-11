@@ -83,7 +83,7 @@ Rails.application.config.content_security_policy do |policy|
   )
 
   policy.script_src(
-    :self, 
+    :self,
     # Monitoring
     'https://browser.sentry-cdn.com', # Sentry error tracking and monitoring
 
@@ -94,7 +94,7 @@ Rails.application.config.content_security_policy do |policy|
     # Core Application
     'https://unpkg.com/ag-grid-community@', # Data grid component for large datasets
     'https://cdnjs.cloudflare.com/ajax/libs/chance/', # Random data generation for development
-    'https://unpkg.com/ag-grid-community', # Cohorts    
+    'https://unpkg.com/ag-grid-community', # Cohorts
 
     # Data Visualization & Analytics
     'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
