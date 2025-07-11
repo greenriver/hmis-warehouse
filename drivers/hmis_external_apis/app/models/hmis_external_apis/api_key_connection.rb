@@ -58,7 +58,7 @@ module HmisExternalApis
       # result is a Faraday::Response
       BaseResult.new(
         body: result.body,
-        content_type: result.content_type,
+        content_type: result.headers['content-type'],
         error: nil,
         error_type: nil,
         http_method: verb,

@@ -88,7 +88,7 @@ module HmisExternalApis
       # result is an OAuth2::Response
       BaseResult.new(
         body: result.body,
-        content_type: result.headers['content-type'],
+        content_type: result.content_type,
         error: nil,
         error_type: nil,
         http_method: verb,
