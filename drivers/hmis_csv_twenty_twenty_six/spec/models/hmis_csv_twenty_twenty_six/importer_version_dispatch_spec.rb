@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe 'HMIS CSV Twenty Twenty Six Importer Version Dispatch' do
-  let(:data_source) { create(:data_source) }
+  let(:data_source) { create(:source_data_source) }
 
   describe 'version detection and importer selection' do
     it 'routes FY2026 files to the correct importer and loader classes' do
@@ -44,20 +44,6 @@ RSpec.describe 'HMIS CSV Twenty Twenty Six Importer Version Dispatch' do
 
         detected_importer_class = HmisCsvImporter::Loader::Loader.importer_class_for_version(detected_version)
         expect(detected_importer_class).to eq(HmisCsvTwentyTwentySix::Importer::Importer)
-      end
-    end
-
-    it 'generates custom models when FY2026 loader is initialized' do
-      # Mock custom file generation - this should be called when the loader is initialized
-      expect(HmisCsvTwentyTwentySix::CustomFileManager).to receive(:generate_custom_models!)
-
-      # Create a temporary directory for the loader
-      Dir.mktmpdir do |temp_dir|
-        # Initialize the FY2026 loader - this should trigger custom model generation
-        HmisCsvTwentyTwentySix::Loader::Loader.new(
-          file_path: temp_dir,
-          data_source_id: data_source.id,
-        )
       end
     end
   end

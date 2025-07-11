@@ -1,0 +1,43 @@
+# config/hmis_csv_twenty_twenty_six_custom_files.yml
+custom_files:
+  - filename: "CustomSexualOrientation.csv"
+    class_name: "CustomSexualOrientation"
+    required: false
+    description: "Sexual orientation data in FY2024 format"
+    augments_warehouse_table: "GrdaWarehouse::Hud::Enrollment"
+    augment_key: "EnrollmentID"
+    augment_import_class: "HmisCsvTwentyTwentySix::Importer::Enrollment"
+    columns:
+      - name: "EnrollmentID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "EnrollmentID"
+      - name: "PersonalID"
+        type: "string"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "PersonalID"
+      - name: "SexualOrientation"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "SexualOrientation"
+      - name: "SexualOrientationOther"
+        type: "string"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "SexualOrientationOther"
+      # Standard HMIS fields
+      - name: "DateCreated"
+        type: "datetime"
+      - name: "DateUpdated"
+        type: "datetime"
+      - name: "UserID"
+        type: "string"
+      - name: "DateDeleted"
+        type: "datetime"
+      - name: "ExportID"
+        type: "string"

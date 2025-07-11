@@ -794,6 +794,8 @@ module HmisCsvImporter::Importer
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
+        upsert_columns = destination_class.upsert_column_names
+        upsert_columns = klass.upsert_column_names if custom_augmentation?(klass)
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
@@ -811,8 +813,10 @@ module HmisCsvImporter::Importer
               # These are tracked separately so we can bulk update them at the end
               track_dirty_enrollment(destination.EnrollmentID)
             end
+            # ensure we always have the right data_source_id
+            destination.data_source_id = data_source.id
             batch << destination
-            if batch.count == INSERT_BATCH_SIZE
+            if batch.count == INSERT_BATCH_SIZE && !custom_augmentation?(klass)
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
               # so these must be processed more slowly
               if klass.hud_key == :PersonalID
@@ -825,14 +829,14 @@ module HmisCsvImporter::Importer
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
               end
               batch = []
             end
           end
         end
         if batch.present? # ensure we get the last batch
-          if klass.hud_key == :PersonalID
+          if klass.hud_key == :PersonalID && !custom_augmentation?(klass)
             batch.each do |incoming|
               destination_class.where(
                 data_source_id: incoming.data_source_id,
@@ -842,7 +846,7 @@ module HmisCsvImporter::Importer
             end
             note_processed(file_name, batch.count, 'updated')
           else
-            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
           end
         end
 
@@ -891,7 +895,7 @@ module HmisCsvImporter::Importer
     # if the incoming record is older than the existing record,
     # don't update the warehouse.
     # NOTE: there is one exception, if the import is the most recently
-    # exported for this data source, then we should assume the data is
+    # exported for this data source, then we can assume the data is
     # more correct than anything we have
     private def mark_incoming_older(klass, file_name)
       # Doesn't apply to Exports
@@ -932,10 +936,12 @@ module HmisCsvImporter::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names)
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names, update_only: false)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
-        if upsert
+        if update_only
+          bulk_update_batch!(klass, batch, columns)
+        elsif upsert
           klass.import(
             batch,
             on_duplicate_key_update: {
@@ -954,7 +960,12 @@ module HmisCsvImporter::Importer
       log "batch failed: #{e.message}... processing records one at a time"
       errors = []
       batch.each do |row|
-        if upsert
+        if update_only
+          where_clause = { data_source_id: row.data_source_id }.merge(
+            Array.wrap(klass.conflict_target).to_h { |key| [key, row[key]] },
+          )
+          klass.where(where_clause).with_deleted.update_all(row.slice(columns))
+        elsif upsert
           klass.import(
             Array.wrap(row),
             on_duplicate_key_update: {
@@ -972,6 +983,43 @@ module HmisCsvImporter::Importer
         errors << add_error(file: file_name, klass: klass, source_id: row[:source_id] || row[:source_hash], message: e.message)
       end
       @importer_log.import_errors.import(errors)
+    end
+
+    # Use postgres bulk update for performance
+    # This will be used for data that is augmenting an existing warehouse class
+    # that never needs to add new rows.
+    # NOTE: data that augments the client table is handled differently
+    # as that table does not currently have a uniqueness constraint compatible
+    # with this method
+    private def bulk_update_batch!(klass, batch, columns)
+      conflict_keys = Array.wrap(klass.conflict_target)
+      update_cols = columns - conflict_keys + [:data_source_id]
+      value_rows = batch.map do |record|
+        values = update_cols.map do |col|
+          klass.connection.quote(record.public_send(col.to_sym))
+        end
+        "(#{values.join(', ')})"
+      end
+      sql_values = value_rows.join(",\n")
+      all_cols_for_values = update_cols.map do |c|
+        klass.connection.quote_column_name(c)
+      end.join(', ')
+      set_statements = update_cols.map do |c|
+        qc = klass.connection.quote_column_name(c)
+        "#{qc} = v.#{qc}"
+      end.join(', ')
+      table_name = klass.quoted_table_name
+      where_conditions = conflict_keys.map do |c|
+        # conflict keys are already quoted
+        "#{table_name}.#{c} = v.#{c}"
+      end.join(' AND ')
+      sql = <<~SQL
+        UPDATE #{table_name}
+        SET #{set_statements}
+        FROM (VALUES #{sql_values}) AS v(#{all_cols_for_values})
+        WHERE #{where_conditions}
+      SQL
+      klass.connection.execute(sql)
     end
 
     private def source_data_scope_for(file_name)

@@ -155,8 +155,8 @@ module HmisCsvTwentyTwentySix
       importer_table = "hmis_2026_#{class_name.underscore.pluralize}"
 
       # Check if tables exist
-      loader_exists = ActiveRecord::Base.connection.table_exists?(loader_table)
-      importer_exists = ActiveRecord::Base.connection.table_exists?(importer_table)
+      loader_exists = GrdaWarehouseBase.connection.table_exists?(loader_table)
+      importer_exists = GrdaWarehouseBase.connection.table_exists?(importer_table)
 
       return if loader_exists && importer_exists
 

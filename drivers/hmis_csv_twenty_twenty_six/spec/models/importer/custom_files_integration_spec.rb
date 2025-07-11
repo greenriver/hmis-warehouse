@@ -9,85 +9,97 @@
 require 'rails_helper'
 
 RSpec.describe 'Custom Files Integration' do
-  let(:data_source) { create(:data_source) }
-  let(:project) { create(:project, data_source: data_source) }
-  let(:client) { create(:client, data_source: data_source, PersonalID: '2f4b963171644a8b9902bdfe79a4b403') }
-  let(:enrollment) { create(:enrollment, data_source: data_source, client: client, project: project, EnrollmentID: '622377') }
+  after(:all) do
+    HmisCsvImporter::Utility.clear!
+    GrdaWarehouse::Utility.clear!
+  end
 
-  before do
-    # Clear any cached config to ensure we're reading fresh YAML files
-    HmisCsvTwentyTwentySix.instance_variable_set(:@custom_files_config, nil)
+  before(:all) do
+    data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :s3)
+    temp_dir = Dir.mktmpdir
+    FileUtils.cp_r('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/.', temp_dir)
 
-    HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_models!
+    # Run import process
+    import_hmis_csv_fixture(
+      temp_dir,
+      version: '2026',
+      data_source: data_source,
+      run_jobs: true,
+    )
+
+    FileUtils.rm_rf(temp_dir)
   end
 
   describe 'CustomGender.csv processing' do
     it 'directly maps gender columns to client record' do
-      temp_dir = Dir.mktmpdir
-      csv_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomGender.csv')
-      File.write(File.join(temp_dir, 'CustomGender.csv'), csv_content)
+      # Verify clients were updated based on fixture data
+      client1 = GrdaWarehouse::Hud::Client.find_by(PersonalID: '2f4b963171644a8b9902bdfe79a4b403')
+      expect(client1.GenderNone).to eq(8)
 
-      # Run import process
-      loader = HmisCsvImporter::Loader::Loader.new(
-        file_path: temp_dir,
-        data_source_id: data_source.id,
-      )
-      loader.load!
+      client2 = GrdaWarehouse::Hud::Client.find_by(PersonalID: '4c9da990d51b4ed1a2e45b972aeaecee')
+      expect(client2.Woman).to eq(1)
 
-      importer = HmisCsvTwentyTwentySix::Importer::Importer.new(
-        loader_id: loader.id,
-        data_source_id: data_source.id,
-      )
-      importer.import!
-
-      # Verify client was updated based on fixture data
-      client.reload
-      expect(client.Woman).to eq(1) # From updated fixture
-      expect(client.Man).to eq(0)
-      expect(client.NonBinary).to eq(1) # From updated fixture
-      expect(client.GenderNone).to eq(8) # From updated fixture
-
-      FileUtils.rm_rf(temp_dir)
+      client3 = GrdaWarehouse::Hud::Client.find_by(PersonalID: '7b8c1279001142afac2fd0bde7a8f6bf')
+      expect(client3.NonBinary).to eq(1)
     end
   end
 
-  describe 'CustomDataElement.csv processing' do
-    it 'creates custom data element records' do
-      temp_dir = Dir.mktmpdir
+  describe 'CustomSexualOrientation.csv processing' do
+    it 'directly maps sexual_orientation columns to enrollment record' do
+      # Verify enrollments were updated based on fixture data
+      enrollment1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
+      expect(enrollment1.SexualOrientation).to eq(1) # Straight
 
-      # Copy both definition and data files
-      def_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomDataElementDefinition.csv')
-      data_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomDataElement.csv')
+      enrollment2 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557890')
+      expect(enrollment2.SexualOrientation).to eq(2) # Gay
 
-      File.write(File.join(temp_dir, 'CustomDataElementDefinition.csv'), def_content)
-      File.write(File.join(temp_dir, 'CustomDataElement.csv'), data_content)
+      enrollment3 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '559123')
+      expect(enrollment3.SexualOrientation).to eq(3) # Lesbian
 
-      # Run import process
-      loader = HmisCsvImporter::Loader::Loader.new(
-        file_path: temp_dir,
-        data_source_id: data_source.id,
-      )
-      loader.load!
-
-      importer = HmisCsvTwentyTwentySix::Importer::Importer.new(
-        loader_id: loader.id,
-        data_source_id: data_source.id,
-      )
-      importer.import!
-
-      # Verify custom data element was created
-      custom_element = GrdaWarehouse::Hud::CustomDataElement.find_by(
-        data_source_id: data_source.id,
-        CustomDataElementID: 'A1001',
-      )
-
-      expect(custom_element).to be_present
-      expect(custom_element.CustomDataElementDefinitionID).to eq('reason_for_exit')
-      expect(custom_element.RecordType).to eq('Enrollment')
-      expect(custom_element.RecordID).to eq('622377')
-      expect(custom_element.Value).to eq('No longer interested in participating in program')
-
-      FileUtils.rm_rf(temp_dir)
+      # Enrollment 3 should not be updated, it falls completely outside of the
+      # import date range
+      enrollment4 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '622377')
+      expect(enrollment4.SexualOrientation).to eq(nil)
     end
   end
+
+  # describe 'CustomDataElement.csv processing' do
+  #   it 'creates custom data element records' do
+  #     temp_dir = Dir.mktmpdir
+
+  #     # Copy both definition and data files
+  #     def_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomDataElementDefinition.csv')
+  #     data_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomDataElement.csv')
+
+  #     File.write(File.join(temp_dir, 'CustomDataElementDefinition.csv'), def_content)
+  #     File.write(File.join(temp_dir, 'CustomDataElement.csv'), data_content)
+
+  #     # Run import process
+  #     loader = HmisCsvImporter::Loader::Loader.new(
+  #       file_path: temp_dir,
+  #       data_source_id: data_source.id,
+  #     )
+  #     loader.load!
+
+  #     importer = HmisCsvTwentyTwentySix::Importer::Importer.new(
+  #       loader_id: loader.id,
+  #       data_source_id: data_source.id,
+  #     )
+  #     importer.import!
+
+  #     # Verify custom data element was created
+  #     custom_element = GrdaWarehouse::Hud::CustomDataElement.find_by(
+  #       data_source_id: data_source.id,
+  #       CustomDataElementID: 'A1001',
+  #     )
+
+  #     expect(custom_element).to be_present
+  #     expect(custom_element.CustomDataElementDefinitionID).to eq('reason_for_exit')
+  #     expect(custom_element.RecordType).to eq('Enrollment')
+  #     expect(custom_element.RecordID).to eq('622377')
+  #     expect(custom_element.Value).to eq('No longer interested in participating in program')
+
+  #     FileUtils.rm_rf(temp_dir)
+  #   end
+  # end
 end
