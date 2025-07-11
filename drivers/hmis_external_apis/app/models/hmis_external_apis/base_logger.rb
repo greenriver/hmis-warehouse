@@ -23,7 +23,7 @@ module HmisExternalApis
       begin
         result = yield
       rescue StandardError => e
-        # If an exception occurred, it was on or and or a failure to connect. Storing "400" status code to indicate it was on our side (the client)
+        # If an exception occurred, it was a failure to connect. Storing "400" status code to indicate it was on our side (the client)
         update_log_record(record, { response: "#{e.class.name}: #{e.message || 'Unknown error'}", http_status: 400 })
         raise
       end

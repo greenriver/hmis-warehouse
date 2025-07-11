@@ -56,20 +56,11 @@ module HmisExternalApis
     end
 
     def create_result(result, verb, url, merged_headers, request_log)
-      # result is either a Faraday::Response or OAuth2::Response
-      BaseResult.new(
-        body: result.body,
-        content_type: result.respond_to?(:content_type) ? result.content_type : result.headers['content-type'],
-        error: nil,
-        error_type: nil,
-        http_method: verb,
-        http_status: result.status,
-        ip: nil,
-        parsed_body: try_parse_json(result.body),
-        request_headers: merged_headers,
-        url: url,
-        request_log: request_log,
-      )
+      raise NotImplementedError, 'implement in subclass'
+    end
+
+    def create_error_result(exception, result, request_log)
+      raise NotImplementedError, 'implement in subclass'
     end
 
     def create_connection_error_result(exception, request_log)
@@ -77,40 +68,6 @@ module HmisExternalApis
         body: exception.message.presence || 'Unknown Error',
         error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',
         error_type: exception.class.name,
-        request_log: request_log,
-      )
-    end
-
-    def create_http_error_result(exception, result, request_log)
-      BaseResult.new(
-        body: result&.body || exception.message,
-        content_type: result&.content_type || exception.response&.headers&.dig('content-type'),
-        error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',
-        error_type: exception.class.name,
-        http_method: exception.response&.env&.method,
-        http_status: result&.status || exception.response&.status,
-        ip: nil,
-        parsed_body: try_parse_json(result&.body),
-        request_headers: exception.response&.env&.request_headers,
-        request_body: exception.response&.env&.request_body,
-        url: exception.response&.env&.url&.to_s,
-        request_log: request_log,
-      )
-    end
-
-    def create_oauth_error_result(exception, result, request_log)
-      BaseResult.new(
-        body: result&.body || exception.message,
-        content_type: result&.content_type || exception.response&.headers&.dig('content-type'),
-        error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',
-        error_type: exception.class.name,
-        http_method: exception.response.response.env.method,
-        http_status: result&.status || exception.response&.status,
-        ip: nil,
-        parsed_body: try_parse_json(result&.body),
-        request_headers: exception.response.response.env.request_headers,
-        request_body: exception.response.response.env.request_body,
-        url: exception.response.response.env.url.to_s,
         request_log: request_log,
       )
     end
