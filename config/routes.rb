@@ -787,6 +787,7 @@ Rails.application.routes.draw do
       end
       post :assign, on: :collection
       get :audits, on: :collection, to: 'access_controls#audits', as: :audits
+      post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
       get :export, on: :collection, to: 'access_controls#export', as: :export
     end
     resources :access_overviews, only: [:index]

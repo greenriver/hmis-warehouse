@@ -11,11 +11,12 @@ class Audit::DisplayItem
   attr_reader :version, :username, :impersonating, :error, :changes, :entity_name, :entity_display_name
   delegate :created_at, :event, :item_type, :item_id, to: :version
 
-  def initialize(version, users_by_id, excluded_fields = [])
+  def initialize(version, users_by_id, excluded_fields = [], records_by_type_and_id = {})
     raise ArgumentError, "Expected GrPaperTrail::Version or GrdaWarehouse::Version, got #{version.class}" unless version.is_a?(GrPaperTrail::Version) || version.is_a?(GrdaWarehouse::Version)
 
     @version = version
     @excluded_fields = excluded_fields
+    @records_by_type_and_id = records_by_type_and_id
 
     impersonating = version.clean_true_user_id.present? && version.clean_user_id.to_s != version.clean_true_user_id.to_s
 
@@ -50,6 +51,45 @@ class Audit::DisplayItem
     end
   end
 
+  # Class method to create multiple display items with optimized loading
+  def self.build_batch(versions, users_by_id, excluded_fields = [])
+    return [] if versions.blank?
+
+    # Pre-load all records referenced in versions
+    records_by_type_and_id = preload_records_for_versions(versions)
+
+    # Create display items with pre-loaded records
+    versions.map do |version|
+      new(version, users_by_id, excluded_fields, records_by_type_and_id)
+    end
+  end
+
+  # Class method to pre-load records for a collection of versions
+  def self.preload_records_for_versions(versions)
+    return {} if versions.blank?
+
+    records_by_type_and_id = {}
+
+    # Group versions by item_type
+    versions_by_type = versions.group_by(&:item_type)
+
+    versions_by_type.each do |item_type, type_versions|
+      klass = item_type.constantize
+      item_ids = type_versions.map(&:item_id).uniq
+
+      # Load records with deleted ones included
+      records = if klass.respond_to?(:with_deleted)
+        klass.with_deleted.where(id: item_ids).index_by(&:id)
+      else
+        klass.where(id: item_ids).index_by(&:id)
+      end
+
+      records_by_type_and_id[item_type] = records
+    end
+
+    records_by_type_and_id
+  end
+
   protected
 
   def compute_username(users_by_id, user_id)
@@ -68,22 +108,13 @@ class Audit::DisplayItem
   end
 
   def compute_entity_display_name(klass)
-    # Try to get the actual record and use its name method first
-    if klass
-      begin
-        record = klass.with_deleted.find_by(id: version.item_id)
-        if record.respond_to?(:entity_name)
-          return record.entity_name
-        elsif record.respond_to?(:name)
-          return record.name
-        end
-      rescue StandardError
-        # If we can't load the record, fall back to humanized entity type
-      end
-    end
+    record = @records_by_type_and_id&.dig(version.item_type, version.item_id)
+    record ||= klass.with_deleted.find_by(id: version.item_id)
 
-    # Fallback to humanized entity type
-    version.item_type.underscore.humanize
+    display_name = record&.entity_name
+    display_name ||= record&.name
+
+    display_name || version.item_type.underscore.humanize
   end
 
   def describe_changes_fallback(version, changeset)
