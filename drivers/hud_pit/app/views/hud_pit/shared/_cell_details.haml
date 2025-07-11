@@ -20,34 +20,33 @@
         %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
         %span.input-group-append
           %button.btn.btn-secondary Search
-  .card
-    .overflow-x-scroll{style: "height: 800px"}
-      %table.table.table-sm.table-bordered.table-fixed.datatable
-        %thead.thead-dark
+  .card.overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-sm.table-bordered.table-fixed.datatable
+      %thead.thead-dark
+        %tr
+          %th
+          - column_headings.each_value do |header|
+            %th= header
+      %tbody.thead-dark
+        - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
+        - @clients.preload(:source_client, :data_source).each.with_index do |client, i|
+          - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
           %tr
-            %th
-            - column_headings.each_value do |header|
-              %th= header
-        %tbody.thead-dark
-          - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
-          - @clients.preload(:source_client, :data_source).each.with_index do |client, i|
-            - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
-            %tr
-              %th= i + 1
-              - column_headings.each_key do |k|
-                %td{style: 'max-width: 600px;'}
-                  - if k.to_s == 'destination_client'
-                    - destination_id = client['destination_client_id']
-                    = link_to appropriate_client_path(destination_id) do
-                      = destination_id
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
-                      %i.icon-info
-                  - elsif k.to_s.underscore == 'personal_id'
-                    - value = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
-                    = hmis_external_link(client.source_client, data_source: client.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
-                  
-                  - else
-                    = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
+            %th= i + 1
+            - column_headings.each_key do |k|
+              %td{style: 'max-width: 600px;'}
+                - if k.to_s == 'destination_client'
+                  - destination_id = client['destination_client_id']
+                  = link_to appropriate_client_path(destination_id) do
+                    = destination_id
+                  %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %i.icon-info
+                - elsif k.to_s.underscore == 'personal_id'
+                  - value = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
+                  = hmis_external_link(client.source_client, data_source: client.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
+
+                - else
+                  = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({
