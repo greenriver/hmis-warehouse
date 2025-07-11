@@ -68,7 +68,6 @@ module HudApr::CellDetailsConcern
     def self.parenting_fields
       [
         :parenting_youth,
-        :parenting_juvenile,
       ].freeze
     end
 
