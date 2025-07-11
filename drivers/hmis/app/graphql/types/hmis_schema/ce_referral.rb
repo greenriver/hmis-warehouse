@@ -9,21 +9,29 @@
 module Types
   class HmisSchema::CeReferral < Types::BaseObject
     # object is a Hmis::Ce::Referral
+
     field :id, ID, null: false
     field :opportunity, HmisSchema::CeOpportunity, null: false
     field :steps, [HmisSchema::CeReferralStep], null: false
     field :status, HmisSchema::Enums::CeReferralStatus, null: false
     field :client_id, ID, null: false
-    field :client, Types::HmisSchema::Client, null: true
+    field :client_name, String, null: false, description: 'The name of the referred client. Always available, even without full client record access.'
+    field :client_age, Integer, null: true, description: 'The age of the referred client. Always available, even without full client record access.'
+    field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
 
     field :current_steps, [HmisSchema::CeReferralStep], null: true
     field :days_on_current_steps, Integer, null: true
     field :updated_by, Application::User, null: true
-    field :target_enrollment, Types::HmisSchema::Enrollment, null: true
+    field :target_enrollment, Types::HmisSchema::Enrollment, null: true, description: 'Target enrollment, if the user has permission to view it.'
+    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
+    field :notes, HmisSchema::CeReferralNote.page_type, null: false
+
+    # generically resolve current values for any fields referenced by Match Rule expressions
+    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.', method: :resolve_match_rule_fields
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -78,6 +86,17 @@ module Types
       load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
 
+    # NOTE: This field intentionally does not check can_view_clients
+    def client_name
+      c = load_ar_association(object, :client)
+      c.brief_name.presence || c.masked_name
+    end
+
+    # NOTE: This field intentionally does not check can_view_clients
+    def client_age
+      load_ar_association(object, :client).age
+    end
+
     def current_steps
       load_ar_association(object, :current_steps).sort_by { |step| [step.available_at, step.id] }
     end
@@ -125,10 +144,19 @@ module Types
     end
 
     def target_enrollment
-      enrollment = load_ar_association(object, :target_enrollment)
-      return nil unless enrollment.present?
+      return unless object.target_enrollment_id
 
-      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: enrollment.id)
+      load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.target_enrollment_id)
+    end
+
+    def source_enrollment
+      return unless object.source_enrollment_id
+
+      # Resolve source Enrollment without checking viewable_by.This resolves as type CeReferralSourceEnrollment, so it only exposes limited data from the Enrollment
+      enrollment = load_ar_association(object, :source_enrollment)
+
+      # Not passing definition_identifiers because we don't need to resolve assessment data in this context (for now)
+      OpenStruct.new(enrollment: enrollment, definition_identifiers: [])
     end
 
     def referred_by
@@ -171,6 +199,10 @@ module Types
       object.audit_events.
         where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
         order(created_at: :desc)
+    end
+
+    def notes
+      object.notes.order(created_at: :desc)
     end
 
     private

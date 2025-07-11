@@ -8,14 +8,19 @@ module Hmis::Ce::Match
     def self.build
       calculator = Dentaku::Calculator.new(case_sensitive: true) # CDED keys are case sensitive, so Dentaku expressions should be too
       calculator.add_function(
-        :includes,
+        :INCLUDES,
         :logical,
         ->(a, b) { Array(a).include?(b) },
       )
       calculator.add_function(
-        :excludes,
+        :EXCLUDES,
         :logical,
         ->(a, b) { !Array(a).include?(b) },
+      )
+      calculator.add_function(
+        :PROJECT_TYPE,
+        :string,
+        ->(identifier) { HudUtility2026.hmis_project_type_key(identifier, true) },
       )
 
       return calculator

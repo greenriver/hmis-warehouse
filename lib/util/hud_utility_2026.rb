@@ -203,6 +203,32 @@ module HudUtility2026
     }.freeze
   end
 
+  # Project Type keys used in HMIS GraphQL API and CE Match expressions
+  def hmis_project_type_keys
+    {
+      0 => 'ES_ENTRY_EXIT',
+      1 => 'ES_NBN',
+      2 => 'TH',
+      3 => 'PH_PSH',
+      4 => 'SO',
+      6 => 'SSO',
+      7 => 'OTHER',
+      8 => 'SH',
+      9 => 'PH_PH',
+      10 => 'PH_OPH',
+      11 => 'DAY_SHELTER',
+      12 => 'HP',
+      13 => 'PH_RRH',
+      14 => 'CE',
+    }
+  end
+
+  def hmis_project_type_key(field, reverse = false)
+    field = field.to_s.upcase if reverse
+    map = hmis_project_type_keys
+    _translate(map, field, reverse, raise_on_missing: true)
+  end
+
   def project_types_without_inventory
     [4, 6, 7, 11, 12, 14].freeze
   end

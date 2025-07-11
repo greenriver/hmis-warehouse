@@ -29,7 +29,7 @@
               %th= header
         %tbody
           - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
-          - @clients.preload(:source_client).each.with_index do |client, i|
+          - @clients.preload(:source_client, :data_source).each.with_index do |client, i|
             - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
             %tr
               %th= i + 1
@@ -41,6 +41,10 @@
                       = destination_id
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
+                  - elsif k.to_s.underscore == 'personal_id'
+                    - value = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
+                    = hmis_external_link(client.source_client, data_source: client.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
+                  
                   - else
                     = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
   = content_for :page_js do

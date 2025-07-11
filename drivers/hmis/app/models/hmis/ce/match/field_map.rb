@@ -46,6 +46,19 @@ module Hmis::Ce::Match
       [field_type, resolved_field]
     end
 
+    # Resolves a field for display purposes, returning a label and value.
+    # Example return values:
+    #   ["Veteran status", "Yes"]
+    #   ["Custom Field Value", "Response Text"]
+    #   ["Open Project Types", ["Services Only", "Coordinated Entry"]]
+    def resolve_field_for_display(client, field)
+      resolver, resolved_field = resolver_for(field)
+      label = resolver.label_for(resolved_field)
+      value = resolver.instance_value_for_display(client, resolved_field)
+
+      [label, value]
+    end
+
     protected
 
     # Parses a field name and returns the appropriate resolver and resolved field name.

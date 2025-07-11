@@ -12,6 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       hmis_user, ds1,
       with_permission: [
         :can_view_clients,
+        :can_view_client_name,
         :can_view_project,
         :can_view_enrollment_details,
         :can_view_client_eligible_opportunities,
@@ -27,7 +28,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   # Basic setup
   let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:client) { create :hmis_hud_client, data_source: ds1 }
+  let(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
+  let(:client_proxy) { create :hmis_ce_client_proxy, client: client.destination_client }
 
   # Create candidate pools with different criteria
   let!(:pool_veterans) do
@@ -51,7 +53,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create(
       :hmis_ce_match_candidate,
       candidate_pool: pool_veterans,
-      client: client,
+      client_proxy: client_proxy,
       priority_score: 75,
     )
   end
@@ -60,7 +62,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create(
       :hmis_ce_match_candidate,
       candidate_pool: pool_seniors,
-      client: client,
+      client_proxy: client_proxy,
       priority_score: 85,
     )
   end
@@ -112,9 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   nodes {
                     id
                     priorityScore
-                    client {
-                      id
-                    }
+                    destinationClientId
                   }
                 }
               }
@@ -153,7 +153,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(first_opportunity['candidates']['nodes']).to be_an(Array)
         expect(first_opportunity['candidates']['nodes'].first).to include(
           'priorityScore' => kind_of(Integer),
-          'client' => { 'id' => client.id.to_s },
+          'destinationClientId' => client.destination_client.id.to_s,
         )
       end
     end
@@ -215,7 +215,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'returns an empty opportunities array' do
-        _, result = post_graphql(**no_match_variables) { query }
+        response, result = post_graphql(**no_match_variables) { query }
+        expect(response.status).to eq(200), result.inspect
         opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
 
         expect(opportunities).to be_an(Array)

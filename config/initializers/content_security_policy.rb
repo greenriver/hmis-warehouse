@@ -6,51 +6,147 @@
 # For further information see the following documentation
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 
+# CSP DOCUMENTATION STANDARDS:
+# =================================
+# Every CSP rule MUST include an inline comment explaining its purpose and rationale.
+# Comments should be specific enough to understand why the rule exists and what functionality it enables.
+#
+# EXTERNAL ASSET CATEGORIES:
+# - Core Application: Assets required for basic app functionality
+# - Data Visualization & Analytics: Assets for charts, maps, and data analysis features
+# - Authentication: Assets required for auth flows (Okta, reCAPTCHA, etc.)
+# - Monitoring: Assets for error tracking and monitoring (Sentry)
+# - Public Reports: External CDN assets specifically for public-facing reports and dashboards
+#
+# Most external asset rules support core application functionality including internal operations,
+# administrative reporting, data visualization, and public-facing dashboards.
+
+# allow whitespace to make the configuration easier to read
+# rubocop:disable Layout/EmptyLinesAroundArguments
 Rails.application.config.content_security_policy do |policy|
+  public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
+
+  # Get Superset base URL for CSP if available
+  superset_base_url = begin
+    Superset.superset_base_url if defined?(Superset)
+  rescue StandardError
+    nil
+  end
+
   policy.default_src(:self)
   policy.object_src(:none) # Prevents potentially dangerous browser plugins
   policy.base_uri(:self) # Only allows base URLs from your own domain, prevents cross-origin base URL injection
   policy.form_action( # Protects against form-action hijacking
     *[
       :self,
-      ENV['OKTA_DOMAIN'], # okta auth form redirect location
+      ("https://#{ENV['FQDN']}" if ENV['FQDN'].present?), # explicit app domain for Okta auth
+      ("https://#{ENV['OKTA_DOMAIN']}" if ENV['OKTA_DOMAIN'].present?), # okta auth form redirect location
+      superset_base_url, # Superset dashboard integration
     ].compact_blank,
   )
-  policy.frame_ancestors(:self) # Prevents clickjacking attacks (UI redressing attacks), but allows iframes from the same domain
+  policy.frame_ancestors(
+    *[
+      :self, # Self-embedding for public reports
+      # superset_base_url, # In the future, we plan to allow warehouse to embed Superset content
+    ].compact_blank,
+  ) # Prevents external clickjacking while allowing legitimate embedding
 
+  policy.frame_src(
+    :self,
+
+    # Authentication
+    'https://www.google.com/recaptcha/', # Google reCAPTCHA iframe for form protection
+    'https://recaptcha.google.com/recaptcha/', # Google reCAPTCHA fallback iframe
+  )
   policy.font_src(
     :self,
-    :data,
-    'https://fonts.gstatic.com', # Google font files
+    :data, # Data URIs for inline fonts (base64 encoded)
+
+    # Core Application
+    'https://fonts.gstatic.com', # Google Fonts font files
+
+    # Public Reports - UI Components
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons', # Bootstrap Icons font files
   )
   policy.img_src(
-    :self,
-    :data,
-    'https://*.openstreetmap.org',
-    'https://*.pravatar.cc',
+    *[
+      :self,
+      :data, # Data URIs for inline images (base64 encoded)
+
+      # Core Application
+      'https://fonts.gstatic.com', # Google Fonts icons and font images
+      public_s3_url, # S3 bucket for uploaded images and assets (if configured)
+
+      # Data Visualization & Analytics
+      'https://*.openstreetmap.org', # OpenStreetMap tile images for location visualizations
+    ].compact_blank,
   )
+
   policy.script_src(
-    :self,
-    'https://browser.sentry-cdn.com',
-    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/',
-    'https://cdnjs.cloudflare.com/ajax/libs/chance/',
-    'https://unpkg.com/ag-grid-community@27.3.0/dist/ag-grid-community.min.noStyle.js',
-    :unsafe_inline,
-    :unsafe_eval,
+    :self, 
+    # Monitoring
+    'https://browser.sentry-cdn.com', # Sentry error tracking and monitoring
+
+    # Authentication
+    'https://www.google.com/recaptcha/', # Google reCAPTCHA form protection
+    'https://www.gstatic.com/recaptcha/', # Google reCAPTCHA static assets
+
+    # Core Application
+    'https://unpkg.com/ag-grid-community@', # Data grid component for large datasets
+    'https://cdnjs.cloudflare.com/ajax/libs/chance/', # Random data generation for development
+    'https://unpkg.com/ag-grid-community', # Cohorts    
+
+    # Data Visualization & Analytics
+    'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
+    'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js library for system dashboards, health analytics, public reports, and HMIS data quality visualization
+    'https://unpkg.com/leaflet@', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
+
+    # Public Reports - UI Components
+    'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework for responsive UI
+    'https://cdn.jsdelivr.net/npm/bootstrap-datepicker@', # Date picker component
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/', # V4 of the datepicker
+    'https://code.jquery.com', # jQuery for DOM manipulation and event handling
+    'https://kit.fontawesome.com/b8b025dd15.js', # FontAwesome icons for public reports
+
+    :unsafe_inline, # Required for inline scripts in HAML templates
+    :unsafe_eval, # Required for some JavaScript libraries that use eval()
   )
+
   policy.style_src(
-    :self,
-    'https://fonts.googleapis.com',
-    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/',
-    'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-grid.css',
-    'https://unpkg.com/ag-grid-community@27.3.0/dist/styles/ag-theme-balham.css',
-    :unsafe_inline,
+    *[
+      :self,
+
+      # Core Application
+      'https://fonts.googleapis.com', # Google Fonts for typography
+      'https://unpkg.com/ag-grid-community@', # AG Grid component styles
+      :unsafe_inline, # Required for inline styles in HAML templates
+      public_s3_url, # S3 bucket for uploaded assets (if configured)
+
+      # Data Visualization & Analytics
+      'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
+      'https://unpkg.com/leaflet@', # Leaflet mapping library styles
+
+      # Public Reports - UI Components
+      'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework styles
+      'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap icon font
+      'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/', # Bootstrap date picker
+    ].compact_blank,
   )
+
   policy.connect_src(
-    :self,
-    'https://sentry.io/',
-    'https://*.ingest.sentry.io/',
-    'https://*.ingest.us.sentry.io',
+    *[
+      :self,
+      :data, # Data URIs for fetch() requests
+      ("wss://#{ENV['FQDN']}" if ENV['FQDN']), # WebSocket connections for real-time features
+
+      # Monitoring
+      'https://sentry.io/', # Sentry error reporting
+      'https://*.ingest.sentry.io/', # Sentry data ingestion endpoints
+      'https://*.ingest.us.sentry.io', # Sentry US region ingestion endpoints
+
+      # Public Reports - UI Components
+      'https://ka-f.fontawesome.com/releases/', # FontAwesome asset loading and updates
+    ].compact_blank,
   )
 
   # Report CSP violations to a specified URI
@@ -79,3 +175,4 @@ if Rails.env.production? || Rails.env.staging?
 else
   Rails.application.config.content_security_policy_report_only = false
 end
+# rubocop:enable Layout/EmptyLinesAroundArguments
