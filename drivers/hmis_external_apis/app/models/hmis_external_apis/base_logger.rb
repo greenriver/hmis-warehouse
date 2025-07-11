@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,7 @@
 ###
 
 module HmisExternalApis
-  class OauthClientLogger
+  class BaseLogger
     def capture(creds:, url:, method:, payload:, headers:)
       record = new_log_record(
         initiator: creds,
@@ -27,9 +29,13 @@ module HmisExternalApis
       end
 
       if result
+        # todo @martha - not ideal that this is repeated, kind of calls for a refactor but it's messy
+        # result is either a Faraday::Response or OAuth2::Response
+        content_type = result.respond_to?(:content_type) ? result.content_type : result.headers['content-type']
+
         attrs = {
-          content_type: result.content_type,
-          response: result.content_type == 'application/pdf' ? 'pdf' : result.body&.truncate(5000),
+          content_type: content_type,
+          response: content_type == 'application/pdf' ? 'pdf' : result.body&.truncate(5000),
           http_status: result.status,
         }
         update_log_record(record, attrs)

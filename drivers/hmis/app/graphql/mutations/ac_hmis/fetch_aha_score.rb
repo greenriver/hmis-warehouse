@@ -18,12 +18,11 @@ module Mutations
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: client_id)
       access_denied! unless client.present?
 
-      # aha = HmisExternalApis::AcHmis::Aha.new
-      # response = aha.fetch_score(client)
+      aha = HmisExternalApis::AcHmis::Aha.new
+      response = aha.fetch_score(client)
 
       {
-        score: '9.5',
-        errors: [],
+        score: response,
       }
     end
   end
