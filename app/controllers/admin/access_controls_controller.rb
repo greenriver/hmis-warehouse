@@ -9,10 +9,17 @@
 class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
   include ArelHelper
-  include AuditHistory
+  include AccessControlAuditData
+  extend BackgroundRenderAction
 
   before_action :require_can_edit_users!
   before_action :set_access_control, only: [:edit, :update, :destroy]
+
+  background_render_action(:render_audits, ::BackgroundRender::AccessControlsAuditsJob) do
+    {
+      user_id: current_user.id,
+    }
+  end
 
   def index
     @access_controls = access_control_scope.
@@ -55,7 +62,8 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   def audits
-    data
+    # Processing is backgrounded unless render_inline is set to 1
+    data if params[:render_inline] == '1'
   end
 
   def export
@@ -98,37 +106,10 @@ class Admin::AccessControlsController < ApplicationController
     @access_control = access_control_scope.find(params[:id].to_i)
   end
 
-  private def histories
-    @histories ||= begin
-      # Preload access controls with their associations
-      access_controls = AccessControl.visible_to(current_user).
-        preload(*access_control_audit_preloads)
-
-      # Use the optimized batch creation method
-      Audit::Versions.build_batch(access_controls, access_control_component_config)
-    end
-  end
-
-  def access_control_audit_preloads
-    [
-      :user_group,
-      :role,
-      :collection,
-      { user_group: :user_group_members },
-      { role: :user_roles },
-      { collection: :group_viewable_entities },
-    ]
-  end
-
   private def data
-    @data ||= histories.flat_map do |history|
-      versions = history.version_array
-      history.wrap_display_versions(versions).map do |version|
-        {
-          history: history,
-          version: version,
-        }
-      end
-    end.sort_by { |h| h[:version]&.created_at }.reverse
+    @data ||= begin
+      histories = build_histories(current_user)
+      build_data(histories)
+    end
   end
 end
