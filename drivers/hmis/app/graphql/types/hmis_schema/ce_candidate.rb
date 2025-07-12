@@ -42,7 +42,7 @@ module Types
       # but ideally this scope should align with the scope of enrollments used for candidate pool membership evaluation.
 
       # For now, filter enrollments to those viewable by the current user.
-      # In the future we may need to update this to support resolving enrollments that are NOT viewable to the current user.
+      # In the future we may need to update this to support resolving enrollments that are NOT viewable to the current user (#7891)
       base_scope = Hmis::Hud::Enrollment.viewable_by(current_user).where(client: source_clients)
 
       # Source Enrollment IDs that should be prioritized because they are the enrollment(s) where the most recently updated
