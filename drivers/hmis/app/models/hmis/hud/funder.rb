@@ -30,7 +30,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
 
   # Convert funder string to int #183572073, #1017
   # casting as an integer because the spec lists the Funder column as an integer and we incorrectly store it as a string. Probably better to write a migration to fix the data type in the DB.
-  attribute :Funder, :integer
+  # attribute :Funder, :integer
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

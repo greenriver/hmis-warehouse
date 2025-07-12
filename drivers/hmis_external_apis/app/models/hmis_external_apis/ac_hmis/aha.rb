@@ -32,7 +32,7 @@ module HmisExternalApis::AcHmis
     end
 
     def self.enabled?
-      # Both MCI and AHA credentials need to be exist for AHA api to be enabled, since we query the API by MCI ID.
+      # Both MCI and AHA credentials need to exist for AHA api to be enabled, since we query the API by MCI ID.
       aha_cred = ::GrdaWarehouse::RemoteCredentials::ApiKey.active.where(slug: SYSTEM_ID)
       mci_cred = ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
       aha_cred.exists? && mci_cred.exists?
