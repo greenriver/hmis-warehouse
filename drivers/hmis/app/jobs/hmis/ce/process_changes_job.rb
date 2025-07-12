@@ -135,10 +135,6 @@ module Hmis::Ce
       markers.map(&:trackable_id).max + 1
     end
 
-    def log(message)
-      @notifier&.ping("[#{self.class.name}] #{message}")
-    end
-
     def with_lock(&block)
       lock_name = self.class.name.to_s
       ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
@@ -146,11 +142,14 @@ module Hmis::Ce
 
     private
 
-    # Safeguard to ensure data integrity: finds active pools and destination clients that should be
-    # tracked but are missing a change marker. Ensures that all relevant records are eventually processed
-    # by the CE engine.
+    # Safeguard to ensure data integrity. This method finds and corrects active pools and
+    # destination clients that should be tracked but are missing a change marker.
+    #
+    # While all new records should trigger the creation of a change marker, this reconciliation
+    # ensures that any records that slip through (e.g., due to a new data import path) are not
+    # ignored by the incremental processor.
     def reconcile_untracked_records
-      # Find untracked active pools
+      # Find and mark untracked active pools
       untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
@@ -159,7 +158,9 @@ module Hmis::Ce
         Hmis::Ce::ChangeMarker.upsert_or_bump_version('Hmis::Ce::Match::CandidatePool', trackable_ids: relation.pluck(:id))
       end
 
-      # Find untracked destination clients
+      # Find and mark untracked destination clients
+      # Without this, an untracked client would not be matched against opportunities until a
+      # candidate pool changes or the daily full refresh occurs.
       untracked_clients_scope = GrdaWarehouse::Hud::Client.destination.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })

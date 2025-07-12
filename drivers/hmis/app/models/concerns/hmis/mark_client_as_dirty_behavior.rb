@@ -16,6 +16,8 @@ module Hmis::MarkClientAsDirtyBehavior
   protected
 
   def mark_destination_client_dirty
+    return unless Hmis::Ce.configuration.enabled?
+
     # find the destination client
     # Note, if the destination client does not exist yet, this will be a no-op and we rely on
     # IdentifyDuplicates to mark the client as dirty

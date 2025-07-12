@@ -58,18 +58,21 @@ module Hmis::Ce
     def start_referral
       referral.start!
       referral.opportunity.reserve!
+      mark_client_dirty(referral.client)
     end
 
     def accept_referral
       referral.completed_at = Time.current
       referral.accept!
       referral.opportunity.close!
+      mark_client_dirty(referral.client)
     end
 
     def reject_referral
       referral.completed_at = Time.current
       referral.reject!
       referral.opportunity.release!
+      mark_client_dirty(referral.client)
     end
 
     def create_unit_assignment(message)
@@ -95,6 +98,12 @@ module Hmis::Ce
 
     private def referral_enroller
       @referral_enroller ||= Hmis::Ce::ReferralEnroller.new(referral)
+    end
+
+    private def mark_client_dirty(client)
+      raise ArgumentError unless client.is_a?(Hmis::Hud::Client)
+
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: [client.id])
     end
   end
 end

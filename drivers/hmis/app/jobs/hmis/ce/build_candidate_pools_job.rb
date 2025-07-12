@@ -18,12 +18,7 @@ module Hmis::Ce
     def perform(opportunity_ids: nil)
       raise unless Hmis::Ce.configuration.enabled?
 
-      if opportunity_ids
-        opportunities = Hmis::Ce::Opportunity.where(id: opportunity_ids)
-      else
-        opportunities = Hmis::Ce::Opportunity.active
-      end
-
+      opportunities = opportunity_scope(opportunity_ids)
       return if opportunities.empty?
 
       dirty_pool_ids = Hmis::Ce::Match::CandidatePoolBuilder.new(opportunities).perform
@@ -33,6 +28,14 @@ module Hmis::Ce
         # re-process all pools
         Hmis::Ce::Match::CandidatePool.mark_all_dirty
       end
+    end
+
+    protected
+
+    def opportunity_scope(opportunity_ids)
+      scope = Hmis::Ce::Opportunity.active
+      scope = scope.where(id: opportunity_ids) if opportunity_ids
+      scope
     end
   end
 end

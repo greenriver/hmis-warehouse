@@ -14,7 +14,6 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::FormSubmittable
-  include ::Hmis::MarkClientAsDirtyBehavior
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true

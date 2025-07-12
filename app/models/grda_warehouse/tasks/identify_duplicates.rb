@@ -232,6 +232,7 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
+    # Marks given clients as dirty for future re-processing for CE
     private def post_process_clients(client_ids:)
       Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
