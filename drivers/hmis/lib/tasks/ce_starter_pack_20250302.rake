@@ -360,7 +360,7 @@ task ce_starter_pack_20250302: [:environment] do
   puts 'Running the CE match engine'
   clients = GrdaWarehouse::Hud::Client.where(data_source_id: GrdaWarehouse::DataSource.destination_data_source_ids).limit(100)
   Hmis::Ce::Match::CandidatePool.all.each do |pool|
-    Hmis::Ce::Match::Engine.call(pool, clients)
+    Hmis::Ce::Match::Engine.call(pool, clients, incremental: true)
   end
 
   if Hmis::Ce::Opportunity.open.any?

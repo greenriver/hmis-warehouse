@@ -16,7 +16,7 @@ module HmisUtil
       # Run the match engine for each candidate pool
       clients ||= GrdaWarehouse::Hud::Client.destination
       Hmis::Ce::Match::CandidatePool.all.each do |pool|
-        Hmis::Ce::Match::Engine.call(pool, clients)
+        Hmis::Ce::Match::Engine.call(pool, clients, incremental: false)
       end
     end
   end

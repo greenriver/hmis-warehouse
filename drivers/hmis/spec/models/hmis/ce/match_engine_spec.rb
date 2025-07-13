@@ -23,8 +23,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   let(:requirement_expression) { 'TRUE' }
   let(:priority_expression) { '0' }
 
-  def generate_candidates(pool, clients)
-    described_class.call(pool, clients)
+  def generate_candidates(pool, clients, incremental: false)
+    described_class.call(pool, clients, incremental: incremental)
     candidates = pool.candidates
     # return results mapped to client IDs for easier comparison
     candidates.map do |candidate|
@@ -392,6 +392,81 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       results = generate_candidates(pool, destination_clients)
       expect(results.size).to eq(1)
       expect(results.sole).to eq(destination_clients.sole.id)
+    end
+  end
+
+  describe 'incremental mode' do
+    include_context 'with demographic test clients'
+
+    let(:destination_clients) { destination_clients_for([client_adult_non_veteran, client_adult_veteran, client_minor_non_veteran]) }
+    let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression) }
+
+    context 'when client no longer passes SQL filter' do
+      let(:requirement_expression) { 'current_age > 18' }
+
+      it 'removes candidate for client who no longer meets age requirement' do
+        # Initial state: adult client meets requirement
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+
+        # Generate initial candidates - adult client should be included
+        initial_results = generate_candidates(pool, destination_clients)
+        expect(initial_results).to include(adult_client.id)
+
+        # Change the client's age to be under 18 (simulate data change)
+        adult_client.update!(DOB: 10.years.ago)
+
+        # Run incremental processing on just this client
+        generate_candidates(pool, GrdaWarehouse::Hud::Client.where(id: adult_client.id), incremental: true)
+
+        # Verify the candidate was actually removed from the pool
+        all_candidates = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
+        expect(all_candidates).not_to include(adult_client.id)
+      end
+    end
+
+    context 'when client now passes requirements' do
+      let(:requirement_expression) { 'current_age > 18' }
+
+      it 'adds candidate for client who now meets requirements' do
+        # Initial state: minor client does not meet requirement
+        minor_client = destination_clients.find { |c| c.id == client_minor_non_veteran.destination_client.id }
+
+        # Generate initial candidates - minor client should not be included
+        initial_results = generate_candidates(pool, destination_clients)
+        expect(initial_results).not_to include(minor_client.id)
+
+        # Change the client's age to be over 18 (simulate data change)
+        minor_client.update!(DOB: 20.years.ago)
+
+        # Run incremental processing on just this client
+        generate_candidates(pool, GrdaWarehouse::Hud::Client.where(id: minor_client.id), incremental: true)
+
+        # Verify the candidate was actually added to the pool
+        all_candidates = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
+        expect(all_candidates).to include(minor_client.id)
+      end
+    end
+
+    context 'when processing multiple clients incrementally' do
+      let(:requirement_expression) { 'current_age > 18' }
+
+      it 'processing subset of clients does not remove candidates for unprocessed clients' do
+        # Generate initial candidates for all clients
+        generate_candidates(pool, destination_clients)
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+        veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
+
+        # Verify both clients have candidates initially
+        all_candidates_before = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
+        expect(all_candidates_before).to include(adult_client.id, veteran_client.id)
+
+        # Process only one client incrementally (without changing their data - they should still be eligible)
+        generate_candidates(pool, GrdaWarehouse::Hud::Client.where(id: adult_client.id), incremental: true)
+
+        # Both clients should still have candidates - the unprocessed client's candidate should NOT be removed
+        all_candidates_after = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
+        expect(all_candidates_after).to include(adult_client.id, veteran_client.id)
+      end
     end
   end
 end

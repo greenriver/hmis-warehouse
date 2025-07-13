@@ -6,6 +6,7 @@ require 'progress_bar'
 # * Score each client based on that pools's prioritization formula.
 # * Persist the results as MatchCandidate records to be consumed by opportunities.
 #
+# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 module Hmis::Ce::Match
   class Engine
     def self.call(...)
@@ -15,7 +16,13 @@ module Hmis::Ce::Match
     # Take a two-step approach to evaluating eligibility to achieve better performance.
     # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    def call(pool, clients, progress: false)
+    #
+    # @param pool [Hmis::Ce::Match::CandidatePool] The candidate pool to populate with matching clients
+    # @param clients [ActiveRecord::Relation] The clients to evaluate for eligibility
+    # @param progress [Boolean] Whether to display a progress bar during processing
+    # @param incremental [Boolean] If true, only remove candidates for clients that were processed in this run.
+    #   If false, remove all candidates that weren't updated (full refresh behavior).
+    def call(pool, clients, progress: false, incremental:)
       validate_clients_parameter!(clients)
 
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
@@ -23,12 +30,19 @@ module Hmis::Ce::Match
 
       filtered_clients = crude_eligibility_filter(pool.requirement_expression, clients)
       bar = new_progress_bar(filtered_clients.count) if progress
+      processed_client_ids = []
+
+      # In incremental mode, track all input clients that should be processed so we can
+      # remove candidates for clients that no longer pass filters (including SQL filter)
+      processed_client_ids = clients.pluck(:id) if incremental
 
       now = DateTime.current
       filtered_clients.in_batches do |batch|
         # First iterate through the batch to import any Client Proxies that aren't present in the db already
         proxies = []
         batch.each do |client|
+          # In full mode, track clients as we process them
+          processed_client_ids.push(client.id) unless incremental
           proxies << Hmis::Ce::ClientProxy.new(client: client)
         end
         proxies_by_client = import_proxies!(proxies)
@@ -51,8 +65,19 @@ module Hmis::Ce::Match
         end
         import_candidates!(candidates)
       end
-      # remove old candidates that no longer match
-      pool.candidates.where(updated_at: ...now).delete_all
+
+      # Remove old candidates that no longer match
+      if incremental
+        # In incremental mode, only remove candidates for clients that were in the input scope
+        # This ensures we remove candidates for clients who no longer pass any filters
+        pool.candidates.joins(:client_proxy).where(
+          ce_client_proxies: { client_id: processed_client_ids, client_type: 'GrdaWarehouse::Hud::Client' },
+        ).where(updated_at: ...now).delete_all
+      else
+        # In full mode, remove all candidates that weren't updated in this run
+        pool.candidates.where(updated_at: ...now).delete_all
+      end
+
       pool.update!(candidates_generated_at: Time.current)
     end
 

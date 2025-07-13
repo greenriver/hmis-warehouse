@@ -109,7 +109,7 @@ module Hmis::Ce
       client_scope = ::GrdaWarehouse::Hud::Client.destination
 
       candidate_pool_scope.find_each do |pool|
-        Hmis::Ce::Match::Engine.call(pool, client_scope, progress: @progress)
+        Hmis::Ce::Match::Engine.call(pool, client_scope, progress: @progress, incremental: false)
       end
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)
@@ -128,7 +128,7 @@ module Hmis::Ce
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where.not(id: skip_pool_ids)
 
       candidate_pool_scope.find_each do |pool|
-        Hmis::Ce::Match::Engine.call(pool, client_scope, progress: @progress)
+        Hmis::Ce::Match::Engine.call(pool, client_scope, progress: @progress, incremental: true)
       end
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)
