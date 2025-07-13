@@ -96,6 +96,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     describe 'with a destination warehouse client' do
       let!(:destination_data_source) { create :destination_data_source }
       before do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
         # creates warehouse clients
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         # mark clean

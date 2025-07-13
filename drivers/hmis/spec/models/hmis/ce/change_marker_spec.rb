@@ -9,6 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::ChangeMarker do
+  before do
+    described_class.delete_all
+  end
   let!(:destination_data_source) { create :destination_data_source }
   let!(:client1) { create :grda_warehouse_hud_client, data_source: destination_data_source }
   let!(:client2) { create :grda_warehouse_hud_client, data_source: destination_data_source }

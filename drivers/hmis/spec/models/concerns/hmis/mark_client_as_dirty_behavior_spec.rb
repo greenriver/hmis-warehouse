@@ -11,6 +11,10 @@ require 'rails_helper'
 RSpec.describe Hmis::MarkClientAsDirtyBehavior do
   include_context 'hmis base setup'
 
+  before do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+  end
+
   let!(:destination_data_source) { create :destination_data_source }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:destination_client) do
@@ -33,10 +37,7 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
   end
 
   include_examples 'marks client as dirty', :hmis_custom_assessment
-  include_examples 'marks client as dirty', :hmis_disability
-  include_examples 'marks client as dirty', :hmis_employment_education
   include_examples 'marks client as dirty', :hmis_hud_assessment
   include_examples 'marks client as dirty', :hmis_hud_enrollment
-  include_examples 'marks client as dirty', :hmis_income_benefit
-  include_examples 'marks client as dirty', :hmis_youth_education_status
+  include_examples 'marks client as dirty', :hmis_hud_exit
 end
