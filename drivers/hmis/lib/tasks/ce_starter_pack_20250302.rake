@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # Helpers to reduce cruft and make the starter pack script more readable
 def create_template(name, identifier)
   template = Hmis::WorkflowDefinition::Template.find_or_initialize_by(
     identifier: identifier,
-    status: 'published'
+    status: 'published',
   )
   template.template_type = 'ce_referral'
   template.name = name
@@ -24,7 +26,7 @@ def create_event(klass, template, name, event, message)
   workflow_event = klass.find_or_initialize_by(
     name: name,
     template_id: template.id,
-    )
+  )
   workflow_event.trigger_config = [
     {
       event: event,
@@ -50,7 +52,7 @@ def create_gateway(template, name)
   gateway = Hmis::WorkflowDefinition::Gateway.find_or_initialize_by(
     template: template,
     gateway_type: 'exclusive',
-    name: name
+    name: name,
   )
   gateway.save! if gateway.changed?
   gateway
@@ -59,7 +61,7 @@ end
 desc 'Script to populate local dev databases with "starter-pack" CE records like templates, swimlanes, and tasks'
 # Usage: rails driver:hmis:ce_starter_pack_20250302
 task ce_starter_pack_20250302: [:environment] do
-  puts "Enabling CE in AppConfigProperty"
+  puts 'Enabling CE in AppConfigProperty'
   ce_enabled = AppConfigProperty.find_or_initialize_by(
     key: 'hmis_ce/enabled',
   )
@@ -84,7 +86,7 @@ task ce_starter_pack_20250302: [:environment] do
 
   client_accepts_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'confirm_client_accepts_referral',
-    status: 'published'
+    status: 'published',
   )
   client_accepts_form_def.title = 'Confirm Client Accepts Referral'
   client_accepts_form_def.role = 'CE_REFERRAL_STEP'
@@ -92,41 +94,41 @@ task ce_starter_pack_20250302: [:environment] do
   client_accepts_form_def.definition = {
     "item": [
       {
-        "text": "Date Contacted",
-        "type": "DATE",
-        "link_id": "date_contacted",
+        "text": 'Date Contacted',
+        "type": 'DATE',
+        "link_id": 'date_contacted',
         "required": true,
         "read_only": false,
         "warn_if_empty": false,
-        "disabled_display": "HIDDEN",
-        "mapping": {"custom_field_key": "confirm_client_accepts_referral_date_contacted"}
+        "disabled_display": 'HIDDEN',
+        "mapping": { "custom_field_key": 'confirm_client_accepts_referral_date_contacted' },
       },
       {
-        "text": "Client Accepts Referral",
-        "type": "CHOICE",
-        "link_id": "client_accepted",
+        "text": 'Client Accepts Referral',
+        "type": 'CHOICE',
+        "link_id": 'client_accepted',
         "required": true,
         "read_only": false,
         "warn_if_empty": false,
-        "disabled_display": "HIDDEN",
+        "disabled_display": 'HIDDEN',
         "pick_list_options": [
           {
-            "code": "1",
-            "label": "Yes, client accepts referral"
+            "code": '1',
+            "label": 'Yes, client accepts referral',
           },
           {
-            "code": "0",
-            "label": "No, client does not accept referral or could not be contacted"
-          }
+            "code": '0',
+            "label": 'No, client does not accept referral or could not be contacted',
+          },
         ],
-        "mapping": {"custom_field_key": "confirm_client_accepts_referral_client_accepted"}
+        "mapping": { "custom_field_key": 'confirm_client_accepts_referral_client_accepted' },
       },
-    ]
+    ],
   }
   client_accepts_form_def.save! if client_accepts_form_def.changed?
   # TODO(#7414) - add CDEDs, so this is editable from the form builder
 
-  client_acceptance_task = create_task(client_accepts_form_def, one_task_template,  'Confirm Client Accepts Referral', case_managers)
+  client_acceptance_task = create_task(client_accepts_form_def, one_task_template, 'Confirm Client Accepts Referral', case_managers)
   gateway = create_gateway(one_task_template, 'client acceptance')
 
   start_workflow_event.connect_to!(client_acceptance_task) unless start_workflow_event.outflows.where(target_node_id: client_acceptance_task.id).exists?
@@ -151,11 +153,11 @@ task ce_starter_pack_20250302: [:environment] do
   accept_workflow_event = create_end_event(admin_approval_template, 'accept referral', 'end_workflow', 'accept_referral')
   reject_workflow_event = create_end_event(admin_approval_template, 'reject referral', 'end_workflow', 'reject_referral')
 
-  client_acceptance_task = create_task(client_accepts_form_def, admin_approval_template,  'Confirm Client Accepts Referral', case_managers)
+  client_acceptance_task = create_task(client_accepts_form_def, admin_approval_template, 'Confirm Client Accepts Referral', case_managers)
 
   review_denial_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'ce_admin_review_denial',
-    status: 'published'
+    status: 'published',
   )
   review_denial_form_def.title = 'Review Denial'
   review_denial_form_def.role = 'CE_REFERRAL_STEP'
@@ -163,30 +165,30 @@ task ce_starter_pack_20250302: [:environment] do
   review_denial_form_def.definition = {
     "item": [
       {
-        "text": "Decision",
-        "type": "CHOICE",
-        "link_id": "review_denial_decision",
+        "text": 'Decision',
+        "type": 'CHOICE',
+        "link_id": 'review_denial_decision',
         "required": true,
         "read_only": false,
         "warn_if_empty": false,
-        "disabled_display": "HIDDEN",
+        "disabled_display": 'HIDDEN',
         "pick_list_options": [
           {
-            "code": "1",
-            "label": "Approve Denial"
+            "code": '1',
+            "label": 'Approve Denial',
           },
           {
-            "code": "0",
-            "label": "Send Back"
-          }
+            "code": '0',
+            "label": 'Send Back',
+          },
         ],
-        "mapping": {"custom_field_key": "ce_review_denial_decision"}
+        "mapping": { "custom_field_key": 'ce_review_denial_decision' },
       },
-    ]
+    ],
   }
   review_denial_form_def.save! if review_denial_form_def.changed?
 
-  admin_acceptance_task = create_task(review_denial_form_def, admin_approval_template,  'Review Denial', admins)
+  admin_acceptance_task = create_task(review_denial_form_def, admin_approval_template, 'Review Denial', admins)
   client_acceptance_gateway = create_gateway(admin_approval_template, 'client acceptance')
   admin_review_gateway = create_gateway(admin_approval_template, 'admin review')
 
@@ -209,8 +211,8 @@ task ce_starter_pack_20250302: [:environment] do
   start_workflow_event = create_start_event(sequential_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(sequential_template, 'accept referral', 'end_workflow', 'accept_referral')
 
-  task_1 = create_task(client_accepts_form_def, sequential_template,  'Case Manager Confirm', case_managers)
-  task_2 = create_task(review_denial_form_def, sequential_template,  'Provider Confirm', providers)
+  task_1 = create_task(client_accepts_form_def, sequential_template, 'Case Manager Confirm', case_managers)
+  task_2 = create_task(review_denial_form_def, sequential_template, 'Provider Confirm', providers)
 
   start_workflow_event.connect_to!(task_1) unless start_workflow_event.outflows.where(target_node_id: task_1.id).exists?
   task_1.connect_to!(task_2) unless task_1.outflows.where(target_node_id: task_2.id).exists?
@@ -227,10 +229,10 @@ task ce_starter_pack_20250302: [:environment] do
   start_workflow_event = create_start_event(enrollment_creator_template, 'start referral', 'start_workflow', 'start_referral')
   accept_workflow_event = create_end_event(enrollment_creator_template, 'accept referral', 'end_workflow', 'accept_referral')
 
-  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template,  'Confirm Client Accepts Referral', providers)
+  client_acceptance_task = create_task(client_accepts_form_def, enrollment_creator_template, 'Confirm Client Accepts Referral', providers)
   create_enrollment_form_def = Hmis::Form::Definition.find_or_initialize_by(
     identifier: 'ce_create_enrollment',
-    status: 'published'
+    status: 'published',
   )
   create_enrollment_form_def.title = 'Create Enrollment'
   create_enrollment_form_def.role = 'CE_REFERRAL_STEP'
@@ -238,17 +240,17 @@ task ce_starter_pack_20250302: [:environment] do
   create_enrollment_form_def.definition = {
     "item": [
       {
-        "text": "Move-in Date",
-        "type": "DATE",
-        "link_id": "move_in_date",
+        "text": 'Move-in Date',
+        "type": 'DATE',
+        "link_id": 'move_in_date',
         "required": true,
         'mapping': { 'field_name': 'moveInDate', 'record_type': 'ENROLLMENT' },
       },
-    ]
+    ],
   }
   create_enrollment_form_def.save! if create_enrollment_form_def.changed?
 
-  create_enrollment_task = create_task(create_enrollment_form_def, enrollment_creator_template,  'Create Enrollment', case_managers)
+  create_enrollment_task = create_task(create_enrollment_form_def, enrollment_creator_template, 'Create Enrollment', case_managers)
   create_enrollment_task.trigger_config = [
     { # 1. Create an enrollment
       event: 'complete_step',
@@ -257,7 +259,7 @@ task ce_starter_pack_20250302: [:environment] do
     { # 2. Set move-in date
       event: 'complete_step',
       message: 'set_move_in_date',
-    }
+    },
   ]
   create_enrollment_task.save! if create_enrollment_task.changed?
 
@@ -339,7 +341,7 @@ task ce_starter_pack_20250302: [:environment] do
   )
   veteran_requirement.name = 'Must be veteran'
   veteran_requirement.applicability_config = {
-    'project_funders': [ce_project_funder.id]
+    'project_funders': [ce_project_funder.id],
   }
   veteran_requirement.save! if veteran_requirement.changed?
 
@@ -369,14 +371,14 @@ task ce_starter_pack_20250302: [:environment] do
     sro_opportunity = Hmis::Ce::Opportunity.open.first
     Hmis::Ce::OpportunityCategorization.find_or_create_by(
       opportunity: sro_opportunity,
-      category: sro
+      category: sro,
     )
 
     accessible_sro = Hmis::Ce::OpportunityCategory.find_or_create_by(name: 'Accessible SRO')
     accessible_sro_opportunity = Hmis::Ce::Opportunity.open.last
     Hmis::Ce::OpportunityCategorization.find_or_create_by(
       opportunity: accessible_sro_opportunity,
-      category: accessible_sro
+      category: accessible_sro,
     )
   end
 end
