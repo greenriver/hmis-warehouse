@@ -18,11 +18,19 @@ module Hmis::Ce::Match
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
     #
     # @param pool [Hmis::Ce::Match::CandidatePool] The candidate pool to populate with matching clients
-    # @param clients [ActiveRecord::Relation] The clients to evaluate for eligibility
+    # @param clients [ActiveRecord::Relation, nil] The clients to evaluate for eligibility. If nil, processes all destination clients (full refresh).
     # @param progress [Boolean] Whether to display a progress bar during processing
-    # @param incremental [Boolean] If true, only remove candidates for clients that were processed in this run.
-    #   If false, remove all candidates that weren't updated (full refresh behavior).
-    def call(pool, clients, progress: false, incremental:)
+    def call(pool, clients: nil, progress: false)
+      # Determine processing mode based on whether clients were provided
+      if clients.nil?
+        # Full refresh - process all clients and remove all unmatched candidates
+        clients = ::GrdaWarehouse::Hud::Client.destination
+        incremental = false
+      else
+        # Incremental - process only provided clients and remove candidates only for those clients
+        incremental = true
+      end
+
       validate_clients_parameter!(clients)
 
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)

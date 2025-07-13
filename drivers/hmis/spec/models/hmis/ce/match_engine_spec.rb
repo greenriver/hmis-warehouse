@@ -23,8 +23,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   let(:requirement_expression) { 'TRUE' }
   let(:priority_expression) { '0' }
 
-  def generate_candidates(pool, clients, incremental: false)
-    described_class.call(pool, clients, incremental: incremental)
+  def generate_candidates(pool, clients: nil)
+    described_class.call(pool, clients: clients)
     candidates = pool.candidates
     # return results mapped to client IDs for easier comparison
     candidates.map do |candidate|
@@ -159,7 +159,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { '1=0' }
 
       it 'returns no candidates' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to be_empty
       end
     end
@@ -168,7 +168,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { '1=1' }
 
       it 'returns all candidates' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to eq(destination_clients.map(&:id).sort)
       end
     end
@@ -177,7 +177,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { 'current_age > 18' }
 
       it 'excludes minors from candidates' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to eq(adult_clients.map(&:id).sort)
       end
     end
@@ -186,14 +186,14 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { 'current_age >= 65 AND veteran_status = 1' }
 
       it 'only includes senior veterans' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to eq([client_senior_veteran.destination_client.id])
       end
 
       it 'updates the candidates_generated_at timestamp' do
         freeze_time do
           expect do
-            generate_candidates(pool, destination_clients)
+            generate_candidates(pool, clients: destination_clients)
           end.to change(pool, :candidates_generated_at).from(nil).to(Time.current)
         end
       end
@@ -211,7 +211,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         let(:requirement_expression) { 'current_age > 18' }
 
         it 'excludes clients with missing DOB' do
-          results = generate_candidates(pool, clients_with_missing_data)
+          results = generate_candidates(pool, clients: clients_with_missing_data)
 
           expected_dest_client_ids = [
             client_adult_non_veteran.destination_client.id,
@@ -228,7 +228,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         let(:requirement_expression) { 'veteran_status = 1' }
 
         it 'excludes clients with missing veteran status' do
-          results = generate_candidates(pool, clients_with_missing_data)
+          results = generate_candidates(pool, clients: clients_with_missing_data)
 
           expected_dest_client_ids = [
             client_adult_veteran.destination_client.id,
@@ -259,7 +259,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { "`cde.custom_assessment.hat_client_interested_in_ph` = '1'" }
 
       it 'filters based on CDE value' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to eq([client_interested_in_ph.destination_client.id])
       end
     end
@@ -283,7 +283,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { "INCLUDES(`cde.custom_assessment.primary_languages`, 'English')" }
 
       it 'matches clients with the specified language among multiple values' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to eq([client_english_spanish.destination_client.id])
       end
     end
@@ -292,7 +292,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { "EXCLUDES(`cde.custom_assessment.primary_languages`, 'French')" }
 
       it 'excludes clients who have the specified language' do
-        results = generate_candidates(pool, destination_clients)
+        results = generate_candidates(pool, clients: destination_clients)
         expect(results).to eq([client_english_spanish.destination_client.id])
       end
     end
@@ -307,23 +307,23 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, PROJECT_TYPE("CE"))' }
 
         it 'includes clients with open enrollments at the correct project type' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expected_clients = [client_enrolled_in_ce, client_wip_enrolled_in_ce]
           expect(results.sort).to eq(expected_clients.map { |c| c.destination_client.id }.sort)
         end
 
         it 'excludes clients with exited enrollments at the correct project type' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results).not_to include(client_exited_from_ce.destination_client.id)
         end
 
         it 'excludes clients with no enrollments' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results).not_to include(client_unenrolled.destination_client.id)
         end
 
         it 'excludes clients that are only enrolled in projects of other types' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results).not_to include(client_enrolled_in_es.destination_client.id)
         end
       end
@@ -333,12 +333,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types_excluding_incomplete, PROJECT_TYPE("CE"))' }
 
         it 'excludes clients with WIP (incomplete) enrollments at the project type' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results).not_to include(client_wip_enrolled_in_ce.destination_client.id)
         end
 
         it 'includes clients with open enrollments at the correct project type' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results.sort).to eq([client_enrolled_in_ce.destination_client.id])
         end
       end
@@ -348,7 +348,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         let(:requirement_expression) { 'EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PSH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_OPH")) AND EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_RRH"))' }
 
         it 'excludes client with open enrollment in PH ' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results.sort).to eq(clients_not_enrolled_in_ph.map { |c| c.destination_client.id }.sort)
           expect(results).not_to include(client_enrolled_in_ph.destination_client.id)
         end
@@ -364,11 +364,11 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         let(:requirement_expression) { 'EXCLUDES(open_referral_project_types, PROJECT_TYPE("PH_PH"))' }
 
         it 'excludes clients with open referrals to PH (9) projects' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results).not_to include(client_referred_to_ph.destination_client.id)
         end
         it 'includes clients without open referrals to PH (9) projects' do
-          results = generate_candidates(pool, destination_clients)
+          results = generate_candidates(pool, clients: destination_clients)
           expect(results).to eq(clients_not_referred_to_ph.map { |c| c.destination_client.id })
         end
       end
@@ -389,7 +389,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
     it 'deduplicates on the waitlist' do
       expect(destination_clients.count).to eq(1)
-      results = generate_candidates(pool, destination_clients)
+      results = generate_candidates(pool, clients: destination_clients)
       expect(results.size).to eq(1)
       expect(results.sole).to eq(destination_clients.sole.id)
     end
@@ -408,15 +408,15 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         # Initial state: adult client meets requirement
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
 
-        # Generate initial candidates - adult client should be included
-        initial_results = generate_candidates(pool, destination_clients)
+        # Generate initial candidates using full refresh mode
+        initial_results = generate_candidates(pool)
         expect(initial_results).to include(adult_client.id)
 
         # Change the client's age to be under 18 (simulate data change)
         adult_client.update!(DOB: 10.years.ago)
 
         # Run incremental processing on just this client
-        generate_candidates(pool, GrdaWarehouse::Hud::Client.where(id: adult_client.id), incremental: true)
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
 
         # Verify the candidate was actually removed from the pool
         all_candidates = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
@@ -431,15 +431,15 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         # Initial state: minor client does not meet requirement
         minor_client = destination_clients.find { |c| c.id == client_minor_non_veteran.destination_client.id }
 
-        # Generate initial candidates - minor client should not be included
-        initial_results = generate_candidates(pool, destination_clients)
+        # Generate initial candidates using full refresh mode
+        initial_results = generate_candidates(pool)
         expect(initial_results).not_to include(minor_client.id)
 
         # Change the client's age to be over 18 (simulate data change)
         minor_client.update!(DOB: 20.years.ago)
 
         # Run incremental processing on just this client
-        generate_candidates(pool, GrdaWarehouse::Hud::Client.where(id: minor_client.id), incremental: true)
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: minor_client.id))
 
         # Verify the candidate was actually added to the pool
         all_candidates = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
@@ -451,8 +451,8 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       let(:requirement_expression) { 'current_age > 18' }
 
       it 'processing subset of clients does not remove candidates for unprocessed clients' do
-        # Generate initial candidates for all clients
-        generate_candidates(pool, destination_clients)
+        # Generate initial candidates by processing all our test clients (this will be incremental mode)
+        generate_candidates(pool, clients: destination_clients)
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
         veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
 
@@ -461,7 +461,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         expect(all_candidates_before).to include(adult_client.id, veteran_client.id)
 
         # Process only one client incrementally (without changing their data - they should still be eligible)
-        generate_candidates(pool, GrdaWarehouse::Hud::Client.where(id: adult_client.id), incremental: true)
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
 
         # Both clients should still have candidates - the unprocessed client's candidate should NOT be removed
         all_candidates_after = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')

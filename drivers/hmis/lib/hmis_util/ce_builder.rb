@@ -14,9 +14,8 @@ module HmisUtil
       Hmis::Ce::Match::CandidatePool.where.missing(:opportunities).find_each(&:destroy!)
 
       # Run the match engine for each candidate pool
-      clients ||= GrdaWarehouse::Hud::Client.destination
       Hmis::Ce::Match::CandidatePool.all.each do |pool|
-        Hmis::Ce::Match::Engine.call(pool, clients, incremental: false)
+        Hmis::Ce::Match::Engine.call(pool, clients: clients)
       end
     end
   end
