@@ -827,7 +827,7 @@ module HudApr::Generators::Shared::Fy2023
           'Data Element',
           '# of Records',
           '# of Inactive Records',
-          '# % of Inactive Records',
+          '% of Inactive Records',
         ],
         row_labels: [
           'Contact (Adults and Heads of Household in Street Outreach or ES - NBN)',

@@ -10,6 +10,7 @@ module PerformanceMeasurement
   class StaticSpm < GrdaWarehouseBase
     self.table_name = :pm_coc_static_spms
     acts_as_paranoid
+    validates_presence_of :report_start, :report_end
 
     belongs_to :goal
     KNOWN_SPM_CELLS = {
