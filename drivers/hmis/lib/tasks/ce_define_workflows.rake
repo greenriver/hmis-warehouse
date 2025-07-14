@@ -447,7 +447,7 @@ module CeWorkflowBuilder
       swimlane: ce_staff_swimlane,
       trigger_config: [
         {
-          event: 'make_step_available',
+          event: 'enable_step',
           message: 'set_custom_referral_status',
           params: { 'custom_status_key': denied_pending_status.key },
         },

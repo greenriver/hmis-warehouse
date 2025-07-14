@@ -58,28 +58,27 @@ module Hmis::WorkflowDefinition
 
     # Returns a string representation of the node for Mermaid diagrams
     def to_mermaid_node
-      base_name = name
+      script_label = script_task? ? ' (script)' : ''
 
-      # Add trigger information if present
-      if triggers.any?
-        trigger_descriptions = triggers.map do |trigger|
-          parts = ["EVENT: #{trigger.event.humanize.titleize} → #{trigger.message.humanize.titleize}"]
-          if trigger.params.present?
-            # Format params for Mermaid compatibility, avoiding problematic characters
-            parts << "PARAMS: #{trigger.params.map { |k, v| "#{k}: #{v}" }.join(', ')}"
-          end
-          parts.join('<br/>')
+      trigger_descriptions = if triggers.any?
+        descriptions = triggers.map do |trigger|
+          effect = "EFFECT: #{trigger.event.humanize.titleize} → #{trigger.message.humanize.titleize}"
+          params = trigger.params.present? ? "PARAMS: #{trigger.params.map { |k, v| "#{k}: #{v}" }.join(', ')}" : nil
+          [effect, params].compact.join('<br/>')
         end
-
-        base_name += "<br/><br/>#{trigger_descriptions.join('<br/>---<br/>')}"
+        "<br/><br/>#{descriptions.join('<br/>---<br/>')}"
+      else
+        ''
       end
 
+      display_name = "#{name}#{script_label}#{trigger_descriptions}"
+
       if entrypoint? || endpoint?
-        "#{to_mermaid_node_id}((\"#{base_name}\"))"
+        "#{to_mermaid_node_id}((\"#{display_name}\"))"
       elsif gateway?
-        "#{to_mermaid_node_id}{\"#{base_name}\"}"
+        "#{to_mermaid_node_id}{\"#{display_name}\"}"
       else
-        "#{to_mermaid_node_id}(\"#{base_name}\")"
+        "#{to_mermaid_node_id}(\"#{display_name}\")"
       end
     end
 
