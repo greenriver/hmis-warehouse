@@ -237,7 +237,7 @@ module HmisCsvTwentyTwentySix
     # @private
     private_class_method def self.generate_loader_table_migration(file_config, table_name)
       columns = file_config['columns'].map do |col|
-        "      t.string \"#{col['name']}\""
+        "      t.string '#{col['name']}'"
       end.join("\n")
 
       <<~LOADER_TABLE
@@ -252,7 +252,7 @@ module HmisCsvTwentyTwentySix
             end
 
             # Add indexes for loader table
-            add_index :#{table_name}, [:#{file_config['columns'].first['name']}, :data_source_id], name: "idx_#{table_name.gsub('hmis_csv_2026_', '')}_id_ds"
+            add_index :#{table_name}, [:#{file_config['columns'].first['name']}, :data_source_id], name: 'idx_#{table_name.gsub('hmis_csv_2026_', '')}_id_ds'
       LOADER_TABLE
     end
 
@@ -270,7 +270,7 @@ module HmisCsvTwentyTwentySix
         when 'boolean' then 'boolean'
         else 'string'
         end
-        "      t.#{column_type} \"#{col['name']}\""
+        "      t.#{column_type} '#{col['name']}'"
       end.join("\n")
 
       <<~IMPORTER_TABLE
@@ -291,8 +291,8 @@ module HmisCsvTwentyTwentySix
             end
 
             # Add indexes for importer table
-            add_index :#{table_name}, [:#{file_config['columns'].first['name']}, :data_source_id], name: "idx_#{table_name.gsub('hmis_2026_', '')}_imp_id_ds"
-            add_index :#{table_name}, [:source_type, :source_id], name: "idx_#{table_name.gsub('hmis_2026_', '')}_source"
+            add_index :#{table_name}, [:#{file_config['columns'].first['name']}, :data_source_id], name: 'idx_#{table_name.gsub('hmis_2026_', '')}_imp_id_ds'
+            add_index :#{table_name}, [:source_type, :source_id], name: 'idx_#{table_name.gsub('hmis_2026_', '')}_source'
       IMPORTER_TABLE
     end
 
