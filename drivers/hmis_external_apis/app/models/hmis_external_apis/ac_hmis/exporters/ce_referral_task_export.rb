@@ -32,7 +32,7 @@ module HmisExternalApis::AcHmis::Exporters
           task.status,            # Status
           task.available_at,      # AvailableAt
           task.completed_at,      # CompletedAt
-          task.updated_by&.id,    # CompletedByUserID (maps to User.csv) - TODO fix
+          task.updated_by&.id,    # UpdatedByUserID (maps to User.csv) - TODO map to Hmis::Hud::User db id (by email)
         ]
         write_row(values)
       end
@@ -43,15 +43,15 @@ module HmisExternalApis::AcHmis::Exporters
     # backed by ce_referral_tasks table
     def columns
       [
-        'TaskID',                   # Unique ID for this task
-        'ReferralID',               # Referral ID that this task belongs to
+        'TaskID',                     # Unique ID for this task
+        'ReferralID',                 # Referral ID that this task belongs to
         'ReferralWorkflowIdentifier', # Identifier of the referral workflow template
         'NodeID',                     # ID of the node that defines this task
         'NodeName',                   # Name of the node that defines this task
         'Status',                     # Status of the task
         'AvailableAt',                # Timestamp when the task was made available
         'CompletedAt',                # Timestamp when the task was completed
-        'CompletedByUserID',          # ID of the user who completed the task (maps to User.csv)
+        'UpdatedByUserID',            # ID of the user who most recently updated the task (maps to User.csv)
       ]
     end
 

@@ -271,6 +271,9 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport.new
       export.run!
 
+      # File.open('CustomAssessments.csv', 'w') do |file|
+      #   file.write(export.output.string)
+      # end
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: '%Y-%m-%d-custom-assessments.zip',
         io_streams: [
