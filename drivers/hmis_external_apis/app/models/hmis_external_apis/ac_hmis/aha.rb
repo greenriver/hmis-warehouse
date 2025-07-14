@@ -25,10 +25,10 @@ module HmisExternalApis::AcHmis
 
       return nil if result.http_status == 404
 
-      # Find first score that's not -999, return nil if all are -999 or no data
+      # Find and return highest score
       scores = result.parsed_body&.dig('data')&.map { |c| c.dig('score') } || []
-      scores = scores.compact.uniq.filter { |s| s != -999 }
-      scores.first || nil # If multiple non -999 scores were returned, just return the first one
+      highest_score = scores.compact.uniq.max
+      highest_score == -999 ? nil : highest_score # Special case for -999, which indicates no data
     end
 
     def self.enabled?
