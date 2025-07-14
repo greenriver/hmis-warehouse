@@ -52,6 +52,28 @@ module CeWorkflowBuilder
     )
   end
 
+  def self.create_state_machine_custom_statuses(data_source)
+    puts "Creating custom statuses for state machine statuses"
+
+    # Create custom statuses for each state machine status.
+    # This allows us to return only custom statuses in the picklist, avoiding key collisions.
+    state_machine_statuses = [
+      { key: 'initialized', name: 'Initialized' },
+      { key: 'in_progress', name: 'In Progress' },
+      { key: 'accepted', name: 'Accepted' },
+      { key: 'rejected', name: 'Rejected' }
+    ]
+
+    state_machine_statuses.each do |status_config|
+      Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: status_config[:key],
+        data_source: data_source,
+      ) do |status|
+        status.name = status_config[:name]
+      end
+    end
+  end
+
   def self.create_start_event(template)
     Hmis::WorkflowDefinition::StartEvent.create!(
       name: 'Start Referral',
@@ -525,9 +547,7 @@ task ce_define_workflows: [:environment] do
 
   data_source = GrdaWarehouse::DataSource.hmis.sole
 
-  # Just putting this here for convenience. It can be removed after everyone has run it once
-  puts 'Fixing polymorphic type for WFD Nodes'
-  Hmis::WorkflowDefinition::Node.where(type: 'Hmis::WorkflowDefinition::Task').update_all(type: 'Hmis::WorkflowDefinition::UserTask')
+  CeWorkflowBuilder.create_state_machine_custom_statuses(data_source)
 
   puts "Creating workflow templates in data source #{data_source.id} (#{data_source.name})"
   CeWorkflowBuilder.build_housing_workflow_v1(data_source)

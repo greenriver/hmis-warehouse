@@ -24,6 +24,11 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   def with_referral_statuses(scope)
     with_filter(scope, :referral_status) do
+      # The status picklist contains keys from the custom_statuses table.
+      # Some of those keys will correspond to state machine statuses (in_progress, accepted, etc.),
+      # because they were duplicated to the custom_statuses table during workflow setup (ce_define_workflows.rake).
+      # These 'dummy' custom statuses will never actually be applied to a referral, however, so here in the filter,
+      #  we need to check against the actual workflow status as well as the custom status table.
       all_defaults = Hmis::Ce::Referral.state_machine_states
 
       default_statuses, custom_keys = input.referral_status.partition { |status| all_defaults.include?(status.to_sym) }

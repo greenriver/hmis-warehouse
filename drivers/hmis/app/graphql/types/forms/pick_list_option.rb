@@ -87,13 +87,12 @@ module Types
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
       when 'CE_REFERRAL_STATUSES'
-        custom = Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
+        # To avoid key collisions, we display only custom statuses in the picklist.
+        # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
+        # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
+        Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
           { code: status.key, label: status.name }
         end
-        default = Hmis::Ce::Referral.state_machine_states.map do |status|
-          { code: status, label: status.to_s.humanize }
-        end
-        custom + default
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
