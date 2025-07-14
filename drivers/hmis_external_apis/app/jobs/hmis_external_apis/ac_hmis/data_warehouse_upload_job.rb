@@ -72,6 +72,7 @@ module HmisExternalApis::AcHmis
         'custom_fields_export',
         'pathways_export',
         'case_note_export',
+        # 'ce_referrals',
       ].freeze
     end
 
@@ -235,6 +236,34 @@ module HmisExternalApis::AcHmis
       )
 
       uploader.run!
+    end
+
+    def ce_referrals
+      export = HmisExternalApis::AcHmis::Exporters::CeReferralExport.new
+      export.run!
+      File.open('CeReferrals.csv', 'w') do |file|
+        file.write(export.output.string)
+      end
+
+      export = HmisExternalApis::AcHmis::Exporters::CeReferralTaskExport.new
+      export.run!
+      File.open('CeReferralTasks.csv', 'w') do |file|
+        file.write(export.output.string)
+      end
+
+      # TODO: upload
+      # uploader = Exporters::DataWarehouseUploader.new(
+      #   filename_format: '%Y-%m-%d-ce-referrals.zip',
+      #   pre_zipped_data: export.content,
+      #   io_streams: [
+      #     OpenStruct.new(
+      #       name: 'ClientMciMapping.csv',
+      #       io: export.output,
+      #     ),
+      #   ],
+      # )
+
+      # uploader.run!
     end
   end
 end
