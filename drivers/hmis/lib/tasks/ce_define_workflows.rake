@@ -57,12 +57,9 @@ module CeWorkflowBuilder
 
     # Create custom statuses for each state machine status.
     # This allows us to return only custom statuses in the picklist, avoiding key collisions.
-    state_machine_statuses = [
-      { key: 'initialized', name: 'Initialized' },
-      { key: 'in_progress', name: 'In Progress' },
-      { key: 'accepted', name: 'Accepted' },
-      { key: 'rejected', name: 'Rejected' }
-    ]
+    state_machine_statuses = Hmis::Ce::Referral.state_machine_states.map do |status|
+      { key: status.to_s, name: status.to_s.humanize.titleize }
+    end
 
     state_machine_statuses.each do |status_config|
       Hmis::Ce::CustomReferralStatus.find_or_create_by!(
