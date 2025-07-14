@@ -79,6 +79,8 @@ module Hmis::Ce
     validate :ce_template
     validate :consistent_data_source
 
+    # When referral status changes, its CustomReferralStatus (user-facing status) should also be updated.
+    # See ReferralMessageHandler for example.
     state_machine_config column: 'status' do
       state :initialized, initial: true
       state :in_progress

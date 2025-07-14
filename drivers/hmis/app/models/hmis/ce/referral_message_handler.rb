@@ -30,14 +30,11 @@ module Hmis::Ce
       case message.type
       when 'start_referral'
         start_referral
-        set_custom_referral_status(status_key: 'in_progress')
       when Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE
         accept_referral
-        set_custom_referral_status(status_key: 'accepted')
         reversible = false
       when Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE
         reject_referral
-        set_custom_referral_status(status_key: 'rejected')
         reversible = false
       when 'send_notification'
         send_notification(message)
@@ -62,18 +59,21 @@ module Hmis::Ce
 
     def start_referral
       referral.start!
+      set_custom_referral_status(status_key: 'in_progress')
       referral.opportunity.reserve!
     end
 
     def accept_referral
       referral.completed_at = Time.current
       referral.accept!
+      set_custom_referral_status(status_key: 'accepted')
       referral.opportunity.close!
     end
 
     def reject_referral
       referral.completed_at = Time.current
       referral.reject!
+      set_custom_referral_status(status_key: 'rejected')
       referral.opportunity.release!
     end
 
