@@ -14,6 +14,7 @@ module Hmis::Ce
     has_paper_trail
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
+    has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
     has_many :notes, class_name: 'Hmis::Ce::ReferralNote', dependent: :destroy
