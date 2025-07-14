@@ -27,6 +27,11 @@ module HmisExternalApis::AcHmis
 
       # Find and return highest score
       scores = result.parsed_body&.dig('data')&.map { |c| c.dig('score') } || []
+
+      # Validate that all scores are numerical
+      non_numerical_scores = scores.compact.reject { |score| score.is_a?(Numeric) }
+      raise(Error, "Received non-numerical scores: #{non_numerical_scores.inspect}") if non_numerical_scores.any?
+
       highest_score = scores.compact.uniq.max
       highest_score == -999 ? nil : highest_score # Special case for -999, which indicates no data
     end
