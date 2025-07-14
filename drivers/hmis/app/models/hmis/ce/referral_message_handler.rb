@@ -99,7 +99,7 @@ module Hmis::Ce
       status_key = message.params['custom_status_key']
       return unless status_key
 
-      status = Hmis::Ce::CustomReferralStatus.find_by(key: status_key)
+      status = Hmis::Ce::CustomReferralStatus.find_by!(key: status_key, data_source: referral.data_source)
       referral.update!(custom_status: status)
     end
 
