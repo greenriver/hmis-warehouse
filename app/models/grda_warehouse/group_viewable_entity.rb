@@ -114,7 +114,14 @@ module GrdaWarehouse
     def self.get_entity_display_name(entity_type, entity_id, entity = nil)
       return "Entity ID #{entity_id}" unless entity_type && entity_id
 
-      entity ||= entity_type.constantize.with_deleted.find_by(id: entity_id)
+      entity ||= begin
+        klass = entity_type.constantize
+        if klass.respond_to?(:with_deleted)
+          klass.with_deleted.find_by(id: entity_id)
+        else
+          klass.find_by(id: entity_id)
+        end
+      end
       entity&.name
     end
   end
