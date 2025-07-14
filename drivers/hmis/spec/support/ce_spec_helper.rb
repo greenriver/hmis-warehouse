@@ -31,18 +31,9 @@ RSpec.shared_context 'ce spec helper' do
   let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+  let!(:state_machine_statuses) { HmisUtil::CeBuilder.create_state_machine_custom_statuses(ds1) }
   let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
   let!(:workflow_instance) { workflow_template.instances.create! }
-
-  let!(:state_machine_statuses) do
-    Hmis::Ce::Referral.state_machine_states.each do |state|
-      Hmis::Ce::CustomReferralStatus.create!(
-        key: state.to_s,
-        data_source: ds1,
-        name: state.to_s.humanize.titleize,
-      )
-    end
-  end
 
   let!(:start_event) do
     create(

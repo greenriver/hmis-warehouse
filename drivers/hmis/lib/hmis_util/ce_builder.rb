@@ -19,5 +19,16 @@ module HmisUtil
         Hmis::Ce::Match::Engine.call(pool, clients)
       end
     end
+
+    # Run this to keep state machine statuses in sync with custom statuses
+    def self.create_state_machine_custom_statuses(data_source)
+      Hmis::Ce::Referral.state_machine_states.map do |state|
+        Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+          key: state.to_s,
+          data_source: data_source,
+          name: state.to_s.humanize.titleize,
+        )
+      end
+    end
   end
 end

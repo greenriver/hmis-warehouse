@@ -52,25 +52,6 @@ module CeWorkflowBuilder
     )
   end
 
-  def self.create_state_machine_custom_statuses(data_source)
-    puts "Creating custom statuses for state machine statuses"
-
-    # Create custom statuses for each state machine status.
-    # This allows us to return only custom statuses in the picklist, avoiding key collisions.
-    state_machine_statuses = Hmis::Ce::Referral.state_machine_states.map do |status|
-      { key: status.to_s, name: status.to_s.humanize.titleize }
-    end
-
-    state_machine_statuses.each do |status_config|
-      Hmis::Ce::CustomReferralStatus.find_or_create_by!(
-        key: status_config[:key],
-        data_source: data_source,
-      ) do |status|
-        status.name = status_config[:name]
-      end
-    end
-  end
-
   def self.create_start_event(template)
     Hmis::WorkflowDefinition::StartEvent.create!(
       name: 'Start Referral',
@@ -544,7 +525,7 @@ task ce_define_workflows: [:environment] do
 
   data_source = GrdaWarehouse::DataSource.hmis.sole
 
-  CeWorkflowBuilder.create_state_machine_custom_statuses(data_source)
+  HmisUtil::CeBuilder.create_state_machine_custom_statuses(data_source)
 
   puts "Creating workflow templates in data source #{data_source.id} (#{data_source.name})"
   CeWorkflowBuilder.build_housing_workflow_v1(data_source)
