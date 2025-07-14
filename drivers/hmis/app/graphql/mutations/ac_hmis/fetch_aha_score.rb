@@ -11,7 +11,7 @@ module Mutations
     description 'Return AHA score for client'
 
     argument :client_id, ID, required: true
-    field :score, Float, null: true
+    field :score, Integer, null: true
 
     def resolve(client_id:)
       errors = HmisErrors::Errors.new
