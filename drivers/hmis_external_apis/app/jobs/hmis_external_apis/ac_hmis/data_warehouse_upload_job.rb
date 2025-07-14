@@ -73,6 +73,7 @@ module HmisExternalApis::AcHmis
         'pathways_export',
         'case_note_export',
         # 'ce_referrals',
+        # 'custom_assessments',
       ].freeze
     end
 
@@ -264,6 +265,23 @@ module HmisExternalApis::AcHmis
       # )
 
       # uploader.run!
+    end
+
+    def custom_assessments_export
+      export = HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-custom-assessments.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CustomAssessments.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
     end
   end
 end
