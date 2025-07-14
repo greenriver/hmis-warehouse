@@ -9,12 +9,14 @@
 class AddCeCustomReferralStatuses < ActiveRecord::Migration[7.1]
   def change
     create_table :ce_custom_referral_statuses do |t|
-      t.string :key, null: false, index: { unique: true }
+      t.string :key, null: false
       t.string :name, null: false
       t.string :treatment, null: true
       t.references :data_source, null: false
       t.timestamps
     end
+
+    add_index :ce_custom_referral_statuses, [:key, :data_source_id], unique: true
 
     safety_assured do
       add_reference :ce_referrals, :custom_referral_status, null: true, foreign_key: { to_table: :ce_custom_referral_statuses }
