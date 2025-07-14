@@ -375,7 +375,14 @@ class Hmis::Form::DefinitionValidator
           next
         when 'FILE', 'IMAGE'
           raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'file'
-        when 'STRING', 'TEXT', 'TIME_OF_DAY', 'CHOICE', 'OPEN_CHOICE'
+        when 'STRING'
+          if child_item['component'] == 'AHA'
+            # Special case for AHA: CDED type should be float
+            raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'float'
+          else
+            raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['string', 'text'].include?(cded_type)
+          end
+        when 'TEXT', 'TIME_OF_DAY', 'CHOICE', 'OPEN_CHOICE'
           raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['string', 'text'].include?(cded_type)
         when 'BOOLEAN'
           raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'boolean'

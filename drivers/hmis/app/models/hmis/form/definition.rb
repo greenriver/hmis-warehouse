@@ -635,7 +635,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       # Infer CDED attributes based on Item
       cded.owner_type = owner_type
-      cded.field_type = self.class.infer_cded_field_type(item.type)
+      cded.field_type = self.class.infer_cded_field_type(item_type: item.type, component: item.component)
       cded.repeats = item.repeats || false
 
       # Infer label for CustomDataElementDefinition based on various labels
@@ -651,7 +651,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Helper for determining CustomDataElementDefinition attributes
-  def self.infer_cded_field_type(item_type)
+  def self.infer_cded_field_type(item_type:, component: nil)
+    return 'float' if component == 'AHA' # Special case for AHA score which depends on item component
+
     case item_type
     when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
       'string'

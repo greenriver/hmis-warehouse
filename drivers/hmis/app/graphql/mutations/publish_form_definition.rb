@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
@@ -96,7 +98,7 @@ module Mutations
           key: cded_key,
           label: Hmis::Form::Definition.generate_cded_field_label(item),
           repeats: item.repeats || false,
-          field_type: Hmis::Form::Definition.infer_cded_field_type(item.type),
+          field_type: Hmis::Form::Definition.infer_cded_field_type(item_type: item.type, component: item.component),
           owner_type: owner_type,
           **cded_attributes,
         )
