@@ -37,7 +37,7 @@ module Hmis::Ce::Match
       priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
       filtered_clients = crude_eligibility_filter(pool.requirement_expression, clients)
-      bar = new_progress_bar(filtered_clients.count) if progress
+      bar = new_progress_bar(filtered_clients.count, pool) if progress
       processed_client_ids = []
 
       # In incremental mode, track all input clients that should be processed so we can
@@ -126,7 +126,8 @@ module Hmis::Ce::Match
       @field_map ||= FieldMap.new
     end
 
-    def new_progress_bar(total)
+    def new_progress_bar(total, pool)
+      puts "Processing pool[#{pool.id}] eligibility: #{pool.requirement_expression.inspect}, priority: #{pool.priority_expression.inspect}"
       ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
     end
   end
