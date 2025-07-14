@@ -128,7 +128,7 @@ module HmisCsvTwentyTwentySix
         key_column = file_config['augment_key'] || file_config['columns'].first['name']
         model_name = warehouse_class.split('::').last
         "has_one :destination_record, **hud_assoc(:#{key_column}, '#{model_name}')"
-      elsif file_config['creates_warehouse_table']
+      elsif file_config['warehouse_class_name']
         warehouse_class_name = file_config['warehouse_class_name']
         key_column = file_config['warehouse_key'] || file_config['columns'].first['name']
         model_name = warehouse_class_name.split('::').last
@@ -154,8 +154,13 @@ module HmisCsvTwentyTwentySix
         if column_config['validations']
           column_config['validations'].each do |validation|
             if validation.is_a?(String)
-              # Only add non-blank validation if not already covered by 'required'
-              validations << "validates :#{column_name}, presence: true" if validation == 'NonBlank' && !column_config['required']
+              # Handle string format validations
+              if validation == 'NonBlank' && !column_config['required']
+                validations << "validates :#{column_name}, presence: true"
+              elsif validation.start_with?('inclusion:', 'length:', 'numericality:')
+                # Handle inline validation strings like "inclusion: { in: %w[Client Enrollment] }"
+                validations << "validates :#{column_name}, #{validation}"
+              end
             elsif validation.is_a?(Hash)
               validation_class = validation['class']
               arguments = validation['arguments'] || {}

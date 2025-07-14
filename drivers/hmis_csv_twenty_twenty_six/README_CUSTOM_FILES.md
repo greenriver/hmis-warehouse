@@ -47,8 +47,7 @@ custom_files:
 
     # Choose ONE of these processing types:
     augments_warehouse_table: "GrdaWarehouse::Hud::Client"  # Adds data to existing table
-    creates_warehouse_table: true                           # Creates new warehouse table
-    key_value_store: true                                   # Special key-value processing
+    warehouse_class_name: "GrdaWarehouse::Hud::Client"      # Uses an existing class
 
     columns:
       - name: "PersonalID"
@@ -106,16 +105,15 @@ custom_files:
 
 **Usage**: for restoring fields that were removed from newer HMIS versions but still exist in the warehouse schema.
 
-### 2. New Warehouse Tables
+### 2. Warehouse Tables
 
-These files create entirely new warehouse tables:
+These files own the warehouse tables in the same way a standard HUD files owns the table:
 
 ```yaml
 # custom_data_element.yaml
 custom_files:
   - filename: "CustomDataElement.csv"
     class_name: "CustomDataElement"
-    creates_warehouse_table: true
     warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
     columns:
       - name: "CustomDataElementID"
@@ -125,25 +123,7 @@ custom_files:
         type: "string"
 ```
 
-**Usage**: for completely new data types that don't fit into existing warehouse tables.
-
-### 3. Key-Value Stores
-
-These files have special processing for definition-based data:
-
-```yaml
-# custom_data_element.yaml
-custom_files:
-  - filename: "CustomDataElement.csv"
-    class_name: "CustomDataElement"
-    key_value_store: true
-    definition_class: "CustomDataElementDefinition"
-    definition_key: "CustomDataElementDefinitionID"
-    creates_warehouse_table: true
-    warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
-```
-
-**Usage**: For files where values are defined by separate definition files (like CustomDataElement + CustomDataElementDefinition).
+**Usage**: for completely new data types that don't fit into standard HMIS CSV tables.
 
 ## Column Mapping Types
 

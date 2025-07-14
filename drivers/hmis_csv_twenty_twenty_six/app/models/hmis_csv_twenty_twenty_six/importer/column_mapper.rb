@@ -80,11 +80,12 @@ module HmisCsvTwentyTwentySix::Importer
     # @return [void]
     def self.apply_mappings(source_record, mapped_attributes, column_configs)
       column_configs.each do |column_config|
-        next unless column_config['warehouse_column_mapping']
-
         column_name = column_config['name']
         value = source_record[column_name]
-        mapping_config = column_config['warehouse_column_mapping']
+
+        # Default to direct mapping with same column name if no mapping specified
+        mapping_config = column_config['warehouse_column_mapping'] || {}
+        mapping_config = apply_mapping_defaults(mapping_config, column_name)
 
         case mapping_config['type']
         when 'direct'
@@ -93,6 +94,8 @@ module HmisCsvTwentyTwentySix::Importer
           apply_value_based_multi_column_mapping(mapped_attributes, value, mapping_config)
         when 'concatenation'
           apply_concatenation_mapping(mapped_attributes, value, mapping_config)
+        when 'value_mapping'
+          apply_value_mapping(mapped_attributes, value, mapping_config)
         else
           Rails.logger.warn "Unknown mapping type: #{mapping_config['type']}"
         end
@@ -211,6 +214,33 @@ module HmisCsvTwentyTwentySix::Importer
       end
     end
 
+    # Applies default values to mapping configuration
+    #
+    # This method provides sensible defaults for mapping configurations:
+    # - Defaults to 'direct' mapping type if not specified
+    # - Defaults target_column to the same as source column name if not specified
+    #
+    # @param mapping_config [Hash] The mapping configuration (may be empty)
+    # @param column_name [String] The source column name
+    # @return [Hash] The mapping configuration with defaults applied
+    #
+    # @example Default behavior
+    #   # For a column named "UserID" with no mapping config
+    #   apply_mapping_defaults({}, "UserID")
+    #   # => { "type" => "direct", "target_column" => "UserID" }
+    #
+    #   # For a column with partial config
+    #   apply_mapping_defaults({ "type" => "value_mapping" }, "RecordType")
+    #   # => { "type" => "value_mapping", "target_column" => "RecordType" }
+    #
+    # @private
+    private_class_method def self.apply_mapping_defaults(mapping_config, column_name)
+      mapping_config = mapping_config.dup
+      mapping_config['type'] ||= 'direct'
+      mapping_config['target_column'] ||= column_name
+      mapping_config
+    end
+
     # Applies direct column mapping from source to target
     #
     # This is the simplest mapping type where the source value is directly
@@ -300,6 +330,49 @@ module HmisCsvTwentyTwentySix::Importer
       existing_value = mapped_attributes[mapping_config['target_column']] || ''
       separator = mapping_config['separator'] || ' '
       mapped_attributes[mapping_config['target_column']] = [existing_value, value].reject(&:blank?).join(separator)
+    end
+
+    # Applies value mapping based on configuration.
+    #
+    # This method handles transformations where a source value needs to be mapped
+    # to a different target value based on a lookup table. It's useful for
+    # transforming coded values or translating between different naming conventions.
+    #
+    # @param mapped_attributes [Hash] Hash to store the mapped attributes
+    # @param value [Object] The source value to transform
+    # @param mapping_config [Hash] Configuration containing the mapping rules
+    # @option mapping_config [String] :target_column The name of the target column
+    # @option mapping_config [Hash] :value_mappings Hash mapping source values to target values
+    # @return [void]
+    #
+    # @example Value mapping for record type transformation
+    #   # YAML config:
+    #   # warehouse_column_mapping:
+    #   #   type: "value_mapping"
+    #   #   target_column: "owner_type"
+    #   #   value_mappings:
+    #   #     "Client": "GrdaWarehouse::Hud::Client"
+    #   #     "Enrollment": "GrdaWarehouse::Hud::Enrollment"
+    #
+    #   mapped_attributes = {}
+    #   config = {
+    #     "target_column" => "owner_type",
+    #     "value_mappings" => {
+    #       "Client" => "GrdaWarehouse::Hud::Client",
+    #       "Enrollment" => "GrdaWarehouse::Hud::Enrollment"
+    #     }
+    #   }
+    #   apply_value_mapping(mapped_attributes, "Client", config)
+    #   # mapped_attributes now contains: { "owner_type" => "GrdaWarehouse::Hud::Client" }
+    #
+    # @private
+    private_class_method def self.apply_value_mapping(mapped_attributes, value, mapping_config)
+      target_column = mapping_config['target_column']
+      value_mappings = mapping_config['value_mappings']
+
+      # Use the mapped value if it exists, otherwise use the original value
+      transformed_value = value_mappings[value] || value
+      mapped_attributes[target_column] = transformed_value
     end
   end
 end

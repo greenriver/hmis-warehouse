@@ -936,7 +936,20 @@ module HmisCsvImporter::Importer
       @track_dirty_enrollment
     end
 
+    private def import_options(klass, columns)
+      options = {
+        on_duplicate_key_update: {
+          conflict_target: klass.conflict_target,
+          columns: columns,
+        },
+      }
+      options[:on_duplicate_key_update][:index_predicate] = klass.index_predicate if klass.respond_to?(:index_predicate)
+
+      options
+    end
+
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names, update_only: false)
+      binding.pry if klass.name == 'GrdaWarehouse::Hud::CustomDataElementDefinition'
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
         if update_only
@@ -944,10 +957,7 @@ module HmisCsvImporter::Importer
         elsif upsert
           klass.import(
             batch,
-            on_duplicate_key_update: {
-              conflict_target: klass.conflict_target,
-              columns: columns,
-            },
+            **import_options(klass, columns),
             validate: use_ar_model_validations,
           )
         else
@@ -968,10 +978,7 @@ module HmisCsvImporter::Importer
         elsif upsert
           klass.import(
             Array.wrap(row),
-            on_duplicate_key_update: {
-              conflict_target: klass.conflict_target,
-              columns: columns,
-            },
+            **import_options(klass, columns),
             validate: use_ar_model_validations,
             batch_size: 1,
           )

@@ -1,0 +1,68 @@
+# config/hmis_csv_twenty_twenty_six_custom_files.yml
+custom_files:
+  - filename: "CustomDataElementDefinition.csv"
+    class_name: "CustomDataElementDefinition"
+    required: false
+    description: "Definitions for custom data elements"
+    warehouse_key: "CustomDataElementDefinitionID"
+    warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElementDefinition"
+    columns:
+      - name: "CustomDataElementDefinitionID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "CustomDataElementDefinitionID"
+      - name: "Key"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "key"
+      - name: "RecordType"
+        type: "string"
+        required: true
+        validations:
+          - "inclusion: { in: ['Client', 'Enrollment', 'Exit', 'Project', 'Organization'] }"
+        warehouse_column_mapping:
+          type: "value_mapping"
+          target_column: "owner_type"
+          value_mappings:
+            "Client": "GrdaWarehouse::Hud::Client"
+            "Enrollment": "GrdaWarehouse::Hud::Enrollment"
+            "Exit": "GrdaWarehouse::Hud::Exit"
+            "Project": "GrdaWarehouse::Hud::Project"
+            "Organization": "GrdaWarehouse::Hud::Organization"
+      - name: "FieldType"
+        type: "string"
+        required: true
+        validations:
+          - "inclusion: { in: ['string', 'integer', 'date', 'boolean', 'text'] }"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "field_type"
+      - name: "Label"
+        type: "string"
+        required: true
+        max_length: 255
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "label"
+      - name: "Repeats"
+        type: "boolean"
+        required: true
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "repeats"
+      - name: "DateCreated"
+        type: "datetime"
+      - name: "DateUpdated"
+        type: "datetime"
+      - name: "UserID"
+        type: "string"
+      - name: "DateDeleted"
+        type: "datetime"
+      - name: "ExportID"
+        type: "string"

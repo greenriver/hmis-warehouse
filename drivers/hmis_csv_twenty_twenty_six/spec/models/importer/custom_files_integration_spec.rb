@@ -63,6 +63,14 @@ RSpec.describe 'Custom Files Integration' do
     end
   end
 
+  describe 'CustomDataElementDefinition.csv processing' do
+    it 'creates custom data element definition records' do
+      custom_data_element_definition = GrdaWarehouse::Hud::CustomDataElementDefinition.find_by(key: 'reason_for_exit')
+      expect(custom_data_element_definition.owner_type).to eq('GrdaWarehouse::Hud::Enrollment')
+      expect(custom_data_element_definition.field_type).to eq('string')
+    end
+  end
+
   # describe 'CustomDataElement.csv processing' do
   #   it 'creates custom data element records' do
   #     temp_dir = Dir.mktmpdir

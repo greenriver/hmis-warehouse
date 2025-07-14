@@ -13,10 +13,6 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
   included do
     def as_destination_record
       config = self.class.custom_file_config
-
-      raise 'Unknown custom import type' unless config['augments_warehouse_table'].present?
-
-      config = self.class.custom_file_config
       klass = self.class.reflect_on_association(:destination_record).klass
 
       # Apply all column mappings using the generic mapper
@@ -43,15 +39,21 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
   class_methods do
     def upsert_column_names(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
-      # Return all HMIS data columns
+      # Return all warehouse target columns from the column mappings
       # Remove DateCreated, DateUpdated, DateDeleted, ExportID, UserID if this is an augmentation
       # Note: version parameter is required by ImportConcern interface but not used
       # for custom files since structure comes from YAML configuration
       excluded_augmentation_columns = ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID', 'UserID']
-      hmis_columns = custom_file_config['columns'].map { |col| col['name'] }
 
-      excluded_columns = augments? ? excluded_augmentation_columns : []
-      (hmis_columns - excluded_columns).map(&:to_sym)
+      # Get the warehouse target columns from the mappings (with defaults)
+      warehouse_columns = custom_file_config['columns'].map do |col|
+        mapping = col['warehouse_column_mapping'] || {}
+        # Apply same defaults as ColumnMapper
+        mapping['target_column'] || col['name']
+      end
+
+      excluded_columns = augments? ? excluded_augmentation_columns : ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID']
+      (warehouse_columns - excluded_columns).map(&:to_sym)
     end
 
     # Augmented data should never return new data since it should only update existing records
@@ -80,7 +82,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       config = custom_file_config
       if config['augments_warehouse_table']
         config['augments_warehouse_table'].constantize
-      elsif config['creates_warehouse_table']
+      elsif config['warehouse_class_name']
         config['warehouse_class_name'].constantize
       else
         super
@@ -90,7 +92,14 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     def create_columns
       config = custom_file_config
 
-      config['columns'].map(&:name) - [
+      # Get the warehouse target columns from the mappings (with defaults)
+      warehouse_columns = config['columns'].map do |col|
+        mapping = col['warehouse_column_mapping'] || {}
+        # Apply same defaults as ColumnMapper
+        mapping['target_column'] || col['name']
+      end
+
+      warehouse_columns - [
         'DateCreated',
         'DateUpdated',
         'DateDeleted',
@@ -100,13 +109,17 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
     # Delegate to the class we are augmenting
     def involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
-      config = custom_file_config
+      return import_klass.involved_warehouse_scope(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range) if augments?
 
-      # At this time, we only support augmentations
-      raise 'Unknown custom import type' unless augments? && config['augment_import_class'].present?
+      # NOTE: when importing custom files that aren't directly associated with a project,
+      # we require all rows be sent every time as we don't have a way to scope a "report scope"
+      warehouse_class.importable
+    end
 
-      augment_import_class = config['augment_import_class'].constantize
-      augment_import_class.involved_warehouse_scope(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
+    def import_klass
+      return custom_file_config['augment_import_class'].constantize if augments?
+
+      self
     end
 
     # Prevent deletions for augmentation classes since we only want to update existing records
@@ -116,24 +129,22 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
     # Delegate to the class we are augmenting
     def existing_data(data_source_id:, project_ids:, date_range:)
-      config = custom_file_config
+      return import_klass.existing_data(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range) if augments?
 
-      # At this time, we only support augmentations
-      raise 'Unknown custom import type' unless augments? && config['augment_import_class'].present?
-
-      augment_import_class = config['augment_import_class'].constantize
-      augment_import_class.existing_data(data_source_id: data_source_id, project_ids: project_ids, date_range: date_range)
+      # NOTE: when importing custom files that aren't directly associated with a project,
+      # we require all rows be sent every time as we don't have a way to scope a "report scope"
+      existing_scope = involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      )
+      existing_scope = existing_scope.with_deleted if paranoid?
+      existing_scope
     end
 
     # Delegate to the class we are augmenting
     def existing_destination_data(data_source_id:, project_ids:, date_range:)
-      config = custom_file_config
-
-      # At this time, we only support augmentations
-      raise 'Unknown custom import type' unless augments? && config['augment_import_class'].present?
-
-      augment_import_class = config['augment_import_class'].constantize
-      augment_import_class.involved_warehouse_scope(
+      import_klass.involved_warehouse_scope(
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
