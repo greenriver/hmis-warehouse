@@ -30,13 +30,13 @@ The FY2026 custom files system has been integrated into the version-aware HMIS i
 
 #### FY2026 Importer (`drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/importer.rb`)
 - Extends base `HmisCsvImporter::Importer::Importer`
-- Automatically generates custom models from YAML configuration (NOTE: once generated, updates will probably need different names)
+- Uses statically generated custom models from YAML configuration
 - Processes custom files after standard HMIS overlay
 
 #### Custom File Manager (`drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/custom_file_manager.rb`)
-- Dynamically generates Loader, Importer, and Warehouse classes
-- Handles column mapping and type conversion
-- Supports augmentation, new tables, and key-value stores (TODO: not sure we need all three of these, augmentation and new tables are probably sufficient)
+- Generates static Loader and Importer model files from YAML
+- Generates migration files for custom tables
+- Supports augmentation and new tables
 
 ## Configuration Files
 
@@ -73,6 +73,23 @@ custom_files:
           target_column: "Woman"
 ```
 
+## Model and Migration Generation
+
+When adding or modifying a custom file YAML configuration, developers must run the bootstrapping task to generate the necessary model and migration files:
+
+```bash
+# From the warehouse root directory
+dcr shell bundle exec rails r "HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!"
+```
+
+This command will:
+1. Read all `.yaml` files from `drivers/hmis_csv_twenty_twenty_six/config/custom/`.
+2. Generate any missing migration files in `db/warehouse/migrate/`.
+3. Generate static Ruby model files for loaders in `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/`.
+4. Generate static Ruby model files for importers in `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/custom/`.
+
+These generated files should be committed to the repository.
+
 ## Import Process Flow
 
 ### 1. File Upload
@@ -89,20 +106,17 @@ custom_files:
 - `loader_class_for_version('2026')` → returns `HmisCsvTwentyTwentySix::Loader::Loader`
 
 ### 4. Loader Phase
-- `HmisCsvTwentyTwentySix::Loader::Loader.new()` automatically generates custom models during initialization
-- Migrates CSV files to the appropriate current version
-- Loads all CSV files (standard + custom) into data lake tables
+- `HmisCsvTwentyTwentySix::Loader::Loader.new()` is initialized
+- Loads all CSV files (standard + custom) into data lake tables using the pre-generated model files
 
 ### 5. Importer Phase
 - `HmisCsvTwentyTwentySix::Importer::Importer.new()` called
-- Custom models already generated during loading phase
 - Processes standard HMIS files first (via `super`)
-- Processes custom files after standard overlay
+- Processes custom files after standard overlay using the pre-generated model files
 
 ### 6. Custom File Processing
 - Augmentation files: Add/update columns in existing warehouse tables
 - New table files: Create records in new warehouse tables
-- Key-value stores: Special processing for definition-based data (TODO: do we need this?)
 
 ## Example Usage
 
@@ -114,5 +128,4 @@ custom_files:
 2. System automatically:
    - Detects FY2026 version from `Export.csv`
    - Routes to `HmisCsvTwentyTwentySix::Importer::Importer`
-   - Generates custom models from YAML configuration
-   - Processes all files (standard + custom)
+   - Uses the pre-generated custom models to process all files (standard + custom)

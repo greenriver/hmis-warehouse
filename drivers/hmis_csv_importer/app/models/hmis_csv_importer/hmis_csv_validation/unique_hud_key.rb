@@ -16,6 +16,7 @@ class HmisCsvImporter::HmisCsvValidation::UniqueHudKey < HmisCsvImporter::HmisCs
       having(nf('COUNT', [klass.hud_key]).gt(1)).
       count
 
+    return [] if incorrect_counts.is_a?(Integer) && incorrect_counts.zero?
     return [] if incorrect_counts.empty?
 
     failures = []

@@ -6,8 +6,9 @@
 
 # frozen_string_literal: true
 
-module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
+module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
   extend ActiveSupport::Concern
+  include HmisCsvTwentyTwentySix::CustomModelConfig
 
   included do
     def as_destination_record
@@ -41,6 +42,18 @@ module HmisCsvTwentyTwentySix::Importer::CustomImportConcern
   end
 
   class_methods do
+    def upsert_column_names(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
+      # Return all HMIS data columns
+      # Remove DateCreated, DateUpdated, DateDeleted, ExportID, UserID if this is an augmentation
+      # Note: version parameter is required by ImportConcern interface but not used
+      # for custom files since structure comes from YAML configuration
+      excluded_augmentation_columns = ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID', 'UserID']
+      hmis_columns = custom_file_config['columns'].map { |col| col['name'] }
+
+      excluded_columns = augments? ? excluded_augmentation_columns : []
+      (hmis_columns - excluded_columns).map(&:to_sym)
+    end
+
     # Augmented data should never return new data since it should only update existing records
     def incoming_data(importer_log_id:)
       return none if augments?

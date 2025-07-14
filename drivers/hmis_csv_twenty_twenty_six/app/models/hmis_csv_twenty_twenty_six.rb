@@ -19,7 +19,7 @@
 # == Processing Flow
 #
 # 1. **Configuration Loading**: Individual YAML files are loaded from the custom directory
-# 2. **Model Generation**: CustomFileManager creates Loader, Importer, and Warehouse classes
+# 2. **Model and Migration Generation**: CustomFileManager generates static model and migration files
 # 3. **File Loading**: Raw CSV data is loaded into loader tables (prefixed with hmis_csv_twenty_twenty_six_)
 # 4. **Data Processing**: Importer classes validate and process the data
 # 5. **Warehouse Integration**: Data is either overlaid onto existing tables or stored in new tables
@@ -31,8 +31,8 @@
 # - **Key-Value Stores**: Special processing for definition-based data (CustomDataElement + CustomDataElementDefinition)
 #
 # @example Basic usage
-#   # Generate all custom models
-#   HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_models!
+#   # Generate all custom models and migrations
+#   HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!
 #
 #   # Run the import
 #   importer = HmisCsvTwentyTwentySix::Importer::Importer.new(
@@ -92,18 +92,19 @@ module HmisCsvTwentyTwentySix
           end
         rescue StandardError => e
           Rails.logger.error "Failed to load custom file config #{config_file}: #{e.message}"
+          raise e if Rails.env.development? || Rails.env.test?
         end
 
-        { 'custom_files' => all_custom_files }
+        CustomFilesConfig.new(all_custom_files)
       else
-        { 'custom_files' => [] }
+        CustomFilesConfig.new([])
       end
     end
   end
 
   def self.custom_importable_files_map
-    custom_files_config['custom_files'].map do |file_config|
-      [file_config['filename'], file_config['class_name']]
+    custom_files_config.custom_files.map do |file_config|
+      [file_config['filename'], "Custom::#{file_config['class_name']}"]
     end.to_h
   end
 
@@ -112,7 +113,7 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.required_files
-    ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config['custom_files'].select { |f| f['required'] }.map { |f| f['filename'] }
+    ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config.custom_files.select { |f| f['required'] }.map { |f| f['filename'] }
   end
 
   def self.data_lake_module
@@ -132,6 +133,8 @@ module HmisCsvTwentyTwentySix
       klass
     rescue StandardError => e
       Rails.logger.error "ERROR: Failed to load base importer class for #{name}: #{e.message}"
+      raise e if Rails.env.development? || Rails.env.test?
+
       nil
     end
 
@@ -153,28 +156,29 @@ module HmisCsvTwentyTwentySix
       rescue NameError
         # Class doesn't exist yet - custom models haven't been generated
         # This can happen during initialization before generate_custom_models! is called
-        Rails.logger.info "Custom loader class #{class_name} not found - skipping for now"
+        Rails.logger.warn "Custom loader class #{class_name} not found. Try running the bootstrap task."
+        raise e if Rails.env.development? || Rails.env.test?
+
         nil
       end
     end.to_h
   end
 
   def self.custom_importable_files
-    Rails.logger.info "DEBUG: custom_importable_files_map = #{custom_importable_files_map}"
     result = custom_importable_files_map.filter_map do |filename, name|
       class_name = "HmisCsvTwentyTwentySix::Importer::#{name}"
       begin
         klass = class_name.constantize
-        Rails.logger.info "DEBUG: Found custom importer class #{class_name}"
         [filename, klass]
       rescue NameError => e
         # Class doesn't exist yet - custom models haven't been generated
         # This can happen during initialization before generate_custom_models! is called
-        Rails.logger.warn "Custom importer class #{class_name} not found: #{e.message}"
+        Rails.logger.warn "Custom importer class #{class_name} not found: #{e.message}. Try running the bootstrap task."
+        raise e if Rails.env.development? || Rails.env.test?
+
         nil
       end
     end.to_h
-    Rails.logger.info "DEBUG: custom_importable_files result = #{result.keys}"
     result
   end
 

@@ -15,8 +15,10 @@ The custom files system allows you to import additional CSV files that aren't pa
 
 1. **Create a YAML configuration file** in `drivers/hmis_csv_twenty_twenty_six/config/custom/`
 2. **Define your file structure** with columns, validations, and processing rules
-3. **Upload FY2026 HMIS CSV files** - the system will automatically detect the version and use the FY2026 importer
-4. **Custom files are processed automatically** during the import process
+3. **Run the bootstrap task** to generate model and migration files
+4. **Run the generated migrations**
+5. **Upload FY2026 HMIS CSV files** - the system will automatically detect the version and use the FY2026 importer
+6. **Custom files are processed automatically** during the import process using the generated models
 
 ## Version Detection and Dispatch
 
@@ -182,23 +184,25 @@ warehouse_column_mapping:
 
 Combines multiple source values into a single target field.
 
-## Database Setup
+## Model and Migration Generation
 
-The system provides automatic migration generation to create the necessary database tables for your custom files.
+The system provides a bootstrapping task to generate the necessary model and migration files for your custom files.
 
-### Automatic Migration Generation
+### Automatic Generation
 
-After creating your YAML configuration files, run:
+After creating or modifying your YAML configuration files, run the bootstrap task from the project root:
 
-```ruby
-HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_migrations!
+```bash
+dcr shell bundle exec rails r "HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!"
 ```
 
 This will:
 - Read all YAML files in the `config/custom/` directory
-- Check if the required tables exist in the database
-- Generate migration files for any missing tables
-- Use the correct table naming conventions
+- Generate migration files for any missing tables in `db/warehouse/migrate/`
+- Generate loader model files in `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/`
+- Generate importer model files in `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/custom/`
+
+The generated model and migration files should be committed to your repository.
 
 ### Table Naming Conventions
 
@@ -285,7 +289,7 @@ end
 After generation, run the migrations:
 
 ```bash
-bundle exec rails db:migrate
+dcr shell bundle exec rails db:migrate
 ```
 
 ### Manual Migration Creation
@@ -298,26 +302,25 @@ If you need to create migrations manually, follow these patterns:
 - **Standard columns**: Always include the required framework columns
 - **Indexes**: Add indexes for foreign keys and lookup columns
 
-
-
 ## Best Practices
 
 1. **Use descriptive filenames**: `custom_gender.yaml`, `custom_assessment.yaml`
 2. **Always validate required fields**: Use `required: true` and `validations: ["NonBlank"]`
 3. **Be explicit about data types**: Use correct types (integer, string, date, datetime, boolean)
 4. **Handle missing files gracefully**: Set `required: false` for optional files
-5. **Test thoroughly**: Create comprehensive tests for your custom files
-6. **Document your additions**: Add comments explaining the purpose of each custom file
+5. **Generate and commit models**: Always run the bootstrap task after changing YAML files and commit the results
+6. **Test thoroughly**: Create comprehensive tests for your custom files
+7. **Document your additions**: Add comments explaining the purpose of each custom file
 
 ## Error Handling
 
 The system handles various error conditions gracefully:
 
-- **Missing YAML files**: Logged as warnings, import continues
-- **Invalid YAML syntax**: Logged as errors, import continues
+- **Missing YAML files**: Logged as warnings, bootstrap task may fail
+- **Invalid YAML syntax**: Logged as errors, bootstrap task may fail
 - **Missing CSV files**: Skipped if `required: false`
 - **Invalid data**: Validation errors are logged, invalid records are skipped
-- **Missing warehouse tables**: Only affects specific file processing
+- **Missing warehouse tables**: The bootstrap task will generate migrations to create them
 
 ## Performance Considerations
 
@@ -330,9 +333,9 @@ The system handles various error conditions gracefully:
 
 ### Common Issues
 
-1. **Class not found errors**: Ensure `CustomFileManager.generate_custom_models!` is called before import
-2. **Table doesn't exist**: Create the necessary migrations for loader/importer/warehouse tables
-3. **Validation errors**: Check your YAML configuration for typos in validation rules
+1. **Class not found errors**: Ensure you have run the bootstrap task after modifying YAML files and that the generated models are committed.
+2. **Table doesn't exist**: Run the generated migrations.
+3. **Validation errors**: Check your YAML configuration for typos in validation rules.
 4. **Missing warehouse data**: Verify `augment_key` matches between CSV and warehouse table
 
 ### Debugging
@@ -341,10 +344,9 @@ Enable debug logging to see what's happening:
 
 ```ruby
 Rails.logger.level = :debug
-HmisCsvTwentyTwentySix::CustomFileManager.generate_custom_models!
 ```
 
 This will log:
 - Which YAML files are being loaded
-- Which classes are being generated
+- Which classes are being used for processing
 - Any errors in configuration parsing

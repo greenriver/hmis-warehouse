@@ -24,7 +24,7 @@ module HmisCsvTwentyTwentySix::Importer
     end
 
     private def process_custom_files!
-      HmisCsvTwentyTwentySix.custom_files_config['custom_files'].each do |file_config|
+      HmisCsvTwentyTwentySix.custom_files_config.custom_files.each do |file_config|
         filename = file_config['filename']
         next unless importable_files[filename]
 
