@@ -35,6 +35,10 @@ module Hmis::Ce::Match
           next unless eligibility_evaluator.call(client)
 
           score = priority_evaluator.call(client)
+          # Client with nil score cannot be prioritized, so do not include them in the pool.
+          # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
+          next if score.nil?
+
           candidates << {
             candidate_pool_id: pool.id,
             client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
