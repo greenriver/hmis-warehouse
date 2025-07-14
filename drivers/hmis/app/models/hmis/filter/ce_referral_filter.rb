@@ -37,6 +37,9 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       missing_keys = custom_keys - custom_statuses.pluck(:key)
       raise "Received unknown custom status(es): #{missing_keys.join(', ')}" if missing_keys.any?
 
+      # If the user filters for a default status, and a referral also has a custom status, it will not be returned.
+      # For example, a referral that is 'in_progress' and also has a custom status of 'denied_pending'
+      # will only be returned when 'denied_pending' is included in the filter
       scope.where(status: default_statuses, custom_status: nil).or(scope.where(custom_status: custom_statuses))
     end
   end
