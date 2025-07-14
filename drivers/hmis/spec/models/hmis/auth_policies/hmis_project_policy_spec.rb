@@ -13,7 +13,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
   let(:organization) { create(:hmis_hud_organization, data_source: data_source) }
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
   let(:user) { create(:hmis_user) }
-  let(:policy) { user.policy_for(project, policy: :hmis_project) }
+  let(:policy) { user.policy_for(project, policy_type: :hmis_project) }
 
   shared_examples 'permission checks with access' do
     it 'grants configured permissions' do

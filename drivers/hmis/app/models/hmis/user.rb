@@ -268,8 +268,8 @@ class Hmis::User < ApplicationRecord
     can_access_ds
   end
 
-  memoize def policy_for(resource, policy:)
-    policy_name = "#{policy.to_s.camelize}Policy"
+  memoize def policy_for(resource, policy_type:)
+    policy_name = "#{policy_type.to_s.camelize}Policy"
     policy_class = "Hmis::AuthPolicies::#{policy_name}".safe_constantize
     raise ArgumentError, "policy not found: #{policy_name}" unless policy_class
 

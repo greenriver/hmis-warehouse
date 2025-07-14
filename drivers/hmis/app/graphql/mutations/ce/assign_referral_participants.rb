@@ -18,7 +18,7 @@ module Mutations
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
       project = referral.target_project
-      access_denied! unless policy_for(referral, policy: :ce_referral).can_assign_referral_tasks?
+      access_denied! unless policy_for(referral, policy_type: :ce_referral).can_assign_referral_tasks?
 
       swimlane_ids = participants.map(&:swimlane_id).uniq
       swimlanes = referral.workflow_instance.template.swimlanes.where(id: swimlane_ids)

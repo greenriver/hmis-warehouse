@@ -20,7 +20,7 @@ module Mutations
 
       # Load the step (if provided) and authorize
       step = referral.steps.find(step_id) if step_id
-      referral_policy = policy_for(referral, policy: :ce_referral)
+      referral_policy = policy_for(referral, policy_type: :ce_referral)
       access_denied! unless referral_policy.can_create_note?(step: step)
 
       referral.notes.create!(note: note, user: current_user, wfe_step_id: step_id)

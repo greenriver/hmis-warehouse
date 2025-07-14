@@ -56,7 +56,7 @@ module Types
     end
 
     def self.authorized?(object, ctx)
-      super && ctx[:current_user].policy_for(object, policy: :ce_referral).can_view?
+      super && ctx[:current_user].policy_for(object, policy_type: :ce_referral).can_view?
     end
 
     def steps # Don't resolve in batch

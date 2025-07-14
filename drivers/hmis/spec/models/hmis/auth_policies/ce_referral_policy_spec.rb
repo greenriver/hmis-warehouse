@@ -24,7 +24,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       status: 'initialized',
     )
   end
-  let(:policy) { user.policy_for(referral, policy: :ce_referral) }
+  let(:policy) { user.policy_for(referral, policy_type: :ce_referral) }
 
   describe '#can_index?' do
     it 'returns true if user has both view and perform permissions' do

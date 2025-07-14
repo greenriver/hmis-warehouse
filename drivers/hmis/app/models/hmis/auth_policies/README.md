@@ -47,7 +47,7 @@ context.potential_permissions                # => All permissions user could hav
 
 ### 4. **Consumers** (GraphQL/Controllers)
 - **Location**: GraphQL Resolvers, Controllers, etc.
-- **Usage**: Call `user.policy_for(resource, policy: :my_policy)` then check permissions
+- **Usage**: Call `user.policy_for(resource, policy_type: :my_policy)` then check permissions
 
 ## Architecture Flow
 
@@ -58,7 +58,7 @@ graph TD;
     end
 
     subgraph Authorization Framework
-        B["current_user.policy_for(resource, policy: :my_policy)"]
+        B["current_user.policy_for(resource, policy_type: :my_policy)"]
         C["Policy Class<br>(e.g., CeReferralPolicy)"]
         D["UserContext<br>(Request-level cache)"]
         E["Context Loaders<br>(Bulk data loading)"]
@@ -80,7 +80,7 @@ graph TD;
 # In a GraphQL mutation
 def resolve(referral_id:)
   referral = Hmis::Ce::Referral.find(referral_id)
-  access_denied! unless policy_for(referral, policy: :ce_referral).can_view?
+  access_denied! unless policy_for(referral, policy_type: :ce_referral).can_view?
   # ... continue with business logic
 end
 ```
@@ -89,7 +89,7 @@ end
 ```ruby
 # Check if user can perform any staff assignments
 def staff_assignments
-  return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment, policy: :staff_assignment).can_index?
+  return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment, policy_type: :staff_assignment).can_index?
   # ... return assignments
 end
 ```
@@ -126,7 +126,7 @@ end
 RSpec.describe Hmis::AuthPolicies::MyResourcePolicy do
   let(:user) { create(:hmis_user) }
   let(:resource) { create(:my_resource) }
-  let(:policy) { user.policy_for(resource, policy: :my_resource) }
+  let(:policy) { user.policy_for(resource, policy_type: :my_resource) }
 
   it 'allows viewing with proper permissions' do
     create_access_control(user, resource, with_permission: [:can_view_my_resource])
