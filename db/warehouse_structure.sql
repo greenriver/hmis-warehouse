@@ -61067,10 +61067,10 @@ CREATE INDEX index_ce_custom_referral_statuses_on_data_source_id ON public.ce_cu
 
 
 --
--- Name: index_ce_custom_referral_statuses_on_key_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_custom_referral_statuses_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id);
+CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key ON public.ce_custom_referral_statuses USING btree (key);
 
 
 --
