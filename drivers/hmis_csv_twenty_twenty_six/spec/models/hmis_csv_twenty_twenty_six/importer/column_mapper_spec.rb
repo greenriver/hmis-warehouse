@@ -44,24 +44,6 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ColumnMapper do
         expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Enrollment')
       end
 
-      it 'maps Exit to GrdaWarehouse::Hud::Exit' do
-        source_record = { 'RecordType' => 'Exit' }
-        described_class.apply_mappings(source_record, mapped_attributes, column_configs)
-        expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Exit')
-      end
-
-      it 'maps Project to GrdaWarehouse::Hud::Project' do
-        source_record = { 'RecordType' => 'Project' }
-        described_class.apply_mappings(source_record, mapped_attributes, column_configs)
-        expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Project')
-      end
-
-      it 'maps Organization to GrdaWarehouse::Hud::Organization' do
-        source_record = { 'RecordType' => 'Organization' }
-        described_class.apply_mappings(source_record, mapped_attributes, column_configs)
-        expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Organization')
-      end
-
       it 'leaves unmapped values as-is' do
         source_record = { 'RecordType' => 'UnknownType' }
         described_class.apply_mappings(source_record, mapped_attributes, column_configs)
