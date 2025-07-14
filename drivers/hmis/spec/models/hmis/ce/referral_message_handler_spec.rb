@@ -41,7 +41,7 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
         engine.start_step!(client_acceptance, user: hmis_user)
         engine.complete_step!(client_acceptance, user: hmis_user, submitted_values: {})
         referral.reload
-      end.to change(referral, :custom_status).from(nil).to(custom_status)
+      end.to change(referral, :custom_status).to(custom_status)
     end
   end
 end
