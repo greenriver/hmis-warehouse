@@ -5,21 +5,20 @@
   .none-found No records found.
 - else
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
-  .card
-    .overflow-x-scroll{style: "height: 800px"}
-      %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-        %thead.table-dark
+  .card.overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
+      %thead.table-dark
+        %tr
+          - headers.each do |header|
+            %th= header
+      %tbody
+        - project_id_index = headers.index('_project_id')
+        - scope.pluck(*@report.columns_for(@key)).each do |row|
           %tr
-            - headers.each do |header|
-              %th= header
-        %tbody
-          - project_id_index = headers.index('_project_id')
-          - scope.pluck(*@report.columns_for(@key)).each do |row|
-            %tr
-              - row.each_with_index do |col, i|
-                - project_id = row[project_id_index] if project_id_index.present?
-                %td
-                  - if i == 0
-                    = link_to col, appropriate_client_path(id: col)
-                  - else
-                    = @report.detail_column_display(header: headers[i], column: col, project_id: project_id)
+            - row.each_with_index do |col, i|
+              - project_id = row[project_id_index] if project_id_index.present?
+              %td
+                - if i == 0
+                  = link_to col, appropriate_client_path(id: col)
+                - else
+                  = @report.detail_column_display(header: headers[i], column: col, project_id: project_id)

@@ -25,7 +25,7 @@
         %tr
           - row_num = row_index + row_start
           - row_num_display = if row_num == 0 then '' else row_num end
-          %th= row_num_display
+          %th.table-dark= row_num_display
           - row.each_with_index do |details, col_index|
             - # Handle the situation where we're handed a string for headers
             - details = { value: details, any_members: false } if details.is_a?(String)

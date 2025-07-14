@@ -18,23 +18,22 @@
 - else
   - columns = @report.column_objects_for(@key)
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
-  .card
-    .overflow-x-scroll{style: "height: 800px"}
-      %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-        %thead.table-dark
+  .card.overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
+      %thead.table-dark
+        %tr
+          - columns.each do |column|
+            %th= column.label
+      %tbody
+        - scope.pluck(*@report.columns_for(@key)).each do |row|
           %tr
             - columns.each do |column|
-              %th= column.label
-        %tbody
-          - scope.pluck(*@report.columns_for(@key)).each do |row|
-            %tr
-              - columns.each do |column|
-                - value = column.value(row)
-                %td
-                  - if column.index == 0
-                    = link_to(value, appropriate_client_path(id: value))
-                  - else
-                    = value
+              - value = column.value(row)
+              %td
+                - if column.index == 0
+                  = link_to(value, appropriate_client_path(id: value))
+                - else
+                  = value
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({
