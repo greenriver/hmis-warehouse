@@ -109,6 +109,7 @@ class User < ApplicationRecord
       :can_view_full_ssn,
       :can_view_full_dob,
       :can_view_client_name,
+      :can_view_hiv_status,
     ]
     batch = []
     permissions.each do |permission|

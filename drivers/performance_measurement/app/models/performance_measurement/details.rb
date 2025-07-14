@@ -871,7 +871,7 @@ module PerformanceMeasurement::Details
           column: :both,
           year_over_year_change: false,
           title: 'Percentage of People Who Returned to Homelessness Within Two Years',
-          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within from 13 to 24 months of exit',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within from 0 to 24 months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
           goal_unit: '%',
