@@ -30,11 +30,14 @@ module Hmis::Ce
       case message.type
       when 'start_referral'
         start_referral
+        set_custom_referral_status(status_key: 'in_progress')
       when Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE
         accept_referral
+        set_custom_referral_status(status_key: 'accepted')
         reversible = false
       when Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE
         reject_referral
+        set_custom_referral_status(status_key: 'rejected')
         reversible = false
       when 'send_notification'
         send_notification(message)
@@ -47,7 +50,7 @@ module Hmis::Ce
         # Can be triggered on the same step as create_enrollment, or a later step
         referral_enroller.set_move_in_date(message)
       when 'set_custom_referral_status'
-        set_custom_referral_status(message)
+        set_custom_referral_status(status_key: message.params['custom_status_key'])
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -95,8 +98,7 @@ module Hmis::Ce
       # ).deliver_later
     end
 
-    def set_custom_referral_status(message) # rubocop:disable Naming/AccessorMethodName
-      status_key = message.params['custom_status_key']
+    def set_custom_referral_status(status_key:)
       return unless status_key
 
       status = Hmis::Ce::CustomReferralStatus.find_by!(key: status_key, data_source: referral.data_source)
