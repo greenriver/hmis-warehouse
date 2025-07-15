@@ -109,7 +109,7 @@ module CeWorkflowBuilder
     )
   end
 
-  def self.create_step_form(identifier:, definition:, title: nil)
+  def self.create_step_form(identifier:, definition:, data_source:, title: nil)
     form_def = Hmis::Form::Definition.new(
       identifier: identifier,
       status: :published,
@@ -124,6 +124,7 @@ module CeWorkflowBuilder
     raise "Form definition #{form_def.identifier} is not valid: #{errors.map(&:full_message)}" if errors.any?
 
     form_def.save!
+    form_def.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: data_source).each(&:save!)
     form_def
   end
 
@@ -219,13 +220,16 @@ module CeWorkflowBuilder
     create_step_form(
       identifier: initial_review_task_form_identifier,
       definition: ce_staff_shared_form,
+      data_source: data_source,
     )
     create_step_form(
       identifier: ce_offer_task_form_identifier,
       definition: ce_staff_shared_form,
+      data_source: data_source,
     )
     create_step_form(
       identifier: project_offer_task_form_identifier,
+      data_source: data_source,
       definition: {
         "item": [
           {
@@ -293,6 +297,7 @@ module CeWorkflowBuilder
 
     create_step_form(
       identifier: denial_review_form_identifier,
+      data_source: data_source,
       definition: {
         "item": [
           {
@@ -346,6 +351,7 @@ module CeWorkflowBuilder
     )
     create_step_form(
       identifier: confirm_success_task_form_identifier,
+      data_source: data_source,
       definition: {
         "item": [
           {
