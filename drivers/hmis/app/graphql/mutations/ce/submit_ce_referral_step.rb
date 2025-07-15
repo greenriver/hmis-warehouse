@@ -10,14 +10,15 @@ module Mutations
   class Ce::SubmitCeReferralStep < CleanBaseMutation
     argument :referral_id, ID, required: true
     argument :step_id, ID, required: true
-    argument :input, Types::JsonObject, required: true
+    argument :values_by_link_id, Types::JsonObject, required: true
+    argument :values_by_field_name, Types::JsonObject, required: true
     argument :form_definition_id, ID, required: true # The form that was used to submit the step
     argument :confirmed, Boolean, required: false
 
     field :step, Types::HmisSchema::CeReferralStep, null: true # nullable in case of errors
     field :referral, Types::HmisSchema::CeReferral, null: true # return the referral so the UI can respond appropriately if the referral's overall status has changed
 
-    def resolve(referral_id:, step_id:, form_definition_id:, input:, **_rest) # add 'confirmed' here later. For now, we ignore it
+    def resolve(referral_id:, step_id:, form_definition_id:, values_by_link_id:, values_by_field_name:, confirmed: false)
       raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
@@ -29,14 +30,23 @@ module Mutations
       referral.opportunity.with_lock do
         engine = referral.workflow_engine
         step = engine.active_steps.find(step_id)
-        step.form_definition = form_definition
         access_denied! unless current_user.can_perform_referral_step?(step)
 
-        validations = engine.validate_step(step, submitted_values: input)
+        step.form_definition = form_definition
+
+        # Validate submitted form values against the definition
+        validations = engine.validate_step(step, submitted_values: values_by_link_id)
         errors.push(*validations)
+        errors.drop_warnings! if confirmed
+        errors.deduplicate!
         return { errors: errors } if errors.any?
 
-        engine.complete_step!(step, user: current_user, submitted_values: input)
+        # Process submitted form values onto CustomDataElements
+        step.build_form_processor(definition: step.form_definition, values: values_by_link_id, hud_values: values_by_field_name)
+        step.form_processor.run!(user: current_user)
+        step.form_processor.save!
+
+        engine.complete_step!(step, user: current_user, submitted_values: values_by_link_id)
       end
 
       {
