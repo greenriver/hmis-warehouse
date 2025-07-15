@@ -4,9 +4,8 @@ custom_files:
     class_name: "CustomDataElement"
     required: false
     description: "Custom data element values"
-    augments_warehouse_table: "Hmis::Hud::CustomDataElement"
-    definition_class: "CustomDataElementDefinition"
-    definition_key: "CustomDataElementDefinitionID"
+    warehouse_key: "CustomDataElementID"
+    warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
     columns:
       - name: "CustomDataElementID"
         type: "string"
@@ -20,14 +19,30 @@ custom_files:
         type: "string"
         required: true
         validations:
-          - class: "InclusionInSet"
-            arguments:
-              valid_options:
-                ["Client", "Enrollment", "Exit", "Project", "Organization"]
+          - "inclusion: { in: ['Client', 'Enrollment', 'Exit', 'Project', 'Organization'] }"
+        warehouse_column_mapping:
+          type: "value_mapping"
+          target_column: "owner_type"
+          value_mappings:
+            "Client": "GrdaWarehouse::Hud::Client"
+            "Enrollment": "GrdaWarehouse::Hud::Enrollment"
+            "Exit": "GrdaWarehouse::Hud::Exit"
+            "Project": "GrdaWarehouse::Hud::Project"
+            "Organization": "GrdaWarehouse::Hud::Organization"
       - name: "RecordID"
         type: "string"
         required: true
         validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "record_lookup"
+          class_column: "owner_type"
+          target_column: "owner_id"
+          lookup_field_mappings: # note: these can probably be pulled from hud_key
+            "GrdaWarehouse::Hud::Client": "PersonalID"
+            "GrdaWarehouse::Hud::Enrollment": "EnrollmentID"
+            "GrdaWarehouse::Hud::Exit": "ExitID"
+            "GrdaWarehouse::Hud::Project": "ProjectID"
+            "GrdaWarehouse::Hud::Organization": "OrganizationID"
       - name: "Value"
         type: "string"
         required: false

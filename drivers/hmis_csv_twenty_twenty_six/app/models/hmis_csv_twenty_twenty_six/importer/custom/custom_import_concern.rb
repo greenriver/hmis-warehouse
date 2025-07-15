@@ -17,7 +17,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
       # Apply all column mappings using the generic mapper
       mapped_attributes = {}
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(
         self,
         mapped_attributes,
         config['columns'],

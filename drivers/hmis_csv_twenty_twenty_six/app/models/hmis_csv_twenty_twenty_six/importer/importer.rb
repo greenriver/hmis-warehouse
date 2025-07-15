@@ -42,7 +42,7 @@ module HmisCsvTwentyTwentySix::Importer
 
     private def process_key_value_store(klass, file_config)
       source_records = klass.incoming_data(importer_log_id: importer_log.id)
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.process_key_value_store(
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.process_key_value_store(
         source_records,
         file_config,
         importer_log,

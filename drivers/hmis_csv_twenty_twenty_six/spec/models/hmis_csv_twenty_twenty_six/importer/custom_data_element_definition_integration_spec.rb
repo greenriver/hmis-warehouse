@@ -9,11 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe 'CustomDataElementDefinition Integration' do
-  before(:all) do
-    # Bootstrap custom models to ensure they exist
-    HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!
-  end
-
   describe 'CustomDataElementDefinition.csv column mapping' do
     let(:source_record) do
       {
@@ -35,7 +30,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
     let(:columns) { config['columns'] }
 
     it 'successfully applies all column mappings' do
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
 
       # Test the exact scenario from the user's manual test
       expect(mapped_attributes).to include(
@@ -48,7 +43,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
     end
 
     it 'handles default column mappings for standard fields' do
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
 
       # Default mappings should use the same column name
       expect(mapped_attributes).to include(
@@ -74,14 +69,14 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
         test_record = source_record.merge('RecordType' => record_type)
         test_mapped_attributes = {}
 
-        HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(test_record, test_mapped_attributes, columns)
+        HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(test_record, test_mapped_attributes, columns)
 
         expect(test_mapped_attributes['owner_type']).to eq(expected_mappings[record_type])
       end
     end
 
     it 'produces the same results as the manual test' do
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
 
       # This should match the exact output from the manual test
       expect(mapped_attributes.keys).to include(
@@ -115,7 +110,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
     end
 
     it 'correctly reports source and mapped attributes' do
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
 
       # Verify source record is unchanged
       expect(source_record).to eq(
@@ -224,7 +219,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
       config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElementDefinition.csv')
       columns = config['columns']
 
-      HmisCsvTwentyTwentySix::Importer::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
 
       # Verify the complete transformation
       expect(mapped_attributes).to eq(

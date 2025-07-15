@@ -8,7 +8,7 @@ class AddHudFieldsToCustomDataElementDefinitions < ActiveRecord::Migration[7.1]
 
     safety_assured do
       # Make CustomDataElementDefinitionID unique when present (optional but unique if present)
-      add_index :CustomDataElementDefinitions, :CustomDataElementDefinitionID, unique: true, where: '"CustomDataElementDefinitionID" IS NOT NULL'
+      add_index :CustomDataElementDefinitions, [:data_source_id, :CustomDataElementDefinitionID], unique: true, where: '"CustomDataElementDefinitionID" IS NOT NULL'
     end
   end
 end

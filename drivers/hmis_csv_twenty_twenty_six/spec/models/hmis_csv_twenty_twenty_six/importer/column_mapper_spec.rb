@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisCsvTwentyTwentySix::Importer::ColumnMapper do
+RSpec.describe HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper do
   describe '.apply_mappings' do
     let(:mapped_attributes) { {} }
 
