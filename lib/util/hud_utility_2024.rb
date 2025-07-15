@@ -662,10 +662,6 @@ module HudUtility2024
     [2, 3, 4, 5, 43, 44, 54, 55]
   end
 
-  def ce_event_joint_th_rrh_funders
-    [45, 54, 55]
-  end
-
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
   # These are used by assessment Form Definition to specify funder applicability rules.
   def funder_components
@@ -720,17 +716,6 @@ module HudUtility2024
       17,
       18,
     ]
-  end
-
-  def ce_events_by_code
-    {
-      es: 10,
-      th: 11,
-      th_rrh: 12,
-      rrh: 13,
-      psh: 14,
-      oph: 15,
-    }.freeze
   end
 
   def service_types_provided_map

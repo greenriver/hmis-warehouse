@@ -197,6 +197,8 @@ module Types
 
     def audit_events
       object.audit_events.
+        # Specifically for end_workflow events, only record an audit event for referral acceptance or rejection.
+        # Other side effects could be triggered by workflow end (such as creating an enrollment or a CE event), but these don't need to be recorded in the audit table
         where(event_type: 'end_workflow').
         where("event_data->>'message' IN (?)", [Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE, Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE]).
         or(object.audit_events.where(event_type: ['complete_step', 'start_workflow'])).

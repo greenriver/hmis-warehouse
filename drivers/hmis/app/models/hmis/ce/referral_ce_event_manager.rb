@@ -45,29 +45,11 @@ module Hmis::Ce
 
     private
 
-    def project_to_event_type(project) # Logic is from Data Dictionary 4.20.2 Coordinated Entry Event
-      project_type = project.project_type
+    def project_to_event_type(project)
+      event_type = HudUtility2026.project_to_ce_event_type(project)
+      raise "Unexpected target project type #{project_type} on project #{project.id} for referral #{referral.id}" unless event_type
 
-      es_types = HudUtility2024.residential_project_type_numbers_by_code[:es] + HudUtility2024.residential_project_type_numbers_by_code[:sh]
-      return HudUtility2024.ce_events_by_code[:es] if es_types.include?(project_type)
-
-      th_rrh_types = HudUtility2024.residential_project_type_numbers_by_code[:th] + HudUtility2024.residential_project_type_numbers_by_code[:rrh]
-      if th_rrh_types.include?(project_type)
-        # If the project has specific open funders, record this as a joint TH/RRH event. (12)
-        return HudUtility2024.ce_events_by_code[:th_rrh] if project.funders.open_on_date.where(funder: HudUtility2024.ce_event_joint_th_rrh_funders).any?
-
-        # Otherwise, record the event corresponding to the project type (11 or 13)
-        return HudUtility2024.ce_events_by_code[:th] if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(project_type)
-        return HudUtility2024.ce_events_by_code[:rrh] if HudUtility2024.residential_project_type_numbers_by_code[:rrh].include?(project_type)
-      end
-
-      psh_types = HudUtility2024.residential_project_type_numbers_by_code[:psh]
-      return HudUtility2024.ce_events_by_code[:psh] if psh_types.include?(project_type)
-
-      oph_types = HudUtility2024.residential_project_type_numbers_by_code[:oph]
-      return HudUtility2024.ce_events_by_code[:oph] if oph_types.include?(project_type)
-
-      raise "Unexpected target project type #{project_type} on project #{project.id} for referral #{referral.id}"
+      event_type
     end
   end
 end
