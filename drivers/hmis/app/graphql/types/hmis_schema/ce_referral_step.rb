@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::CeReferralStep < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
+
     # object is a Hmis::WorkflowExecution::Step.
     # Only Steps that are backed by UserTasks (not ScriptTasks) should be resolved by the API.
 
@@ -24,6 +26,7 @@ module Types
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, HmisSchema::CeReferral, null: false
     field :available_at, GraphQL::Types::ISO8601DateTime, null: true # this is required in the DB, but we sometimes return unpersisted steps so it can be null in the schema
+    custom_data_elements_field
     access_field do
       field :can_perform_step, Boolean, null: false
     end
