@@ -47,7 +47,7 @@ module Hmis::Ce
 
     def project_to_event_type(project)
       event_type = HudUtility2026.project_to_ce_event_type(project)
-      raise "Unexpected target project type #{project_type} on project #{project.id} for referral #{referral.id}" unless event_type
+      raise "Unable to determine CE Event Type for project type #{project_type} on project #{project.id} for referral #{referral.id}" unless event_type
 
       event_type
     end
