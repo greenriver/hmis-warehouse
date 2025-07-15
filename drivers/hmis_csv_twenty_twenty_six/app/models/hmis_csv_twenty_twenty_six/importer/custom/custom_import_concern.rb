@@ -25,13 +25,16 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
       record = klass.new(mapped_attributes)
 
-      # We explicitly don't update the source hash since that would cause future
+      # For augmentations, we explicitly don't update the source hash since that would cause future
       # imports to the augmented class to appear modified
-      # We also don't set the source_id as it would cause the source data drill-down
-      # to break
-      # record.source_hash = source_hash
-      # # Note which record we're sending this from for error checking
-      # record.source_id = id
+      # We also don't set the source_id as it would cause the source data drill-down to break
+      unless self.class.augments?
+        record.source_hash = source_hash
+        # Note which record we're sending this from for error checking
+        record.source_id = id
+        # For non-augmentations, we need to set the data_source_id
+        record.data_source_id = data_source_id
+      end
 
       record
     end
@@ -144,11 +147,15 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
     # Delegate to the class we are augmenting
     def existing_destination_data(data_source_id:, project_ids:, date_range:)
-      import_klass.involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted
+      if augments?
+        import_klass.involved_warehouse_scope(
+          data_source_id: data_source_id,
+          project_ids: project_ids,
+          date_range: date_range,
+        ).with_deleted
+      else
+        super
+      end
     end
 
     def augments?

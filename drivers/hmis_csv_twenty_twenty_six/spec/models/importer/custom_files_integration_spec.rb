@@ -26,7 +26,6 @@ RSpec.describe 'Custom Files Integration' do
       data_source: data_source,
       run_jobs: true,
     )
-
     FileUtils.rm_rf(temp_dir)
   end
 
@@ -70,44 +69,4 @@ RSpec.describe 'Custom Files Integration' do
       expect(custom_data_element_definition.field_type).to eq('string')
     end
   end
-
-  # describe 'CustomDataElement.csv processing' do
-  #   it 'creates custom data element records' do
-  #     temp_dir = Dir.mktmpdir
-
-  #     # Copy both definition and data files
-  #     def_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomDataElementDefinition.csv')
-  #     data_content = File.read('drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/custom_files/source/CustomDataElement.csv')
-
-  #     File.write(File.join(temp_dir, 'CustomDataElementDefinition.csv'), def_content)
-  #     File.write(File.join(temp_dir, 'CustomDataElement.csv'), data_content)
-
-  #     # Run import process
-  #     loader = HmisCsvImporter::Loader::Loader.new(
-  #       file_path: temp_dir,
-  #       data_source_id: data_source.id,
-  #     )
-  #     loader.load!
-
-  #     importer = HmisCsvTwentyTwentySix::Importer::Importer.new(
-  #       loader_id: loader.id,
-  #       data_source_id: data_source.id,
-  #     )
-  #     importer.import!
-
-  #     # Verify custom data element was created
-  #     custom_element = GrdaWarehouse::Hud::CustomDataElement.find_by(
-  #       data_source_id: data_source.id,
-  #       CustomDataElementID: 'A1001',
-  #     )
-
-  #     expect(custom_element).to be_present
-  #     expect(custom_element.CustomDataElementDefinitionID).to eq('reason_for_exit')
-  #     expect(custom_element.RecordType).to eq('Enrollment')
-  #     expect(custom_element.RecordID).to eq('622377')
-  #     expect(custom_element.Value).to eq('No longer interested in participating in program')
-
-  #     FileUtils.rm_rf(temp_dir)
-  #   end
-  # end
 end

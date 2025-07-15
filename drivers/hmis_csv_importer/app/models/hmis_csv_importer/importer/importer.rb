@@ -794,8 +794,8 @@ module HmisCsvImporter::Importer
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
-        upsert_columns = destination_class.upsert_column_names
-        upsert_columns = klass.upsert_column_names if custom_augmentation?(klass)
+        upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
+        upsert_columns = klass.upsert_column_names(version: importer_log.version) if custom_augmentation?(klass)
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
@@ -824,7 +824,7 @@ module HmisCsvImporter::Importer
                   destination_class.where(
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
-                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names))
+                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
                   @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
@@ -841,7 +841,7 @@ module HmisCsvImporter::Importer
               destination_class.where(
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
-              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names))
+              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
               @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
@@ -948,8 +948,7 @@ module HmisCsvImporter::Importer
       options
     end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names, update_only: false)
-      binding.pry if klass.name == 'GrdaWarehouse::Hud::CustomDataElementDefinition'
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: importer_log.version), update_only: false)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
         if update_only
@@ -957,7 +956,7 @@ module HmisCsvImporter::Importer
         elsif upsert
           klass.import(
             batch,
-            **import_options(klass, columns),
+            import_options(klass, columns),
             validate: use_ar_model_validations,
           )
         else
@@ -978,7 +977,7 @@ module HmisCsvImporter::Importer
         elsif upsert
           klass.import(
             Array.wrap(row),
-            **import_options(klass, columns),
+            import_options(klass, columns),
             validate: use_ar_model_validations,
             batch_size: 1,
           )

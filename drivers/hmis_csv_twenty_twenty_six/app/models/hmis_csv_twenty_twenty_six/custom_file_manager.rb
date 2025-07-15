@@ -80,7 +80,6 @@ module HmisCsvTwentyTwentySix
       RUBY
 
       File.write(file_path, content)
-      puts "Generated loader model: #{file_path}"
     end
 
     # Creates an Importer model file
@@ -119,7 +118,6 @@ module HmisCsvTwentyTwentySix
       RUBY
 
       File.write(file_path, content)
-      puts "Generated importer model: #{file_path}"
     end
 
     private_class_method def self.generate_associations_code(file_config)

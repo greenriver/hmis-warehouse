@@ -306,7 +306,7 @@ module HmisCsvImporter::Loader
           stat['rps'] = (lines_loaded / bm.real).round
         end
         Rails.logger.debug do
-          # line_loaded comes from pg directly, if we dont trust it we can go back for a count
+          # line_loaded comes from pg directly, if we don't trust it we can go back for a count
           # if lines_loaded > 1
           #   scope = klass.where(data_source_id: data_source.id, loader_id: @loader_log.id)
           #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
