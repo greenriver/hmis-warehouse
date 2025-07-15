@@ -757,6 +757,9 @@ Rails.application.routes.draw do
     end
 
     resources :collections do
+      resource :audit, only: :show, controller: 'collection_audits' do
+        get :export, on: :member
+      end
       get :entities, on: :member
       patch :bulk_entities, on: :member
     end
@@ -764,6 +767,9 @@ Rails.application.routes.draw do
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
     resources :roles do
+      resource :audit, only: :show, controller: 'role_audits' do
+        get :export, on: :member
+      end
       patch :batch_update, on: :collection
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
@@ -776,10 +782,19 @@ Rails.application.routes.draw do
       get :sample, on: :collection
     end
     resources :access_controls do
+      resource :audit, only: :show, controller: 'access_control_audits' do
+        get :export, on: :member
+      end
       post :assign, on: :collection
+      get :audits, on: :collection, to: 'access_controls#audits', as: :audits
+      post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
+      get :export, on: :collection, to: 'access_controls#export', as: :export
     end
     resources :access_overviews, only: [:index]
     resources :user_groups do
+      resource :audit, only: :show, controller: 'user_group_audits' do
+        get :export, on: :member
+      end
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
     resources :user_trainings, only: [:edit, :update]

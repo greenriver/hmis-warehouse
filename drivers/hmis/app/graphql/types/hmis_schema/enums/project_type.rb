@@ -11,10 +11,11 @@ module Types
     description 'HUD Project Types'
     graphql_name 'ProjectType'
 
-    HudUtility2024.project_types.each do |id, description|
-      key = HudUtility2024.project_type_briefs[id].gsub(/ -?\s?/, '_').gsub('/', '_').upcase
+    HudUtility2026.hmis_project_type_keys.each do |number, identifier|
+      description = HudUtility2026.project_type(number)
       description = description.sub(/\s*\(.+\)$/, '')
-      value key, description, value: id
+
+      value identifier, description, value: number
     end
     invalid_value
   end

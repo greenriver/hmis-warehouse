@@ -1,0 +1,5 @@
+= render 'admin/audits/shared/layout', 
+  entity_type: 'Access Control', 
+  entity_path: admin_access_controls_path,
+  export_path: export_admin_access_control_audit_path(@access_control, format: :csv),
+  item: @access_control
