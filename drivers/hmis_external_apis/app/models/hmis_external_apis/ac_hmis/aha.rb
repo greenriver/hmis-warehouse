@@ -9,6 +9,7 @@
 module HmisExternalApis::AcHmis
   class Aha
     SYSTEM_ID = 'ac_hmis_aha'
+    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
 
@@ -27,20 +28,20 @@ module HmisExternalApis::AcHmis
 
       # Find and return highest score
       scores = result.parsed_body&.dig('data')&.map { |c| c.dig('score') } || []
+      scores.compact_blank!
 
       # Validate that all scores are numerical
-      non_numerical_scores = scores.compact.reject { |score| score.is_a?(Numeric) }
+      non_numerical_scores = scores.reject { |score| score.is_a?(Numeric) }
       raise(Error, "Received non-numerical scores: #{non_numerical_scores.inspect}") if non_numerical_scores.any?
 
-      highest_score = scores.compact.uniq.max
-      highest_score == -999 ? nil : highest_score # Special case for -999, which indicates no data
+      highest_score = scores.uniq.max
+      return nil if highest_score&.negative?
+
+      highest_score
     end
 
     def self.enabled?
-      # Both MCI and AHA credentials need to exist for AHA api to be enabled, since we query the API by MCI ID.
-      aha_cred = ::GrdaWarehouse::RemoteCredentials::ApiKey.active.where(slug: SYSTEM_ID)
-      mci_cred = ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
-      aha_cred.exists? && mci_cred.exists?
+      ::GrdaWarehouse::RemoteCredentials::ApiKey.active.where(slug: SYSTEM_ID).exists?
     end
 
     private
@@ -50,7 +51,7 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::ApiKeyConnection.new(creds)
+      @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
     def handle_error(result)
