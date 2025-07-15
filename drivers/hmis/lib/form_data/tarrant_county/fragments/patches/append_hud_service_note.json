@@ -1,0 +1,15 @@
+[
+  {
+    "form_identifier": "service",
+    "append_items": [
+      {
+        "text": "Note",
+        "type": "TEXT",
+        "link_id": "hud_service_note",
+        "mapping": {
+          "custom_field_key": "hud_service_note"
+        }
+      }
+    ]
+  }
+]
