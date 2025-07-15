@@ -70,6 +70,7 @@ class Admin::AccessControlsController < ApplicationController
     respond_to do |format|
       format.csv do
         audit_history = []
+        histories = build_histories(current_user)
         histories.each_with_index do |history, index|
           csv_data = generate_audit_csv(history.version_array, history, include_headers: index == 0)
           audit_history << csv_data

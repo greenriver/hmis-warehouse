@@ -153,7 +153,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
                 'item': [
                   {
                     'type': 'DATE',
-                    'link_id': 'move_in_date',
+                    'link_id': 'unrelated_link_id',
                     'required': true,
                     'text': 'Move-in Date',
                     'mapping': { 'field_name': 'moveInDate', 'record_type': 'ENROLLMENT' },
@@ -190,7 +190,8 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         move_in_date = 2.weeks.ago.to_date
         expect do
           current_step = engine.active_steps.sole
-          engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': move_in_date })
+          current_step.form_definition = move_in_date_form_def # this is set in the mutation, not the engine complete_step!
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'unrelated_link_id': move_in_date })
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1).
           and change(referral, :target_enrollment).from(nil)
@@ -219,7 +220,8 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           it 'raises an exception, indicating a workflow configuration issue' do
             expect do
               current_step = engine.active_steps.sole
-              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': 2.weeks.ago.to_date })
+              current_step.form_definition = move_in_date_form_def
+              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'unrelated_link_id': 2.weeks.ago.to_date })
               referral.reload
             end.to raise_error(RuntimeError, /does not have a target enrollment yet/).
               and not_change(Hmis::Hud::Enrollment, :count)
@@ -245,7 +247,8 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
           it 'does not overwrite the move-in date if the input is not parseable' do
             expect do
               current_step = engine.active_steps.sole
-              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'move_in_date': 'bad string' })
+              current_step.form_definition = move_in_date_form_def
+              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'unrelated_link_id': 'bad string' })
               target_enrollment.reload
             end.to not_change(Hmis::Hud::Enrollment, :count).
               and not_change(target_enrollment, :move_in_date)
