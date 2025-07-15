@@ -56,7 +56,7 @@ module Hmis::Ce
       # Find the form item corresponding to move-in date
       form_definition = message.step.form_definition # The form definition most recently used to complete the step
       move_in_date_item = form_definition.link_id_item_hash.values.find do |item|
-        item['mapping']['field_name'] == 'moveInDate' && item['mapping']['record_type'] == 'ENROLLMENT'
+        item.mapping&.field_name == 'moveInDate' && item.mapping&.record_type == 'ENROLLMENT'
       end
       raise "Trying to set move-in date for referral #{referral.id}, step #{message.step.id}, but form definition #{form_definition.id} doesn't collect it. This probably indicates a mistake in the workflow configuration." unless move_in_date_item.present?
 
