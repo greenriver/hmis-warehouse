@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::Projects
   extend ActiveSupport::Concern
@@ -55,15 +57,27 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
-    def enrollment_data_for_export(rows)
+    def enrollment_data_for_export(rows, report_index = 0)
       projects = project_names
       rows['_Clients in Projects'] ||= []
       rows['*Clients in Projects'] ||= []
       rows['*Clients in Projects'] += ['Project', 'Project Type', 'Organization', 'Count']
+      header_column_count = rows['*Clients in Projects'].count
+
+      # Use project IDs for row keys to ensure same project appears on same row across reports
+      # Add report_index to ensure proper column alignment
       projects.each do |id, proj|
         title = proj[:project_name]
-        rows["_Clients in Projects_data_#{id}"] ||= []
-        rows["_Clients in Projects_data_#{id}"] += [
+        row_key = "_Clients in Projects_data_#{id}"
+        rows[row_key] ||= []
+
+        # If this is not the first report, we need to pad with nil values to align columns
+        if report_index > 0 && rows[row_key].empty?
+          # Pad with nil values for previous reports
+          rows[row_key] += [nil] * (report_index * header_column_count)
+        end
+
+        rows[row_key] += [
           title,
           proj[:project_type],
           proj[:organization_name],
