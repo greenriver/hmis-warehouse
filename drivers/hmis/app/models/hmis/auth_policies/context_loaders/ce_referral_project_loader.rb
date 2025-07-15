@@ -5,22 +5,35 @@
 ###
 # frozen_string_literal: true
 
-require 'memery'
-
 module Hmis::AuthPolicies::ContextLoaders
   class CeReferralProjectLoader
-    include Memery
-
-    def initialize(user)
-      @user = user
+    def initialize
+      # {referral_id => project_id, ...}
+      @cache = {}
     end
 
-    memoize def referral_project_ids
+    def get(referral_id)
+      preload([referral_id]) unless @cache.key?(referral_id)
+      @cache[referral_id] || raise("No project found for referral #{referral_id}")
+    end
+
+    def cached_project_ids
+      @cache.values.uniq
+    end
+
+    def preload(referral_ids)
+      return if referral_ids.empty?
+
+      new_referral_ids = referral_ids.uniq - @cache.keys
+      return if new_referral_ids.empty?
+
       o_t = Hmis::Ce::Opportunity.arel_table
-      Hmis::Ce::Referral.
+      results = Hmis::Ce::Referral.
+        where(id: new_referral_ids).
         joins(:opportunity).
         pluck(:id, o_t[:project_id]).
         to_h
+      @cache.merge!(results)
     end
   end
 end

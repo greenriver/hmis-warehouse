@@ -40,6 +40,11 @@ class Hmis::AuthPolicies::UserContext
     project_access_group_loader.preload(project_ids)
   end
 
+  def preload_referral_dependencies(referral_ids)
+    ce_referral_project_loader.preload(referral_ids)
+    project_access_group_loader.preload(ce_referral_project_loader.cached_project_ids)
+  end
+
   # CE Referral assignment data
   def assigned_referral_instance_ids
     ce_referral_assignment_loader.assigned_referral_instance_ids
@@ -50,7 +55,7 @@ class Hmis::AuthPolicies::UserContext
   end
 
   def referral_project_id(referral_id)
-    ce_referral_project_loader.referral_project_ids[referral_id]
+    ce_referral_project_loader.get(referral_id)
   end
 
   protected
@@ -69,6 +74,6 @@ class Hmis::AuthPolicies::UserContext
   end
 
   memoize def ce_referral_project_loader
-    Hmis::AuthPolicies::ContextLoaders::CeReferralProjectLoader.new(user)
+    Hmis::AuthPolicies::ContextLoaders::CeReferralProjectLoader.new
   end
 end

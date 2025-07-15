@@ -196,7 +196,7 @@ module Types
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
 
       {
-        can_view_target_project: policy_for(project, policy_type: :hmis_project).can_view?
+        can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
       }
     end
 

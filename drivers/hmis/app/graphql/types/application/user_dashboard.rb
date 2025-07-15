@@ -52,6 +52,7 @@ module Types
       # - ensuring we only resolve CE steps and not other workflow types
       # For performance, rely on assumption that only active referrals have active steps.
       referral_scope = Hmis::Ce::Referral.active.viewable_by(current_user)
+      current_user.policy_context.preload_referral_dependencies(referral_scope.pluck(:id))
       viewable_instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
       step_scope = step_scope.where(instance_id: viewable_instance_ids)
 
