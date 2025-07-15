@@ -7,7 +7,6 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
-  # not used yet
   def can_view?
     project_permissions.include?(:can_view_project)
   end

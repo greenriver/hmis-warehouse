@@ -56,7 +56,8 @@ module Types
     end
 
     def self.authorized?(object, ctx)
-      super && ctx[:current_user].policy_for(object, policy_type: :ce_referral).can_view?
+      user = ctx[:current_user]
+      super && user.policy_for(object, policy_type: :ce_referral).can_view?
     end
 
     def steps # Don't resolve in batch
@@ -195,7 +196,7 @@ module Types
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
 
       {
-        can_view_target_project: project.present?,
+        can_view_target_project: policy_for(project, policy_type: :hmis_project).can_view?
       }
     end
 

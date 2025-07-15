@@ -49,6 +49,10 @@ class Hmis::AuthPolicies::UserContext
     ce_referral_assignment_loader.assigned_referral_step_ids
   end
 
+  def referral_project_id(referral_id)
+    ce_referral_project_loader.referral_project_ids[referral_id]
+  end
+
   protected
 
   # Context loaders (memoized for request-level caching)
@@ -62,5 +66,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def ce_referral_assignment_loader
     Hmis::AuthPolicies::ContextLoaders::CeReferralAssignmentLoader.new(user)
+  end
+
+  memoize def ce_referral_project_loader
+    Hmis::AuthPolicies::ContextLoaders::CeReferralProjectLoader.new(user)
   end
 end

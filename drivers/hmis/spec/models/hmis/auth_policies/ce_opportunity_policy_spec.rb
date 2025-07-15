@@ -16,7 +16,7 @@ RSpec.describe Hmis::AuthPolicies::CeOpportunityPolicy, type: :model do
     let(:client) { create(:hmis_hud_client_complete, data_source: data_source) }
 
     context 'when user has :can_start_referrals permission' do
-      before { create_access_control(user, project, with_permission: [:can_start_referrals]) }
+      before { create_access_control(user, project, with_permission: [:can_start_referrals, :can_view_referrals]) }
 
       it 'returns true if client is in the same data source' do
         expect(policy.can_create_referral?(client: client)).to be true

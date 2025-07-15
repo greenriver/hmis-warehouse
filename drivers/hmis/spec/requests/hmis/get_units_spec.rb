@@ -59,6 +59,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'get units query' do
+    # needed to access the referral
+    before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
+
     context 'when the unit has no opportunity' do
       let!(:unit) { create(:hmis_unit, project: project) }
 
