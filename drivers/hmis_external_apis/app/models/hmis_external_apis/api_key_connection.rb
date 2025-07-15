@@ -9,7 +9,7 @@
 module HmisExternalApis
   class ApiKeyConnection < ExternalApiConnection
     # @param creds [::GrdaWarehouse::RemoteCredentials::ApiKey]
-    def initialize(creds, connection_timeout: 5, logger: BaseLogger.new)
+    def initialize(creds, connection_timeout: 5, logger: ExternalApiLogger.new)
       super(creds, connection_timeout: connection_timeout, logger: logger)
     end
 

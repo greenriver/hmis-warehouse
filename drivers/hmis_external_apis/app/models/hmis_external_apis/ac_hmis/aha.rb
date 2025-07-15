@@ -28,14 +28,22 @@ module HmisExternalApis::AcHmis
       return nil if result.http_status == 404
 
       # Find and return highest score
-      scores = result.parsed_body&.dig('data')&.map { |c| c.dig('score') } || []
-      scores.compact_blank!
+      scores = result.parsed_body&.dig('data')&.filter_map do |response_client|
+        score = response_client.dig('score')
+        next if score.blank?
 
-      # Validate that all scores are numerical
-      non_numerical_scores = scores.reject { |score| score.is_a?(Numeric) }
-      raise(Error, "Received non-numerical scores: #{non_numerical_scores.inspect}") if non_numerical_scores.any?
+        begin
+          Integer(score)
+        rescue ArgumentError, TypeError
+          score # Keep invalid values for error reporting
+        end
+      end
 
-      highest_score = scores.uniq.max
+      # Validate all scores are integers <= 10
+      invalid_scores = scores.reject { |score| score.is_a?(Integer) && score <= 10 }
+      raise(Error, "Received invalid scores: #{invalid_scores.inspect}") if invalid_scores.any?
+
+      highest_score = scores.max
       return nil if highest_score&.negative?
 
       highest_score
