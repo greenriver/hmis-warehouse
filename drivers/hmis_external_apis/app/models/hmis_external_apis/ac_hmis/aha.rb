@@ -24,6 +24,7 @@ module HmisExternalApis::AcHmis
       result = conn.post('api/v1/clients/scores', payload).
         then { |r| handle_error(r) }
 
+      # 404 indicates client was not found
       return nil if result.http_status == 404
 
       # Find and return highest score
@@ -56,7 +57,6 @@ module HmisExternalApis::AcHmis
 
     def handle_error(result)
       Rails.logger.error "AHA Error: #{result.error}" if result.error
-      Sentry.capture_exception(StandardError.new(result.error)) if result.error
       raise(Error, result.error) if result.error
 
       result
