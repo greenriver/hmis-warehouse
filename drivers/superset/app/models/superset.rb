@@ -31,9 +31,9 @@ module Superset
   # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
   def self.available_superset_roles
     begin
-      roles = Superset::Api.new.roles['result'].map { |role| role['name'] }
+      roles = Superset::Api.new.roles['result']&.map { |role| role['name'] } || []
       roles.reject! { |role| ignored_roles.include?(role) }
-      return roles if Superset::Api.new.available?
+      return roles.presence || default_roles if Superset::Api.new.available?
     rescue Curl::Err::HostResolutionError => e
       Rails.logger.error("Error fetching Superset roles: #{e.message}, using default roles")
     end

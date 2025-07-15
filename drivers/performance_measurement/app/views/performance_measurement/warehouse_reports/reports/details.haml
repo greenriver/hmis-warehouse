@@ -1,4 +1,4 @@
 - category = @report.detail_category_for(@key)
 - title = "#{category} | #{@report.detail_title_for(@key)}"
 - content_for :title, title
-= render 'details', key: @key
+= render 'details', key: @key, pdf: false
