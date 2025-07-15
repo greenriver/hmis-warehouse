@@ -40,7 +40,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
       enrollment.assign_unit(unit: units.first, start_date: Date.current, user: hmis_user)
       enrollment.save!
 
-      result = HmisExternalApis::BaseResult.new(parsed_body: {})
+      result = HmisExternalApis::ExternalApiResult.new(parsed_body: {})
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch).
         with(
           'Unit/Capacity',

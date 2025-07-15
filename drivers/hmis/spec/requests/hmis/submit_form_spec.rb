@@ -929,7 +929,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # Create external ID for Unit Type which is needed for API request
       mper.create_external_id(source: unit_type, value: '999')
       # Mock the API response
-      result = HmisExternalApis::BaseResult.new(
+      result = HmisExternalApis::ExternalApiResult.new(
         parsed_body: { 'referralRequestID' => '123' }, # External ID for the Referral Request
       )
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:post).

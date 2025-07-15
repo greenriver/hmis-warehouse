@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module HmisExternalApis
-  class ApiKeyConnection < BaseConnection
+  class ApiKeyConnection < ExternalApiConnection
     # @param creds [::GrdaWarehouse::RemoteCredentials::ApiKey]
     def initialize(creds, connection_timeout: 5, logger: BaseLogger.new)
       super(creds, connection_timeout: connection_timeout, logger: logger)
@@ -56,7 +56,7 @@ module HmisExternalApis
 
     def create_result(result, verb, url, merged_headers, request_log)
       # result is a Faraday::Response
-      BaseResult.new(
+      ExternalApiResult.new(
         body: result.body,
         content_type: result.headers['content-type'],
         error: nil,
@@ -73,7 +73,7 @@ module HmisExternalApis
 
     def create_error_result(exception, result, request_log)
       # exception is a Faraday::Error, result is a Faraday::Response or nil
-      BaseResult.new(
+      ExternalApiResult.new(
         body: result&.body || exception.message,
         content_type: result&.content_type || exception.response&.headers&.dig('content-type'),
         error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',

@@ -22,7 +22,7 @@ RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
         :hmis_external_api_ac_hmis_referral_request,
         requested_by: hmis_user,
       )
-      result = HmisExternalApis::BaseResult.new(parsed_body: {})
+      result = HmisExternalApis::ExternalApiResult.new(parsed_body: {})
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch).
         with(
           "Referral/ReferralRequest/#{referral_request.identifier}",

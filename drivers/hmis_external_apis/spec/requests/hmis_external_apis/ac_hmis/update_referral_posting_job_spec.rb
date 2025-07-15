@@ -25,7 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
       accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
 
-      result = HmisExternalApis::BaseResult.new(
+      result = HmisExternalApis::ExternalApiResult.new(
         parsed_body: {
           'postingId' => posting.identifier,
           'postingStatusId' => accepted_status_code,

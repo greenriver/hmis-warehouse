@@ -7,7 +7,7 @@
 ###
 
 module HmisExternalApis
-  BaseResult = Struct.new(
+  ExternalApiResult = Struct.new(
     :body,
     :content_type,
     :error,

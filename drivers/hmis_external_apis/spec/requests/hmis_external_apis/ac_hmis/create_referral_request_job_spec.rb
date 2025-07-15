@@ -35,7 +35,7 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
       unit_type_mper_id = SecureRandom.uuid
       mper.create_external_id(source: referral_request.unit_type, value: unit_type_mper_id)
 
-      result = HmisExternalApis::BaseResult.new(
+      result = HmisExternalApis::ExternalApiResult.new(
         parsed_body: { 'referralRequestID' => referral_request_id },
       )
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:post).

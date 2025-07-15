@@ -9,7 +9,7 @@
 # Deferred logging for remote connections.
 # caller is responsible for calling finalize! to persist the records
 module HmisExternalApis
-  class OauthDeferredClientLogger < BaseLogger
+  class OauthDeferredClientLogger < ExternalApiLogger
     attr_accessor :log_records
 
     def initialize

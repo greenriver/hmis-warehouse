@@ -7,10 +7,10 @@
 # frozen_string_literal: true
 
 module HmisExternalApis
-  class BaseConnection
+  class ExternalApiConnection
     attr_accessor :creds, :additional_headers, :base_url, :connection_timeout, :logger
 
-    def initialize(creds, connection_timeout: 5, logger: BaseLogger.new)
+    def initialize(creds, connection_timeout: 5, logger: ExternalApiLogger.new)
       self.creds = creds
       self.base_url = creds.base_url.strip.gsub(/\/*\z/, '') # normalize base_url
       self.additional_headers = creds.additional_headers
@@ -64,7 +64,7 @@ module HmisExternalApis
     end
 
     def create_connection_error_result(exception, request_log)
-      BaseResult.new(
+      ExternalApiResult.new(
         body: exception.message.presence || 'Unknown Error',
         error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',
         error_type: exception.class.name,

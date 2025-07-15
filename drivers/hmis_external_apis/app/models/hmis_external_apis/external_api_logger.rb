@@ -7,7 +7,7 @@
 ###
 
 module HmisExternalApis
-  class BaseLogger
+  class ExternalApiLogger
     def capture(creds:, url:, method:, payload:, headers:)
       record = new_log_record(
         initiator: creds,

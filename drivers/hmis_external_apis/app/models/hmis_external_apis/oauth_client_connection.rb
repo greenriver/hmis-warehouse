@@ -8,11 +8,11 @@
 
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
-  class OauthClientConnection < BaseConnection
+  class OauthClientConnection < ExternalApiConnection
     attr_accessor :client_id, :scope
 
     # @param creds [::GrdaWarehouse::RemoteCredential]
-    def initialize(creds, connection_timeout: 5, logger: BaseLogger.new)
+    def initialize(creds, connection_timeout: 5, logger: ExternalApiLogger.new)
       super(creds, connection_timeout: connection_timeout, logger: logger)
       self.client_id = creds.client_id
       self.scope = creds.oauth_scope
@@ -86,7 +86,7 @@ module HmisExternalApis
 
     def create_result(result, verb, url, merged_headers, request_log)
       # result is an OAuth2::Response
-      BaseResult.new(
+      ExternalApiResult.new(
         body: result.body,
         content_type: result.content_type,
         error: nil,
@@ -103,7 +103,7 @@ module HmisExternalApis
 
     def create_error_result(exception, result, request_log)
       # exception is an OAuth2::Error, result is an OAuth2::Response or nil
-      BaseResult.new(
+      ExternalApiResult.new(
         body: result&.body || exception.message,
         content_type: result&.headers&.dig('content-type') || exception.response&.headers&.dig('content-type'),
         error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',
