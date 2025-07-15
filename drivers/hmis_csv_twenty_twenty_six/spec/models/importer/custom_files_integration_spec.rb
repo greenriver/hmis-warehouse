@@ -69,4 +69,13 @@ RSpec.describe 'Custom Files Integration' do
       expect(custom_data_element_definition.field_type).to eq('string')
     end
   end
+
+  describe 'CustomDataElement.csv processing' do
+    it 'creates custom data element records' do
+      custom_data_element = GrdaWarehouse::Hud::CustomDataElement.find_by(CustomDataElementID: 'A1001')
+      expect(custom_data_element.owner_type).to eq('GrdaWarehouse::Hud::Enrollment')
+      expect(custom_data_element.value_string).to eq('No longer interested in participating in program')
+      expect(custom_data_element.CustomDataElementDefinitionID).to eq('reason_for_exit')
+    end
+  end
 end

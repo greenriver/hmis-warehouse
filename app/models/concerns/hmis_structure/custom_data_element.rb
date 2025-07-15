@@ -6,12 +6,12 @@
 
 # frozen_string_literal: true
 
-module HmisStructure::CustomDataElementDefinition
+module HmisStructure::CustomDataElement
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
 
   included do
-    self.hud_key = :CustomDataElementDefinitionID
+    self.hud_key = :CustomDataElementID
     acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
   end
 
@@ -20,6 +20,10 @@ module HmisStructure::CustomDataElementDefinition
       case version
       when '2026', nil
         {
+          CustomDataElementID: {
+            type: :string,
+            limit: 32,
+          },
           CustomDataElementDefinitionID: {
             type: :string,
             limit: 32,
@@ -28,19 +32,36 @@ module HmisStructure::CustomDataElementDefinition
             type: :string,
             null: false,
           },
-          field_type: {
-            type: :string,
+          owner_id: {
+            type: :integer,
             null: false,
           },
-          key: {
-            type: :string,
-            null: false,
+          value_float: {
+            type: :float,
           },
-          label: {
-            type: :string,
+          value_integer: {
+            type: :integer,
           },
-          repeats: {
+          value_boolean: {
             type: :boolean,
+          },
+          value_string: {
+            type: :string,
+          },
+          value_text: {
+            type: :string,
+          },
+          value_date: {
+            type: :date,
+          },
+          value_json: {
+            type: :jsonb,
+          },
+          DataCollectionStage: {
+            type: :integer,
+          },
+          InformationDate: {
+            type: :date,
           },
           DateCreated: {
             type: :datetime,

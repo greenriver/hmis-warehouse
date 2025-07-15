@@ -50,6 +50,5 @@ class CreateCustomSexualOrientationCustomTables < ActiveRecord::Migration[7.1]
     # Add indexes for importer table
     add_index :hmis_2026_custom_sexual_orientations, [:EnrollmentID, :data_source_id], name: 'idx_custom_sexual_orientations_imp_id_ds'
     add_index :hmis_2026_custom_sexual_orientations, [:source_type, :source_id], name: 'idx_custom_sexual_orientations_source'
-
   end
 end

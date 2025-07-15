@@ -22,12 +22,16 @@ module HmisCsvTwentyTwentySix
 
       # @return [Array<String>] A list of all column names from the CSV file
       def hud_csv_headers
-        custom_file_config['columns'].map { |col| col['name'] }
+        real_columns.map { |col| col['name'] }
+      end
+
+      def real_columns
+        custom_file_config['columns'].reject { |col| col['type'] == 'virtual' }
       end
 
       # @return [Hash] A hash describing the structure of the file (types, requirements)
       def hmis_structure
-        custom_file_config['columns'].each_with_object({}) do |col, hash|
+        real_columns.each_with_object({}) do |col, hash|
           hash[col['name'].to_sym] = {
             type: col['type'] || 'string',
             required: col['required'] || false,

@@ -116,7 +116,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
       # NOTE: when importing custom files that aren't directly associated with a project,
       # we require all rows be sent every time as we don't have a way to scope a "report scope"
-      warehouse_class.importable
+      # TODO: this should probably have some logic about if it references an enrollment or project, then further limit the scope
+      warehouse_class.importable.where(data_source_id: data_source_id)
     end
 
     def import_klass

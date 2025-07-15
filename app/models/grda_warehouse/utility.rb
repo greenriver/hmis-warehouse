@@ -53,7 +53,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::GenerateServiceHistoryLog,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::CustomDataElementDefinition,
-      # GrdaWarehouse::Hud::CustomDataElement,
+      GrdaWarehouse::Hud::CustomDataElement,
       GrdaWarehouse::DataSource,
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
       GrdaWarehouse::WarehouseReports::Base,

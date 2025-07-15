@@ -52,7 +52,7 @@ RSpec.describe 'CustomDataElement Integration' do
       # Test direct mappings - use more flexible date/time matching
       expect(mapped_attributes['CustomDataElementID']).to eq('CDE001')
       expect(mapped_attributes['CustomDataElementDefinitionID']).to eq('DEF123')
-      expect(mapped_attributes['Value']).to eq('test_value')
+      expect(mapped_attributes['value_string']).to eq('test_value')
       expect(mapped_attributes['DataCollectionStage']).to eq(1)
       expect(mapped_attributes['UserID']).to eq('user123')
       expect(mapped_attributes['ExportID']).to eq('export456')
@@ -234,7 +234,7 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(column_names).to include(:CustomDataElementDefinitionID)
       expect(column_names).to include(:owner_type)
       expect(column_names).to include(:owner_id)
-      expect(column_names).to include(:Value)
+      expect(column_names).to include(:value_string)
       expect(column_names).to include(:UserID)
 
       # Should exclude the standard excluded columns
@@ -407,7 +407,7 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(mapped_attributes['CustomDataElementDefinitionID']).to eq('DEF456')
       expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Client')
       expect(mapped_attributes['owner_id']).to eq(test_client.id)
-      expect(mapped_attributes['Value']).to eq('Housing Status: Permanent')
+      expect(mapped_attributes['value_string']).to eq('Housing Status: Permanent')
       expect(mapped_attributes['DataCollectionStage']).to eq(1)
       expect(mapped_attributes['UserID']).to eq('admin_user')
       expect(mapped_attributes['DateDeleted']).to be_nil

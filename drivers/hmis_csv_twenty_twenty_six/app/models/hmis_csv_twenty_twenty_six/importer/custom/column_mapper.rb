@@ -125,6 +125,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom
           apply_value_mapping(mapped_attributes, value, mapping_config)
         when 'record_lookup'
           apply_record_lookup_mapping(source_record, mapped_attributes, mapping_config, lookup_cache)
+        when 'static_value'
+          apply_static_value_mapping(mapped_attributes, mapping_config)
         else
           Rails.logger.warn "Unknown mapping type: #{mapping_config['type']}"
         end
@@ -159,6 +161,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom
         when 'record_lookup'
           # Skip record lookups in phase 1 - they'll be handled in batch in phase 2
           next
+        when 'static_value'
+          apply_static_value_mapping(mapped_attributes, mapping_config)
         else
           Rails.logger.warn "Unknown mapping type: #{mapping_config['type']}"
         end
@@ -264,118 +268,6 @@ module HmisCsvTwentyTwentySix::Importer::Custom
           # Leave the target column nil or set to a default value
           results[result_index][:mapped_attributes][target_column] = nil
         end
-      end
-    end
-
-    # Handle key-value store processing for CustomDataElements
-    #
-    # CustomDataElements work differently - they reference definitions and store
-    # arbitrary key-value pairs that get converted to typed values based on the
-    # field definitions.
-    #
-    # @param source_records [ActiveRecord::Relation] Records to process
-    # @param file_config [Hash] Configuration for the custom data element file
-    # @param importer_log [Object] Current import log for scoping
-    # @return [void]
-    def self.process_key_value_store(source_records, file_config, importer_log)
-      return unless file_config['key_value_store']
-
-      definition_class_name = "HmisCsvTwentyTwentySix::Importer::#{file_config['definition_class']}"
-      definition_class = definition_class_name.constantize
-      definition_key = file_config['definition_key']
-
-      # Load all definitions for this import
-      definitions = definition_class.where(importer_log_id: importer_log.id).
-        index_by(&definition_key.to_sym)
-
-      # Process each data element
-      source_records.find_each do |record|
-        definition_id = record[definition_key]
-        definition = definitions[definition_id]
-
-        unless definition
-          Rails.logger.warn "CustomDataElement references unknown definition: #{definition_id}"
-          next
-        end
-
-        # Apply key-value processing based on definition
-        process_custom_data_element(record, definition)
-      end
-    end
-
-    # Processes a single custom data element and creates/updates the warehouse record
-    #
-    # This method handles the special case of CustomDataElements which are key-value
-    # pairs that reference definitions. The definition contains the field type which
-    # determines how the value should be converted and stored.
-    #
-    # @param data_element [Object] The importer record containing the data element
-    # @param definition [Object] The definition record that describes this data element
-    # @return [void]
-    # @raise [ActiveRecord::RecordInvalid] If the warehouse record cannot be saved
-    # @private
-    private_class_method def self.process_custom_data_element(data_element, definition)
-      # Create or update the warehouse record
-      warehouse_class = data_element.class.warehouse_class
-
-      warehouse_record = warehouse_class.find_or_initialize_by(
-        data_source_id: data_element.data_source_id,
-        CustomDataElementID: data_element.CustomDataElementID,
-      )
-
-      # FIXME: do we need this?  Config should be enough
-      # Map standard fields
-      warehouse_record.assign_attributes(
-        CustomDataElementDefinitionID: data_element.CustomDataElementDefinitionID,
-        RecordType: data_element.RecordType,
-        RecordID: data_element.RecordID,
-        Value: convert_value_by_type(data_element.Value, definition.FieldType),
-        DataCollectionStage: data_element.DataCollectionStage,
-        InformationDate: data_element.InformationDate,
-        UserID: data_element.UserID,
-        DateCreated: data_element.DateCreated,
-        DateUpdated: data_element.DateUpdated,
-        DateDeleted: data_element.DateDeleted,
-        ExportID: data_element.ExportID,
-      )
-
-      # FIXME: this should happen in a batch
-      warehouse_record.save!
-    end
-
-    # Converts a string value to the appropriate type based on field definition
-    #
-    # This method handles type conversion for CustomDataElements where the value
-    # is stored as a string in the CSV but needs to be converted to the proper
-    # type based on the field definition.
-    #
-    # @param value [String, nil] The string value to convert
-    # @param field_type [String, nil] The target field type from the definition
-    # @return [Object, nil] The converted value or nil if conversion fails
-    #
-    # @example Converting different types
-    #   convert_value_by_type("42", "integer")     # => 42
-    #   convert_value_by_type("true", "boolean")   # => true
-    #   convert_value_by_type("2023-01-01", "date") # => Date.new(2023, 1, 1)
-    #   convert_value_by_type("hello", "string")   # => "hello"
-    #
-    # @private
-    private_class_method def self.convert_value_by_type(value, field_type)
-      return nil if value.blank?
-
-      case field_type&.downcase
-      when 'integer'
-        value.to_i
-      when 'boolean'
-        ['true', '1', 'yes', 'y'].include?(value.to_s.downcase)
-      when 'date'
-        begin
-          Date.parse(value)
-        rescue StandardError
-          nil
-        end
-      else
-        value.to_s
       end
     end
 
@@ -538,6 +430,27 @@ module HmisCsvTwentyTwentySix::Importer::Custom
       # Use the mapped value if it exists, otherwise use the original value
       transformed_value = value_mappings[value] || value
       mapped_attributes[target_column] = transformed_value
+    end
+
+    # Applies static value mapping from source to target
+    #
+    # This mapping type sets a static value for a target column.
+    #
+    # @param mapped_attributes [Hash] Hash to store the mapped attributes
+    # @param mapping_config [Hash] Configuration containing the target column and value
+    # @option mapping_config [String] :target_column The name of the target column
+    # @option mapping_config [Object] :value The static value to set
+    # @return [void]
+    #
+    # @example Static value mapping
+    #   mapped_attributes = {}
+    #   config = { "target_column" => "data_element_definition_id", "value" => 0 }
+    #   apply_static_value_mapping(mapped_attributes, config)
+    #   # mapped_attributes now contains: { "data_element_definition_id" => 0 }
+    #
+    # @private
+    private_class_method def self.apply_static_value_mapping(mapped_attributes, mapping_config)
+      mapped_attributes[mapping_config['target_column']] = mapping_config['value']
     end
 
     # Checks if any column configurations require record lookups

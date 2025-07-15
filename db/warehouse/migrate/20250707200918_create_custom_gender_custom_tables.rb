@@ -62,6 +62,5 @@ class CreateCustomGenderCustomTables < ActiveRecord::Migration[7.1]
     # Add indexes for importer table
     add_index :hmis_2026_custom_genders, [:PersonalID, :data_source_id], name: 'idx_custom_genders_imp_id_ds'
     add_index :hmis_2026_custom_genders, [:source_type, :source_id], name: 'idx_custom_genders_source'
-
   end
 end

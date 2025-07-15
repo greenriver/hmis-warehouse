@@ -46,6 +46,8 @@ custom_files:
       - name: "Value"
         type: "string"
         required: false
+        warehouse_column_mapping:
+          target_column: "value_string"
       - name: "DataCollectionStage"
         type: "integer"
         required: false
@@ -62,3 +64,10 @@ custom_files:
         type: "datetime"
       - name: "ExportID"
         type: "string"
+      # Add this virtual column to always set data_element_definition_id to 0
+      - name: "_data_element_definition_id_default"
+        type: "virtual"
+        warehouse_column_mapping:
+          type: "static_value"
+          target_column: "data_element_definition_id"
+          value: 0

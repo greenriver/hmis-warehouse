@@ -239,9 +239,12 @@ module HmisCsvTwentyTwentySix
     # @return [String] Migration code for loader table
     # @private
     private_class_method def self.generate_loader_table_migration(file_config, table_name)
-      columns = file_config['columns'].map do |col|
+      columns = real_columns.map do |col|
         "      t.string '#{col['name']}'"
       end.join("\n")
+
+      # Use first real column for index (virtual columns shouldn't be used for indexing)
+      first_column = real_columns.first['name']
 
       <<~LOADER_TABLE
             # #{file_config['class_name']} loader table
@@ -255,8 +258,13 @@ module HmisCsvTwentyTwentySix
             end
 
             # Add indexes for loader table
-            add_index :#{table_name}, [:#{file_config['columns'].first['name']}, :data_source_id], name: 'idx_#{table_name.gsub('hmis_csv_2026_', '')}_id_ds'
+            add_index :#{table_name}, [:#{first_column}, :data_source_id], name: 'idx_#{table_name.gsub('hmis_csv_2026_', '')}_id_ds'
       LOADER_TABLE
+    end
+
+    # Filter out virtual columns - they don't need database columns
+    private_class_method def self.real_columns(file_config)
+      file_config['columns'].reject { |col| col['type'] == 'virtual' }
     end
 
     # Generates importer table creation code
@@ -266,7 +274,7 @@ module HmisCsvTwentyTwentySix
     # @return [String] Migration code for importer table
     # @private
     private_class_method def self.generate_importer_table_migration(file_config, table_name)
-      columns = file_config['columns'].map do |col|
+      columns = real_columns.map do |col|
         column_type = case col['type']
         when 'integer' then 'integer'
         when 'datetime', 'date' then 'datetime'
@@ -275,6 +283,9 @@ module HmisCsvTwentyTwentySix
         end
         "      t.#{column_type} '#{col['name']}'"
       end.join("\n")
+
+      # Use first real column for index (virtual columns shouldn't be used for indexing)
+      first_column = real_columns.first['name']
 
       <<~IMPORTER_TABLE
             # #{file_config['class_name']} importer table
@@ -294,7 +305,7 @@ module HmisCsvTwentyTwentySix
             end
 
             # Add indexes for importer table
-            add_index :#{table_name}, [:#{file_config['columns'].first['name']}, :data_source_id], name: 'idx_#{table_name.gsub('hmis_2026_', '')}_imp_id_ds'
+            add_index :#{table_name}, [:#{first_column}, :data_source_id], name: 'idx_#{table_name.gsub('hmis_2026_', '')}_imp_id_ds'
             add_index :#{table_name}, [:source_type, :source_id], name: 'idx_#{table_name.gsub('hmis_2026_', '')}_source'
       IMPORTER_TABLE
     end
