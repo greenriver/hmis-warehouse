@@ -35,7 +35,7 @@ x-app: &app
     - .env.local
 
 x-backend: &backend
-  <<: *app 
+  <<: *app
   stdin_open: true
   tty: true
   volumes:
@@ -49,7 +49,7 @@ x-backend: &backend
 
 services:
   shell:
-    <<: *backend 
+    <<: *backend
     profiles:
       - manual
     command: /bin/bash
@@ -60,7 +60,7 @@ services:
         condition: service_started
 
   spec:
-    <<: *backend 
+    <<: *backend
     profiles:
       - manual
     command: /bin/bash
@@ -77,7 +77,7 @@ services:
       - .env.test
 
   console:
-    <<: *backend 
+    <<: *backend
     profiles:
       - manual
     # entrypoint: ''
@@ -93,7 +93,7 @@ services:
         condition: service_started
 
   dj:
-    <<: *backend 
+    <<: *backend
     command: ./bin/rake jobs:work
     entrypoint: ''
     depends_on:
@@ -106,7 +106,7 @@ services:
 
   # once we're fully on EKS, we can refactor this into the main dj service.
   dj-eks:
-    <<: *backend 
+    <<: *backend
     profiles:
       - eks
     entrypoint: 'tini -- /usr/bin/entrypoint.dj-eks-test.sh'
@@ -130,7 +130,7 @@ services:
         condition: service_started
 
   yarn:
-    <<: *backend 
+    <<: *backend
     container_name: hmis-warehouse-yarn
     stdin_open: true
     tty: true
@@ -144,7 +144,7 @@ services:
         condition: service_started
 
   web:
-    <<: *backend 
+    <<: *backend
     container_name: hmis-warehouse-web
     stdin_open: true
     tty: true
@@ -166,7 +166,7 @@ services:
       - "3000"
       - "9394"
     environment:
-      <<: *env 
+      <<: *env
       VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 3000
     depends_on:
