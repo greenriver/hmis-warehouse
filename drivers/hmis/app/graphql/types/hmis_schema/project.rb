@@ -88,7 +88,8 @@ module Types
     field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
     field :auto_exit_enabled, Boolean, null: false, description: 'Whether auto-exit is enabled in this project', method: :auto_exit_enabled?
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
-    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?
+    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use ProjectCoordinatedEntryFeatures'
+    field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -139,6 +140,26 @@ module Types
       check_enrollment_details_access
 
       resolve_enrollments(object.enrollments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def coordinated_entry_features
+      return nil unless Hmis::Ce.configuration.enabled?
+
+      ce_config = Hmis::ProjectCeConfig.detect_best_config_for_project(object)
+      sends_referrals_config = Hmis::ProjectSendsDirectCeReferralsConfig.detect_best_config_for_project(object)
+
+      return nil unless ce_config.present? || sends_referrals_config.present?
+
+      supports_waitlist_referrals = ce_config&.supports_waitlist_referrals? || false
+      accepts_direct_referrals = ce_config&.accepts_direct_referrals? || false
+
+      OpenStruct.new(
+        id: object.id,
+        is_referrable: supports_waitlist_referrals || accepts_direct_referrals,
+        supports_waitlist_referrals: supports_waitlist_referrals,
+        accepts_direct_referrals: accepts_direct_referrals,
+        sends_direct_referrals: sends_referrals_config.present?,
+      )
     end
 
     def assessments(**args)

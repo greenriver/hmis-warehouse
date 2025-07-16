@@ -16,7 +16,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   validate :either_direct_or_waitlist_referrals
 
   # "waitlist referrals" are referrals initiated from within a unit's waitlist.
-  def supports_waitlist_referrals
+  def supports_waitlist_referrals?
     return true unless options # True by default if this project config does not have config_options (for backwards compatibility).
 
     options[SUPPORTS_WAITLIST_REFERRALS] || false
@@ -27,7 +27,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   end
 
   # "direct" referrals are referrals initiated by a sending project.
-  def accepts_direct_referrals
+  def accepts_direct_referrals?
     return false unless options # False by default, needs to be enabled explicitly in the config_options
 
     options[ACCEPTS_DIRECT_REFERRALS] || false

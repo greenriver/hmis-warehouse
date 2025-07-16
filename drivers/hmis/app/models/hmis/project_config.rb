@@ -59,6 +59,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     end
   end
 
+  # TODO(#7960) - update to store json blob instead of jsonified string; will require migrating existing data
   def options= hash
     self.config_options = hash.to_json
   end

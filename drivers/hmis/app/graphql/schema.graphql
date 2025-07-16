@@ -9351,7 +9351,12 @@ type Project {
   """
   Whether Coordinated Entry is enabled in this project
   """
-  coordinatedEntryEnabled: Boolean!
+  coordinatedEntryEnabled: Boolean! @deprecated(reason: "Use ProjectCoordinatedEntryFeatures")
+
+  """
+  Coordinated Entry features that are enabled for this Project
+  """
+  coordinatedEntryFeatures: ProjectCoordinatedEntryFeatures
   createdBy: ApplicationUser
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
@@ -9567,6 +9572,29 @@ type ProjectConfigsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+type ProjectCoordinatedEntryFeatures {
+  """
+  Whether this project accepts direct CE referrals, initiated by a sending project
+  """
+  acceptsDirectReferrals: Boolean!
+  id: ID!
+
+  """
+  Whether this project supports referrals, either direct or waitlist
+  """
+  isReferrable: Boolean!
+
+  """
+  Whether this project sends direct CE Referrals
+  """
+  sendsDirectReferrals: Boolean!
+
+  """
+  Whether this project supports waitlist CE referrals, initiated internally from a unit waitlist
+  """
+  supportsWaitlistReferrals: Boolean!
 }
 
 enum ProjectFilterOptionStatus {
