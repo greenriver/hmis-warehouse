@@ -1111,7 +1111,7 @@ module HmisCsvImporter::Importer
 
     # Note, only used for tests
     def self.soft_deletable_sources(version)
-      importable_files_map(version).except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
+      importable_files_map(version).except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".safe_constantize }.compact
     end
 
     def setup_import
