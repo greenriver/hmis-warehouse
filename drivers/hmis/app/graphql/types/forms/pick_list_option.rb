@@ -184,9 +184,9 @@ module Types
         end
       when 'PROJECT_CONFIG_TYPES'
         # Project config types for selection on the Admin Project Config page.
-        # Hide Coordinated Entry option if CE is not enabled in the installation.
+        # Hide Coordinated Entry options if CE is not enabled in the installation.
         Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
-          next if key == 'COORDINATED_ENTRY' && !Hmis::Ce.configuration.enabled?
+          next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
 
           {
             code: key,
