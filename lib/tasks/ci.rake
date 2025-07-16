@@ -14,7 +14,7 @@ namespace :ci do
   task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|
     profile_dir = args[:profile_dir] || 'rspec_profiles'
     buckets_file = args.buckets_file || Rails.root.join('.github/rspec_buckets.json')
-    max_minutes = (args[:max_minutes] || 35).to_i
+    max_minutes = (args[:max_minutes] || 45).to_i
 
     unless Dir.exist?(profile_dir)
       puts "Profile dir '#{profile_dir}' not found."
@@ -34,6 +34,14 @@ namespace :ci do
         # carry original groups to be used in the buckets file
         groups: groups.map { |g| g.slice(:location, :total_time, :description) },
       }
+    end
+
+    # Apply overhead multipliers to account for setup/teardown time
+    specs_by_file.each do |spec|
+      original_time = spec[:total_time]
+      spec[:total_time] = apply_overhead_multiplier(spec[:total_time])
+
+      puts "Applied overhead to #{spec[:file_path]}: #{original_time.round(1)}s -> #{spec[:total_time].round(1)}s" if spec[:total_time] != original_time
     end
 
     # Filter out files that run for less than 10 seconds
@@ -142,9 +150,23 @@ namespace :ci do
 
   def print_summary(buckets)
     puts "Processed #{buckets.sum { |b| b[:specs].size }} test files across #{buckets.size} buckets."
+    puts '(Times include overhead adjustments for longer-running specs)'
     buckets.each do |bucket|
       minutes = (bucket[:total_time] / 60.0).round
       puts "#{bucket[:id]}: #{bucket[:specs].size} specs, total time: #{minutes} minutes"
+    end
+  end
+
+  def apply_overhead_multiplier(total_time_seconds)
+    case total_time_seconds
+    when 0...60      # < 1 minute: no overhead
+      total_time_seconds
+    when 60...300    # 1-5 minutes: 10% overhead
+      total_time_seconds * 1.1
+    when 300...600   # 5-10 minutes: 20% overhead
+      total_time_seconds * 1.2
+    else             # 10+ minutes: 50% overhead
+      total_time_seconds * 1.5
     end
   end
 
