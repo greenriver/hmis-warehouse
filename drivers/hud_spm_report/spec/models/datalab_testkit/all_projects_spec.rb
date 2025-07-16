@@ -10,7 +10,7 @@ require 'rails_helper'
 require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'spm_context'
 
-RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
+RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model, no_warehouse_transaction: true do
   include_context 'datalab testkit context'
   include_context 'datalab spm context'
   let(:results_dir) { 'spm' }

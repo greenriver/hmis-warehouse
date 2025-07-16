@@ -43,11 +43,15 @@ RSpec.configure do |config|
   # instead of true.
   config.use_transactional_fixtures = true
 
-  # Wrap tests in a transaction for the warehouse database
+  # Wrap tests in a transaction for the warehouse database, unless opted out
   config.around(:each) do |example|
-    GrdaWarehouseBase.transaction do
+    if example.metadata[:no_warehouse_transaction]
       example.run
-      raise ActiveRecord::Rollback
+    else
+      GrdaWarehouseBase.transaction do
+        example.run
+        raise ActiveRecord::Rollback
+      end
     end
   end
 

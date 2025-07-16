@@ -27,7 +27,7 @@ require_relative 'gender_filter_tests'
 
 require_relative 'datalab_ce_apr/systemwide'
 
-RSpec.describe 'Datalab 2024', type: :model do
+RSpec.describe 'Datalab 2024', type: :model, no_warehouse_transaction: true do
   include_context 'datalab testkit context'
   def project_type_filter(project_type)
     project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)
