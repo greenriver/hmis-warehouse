@@ -61,6 +61,40 @@
           "answer_code": "AUTO_EXIT"
         }
       ]
+    },
+    {
+      "link_id": "acceptsDirectReferrals",
+      "required": false,
+      "type": "BOOLEAN",
+      "text": "Accepts Direct Referrals",
+      "mapping": {
+        "field_name": "acceptsDirectReferrals"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "configType",
+          "operator": "EQUAL",
+          "answer_code": "COORDINATED_ENTRY"
+        }
+      ]
+    },
+    {
+      "link_id": "supportsWaitlistReferrals",
+      "required": false,
+      "type": "BOOLEAN",
+      "text": "Supports Waitlist Referrals",
+      "mapping": {
+        "field_name": "supportsWaitlistReferrals"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "configType",
+          "operator": "EQUAL",
+          "answer_code": "COORDINATED_ENTRY"
+        }
+      ]
     }
   ]
 }

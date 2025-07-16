@@ -9523,11 +9523,13 @@ input ProjectConfigFilterOptions {
 Project Config Input
 """
 input ProjectConfigInput {
+  acceptsDirectReferrals: Boolean
   configType: ProjectConfigType
   lengthOfAbsenceDays: Int
   organizationId: ID
   projectId: ID
   projectType: ProjectType
+  supportsWaitlistReferrals: Boolean
 }
 
 enum ProjectConfigType {
@@ -9545,6 +9547,11 @@ enum ProjectConfigType {
   Coordinated Entry
   """
   COORDINATED_ENTRY
+
+  """
+  Sends Direct CE Referrals
+  """
+  SENDS_DIRECT_CE_REFERRALS
 
   """
   Staff Assignment
