@@ -391,15 +391,16 @@ module CeWorkflowBuilder
             ],
             "mapping": { "custom_field_key": common_cded_key_move_forward },
           },
-          {
-            "text": 'Move-in Date',
-            "type": 'DATE',
-            "link_id": 'move_in_date',
-            "required": true,
-            'mapping': { 'custom_field_key': "#{identifier}_move_in_date" },
-            "enable_behavior": 'ALL',
-            "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '1' }],
-          },
+          # Keeping commented-out as example for testing, but don't need in workflow
+          # {
+          #   "text": 'Move-in Date',
+          #   "type": 'DATE',
+          #   "link_id": 'move_in_date',
+          #   "required": true,
+          #   'mapping': { 'custom_field_key': "#{identifier}_move_in_date" },
+          #   "enable_behavior": 'ALL',
+          #   "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '1' }],
+          # },
           {
             "text": 'Decline Reason',
             "type": 'CHOICE',
@@ -501,12 +502,13 @@ module CeWorkflowBuilder
       form_definition_identifier: confirm_success_task_form_identifier,
       template_id: template.id,
       swimlane: ce_staff_swimlane,
-      trigger_config: [
-        {
-          event: 'complete_step',
-          message: 'set_move_in_date',
-        },
-      ],
+      # Keeping commented-out as example for testing, but don't need in workflow
+      # trigger_config: [
+      #   {
+      #     event: 'complete_step',
+      #     message: 'set_move_in_date',
+      #   },
+      # ],
     )
 
     accept_event = create_accept_event(template, update_ce_event: true)
