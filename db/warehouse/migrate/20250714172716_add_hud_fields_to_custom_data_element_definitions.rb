@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 class AddHudFieldsToCustomDataElementDefinitions < ActiveRecord::Migration[7.1]

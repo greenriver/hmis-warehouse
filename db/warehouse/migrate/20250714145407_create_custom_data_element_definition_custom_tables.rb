@@ -54,6 +54,5 @@ class CreateCustomDataElementDefinitionCustomTables < ActiveRecord::Migration[7.
     # Add indexes for importer table
     add_index :hmis_2026_custom_data_element_definitions, [:CustomDataElementDefinitionID, :data_source_id], name: 'idx_custom_data_element_definitions_imp_id_ds'
     add_index :hmis_2026_custom_data_element_definitions, [:source_type, :source_id], name: 'idx_custom_data_element_definitions_source'
-
   end
 end
