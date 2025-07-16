@@ -258,7 +258,7 @@ jobs:
           # mkdir -p tmp/rspec_profiles
           # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
 
-          bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
 
       - name: Run okta tests
         if: matrix.test_group.okta_tests
@@ -281,11 +281,11 @@ jobs:
           LOG_LEVEL: INFO
           TODO_OR_DIE_LOG_ONLY: true
         run: |
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color -fd spec/models/logging_spec.rb
 
       - name: Archive artifacts
         if: always()

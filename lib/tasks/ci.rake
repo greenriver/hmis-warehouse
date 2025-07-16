@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 require 'json'
 
 #
 # Rebalancing procedure:
 # 1) run rspec with profiling enabled, output results to json. Maybe this should happen on every run but for now it requires manually changing the rails_tests.yml gh workflow so it invokes rspec with "--format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000"
 # 2) download profiles from GH artifacts into rspec_profiles directory (manually finding the archive and downloading)
-# 3) run `rails ci:build_bucket_assignments[rspec_profiles]` which updates `.github/rspec_buckets.json` based on the rspec profiles
+# 3) (optional) run `rails ci:profile_stats[rspec_profiles]` and review the results to assist with tuning, such as total buckets
+# 4) run `rails ci:build_bucket_assignments[rspec_profiles]` which updates `.github/rspec_buckets.json` based on the rspec profiles
 #
 namespace :ci do
   desc 'Analyze rspec profiles, write bucket assignments to file'
@@ -29,7 +32,7 @@ namespace :ci do
         file_path: file_path,
         total_time: groups.sum { |g| g[:total_time] },
         # carry original groups to be used in the buckets file
-        groups: groups.map { |g| g.slice(:location, :total_time, :description) }
+        groups: groups.map { |g| g.slice(:location, :total_time, :description) },
       }
     end
 
@@ -142,6 +145,76 @@ namespace :ci do
     buckets.each do |bucket|
       minutes = (bucket[:total_time] / 60.0).round
       puts "#{bucket[:id]}: #{bucket[:specs].size} specs, total time: #{minutes} minutes"
+    end
+  end
+
+  desc 'Analyze rspec profiles and print statistics'
+  task :profile_stats, [:profile_dir, :top_n] => :environment do |_t, args|
+    profile_dir = args[:profile_dir] || 'rspec_profiles'
+    top_n = (args[:top_n] || 5).to_i
+
+    unless Dir.exist?(profile_dir)
+      puts "Profile dir '#{profile_dir}' not found."
+      exit 1
+    end
+
+    all_groups = []
+    Dir.glob(File.join(profile_dir, '*.json')).each do |file_path|
+      profile_data = JSON.parse(File.read(file_path), symbolize_names: true)
+      groups = profile_data.dig(:profile, :groups)
+      next unless groups.is_a?(Array)
+
+      all_groups.concat(groups)
+    rescue JSON::ParserError
+      puts "Warning: Skipping invalid JSON file: #{file_path}"
+    end
+
+    if all_groups.empty?
+      puts "No spec groups found in #{profile_dir}."
+      exit
+    end
+
+    all_times = all_groups.map { |g| g[:total_time] }.compact
+
+    if all_times.empty?
+      puts "No spec times found in #{profile_dir}."
+      exit
+    end
+
+    # Group specs by file_path and sum their times
+    specs_by_file = all_groups.group_by do |group|
+      group[:location]&.split(':')&.first
+    end.compact.transform_values do |groups|
+      groups.sum { |g| g[:total_time] || 0 }
+    end
+
+    count = all_times.size
+    sum = all_times.sum
+    average = sum / count
+
+    sorted_times = all_times.sort
+    mid = count / 2
+    median = count.odd? ? sorted_times[mid] : (sorted_times[mid - 1] + sorted_times[mid]) / 2.0
+
+    puts 'RSpec Profile Stats'
+    puts '-------------------'
+    puts "Total spec groups processed: #{count}"
+    puts "Average time per group: #{average.round(4)} seconds"
+    puts "Median time per group:  #{median.round(4)} seconds"
+    puts
+    puts 'Distribution Analysis (by group count):'
+    [0.5, 1, 2, 5, 10, 20, 30, 60].each do |cutoff|
+      filtered_count = all_times.count { |t| t >= cutoff }
+      percentage = (filtered_count.to_f / count * 100).round(2)
+      puts "Groups >= #{cutoff}s:".ljust(15) + "#{filtered_count} (#{percentage}%)"
+    end
+
+    puts
+    puts 'Worst Offenders (by file):'
+    puts '--------------------------'
+    sorted_specs_by_file = specs_by_file.sort_by { |_file, time| -time }
+    sorted_specs_by_file.first(top_n).each do |file_path, total_time|
+      puts "#{file_path.to_s.ljust(80)} #{total_time.round(2)}s"
     end
   end
 end
