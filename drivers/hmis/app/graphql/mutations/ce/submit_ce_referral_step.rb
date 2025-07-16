@@ -41,11 +41,11 @@ module Mutations
         errors.deduplicate!
         return { errors: errors } if errors.any?
 
-        # Process submitted form values onto CustomDataElements
+        # Process submitted values into CustomDataElements
         step.build_form_processor(definition: step.form_definition, values: values_by_link_id, hud_values: values_by_field_name)
         step.form_processor.run!(user: current_user)
-        step.form_processor.save!
 
+        # Complete the step. This saves the step which will save associated CustomDataElements
         engine.complete_step!(step, user: current_user, submitted_values: values_by_link_id)
       end
 
