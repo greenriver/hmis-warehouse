@@ -567,7 +567,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :cohort_column_options, except: [:destroy]
+  resources :cohort_column_options
 
   resources :cohort_column_names, only: [:new, :create]
 
