@@ -790,7 +790,6 @@ module HmisCsvImporter::Importer
 
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
-
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
