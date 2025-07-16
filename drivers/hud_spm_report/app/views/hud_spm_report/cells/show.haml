@@ -45,7 +45,10 @@
                 - elsif k.to_s.match?(/personal_id/)
                   - # Using regex here as the personal_id header value is a nested key (e.g. 'enrollment.personal_id', exit_enrollment.personal_id, etc.)
                   - value = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
-                  = hmis_external_link(client.client, data_source: client.client.data_source, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
+                  -# Client could have multiple source clients, only want to show the HMIS link for source client(s) in the data_source of the current SPM_enrollment/episode/return
+                  -# This should only be one client, but just in case of data issues, we'll loop through them all
+                  - client.client.source_clients.where(data_source_id: client.data_source_id).each do |hmis_client|
+                    = hmis_external_link(hmis_client, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
                 - else
                   = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)
   = content_for :page_js do
