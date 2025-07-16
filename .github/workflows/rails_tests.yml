@@ -18,10 +18,31 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - id: set-matrix
         run: |
-          echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
-
+          ruby -rjson -e '
+            buckets_file = ".github/rspec_buckets.json"
+            test_groups = []
+            if File.exist?(buckets_file)
+              buckets = JSON.parse(File.read(buckets_file))
+              buckets.each do |bucket|
+                bucket_id = bucket["id"]
+                matrix_id = "ci_#{bucket_id.tr("-", "_")}"
+                matrix_tag = "ci_bucket:#{bucket_id}"
+                test_groups << { id: matrix_id, tag: matrix_tag }
+              end
+            end
+            test_groups << {
+              id: "ci_bucket_default",
+              tag: "~ci_bucket",
+              logging_tests: true,
+              okta_tests: true
+            }
+            matrix = { test_group: test_groups }
+            File.open(ENV["GITHUB_OUTPUT"], "a") { |f| f.puts "matrix=#{matrix.to_json}" }
+          '
 
   # Label of the container job
   tests:
@@ -233,6 +254,7 @@ jobs:
           bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
           # capture rspec profiling information
+          # see lib/tasks/ci.rake for more details
           # mkdir -p tmp/rspec_profiles
           # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
 

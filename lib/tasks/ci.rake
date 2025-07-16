@@ -2,10 +2,10 @@ require 'json'
 
 #
 # Rebalancing procedure:
-# 1) run rspec with profiling enabled, output results to json (maybe this should happen on every run?)
-# 2) download profiles from GH artifacts into rspec_profiles directory
-# 3) run `rails ci:build_bucket_assignments[rspec_profiles]` which updates `.github/rspec_buckets.json`
-# 4) if the rake task added new buckets, add them to the github text matrix
+# 1) run rspec with profiling enabled, output results to json. Maybe this should happen on every run but for now it requires manually changing the rails_tests.yml gh workflow so it invokes rspec with "--format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000"
+# 2) download profiles from GH artifacts into rspec_profiles directory (manually finding the archive and downloading)
+# 3) run `rails ci:build_bucket_assignments[rspec_profiles]` which updates `.github/rspec_buckets.json` based on the rspec profiles
+#
 namespace :ci do
   desc 'Analyze rspec profiles, write bucket assignments to file'
   task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|
@@ -21,8 +21,20 @@ namespace :ci do
     # Load and process profile data
     profile_groups = load_profile_data(profile_dir)
 
-    # Filter out specs that run for less than 10 seconds
-    filtered_specs = profile_groups.select { |group| group[:total_time] >= 10 }
+    # Group specs by file_path and sum their times
+    specs_by_file = profile_groups.group_by do |group|
+      group[:location].split(':').first
+    end.map do |file_path, groups|
+      {
+        file_path: file_path,
+        total_time: groups.sum { |g| g[:total_time] },
+        # carry original groups to be used in the buckets file
+        groups: groups.map { |g| g.slice(:location, :total_time, :description) }
+      }
+    end
+
+    # Filter out files that run for less than 10 seconds
+    filtered_specs = specs_by_file.select { |spec_file| spec_file[:total_time] >= 10 }
 
     # Calculate total time and estimate number of buckets
     total_time = filtered_specs.sum { |spec| spec[:total_time] }
@@ -43,7 +55,7 @@ namespace :ci do
   # or profile information cab be downloaded from gh actions archives
   desc 'Update RSpec test tags to match buckets file'
   task :update_spec_tags, [:buckets_file] => :environment do |_t, args|
-    buckets_file = args.buckets_file || Rails.root.joins('.github/rspec_buckets.json')
+    buckets_file = args.buckets_file || Rails.root.join('.github/rspec_buckets.json')
 
     unless File.exist?(buckets_file)
       puts "Buckets file '#{buckets_file}' not found."
@@ -87,7 +99,7 @@ namespace :ci do
 
       # Add the spec to the target bucket
       target_bucket[:total_time] += spec[:total_time]
-      target_bucket[:specs] << spec
+      target_bucket[:specs] << { file_path: spec[:file_path], total_time: spec[:total_time], groups: spec[:groups] }
     end
 
     # Assign IDs to non-empty buckets
@@ -100,7 +112,7 @@ namespace :ci do
   def update_source_files(buckets)
     buckets.each do |bucket|
       bucket[:specs].each do |spec|
-        file_path, = spec[:location].split(':')
+        file_path = spec[:file_path]
         content = File.readlines(file_path)
 
         describe_line_index = content.index { |line| line.strip.start_with?('RSpec.describe') }
@@ -128,7 +140,8 @@ namespace :ci do
   def print_summary(buckets)
     puts "Processed #{buckets.sum { |b| b[:specs].size }} test files across #{buckets.size} buckets."
     buckets.each do |bucket|
-      puts "#{bucket[:id]}: #{bucket[:specs].size} specs, total time: #{(bucket[:total_time].round / 60).round} minutes"
+      minutes = (bucket[:total_time] / 60.0).round
+      puts "#{bucket[:id]}: #{bucket[:specs].size} specs, total time: #{minutes} minutes"
     end
   end
 end
