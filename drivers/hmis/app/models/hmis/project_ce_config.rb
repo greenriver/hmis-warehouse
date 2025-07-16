@@ -53,7 +53,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
 
   def either_direct_or_waitlist_referrals
     return unless options
-    return if supports_waitlist_referrals || accepts_direct_referrals
+    return if supports_waitlist_referrals? || accepts_direct_referrals?
 
     errors.add(:base, 'Project must either accept direct referrals or support waitlist referrals, or both')
   end
