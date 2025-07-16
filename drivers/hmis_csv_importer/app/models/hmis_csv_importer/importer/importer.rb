@@ -955,7 +955,7 @@ module HmisCsvImporter::Importer
         elsif upsert
           klass.import(
             batch,
-            import_options(klass, columns),
+            **import_options(klass, columns),
             validate: use_ar_model_validations,
           )
         else

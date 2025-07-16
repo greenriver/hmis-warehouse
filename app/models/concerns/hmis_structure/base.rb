@@ -118,7 +118,7 @@ module HmisStructure::Base
     end
 
     def conflict_target
-      @conflict_target || [:data_source_id, "\"#{hud_key}\""]
+      @conflict_target || [:data_source_id, connection.quote_column_name(hud_key)]
     end
 
     def additional_upsert_columns=(names)
