@@ -68,29 +68,41 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: project) }
         let!(:rule2) { create(:hmis_ce_priority_scheme, owner: project) }
 
-        it 'does not enqueue the candidate generation job' do
-          assert_no_enqueued_jobs do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
-            unit.reload
-            expect(unit.latest_opportunity.candidate_pool).to be_present
-            expect(unit.latest_opportunity.workflow_template).to eq(template)
-          end
+        it 'does not mark the existing pool as dirty' do
+          response = nil
+          result = nil
+          # The job is now always enqueued.
+          expect { response, result = post_graphql(**variables) { mutation } }.
+            to have_enqueued_job(Hmis::Ce::BuildCandidatePoolsJob)
+
+          expect(response.status).to eq(200), result.inspect
+          unit.reload
+          expect(unit.latest_opportunity.candidate_pool).to be_present
+          expect(unit.latest_opportunity.workflow_template).to eq(template)
+
+          # perform the job and check that the pool is not marked dirty
+          expect { perform_enqueued_jobs }.
+            to_not(change { Hmis::Ce::ChangeMarker.dirty.where(trackable: pool).count })
         end
 
         context 'when the candidate pool is stale' do
           let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless', candidates_generated_at: 3.days.ago) }
 
-          it 'does enqueue the candidate generation job' do
-            expect do
-              perform_enqueued_jobs do
-                response, result = post_graphql(**variables) { mutation }
-                expect(response.status).to eq(200), result.inspect
-                pool.reload
-              end
-            end.to change(pool, :candidates_generated_at)
-            expect(unit.reload.latest_opportunity.candidate_pool).to eq(pool)
+          it 'enqueues a job but does not mark the pool as dirty' do
+            response = nil
+            result = nil
+            # The job is now always enqueued, regardless of staleness
+            expect { response, result = post_graphql(**variables) { mutation } }.
+              to have_enqueued_job(Hmis::Ce::BuildCandidatePoolsJob)
+
+            expect(response.status).to eq(200), result.inspect
+            unit.reload
+            expect(unit.latest_opportunity.candidate_pool).to be_present
             expect(unit.latest_opportunity.workflow_template).to eq(template)
+
+            # perform the job and check that the pool is not marked dirty
+            expect { perform_enqueued_jobs }.
+              to_not(change { Hmis::Ce::ChangeMarker.dirty.where(trackable: pool).count })
           end
         end
       end
