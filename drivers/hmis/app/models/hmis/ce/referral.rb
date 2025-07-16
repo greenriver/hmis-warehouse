@@ -73,6 +73,7 @@ module Hmis::Ce
     end
 
     validates :workflow_instance, uniqueness: true
+    validates :referral_origin, inclusion: { in: ['waitlist', 'project'] }
     validate :unique_referral_per_opportunity
     validate :ce_template
     validate :consistent_data_source

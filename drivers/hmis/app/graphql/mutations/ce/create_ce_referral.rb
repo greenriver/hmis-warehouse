@@ -43,6 +43,7 @@ module Mutations
           referred_by: current_user,
           client: client,
           source_enrollment: source_enrollment,
+          referral_origin: 'waitlist',
         )
 
         referral.workflow_engine.start_workflow!(user: current_user)

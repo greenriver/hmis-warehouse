@@ -7337,7 +7337,8 @@ CREATE TABLE public.ce_referrals (
     completed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    source_enrollment_id bigint
+    source_enrollment_id bigint,
+    referral_origin character varying NOT NULL
 );
 
 
@@ -74250,6 +74251,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250716112736'),
 ('20250703125916'),
 ('20250701185134'),
 ('20250627132413'),
