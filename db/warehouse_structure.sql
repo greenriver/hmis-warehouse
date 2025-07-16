@@ -23495,11 +23495,12 @@ CREATE VIEW public.hmis_project_access_group_members AS
             "Project".id AS project_id,
             "Organization".id AS organization_id,
             hmis_project_groups.id AS project_group_id
-           FROM (((public."Project"
+           FROM ((((public."Project"
+             JOIN public.data_sources ON (((data_sources.id = "Project".data_source_id) AND (data_sources.deleted_at IS NULL))))
              LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
              LEFT JOIN public.hmis_project_project_groups ON ((hmis_project_project_groups.project_id = "Project".id)))
              LEFT JOIN public.hmis_project_groups ON (((hmis_project_groups.deleted_at IS NULL) AND (hmis_project_groups.id = hmis_project_project_groups.hmis_project_group_id))))
-          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((hmis_group_viewable_entities.deleted_at IS NULL) AND ((((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.entity_id = targets.data_source_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.entity_id = targets.organization_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::ProjectGroup'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_group_id))))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.entity_id = targets.data_source_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.entity_id = targets.organization_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::ProjectGroup'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_group_id)))))
   WHERE ((hmis_group_viewable_entities.deleted_at IS NULL) AND (hmis_group_viewable_entities.collection_id IS NOT NULL))
   GROUP BY targets.project_id, hmis_group_viewable_entities.collection_id;
 

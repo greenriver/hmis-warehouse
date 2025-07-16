@@ -16,6 +16,9 @@ FROM
       "hmis_project_groups"."id" AS project_group_id
     FROM
       "Project"
+      -- Check that data source is not deleted
+      INNER JOIN "data_sources" ON "data_sources"."id" = "Project"."data_source_id"
+      AND "data_sources"."deleted_at" IS NULL
       LEFT OUTER JOIN "Organization" ON "Organization"."DateDeleted" IS NULL
       AND "Organization"."data_source_id" = "Project"."data_source_id"
       AND "Organization"."OrganizationID" = "Project"."OrganizationID"
@@ -24,9 +27,8 @@ FROM
       AND "hmis_project_groups"."id" = "hmis_project_project_groups"."hmis_project_group_id"
     WHERE
       "Project"."DateDeleted" IS NULL
-  ) targets ON hmis_group_viewable_entities.deleted_at IS NULL
-  -- Match access groups to projects through various entity relationships:
-  AND (
+  ) targets ON (
+    -- Match access groups to projects through various entity relationships:
     -- Direct data source access
     (
       hmis_group_viewable_entities.entity_type = 'GrdaWarehouse::DataSource'

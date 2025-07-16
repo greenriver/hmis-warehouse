@@ -29,8 +29,18 @@ module Hmis::AuthPolicies::ContextLoaders
         where(project_id: new_project_ids).
         pluck(:project_id, :access_group_id).
         group_by(&:shift).
-        transform_values { |v| v.flatten.compact_blank }
+        transform_values do |values|
+          clean_values = values.flatten.compact_blank
+          # Filter out deleted access groups. ProjectAccessGroupMember can't do this due to database boundaries
+          active_access_group_ids.intersection(clean_values).to_a
+        end
       @cache.merge!(results)
+    end
+
+    private
+
+    def active_access_group_ids
+      @active_access_group_ids ||= Set.new(Hmis::AccessGroup.pluck(:id))
     end
   end
 end
