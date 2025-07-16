@@ -19,11 +19,19 @@ module HmisExternalApis
       result, request_log = logger.capture(creds: creds, url: url, method: verb, payload: payload, headers: masked_headers) do
         case verb
         when :get
-          client.get(url, headers: merged_headers)
+          client.get(url) do |req|
+            req.headers = merged_headers
+          end
         when :post
-          client.post(url, headers: merged_headers, body: payload.to_json)
+          client.post(url) do |req|
+            req.headers = merged_headers
+            req.body = payload.to_json
+          end
         when :patch
-          client.patch(url, headers: merged_headers, body: payload.to_json)
+          client.patch(url) do |req|
+            req.headers = merged_headers
+            req.body = payload.to_json
+          end
         else
           raise "invalid verb #{verb}"
         end

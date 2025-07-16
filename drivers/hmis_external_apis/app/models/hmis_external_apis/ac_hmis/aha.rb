@@ -18,35 +18,33 @@ module HmisExternalApis::AcHmis
       return nil if mci_ids.empty?
 
       payload = {
-        'mc_id__in': mci_ids,
+        'dw_client_id': mci_ids.first, # todo @martha - if client has multiple ids
       }
 
-      result = conn.post('api/v1/clients/scores', payload).
+      result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
 
-      # 404 indicates client was not found
+      # 404 indicates client was not found # todo @martha - if client not found
       return nil if result.http_status == 404
 
-      # Find and return highest score
-      scores = result.parsed_body&.dig('data')&.filter_map do |response_client|
-        score = response_client.dig('score')
-        next if score.blank?
+      score_objects = result.parsed_body&.dig('data')&.flat_map do |response_client|
+        response_client.dig('scores')&.filter_map do |score_obj|
+          score_value = score_obj.dig('score')
 
-        begin
-          Integer(score)
-        rescue ArgumentError, TypeError
-          score # Keep invalid values for error reporting
-        end
-      end
+          raise(Error, 'Received blank score') if score_value.blank?
+          raise(Error, "Received invalid score: #{score_value.inspect}") unless score_value.is_a?(Numeric) && score_value % 1 == 0 && score_value <= 10
 
-      # Validate all scores are integers <= 10
-      invalid_scores = scores.reject { |score| score.is_a?(Integer) && score <= 10 }
-      raise(Error, "Received invalid scores: #{invalid_scores.inspect}") if invalid_scores.any?
+          OpenStruct.new(
+            score: score_value.to_i,
+            alt_aha_flag: score_obj.dig('metadata', 'alt_aha_flag'),
+          )
+        end || []
+      end || []
 
-      highest_score = scores.max
-      return nil if highest_score&.negative?
+      highest_score_object = score_objects.max_by(&:score)
+      return nil if highest_score_object.nil? || highest_score_object.score&.negative?
 
-      highest_score
+      highest_score_object
     end
 
     def self.enabled?

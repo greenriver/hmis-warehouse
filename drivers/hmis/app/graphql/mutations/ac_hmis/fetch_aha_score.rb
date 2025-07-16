@@ -12,6 +12,7 @@ module Mutations
 
     argument :client_id, ID, required: true
     field :score, Integer, null: true
+    field :alt_aha_flag, Integer, null: true
 
     def resolve(client_id:)
       errors = HmisErrors::Errors.new
@@ -23,10 +24,11 @@ module Mutations
       access_denied! unless client.present?
 
       aha = HmisExternalApis::AcHmis::Aha.new
-      response = aha.fetch_score(client)
+      result = aha.fetch_score(client)
 
       {
-        score: response,
+        score: result.score,
+        alt_aha_flag: result.alt_aha_flag, # todo @Martha - will always be 0 or 1? should be returned as bool? should name something else in api? "quality"?
       }
     end
   end
