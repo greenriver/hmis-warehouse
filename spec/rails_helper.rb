@@ -43,18 +43,6 @@ RSpec.configure do |config|
   # instead of true.
   config.use_transactional_fixtures = true
 
-  # Wrap tests in a transaction for the warehouse database, unless opted out
-  config.around(:each) do |example|
-    if example.metadata[:no_warehouse_transaction]
-      example.run
-    else
-      GrdaWarehouseBase.transaction do
-        example.run
-        raise ActiveRecord::Rollback
-      end
-    end
-  end
-
   # RSpec Rails can automatically mix in different behaviors to your tests
   # based on their file location, for example enabling you to call `get` and
   # `post` in specs under `spec/controllers`.
@@ -122,6 +110,18 @@ RSpec.configure do |config|
 
     # Ensure we have all the cohort columns
     GrdaWarehouse::Cohorts::CohortColumn.maintain!
+  end
+
+  # Wrap tests in a transaction for the warehouse database, unless opted out
+  config.around(:each) do |example|
+    if example.metadata[:no_warehouse_transaction]
+      example.run
+    else
+      GrdaWarehouseBase.transaction do
+        example.run
+        raise ActiveRecord::Rollback
+      end
+    end
   end
 end
 
