@@ -86,6 +86,8 @@ module Types
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
+      when 'PROJECTS_ACCEPTING_CE_REFERRALS'
+        projects_accepting_ce_referrals(from_project: project)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -594,6 +596,28 @@ module Types
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
+    end
+
+    def self.projects_accepting_ce_referrals(from_project:)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
+
+      # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
+      project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).
+        joins(:organization).preload(:organization).
+        sort_by_option(:organization_and_name)
+
+      project_scope.filter_map do |project|
+        config = Hmis::ProjectCeConfig.detect_best_config_for_project(project)
+
+        next unless config.present?
+        next unless config.accepts_direct_referrals?
+
+        # If the config specifies a list of projects that it accepts referrals from, check that this project is in that list.
+        next if config.accepts_direct_referrals_from.present? && config.accepts_direct_referrals_from.exclude?(from_project.id)
+
+        project.to_pick_list_option
+      end
     end
   end
 end

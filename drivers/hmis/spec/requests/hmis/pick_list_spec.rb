@@ -500,6 +500,68 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
   end
+
+  describe 'PROJECTS_ACCEPTING_CE_REFERRALS' do
+    let!(:sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+    let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+    let!(:non_ce_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+    let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: receiving_project, accepts_direct_referrals: true) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    it 'returns projects that accept direct referrals' do
+      response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.size).to eq(1)
+      expect(options.first['code']).to eq(receiving_project.id.to_s)
+      expect(options.first['label']).to eq(receiving_project.project_name)
+    end
+
+    context 'when project only supports waitlist referrals' do
+      before do
+        receiving_ce_config.update!(
+          accepts_direct_referrals: false,
+          supports_waitlist_referrals: true,
+        )
+      end
+
+      it 'does not return the project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options).to be_empty
+      end
+    end
+
+    context 'when accepting project restricts direct referrals from specific projects' do
+      let!(:allowed_sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+
+      before do
+        receiving_ce_config.update!(
+          accepts_direct_referrals: true,
+          accepts_direct_referrals_from: [allowed_sending_project.id],
+        )
+      end
+
+      it 'returns the project when sending from an allowed project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: allowed_sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.size).to eq(1)
+        expect(options.first['code']).to eq(receiving_project.id.to_s)
+      end
+
+      it 'does not return the project when sending from a non-allowed project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options).to be_empty
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|

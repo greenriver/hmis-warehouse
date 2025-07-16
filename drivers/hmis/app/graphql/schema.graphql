@@ -7489,6 +7489,11 @@ enum PickListType {
   PROJECT
 
   """
+  Projects that are accepting CE referrals
+  """
+  PROJECTS_ACCEPTING_CE_REFERRALS
+
+  """
   Open Projects that can receive referrals
   """
   PROJECTS_RECEIVING_REFERRALS
