@@ -40,6 +40,8 @@ module Hmis::Ce
         send_notification(message)
       when 'create_ce_event'
         create_ce_event(message)
+      when 'set_ce_event_result'
+        set_ce_event_result(message)
       when 'create_enrollment'
         referral_enroller.create_enrollment(message)
         reversible = false
@@ -80,7 +82,11 @@ module Hmis::Ce
     end
 
     def create_ce_event(message)
-      # TBD
+      referral_ce_event_manager.create_ce_event(message)
+    end
+
+    def set_ce_event_result(message) # rubocop:disable Naming/AccessorMethodName
+      referral_ce_event_manager.set_ce_event_result(message)
     end
 
     def send_notification(message)
@@ -96,11 +102,17 @@ module Hmis::Ce
       # ).deliver_later
     end
 
-    private def referral_enroller
+    private
+
+    def referral_enroller
       @referral_enroller ||= Hmis::Ce::ReferralEnroller.new(referral)
     end
 
-    private def mark_client_dirty(client)
+    def referral_ce_event_manager
+      @referral_ce_event_manager ||= Hmis::Ce::ReferralCeEventManager.new(referral)
+    end
+
+    def mark_client_dirty(client)
       raise ArgumentError unless client.is_a?(Hmis::Hud::Client)
 
       Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: [client.id])
