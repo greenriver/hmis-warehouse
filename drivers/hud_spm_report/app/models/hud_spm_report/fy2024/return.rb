@@ -24,7 +24,10 @@ module HudSpmReport::Fy2024
     end
 
     def data_source_id
-      [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.data_source_id
+      [
+        exit_enrollment&.enrollment&.data_source_id,
+        return_enrollment&.enrollment&.data_source_id,
+      ].detect(&:present?)
     end
 
     def self.client_ids_with_permanent_exits(report, enrollments)
