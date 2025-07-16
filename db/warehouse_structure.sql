@@ -6862,7 +6862,6 @@ CREATE TABLE public.ce_match_candidate_pools (
     id bigint NOT NULL,
     requirement_expression character varying NOT NULL,
     priority_expression character varying NOT NULL,
-    configuration_updated_at timestamp(6) without time zone,
     candidates_generated_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -17043,6 +17042,38 @@ CREATE SEQUENCE public.hmis_case_notes_id_seq
 --
 
 ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
+
+
+--
+-- Name: hmis_ce_change_markers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_ce_change_markers (
+    id bigint NOT NULL,
+    trackable_type character varying NOT NULL,
+    trackable_id bigint NOT NULL,
+    current_version integer NOT NULL,
+    processed_version integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: hmis_ce_change_markers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_ce_change_markers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_ce_change_markers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_ce_change_markers_id_seq OWNED BY public.hmis_ce_change_markers.id;
 
 
 --
@@ -34862,6 +34893,13 @@ ALTER TABLE ONLY public.hmis_case_notes ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: hmis_ce_change_markers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_ce_change_markers ALTER COLUMN id SET DEFAULT nextval('public.hmis_ce_change_markers_id_seq'::regclass);
+
+
+--
 -- Name: hmis_client_alerts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -39092,6 +39130,14 @@ ALTER TABLE ONLY public.hmis_auto_exit_configs
 
 ALTER TABLE ONLY public.hmis_case_notes
     ADD CONSTRAINT hmis_case_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_ce_change_markers hmis_ce_change_markers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_ce_change_markers
+    ADD CONSTRAINT hmis_ce_change_markers_pkey PRIMARY KEY (id);
 
 
 --
@@ -63551,6 +63597,13 @@ CREATE INDEX index_hmis_case_notes_on_user_id ON public.hmis_case_notes USING bt
 
 
 --
+-- Name: index_hmis_ce_change_markers_on_trackable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_ce_change_markers_on_trackable ON public.hmis_ce_change_markers USING btree (trackable_type, trackable_id);
+
+
+--
 -- Name: index_hmis_client_alerts_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74199,6 +74252,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250703125916'),
 ('20250701185134'),
+('20250627132413'),
 ('20250625170425'),
 ('20250623193057'),
 ('20250620132952'),
