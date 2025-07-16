@@ -13,6 +13,6 @@ module Types
     field :accepts_direct_referrals, Boolean, null: false, description: 'Whether this project accepts direct CE referrals, initiated by a sending project'
     field :supports_waitlist_referrals, Boolean, null: false, description: 'Whether this project supports waitlist CE referrals, initiated internally from a unit waitlist'
     field :sends_direct_referrals, Boolean, null: false, description: 'Whether this project sends direct CE Referrals'
-    field :is_referrable, Boolean, null: false, description: 'Whether this project supports referrals, either direct or waitlist'
+    field :supports_referrals, Boolean, null: false, description: 'Whether this project supports referrals, either direct or waitlist'
   end
 end

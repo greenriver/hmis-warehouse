@@ -9582,14 +9582,14 @@ type ProjectCoordinatedEntryFeatures {
   id: ID!
 
   """
-  Whether this project supports referrals, either direct or waitlist
-  """
-  isReferrable: Boolean!
-
-  """
   Whether this project sends direct CE Referrals
   """
   sendsDirectReferrals: Boolean!
+
+  """
+  Whether this project supports referrals, either direct or waitlist
+  """
+  supportsReferrals: Boolean!
 
   """
   Whether this project supports waitlist CE referrals, initiated internally from a unit waitlist

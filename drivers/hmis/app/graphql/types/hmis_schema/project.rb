@@ -155,7 +155,7 @@ module Types
 
       OpenStruct.new(
         id: object.id,
-        is_referrable: supports_waitlist_referrals || accepts_direct_referrals,
+        supports_referrals: supports_waitlist_referrals || accepts_direct_referrals,
         supports_waitlist_referrals: supports_waitlist_referrals,
         accepts_direct_referrals: accepts_direct_referrals,
         sends_direct_referrals: sends_referrals_config.present?,
