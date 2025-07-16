@@ -1,12 +1,33 @@
 # frozen_string_literal: true
 
+# Hmis::Ce::Match::CandidatePool
 # Describes the eligibility requirements and prioritization for a client.
 
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
     self.table_name = 'ce_match_candidate_pools'
+    has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
+
+    # pools for active opportunities
+    scope :active, -> {
+      active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
+      where(id: active_ids)
+    }
+
+    scope :orphaned, -> {
+      where.not(
+        id: ::Hmis::Ce::Opportunity.active.select(:candidate_pool_id).where.not(candidate_pool_id: nil),
+      )
+    }
+
+    def self.mark_all_dirty
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version(
+        'Hmis::Ce::Match::CandidatePool',
+        trackable_ids: pluck(:id),
+      )
+    end
 
     def relevant_form_definition_identifiers
       # Gather relevant expressions for determining priority/eligibility in this candidate pool.

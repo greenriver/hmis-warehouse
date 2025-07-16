@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require 'progress_bar'
+
 # * Find all clients that match the given pools's eligibility requirements.
 # * Score each client based on that pools's prioritization formula.
 # * Persist the results as MatchCandidate records to be consumed by opportunities.
 #
+# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 module Hmis::Ce::Match
   class Engine
     def self.call(...)
@@ -13,17 +16,41 @@ module Hmis::Ce::Match
     # Take a two-step approach to evaluating eligibility to achieve better performance.
     # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
     # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    def call(pool, clients)
+    #
+    # @param pool [Hmis::Ce::Match::CandidatePool] The candidate pool to populate with matching clients
+    # @param clients [ActiveRecord::Relation, nil] The clients to evaluate for eligibility. If nil, processes all destination clients (full refresh).
+    # @param progress [Boolean] Whether to display a progress bar during processing
+    def call(pool, clients: nil, progress: false)
+      # Determine processing mode based on whether clients were provided
+      if clients.nil?
+        # Full refresh - process all clients and remove all unmatched candidates
+        clients = ::GrdaWarehouse::Hud::Client.destination
+        incremental = false
+      else
+        # Incremental - process only provided clients and remove candidates only for those clients
+        incremental = true
+      end
+
       validate_clients_parameter!(clients)
 
       eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
       priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
 
+      filtered_clients = crude_eligibility_filter(pool.requirement_expression, clients)
+      bar = new_progress_bar(filtered_clients.count, pool) if progress
+      processed_client_ids = []
+
+      # In incremental mode, track all input clients that should be processed so we can
+      # remove candidates for clients that no longer pass filters (including SQL filter)
+      processed_client_ids = clients.pluck(:id) if incremental
+
       now = DateTime.current
-      crude_eligibility_filter(pool.requirement_expression, clients).in_batches do |batch|
+      filtered_clients.in_batches do |batch|
         # First iterate through the batch to import any Client Proxies that aren't present in the db already
         proxies = []
         batch.each do |client|
+          # In full mode, track clients as we process them
+          processed_client_ids.push(client.id) unless incremental
           proxies << Hmis::Ce::ClientProxy.new(client: client)
         end
         proxies_by_client = import_proxies!(proxies)
@@ -31,6 +58,7 @@ module Hmis::Ce::Match
         # Iterate through a second time to import candidate matches
         candidates = []
         batch.each do |client|
+          bar&.increment!
           # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently
           next unless eligibility_evaluator.call(client)
 
@@ -49,8 +77,19 @@ module Hmis::Ce::Match
         end
         import_candidates!(candidates)
       end
-      # remove old candidates that no longer match
-      pool.candidates.where(updated_at: ...now).delete_all
+
+      # Remove old candidates that no longer match
+      if incremental
+        # In incremental mode, only remove candidates for clients that were in the input scope
+        # This ensures we remove candidates for clients who no longer pass any filters
+        pool.candidates.joins(:client_proxy).where(
+          ce_client_proxies: { client_id: processed_client_ids, client_type: 'GrdaWarehouse::Hud::Client' },
+        ).where(updated_at: ...now).delete_all
+      else
+        # In full mode, remove all candidates that weren't updated in this run
+        pool.candidates.where(updated_at: ...now).delete_all
+      end
+
       pool.update!(candidates_generated_at: Time.current)
     end
 
@@ -89,6 +128,11 @@ module Hmis::Ce::Match
 
     def field_map
       @field_map ||= FieldMap.new
+    end
+
+    def new_progress_bar(total, pool)
+      puts "Processing pool[#{pool.id}] eligibility: #{pool.requirement_expression.inspect}, priority: #{pool.priority_expression.inspect}"
+      ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
     end
   end
 end

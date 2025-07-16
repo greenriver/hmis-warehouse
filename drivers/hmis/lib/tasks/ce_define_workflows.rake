@@ -65,7 +65,7 @@ module CeWorkflowBuilder
     )
   end
 
-  def self.create_accept_event(template, create_enrollment: false)
+  def self.create_accept_event(template, update_ce_event: false)
     Hmis::WorkflowDefinition::EndEvent.create!(
       name: 'Referral Accepted',
       template: template,
@@ -75,11 +75,12 @@ module CeWorkflowBuilder
           message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
         *(
-          if create_enrollment
+          if update_ce_event
             [
               {
                 event: 'end_workflow',
-                message: 'create_enrollment',
+                message: 'set_ce_event_result',
+                params: { referral_result: '1' },
               },
             ]
           end
@@ -415,6 +416,17 @@ module CeWorkflowBuilder
       swimlane: ce_staff_swimlane,
     )
 
+    create_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+      name: 'Create CE Event',
+      template_id: template.id,
+      trigger_config: [
+        {
+          event: 'complete_step',
+          message: 'create_ce_event',
+        }
+      ]
+    )
+
     ce_make_offer_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Client Acceptance',
       form_definition_identifier: ce_offer_task_form_identifier,
@@ -422,11 +434,35 @@ module CeWorkflowBuilder
       swimlane: ce_staff_swimlane,
     )
 
+    client_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+      name: 'Update CE Event with result "Unsuccessful referral: client rejected"',
+      template_id: template.id,
+      trigger_config: [
+        {
+          event: 'complete_step',
+          message: 'set_ce_event_result',
+          params: { referral_result: '2' },
+        }
+      ]
+    )
+
     project_offer_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Provider Acceptance',
       form_definition_identifier: project_offer_task_form_identifier,
       template_id: template.id,
       swimlane: project_staff_swimlane,
+    )
+
+    provider_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+      name: 'Update CE Event with result "Unsuccessful referral: provider rejected"',
+      template_id: template.id,
+      trigger_config: [
+        {
+          event: 'complete_step',
+          message: 'set_ce_event_result',
+          params: { referral_result: '3' },
+        }
+      ]
     )
 
     create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
@@ -454,7 +490,7 @@ module CeWorkflowBuilder
       swimlane: ce_staff_swimlane,
     )
 
-    accept_event = create_accept_event(template)
+    accept_event = create_accept_event(template, update_ce_event: true)
     decline_event = create_decline_event(template)
 
     initial_review_task_gateway = create_gateway(template, 'initial_review_task')
@@ -469,13 +505,15 @@ module CeWorkflowBuilder
     # Initial Review Gateway => CE Make Offer Task OR Decline Event.
     # Exclusive Gateway, so only the first outflow that matches condition is followed.
     initial_review_task_gateway.connect_to!(decline_event, condition: 'move_forward = 0')
-    initial_review_task_gateway.connect_to!(ce_make_offer_task) # default outflow, so it appears under "unavailable tasks"
+    initial_review_task_gateway.connect_to!(create_ce_event_task) # default outflow, so this branch appears under "unavailable tasks"
+    create_ce_event_task.connect_to!(ce_make_offer_task)
 
     # CE Make Offer Task => CE Offer Outcome Gateway
     ce_make_offer_task.connect_to!(ce_offer_outcome_gateway)
     # CE Offer Outcome Gateway => Project Offer Task OR Decline Event
     # Exclusive Gateway, so only the first outflow that matches condition is followed.
-    ce_offer_outcome_gateway.connect_to!(decline_event, condition: 'move_forward = 0')
+    ce_offer_outcome_gateway.connect_to!(client_rejects_ce_event_task, condition: 'move_forward = 0')
+    client_rejects_ce_event_task.connect_to!(decline_event)
     ce_offer_outcome_gateway.connect_to!(project_offer_task) # default outflow, so it appears under "unavailable tasks"
 
     # Project Offer Task => Project Offer Outcome Gateway
@@ -491,11 +529,12 @@ module CeWorkflowBuilder
     denial_review_task.connect_to!(denial_review_gateway)
     # Denial Review Gateway => Decline OR Send Back to Project Offer Task
     # Exclusive Gateway, so only the first outflow that matches condition is followed.
-    denial_review_gateway.connect_to!(decline_event, condition: 'ac_workflow_v1_denial_review_decision = 1') # Accept Denial
+    denial_review_gateway.connect_to!(provider_rejects_ce_event_task, condition: 'ac_workflow_v1_denial_review_decision = 1') # Accept Denial
+    provider_rejects_ce_event_task.connect_to!(decline_event)
     denial_review_gateway.connect_to!(project_offer_task) # Send back. We make this the default task, so that the project offer task doesn't get hidden in the Available Tasks UI due to its conditional inflows...
 
     # Confirm Success Task => Accept Event
-    confirm_success_task.connect_to!(decline_event, condition: 'move_forward = 0')
+    confirm_success_task.connect_to!(provider_rejects_ce_event_task, condition: 'move_forward = 0')
     confirm_success_task.connect_to!(accept_event)
 
     template.validate!
