@@ -43,6 +43,14 @@ RSpec.configure do |config|
   # instead of true.
   config.use_transactional_fixtures = true
 
+  # Wrap tests in a transaction for the warehouse database
+  config.around(:each) do |example|
+    GrdaWarehouseBase.transaction do
+      example.run
+      raise ActiveRecord::Rollback
+    end
+  end
+
   # RSpec Rails can automatically mix in different behaviors to your tests
   # based on their file location, for example enabling you to call `get` and
   # `post` in specs under `spec/controllers`.
