@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::ProjectCoordinatedEntryFeatures < Types::BaseObject
+    # Object is an OpenStruct representing the coordinated entry features that are enabled for this project
     field :id, ID, null: false
 
     field :accepts_direct_referrals, Boolean, null: false, description: 'Whether this project accepts direct CE referrals, initiated by a sending project'

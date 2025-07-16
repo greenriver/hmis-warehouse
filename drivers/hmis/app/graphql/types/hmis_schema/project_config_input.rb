@@ -13,7 +13,7 @@ module Types
     argument :config_type, HmisSchema::Enums::ProjectConfigType, required: false
     argument :length_of_absence_days, Int, required: false
     argument :accepts_direct_referrals, Boolean, required: false
-    # accepts_direct_referrals_from not yet supported in the UI
+    # accepts_direct_referrals_from not yet supported in the UI (requires multi-select project dropdown)
     argument :supports_waitlist_referrals, Boolean, required: false
     argument :project_type, Types::HmisSchema::Enums::ProjectType, required: false
     argument :project_id, ID, required: false

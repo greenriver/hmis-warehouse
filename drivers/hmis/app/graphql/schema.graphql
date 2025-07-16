@@ -9351,7 +9351,7 @@ type Project {
   """
   Whether Coordinated Entry is enabled in this project
   """
-  coordinatedEntryEnabled: Boolean! @deprecated(reason: "Use ProjectCoordinatedEntryFeatures")
+  coordinatedEntryEnabled: Boolean! @deprecated(reason: "Use coordinatedEntryFeatures")
 
   """
   Coordinated Entry features that are enabled for this Project
