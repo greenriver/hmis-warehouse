@@ -157,7 +157,6 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
                     'link_id': move_in_date_link_id,
                     'required': true,
                     'text': 'Move-in Date',
-                    # 'mapping': { 'field_name': 'moveInDate', 'record_type': 'ENROLLMENT' },
                   },
                 ],
               },
