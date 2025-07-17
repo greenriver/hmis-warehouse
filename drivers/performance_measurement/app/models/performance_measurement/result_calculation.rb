@@ -810,14 +810,17 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
+    # Counting returns from 0 to 180 days aligns with Measure 2 B7
     def returned_in_six_months(detail, project: nil)
       returned_in_range(detail, __method__, project: project)
     end
 
+    # Counting returns from 180 to 365 days aligns with Measure 2 E7
     def returned_in_one_year(detail, project: nil)
       returned_in_range(detail, __method__, project: project)
     end
 
+    # Counting returns from 0 to 730 days aligns with Measure 2 I7
     def returned_in_two_years(detail, project: nil)
       returned_in_range(detail, __method__, project: project)
     end

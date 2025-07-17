@@ -22,5 +22,9 @@ FactoryBot.define do
     client { association :hmis_hud_client, data_source: data_source }
     referred_by { association :hmis_user, data_source: data_source }
     status { 'in_progress' }
+
+    after(:create) do |referral|
+      referral.update!(custom_status: Hmis::Ce::CustomReferralStatus.find_by(key: referral.status, data_source: referral.data_source)) if referral.custom_status.blank?
+    end
   end
 end

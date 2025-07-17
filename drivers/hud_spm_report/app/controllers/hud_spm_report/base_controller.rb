@@ -11,7 +11,7 @@ module HudSpmReport
     before_action :filter
 
     private def relevant_project_types
-      HudUtility2024.spm_project_type_numbers
+      HudUtility2026.spm_project_type_numbers
     end
 
     def cell_value(cell, path)
@@ -81,6 +81,12 @@ module HudSpmReport
       new_hud_reports_spm_path
     end
     helper_method :path_for_new
+
+    def available_report_versions
+      # We only want to show the versions that have a matching generator class
+      super.select { |_, v| possible_generator_classes.keys.include?(v[:slug]) }
+    end
+    helper_method :available_report_versions
 
     private def possible_generator_classes
       {

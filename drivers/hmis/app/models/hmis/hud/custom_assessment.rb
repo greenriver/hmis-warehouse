@@ -25,6 +25,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::FormSubmittable
+  include ::Hmis::MarkClientAsDirtyBehavior
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 

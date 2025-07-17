@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Part of the "legacy" permissions system
 class UserRole < ApplicationRecord
   has_paper_trail(
@@ -31,11 +33,17 @@ class UserRole < ApplicationRecord
     role.name
   end
 
-  def self.describe_changes(version, _changes)
+  def entity_name
+    "#{role&.name || 'Unknown Role'}: #{user&.name || 'Unknown User'}"
+  end
+
+  def self.describe_changes(version, _changes, _excluded_fields = [])
+    user_name = User.find_by(id: version.referenced_user_id)&.name || "User ID #{version.referenced_user_id}"
+
     if version.event == 'create'
-      ["Added role \"#{version.referenced_entity_name}\""]
+      ["Added user \"#{user_name}\" to role \"#{version.referenced_entity_name}\""]
     else
-      ["Removed role \"#{version.referenced_entity_name}\""]
+      ["Removed user \"#{user_name}\" from role \"#{version.referenced_entity_name}\""]
     end
   end
 end

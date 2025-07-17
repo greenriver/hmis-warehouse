@@ -109,6 +109,7 @@ class User < ApplicationRecord
       :can_view_full_ssn,
       :can_view_full_dob,
       :can_view_client_name,
+      :can_view_hiv_status,
     ]
     batch = []
     permissions.each do |permission|
@@ -264,6 +265,8 @@ class User < ApplicationRecord
 
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
+      raise ArgumentError, "policy class not supported: #{policy_class.name}" unless policy_class < GrdaWarehouse::AuthPolicies::BasePolicy
+
       policy_class.new(resource: resource, context: policy_context)
     else
       raise ArgumentError, "expected #{resource.class.name} to implement policy_class" unless resource.respond_to?(:policy_class)
