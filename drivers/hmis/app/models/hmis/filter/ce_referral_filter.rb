@@ -24,7 +24,11 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   def with_referral_statuses(scope)
     with_filter(scope, :referral_status) do
-      custom_statuses = Hmis::Ce::CustomReferralStatus.where(key: input.referral_status)
+      status_keys = input.referral_status.map(&:to_s)
+      # inject 'initialized' state when filtering by 'in_progress'; initialized is not a user-facing state.
+      # this behavior is mirrored in the CE Referral Status pick list.
+      status_keys << 'initialized' if status_keys.include?('in_progress')
+      custom_statuses = Hmis::Ce::CustomReferralStatus.where(key: status_keys)
       scope.where(custom_status: custom_statuses)
     end
   end
