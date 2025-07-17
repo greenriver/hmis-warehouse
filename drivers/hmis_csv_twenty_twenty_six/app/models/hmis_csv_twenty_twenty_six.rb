@@ -11,36 +11,8 @@
 # This module provides a flexible system for importing HMIS CSV files in the FY2026 format,
 # including support for custom files beyond the standard HUD specification.
 #
-# == Custom Files Support
-#
-# Custom files are defined in individual YAML files in drivers/hmis_csv_twenty_twenty_six/config/custom/
-# Each YAML file can define one or more custom file types with their own processing rules.
-#
-# == Processing Flow
-#
-# 1. **Configuration Loading**: Individual YAML files are loaded from the custom directory
-# 2. **Model and Migration Generation**: CustomFileManager generates static model and migration files
-# 3. **File Loading**: Raw CSV data is loaded into loader tables (prefixed with hmis_csv_twenty_twenty_six_)
-# 4. **Data Processing**: Importer classes validate and process the data
-# 5. **Warehouse Integration**: Data is either overlaid onto existing tables or stored in new tables
-#
-# == Custom File Types
-#
-# - **Augmentation Files**: Add data to existing warehouse tables (e.g., CustomGender.csv → Client table)
-# - **New Table Files**: Create entirely new warehouse tables (e.g., CustomDataElement.csv)
-# - **Key-Value Stores**: Special processing for definition-based data (CustomDataElement + CustomDataElementDefinition)
-#
-# @example Basic usage
-#   # Generate all custom models and migrations
-#   HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!
-#
-#   # Run the import
-#   importer = HmisCsvTwentyTwentySix::Importer::Importer.new(
-#     loader_id: loader.id,
-#     data_source_id: data_source.id
-#   )
-#   importer.import!
-#
+# See README.md for details.
+
 module HmisCsvTwentyTwentySix
   def self.table_name_prefix
     'hmis_csv_twenty_twenty_six_'
