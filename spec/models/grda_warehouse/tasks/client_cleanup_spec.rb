@@ -356,6 +356,139 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
     end
 
+    describe 'choose_best_veteran_status method' do
+      let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+      let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: nil } }
+
+      describe 'when status is determined to be 1 (veteran)' do
+        context 'when a source client has VeteranStatus == 1' do
+          let(:source_clients) do
+            [
+              { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+              { VeteranStatus: 1, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990, MilitaryBranch: 1 },
+              { VeteranStatus: 99, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+            ]
+          end
+
+          it 'sets veteran-related columns from the source client with VeteranStatus == 1' do
+            result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+            expect(result[:VeteranStatus]).to eq(1)
+            expect(result[:YearEnteredService]).to eq(1960)
+            expect(result[:YearSeparated]).to eq(1990)
+            expect(result[:MilitaryBranch]).to eq(1)
+          end
+        end
+
+        context 'when no source client has VeteranStatus == 1 but va_verified_veteran is true' do
+          let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: true } }
+          let(:source_clients) do
+            [
+              { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+              { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+              { VeteranStatus: 8, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+            ]
+          end
+
+          it 'sets status to 1 but does not modify veteran-related columns' do
+            # Set some existing veteran-related values
+            dest_attr[:YearEnteredService] = 1945
+            dest_attr[:MilitaryBranch] = 2
+
+            result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+            expect(result[:VeteranStatus]).to eq(1)
+            # Veteran-related columns should remain unchanged since no source has VeteranStatus == 1
+            expect(result[:YearEnteredService]).to eq(1945)
+            expect(result[:MilitaryBranch]).to eq(2)
+            expect(result[:YearSeparated]).to be_nil
+          end
+        end
+      end
+
+      describe 'when status is determined to be 0 (non-veteran)' do
+        context 'when no source client has VeteranStatus == 1 and va_verified_veteran is false' do
+          let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: false } }
+          let(:source_clients) do
+            [
+              { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+              { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+              { VeteranStatus: 8, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+            ]
+          end
+
+          it 'sets status to 0 and clear out veteran-related columns' do
+            # Set some existing veteran-related values
+            dest_attr[:YearEnteredService] = 1945
+            dest_attr[:MilitaryBranch] = 2
+
+            result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+            expect(result[:VeteranStatus]).to eq(0)
+            expect(result[:YearEnteredService]).to be_nil
+            expect(result[:MilitaryBranch]).to be_nil
+            expect(result[:YearSeparated]).to be_nil
+          end
+        end
+
+        let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: 'non_veteran', va_verified_veteran: false } }
+        let(:source_clients) do
+          [
+            { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+            { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+            { VeteranStatus: 8, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+          ]
+        end
+
+        it 'sets veteran-related columns to nil' do
+          # Set some existing veteran-related values
+          dest_attr[:YearEnteredService] = 1945
+          dest_attr[:MilitaryBranch] = 2
+
+          result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+          expect(result[:VeteranStatus]).to eq(0)
+          # All veteran-related columns should be set to nil
+          expect(result[:YearEnteredService]).to be_nil
+          expect(result[:YearSeparated]).to be_nil
+          expect(result[:WorldWarII]).to be_nil
+          expect(result[:KoreanWar]).to be_nil
+          expect(result[:VietnamWar]).to be_nil
+          expect(result[:DesertStorm]).to be_nil
+          expect(result[:AfghanistanOEF]).to be_nil
+          expect(result[:IraqOIF]).to be_nil
+          expect(result[:IraqOND]).to be_nil
+          expect(result[:OtherTheater]).to be_nil
+          expect(result[:MilitaryBranch]).to be_nil
+          expect(result[:DischargeStatus]).to be_nil
+        end
+      end
+
+      describe 'when status is determined to be a non-binary value (99, 8, etc.)' do
+        let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: false } }
+        let(:source_clients) do
+          [
+            { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+            { VeteranStatus: 8, DateUpdated: 2.days.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+          ]
+        end
+
+        it 'sets veteran-related columns to nil' do
+          # Set some existing veteran-related values
+          dest_attr[:YearEnteredService] = 1945
+          dest_attr[:MilitaryBranch] = 2
+
+          result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+          expect(result[:VeteranStatus]).to eq(99) # Most recent non-binary value
+          # All veteran-related columns should be set to nil
+          expect(result[:YearEnteredService]).to be_nil
+          expect(result[:YearSeparated]).to be_nil
+          expect(result[:MilitaryBranch]).to be_nil
+        end
+      end
+    end
+
     describe 'Gender Fields' do
       (::HudUtility2024.gender_fields - [:GenderNone]).each do |col|
         it "uses newest known gender value for #{col}" do

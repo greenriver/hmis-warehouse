@@ -9,10 +9,17 @@
 class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
   include ArelHelper
-  include AuditHistory
+  include AccessControlAuditData
+  extend BackgroundRenderAction
 
   before_action :require_can_edit_users!
   before_action :set_access_control, only: [:edit, :update, :destroy]
+
+  background_render_action(:render_audits, ::BackgroundRender::AccessControlsAuditsJob) do
+    {
+      user_id: current_user.id,
+    }
+  end
 
   def index
     @access_controls = access_control_scope.
@@ -55,20 +62,9 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   def audits
-    data
-  end
-
-  def export
-    respond_to do |format|
-      format.csv do
-        audit_history = []
-        histories.each_with_index do |history, index|
-          csv_data = generate_audit_csv(history.version_array, history, include_headers: index == 0)
-          audit_history << csv_data
-        end
-        send_data audit_history.join, filename: "access-controls-component-history-#{Date.current.to_fs(:db)}.csv"
-      end
-    end
+    @excel_export = GrdaWarehouse::DocumentExports::AccessControlsAuditExport.new
+    # Processing is backgrounded unless render_inline is set to 1
+    data if params[:render_inline] == '1'
   end
 
   private def access_control_scope
@@ -98,21 +94,10 @@ class Admin::AccessControlsController < ApplicationController
     @access_control = access_control_scope.find(params[:id].to_i)
   end
 
-  private def histories
-    @histories ||= AccessControl.visible_to(current_user).map do |access_control|
-      Audit::Versions.new(access_control, access_control_component_config)
-    end
-  end
-
   private def data
-    @data ||= histories.flat_map do |history|
-      versions = history.version_array
-      history.wrap_display_versions(versions).map do |version|
-        {
-          history: history,
-          version: version,
-        }
-      end
-    end.sort_by { |h| h[:version]&.created_at }.reverse
+    @data ||= begin
+      histories = build_histories(current_user)
+      build_data(histories)
+    end
   end
 end
