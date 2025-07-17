@@ -5,7 +5,7 @@
 = render 'admin/audits/shared/breadcrumbs', entity_type: entity_type, entity_path: admin_access_controls_path
 = render_display_title "#{entity_type} Audit History"
 .text-right.mb-3
-  = link_to "Export CSV", export_admin_access_controls_path(format: :csv), class: "btn btn-outline-primary btn-sm"
+  = render 'report_downloads/report_download', export: nil, excel_download_path: nil, excel_export: @excel_export, excel_download_tooltip: 'Download includes all access control audit history data in Excel format.'
 
 - if params[:render_inline] == "1"
   = render 'admin/access_controls/audits_content'
