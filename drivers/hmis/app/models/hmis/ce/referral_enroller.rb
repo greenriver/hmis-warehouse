@@ -8,6 +8,9 @@
 
 module Hmis::Ce
   class ReferralEnroller
+    MOVE_IN_DATE_LINK_ID = 'move_in_date'
+    COC_CODE_LINK_ID = 'coc_code'
+
     attr_reader :referral
 
     def initialize(referral)
@@ -18,7 +21,7 @@ module Hmis::Ce
       project = referral.target_project
 
       # Step form may specify CoC code. This is required if the Project serves multiple CoCs.
-      coc_code_arg = message.step&.submitted_values&.fetch('coc_code', nil)
+      coc_code_arg = message.step&.submitted_values&.fetch(COC_CODE_LINK_ID, nil)
       coc_code = project.determine_coc_code(coc_code_arg: coc_code_arg)
 
       # TODO(#7321) - carry over the client's household members from the source enrollment
@@ -48,28 +51,34 @@ module Hmis::Ce
       referral.update!(target_enrollment: enrollment)
     end
 
-    # this is not actually an accessor method, even though RuboCop thinks it is
+    # Sets the Move-In Date on the target enrollment, based on a date value collected on the step form.
+    # This requires a Move-in date item to be on the step form with the following attributes:
+    # { "link_id": "move_in_date", "type": "DATE", "mapping": { "custom_field_key": "" } }
+    #
+    # - item must have the exact link_id `move_in_date` to trigger this side effect
+    # - item must additionally save the value to a custom data element
+    # We chose this approach, rather than using "mapping": { "record_type": "ENROLLMENT", "field_name": "moveInDate" },
+    # because the form should show show the Move-in Date as it was when the task was performed, NOT the current value
+    # of the Move-in Date field on the target enrollment.
     def set_move_in_date(message) # rubocop:disable Naming/AccessorMethodName
-      # No need to check permission for editing the enrollment.
-      # If the user can complete this step, they can do its side effects, even if they don't have direct permission
+      # Validate that the form collects move-in date using the MOVE_IN_DATE_LINK_ID
+      form_definition = message.step.form_definition
+      raise "Trying to set move-in date for referral #{referral.id}, step #{message.step.id}, but form definition '#{form_definition.identifier}' doesn't collect it. This probably indicates a mistake in the workflow configuration. The form must collect move-in date on an item with link_id '#{MOVE_IN_DATE_LINK_ID}'" unless form_definition.link_id_item_hash[MOVE_IN_DATE_LINK_ID].present?
 
       # Find the form item corresponding to move-in date
-      form_definition = message.step.form_definition # The form definition most recently used to complete the step
-      move_in_date_item = form_definition.link_id_item_hash.values.find do |item|
-        item.mapping&.field_name == 'moveInDate' && item.mapping&.record_type == 'ENROLLMENT'
-      end
-      raise "Trying to set move-in date for referral #{referral.id}, step #{message.step.id}, but form definition #{form_definition.id} doesn't collect it. This probably indicates a mistake in the workflow configuration." unless move_in_date_item.present?
+      date_string = message.step&.submitted_values&.fetch(MOVE_IN_DATE_LINK_ID, nil)
 
-      date_string = message.step&.submitted_values&.fetch(move_in_date_item.link_id, nil)
       # This doesn't raise if the move-in date is missing. If the field is required, it should have already been caught by form validation.
       return unless date_string.present?
 
       date = HmisUtil::Dates.safe_parse_date(date_string: date_string)
-      return unless date.present?
+      raise "Failed to parse move-in date value collected on referral step form '#{form_definition.identifier}'" unless date
 
       enrollment = referral.target_enrollment
       raise "Trying to set move-in date, but referral #{referral.id} does not have a target enrollment yet. This probably indicates a mistake in the workflow configuration." unless enrollment.present?
 
+      # No need to check permission for editing the enrollment.
+      # If the user can complete this step, they can do its side effects, even if they don't have direct permission
       enrollment.update!(move_in_date: date)
     end
 
