@@ -51,17 +51,15 @@ module Hmis::Ce
       referral.update!(target_enrollment: enrollment)
     end
 
-    # Sets the Move-In Date on the target enrollments, based on a date value collected on the step form.
-    #
+    # Sets the Move-In Date on the target enrollment, based on a date value collected on the step form.
     # This requires a Move-in date item to be on the step form with the following attributes:
-    #    { "link_id": "move_in_date", "type": "DATE", "mapping": { "custom_field_key": "<any field key for storing date value>" } }
+    # { "link_id": "move_in_date", "type": "DATE", "mapping": { "custom_field_key": "" } }
     #
-    # Note: We do a lookup by link_id rather than by mapping:field_name to prevent the FormProcessor from attempting
-    # to process the move_in_date field. That would be another approach, but we decided against it in favor of having an
-    # explicit trigger to populate the collected date onto the move_in_date field. In part because, when you go back and
-    # view a previously submitted task, it should show the Move-in Date as it was when the task was performed, NOT
-    # the current value of the Move-in Date field on the target enrollment. To achieve this, the date recorded on the task
-    # would be additionally stored in the CustomDataElement field.
+    # - item must have the exact link_id `move_in_date` to trigger this side effect
+    # - item must additionally save the value to a custom data element
+    # We chose this approach, rather than using "mapping": { "record_type": "ENROLLMENT", "field_name": "moveInDate" },
+    # because the form should show show the Move-in Date as it was when the task was performed, NOT the current value
+    # of the Move-in Date field on the target enrollment.
     def set_move_in_date(message) # rubocop:disable Naming/AccessorMethodName
       # Validate that the form collects move-in date using the MOVE_IN_DATE_LINK_ID
       form_definition = message.step.form_definition

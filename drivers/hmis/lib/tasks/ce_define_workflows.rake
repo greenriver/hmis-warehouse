@@ -123,7 +123,11 @@ module CeWorkflowBuilder
 
     errors = Hmis::Form::DefinitionValidator.perform(definition, form_def.role, skip_cded_validation: true)
     raise "Form definition #{form_def.identifier} is not valid: #{errors.map(&:full_message)}" if errors.any?
-    raise 'Step Form definition should only collect Custom Data Elements' if form_def.link_id_item_hash.values.find { |item| item.mapping.field_name }
+
+    # Ensure form does not try to collect onto related record types (Eg Enrollment), it should only
+    # record CDEs so that it retains data as it was when the task was performed.
+    # TODO(#7321) - implement generic validation for this in the DefinitionValidator
+    raise 'Step Form definition should only collect Custom Data Elements' if form_def.link_id_item_hash.values.find { |item| item.mapping&.field_name }
 
     form_def.save!
     form_def.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: data_source).each(&:save!)
