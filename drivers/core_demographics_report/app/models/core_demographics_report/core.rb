@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CoreDemographicsReport
   class Core
     include CoreDemographicsReport::ReportConcern # NOTE: this must come before age calculations
@@ -94,7 +96,7 @@ module CoreDemographicsReport
 
     def self.data_for_export(reports)
       {}.tap do |rows|
-        reports.each do |report|
+        reports.each_with_index do |report, report_index|
           rows['Date Range'] ||= []
           rows['Date Range'] += [report.filter.date_range_words, nil, nil, nil]
           rows['Unique Clients'] ||= []
@@ -114,7 +116,7 @@ module CoreDemographicsReport
           rows = report.dv_status_data_for_export(rows)
           rows = report.priors_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
-          rows = report.enrollment_data_for_export(rows)
+          rows = report.enrollment_data_for_export(rows, report_index)
         end
       end
     end

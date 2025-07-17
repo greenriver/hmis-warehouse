@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -18,7 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, p1) }
-  let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:fd1) do
     # maybe can be replaced by:
@@ -88,6 +90,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(e1.custom_assessments.first.enrollment_id).to eq(e1.enrollment_id)
         expect(e1.custom_assessments.first.created_by_hud_user).to eq(hud_user)
         expect(e1.custom_assessments.first.updated_by_hud_user).to eq(hud_user)
+      end
+    end
+
+    describe 'with a destination warehouse client' do
+      let!(:destination_data_source) { create :destination_data_source }
+      before do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+        # creates warehouse clients
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        # mark clean
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+      end
+      it 'marks the client as dirty' do
+        destination_client = GrdaWarehouse::Hud::Client.find(c1.destination_client.id) # so trackable sti matches STI
+        expect do
+          response, result = post_graphql(input: { input: test_input }) { mutation }
+          expect(response.status).to eq(200), result&.inspect
+          expect(result.dig('data', 'submitAssessment', 'errors')).to be_empty
+        end.to change { Hmis::Ce::ChangeMarker.dirty.where(trackable: destination_client).count }.by(1)
       end
     end
   end
