@@ -64,7 +64,7 @@
     },
     {
       "link_id": "acceptsDirectReferrals",
-      "required": false,
+      "required": true,
       "type": "BOOLEAN",
       "text": "Accepts Direct Referrals",
       "mapping": {
@@ -81,7 +81,7 @@
     },
     {
       "link_id": "supportsWaitlistReferrals",
-      "required": false,
+      "required": true,
       "type": "BOOLEAN",
       "text": "Supports Waitlist Referrals",
       "mapping": {

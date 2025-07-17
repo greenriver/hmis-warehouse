@@ -9549,12 +9549,12 @@ enum ProjectConfigType {
   AUTO_EXIT
 
   """
-  Supports Coordinated Entry Referrals
+  Coordinated Entry Referrals
   """
   COORDINATED_ENTRY
 
   """
-  Sends Direct Coordinated Entry Referrals
+  Outgoing Referrals
   """
   SENDS_DIRECT_CE_REFERRALS
 
