@@ -75,5 +75,6 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
     )
   end
 
+  def mark_processed = self.class.mark_processed([self])
   def dirty? = current_version > processed_version
 end

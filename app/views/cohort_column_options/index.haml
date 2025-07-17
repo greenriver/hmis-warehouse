@@ -14,7 +14,7 @@
     #cohort-column-options.table-responsive.panel-group.panel-collapsible
       - @cohort_column_options.group_by(&:cohort_column).each do |column, options|
         - content_for :panel_collapse_content, flush: true do
-          %table.table.table-sm
+          %table.table.table-striped
             %thead
               %th{style: "width: 35%;"} Value
               %th{style: "width: 15%;"} Active?
@@ -25,11 +25,13 @@
                   %td= option.value
                   %td= checkmark_or_x option.active
                   %td
-
-                    - if !@cohort_column_options_in_use[column]&.include?(option.value)
-                      = link_to action: :edit, id: option do
+                    - if !cohort_column_options_in_use[column]&.include?(option.value)
+                      = link_to edit_cohort_column_option_path(option), class: 'btn btn-sm btn-secondary mr-2' do
                         %span.icon-pencil
                         Edit
+                      = link_to cohort_column_option_path(option), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: "Are you sure you want to delete the option: '#{option.value}'?" } do
+                        %span.icon-cross
+                        Delete
                     - else
                       in use
 
