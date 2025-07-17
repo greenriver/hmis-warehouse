@@ -7396,6 +7396,11 @@ enum PickListType {
   AVAILABLE_UNITS_FOR_ENROLLMENT
 
   """
+  Unit groups with availability for the given project
+  """
+  AVAILABLE_UNIT_GROUPS_FOR_PROJECT
+
+  """
   Unit types that have unoccupied units in the specified project
   """
   AVAILABLE_UNIT_TYPES

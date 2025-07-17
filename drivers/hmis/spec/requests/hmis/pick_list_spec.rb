@@ -562,6 +562,69 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT' do
+    let!(:ce_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+    let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, accepts_direct_referrals: true) }
+    let!(:access_control) { create_access_control(hmis_user, ce_project.organization, with_permission: [:can_manage_outgoing_referrals]) }
+
+    let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group') }
+    let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group') }
+    let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group') }
+
+    # Unit group with available units
+    let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
+    let!(:available_unit2) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
+
+    # Unit group with occupied units
+    let!(:occupied_unit) { create(:hmis_unit, project: ce_project, unit_group: unit_group_occupied) }
+    let!(:unit_occupancy) { create(:hmis_unit_occupancy, unit: occupied_unit, start_date: 1.week.ago) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    shared_examples 'returns empty pick list' do
+      it 'returns empty array' do
+        response, result = post_graphql(pick_list_type: 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT', project_id: ce_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+
+        expect(options).to be_empty
+      end
+    end
+
+    context 'with user who has can_manage_outgoing_referrals permission (even without can_view_project)' do
+      it 'returns only unit groups with available units' do
+        response, result = post_graphql(pick_list_type: 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT', project_id: ce_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+
+        expect(options.size).to eq(1) # Does not return unit group with no availability
+        expect(options.first['code']).to eq(unit_group_with_units.id.to_s)
+        expect(options.first['label']).to eq('Available Group')
+        expect(options.first['secondaryLabel']).to eq('2 available')
+      end
+    end
+
+    context 'with user who does not have can_manage_outgoing_referrals permission' do
+      before { remove_permissions(access_control, :can_manage_outgoing_referrals) }
+
+      it_behaves_like 'returns empty pick list'
+    end
+
+    context 'when project does not accept direct referrals' do
+      let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, supports_waitlist_referrals: true, accepts_direct_referrals: false) }
+
+      it_behaves_like 'returns empty pick list'
+    end
+
+    context 'when the project and the user are not in the same data source' do
+      let!(:ce_project) { create(:hmis_hud_project) }
+
+      it_behaves_like 'returns empty pick list'
+    end
+  end
 end
 
 RSpec.configure do |c|

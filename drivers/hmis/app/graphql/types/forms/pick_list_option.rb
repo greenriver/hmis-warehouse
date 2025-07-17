@@ -88,6 +88,9 @@ module Types
         eligible_referral_step_assignment_user_picklist(project)
       when 'PROJECTS_ACCEPTING_CE_REFERRALS'
         projects_accepting_ce_referrals(from_project: project)
+      when 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT'
+        # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
+        available_unit_groups_for_project(project_id: project_id, user: user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -617,6 +620,24 @@ module Types
         next if config.accepts_direct_referrals_from.present? && config.accepts_direct_referrals_from.exclude?(from_project.id)
 
         project.to_pick_list_option
+      end
+    end
+
+    def self.available_unit_groups_for_project(project_id:, user:)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless user.can_manage_outgoing_referrals? # at any project
+
+      project = Hmis::Hud::Project.find(project_id)
+      return [] unless project.data_source_id == user.hmis_data_source_id
+
+      config = Hmis::ProjectCeConfig.detect_best_config_for_project(project)
+      return [] unless config.accepts_direct_referrals?
+
+      project.unit_groups.filter_map do |unit_group|
+        available_count = unit_group.units.unoccupied_on.count
+        next if available_count.zero? # Filter out unit groups with no available units
+
+        { code: unit_group.id, label: unit_group.name, secondary_label: "#{available_count} available" }
       end
     end
   end
