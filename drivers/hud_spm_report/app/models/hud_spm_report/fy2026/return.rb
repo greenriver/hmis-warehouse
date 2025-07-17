@@ -23,6 +23,13 @@ module HudSpmReport::Fy2026
       [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id
     end
 
+    def data_source_id
+      [
+        exit_enrollment&.enrollment&.data_source_id,
+        return_enrollment&.enrollment&.data_source_id,
+      ].detect(&:present?)
+    end
+
     def self.client_ids_with_permanent_exits(report, enrollments)
       filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
       enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
