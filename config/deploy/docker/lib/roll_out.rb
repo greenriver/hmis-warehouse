@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'English'
 require 'amazing_print'
 require 'yaml'
@@ -85,7 +87,7 @@ class RollOut
       exit
     end
 
-    if target_group_name.match?(/production|prd/)
+    if target_group_name.match?(/production|prd|demo/)
       self.rails_env = 'production'
     elsif target_group_name.match?(/staging|stg|training/)
       self.rails_env = 'staging'

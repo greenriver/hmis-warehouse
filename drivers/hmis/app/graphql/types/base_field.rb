@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -11,6 +13,7 @@ module Types
     def initialize(*args, default_value: nil, permissions: nil, **kwargs, &block)
       @permissions = Array.wrap(permissions)
 
+      after_paginate = kwargs.delete(:after_paginate)
       super(*args, **kwargs, &block)
 
       extension(DefaultValueExtension, default_value: default_value) if default_value
@@ -20,9 +23,9 @@ module Types
 
       # ArrayPaginated is an empty class inheriting from BasePaginated
       if return_type < ArrayPaginated
-        extension(PaginationWrapperExtension, is_array: true)
+        extension(PaginationWrapperExtension, is_array: true, after_paginate: after_paginate)
       else
-        extension(PaginationWrapperExtension)
+        extension(PaginationWrapperExtension, after_paginate: after_paginate)
       end
     end
 
@@ -50,7 +53,7 @@ module Types
         field.argument(:limit, Integer, required: false)
       end
 
-      def resolve(object:, arguments:, **_rest)
+      def resolve(object:, arguments:, context:, **_rest)
         cleaned_arguments = arguments.dup
 
         pagination_arguments = {}
@@ -62,9 +65,13 @@ module Types
 
         resolved_object = yield(object, cleaned_arguments)
 
-        return Types::PaginatedArray.new(resolved_object, **pagination_arguments) if options[:is_array]
-
-        Types::PaginatedScope.new(resolved_object, **pagination_arguments)
+        if options[:is_array]
+          result = Types::PaginatedArray.new(resolved_object, **pagination_arguments)
+        else
+          result = Types::PaginatedScope.new(resolved_object, **pagination_arguments)
+        end
+        options[:after_paginate]&.call(result.nodes&.to_a, context)
+        result
       end
     end
 

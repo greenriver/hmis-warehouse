@@ -48,6 +48,8 @@ module Hmis::Ce
       when 'set_move_in_date'
         # Can be triggered on the same step as create_enrollment, or a later step
         referral_enroller.set_move_in_date(message)
+      when 'set_custom_referral_status'
+        set_custom_referral_status(status_key: message.params['custom_status_key'])
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -59,6 +61,7 @@ module Hmis::Ce
 
     def start_referral
       referral.start!
+      set_custom_referral_status(status_key: 'in_progress')
       referral.opportunity.reserve!
       mark_client_dirty(referral.client)
     end
@@ -66,6 +69,7 @@ module Hmis::Ce
     def accept_referral
       referral.completed_at = Time.current
       referral.accept!
+      set_custom_referral_status(status_key: 'accepted')
       referral.opportunity.close!
       mark_client_dirty(referral.client)
     end
@@ -73,6 +77,7 @@ module Hmis::Ce
     def reject_referral
       referral.completed_at = Time.current
       referral.reject!
+      set_custom_referral_status(status_key: 'rejected')
       referral.opportunity.release!
       mark_client_dirty(referral.client)
     end
@@ -100,6 +105,13 @@ module Hmis::Ce
       #   referral_id: self.id,
       #   user_id: event.user.id,
       # ).deliver_later
+    end
+
+    def set_custom_referral_status(status_key:)
+      return unless status_key
+
+      status = Hmis::Ce::CustomReferralStatus.find_by!(key: status_key, data_source: referral.data_source)
+      referral.update!(custom_status: status)
     end
 
     private
