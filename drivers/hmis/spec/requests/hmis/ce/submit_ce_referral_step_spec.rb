@@ -11,36 +11,6 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
     hmis_login(user)
   end
 
-  let(:acceptance_gateway) do
-    create(
-      :hmis_workflow_definition_gateway,
-      template: workflow_template,
-      gateway_type: 'exclusive',
-      name: 'acceptance gw',
-    )
-  end
-
-  let(:reject_referral) do
-    create(
-      :hmis_workflow_definition_end_event,
-      template: workflow_template,
-      name: 'reject referral',
-      trigger_config: [
-        {
-          event: 'end_workflow',
-          message: 'reject_referral',
-        },
-      ],
-    )
-  end
-
-  before do
-    client_acceptance_task.outflows.destroy_all
-    client_acceptance_task.connect_to!(acceptance_gateway)
-    acceptance_gateway.connect_to!(reject_referral, condition: 'client_accepted = 0')
-    acceptance_gateway.connect_to!(accept_referral, condition: 'client_accepted = 1')
-  end
-
   let!(:ds_access_control) do
     create_access_control(
       hmis_user,
@@ -127,8 +97,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
             step.reload
             referral.reload
           end.to change(step, :status).to('completed').
-            and change(step, :completed_at).from(nil).
-            and change(referral, :status).to('accepted')
+            and change(step, :completed_at).from(nil)
         end
       end
 

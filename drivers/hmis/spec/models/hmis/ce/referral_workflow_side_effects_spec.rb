@@ -31,7 +31,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
     let!(:provider_acceptance_task) do
       # Modify task set up in 'ce spec helper' to have a side effect that creates an enrollment
       create(
-        :hmis_workflow_definition_task,
+        :hmis_workflow_definition_user_task,
         template: workflow_template,
         name: 'Provider Acceptance',
         swimlane: case_manager_swimlane,
@@ -167,7 +167,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
 
       let!(:provider_acceptance_task) do
         create(
-          :hmis_workflow_definition_task,
+          :hmis_workflow_definition_user_task,
           template: workflow_template,
           name: 'Provider Acceptance',
           swimlane: case_manager_swimlane,
@@ -201,7 +201,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       context 'if enrollment is not created on the same task' do
         let!(:provider_acceptance_task) do
           create(
-            :hmis_workflow_definition_task,
+            :hmis_workflow_definition_user_task,
             template: workflow_template,
             name: 'Provider Acceptance',
             swimlane: case_manager_swimlane,
@@ -266,7 +266,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         trigger_config: [
           {
             event: 'end_workflow',
-            message: 'accept_referral',
+            message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
           },
           {
             event: 'end_workflow',
@@ -284,7 +284,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         trigger_config: [
           {
             event: 'end_workflow',
-            message: 'reject_referral',
+            message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
           },
         ],
       )

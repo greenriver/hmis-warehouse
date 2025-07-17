@@ -23,6 +23,7 @@ module Types
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true
     field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
     field :workflow_template_name, String, null: true
+    field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     field :target_project_id, ID, null: false
@@ -54,7 +55,7 @@ module Types
       graph.
         # Stop the search when the node doesn't exist yet and is conditional. We don't want to return this node, or any of its children, if it won't definitely happen.
         walk(stop_when: ->(node) { steps_by_node_id[node.id].nil? && node.conditional_inflows? }).
-        filter(&:task?).
+        filter(&:user_task?).
         map do |node|
         next steps_by_node_id[node.id] if steps_by_node_id[node.id] # task instance already exists
 
@@ -164,6 +165,12 @@ module Types
       {
         can_view_target_project: project.present?,
       }
+    end
+
+    def audit_events
+      object.audit_events.
+        where(event_type: ['complete_step', 'start_workflow', 'end_workflow']).
+        order(created_at: :desc)
     end
 
     private

@@ -27,7 +27,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     p_t = Hmis::Hud::Project.arel_table
     hh_t = Hmis::Hud::Household.arel_table
     cond = p_t[:ProjectID].eq(hh_t[:ProjectID]).and(p_t[:data_source_id].eq(hh_t[:data_source_id]))
-    projects = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').where(cond)
+    projects = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).where(cond)
     where(projects.arel.exists)
   end
 

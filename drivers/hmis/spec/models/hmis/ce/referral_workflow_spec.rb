@@ -42,7 +42,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'accept_referral',
+          message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
         },
       ],
     )
@@ -56,7 +56,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       trigger_config: [
         {
           event: 'end_workflow',
-          message: 'reject_referral',
+          message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
         },
       ],
     )
@@ -77,7 +77,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     let(:case_manager_swimlane) { template.swimlanes.create(name: 'Case Managers') }
 
     let(:client_acceptance_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task', swimlane: case_manager_swimlane)
+      create(:hmis_workflow_definition_user_task, template: template, name: 'client acceptance task', swimlane: case_manager_swimlane)
     end
 
     let(:client_acceptance_gateway) do
@@ -113,12 +113,15 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
         engine.start_step!(current_step, user: user)
         expect(current_step).to be_in_progress
+        expect(referral.completed_at).to be_nil
 
         engine.complete_step!(current_step, user: user, submitted_values: task_data)
         expect(current_step).to be_completed
+        expect(current_step.updated_by).to eq(user)
 
         expect(engine.active_steps.count).to be_zero
         expect(referral.status).to eq(expected_referral_end_status)
+        expect(referral.completed_at).not_to be_nil
         expect(opportunity.reload.status).to eq(expected_opportunity_end_status)
       end
     end
@@ -126,11 +129,11 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   describe 'Parallel tasks' do
     let(:background_check_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'background check task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'background check task')
     end
 
     let(:income_check_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'income check task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'income check task')
     end
 
     let(:start_verification_gateway) do
@@ -181,19 +184,19 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   describe 'A Multi-task workflow' do
     let(:client_acceptance_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'client acceptance task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'client acceptance task')
     end
 
     let(:provider_acceptance_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'provider acceptance task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'provider acceptance task')
     end
 
     let(:income_check_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'income check task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'income check task')
     end
 
     let(:enrollment_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'income check task')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'income check task')
     end
 
     before do
@@ -223,7 +226,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
     # FIXME - should probably be extracted own graph_spec.rb
     it 'walks workflow nodes down parallel paths' do
-      nodes = template.graph.walk(entrypoint_ids: [client_acceptance_task.id], stop_when: lambda(&:task?)).filter(&:task?).to_a
+      nodes = template.graph.walk(entrypoint_ids: [client_acceptance_task.id], stop_when: lambda(&:user_task?)).filter(&:user_task?).to_a
       expect(nodes).to eq([provider_acceptance_task, income_check_task])
     end
 
@@ -258,7 +261,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
   describe 'a workflow that loops back to a previous node' do
     let(:client_acceptance_task) do
       create(
-        :hmis_workflow_definition_task,
+        :hmis_workflow_definition_user_task,
         template: template,
         name: 'client acceptance task',
         trigger_config: [
@@ -271,7 +274,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     end
 
     let(:admin_approve_denial_task) do
-      create(:hmis_workflow_definition_task, template: template, name: 'admin approve denial')
+      create(:hmis_workflow_definition_user_task, template: template, name: 'admin approve denial')
     end
 
     let!(:gw1) { create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive', name: 'gw1') }
@@ -317,7 +320,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
       let(:client_acceptance_task) do
         create(
-          :hmis_workflow_definition_task,
+          :hmis_workflow_definition_user_task,
           template: template,
           name: 'client acceptance task',
           trigger_config: [
@@ -341,6 +344,58 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
           engine.complete_step!(admin_step, user: user, submitted_values: { 'review_denial_decision': 0 })
         end.to raise_error(RuntimeError, /Failed to reopen step/)
       end
+    end
+  end
+
+  describe 'Workflow with script task' do
+    let!(:coc1) { create(:hmis_hud_project_coc, data_source: project.data_source, project: project, coc_code: 'CO-500') }
+
+    let(:acceptance_task) do
+      create(:hmis_workflow_definition_user_task, template: template, name: 'client acceptance task')
+    end
+
+    let!(:gw1) { create(:hmis_workflow_definition_gateway, template: template, gateway_type: 'exclusive', name: 'gw1') }
+
+    let(:script_task) do
+      create(
+        :hmis_workflow_definition_script_task,
+        template: template,
+        name: 'Enrollment Creator',
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_enrollment',
+          },
+        ],
+      )
+    end
+
+    before do
+      start_event.connect_to!(acceptance_task)
+      acceptance_task.connect_to!(gw1)
+      gw1.connect_to!(script_task, condition: 'accept = 1')
+      gw1.connect_to!(reject_referral)
+      script_task.connect_to!(accept_referral)
+
+      engine.start_workflow!(user: user)
+
+      current_step = engine.active_steps.sole
+      expect(current_step.node).to eq(acceptance_task)
+      expect(current_step.status).to eq('available')
+
+      engine.start_step!(current_step, user: user)
+      expect(current_step.status).to eq('in_progress')
+    end
+
+    it 'executes script task' do
+      acceptance_step = engine.active_steps.sole
+
+      expect do
+        engine.complete_step!(acceptance_step, user: user, submitted_values: { accept: 1 })
+      end.to change(Hmis::Hud::Enrollment, :count).by(1)
+
+      script_step = instance.steps.where(node: script_task).sole
+      expect(script_step.status).to eq('completed')
     end
   end
 end

@@ -11,7 +11,7 @@ module Hmis::WorkflowDefinition
     has_many :flows, class_name: 'Hmis::WorkflowDefinition::Flow', dependent: :destroy
     has_many :instances, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :restrict_with_exception, foreign_key: 'template_id'
     has_many :swimlanes, class_name: 'Hmis::WorkflowDefinition::Swimlane', dependent: :restrict_with_exception, foreign_key: 'template_id'
-    has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
+    has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception, foreign_key: 'workflow_template_identifier', primary_key: 'identifier'
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     validates :name, presence: true

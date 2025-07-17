@@ -45,7 +45,7 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
   end
 
   def validate_tasks_and_gateways(record)
-    invalid_nodes = (record.nodes.gateways + record.nodes.tasks).filter { |node| node.inflows.none? || node.outflows.none? }
+    invalid_nodes = (record.nodes.gateways + record.nodes.user_tasks + record.nodes.script_tasks).filter { |node| node.inflows.none? || node.outflows.none? }
     record.errors.add(:base, "The following nodes must have at least one inflow and one outflow: #{invalid_nodes.map(&:name).join(', ')}") if invalid_nodes.any?
 
     record.nodes.gateways.filter { |gateway| gateway.outflows.map(&:condition).all? }.each do |gateway|

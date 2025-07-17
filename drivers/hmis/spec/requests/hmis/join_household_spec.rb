@@ -151,6 +151,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  context 'when the donor household had a staff assignment' do
+    let!(:assignment) { create :hmis_staff_assignment, data_source: ds1, enrollment: donor_hoh }
+    let!(:assignee) { assignment.user }
+
+    it 'transfers the staff assignment to the receiving household' do
+      expect do
+        perform_mutation
+        assignment.reload
+        assignee.reload
+      end.to not_change(assignee.staff_assignments, :count).
+        and change(assignment, :household_id).from(donor_household_id).to(receiving_enrollment.household_id)
+    end
+  end
+
   describe 'unit assignment' do
     let!(:unit1) { create :hmis_unit, project: p1 }
 
