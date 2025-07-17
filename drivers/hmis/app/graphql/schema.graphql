@@ -747,6 +747,12 @@ type CeCandidatesPaginated {
   pagesCount: Int!
 }
 
+type CeCustomReferralStatus {
+  id: ID!
+  key: String!
+  name: String!
+}
+
 type CeMatchRule {
   expression: String!
 
@@ -941,6 +947,7 @@ type CeReferral {
   """
   currentMatchValues: [CeMatchValue!]
   currentSteps: [CeReferralStep!]
+  customStatus: CeCustomReferralStatus
   daysOnCurrentSteps: Int
   id: ID!
   notes(limit: Int, offset: Int): CeReferralNotesPaginated!
@@ -1017,7 +1024,7 @@ input CeReferralFilterOptions {
   organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
-  status: [CeReferralStatus!]
+  referralStatus: [String!]
   workflowTemplate: [String!]
 }
 
@@ -1512,7 +1519,7 @@ input ClientCeReferralFilterOptions {
   organization: [ID!]
   project: [ID!]
   projectType: [ProjectType!]
-  status: [CeReferralStatus!]
+  referralStatus: [String!]
 }
 
 type ClientContactPoint {
@@ -7405,6 +7412,7 @@ enum PickListType {
   Grouped HUD CE Event types
   """
   CE_EVENTS
+  CE_REFERRAL_STATUSES
 
   """
   Templates for CE workflow definitions
@@ -9444,7 +9452,7 @@ input ProjectCeOpportunityFilterOptions {
 }
 
 input ProjectCeReferralFilterOptions {
-  status: [CeReferralStatus!]
+  referralStatus: [String!]
 }
 
 type ProjectCoc {

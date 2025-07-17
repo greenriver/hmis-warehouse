@@ -31,6 +31,7 @@ RSpec.shared_context 'ce spec helper' do
   let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+  let!(:state_machine_statuses) { HmisUtil::CeBuilder.create_state_machine_custom_statuses(ds1) }
   let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
   let!(:workflow_instance) { workflow_template.instances.create! }
 
