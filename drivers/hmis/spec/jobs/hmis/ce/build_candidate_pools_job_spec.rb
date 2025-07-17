@@ -17,9 +17,6 @@ RSpec.describe Hmis::Ce::BuildCandidatePoolsJob, type: :job do
     before do
       create(:hmis_ce_eligibility_requirement, owner: opportunity_1.project, expression: 'current_age = 50')
       create(:hmis_ce_eligibility_requirement, owner: opportunity_2.project, expression: 'current_age = 51')
-    end
-
-    before do
       # build the initial pools
       Hmis::Ce::Match::CandidatePoolBuilder.new(Hmis::Ce::Opportunity.active).perform
     end
