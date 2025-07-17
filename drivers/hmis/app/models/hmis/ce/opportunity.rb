@@ -109,6 +109,11 @@ module Hmis::Ce
       Hmis::Filter::CeOpportunityFilter.new(input).filter_scope(self)
     end
 
+    def self.active_referral_ids_for_units(units)
+      r_t = Hmis::Ce::Referral.arel_table
+      joins(:active_referral).where(unit_id: units.map(&:id)).pluck(r_t[:id])
+    end
+
     def active?
       !closed?
     end

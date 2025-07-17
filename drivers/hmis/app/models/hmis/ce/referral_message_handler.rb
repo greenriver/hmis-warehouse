@@ -63,6 +63,7 @@ module Hmis::Ce
       referral.start!
       set_custom_referral_status(status_key: 'in_progress')
       referral.opportunity.reserve!
+      mark_client_dirty(referral.client)
     end
 
     def accept_referral
@@ -70,6 +71,7 @@ module Hmis::Ce
       referral.accept!
       set_custom_referral_status(status_key: 'accepted')
       referral.opportunity.close!
+      mark_client_dirty(referral.client)
     end
 
     def reject_referral
@@ -77,6 +79,7 @@ module Hmis::Ce
       referral.reject!
       set_custom_referral_status(status_key: 'rejected')
       referral.opportunity.release!
+      mark_client_dirty(referral.client)
     end
 
     def create_unit_assignment(message)
@@ -119,6 +122,12 @@ module Hmis::Ce
 
     def referral_ce_event_manager
       @referral_ce_event_manager ||= Hmis::Ce::ReferralCeEventManager.new(referral)
+    end
+
+    def mark_client_dirty(client)
+      raise ArgumentError unless client.is_a?(Hmis::Hud::Client)
+
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: [client.id])
     end
   end
 end
