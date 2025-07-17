@@ -19,8 +19,6 @@ Rails.application.reloader.to_prepare do
 end
 
 Rails.application.config.hmis_data_lakes['2026'] = 'HmisCsvTwentyTwentySix'
-Rails.application.config.hmis_importers['2026'] = 'HmisCsvTwentyTwentySix::Importer::Importer'
-Rails.application.config.hmis_loaders['2026'] = 'HmisCsvTwentyTwentySix::Loader::Loader'
 
 if (Date.current >= '2025-10-01'.to_date && Rails.env.production?) || (Date.current >= '2025-09-01'.to_date && Rails.env.staging?)
   Rails.application.config.queued_tasks[:hmis_twenty_twenty_six_upgrade_recurring_exports] = -> do

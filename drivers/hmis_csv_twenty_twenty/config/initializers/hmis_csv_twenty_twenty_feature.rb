@@ -15,8 +15,6 @@
 RailsDrivers.loaded << :hmis_csv_twenty_twenty
 
 Rails.application.config.hmis_data_lakes['2020'] = 'HmisCsvTwentyTwenty'
-Rails.application.config.hmis_importers['2020'] = 'HmisCsvImporter::Importer::Importer'
-Rails.application.config.hmis_loaders['2020'] = 'HmisCsvImporter::Loader::Loader'
 # Rails.application.reloader.to_prepare do
 #   Importers::HmisAutoDetect.add_importer('HmisCsvTwentyTwenty')
 #   Filters::HmisExport.register_version('HMIS 2020', '2020', 'HmisCsvTwentyTwenty::ExportJob')

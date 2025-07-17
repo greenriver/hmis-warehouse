@@ -4,7 +4,7 @@
 
 The `HmisCsvTwentyTwentySix` driver provides support for the FY2026 HUD HMIS CSV format. It integrates into the version-aware HMIS import pipeline, allowing it to automatically process standard HMIS CSV files as well as custom CSV files (like `CustomGender.csv` and `CustomDataElement.csv`) when FY2026 HMIS exports are uploaded.
 
-The import system automatically detects the HMIS CSV version from the `Export.csv` file and routes to the appropriate loader and importer. For FY2026, it uses `HmisCsvTwentyTwentySix::Loader::Loader` and `HmisCsvTwentyTwentySix::Importer::Importer`, which include support for custom files.
+The import system automatically detects the HMIS CSV version from the `Export.csv` file and routes to the appropriate loader and importer.
 
 ## Changes from FY2024
 

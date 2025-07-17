@@ -187,7 +187,7 @@ module HmisCsvImporter::Loader
     end
 
     private def importer_class
-      self.class.importer_class_for_version(@current_version)
+      HmisCsvImporter::Importer::Importer
     end
 
     private def load_source_file_pg(read_from:, klass:, original_file_path:)

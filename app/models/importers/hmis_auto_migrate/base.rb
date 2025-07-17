@@ -21,7 +21,7 @@ module Importers::HmisAutoMigrate
 
       # Determine version after files are extracted but before creating loader
       @current_version = Importers::HmisAutoMigrate.calculate_current_version(@local_path)
-      @loader_class = HmisCsvImporter::Loader::Loader.loader_class_for_version(@current_version)
+      @loader_class = HmisCsvImporter::Loader::Loader
 
       @upload.update(percent_complete: 1)
 

@@ -11,18 +11,20 @@ module HmisCsvTwentyTwentySix::Importer::Custom
   #
   # This class provides generic mapping functionality that can transform
   # data from custom CSV files into the appropriate warehouse format
-  # based on YAML configuration. It supports three main mapping types:
+  # based on YAML configuration. It supports several mapping types:
   #
-  # 1. **Direct mapping**: Simple 1:1 column mapping
-  # 2. **Value-based multi-column mapping**: Maps source values to different target columns
-  # 3. **Concatenation mapping**: Combines multiple source values into one target column
-  # 4. **Key-value store processing**: Special handling for CustomDataElements
+  # 1.  **Direct mapping**: Simple 1:1 column mapping.
+  # 2.  **Value-based multi-column mapping**: Maps source values to different target columns.
+  # 3.  **Concatenation mapping**: Combines multiple source values into one target column.
+  # 4.  **Value mapping**: Transforms source values based on a lookup table.
+  # 5.  **Record lookup**: Looks up foreign keys in other warehouse tables.
+  # 6.  **Static value**: Assigns a fixed value to a target column.
   #
   # == Usage Patterns
   #
-  # The ColumnMapper is typically used in two scenarios:
-  # 1. **Augmentation**: Adding data to existing warehouse tables
-  # 2. **Key-value processing**: Handling CustomDataElements with definitions
+  # The ColumnMapper is used to process records from custom CSV files, applying the transformations
+  # defined in the YAML configuration files. It can be used for both augmenting existing warehouse
+  # tables and for populating new, custom tables.
   #
   # == Mapping Configuration Examples
   #
@@ -47,30 +49,26 @@ module HmisCsvTwentyTwentySix::Importer::Custom
   #         target_column: "Man"
   #         target_value: 1
   #
-  #   # This maps gender codes to separate boolean columns
+  #   # This maps gender codes to separate boolean columns.
   #
-  # @example Concatenation mapping (multiple sources to one target)
-  #   # YAML config:
+  # @example Record Lookup Mapping
+  #   # YAML config for looking up an owner_id for a custom data element:
   #   warehouse_column_mapping:
-  #     type: "concatenation"
-  #     target_column: "combined_notes"
-  #     separator: " | "
-  #
-  #   # Combines values like "Note 1 | Note 2 | Note 3"
-  #
-  # @example Key-value store processing
-  #   # For CustomDataElements that reference definitions:
-  #   ColumnMapper.process_key_value_store(source_records, file_config, importer_log)
+  #     type: "record_lookup"
+  #     class_column: "owner_type"
+  #     target_column: "owner_id"
+  #     lookup_field_mappings:
+  #       "GrdaWarehouse::Hud::Client": "PersonalID"
+  #       "GrdaWarehouse::Hud::Enrollment": "EnrollmentID"
   #
   # == Error Handling
   #
   # The mapper handles various error conditions gracefully:
-  # - Unknown mapping types are logged as warnings
-  # - Invalid data conversions return nil or default values
-  # - Missing definitions in key-value stores are logged as warnings
+  # - Unknown mapping types are logged as warnings.
+  # - Invalid data conversions return nil or default values.
   #
-  # @see CustomImportConcern For integration with importer classes
-  # @see CustomFileManager For YAML configuration loading
+  # @see CustomImportConcern For integration with importer classes.
+  # @see CustomFileManager For YAML configuration loading.
   class ColumnMapper
     # Applies column mappings from source record to target attributes with efficient record lookup support
     #
@@ -95,10 +93,13 @@ module HmisCsvTwentyTwentySix::Importer::Custom
       results.map { |result| result[:mapped_attributes] }
     end
 
-    # Applies column mappings with efficient batch record lookups
+    # Applies all configured column mappings for a single source record.
     #
-    # This method supports both single record and batch processing modes.
-    # For record_lookup mappings, it defers the lookup and handles them efficiently.
+    # This method iterates through the column configurations and applies the appropriate
+    # mapping function for each. For `record_lookup` mappings, it can use an
+    # optional cache to improve performance when called in a batch context.
+    #
+    # @see .apply_mappings_batch for processing an array of records efficiently.
     #
     # @param source_record [Object] Source record with data to map
     # @param mapped_attributes [Hash] Hash to store mapped attributes

@@ -40,30 +40,6 @@ module HmisCsvImporter::HmisCsv
       active_data_lake_module.constantize
     end
 
-    def self.importer_class_for_version(version)
-      importer_mapping = Rails.application.config.hmis_importers
-      importer_class_name = importer_mapping[version]
-
-      if importer_class_name.present?
-        importer_class_name.constantize
-      else
-        # Fall back to the base importer
-        HmisCsvImporter::Importer::Importer
-      end
-    end
-
-    def self.loader_class_for_version(version)
-      loader_mapping = Rails.application.config.hmis_loaders
-      loader_class_name = loader_mapping[version]
-
-      if loader_class_name.present?
-        loader_class_name.constantize
-      else
-        # Fall back to the base loader
-        HmisCsvImporter::Loader::Loader
-      end
-    end
-
     def importable_file_class(name)
       module_name = self.class.data_lake_module(@current_version)
       self.class.data_lake_file_class(module_name: module_name, phase: 'Importer', name: name)
