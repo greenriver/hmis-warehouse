@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -557,7 +557,8 @@ CREATE TABLE public.cas_analytics_opportunities (
     unit_id bigint,
     unit_name character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    made_available_at timestamp(6) without time zone
 );
 
 
@@ -571,7 +572,8 @@ CREATE VIEW analytics.cas_opportunities AS
     unit_id,
     unit_name,
     created_at,
-    updated_at
+    updated_at,
+    made_available_at
    FROM public.cas_analytics_opportunities;
 
 
@@ -592,7 +594,8 @@ CREATE TABLE public.cas_analytics_opportunity_categories (
     hsa_id bigint,
     hsa_name character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reporting_project_id bigint
 );
 
 
@@ -620,7 +623,8 @@ CREATE VIEW analytics.cas_opportunity_categories AS
     hsa_id,
     hsa_name,
     created_at,
-    updated_at
+    updated_at,
+    reporting_project_id
    FROM public.cas_analytics_opportunity_categories;
 
 
@@ -2082,7 +2086,12 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     show_in_summary boolean DEFAULT false NOT NULL,
-    form_definition_identifier character varying
+    form_definition_identifier character varying,
+    "CustomDataElementDefinitionID" character varying,
+    "ExportID" character varying,
+    pending_date_deleted date,
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -2179,7 +2188,15 @@ CREATE TABLE public."CustomDataElements" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    value_file_id bigint
+    value_file_id bigint,
+    "CustomDataElementID" character varying,
+    "CustomDataElementDefinitionID" character varying,
+    "DataCollectionStage" integer,
+    "InformationDate" date,
+    "ExportID" character varying,
+    pending_date_deleted date,
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -15631,6 +15648,201 @@ ALTER SEQUENCE public.hmis_2026_current_living_situations_id_seq OWNED BY public
 
 
 --
+-- Name: hmis_2026_custom_data_element_definitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2026_custom_data_element_definitions (
+    id bigint NOT NULL,
+    "CustomDataElementDefinitionID" character varying,
+    "Key" character varying,
+    "RecordType" character varying,
+    "FieldType" character varying,
+    "Label" character varying,
+    "Repeats" boolean,
+    "DateCreated" timestamp(6) without time zone,
+    "DateUpdated" timestamp(6) without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp(6) without time zone,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
+    pre_processed_at timestamp(6) without time zone NOT NULL,
+    source_hash character varying,
+    source_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2026_custom_data_element_definitions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2026_custom_data_element_definitions_id_seq OWNED BY public.hmis_2026_custom_data_element_definitions.id;
+
+
+--
+-- Name: hmis_2026_custom_data_elements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2026_custom_data_elements (
+    id bigint NOT NULL,
+    "CustomDataElementID" character varying,
+    "CustomDataElementDefinitionID" character varying,
+    "RecordType" character varying,
+    "RecordID" character varying,
+    "Value" character varying,
+    "DataCollectionStage" integer,
+    "InformationDate" timestamp(6) without time zone,
+    "UserID" character varying,
+    "DateCreated" timestamp(6) without time zone,
+    "DateUpdated" timestamp(6) without time zone,
+    "DateDeleted" timestamp(6) without time zone,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
+    pre_processed_at timestamp(6) without time zone NOT NULL,
+    source_hash character varying,
+    source_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2026_custom_data_elements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2026_custom_data_elements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2026_custom_data_elements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2026_custom_data_elements_id_seq OWNED BY public.hmis_2026_custom_data_elements.id;
+
+
+--
+-- Name: hmis_2026_custom_genders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2026_custom_genders (
+    id bigint NOT NULL,
+    "PersonalID" character varying,
+    "Woman" integer,
+    "Man" integer,
+    "NonBinary" integer,
+    "CulturallySpecific" integer,
+    "Transgender" integer,
+    "Questioning" integer,
+    "DifferentIdentity" integer,
+    "GenderNone" integer,
+    "DifferentIdentityText" character varying,
+    "DateCreated" timestamp(6) without time zone,
+    "DateUpdated" timestamp(6) without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp(6) without time zone,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
+    pre_processed_at timestamp(6) without time zone NOT NULL,
+    source_hash character varying,
+    source_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2026_custom_genders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2026_custom_genders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2026_custom_genders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2026_custom_genders_id_seq OWNED BY public.hmis_2026_custom_genders.id;
+
+
+--
+-- Name: hmis_2026_custom_sexual_orientations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2026_custom_sexual_orientations (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "SexualOrientation" integer,
+    "SexualOrientationOther" character varying,
+    "DateCreated" timestamp(6) without time zone,
+    "DateUpdated" timestamp(6) without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp(6) without time zone,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
+    pre_processed_at timestamp(6) without time zone NOT NULL,
+    source_hash character varying,
+    source_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2026_custom_sexual_orientations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2026_custom_sexual_orientations_id_seq OWNED BY public.hmis_2026_custom_sexual_orientations.id;
+
+
+--
 -- Name: hmis_2026_disabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21290,6 +21502,177 @@ CREATE SEQUENCE public.hmis_csv_2026_current_living_situations_id_seq
 --
 
 ALTER SEQUENCE public.hmis_csv_2026_current_living_situations_id_seq OWNED BY public.hmis_csv_2026_current_living_situations.id;
+
+
+--
+-- Name: hmis_csv_2026_custom_data_element_definitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2026_custom_data_element_definitions (
+    id bigint NOT NULL,
+    "CustomDataElementDefinitionID" character varying,
+    "Key" character varying,
+    "RecordType" character varying,
+    "FieldType" character varying,
+    "Label" character varying,
+    "Repeats" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    loaded_at timestamp(6) without time zone NOT NULL,
+    loader_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2026_custom_data_element_definitions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2026_custom_data_element_definitions_id_seq OWNED BY public.hmis_csv_2026_custom_data_element_definitions.id;
+
+
+--
+-- Name: hmis_csv_2026_custom_data_elements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2026_custom_data_elements (
+    id bigint NOT NULL,
+    "CustomDataElementID" character varying,
+    "CustomDataElementDefinitionID" character varying,
+    "RecordType" character varying,
+    "RecordID" character varying,
+    "Value" character varying,
+    "DataCollectionStage" character varying,
+    "InformationDate" character varying,
+    "UserID" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    loaded_at timestamp(6) without time zone NOT NULL,
+    loader_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2026_custom_data_elements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2026_custom_data_elements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2026_custom_data_elements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2026_custom_data_elements_id_seq OWNED BY public.hmis_csv_2026_custom_data_elements.id;
+
+
+--
+-- Name: hmis_csv_2026_custom_genders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2026_custom_genders (
+    id bigint NOT NULL,
+    "PersonalID" character varying,
+    "Woman" character varying,
+    "Man" character varying,
+    "NonBinary" character varying,
+    "CulturallySpecific" character varying,
+    "Transgender" character varying,
+    "Questioning" character varying,
+    "DifferentIdentity" character varying,
+    "GenderNone" character varying,
+    "DifferentIdentityText" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    loaded_at timestamp(6) without time zone NOT NULL,
+    loader_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2026_custom_genders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2026_custom_genders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2026_custom_genders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2026_custom_genders_id_seq OWNED BY public.hmis_csv_2026_custom_genders.id;
+
+
+--
+-- Name: hmis_csv_2026_custom_sexual_orientations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2026_custom_sexual_orientations (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "SexualOrientation" character varying,
+    "SexualOrientationOther" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    loaded_at timestamp(6) without time zone NOT NULL,
+    loader_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2026_custom_sexual_orientations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2026_custom_sexual_orientations_id_seq OWNED BY public.hmis_csv_2026_custom_sexual_orientations.id;
 
 
 --
@@ -34789,6 +35172,34 @@ ALTER TABLE ONLY public.hmis_2026_current_living_situations ALTER COLUMN id SET 
 
 
 --
+-- Name: hmis_2026_custom_data_element_definitions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_data_element_definitions ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_data_element_definitions_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2026_custom_data_elements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_data_elements ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_data_elements_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2026_custom_genders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_genders ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_genders_id_seq'::regclass);
+
+
+--
+-- Name: hmis_2026_custom_sexual_orientations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_sexual_orientations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_sexual_orientations_id_seq'::regclass);
+
+
+--
 -- Name: hmis_2026_disabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -35528,6 +35939,34 @@ ALTER TABLE ONLY public.hmis_csv_2026_clients ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.hmis_csv_2026_current_living_situations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_current_living_situations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2026_custom_data_element_definitions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_data_element_definitions ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_data_element_definitions_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2026_custom_data_elements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_data_elements ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_data_elements_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2026_custom_genders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_genders ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_genders_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2026_custom_sexual_orientations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_sexual_orientations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_sexual_orientations_id_seq'::regclass);
 
 
 --
@@ -39013,6 +39452,38 @@ ALTER TABLE ONLY public.hmis_2026_current_living_situations
 
 
 --
+-- Name: hmis_2026_custom_data_element_definitions hmis_2026_custom_data_element_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_data_element_definitions
+    ADD CONSTRAINT hmis_2026_custom_data_element_definitions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2026_custom_data_elements hmis_2026_custom_data_elements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_data_elements
+    ADD CONSTRAINT hmis_2026_custom_data_elements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2026_custom_genders hmis_2026_custom_genders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_genders
+    ADD CONSTRAINT hmis_2026_custom_genders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_2026_custom_sexual_orientations hmis_2026_custom_sexual_orientations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_sexual_orientations
+    ADD CONSTRAINT hmis_2026_custom_sexual_orientations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_2026_disabilities hmis_2026_disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -39858,6 +40329,38 @@ ALTER TABLE ONLY public.hmis_csv_2026_clients
 
 ALTER TABLE ONLY public.hmis_csv_2026_current_living_situations
     ADD CONSTRAINT hmis_csv_2026_current_living_situations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2026_custom_data_element_definitions hmis_csv_2026_custom_data_element_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_data_element_definitions
+    ADD CONSTRAINT hmis_csv_2026_custom_data_element_definitions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2026_custom_data_elements hmis_csv_2026_custom_data_elements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_data_elements
+    ADD CONSTRAINT hmis_csv_2026_custom_data_elements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2026_custom_genders hmis_csv_2026_custom_genders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_genders
+    ADD CONSTRAINT hmis_csv_2026_custom_genders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2026_custom_sexual_orientations hmis_csv_2026_custom_sexual_orientations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_sexual_orientations
+    ADD CONSTRAINT hmis_csv_2026_custom_sexual_orientations_pkey PRIMARY KEY (id);
 
 
 --
@@ -59490,6 +59993,90 @@ CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_
 
 
 --
+-- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_data_element_definitions_id_ds ON public.hmis_csv_2026_custom_data_element_definitions USING btree ("CustomDataElementDefinitionID", data_source_id);
+
+
+--
+-- Name: idx_custom_data_element_definitions_imp_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_data_element_definitions_imp_id_ds ON public.hmis_2026_custom_data_element_definitions USING btree ("CustomDataElementDefinitionID", data_source_id);
+
+
+--
+-- Name: idx_custom_data_element_definitions_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_data_element_definitions_source ON public.hmis_2026_custom_data_element_definitions USING btree (source_type, source_id);
+
+
+--
+-- Name: idx_custom_data_elements_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_data_elements_id_ds ON public.hmis_csv_2026_custom_data_elements USING btree ("CustomDataElementID", data_source_id);
+
+
+--
+-- Name: idx_custom_data_elements_imp_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_data_elements_imp_id_ds ON public.hmis_2026_custom_data_elements USING btree ("CustomDataElementID", data_source_id);
+
+
+--
+-- Name: idx_custom_data_elements_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_data_elements_source ON public.hmis_2026_custom_data_elements USING btree (source_type, source_id);
+
+
+--
+-- Name: idx_custom_genders_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_genders_id_ds ON public.hmis_csv_2026_custom_genders USING btree ("PersonalID", data_source_id);
+
+
+--
+-- Name: idx_custom_genders_imp_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_genders_imp_id_ds ON public.hmis_2026_custom_genders USING btree ("PersonalID", data_source_id);
+
+
+--
+-- Name: idx_custom_genders_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_genders_source ON public.hmis_2026_custom_genders USING btree (source_type, source_id);
+
+
+--
+-- Name: idx_custom_sexual_orientations_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_sexual_orientations_id_ds ON public.hmis_csv_2026_custom_sexual_orientations USING btree ("EnrollmentID", data_source_id);
+
+
+--
+-- Name: idx_custom_sexual_orientations_imp_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_sexual_orientations_imp_id_ds ON public.hmis_2026_custom_sexual_orientations USING btree ("EnrollmentID", data_source_id);
+
+
+--
+-- Name: idx_custom_sexual_orientations_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_sexual_orientations_source ON public.hmis_2026_custom_sexual_orientations USING btree (source_type, source_id);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59711,6 +60298,55 @@ CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_co
 --
 
 CREATE INDEX idx_on_data_source_id_641ce0c5a9 ON public.hmis_csv_2026_current_living_situations USING btree (data_source_id);
+
+
+--
+-- Name: idx_on_data_source_id_752bcf074b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_752bcf074b ON public.hmis_csv_2026_custom_sexual_orientations USING btree (data_source_id);
+
+
+--
+-- Name: idx_on_data_source_id_CustomDataElementDefinitionID_51bbc66933; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "idx_on_data_source_id_CustomDataElementDefinitionID_51bbc66933" ON public."CustomDataElementDefinitions" USING btree (data_source_id, "CustomDataElementDefinitionID") WHERE ("CustomDataElementDefinitionID" IS NOT NULL);
+
+
+--
+-- Name: idx_on_data_source_id_CustomDataElementID_fb99f542fc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "idx_on_data_source_id_CustomDataElementID_fb99f542fc" ON public."CustomDataElements" USING btree (data_source_id, "CustomDataElementID") WHERE ("CustomDataElementID" IS NOT NULL);
+
+
+--
+-- Name: idx_on_data_source_id_be0ab86c77; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_be0ab86c77 ON public.hmis_2026_custom_data_element_definitions USING btree (data_source_id);
+
+
+--
+-- Name: idx_on_data_source_id_c052f938ba; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_c052f938ba ON public.hmis_csv_2026_custom_data_element_definitions USING btree (data_source_id);
+
+
+--
+-- Name: idx_on_importer_log_id_91e82a0553; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_importer_log_id_91e82a0553 ON public.hmis_2026_custom_data_element_definitions USING btree (importer_log_id);
+
+
+--
+-- Name: idx_on_loader_id_083332ec0e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_loader_id_083332ec0e ON public.hmis_csv_2026_custom_data_element_definitions USING btree (loader_id);
 
 
 --
@@ -63340,6 +63976,48 @@ CREATE INDEX index_hmis_2026_current_living_situations_on_importer_log_id ON pub
 
 
 --
+-- Name: index_hmis_2026_custom_data_elements_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2026_custom_data_elements_on_data_source_id ON public.hmis_2026_custom_data_elements USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2026_custom_data_elements_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2026_custom_data_elements_on_importer_log_id ON public.hmis_2026_custom_data_elements USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2026_custom_genders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2026_custom_genders_on_data_source_id ON public.hmis_2026_custom_genders USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2026_custom_genders_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2026_custom_genders_on_importer_log_id ON public.hmis_2026_custom_genders USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2026_custom_sexual_orientations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2026_custom_sexual_orientations_on_data_source_id ON public.hmis_2026_custom_sexual_orientations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2026_custom_sexual_orientations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2026_custom_sexual_orientations_on_importer_log_id ON public.hmis_2026_custom_sexual_orientations USING btree (importer_log_id);
+
+
+--
 -- Name: index_hmis_2026_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -64611,6 +65289,41 @@ CREATE INDEX index_hmis_csv_2026_clients_on_loader_id ON public.hmis_csv_2026_cl
 --
 
 CREATE INDEX index_hmis_csv_2026_current_living_situations_on_loader_id ON public.hmis_csv_2026_current_living_situations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2026_custom_data_elements_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2026_custom_data_elements_on_data_source_id ON public.hmis_csv_2026_custom_data_elements USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2026_custom_data_elements_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2026_custom_data_elements_on_loader_id ON public.hmis_csv_2026_custom_data_elements USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2026_custom_genders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2026_custom_genders_on_data_source_id ON public.hmis_csv_2026_custom_genders USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2026_custom_genders_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2026_custom_genders_on_loader_id ON public.hmis_csv_2026_custom_genders USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2026_custom_sexual_orientations_on_loader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2026_custom_sexual_orientations_on_loader_id ON public.hmis_csv_2026_custom_sexual_orientations USING btree (loader_id);
 
 
 --
@@ -74365,7 +75078,17 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250716131246'),
+('20250716131240'),
+('20250716123853'),
+('20250716122931'),
+('20250715152820'),
+('20250715123705'),
+('20250714172716'),
+('20250714145407'),
+('20250711105827'),
 ('20250708132033'),
+('20250707200918'),
 ('20250703125916'),
 ('20250701185134'),
 ('20250627132413'),
