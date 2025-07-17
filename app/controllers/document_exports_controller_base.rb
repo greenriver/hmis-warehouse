@@ -117,6 +117,7 @@ class DocumentExportsControllerBase < ApplicationController
       'UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport',
       'TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport',
       'HopwaCaper::DocumentExports::HopwaCaperExport',
+      'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
     ]
   end
 end

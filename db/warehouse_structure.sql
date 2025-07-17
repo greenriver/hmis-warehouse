@@ -594,7 +594,8 @@ CREATE TABLE public.cas_analytics_opportunity_categories (
     hsa_id bigint,
     hsa_name character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reporting_project_id bigint
 );
 
 
@@ -622,7 +623,8 @@ CREATE VIEW analytics.cas_opportunity_categories AS
     hsa_id,
     hsa_name,
     created_at,
-    updated_at
+    updated_at,
+    reporting_project_id
    FROM public.cas_analytics_opportunity_categories;
 
 
@@ -6870,6 +6872,40 @@ ALTER SEQUENCE public.ce_client_proxies_id_seq OWNED BY public.ce_client_proxies
 
 
 --
+-- Name: ce_custom_referral_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_custom_referral_statuses (
+    id bigint NOT NULL,
+    key character varying NOT NULL,
+    name character varying NOT NULL,
+    treatment character varying,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_custom_referral_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_custom_referral_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_custom_referral_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_custom_referral_statuses_id_seq OWNED BY public.ce_custom_referral_statuses.id;
+
+
+--
 -- Name: ce_match_candidate_pools; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7352,7 +7388,8 @@ CREATE TABLE public.ce_referrals (
     completed_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    source_enrollment_id bigint
+    source_enrollment_id bigint,
+    custom_referral_status_id bigint
 );
 
 
@@ -23865,6 +23902,28 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
+-- Name: hmis_project_access_group_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_project_access_group_members AS
+ SELECT targets.project_id,
+    hmis_group_viewable_entities.collection_id AS access_group_id
+   FROM (public.hmis_group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            hmis_project_groups.id AS project_group_id
+           FROM ((((public."Project"
+             JOIN public.data_sources ON (((data_sources.id = "Project".data_source_id) AND (data_sources.deleted_at IS NULL))))
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.hmis_project_project_groups ON ((hmis_project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.hmis_project_groups ON (((hmis_project_groups.deleted_at IS NULL) AND (hmis_project_groups.id = hmis_project_project_groups.hmis_project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.entity_id = targets.data_source_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.entity_id = targets.organization_id)) OR (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::ProjectGroup'::text) AND (hmis_group_viewable_entities.entity_id = targets.project_group_id)))))
+  WHERE ((hmis_group_viewable_entities.deleted_at IS NULL) AND (hmis_group_viewable_entities.collection_id IS NOT NULL))
+  GROUP BY targets.project_id, hmis_group_viewable_entities.collection_id;
+
+
+--
 -- Name: hmis_project_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -33846,6 +33905,13 @@ ALTER TABLE ONLY public.ce_client_proxies ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: ce_custom_referral_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_custom_referral_statuses ALTER COLUMN id SET DEFAULT nextval('public.ce_custom_referral_statuses_id_seq'::regclass);
+
+
+--
 -- Name: ce_match_candidate_pools id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -37927,6 +37993,14 @@ ALTER TABLE ONLY public.ce_assessments
 
 ALTER TABLE ONLY public.ce_client_proxies
     ADD CONSTRAINT ce_client_proxies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_custom_referral_statuses ce_custom_referral_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_custom_referral_statuses
+    ADD CONSTRAINT ce_custom_referral_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -61690,6 +61764,20 @@ CREATE INDEX index_ce_client_proxies_on_client ON public.ce_client_proxies USING
 
 
 --
+-- Name: index_ce_custom_referral_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_custom_referral_statuses_on_data_source_id ON public.ce_custom_referral_statuses USING btree (data_source_id);
+
+
+--
+-- Name: index_ce_custom_referral_statuses_on_key_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id);
+
+
+--
 -- Name: index_ce_match_candidate_pools_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61841,6 +61929,13 @@ CREATE INDEX index_ce_referral_participants_on_user_id ON public.ce_referral_par
 --
 
 CREATE INDEX index_ce_referrals_on_client_id ON public.ce_referrals USING btree (client_id);
+
+
+--
+-- Name: index_ce_referrals_on_custom_referral_status_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_referrals_on_custom_referral_status_id ON public.ce_referrals USING btree (custom_referral_status_id);
 
 
 --
@@ -73856,6 +73951,20 @@ CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless
 
 
 --
+-- Name: hmis_project_access_group_members attempt_hmis_project_access_group_members_del; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER attempt_hmis_project_access_group_members_del INSTEAD OF DELETE ON public.hmis_project_access_group_members FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
+
+
+--
+-- Name: hmis_project_access_group_members attempt_hmis_project_access_group_members_up; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER attempt_hmis_project_access_group_members_up INSTEAD OF UPDATE ON public.hmis_project_access_group_members FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
+
+
+--
 -- Name: client_searchable_names no_modify_client_searchable_names; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -74859,6 +74968,14 @@ ALTER TABLE ONLY public."IncomeBenefits"
 
 
 --
+-- Name: ce_referrals fk_rails_e2440f29fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_referrals
+    ADD CONSTRAINT fk_rails_e2440f29fd FOREIGN KEY (custom_referral_status_id) REFERENCES public.ce_custom_referral_statuses(id);
+
+
+--
 -- Name: wfd_flows fk_rails_e4de2aca14; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -74961,6 +75078,8 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250716131246'),
+('20250716131240'),
 ('20250716123853'),
 ('20250716122931'),
 ('20250715152820'),
@@ -74968,6 +75087,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250714172716'),
 ('20250714145407'),
 ('20250711105827'),
+('20250708132033'),
 ('20250707200918'),
 ('20250703125916'),
 ('20250701185134'),
@@ -74976,6 +75096,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250623193057'),
 ('20250620132952'),
 ('20250619125706'),
+('20250617234921'),
 ('20250612192906'),
 ('20250612153642'),
 ('20250611163755'),
