@@ -7,6 +7,7 @@ module Hmis::Ce
     include SimpleStateMachine
 
     belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
+    has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :workflow_template,
                -> { published },

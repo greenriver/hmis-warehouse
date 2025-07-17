@@ -28,6 +28,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodes {
                 id
                 status
+                customStatus {
+                  id
+                  key
+                  name
+                }
                 createdAt
                 opportunity {
                   id
@@ -85,7 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         {
           id: project.id,
           filters: {
-            status: ['initialized', 'in_progress'],
+            referralStatus: ['initialized', 'in_progress'],
           },
         }
       end
@@ -122,6 +127,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
           end.to make_database_queries(count: 30..40)
+        end
+      end
+
+      context 'when filtering for referrals by regular and custom statuses' do
+        let!(:custom_status) { create(:hmis_ce_custom_referral_status, key: 'my_custom_status', data_source: ds1) }
+        let!(:custom_status_referral) { create(:hmis_ce_referral, project: project, data_source: ds1, status: 'accepted', custom_status: custom_status) }
+
+        let(:variables) do
+          {
+            id: project.id,
+            filters: {
+              referralStatus: ['my_custom_status', 'in_progress'],
+            },
+          }
+        end
+
+        it 'correctly filters referrals by both status types' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          referrals = result.dig('data', 'project', 'ceReferrals', 'nodes')
+          expect(referrals.count).to eq(3)
+
+          expect(referrals).to contain_exactly(
+            a_hash_including('id' => referral.id.to_s),
+            a_hash_including('id' => in_progress_referral.id.to_s),
+            a_hash_including('id' => custom_status_referral.id.to_s),
+          )
         end
       end
     end

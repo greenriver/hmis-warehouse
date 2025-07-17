@@ -88,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'supports filtering referrals by status' do
-        variables = { filters: { status: ['accepted'] } }
+        variables = { filters: { referralStatus: ['accepted'] } }
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
 

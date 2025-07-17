@@ -470,11 +470,24 @@ module CeWorkflowBuilder
       ],
     )
 
+    denied_pending_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+      key: 'denied_pending',
+      name: 'Denied Pending',
+      data_source: data_source,
+    )
+
     denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Denial Review',
       form_definition_identifier: denial_review_form_identifier,
       template_id: template.id,
       swimlane: ce_staff_swimlane,
+      trigger_config: [
+        {
+          event: 'enable_step',
+          message: 'set_custom_referral_status',
+          params: { 'custom_status_key': denied_pending_status.key },
+        },
+      ],
     )
 
     confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
@@ -551,9 +564,7 @@ task ce_define_workflows: [:environment] do
 
   data_source = GrdaWarehouse::DataSource.hmis.sole
 
-  # Just putting this here for convenience. It can be removed after everyone has run it once
-  puts 'Fixing polymorphic type for WFD Nodes'
-  Hmis::WorkflowDefinition::Node.where(type: 'Hmis::WorkflowDefinition::Task').update_all(type: 'Hmis::WorkflowDefinition::UserTask')
+  HmisUtil::CeBuilder.create_state_machine_custom_statuses(data_source)
 
   puts "Creating workflow templates in data source #{data_source.id} (#{data_source.name})"
   CeWorkflowBuilder.build_housing_workflow_v1(data_source)
