@@ -70,6 +70,14 @@ module HudApr::Dq::DqConcern
       super
     end
 
+    def available_report_versions
+      versions = super.except('FY 2023')
+      # The parent version has the FY 2022 slug as :fy2021, but the DQ report uses :fy2022
+      versions['FY 2022'][:slug] = :fy2022
+      versions.freeze
+    end
+    helper_method :available_report_versions
+
     def generator
       @generator ||= possible_generator_classes[report_version]
     end
