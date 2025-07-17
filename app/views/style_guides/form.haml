@@ -49,11 +49,20 @@
               %h4 Number
               = f.input :random_number, as: :numeric, required: true, **validate_html
 
+              %h4 Checkboxes
+              = f.input :checkboxes, collection: collection, as: :check_boxes
+
+              %h4 Radio Buttons
+              = f.input :radio_buttons, collection: collection, as: :radio_buttons
+
               %h4 Normal Select
               = f.input :sel,  collection: collection, hint: 'This is a hint', label: 'Example Label'
 
               %h4 "Pretty" boolean
               = f.input :is_currently_youth, as: :pretty_boolean, disabled: false, label: 'Example Label', hint: 'This is a hint'
+
+              %h4 "Pretty" Radio Buttons
+              = f.input :radio_buttons, collection: collection, as: :pretty_boolean_group
 
               %h4 Normal boolean
               = f.input :is_currently_normal_youth, as: :boolean, disabled: false, hint: 'This is a hint'

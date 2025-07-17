@@ -139,8 +139,9 @@ SimpleForm.setup do |config|
     b.use :html5
     b.wrapper :legend_tag, tag: 'legend', class: 'col-form-label pt-0' do |ba|
       ba.use :label_text
+      b.use :input, class: 'form-check-input', error_class: 'is-invalid', valid_class: ''
     end
-    b.use :input, class: 'form-check-input', error_class: 'is-invalid', valid_class: ''
+
     b.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
     b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
   end

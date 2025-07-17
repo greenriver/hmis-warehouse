@@ -72,7 +72,14 @@
 
 .c-card__content .form-control,
 .c-card__content textarea,
-.c-card__content input:not([type="submit"]),
+.c-card__content input[type="text"],
+.c-card__content input[type="email"],
+.c-card__content input[type="password"],
+.c-card__content input[type="number"],
+.c-card__content input[type="date"],
+.c-card__content input[type="datetime-local"],
+.c-card__content input[type="time"],
+.c-card__content input[type="url"],
 .c-card__content .select2-selection {
   background-color: $body-bg;
 }
