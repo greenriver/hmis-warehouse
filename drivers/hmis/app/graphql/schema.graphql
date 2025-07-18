@@ -9875,7 +9875,7 @@ type Query {
   """
   Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment
   """
-  projectCanAcceptReferral(destinationProjectId: ID!, sourceEnrollmentId: ID!): Boolean!
+  projectCanAcceptReferral(destinationProjectId: ID!, referralMode: ReferralMode = legacy, sourceEnrollmentId: ID!): Boolean!
 
   """
   Project CoC lookup
@@ -10400,6 +10400,11 @@ type ReferralHouseholdMember {
   id: ID!
   openEnrollmentSummary: [EnrollmentSummary!]!
   relationshipToHoH: RelationshipToHoH!
+}
+
+enum ReferralMode {
+  coordinated_entry
+  legacy
 }
 
 """

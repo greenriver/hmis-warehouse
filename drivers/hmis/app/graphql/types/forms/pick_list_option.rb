@@ -611,13 +611,7 @@ module Types
         sort_by_option(:organization_and_name)
 
       project_scope.filter_map do |project|
-        config = Hmis::ProjectCeConfig.detect_best_config_for_project(project)
-
-        next unless config.present?
-        next unless config.accepts_direct_referrals?
-
-        # If the config specifies a list of projects that it accepts referrals from, check that this project is in that list.
-        next if config.accepts_direct_referrals_from.present? && config.accepts_direct_referrals_from.exclude?(from_project.id)
+        next unless project.accepts_ce_referrals_from?(from_project)
 
         project.to_pick_list_option
       end
