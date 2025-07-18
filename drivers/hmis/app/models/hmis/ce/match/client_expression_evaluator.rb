@@ -3,10 +3,10 @@
 require 'dentaku'
 
 module Hmis::Ce::Match
-  class ClientExpressionEvaluator
+  class ClientPoolEvaluator
     attr_reader :expression, :field_map
 
-    Result = Struct.new(:client_values, :priority_score, : keyword_init: true)
+    Result = Struct.new(:client_values, :priority_score)
     private_constant :Result
 
     def initialize(pool, field_map)
@@ -15,8 +15,8 @@ module Hmis::Ce::Match
       @field_map = field_map
       @calculator = Hmis::Ce::Match::CalculatorFactory.build
       @dependencies = [
-        @calculator.requirement_expression,
-        @calculator.priority_expression,
+        pool.requirement_expression,
+        pool.priority_expression,
       ].compact_blank.flat_map do |expression|
         @calculator.dependencies(expression)
       end.sort.uniq
@@ -30,13 +30,16 @@ module Hmis::Ce::Match
 
       # evaluate the pool's expressions, for example:
       # evaluate!('current_age >= 65 AND veteran_status = 1', {current_age: 50, veteran_status: 1})
-      if @calculator.evaluate!(pool.requirement_expression, **client_values)
-        priority_score = @calculator.evaluate!(pool.priority_expression, **client_values)
-      end
-      Result.new(
-        client_values: client_values,
-        priority_score: priority_score,
-      )
+      priority = eval_priority(client_values) if eval_requirement(client_values)
+      Result.new(client_values, priority)
+    end
+
+    def eval_requirement(client_values)
+      @calculator.evaluate!(@pool.requirement_expression, **client_values)
+    end
+
+    def eval_priority(client_values)
+      @calculator.evaluate!(@pool.priority_expression, **client_values)
     end
   end
 end

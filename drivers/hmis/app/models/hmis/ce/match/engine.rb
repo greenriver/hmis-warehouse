@@ -25,7 +25,7 @@ module Hmis::Ce::Match
       if clients.nil?
         # Full refresh - process all clients and remove all unmatched candidates
         clients = ::GrdaWarehouse::Hud::Client.destination
-        existing_client_ids = destination_client_ids(pool)
+        destination_client_ids(pool)
         incremental = false
       else
         # Incremental - process only provided clients and remove candidates only for those clients
@@ -35,22 +35,23 @@ module Hmis::Ce::Match
 
       evaluator = ClientPoolEvaluator.new(pool, field_map)
 
+      # optionally track the in-memory evaluations, which is the expensive work
       if progress
         puts "Processing pool[#{pool.id}] eligibility: #{pool.requirement_expression.inspect}, priority: #{pool.priority_expression.inspect}"
-        progress_bar = ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
+        progress_bar = ProgressBar.new(clients.count, :counter, :bar, :percentage, :rate, :eta)
       end
 
       processed_client_ids = []
-      [filtered_clients, removed_client_snapshots] = crude_eligibility_filter(pool, evaluator, clients)
+      filtered_clients, removed_client_snapshots = crude_eligibility_filter(pool, evaluator, clients, progress_bar)
 
       # In incremental mode, track all input clients that should be processed so we can
       # remove candidates for clients that no longer pass filters (including SQL filter)
       processed_client_ids = clients.pluck(:id) if incremental
 
-      now = DateTime.current
       filtered_clients.in_batches do |batch|
         # First iterate through the batch to import any Client Proxies that aren't present in the db already
         proxies = []
+        now = Time.current
         batch.each do |client|
           # In full mode, track clients as we process them
           processed_client_ids.push(client.id) unless incremental
@@ -81,14 +82,13 @@ module Hmis::Ce::Match
           }
           matching_client_snapshots.push([client.id, evaluation.client_values])
         end
-        imported_candidate_ids = import_candidates!(candidates)
-        # filter matching_client_snapshots to just imported
 
-        write_events(added_client_snapshots, pool, 'add')
-        write_events(updated_client_snapshots, pool, 'update')
+        import_candidates!(candidates)
+        write_events(matching_client_snapshots, pool: pool, timestamp: now)
       end
 
       # Remove old candidates that no longer match
+      now = Time.current
       if incremental
         # In incremental mode, only remove candidates for clients that were in the input scope
         # This ensures we remove candidates for clients who no longer pass any filters
@@ -100,24 +100,34 @@ module Hmis::Ce::Match
         pool.candidates.where(updated_at: ...now).delete_all
       end
 
-      write_events(removed_client_snapshots, pool, 'remove')
-      pool.update!(candidates_generated_at: Time.current)
+      write_events(removed_client_snapshots, pool: pool, timestamp: now)
+      pool.update!(candidates_generated_at: now)
     end
 
     protected
 
-    def write_events(snapshots, pool, event_name)
-      proxy_id_lookup = Hmis::Ce::ClientProxy
-        .where(client_type: 'GrdaWarehouse::Hud::Client')
-        .where(client_id: snapshots.map(&:first))
-        .pluck(:client_id, :id).to_h
+    def write_events(snapshots, pool:, timestamp:)
+      return if snapshots.empty?
+      client_ids = snapshots.map(&:first)
+      client_proxy_id_lookup = Hmis::Ce::ClientProxy.
+        where(client_type: 'GrdaWarehouse::Hud::Client').
+        where(client_id: client_ids).
+        pluck(:client_id, :id).to_h
+
+      event_lookup = pool.candidates.
+        where(client_proxy_id: client_proxy_id_lookup.values).
+        pluck(:client_proxy_id, "CASE WHEN created_at = updated_at THEN 'add' ELSE 'update' END").
+        to_h
 
       values = snapshots.map do |client_id, snapshot|
+        client_proxy_id = client_proxy_id_lookup.fetch(client_id)
+        event = event_lookup[client_proxy_id] || 'remove'
         {
-          event: event_name,
+          event_name: event,
           snapshot: snapshot,
-          candidate_pool_id: pool.id
-          proxy_id: proxy_id_lookup.fetch(client_id)
+          candidate_pool_id: pool.id,
+          client_proxy_id: client_proxy_id,
+          created_at: timestamp,
         }
       end
       CandidateEvent.import!(values)
@@ -140,20 +150,19 @@ module Hmis::Ce::Match
     end
 
     def import_candidates!(values)
-      result = Candidate.import(
+      Candidate.import(
         values, on_duplicate_key_update: {
           conflict_target: [:candidate_pool_id, :client_proxy_id],
           columns: [:priority_score, :updated_at],
         }
       )
       raise "failed to import Candidates: #{result.inspect}" if result.failed_instances.present?
-      result.ids
     end
 
     # note, the filter only works on candidates that are destination clients
     def crude_eligibility_filter(pool, evaluator, client_universe, progress_bar)
       condition = SqlExpressionTranslator.call(pool.requirement_expression, field_map)
-      return client_universe unless condition
+      return [client_universe.none, []] unless condition
 
       # we perform sql-filtering and then capture the attributes of those clients that no longer match (for event log)
       removed_client_snapshots = []
