@@ -199,6 +199,15 @@ module Types
             label: enum.description,
           }
         end.compact
+      when 'CE_REFERRAL_STATUSES'
+        # To avoid key collisions, we display only custom statuses in the picklist.
+        # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
+        # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
+        Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
+          next if status.key.to_s == 'initialized' # skip initialized, user-facing display for this state is just 'in progress'
+
+          { code: status.key, label: status.name }
+        end.compact
       end
     end
 

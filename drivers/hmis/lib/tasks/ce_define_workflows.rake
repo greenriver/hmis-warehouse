@@ -110,7 +110,7 @@ module CeWorkflowBuilder
     )
   end
 
-  def self.create_step_form(identifier:, definition:, title: nil)
+  def self.create_step_form(identifier:, definition:, data_source:, title: nil)
     form_def = Hmis::Form::Definition.new(
       identifier: identifier,
       status: :published,
@@ -124,7 +124,13 @@ module CeWorkflowBuilder
     errors = Hmis::Form::DefinitionValidator.perform(definition, form_def.role, skip_cded_validation: true)
     raise "Form definition #{form_def.identifier} is not valid: #{errors.map(&:full_message)}" if errors.any?
 
+    # Ensure form does not try to collect onto related record types (Eg Enrollment), it should only
+    # record CDEs so that it retains data as it was when the task was performed.
+    # TODO(#7321) - implement generic validation for this in the DefinitionValidator
+    raise 'Step Form definition should only collect Custom Data Elements' if form_def.link_id_item_hash.values.find { |item| item.mapping&.field_name }
+
     form_def.save!
+    form_def.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: data_source).each(&:save!)
     form_def
   end
 
@@ -163,6 +169,9 @@ module CeWorkflowBuilder
 
     start_event = create_start_event(template)
 
+    common_cded_key_date = "#{identifier}_task_date"
+    common_cded_key_note = "#{identifier}_task_note"
+    common_cded_key_move_forward = "#{identifier}_task_move_forward"
     # Form that is shared across several CE Staff tasks
     ce_staff_shared_form = {
       "item": [
@@ -171,14 +180,14 @@ module CeWorkflowBuilder
           "type": 'DATE',
           "link_id": 'date',
           "required": true,
-          "mapping": { "custom_field_key": 'ce_task_date' },
+          "mapping": { "custom_field_key": common_cded_key_date },
         },
         {
           "text": 'Notes',
           "type": 'TEXT',
           "link_id": 'notes',
           "required": false,
-          "mapping": { "custom_field_key": 'ce_task_notes' },
+          "mapping": { "custom_field_key": common_cded_key_note },
         },
         {
           "text": 'Continue with Referral?',
@@ -195,7 +204,7 @@ module CeWorkflowBuilder
               "label": 'No, decline referral',
             },
           ],
-          "mapping": { "custom_field_key": 'ce_generic_move_forward' },
+          "mapping": { "custom_field_key": common_cded_key_move_forward },
         },
         {
           "text": 'Decline Reason',
@@ -210,7 +219,7 @@ module CeWorkflowBuilder
             { "code": 'No longer experiencing homelessness' },
             { "code": 'Vacancy no longer available' },
           ],
-          "mapping": { "custom_field_key": 'ac_workflow_v1_admin_decline_reason' },
+          "mapping": { "custom_field_key": "#{identifier}_admin_decline_reason" },
           "enable_behavior": 'ALL',
           "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
         },
@@ -220,13 +229,16 @@ module CeWorkflowBuilder
     create_step_form(
       identifier: initial_review_task_form_identifier,
       definition: ce_staff_shared_form,
+      data_source: data_source,
     )
     create_step_form(
       identifier: ce_offer_task_form_identifier,
       definition: ce_staff_shared_form,
+      data_source: data_source,
     )
     create_step_form(
       identifier: project_offer_task_form_identifier,
+      data_source: data_source,
       definition: {
         "item": [
           {
@@ -234,14 +246,14 @@ module CeWorkflowBuilder
             "type": 'DATE',
             "link_id": 'date',
             "required": true,
-            "mapping": { "custom_field_key": 'ce_generic_date' },
+            "mapping": { "custom_field_key": common_cded_key_date },
           },
           {
             "text": 'Notes',
             "type": 'TEXT',
             "link_id": 'notes',
             "required": false,
-            "mapping": { "custom_field_key": 'ce_generic_notes' },
+            "mapping": { "custom_field_key": common_cded_key_note },
           },
           {
             "text": 'Decision',
@@ -259,7 +271,7 @@ module CeWorkflowBuilder
                 "label": 'Decline - Submit Referral for Denial Review',
               },
             ],
-            "mapping": { "custom_field_key": 'ce_generic_move_forward' },
+            "mapping": { "custom_field_key": common_cded_key_move_forward },
           },
           {
             "text": 'Decline Reason',
@@ -276,7 +288,7 @@ module CeWorkflowBuilder
               { "code": 'Estimated vacancy no longer available' },
               { "code": 'Enrolled, but declined HMIS data entry' },
             ],
-            "mapping": { "custom_field_key": 'ac_workflow_v1_provider_denial_reason' },
+            "mapping": { "custom_field_key": "#{identifier}_admin_decline_reason" },
             "enable_behavior": 'ALL',
             "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
           },
@@ -294,6 +306,7 @@ module CeWorkflowBuilder
 
     create_step_form(
       identifier: denial_review_form_identifier,
+      data_source: data_source,
       definition: {
         "item": [
           {
@@ -301,14 +314,14 @@ module CeWorkflowBuilder
             "type": 'DATE',
             "link_id": 'date',
             "required": true,
-            "mapping": { "custom_field_key": 'ce_generic_date' },
+            "mapping": { "custom_field_key": common_cded_key_date },
           },
           {
             "text": 'Notes',
             "type": 'TEXT',
             "link_id": 'notes',
             "required": false,
-            "mapping": { "custom_field_key": 'ce_generic_notes' },
+            "mapping": { "custom_field_key": common_cded_key_note },
           },
           {
             "text": 'Decision',
@@ -326,7 +339,7 @@ module CeWorkflowBuilder
                 "label": 'Send Back',
               },
             ],
-            "mapping": { "custom_field_key": 'ac_workflow_v1_denial_review_decision' },
+            "mapping": { "custom_field_key": "#{identifier}_denial_review_decision" },
           },
           {
             "text": 'Reason for Sending Back',
@@ -338,7 +351,7 @@ module CeWorkflowBuilder
               { "code": 'HMIS user error' },
               { "code": 'Client should be eligible' },
             ],
-            "mapping": { "custom_field_key": 'ac_workflow_v1_denial_review_reason' },
+            "mapping": { "custom_field_key": "#{identifier}_denial_review_reason" },
             "enable_behavior": 'ALL',
             "enable_when": [{ "question": 'denial_review_decision', "operator": 'EQUAL', "answer_code": '0' }],
           },
@@ -347,6 +360,7 @@ module CeWorkflowBuilder
     )
     create_step_form(
       identifier: confirm_success_task_form_identifier,
+      data_source: data_source,
       definition: {
         "item": [
           {
@@ -354,14 +368,14 @@ module CeWorkflowBuilder
             "type": 'DATE',
             "link_id": 'date',
             "required": true,
-            "mapping": { "custom_field_key": 'ce_generic_date' },
+            "mapping": { "custom_field_key": common_cded_key_date },
           },
           {
             "text": 'Notes',
             "type": 'TEXT',
             "link_id": 'notes',
             "required": false,
-            "mapping": { "custom_field_key": 'ce_generic_notes' },
+            "mapping": { "custom_field_key": common_cded_key_note },
           },
           {
             "text": 'Decision',
@@ -379,8 +393,18 @@ module CeWorkflowBuilder
                 "label": 'Decline Referral',
               },
             ],
-            "mapping": { "custom_field_key": 'ce_generic_move_forward' },
+            "mapping": { "custom_field_key": common_cded_key_move_forward },
           },
+          # Keeping commented-out as example for testing, but don't need in workflow
+          # {
+          #   "text": 'Move-in Date',
+          #   "type": 'DATE',
+          #   "link_id": 'move_in_date',
+          #   "required": true,
+          #   'mapping': { 'custom_field_key': "#{identifier}_move_in_date" },
+          #   "enable_behavior": 'ALL',
+          #   "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '1' }],
+          # },
           {
             "text": 'Decline Reason',
             "type": 'CHOICE',
@@ -395,7 +419,7 @@ module CeWorkflowBuilder
               { "code": 'Vacancy no longer available' },
             ],
             "component": 'RADIO_BUTTONS',
-            "mapping": { "custom_field_key": 'ac_workflow_v1_admin_decline_reason_2' },
+            "mapping": { "custom_field_key": "#{identifier}_admin_decline_reason_2" },
             "enable_behavior": 'ALL',
             "enable_when": [{ "question": 'move_forward', "operator": 'EQUAL', "answer_code": '0' }],
           },
@@ -418,8 +442,8 @@ module CeWorkflowBuilder
         {
           event: 'complete_step',
           message: 'create_ce_event',
-        }
-      ]
+        },
+      ],
     )
 
     ce_make_offer_task = Hmis::WorkflowDefinition::UserTask.create!(
@@ -437,8 +461,8 @@ module CeWorkflowBuilder
           event: 'complete_step',
           message: 'set_ce_event_result',
           params: { referral_result: '2' },
-        }
-      ]
+        },
+      ],
     )
 
     project_offer_task = Hmis::WorkflowDefinition::UserTask.create!(
@@ -456,8 +480,8 @@ module CeWorkflowBuilder
           event: 'complete_step',
           message: 'set_ce_event_result',
           params: { referral_result: '3' },
-        }
-      ]
+        },
+      ],
     )
 
     create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
@@ -471,11 +495,24 @@ module CeWorkflowBuilder
       ],
     )
 
+    denied_pending_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+      key: 'denied_pending',
+      name: 'Denied Pending',
+      data_source: data_source,
+    )
+
     denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Denial Review',
       form_definition_identifier: denial_review_form_identifier,
       template_id: template.id,
       swimlane: ce_staff_swimlane,
+      trigger_config: [
+        {
+          event: 'enable_step',
+          message: 'set_custom_referral_status',
+          params: { 'custom_status_key': denied_pending_status.key },
+        },
+      ],
     )
 
     confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
@@ -483,6 +520,13 @@ module CeWorkflowBuilder
       form_definition_identifier: confirm_success_task_form_identifier,
       template_id: template.id,
       swimlane: ce_staff_swimlane,
+      # Keeping commented-out as example for testing, but don't need in workflow
+      # trigger_config: [
+      #   {
+      #     event: 'complete_step',
+      #     message: 'set_move_in_date',
+      #   },
+      # ],
     )
 
     accept_event = create_accept_event(template, update_ce_event: true)
@@ -552,9 +596,7 @@ task ce_define_workflows: [:environment] do
 
   data_source = GrdaWarehouse::DataSource.hmis.sole
 
-  # Just putting this here for convenience. It can be removed after everyone has run it once
-  puts 'Fixing polymorphic type for WFD Nodes'
-  Hmis::WorkflowDefinition::Node.where(type: 'Hmis::WorkflowDefinition::Task').update_all(type: 'Hmis::WorkflowDefinition::UserTask')
+  HmisUtil::CeBuilder.create_state_machine_custom_statuses(data_source)
 
   puts "Creating workflow templates in data source #{data_source.id} (#{data_source.name})"
   CeWorkflowBuilder.build_housing_workflow_v1(data_source)

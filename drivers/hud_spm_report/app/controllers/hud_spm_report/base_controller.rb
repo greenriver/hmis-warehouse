@@ -82,6 +82,12 @@ module HudSpmReport
     end
     helper_method :path_for_new
 
+    def available_report_versions
+      # We only want to show the versions that have a matching generator class
+      super.select { |_, v| possible_generator_classes.keys.include?(v[:slug]) }
+    end
+    helper_method :available_report_versions
+
     private def possible_generator_classes
       {
         fy2020: HudSpmReport::Generators::Fy2020::Generator,

@@ -18,6 +18,12 @@ FactoryBot.define do
     config_options { { 'length_of_absence_days': 30 }.to_json }
   end
 
+  factory :hmis_project_staff_assignment_config, class: 'Hmis::ProjectStaffAssignmentConfig' do
+    association :project, factory: :hmis_hud_project
+    created_at { Time.current }
+    updated_at { Time.current }
+  end
+
   factory :hmis_project_ce_config, class: 'Hmis::ProjectCeConfig' do
     created_at { Time.current }
     updated_at { Time.current }

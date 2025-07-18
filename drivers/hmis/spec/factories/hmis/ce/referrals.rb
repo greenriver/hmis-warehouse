@@ -23,5 +23,9 @@ FactoryBot.define do
     referred_by { association :hmis_user, data_source: data_source }
     status { 'in_progress' }
     referral_origin { 'waitlist' }
+
+    after(:create) do |referral|
+      referral.update!(custom_status: Hmis::Ce::CustomReferralStatus.find_by(key: referral.status, data_source: referral.data_source)) if referral.custom_status.blank?
+    end
   end
 end
