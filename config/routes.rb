@@ -585,6 +585,10 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+
+    # Client search queries
+    resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries
+    get '/cohorts/client_searches/:id', to: 'cohorts/clients#search', as: 'cohort_client_search_query'
   end
 
   resources :imports, only: [:index, :show] do
