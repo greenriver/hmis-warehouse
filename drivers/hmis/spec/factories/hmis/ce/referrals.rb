@@ -22,5 +22,6 @@ FactoryBot.define do
     client { association :hmis_hud_client, data_source: data_source }
     referred_by { association :hmis_user, data_source: data_source }
     status { 'in_progress' }
+    referral_origin { 'waitlist' }
   end
 end
