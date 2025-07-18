@@ -17,7 +17,6 @@ module Mutations
 
     field :referral, Types::HmisSchema::CeReferral, null: true # nullable in case of validation errors
 
-    # todo @martha - generate spec for this
     def resolve(target_unit_group_id:, source_enrollment_id:, values_by_link_id:, values_by_field_name:, form_definition_id:, confirmed: false)
       raise unless Hmis::Ce.configuration.enabled?
 
