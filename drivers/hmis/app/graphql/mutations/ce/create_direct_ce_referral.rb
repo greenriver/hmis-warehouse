@@ -10,14 +10,15 @@ module Mutations
   class Ce::CreateDirectCeReferral < CleanBaseMutation
     argument :target_unit_group_id, ID, required: true
     argument :source_enrollment_id, ID, required: true
-    argument :input, Types::JsonObject, required: true
+    argument :values_by_link_id, Types::JsonObject, required: true
+    argument :values_by_field_name, Types::JsonObject, required: true
     argument :form_definition_id, ID, required: true # The form that was used to submit the step
     argument :confirmed, Boolean, required: false
 
     field :referral, Types::HmisSchema::CeReferral, null: true # nullable in case of validation errors
 
     # todo @martha - generate spec for this
-    def resolve(target_unit_group_id:, source_enrollment_id:, input:, form_definition_id:, **_rest) # todo @martha - rebase off of the code that adds confirmed
+    def resolve(target_unit_group_id:, source_enrollment_id:, values_by_link_id:, values_by_field_name:, form_definition_id:, confirmed: false)
       raise unless Hmis::Ce.configuration.enabled?
 
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
@@ -61,19 +62,26 @@ module Mutations
         engine.start_workflow!(user: current_user)
 
         # there should be only one active step if the workflow is correctly configured
-        handoff_step = engine.active_steps.find { |step| step.node.delegated_handoff? }
-        raise unless handoff_step.present?
+        step = engine.active_steps.find { |s| s.node.delegated_handoff? }
+        raise unless step.present?
 
         # Intentionally don't check current user's permissions to complete this step.
         # User doesn't need permission in the target project, if they have can_manage_outgoing_referrals in the source project
-        handoff_step.form_definition = form_definition
-        validations = engine.validate_step(handoff_step, submitted_values: input)
+        step.form_definition = form_definition
+
+        validations = engine.validate_step(step, submitted_values: input)
         errors.push(*validations)
+        errors.drop_warnings! if confirmed
+        errors.deduplicate!
         return { errors: errors } if errors.any?
 
-        # Start and complete step at the same time
-        engine.start_step!(handoff_step, user: current_user)
-        engine.complete_step!(handoff_step, user: current_user, submitted_values: input)
+        engine.start_step!(step, user: current_user)
+
+        # Process submitted values into CustomDataElements
+        step.build_form_processor(definition: step.form_definition, values: values_by_link_id, hud_values: values_by_field_name)
+        step.form_processor.run!(user: current_user)
+
+        engine.complete_step!(step, user: current_user, submitted_values: input)
       end
 
       { referral: referral }

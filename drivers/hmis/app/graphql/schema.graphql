@@ -6797,7 +6797,7 @@ type Mutation {
     stepId: ID
   ): CreateCeReferralNotePayload
   createClientAlert(input: ClientAlertInput!): CreateClientAlertPayload
-  createDirectCeReferral(confirmed: Boolean, formDefinitionId: ID!, input: JsonObject!, sourceEnrollmentId: ID!, targetUnitGroupId: ID!): CreateDirectCeReferralPayload
+  createDirectCeReferral(confirmed: Boolean, formDefinitionId: ID!, sourceEnrollmentId: ID!, targetUnitGroupId: ID!, valuesByFieldName: JsonObject!, valuesByLinkId: JsonObject!): CreateDirectCeReferralPayload
   createDirectUpload(
     """
     Parameters for CreateDirectUpload
