@@ -48,7 +48,7 @@ module Hmis::Ce
           @progress = progress
           reconcile_untracked_records
 
-          # get a the batch of dirty clients
+          # get a batch of dirty clients
           dirty_client_markers = Hmis::Ce::ChangeMarker.dirty.clients.batch(
             start_id: next_client_id,
             limit: 1_000,
@@ -60,7 +60,7 @@ module Hmis::Ce
           # load the dirty pools
           dirty_pool_markers = Hmis::Ce::ChangeMarker.dirty.pools.batch(
             start_id: next_pool_id,
-            limit: 50,
+            limit: 10,
           ).to_a
           # process dirty pools
           next_pool_id = process_dirty_pools(dirty_pool_markers)
@@ -105,13 +105,16 @@ module Hmis::Ce
     def process_dirty_pools(markers)
       return 0 if markers.empty?
 
-      candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where(id: markers.map(&:trackable_id))
+      # we expect processing an individual pool to be expensive; load one pool at a time mark it as clean
+      # as soon as it's done
+      markers.each do |marker|
+        pool = ::Hmis::Ce::Match::CandidatePool.active.find_by(id: marker.trackable_id)
+        next unless pool
 
-      candidate_pool_scope.find_each do |pool|
         Hmis::Ce::Match::Engine.call(pool, progress: @progress)
+        marker.mark_processed
       end
 
-      Hmis::Ce::ChangeMarker.mark_processed(markers)
       markers.map(&:trackable_id).max + 1
     end
 

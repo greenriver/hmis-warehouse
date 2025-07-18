@@ -325,11 +325,11 @@ class Hmis::Form::DefinitionValidator
     if record_type
       possible_owner_types = [Hmis::Form::RecordType.find(record_type).owner_type]
     else
-      case role
-      when 'SERVICE'
+      case role.to_sym
+      when :SERVICE
         # For Service forms, the CDED owner is allowed to be Service OR CustomService
         possible_owner_types = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService']
-      when 'NEW_CLIENT_ENROLLMENT'
+      when :NEW_CLIENT_ENROLLMENT
         # For New Client Enrollment forms, the CDED owner is allowed to be Client OR Enrollment
         possible_owner_types = ['Hmis::Hud::Client', 'Hmis::Hud::Enrollment']
       else
