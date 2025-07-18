@@ -69,7 +69,7 @@ module Mutations
         # User doesn't need permission in the target project, if they have can_manage_outgoing_referrals in the source project
         step.form_definition = form_definition
 
-        validations = engine.validate_step(step, submitted_values: input)
+        validations = engine.validate_step(step, submitted_values: values_by_link_id)
         errors.push(*validations)
         errors.drop_warnings! if confirmed
         errors.deduplicate!
@@ -81,7 +81,7 @@ module Mutations
         step.build_form_processor(definition: step.form_definition, values: values_by_link_id, hud_values: values_by_field_name)
         step.form_processor.run!(user: current_user)
 
-        engine.complete_step!(step, user: current_user, submitted_values: input)
+        engine.complete_step!(step, user: current_user, submitted_values: values_by_link_id)
       end
 
       { referral: referral }
