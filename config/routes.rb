@@ -847,6 +847,9 @@ Rails.application.routes.draw do
           get :disenrollment_accepted
           post :bulk_assign_agency
           post :bulk_assign_agency_and_care_staff
+          # Patient search queries
+          resources :searches, only: [:create], to: 'patient_referrals#create_search_queries', as: :create_patient_referral_searches
+          get 'searches/:id', to: 'patient_referrals#search', as: :patient_referral_search_query
         end
         post :assign_agency
       end
@@ -855,6 +858,9 @@ Rails.application.routes.draw do
         collection do
           get :review
           get :reviewed
+          # Patient search queries
+          resources :searches, only: [:create], to: 'agency_patient_referrals#create_search_queries', as: :create_agency__patient_referral_searches
+          get 'searches/:id', to: 'agency_patient_referrals#search', as: :agency_patient_referral_search_query
         end
       end
       resources :users, only: [:index] do
