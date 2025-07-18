@@ -7,6 +7,7 @@ module Hmis::Ce
     include SimpleStateMachine
 
     belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
+    has_one :data_source, through: :project, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :workflow_template,
                -> { published },
@@ -106,6 +107,11 @@ module Hmis::Ce
 
     def self.apply_filters(input)
       Hmis::Filter::CeOpportunityFilter.new(input).filter_scope(self)
+    end
+
+    def self.active_referral_ids_for_units(units)
+      r_t = Hmis::Ce::Referral.arel_table
+      joins(:active_referral).where(unit_id: units.map(&:id)).pluck(r_t[:id])
     end
 
     def active?

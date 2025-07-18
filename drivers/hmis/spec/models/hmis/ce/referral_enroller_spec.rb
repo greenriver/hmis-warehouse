@@ -112,7 +112,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
 
       it 'succeeds when CoC input is provided' do
         expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: { 'coc_code': 'CO-600' })
+          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: { Hmis::Ce::ReferralEnroller::COC_CODE_LINK_ID => 'CO-600' })
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1)
 
@@ -141,6 +141,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
     end
 
     describe 'workflow with side effect that creates a move-in date' do
+      let(:move_in_date_link_id) { Hmis::Ce::ReferralEnroller::MOVE_IN_DATE_LINK_ID }
       let!(:move_in_date_form_def) do
         create(
           :hmis_form_definition,
@@ -153,10 +154,9 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
                 'item': [
                   {
                     'type': 'DATE',
-                    'link_id': 'unrelated_link_id',
+                    'link_id': move_in_date_link_id,
                     'required': true,
                     'text': 'Move-in Date',
-                    'mapping': { 'field_name': 'moveInDate', 'record_type': 'ENROLLMENT' },
                   },
                 ],
               },
@@ -191,7 +191,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         expect do
           current_step = engine.active_steps.sole
           current_step.form_definition = move_in_date_form_def # this is set in the mutation, not the engine complete_step!
-          engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'unrelated_link_id': move_in_date })
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: { move_in_date_link_id => move_in_date })
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1).
           and change(referral, :target_enrollment).from(nil)
@@ -221,37 +221,21 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
             expect do
               current_step = engine.active_steps.sole
               current_step.form_definition = move_in_date_form_def
-              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'unrelated_link_id': 2.weeks.ago.to_date })
+              engine.complete_step!(current_step, user: hmis_user, submitted_values: { move_in_date_link_id => 2.weeks.ago.to_date })
               referral.reload
             end.to raise_error(RuntimeError, /does not have a target enrollment yet/).
               and not_change(Hmis::Hud::Enrollment, :count)
           end
         end
 
-        context 'if the enrollment already has a move-in date' do
-          let!(:move_in_date) { 2.days.ago }
-          let!(:target_enrollment) do
-            create(
-              :hmis_hud_enrollment,
-              project: project,
-              client: referral.client,
-              entry_date: 2.weeks.ago,
-              move_in_date: move_in_date,
-            )
-          end
-
-          before do
-            referral.update!(target_enrollment: target_enrollment)
-          end
-
-          it 'does not overwrite the move-in date if the input is not parseable' do
+        context 'the move-in date value is not parseable' do
+          it 'raises an exception' do
             expect do
               current_step = engine.active_steps.sole
               current_step.form_definition = move_in_date_form_def
-              engine.complete_step!(current_step, user: hmis_user, submitted_values: { 'unrelated_link_id': 'bad string' })
-              target_enrollment.reload
-            end.to not_change(Hmis::Hud::Enrollment, :count).
-              and not_change(target_enrollment, :move_in_date)
+              engine.complete_step!(current_step, user: hmis_user, submitted_values: { move_in_date_link_id => 'bad string' })
+            end.to raise_error(RuntimeError, /Failed to parse/).
+              and not_change(Hmis::Hud::Enrollment, :count)
           end
         end
       end
