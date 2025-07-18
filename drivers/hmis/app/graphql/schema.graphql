@@ -7333,6 +7333,11 @@ type PickListOption {
   code: String!
 
   """
+  Whether the option should be disabled
+  """
+  disabled: Boolean
+
+  """
   Code for group that option belongs to, if grouped
   """
   groupCode: String

@@ -19,6 +19,7 @@ module Types
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
     field :numeric_value, Integer, 'Numeric value, such as a score', null: true
     field :helper_text, String, 'Helper text/html', null: true
+    field :disabled, Boolean, 'Whether the option should be disabled', null: true
 
     CODE_PATTERN = /^\(([0-9]*)\) /
 
@@ -632,7 +633,7 @@ module Types
           code: unit_group.id,
           label: unit_group.name,
           secondary_label: "#{unit_group.available_unit_count} available",
-          disabled: unit_group.available_unit_count.zero?, # todo @martha - this doesn't work
+          disabled: unit_group.available_unit_count.zero?,
         }
       end
     end
