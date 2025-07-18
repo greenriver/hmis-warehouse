@@ -8,24 +8,28 @@ require 'progress_bar'
 #
 # See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 module Hmis::Ce::Match
+  # Orchestrates the process of evaluating a universe of clients against a
+  # candidate pool's criteria. It coordinates various components to filter,
+  # evaluate, and persist candidates and their corresponding events.
   class Engine
-    def self.call(...)
-      new.call(...)
+    # Convenience class method to instantiate and call the engine in one step.
+    def self.call(pool, clients:, progress: false)
+      new(pool).call(clients, progress: progress)
     end
 
-    # Take a two-step approach to evaluating eligibility to achieve better performance.
-    # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
-    # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    #
-    # @param pool [Hmis::Ce::Match::CandidatePool] The candidate pool to populate with matching clients
-    # @param clients [ActiveRecord::Relation, nil] The clients to evaluate for eligibility. If nil, processes all destination clients (full refresh).
-    # @param progress [Boolean] Whether to display a progress bar during processing
-    def call(pool, clients: nil, progress: false)
-      # Determine processing mode based on whether clients were provided
+    def initialize(pool)
+      @pool = pool
+      @field_map = FieldMap.new
+      @evaluator = ClientPoolEvaluator.new(@pool, @field_map)
+      @event_writer = CandidateEventWriter.new(@pool)
+      @repo = CandidateRepository.new(@pool)
+      @prefilter = SqlPrefilter.new(@pool, @field_map)
+    end
+
+    def call(clients, progress: false)
       if clients.nil?
         # Full refresh - process all clients and remove all unmatched candidates
         clients = ::GrdaWarehouse::Hud::Client.destination
-        destination_client_ids(pool)
         incremental = false
       else
         # Incremental - process only provided clients and remove candidates only for those clients
@@ -33,38 +37,38 @@ module Hmis::Ce::Match
         validate_clients_parameter!(clients)
       end
 
-      evaluator = ClientPoolEvaluator.new(pool, field_map)
-
+      progress_bar = nil
       # optionally track the in-memory evaluations, which is the expensive work
       if progress
-        puts "Processing pool[#{pool.id}] eligibility: #{pool.requirement_expression.inspect}, priority: #{pool.priority_expression.inspect}"
+        puts "Processing pool[#{@pool.id}] eligibility: #{@pool.requirement_expression.inspect}, priority: #{@pool.priority_expression.inspect}"
         progress_bar = ProgressBar.new(clients.count, :counter, :bar, :percentage, :rate, :eta)
       end
 
       processed_client_ids = []
-      filtered_clients, removed_client_snapshots = crude_eligibility_filter(pool, evaluator, clients, progress_bar)
+      prefilter_result = @prefilter.call(clients)
+      removed_client_snapshots = generate_snapshots(prefilter_result.removed_clients, progress_bar)
 
       # In incremental mode, track all input clients that should be processed so we can
       # remove candidates for clients that no longer pass filters (including SQL filter)
       processed_client_ids = clients.pluck(:id) if incremental
 
-      filtered_clients.in_batches do |batch|
+      started_at = Time.current
+      prefilter_result.matching_clients.in_batches do |batch|
         # First iterate through the batch to import any Client Proxies that aren't present in the db already
-        proxies = []
         now = Time.current
+        proxies_by_client = @repo.import_proxies(batch, timestamp: now)
+
         batch.each do |client|
           # In full mode, track clients as we process them
           processed_client_ids.push(client.id) unless incremental
-          proxies << Hmis::Ce::ClientProxy.new(client: client)
         end
-        proxies_by_client = import_proxies!(proxies)
 
         # Iterate through a second time to import candidate matches
-        candidates = []
+        matching_candidates = []
         matching_client_snapshots = []
         batch.each do |client|
           progress_bar&.increment!
-          evaluation = evaluator.call(client)
+          evaluation = @evaluator.call(client)
 
           if evaluation.priority_score.nil?
             # Client without a score cannot be prioritized, so do not include them in the pool.
@@ -73,9 +77,9 @@ module Hmis::Ce::Match
             next
           end
 
-          candidates << {
-            candidate_pool_id: pool.id,
-            client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
+          matching_candidates << {
+            candidate_pool_id: @pool.id,
+            client_proxy_id: proxies_by_client.fetch([client.id, client.class.name]).id,
             priority_score: evaluation.priority_score,
             created_at: now,
             updated_at: now,
@@ -83,116 +87,40 @@ module Hmis::Ce::Match
           matching_client_snapshots.push([client.id, evaluation.client_values])
         end
 
-        import_candidates!(candidates)
-        write_events(matching_client_snapshots, pool: pool, timestamp: now)
+        @repo.import_candidates(matching_candidates)
+        @event_writer.call(matching_client_snapshots, timestamp: now)
       end
 
       # Remove old candidates that no longer match
-      now = Time.current
       if incremental
         # In incremental mode, only remove candidates for clients that were in the input scope
         # This ensures we remove candidates for clients who no longer pass any filters
-        pool.candidates.joins(:client_proxy).where(
-          ce_client_proxies: { client_id: processed_client_ids, client_type: 'GrdaWarehouse::Hud::Client' },
-        ).where(updated_at: ...now).delete_all
+        @repo.remove_stale_candidates(processed_client_ids: processed_client_ids, updated_before: started_at)
       else
-        # In full mode, remove all candidates that weren't updated in this run
-        pool.candidates.where(updated_at: ...now).delete_all
+        # In full mode, remove all candidates that were not updated during this run
+        @repo.remove_all_stale_candidates(updated_before: started_at)
       end
 
-      write_events(removed_client_snapshots, pool: pool, timestamp: now)
-      pool.update!(candidates_generated_at: now)
+      @event_writer.call(removed_client_snapshots, timestamp: started_at)
+      @pool.update!(candidates_generated_at: started_at)
     end
 
-    protected
-
-    def write_events(snapshots, pool:, timestamp:)
-      return if snapshots.empty?
-      client_ids = snapshots.map(&:first)
-      client_proxy_id_lookup = Hmis::Ce::ClientProxy.
-        where(client_type: 'GrdaWarehouse::Hud::Client').
-        where(client_id: client_ids).
-        pluck(:client_id, :id).to_h
-
-      event_lookup = pool.candidates.
-        where(client_proxy_id: client_proxy_id_lookup.values).
-        pluck(:client_proxy_id, "CASE WHEN created_at = updated_at THEN 'add' ELSE 'update' END").
-        to_h
-
-      values = snapshots.map do |client_id, snapshot|
-        client_proxy_id = client_proxy_id_lookup.fetch(client_id)
-        event = event_lookup[client_proxy_id] || 'remove'
-        {
-          event_name: event,
-          snapshot: snapshot,
-          candidate_pool_id: pool.id,
-          client_proxy_id: client_proxy_id,
-          created_at: timestamp,
-        }
-      end
-      CandidateEvent.import!(values)
-    end
+    private
 
     def validate_clients_parameter!(clients)
       raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client
     end
 
-    def import_proxies!(values)
-      result = Hmis::Ce::ClientProxy.import(values, on_duplicate_key_ignore: true)
-      raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
+    def generate_snapshots(clients, progress_bar)
+      snapshots = []
+      return snapshots if clients.none?
 
-      # return a map of [client_id, client_type] to ClientProxy
-      # re-query the Hmis::Ce::ClientProxy table by client ID, not result ID, since duplicate clients would not be included in result.ids
-      Hmis::Ce::ClientProxy.where(client: values.map(&:client)).each_with_object({}) do |record, hash|
-        key = [record.client_id, record.client_type] # Composite key because client is polymorphic
-        hash[key] = record
+      progress_bar.max += clients.count if progress_bar
+      clients.find_each do |client|
+        snapshots.push([client.id, @evaluator.call(client).client_values])
+        progress_bar&.increment!
       end
-    end
-
-    def import_candidates!(values)
-      Candidate.import(
-        values, on_duplicate_key_update: {
-          conflict_target: [:candidate_pool_id, :client_proxy_id],
-          columns: [:priority_score, :updated_at],
-        }
-      )
-      raise "failed to import Candidates: #{result.inspect}" if result.failed_instances.present?
-    end
-
-    # note, the filter only works on candidates that are destination clients
-    def crude_eligibility_filter(pool, evaluator, client_universe, progress_bar)
-      condition = SqlExpressionTranslator.call(pool.requirement_expression, field_map)
-      return [client_universe.none, []] unless condition
-
-      # we perform sql-filtering and then capture the attributes of those clients that no longer match (for event log)
-      removed_client_snapshots = []
-      # filter the universe
-      matching_clients = client_universe.where(condition)
-      # find all clients in the pool
-      current_clients = pool.warehouse_clients.where(id: client_universe)
-      # find all clients that no longer match the pool
-      removed_clients = current_clients.where.not(id: matching_clients.select(:id))
-
-      removed_count = removed_clients.count
-      if removed_count > 0
-        progress_bar.max += removed_count if progress_bar
-
-        # capture the attributes for removed clients
-        removed_clients.find_each do |client|
-          snapshot = evaluator.call(client).client_values
-          removed_client_snapshots.push([client.id, snapshot])
-          progress_bar.increment!
-        end
-      end
-
-      [
-        matching_clients,
-        removed_client_snapshots,
-      ]
-    end
-
-    def field_map
-      @field_map ||= FieldMap.new
+      snapshots
     end
   end
 end

@@ -29,6 +29,13 @@ module Hmis::Ce::Match
       )
     end
 
+    def warehouse_clients
+      proxy_scope = Hmis::Ce::ClientProxy.
+        warehouse_clients.joins(:ce_match_candidates).
+        where(ce_match_candidates: {candidate_pool_id: id})
+      GrdaWarehouse::Hud::Client.joins(:ce_client_proxy).merge(proxy_scope)
+    end
+
     def relevant_form_definition_identifiers
       # Gather relevant expressions for determining priority/eligibility in this candidate pool.
       # These look like: 'current_age > 18' or 'cde.custom_assessment.fieldname = 1'

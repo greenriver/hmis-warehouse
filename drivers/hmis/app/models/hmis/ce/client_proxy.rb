@@ -21,6 +21,8 @@ module Hmis::Ce
     validates :client_id, presence: true, uniqueness: { scope: [:client_type] }
     validate :client_is_destination
 
+    scope :warehouse_clients, -> { where(client_type: GrdaWarehouse::Hud::Client.sti_name) }
+
     def client_is_destination
       errors.add :client, 'must be destination client' unless GrdaWarehouse::DataSource.destination_data_source_ids.include?(client.data_source_id)
     end
