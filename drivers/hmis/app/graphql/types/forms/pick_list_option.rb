@@ -611,7 +611,7 @@ module Types
         sort_by_option(:organization_and_name)
 
       project_scope.filter_map do |project|
-        next unless project.accepts_ce_referrals_from?(from_project)
+        next unless project.accepts_direct_ce_referrals_from?(from_project)
 
         project.to_pick_list_option
       end
@@ -623,15 +623,17 @@ module Types
 
       project = Hmis::Hud::Project.find(project_id)
       return [] unless project.data_source_id == user.hmis_data_source_id
-
-      config = Hmis::ProjectCeConfig.detect_best_config_for_project(project)
-      return [] unless config.accepts_direct_referrals?
+      return [] unless project.accepts_direct_ce_referrals?
 
       project.unit_groups.filter_map do |unit_group|
-        available_count = unit_group.units.unoccupied_on.count
-        next if available_count.zero? # Filter out unit groups with no available units
+        next unless unit_group.accepts_direct_ce_referrals?
 
-        { code: unit_group.id, label: unit_group.name, secondary_label: "#{available_count} available" }
+        {
+          code: unit_group.id,
+          label: unit_group.name,
+          secondary_label: "#{unit_group.available_unit_count} available",
+          disabled: unit_group.available_unit_count.zero?, # todo @martha - this doesn't work
+        }
       end
     end
   end

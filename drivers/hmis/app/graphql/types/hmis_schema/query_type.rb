@@ -522,7 +522,7 @@ module Types
       project = Hmis::Hud::Project.find_by(id: destination_project_id)
 
       access_denied! if referral_mode == 'legacy' && !project.receives_referrals?
-      access_denied! if referral_mode == 'coordinated_entry' && !project.accepts_ce_referrals_from?(source_enrollment.project)
+      access_denied! if referral_mode == 'coordinated_entry' && !project.accepts_direct_ce_referrals_from?(source_enrollment.project)
 
       # Can't accept the referral if any client in the household has an existing open enrollment in the project.
       personal_ids = source_enrollment.household_members.pluck(:PersonalID)
@@ -567,8 +567,7 @@ module Types
 
       unit_group = Hmis::UnitGroup.find(target_unit_group_id)
       target_project = unit_group.project # does not need to be viewable by current user
-      config = Hmis::ProjectCeConfig.detect_best_config_for_project(target_project)
-      access_denied! unless config.accepts_direct_referrals?
+      access_denied! unless target_project.accepts_direct_ce_referrals_from?(source_enrollment.project)
 
       workflow_template = unit_group.workflow_template
 
