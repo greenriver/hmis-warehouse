@@ -53,8 +53,8 @@ module Types
       definition = object.form_definition
       return definition if definition.present?
 
-      # Otherwise, get the definition identifier on the node, and return the latest published definition with this identifier
-      workflow_task.form_definitions.published.order(version: :desc).first
+      # Otherwise, get the definition from the task node
+      workflow_task.form_definition
     end
 
     def updated_by

@@ -127,6 +127,7 @@ RSpec.shared_context 'ce spec helper' do
       client: client,
       referred_by: hmis_user,
       status: 'initialized',
+      referral_origin: 'waitlist',
     )
   end
 

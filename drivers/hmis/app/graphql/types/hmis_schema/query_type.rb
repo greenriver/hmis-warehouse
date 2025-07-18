@@ -502,6 +502,8 @@ module Types
       scope.order(created_at: :desc, id: :asc)
     end
 
+    # Legacy referrals
+    # todo @Martha - this seems like actually it could be repurposed for CE referrals, maybe with passing a new flag to determine which project list to check? or just based on the project itself?
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
       argument :destination_project_id, ID, required: true
       argument :source_enrollment_id, ID, required: true
@@ -548,6 +550,43 @@ module Types
       raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :direct_referral_form, Types::Forms::FormDefinition, null: true do
+      argument :target_project_id, ID, required: true
+      argument :target_unit_group_id, ID, required: true
+      argument :source_enrollment_id, ID, required: true
+    end
+    def direct_referral_form(target_project_id:, target_unit_group_id:, source_enrollment_id:)
+      # todo @Martha - confirm that the enrollment is allowed to be referred (see above) - maybe keep that in a separate query?
+
+      access_denied! unless Hmis::Ce.configuration.enabled?
+
+      source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
+      access_denied! unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+
+      target_project = Hmis::Hud::Project.find(target_project_id) # does not need to be viewable by current user
+      config = Hmis::ProjectCeConfig.detect_best_config_for_project(target_project)
+      access_denied! unless config.accepts_direct_referrals?
+
+      unit_group = target_project.unit_groups.find(target_unit_group_id)
+      workflow_template = unit_group.workflow_template
+
+      user_facing_error_message = "Unit group #{unit_group.name} at project #{target_project.project_name} does not have a correctly configured referral workflow."
+      internal_error_message = "UnitGroup:#{unit_group.id} TargetProject:#{target_project.id} SourceEnrollment:#{source_enrollment.id}"
+
+      unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
+        error_message = "Workflow template not found. #{internal_error_message}"
+        raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
+      end
+
+      initiation_node = workflow_template.graph.nodes.find(&:delegated_handoff)
+      unless initiation_node&.user_task? && initiation_node.form_definition.present?
+        error_message = "Workflow template #{workflow_template.id} does not have a UserTask node with a form definition that is marked 'delegated_handoff'. #{internal_error_message}"
+        raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
+      end
+
+      initiation_node.form_definition
     end
 
     field :ce_opportunity, HmisSchema::CeOpportunity, null: true do
