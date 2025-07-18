@@ -43,32 +43,34 @@ module Mutations
       opportunity = unit.latest_opportunity # should be present thanks to accepting_ce_referrals scope
       referral = nil
 
-      opportunity.with_lock do # todo @martha - learn about with_lock vs. transaction. does this happen inside of a transaction? creating the referral but not the step shouldn't happen
-        unless opportunity.open? # check inside lock for race condition
-          errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
-          return { errors: errors }
-        end
+      Hmis::Ce::Referral.transaction do
+        opportunity.with_lock do
+          unless opportunity.open? # check inside lock for race condition
+            errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
+            return { errors: errors }
+          end
 
-        instance = opportunity.workflow_template.instances.create!
-        referral = opportunity.referrals.create!(
-          workflow_instance: instance,
-          referred_by: current_user,
-          client: source_enrollment.client,
-          source_enrollment: source_enrollment,
-          referral_origin: 'project',
-        )
+          instance = opportunity.workflow_template.instances.create!
+          referral = opportunity.referrals.create!(
+            workflow_instance: instance,
+            referred_by: current_user,
+            client: source_enrollment.client,
+            source_enrollment: source_enrollment,
+            referral_origin: 'project',
+          )
+        end
 
         engine = referral.workflow_engine
         engine.start_workflow!(user: current_user)
 
-        # there should be only one active step if the workflow is correctly configured
+        # Find the step that's marked 'delegated_handoff', aka the step that should be completed by the target project
         step = engine.active_steps.find { |s| s.node.delegated_handoff? }
         raise unless step.present?
 
         # Intentionally don't check current user's permissions to complete this step.
         # User doesn't need permission in the target project, if they have can_manage_outgoing_referrals in the source project
-        step.form_definition = form_definition
 
+        step.form_definition = form_definition
         validations = engine.validate_step(step, submitted_values: values_by_link_id)
         errors.push(*validations)
         errors.drop_warnings! if confirmed
