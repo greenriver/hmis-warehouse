@@ -16,8 +16,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'direct_referral_form query' do
     let(:query) do
       <<~GRAPHQL
-        query GetDirectReferralForm($targetProjectId: ID!, $targetUnitGroupId: ID!, $sourceEnrollmentId: ID!) {
-          directReferralForm(targetProjectId: $targetProjectId, targetUnitGroupId: $targetUnitGroupId, sourceEnrollmentId: $sourceEnrollmentId) {
+        query GetDirectReferralForm($targetUnitGroupId: ID!, $sourceEnrollmentId: ID!) {
+          directReferralForm(targetUnitGroupId: $targetUnitGroupId, sourceEnrollmentId: $sourceEnrollmentId) {
             id
           }
         }
@@ -47,7 +47,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let(:variables) do
       {
-        target_project_id: target_project.id,
         target_unit_group_id: unit_group.id,
         source_enrollment_id: source_enrollment.id,
       }

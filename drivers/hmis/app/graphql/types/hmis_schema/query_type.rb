@@ -556,21 +556,20 @@ module Types
     end
 
     field :direct_referral_form, Types::Forms::FormDefinition, null: true do
-      argument :target_project_id, ID, required: true
       argument :target_unit_group_id, ID, required: true
       argument :source_enrollment_id, ID, required: true
     end
-    def direct_referral_form(target_project_id:, target_unit_group_id:, source_enrollment_id:)
+    def direct_referral_form(target_unit_group_id:, source_enrollment_id:)
       access_denied! unless Hmis::Ce.configuration.enabled?
 
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
       access_denied! unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
 
-      target_project = Hmis::Hud::Project.find(target_project_id) # does not need to be viewable by current user
+      unit_group = Hmis::UnitGroup.find(target_unit_group_id)
+      target_project = unit_group.project # does not need to be viewable by current user
       config = Hmis::ProjectCeConfig.detect_best_config_for_project(target_project)
       access_denied! unless config.accepts_direct_referrals?
 
-      unit_group = target_project.unit_groups.find(target_unit_group_id)
       workflow_template = unit_group.workflow_template
 
       user_facing_error_message = "Unit group #{unit_group.name} at project #{target_project.project_name} does not have a correctly configured referral workflow."
