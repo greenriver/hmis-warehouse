@@ -6906,6 +6906,39 @@ ALTER SEQUENCE public.ce_custom_referral_statuses_id_seq OWNED BY public.ce_cust
 
 
 --
+-- Name: ce_match_candidate_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_match_candidate_events (
+    id bigint NOT NULL,
+    candidate_pool_id bigint NOT NULL,
+    client_proxy_id bigint NOT NULL,
+    snapshot jsonb NOT NULL,
+    event_name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_match_candidate_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_match_candidate_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_match_candidate_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_match_candidate_events_id_seq OWNED BY public.ce_match_candidate_events.id;
+
+
+--
 -- Name: ce_match_candidate_pools; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -33912,6 +33945,13 @@ ALTER TABLE ONLY public.ce_custom_referral_statuses ALTER COLUMN id SET DEFAULT 
 
 
 --
+-- Name: ce_match_candidate_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_match_candidate_events ALTER COLUMN id SET DEFAULT nextval('public.ce_match_candidate_events_id_seq'::regclass);
+
+
+--
 -- Name: ce_match_candidate_pools id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -38001,6 +38041,14 @@ ALTER TABLE ONLY public.ce_client_proxies
 
 ALTER TABLE ONLY public.ce_custom_referral_statuses
     ADD CONSTRAINT ce_custom_referral_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_match_candidate_events ce_match_candidate_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_match_candidate_events
+    ADD CONSTRAINT ce_match_candidate_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -61778,6 +61826,20 @@ CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id 
 
 
 --
+-- Name: index_ce_match_candidate_events_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_match_candidate_events_on_candidate_pool_id ON public.ce_match_candidate_events USING btree (candidate_pool_id);
+
+
+--
+-- Name: index_ce_match_candidate_events_on_client_proxy_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_match_candidate_events_on_client_proxy_id ON public.ce_match_candidate_events USING btree (client_proxy_id);
+
+
+--
 -- Name: index_ce_match_candidate_pools_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74728,6 +74790,14 @@ ALTER TABLE ONLY public."Services"
 
 
 --
+-- Name: ce_match_candidate_events fk_rails_a15e47e9af; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_match_candidate_events
+    ADD CONSTRAINT fk_rails_a15e47e9af FOREIGN KEY (candidate_pool_id) REFERENCES public.ce_match_candidate_pools(id);
+
+
+--
 -- Name: CustomAssessments fk_rails_a3f9f6f647; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -74861,6 +74931,14 @@ ALTER TABLE ONLY public.warehouse_clients
 
 ALTER TABLE ONLY public.files
     ADD CONSTRAINT fk_rails_c6ea865a3f FOREIGN KEY (vispdat_id) REFERENCES public.vispdats(id);
+
+
+--
+-- Name: ce_match_candidate_events fk_rails_c6f0e57e41; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_match_candidate_events
+    ADD CONSTRAINT fk_rails_c6f0e57e41 FOREIGN KEY (client_proxy_id) REFERENCES public.ce_client_proxies(id);
 
 
 --
@@ -75082,6 +75160,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250716131240'),
 ('20250716123853'),
 ('20250716122931'),
+('20250715220502'),
 ('20250715152820'),
 ('20250715123705'),
 ('20250714172716'),
