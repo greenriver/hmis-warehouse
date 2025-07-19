@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 # resolve fields from the client (and associated enrollments)
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Expression
+  # FieldMap implementation for GrdaWarehouse::Hud::Client fields
+  # This class resolves fields that are columns on the `Client` table or one of its associations.
   class ClientFieldMap
     def instance_value(client, field)
       callback = all.dig(field.to_sym, :instance_value)

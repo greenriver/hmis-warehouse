@@ -2,11 +2,12 @@
 
 require 'progress_bar'
 
-# * Find all clients that match the given pools's eligibility requirements.
-# * Score each client based on that pools's prioritization formula.
-# * Persist the results as MatchCandidate records to be consumed by opportunities.
+# The Coordinated Entry (CE) Match Engine is responsible for evaluating a universe of clients
+# against a set of eligibility and prioritization rules for a given candidate pool.
+# It identifies which clients are eligible for the pool and calculates a priority score for each.
+# The engine is designed to be idempotent and can be run repeatedly without causing side effects.
 #
-# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
+# See drivers/hmis/app/models/hmis/ce/match/README_FOR_CE_MATCH_ENGINE.md
 module Hmis::Ce::Match
   # Orchestrates the process of evaluating a universe of clients against a
   # candidate pool's criteria. It coordinates various components to filter,
@@ -19,11 +20,11 @@ module Hmis::Ce::Match
 
     def initialize(pool)
       @pool = pool
-      @field_map = FieldMap.new
-      @evaluator = ClientPoolEvaluator.new(@pool, @field_map)
-      @event_writer = CandidateEventWriter.new(@pool)
-      @repo = CandidateRepository.new(@pool)
-      @prefilter = SqlPrefilter.new(@pool, @field_map)
+      @field_map = Hmis::Ce::Match::Expression::FieldMap.new
+      @evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(@pool, @field_map)
+      @event_writer = Hmis::Ce::Match::Internal::CandidateEventWriter.new(@pool)
+      @repo = Hmis::Ce::Match::Internal::CandidateRepository.new(@pool)
+      @prefilter = Hmis::Ce::Match::Internal::SqlPrefilter.new(@pool, @field_map)
     end
 
     def call(clients, progress: false)
@@ -54,14 +55,12 @@ module Hmis::Ce::Match
 
       started_at = Time.current
       prefilter_result.matching_clients.in_batches do |batch|
-        # First iterate through the batch to import any Client Proxies that aren't present in the db already
         now = Time.current
+        # iterate through the batch to import any Client Proxies that aren't present in the db already
         proxies_by_client = @repo.import_proxies(batch, timestamp: now)
 
-        batch.each do |client|
-          # In full mode, track clients as we process them
-          processed_client_ids.push(client.id) unless incremental
-        end
+        # In full mode, track clients as we process them
+        processed_client_ids += batch.map(&:id) unless incremental
 
         # Iterate through a second time to import candidate matches
         matching_candidates = []

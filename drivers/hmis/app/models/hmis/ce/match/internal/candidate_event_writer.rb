@@ -1,9 +1,21 @@
 # frozen_string_literal: true
 
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Internal
   # Responsible for writing candidate events (`add`, `update`, `remove`) to the
   # `ce_match_candidate_events` table. It determines the correct event type
   # based on the candidate's history and bulk-imports the events.
+  #
+  # This class uses an implicit method to determine the event type, which relies
+  # on the `Hmis::Ce::Match::Engine` to orchestrate database state correctly.
+  #
+  # Event Determination Logic:
+  # - 'add': A candidate record exists and `created_at` equals `updated_at`.
+  #   This indicates a new record was just inserted by the Engine.
+  # - 'update': A candidate record exists and `created_at` is different from
+  #   `updated_at`. This indicates an existing record was updated.
+  # - 'remove': No candidate record is found for the client. The Engine must
+  #   delete the candidate record *before* calling this writer for clients
+  #   that are no longer eligible.
   class CandidateEventWriter
     def initialize(pool)
       @pool = pool
@@ -14,7 +26,7 @@ module Hmis::Ce::Match
 
       client_ids = snapshots.map(&:first)
       client_proxy_id_lookup = Hmis::Ce::ClientProxy.
-        where(client_type: 'GrdaWarehouse::Hud::Client').
+        warehouse_clients.
         where(client_id: client_ids).
         pluck(:client_id, :id).to_h
 
@@ -36,7 +48,7 @@ module Hmis::Ce::Match
           created_at: timestamp,
         }
       end
-      CandidateEvent.import!(values)
+      Hmis::Ce::Match::CandidateEvent.import!(values)
     end
   end
 end

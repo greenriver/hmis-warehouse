@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Internal
   # Responsible for translating a pool's `requirement_expression` into a SQL
   # `WHERE` clause to efficiently filter out non-matching clients at the
   # database level before performing more expensive in-memory evaluations.
@@ -15,7 +15,7 @@ module Hmis::Ce::Match
 
     # note, the filter only works on candidates that are destination clients
     def call(client_universe)
-      condition = SqlExpressionTranslator.call(@pool.requirement_expression, @field_map)
+      condition = Hmis::Ce::Match::Expression::SqlExpressionTranslator.call(@pool.requirement_expression, @field_map)
       return Result.new(matching_clients: client_universe.none, removed_clients: client_universe.none) unless condition
 
       # filter the universe

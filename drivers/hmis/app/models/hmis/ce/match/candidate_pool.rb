@@ -32,7 +32,7 @@ module Hmis::Ce::Match
     def warehouse_clients
       proxy_scope = Hmis::Ce::ClientProxy.
         warehouse_clients.joins(:ce_match_candidates).
-        where(ce_match_candidates: {candidate_pool_id: id})
+        where(ce_match_candidates: { candidate_pool_id: id })
       GrdaWarehouse::Hud::Client.joins(:ce_client_proxy).merge(proxy_scope)
     end
 
@@ -41,7 +41,7 @@ module Hmis::Ce::Match
       # These look like: 'current_age > 18' or 'cde.custom_assessment.fieldname = 1'
       expressions = [requirement_expression, priority_expression]
 
-      calculator = Hmis::Ce::Match::CalculatorFactory.build
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
 
       cde_fields = expressions.map do |expression|
         # For each expression, get the list of fields it references. E.g. ['current_age', 'cde.custom_assessment.fieldname']
@@ -49,15 +49,15 @@ module Hmis::Ce::Match
 
         fields.map do |field|
           # Use the FieldMap to map each field to its type, and skip if it isn't CDE
-          field_type, resolved_field = Hmis::Ce::Match::FieldMap.field_type_for(field)
-          next unless field_type == Hmis::Ce::Match::FieldMap::CDE
+          field_type, resolved_field = Hmis::Ce::Match::Expression::FieldMap.field_type_for(field)
+          next unless field_type == Hmis::Ce::Match::Expression::FieldMap::CDE
 
           resolved_field
         end.uniq
       end.flatten.compact.uniq
 
       # Gather all the CDEDs referenced by all CDE fields and return their form definition identifiers
-      cdeds = Hmis::Ce::Match::CdeFieldMap.new.cdeds_for(cde_fields)
+      cdeds = Hmis::Ce::Match::Expression::CdeFieldMap.new.cdeds_for(cde_fields)
       cdeds.pluck(:form_definition_identifier).uniq
     end
   end

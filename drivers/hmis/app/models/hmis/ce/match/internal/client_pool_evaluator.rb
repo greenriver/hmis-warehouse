@@ -2,7 +2,7 @@
 
 require 'dentaku'
 
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Internal
   class ClientPoolEvaluator
     attr_reader :expression, :field_map
 
@@ -13,7 +13,7 @@ module Hmis::Ce::Match
       @pool = pool
 
       @field_map = field_map
-      @calculator = Hmis::Ce::Match::CalculatorFactory.build
+      @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       @dependencies = [
         pool.requirement_expression,
         pool.priority_expression,
