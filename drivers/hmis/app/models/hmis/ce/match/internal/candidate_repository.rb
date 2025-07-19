@@ -15,7 +15,7 @@ module Hmis::Ce::Match::Internal
           client_id: client.id,
           client_type: client.class.sti_name,
           created_at: timestamp,
-          updated_at: timestamp
+          updated_at: timestamp,
         }
       end
 

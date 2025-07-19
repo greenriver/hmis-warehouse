@@ -48,7 +48,8 @@ module Hmis::Ce::Match::Internal
           created_at: timestamp,
         }
       end
-      Hmis::Ce::Match::CandidateEvent.import!(values)
+      result = Hmis::Ce::Match::CandidateEvent.import!(values)
+      raise "failed to import Events: #{result.inspect}" if result.failed_instances.present?
     end
   end
 end

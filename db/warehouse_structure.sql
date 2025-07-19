@@ -61805,10 +61805,10 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
--- Name: index_ce_client_proxies_on_client; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_client_proxies_on_client_unique; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_ce_client_proxies_on_client ON public.ce_client_proxies USING btree (client_type, client_id);
+CREATE UNIQUE INDEX index_ce_client_proxies_on_client_unique ON public.ce_client_proxies USING btree (client_type, client_id);
 
 
 --
@@ -75162,6 +75162,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250716122931'),
 ('20250715220502'),
 ('20250715152820'),
+('20250715150621'),
 ('20250715123705'),
 ('20250714172716'),
 ('20250714145407'),
