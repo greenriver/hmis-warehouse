@@ -14,7 +14,7 @@ module Hmis::Ce::Match
   # evaluate, and persist candidates and their corresponding events.
   class Engine
     # Convenience class method to instantiate and call the engine in one step.
-    def self.call(pool, clients:, progress: false)
+    def self.call(pool, clients: nil, progress: false)
       new(pool).call(clients, progress: progress)
     end
 

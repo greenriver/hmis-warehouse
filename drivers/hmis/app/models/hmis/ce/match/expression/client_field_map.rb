@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# resolve fields from the client (and associated enrollments)
 module Hmis::Ce::Match::Expression
   # FieldMap implementation for GrdaWarehouse::Hud::Client fields
   # This class resolves fields that are columns on the `Client` table or one of its associations.

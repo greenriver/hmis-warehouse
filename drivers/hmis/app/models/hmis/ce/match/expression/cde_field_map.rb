@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# resolve custom data elements (CDEs)
 module Hmis::Ce::Match::Expression
   # FieldMap implementation for CDE fields
   class CdeFieldMap
