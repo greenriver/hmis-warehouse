@@ -11,6 +11,8 @@ module Hmis::Ce::Match
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
 
+    attr_readonly :requirement_expression, :priority_expression
+
     # pools for active opportunities
     scope :active, -> {
       active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
