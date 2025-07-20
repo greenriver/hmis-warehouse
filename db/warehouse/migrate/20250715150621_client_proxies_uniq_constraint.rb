@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ClientProxiesUniqConstraint < ActiveRecord::Migration[7.1]
   OLD_INDEX_NAME = 'index_ce_client_proxies_on_client'
   NEW_INDEX_NAME = 'index_ce_client_proxies_on_client_unique'

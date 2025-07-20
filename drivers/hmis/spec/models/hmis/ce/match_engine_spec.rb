@@ -486,8 +486,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
 
     def find_events_for_client(client_id)
-      proxy = Hmis::Ce::ClientProxy.find_by(client_id: client_id, client_type: 'GrdaWarehouse::Hud::Client')
-      return [] unless proxy
+      proxy = Hmis::Ce::ClientProxy.for_warehouse_clients.find_by!(client_id: client_id)
 
       Hmis::Ce::Match::CandidateEvent.where(candidate_pool: pool, client_proxy: proxy).order(:created_at)
     end
@@ -511,31 +510,13 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'when updating existing candidates' do
-      it 'creates update events when candidates are reprocessed' do
-        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
-
-        # First run - creates add event
-        generate_candidates(pool)
-        initial_event_count = find_events_for_client(adult_client.id).count
-
-        # Second run - should create update event
-        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
-
-        events = find_events_for_client(adult_client.id)
-        expect(events.count).to eq(initial_event_count + 1)
-        expect(events.last).to have_attributes(
-          event_name: 'update',
-          candidate_pool: pool,
-        )
-      end
-
       it 'creates update events with new snapshot when client data changes but they remain eligible' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
         generate_candidates(pool) # Initial run
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(adult_client.age)
 
         # Change data that affects priority score but not eligibility
         adult_client.update!(DOB: 30.years.ago) # current_age changes from 20 to 30
-
         generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
 
         events = find_events_for_client(adult_client.id)
@@ -544,6 +525,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           candidate_pool: pool,
         )
         expect(events.last.snapshot).to include('current_age' => 30)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(30)
       end
     end
 
@@ -572,10 +554,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'when client fails priority evaluation' do
-      let(:priority_expression) { 'IF(current_age > 50, current_age, NULL)' }
+      let(:priority_expression) { 'IF(current_age > 18, current_age, NULL)' }
 
       it 'creates remove events for clients with nil priority scores' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
+        adult_client.update!(DOB: 10.years.ago)
 
         # Process client - should be excluded due to nil priority score
         generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
@@ -586,8 +570,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
         # Should have a remove event logged
         events = find_events_for_client(adult_client.id)
-        expect(events.size).to eq(1)
+        expect(events.size).to eq(2)
         expect(events.first).to have_attributes(
+          event_name: 'add',
+          candidate_pool: pool,
+        )
+        expect(events.last).to have_attributes(
           event_name: 'remove',
           candidate_pool: pool,
         )

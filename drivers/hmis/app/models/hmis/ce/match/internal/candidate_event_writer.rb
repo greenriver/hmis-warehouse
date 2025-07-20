@@ -24,9 +24,9 @@ module Hmis::Ce::Match::Internal
     def call(snapshots, timestamp:)
       return if snapshots.empty?
 
-      client_ids = snapshots.map(&:first)
+      client_ids = snapshots.map(&:client_id)
       client_proxy_id_lookup = Hmis::Ce::ClientProxy.
-        warehouse_clients.
+        for_warehouse_clients.
         where(client_id: client_ids).
         pluck(:client_id, :id).to_h
 
@@ -35,14 +35,14 @@ module Hmis::Ce::Match::Internal
         pluck(:client_proxy_id, Arel.sql("CASE WHEN created_at = updated_at THEN 'add' ELSE 'update' END")).
         to_h
 
-      values = snapshots.map do |client_id, snapshot|
+      values = snapshots.map do |snapshot|
         # This will raise if a client doesn't have a proxy, which is what we want.
         # It indicates a logic error elsewhere, as proxies should be created before events.
-        client_proxy_id = client_proxy_id_lookup.fetch(client_id)
+        client_proxy_id = client_proxy_id_lookup.fetch(snapshot.client_id)
         event = event_lookup[client_proxy_id] || 'remove'
         {
           event_name: event,
-          snapshot: snapshot,
+          snapshot: snapshot.values,
           candidate_pool_id: @pool.id,
           client_proxy_id: client_proxy_id,
           created_at: timestamp,

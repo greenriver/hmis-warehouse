@@ -28,15 +28,11 @@ module Hmis::Ce::Match
     end
 
     def call(clients, progress: false)
-      if clients.nil?
-        # Full refresh - process all clients and remove all unmatched candidates
-        clients = ::GrdaWarehouse::Hud::Client.destination
-        incremental = false
-      else
-        # Incremental - process only provided clients and remove candidates only for those clients
-        incremental = true
-        validate_clients_parameter!(clients)
-      end
+      # If clients are provided, incrementally process only provided clients and remove candidates only for those clients
+      validate_clients_parameter!(clients) if clients
+
+      # Full refresh - process all clients and remove all unmatched candidates
+      clients = ::GrdaWarehouse::Hud::Client.destination if clients.nil?
 
       # optionally track the in-memory evaluations, which is the expensive work
       progress_bar = nil
@@ -45,12 +41,21 @@ module Hmis::Ce::Match
         progress_bar.max += clients.count
       end
 
+      started_at = Time.current
       # SQL Prefiltering
       prefilter_result = @prefilter.call(clients)
-      # capture snapshots at time of removal for the event log
-      removed_client_snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
 
-      started_at = Time.current
+      # remove any current clients that the sql filter excluded
+      if prefilter_result.lost_eligibility_clients.exists?
+        Hmis::Ce::Match::Candidate.transaction do
+          # capture snapshots at time of removal for the event log.
+          # The intent to log the attributes that caused the client to lose eligibility
+          removed_client_snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
+          @repo.remove_warehouse_client_candidates(prefilter_result.lost_eligibility_clients)
+          @event_writer.call(removed_client_snapshots, timestamp: started_at)
+        end
+      end
+
       prefilter_result.eligible_clients.in_batches do |batch|
         now = Time.current
         # import missing Client Proxies
@@ -58,7 +63,9 @@ module Hmis::Ce::Match
         # efficient lookup for client_id => proxy_id
         warehouse_proxy_id_map = @repo.proxy_ids_by_warehouse_client(batch)
         # track which clients in this batch are currently matched to the pool
-        current_warehouse_clients_ids = @repo.current_warehouse_client_ids(batch)
+        current_warehouse_clients_ids = @repo.current_warehouse_client_ids(batch).to_set
+        # accumulate snapshots for clients in this batch that should be removed
+        removed_client_snapshots = []
 
         # Perform In-Memory Evaluation on each client
         matching_candidates = []
@@ -70,7 +77,7 @@ module Hmis::Ce::Match
           # Client without a score cannot be prioritized, so do not include them in the pool.
           # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
           if evaluation.priority_score.nil?
-            removed_client_snapshots.push([client.id, evaluation.client_values]) if client.id.in?(current_warehouse_clients_ids)
+            removed_client_snapshots.push(Snapshot.new(client.id, evaluation.client_values)) if client.id.in?(current_warehouse_clients_ids)
             next
           end
 
@@ -81,28 +88,27 @@ module Hmis::Ce::Match
             created_at: now,
             updated_at: now,
           }
-          matching_client_snapshots.push([client.id, evaluation.client_values])
+          snapshot = Snapshot.new(client.id, evaluation.client_values)
+          matching_client_snapshots.push(snapshot)
         end
 
-        @repo.import_candidates(matching_candidates)
-        # Event Logging
-        @event_writer.call(matching_client_snapshots, timestamp: now)
+        Hmis::Ce::Match::Candidate.transaction do
+          # import new candidates and log the events
+          @repo.import_candidates(matching_candidates)
+          @event_writer.call(matching_client_snapshots, timestamp: now)
+
+          # remove stale candidates and log the events
+          @repo.remove_warehouse_client_candidates(removed_client_snapshots.map(&:client_id))
+          @event_writer.call(removed_client_snapshots, timestamp: now)
+        end
       end
 
-      # Remove old candidates that no longer match
-      if incremental
-        # In incremental mode, only remove candidates for clients that were in the input scope
-        # This ensures we remove candidates for clients who no longer pass any filters
-        @repo.remove_stale_candidates(client_ids: clients.pluck(:id), updated_before: started_at)
-      else
-        # In full mode, remove all candidates that were not updated during this run
-        @repo.remove_all_stale_candidates(updated_before: started_at)
-      end
-
-      # Event Logging
-      @event_writer.call(removed_client_snapshots, timestamp: started_at)
-      @pool.update!(candidates_generated_at: started_at)
+      @pool.update!(candidates_generated_at: Time.current)
     end
+
+    # helper for managing client values for event logging
+    Snapshot = Struct.new(:client_id, :values)
+    private_constant :Snapshot
 
     private
 
@@ -112,19 +118,19 @@ module Hmis::Ce::Match
 
     def generate_snapshots(clients, progress_bar)
       snapshots = []
-      return snapshots if clients.none?
 
-      progress_bar.max += clients.count if progress_bar
+      progress_bar&.max += clients.count
       clients.find_each do |client|
-        snapshots.push([client.id, @evaluator.call(client).client_values])
+        snapshot = Snapshot.new(client.id, @evaluator.call(client).client_values)
+        snapshots.push(snapshot)
         progress_bar&.increment!
       end
       snapshots
     end
-  end
 
-  def new_progress_bar
-    puts "Processing pool[#{@pool.id}] eligibility: #{@pool.requirement_expression.inspect}, priority: #{@pool.priority_expression.inspect}"
-    ProgressBar.new(0, :counter, :bar, :percentage, :rate, :eta)
+    def new_progress_bar
+      puts "Processing pool[#{@pool.id}] eligibility: #{@pool.requirement_expression.inspect}, priority: #{@pool.priority_expression.inspect}"
+      ProgressBar.new(0, :counter, :bar, :percentage, :rate, :eta)
+    end
   end
 end
