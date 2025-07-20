@@ -20,8 +20,11 @@ The classes within this module are organized into several subdirectories to grou
 
 ## Core Workflow
 
-1.  **Initiation**: The process is typically initiated via the `Engine` class, triggered by a `ProcessChangesJob` job.
+1.  **Initiation**: The process is typically initiated via the `Engine` class, triggered by a `ProcessChangesJob` job. The engine supports both full and incremental client processing.
 2.  **SQL Prefiltering**: The `Engine` first uses the `SqlPrefilter` to translate the pool's eligibility requirements into a SQL `WHERE` clause. This efficiently filters out a large number of non-matching clients at the database level.
-3.  **In-Memory Evaluation**: For the remaining clients, the `ClientPoolEvaluator` performs a more detailed, in-memory evaluation using the Dentaku expression engine via the `CalculatorFactory`.
-4.  **Persistence**: The `CandidateRepository` is responsible for all database operations, including creating and updating `ClientProxy` and `Candidate` records.
-5.  **Event Logging**: The `CandidateEventWriter` records the outcome of the evaluation (`add`, `update`, `remove`) in the `ce_match_candidate_events` table, creating an audit trail of changes to the candidate pool.
+3.  **In-Memory Evaluation**: For the remaining clients, the `ClientPoolEvaluator` performs an, in-memory evaluation of priority and eligibility requirements
+4.  **Persistence**: The `Engine` performs the following, via the `CandidateRepository`:
+    * Creates proxy records for all clients if they do not exist
+    * Creates or updates candidate records for the pool for newly matched clients or where priority score has changed.
+    * Deletes candidate records for clients that no-longer match the pool's expression
+5.  **Event Logging**: The `CandidateEventWriter` records the outcome of the evaluation (`add`, `update`, `remove`) in the `ce_match_candidate_events` table associated with the client's proxy record, creating an audit trail of eligibility changes.

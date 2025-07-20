@@ -21,12 +21,13 @@ module Hmis::Ce::Match::Internal
 
       result = Hmis::Ce::ClientProxy.import(values, on_duplicate_key_ignore: true)
       raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
+    end
 
-      # return a map of [client_id, client_type] to ClientProxy
-      # re-query the Hmis::Ce::ClientProxy table by client ID, not result ID, since duplicate clients would not be included in result.ids
+    # return a map of client_id to client_proxy_id
+    def proxy_ids_by_warehouse_client(clients)
       Hmis::Ce::ClientProxy.warehouse_clients.
         where(client_id: clients.map(&:id)).
-        index_by { |p| [p.client_id, p.client_type] }
+        pluck(:client_id, :id).to_h
     end
 
     def import_candidates(values)
@@ -41,12 +42,17 @@ module Hmis::Ce::Match::Internal
       raise "failed to import Candidates: #{result.inspect}" if result.failed_instances.present?
     end
 
-    def remove_stale_candidates(processed_client_ids:, updated_before:)
+    def remove_stale_candidates(client_ids:, updated_before:)
       client_proxy_ids = Hmis::Ce::ClientProxy.warehouse_clients.
-        where(client_id: processed_client_ids).
+        where(client_id: client_ids).
         pluck(:id)
 
       @pool.candidates.where(client_proxy_id: client_proxy_ids, updated_at: ...updated_before).delete_all
+    end
+
+    # the intersection of clients and the clients already in the candidate pool
+    def current_warehouse_client_ids(clients)
+      @pool.warehouse_clients.where(id: clients.select(:id)).pluck(:id).to_set
     end
 
     def remove_all_stale_candidates(updated_before:)

@@ -7,7 +7,7 @@ require 'progress_bar'
 # It identifies which clients are eligible for the pool and calculates a priority score for each.
 # The engine is designed to be idempotent and can be run repeatedly without causing side effects.
 #
-# See drivers/hmis/app/models/hmis/ce/match/README_FOR_CE_MATCH_ENGINE.md
+# See README_FOR_CE_MATCH_ENGINE.md
 module Hmis::Ce::Match
   # Orchestrates the process of evaluating a universe of clients against a
   # candidate pool's criteria. It coordinates various components to filter,
@@ -38,47 +38,45 @@ module Hmis::Ce::Match
         validate_clients_parameter!(clients)
       end
 
-      progress_bar = nil
       # optionally track the in-memory evaluations, which is the expensive work
+      progress_bar = nil
       if progress
-        puts "Processing pool[#{@pool.id}] eligibility: #{@pool.requirement_expression.inspect}, priority: #{@pool.priority_expression.inspect}"
-        progress_bar = ProgressBar.new(clients.count, :counter, :bar, :percentage, :rate, :eta)
+        progress_bar = new_progress_bar
+        progress_bar.max += clients.count
       end
 
-      processed_client_ids = []
+      # SQL Prefiltering
       prefilter_result = @prefilter.call(clients)
-      removed_client_snapshots = generate_snapshots(prefilter_result.removed_clients, progress_bar)
-
-      # In incremental mode, track all input clients that should be processed so we can
-      # remove candidates for clients that no longer pass filters (including SQL filter)
-      processed_client_ids = clients.pluck(:id) if incremental
+      # capture snapshots at time of removal for the event log
+      removed_client_snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
 
       started_at = Time.current
-      prefilter_result.matching_clients.in_batches do |batch|
+      prefilter_result.eligible_clients.in_batches do |batch|
         now = Time.current
-        # iterate through the batch to import any Client Proxies that aren't present in the db already
-        proxies_by_client = @repo.import_proxies(batch, timestamp: now)
+        # import missing Client Proxies
+        @repo.import_proxies(batch, timestamp: now)
+        # efficient lookup for client_id => proxy_id
+        warehouse_proxy_id_map = @repo.proxy_ids_by_warehouse_client(batch)
+        # track which clients in this batch are currently matched to the pool
+        current_warehouse_clients_ids = @repo.current_warehouse_client_ids(batch)
 
-        # In full mode, track clients as we process them
-        processed_client_ids += batch.map(&:id) unless incremental
-
-        # Iterate through a second time to import candidate matches
+        # Perform In-Memory Evaluation on each client
         matching_candidates = []
         matching_client_snapshots = []
         batch.each do |client|
           progress_bar&.increment!
           evaluation = @evaluator.call(client)
 
+          # Client without a score cannot be prioritized, so do not include them in the pool.
+          # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
           if evaluation.priority_score.nil?
-            # Client without a score cannot be prioritized, so do not include them in the pool.
-            # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
-            removed_client_snapshots.push([client.id, evaluation.client_values])
+            removed_client_snapshots.push([client.id, evaluation.client_values]) if client.id.in?(current_warehouse_clients_ids)
             next
           end
 
           matching_candidates << {
             candidate_pool_id: @pool.id,
-            client_proxy_id: proxies_by_client.fetch([client.id, client.class.name]).id,
+            client_proxy_id: warehouse_proxy_id_map.fetch(client.id),
             priority_score: evaluation.priority_score,
             created_at: now,
             updated_at: now,
@@ -87,6 +85,7 @@ module Hmis::Ce::Match
         end
 
         @repo.import_candidates(matching_candidates)
+        # Event Logging
         @event_writer.call(matching_client_snapshots, timestamp: now)
       end
 
@@ -94,12 +93,13 @@ module Hmis::Ce::Match
       if incremental
         # In incremental mode, only remove candidates for clients that were in the input scope
         # This ensures we remove candidates for clients who no longer pass any filters
-        @repo.remove_stale_candidates(processed_client_ids: processed_client_ids, updated_before: started_at)
+        @repo.remove_stale_candidates(client_ids: clients.pluck(:id), updated_before: started_at)
       else
         # In full mode, remove all candidates that were not updated during this run
         @repo.remove_all_stale_candidates(updated_before: started_at)
       end
 
+      # Event Logging
       @event_writer.call(removed_client_snapshots, timestamp: started_at)
       @pool.update!(candidates_generated_at: started_at)
     end
@@ -121,5 +121,10 @@ module Hmis::Ce::Match
       end
       snapshots
     end
+  end
+
+  def new_progress_bar
+    puts "Processing pool[#{@pool.id}] eligibility: #{@pool.requirement_expression.inspect}, priority: #{@pool.priority_expression.inspect}"
+    ProgressBar.new(0, :counter, :bar, :percentage, :rate, :eta)
   end
 end

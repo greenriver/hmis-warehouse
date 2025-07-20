@@ -9,6 +9,7 @@ module Hmis::Ce::Match
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
+    has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
 
     # pools for active opportunities
     scope :active, -> {
@@ -31,7 +32,7 @@ module Hmis::Ce::Match
 
     def warehouse_clients
       proxy_scope = Hmis::Ce::ClientProxy.
-        warehouse_clients.joins(:ce_match_candidates).
+        joins(:ce_match_candidates).
         where(ce_match_candidates: { candidate_pool_id: id })
       GrdaWarehouse::Hud::Client.joins(:ce_client_proxy).merge(proxy_scope)
     end
