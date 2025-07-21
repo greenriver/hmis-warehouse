@@ -131,6 +131,7 @@ module Types
 
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
     ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:outgoing_ce_referrals, filter_args: { omit: [:on_current_task_since], type_name: 'ProjectOutgoingCeReferral' })
 
     def hud_id
       object.project_id
@@ -296,6 +297,11 @@ module Types
 
     def ce_referrals(**args) # Don't resolve in batch
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def outgoing_ce_referrals(**args)
+      # todo @martha - this applies viewable by, which isn't correct. need dangerous_skip_permission_check
+      resolve_ce_referrals(object.outgoing_ce_referrals, **args)
     end
 
     private def check_enrollment_details_access

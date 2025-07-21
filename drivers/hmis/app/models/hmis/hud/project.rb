@@ -59,6 +59,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
   has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
+  has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 

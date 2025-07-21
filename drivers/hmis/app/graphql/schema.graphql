@@ -9421,6 +9421,7 @@ type Project {
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date
   organization: Organization!
+  outgoingCeReferrals(filters: ProjectOutgoingCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   outgoingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
@@ -9648,6 +9649,14 @@ input ProjectFilterOptions {
   projectType: [ProjectType!]
   searchTerm: String
   status: [ProjectFilterOptionStatus!]
+}
+
+input ProjectOutgoingCeReferralFilterOptions {
+  organization: [ID!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  referralStatus: [String!]
+  workflowTemplate: [String!]
 }
 
 """
