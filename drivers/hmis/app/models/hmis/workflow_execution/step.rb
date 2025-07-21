@@ -6,6 +6,7 @@
 module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
     include SimpleStateMachine
+    include ::Hmis::Hud::Concerns::FormSubmittable # bring in relations to CDE/CDED/FormProcessor
 
     has_paper_trail
 

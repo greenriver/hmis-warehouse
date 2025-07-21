@@ -1,5 +1,15 @@
-= render 'admin/audits/shared/layout', 
-  entity_type: 'Access Controls',
-  entity_path: admin_access_controls_path,
-  export_path: export_admin_access_controls_path(format: :csv),
-  item: nil
+- entity_type = 'Access Controls'
+- title = "#{entity_type} Audit History"
+- content_for :title, title
+
+= render 'admin/audits/shared/breadcrumbs', entity_type: entity_type, entity_path: admin_access_controls_path
+= render_display_title "#{entity_type} Audit History"
+.text-right.mb-3
+  = render 'report_downloads/report_download', export: nil, excel_download_path: nil, excel_export: @excel_export, excel_download_tooltip: 'Download includes all access control audit history data in Excel format.'
+
+- if params[:render_inline] == "1"
+  = render 'admin/access_controls/audits_content'
+- else
+  = render 'background_render', url: render_audits_admin_access_controls_path, fetch_params: {} do
+    .rollup
+      .rollup-container.well
