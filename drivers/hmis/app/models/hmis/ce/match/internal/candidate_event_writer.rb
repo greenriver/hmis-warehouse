@@ -2,24 +2,26 @@
 
 module Hmis::Ce::Match::Internal
   # Responsible for writing candidate events (`add`, `update`, `remove`) to the
-  # `ce_match_candidate_events` table. It uses explicit operation information
-  # from the CandidateRepository to determine the correct event type and
-  # bulk-imports the events.
+  # `ce_match_candidate_events` table. It determines the correct event type
+  # based on the candidate's history and bulk-imports the events.
   #
-  # This class uses explicit operation tracking provided by the Engine, which
-  # compares the state before and after candidate import operations to determine
-  # exactly what changed.
+  # This class uses an implicit method to determine the event type, which relies
+  # on the `Hmis::Ce::Match::Engine` to orchestrate database state correctly.
   #
   # Event Determination Logic:
-  # - 'add': A new candidate record was created during the import operation.
-  # - 'update': An existing candidate record was modified (e.g., priority score changed).
-  # - 'remove': A candidate record was deleted (handled separately in the Engine).
+  # - 'add': A candidate record exists and `created_at` equals `updated_at`.
+  #   This indicates a new record was just inserted by the Engine.
+  # - 'update': A candidate record exists and `created_at` is different from
+  #   `updated_at`. This indicates an existing record was updated.
+  # - 'remove': No candidate record is found for the client. The Engine must
+  #   delete the candidate record *before* calling this writer for clients
+  #   that are no longer eligible.
   class CandidateEventWriter
     def initialize(pool)
       @pool = pool
     end
 
-    def call(snapshots, timestamp:, operations:)
+    def call(snapshots, timestamp:)
       return if snapshots.empty?
 
       client_ids = snapshots.map(&:client_id)
@@ -28,17 +30,16 @@ module Hmis::Ce::Match::Internal
         where(client_id: client_ids).
         pluck(:client_id, :id).to_h
 
-      # Create operation lookup for explicit event determination
-      operation_lookup = operations.index_by(&:client_proxy_id)
+      event_lookup = @pool.candidates.
+        where(client_proxy_id: client_proxy_id_lookup.values).
+        pluck(:client_proxy_id, Arel.sql("CASE WHEN created_at = updated_at THEN 'add' ELSE 'update' END")).
+        to_h
 
       values = snapshots.map do |snapshot|
         # This will raise if a client doesn't have a proxy, which is what we want.
         # It indicates a logic error elsewhere, as proxies should be created before events.
         client_proxy_id = client_proxy_id_lookup.fetch(snapshot.client_id)
-
-        # Use explicit operation from the import result
-        event = operation_lookup.fetch(client_proxy_id).operation
-
+        event = event_lookup[client_proxy_id] || 'remove'
         {
           event_name: event,
           snapshot: snapshot.values,

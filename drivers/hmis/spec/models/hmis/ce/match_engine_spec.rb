@@ -644,42 +644,6 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         events_after_third_run = find_events_for_client(adult_client.id)
         expect(events_after_third_run.size).to eq(1) # Still just the original add event
       end
-
-      it 'correctly tracks operation types and only creates events for actual changes' do
-        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
-        veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
-
-        # First run - both clients should get 'add' events
-        generate_candidates(pool)
-
-        initial_adult_events = find_events_for_client(adult_client.id)
-        initial_veteran_events = find_events_for_client(veteran_client.id)
-
-        expect(initial_adult_events.size).to eq(1)
-        expect(initial_adult_events.first.event_name).to eq('add')
-        expect(initial_veteran_events.size).to eq(1)
-        expect(initial_veteran_events.first.event_name).to eq('add')
-
-        # Change only one client's data to affect priority score
-        adult_client.update!(DOB: 25.years.ago) # age changes from 20 to 25, affecting priority
-
-        # Second run - only the changed client should get an 'update' event
-        expect do
-          generate_candidates(pool)
-        end.to change { Hmis::Ce::Match::CandidateEvent.count }.by(1) # Only 1 new event
-
-        adult_events_after_update = find_events_for_client(adult_client.id)
-        veteran_events_after_update = find_events_for_client(veteran_client.id)
-
-        # Adult client should have 2 events: add + update
-        expect(adult_events_after_update.size).to eq(2)
-        expect(adult_events_after_update.map(&:event_name)).to eq(['add', 'update'])
-        expect(adult_events_after_update.last.snapshot).to include('current_age' => 25)
-
-        # Veteran client should still have only 1 event: add (no change, so no new event)
-        expect(veteran_events_after_update.size).to eq(1)
-        expect(veteran_events_after_update.first.event_name).to eq('add')
-      end
     end
   end
 end

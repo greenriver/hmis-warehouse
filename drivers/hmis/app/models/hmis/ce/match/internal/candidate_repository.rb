@@ -37,6 +37,15 @@ module Hmis::Ce::Match::Internal
         index_by(&:client_id)
     end
 
+    def candidates_by_warehouse_client(candidate_ids)
+      Hmis::Ce::Match::Candidate.
+        where(id: candidate_ids).
+        joins(:client_proxy).
+        merge(Hmis::Ce::ClientProxy.for_warehouse_clients).
+        pluck('ce_client_proxies.client_id', :id).
+        to_h
+    end
+
     def import_candidates(values)
       return [] if values.empty?
 

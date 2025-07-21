@@ -24,7 +24,6 @@ module Hmis::Ce::Match
       @evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(@pool, @field_map)
       @event_writer = Hmis::Ce::Match::Internal::CandidateEventWriter.new(@pool)
       @repo = Hmis::Ce::Match::Internal::CandidateRepository.new(@pool)
-      @operation_tracker = Hmis::Ce::Match::Internal::CandidateOperationTracker.new(@pool)
       @prefilter = Hmis::Ce::Match::Internal::SqlPrefilter.new(@pool, @field_map)
     end
 
@@ -53,11 +52,7 @@ module Hmis::Ce::Match
           # The intent to log the attributes that caused the client to lose eligibility
           removed_client_snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
           @repo.remove_warehouse_client_candidates(prefilter_result.lost_eligibility_clients)
-
-          # Create operations for clients who lost eligibility
-          lost_eligibility_operations = @operation_tracker.create_remove_operations_for_lost_eligibility(removed_client_snapshots)
-
-          @event_writer.call(removed_client_snapshots, timestamp: started_at, operations: lost_eligibility_operations)
+          @event_writer.call(removed_client_snapshots, timestamp: started_at)
         end
       end
 
@@ -98,32 +93,17 @@ module Hmis::Ce::Match
         end
 
         Hmis::Ce::Match::Candidate.transaction do
-          # Query existing state before import to track operations
-          existing_lookup = @operation_tracker.get_existing_candidates_lookup(matching_candidates)
-
-          # Import new candidates
-          @repo.import_candidates(matching_candidates)
-
-          # Determine what operations occurred by comparing before/after state
-          operations = @operation_tracker.determine_operations(matching_candidates, existing_lookup)
-
-          # Filter snapshots to only include clients that had actual operations (not 'unchanged')
-          operated_snapshots = matching_client_snapshots.filter do |snapshot|
-            proxy_id = warehouse_proxy_map[snapshot.client_id]&.id
-            operation_info = operations.find { |op| op.client_proxy_id == proxy_id }
-            operation_info && operation_info.operation != 'unchanged'
-          end
-
-          # Log events with explicit operation context
-          @event_writer.call(operated_snapshots, timestamp: now, operations: operations)
+          # import new candidates and log the events
+          updated_candidate_ids = @repo.import_candidates(matching_candidates)
+          candidate_map = @repo.candidates_by_warehouse_client(updated_candidate_ids)
+          @event_writer.call(
+            matching_client_snapshots.filter { |s| candidate_map.key?(s.client_id) },
+            timestamp: now,
+          )
 
           # remove stale candidates and log the events
           @repo.remove_warehouse_client_candidates(removed_client_snapshots.map(&:client_id))
-
-          # Create operations for removed clients
-          removed_operations = @operation_tracker.create_remove_operations_for_clients(removed_client_snapshots, warehouse_proxy_map)
-
-          @event_writer.call(removed_client_snapshots, timestamp: now, operations: removed_operations)
+          @event_writer.call(removed_client_snapshots, timestamp: now)
         end
       end
 
