@@ -10,6 +10,8 @@ module Hmis::Ce::Match::Internal
     end
 
     def import_proxies(clients, timestamp:)
+      return [] if clients.empty?
+
       values = clients.map do |client|
         {
           client_id: client.id,
@@ -21,17 +23,31 @@ module Hmis::Ce::Match::Internal
 
       result = Hmis::Ce::ClientProxy.import(values, on_duplicate_key_ignore: true)
       raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
+
+      result.ids
     end
 
-    # return a map of client_id to client_proxy_id
-    def proxy_ids_by_warehouse_client(clients)
+    # return a map of client_id to client_proxy
+    def proxy_by_warehouse_client(clients_or_ids)
+      client_ids = clients_or_ids.select(:id) if clients_or_ids.is_a?(ActiveRecord::Relation)
+      client_ids ||= clients_or_ids
+
       Hmis::Ce::ClientProxy.for_warehouse_clients.
-        where(client_id: clients.map(&:id)).
-        pluck(:client_id, :id).to_h
+        where(client_id: client_ids).
+        index_by(&:client_id)
+    end
+
+    def candidates_by_warehouse_client(candidate_ids)
+      Hmis::Ce::Match::Candidate.
+        where(id: candidate_ids).
+        joins(:client_proxy).
+        merge(Hmis::Ce::ClientProxy.for_warehouse_clients).
+        pluck('ce_client_proxies.client_id', :id).
+        to_h
     end
 
     def import_candidates(values)
-      return if values.empty?
+      return [] if values.empty?
 
       result = Hmis::Ce::Match::Candidate.import(
         values, on_duplicate_key_update: {
@@ -41,6 +57,8 @@ module Hmis::Ce::Match::Internal
         }
       )
       raise "failed to import Candidates: #{result.inspect}" if result.failed_instances.present?
+
+      result.ids
     end
 
     def remove_warehouse_client_candidates(clients_or_ids)

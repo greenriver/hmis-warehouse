@@ -61,7 +61,7 @@ module Hmis::Ce::Match
         # import missing Client Proxies
         @repo.import_proxies(batch, timestamp: now)
         # efficient lookup for client_id => proxy_id
-        warehouse_proxy_id_map = @repo.proxy_ids_by_warehouse_client(batch)
+        warehouse_proxy_map = @repo.proxy_by_warehouse_client(batch)
         # track which clients in this batch are currently matched to the pool
         current_warehouse_clients_ids = @repo.current_warehouse_client_ids(batch).to_set
         # accumulate snapshots for clients in this batch that should be removed
@@ -83,7 +83,7 @@ module Hmis::Ce::Match
 
           matching_candidates << {
             candidate_pool_id: @pool.id,
-            client_proxy_id: warehouse_proxy_id_map.fetch(client.id),
+            client_proxy_id: warehouse_proxy_map[client.id].id,
             priority_score: evaluation.priority_score,
             created_at: now,
             updated_at: now,
@@ -94,8 +94,12 @@ module Hmis::Ce::Match
 
         Hmis::Ce::Match::Candidate.transaction do
           # import new candidates and log the events
-          @repo.import_candidates(matching_candidates)
-          @event_writer.call(matching_client_snapshots, timestamp: now)
+          updated_candidate_ids = @repo.import_candidates(matching_candidates)
+          candidate_map = @repo.candidates_by_warehouse_client(updated_candidate_ids)
+          @event_writer.call(
+            matching_client_snapshots.filter { |s| candidate_map.key?(s.client_id) },
+            timestamp: now,
+          )
 
           # remove stale candidates and log the events
           @repo.remove_warehouse_client_candidates(removed_client_snapshots.map(&:client_id))

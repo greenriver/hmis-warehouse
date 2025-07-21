@@ -614,5 +614,36 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         )
       end
     end
+
+    context 'when running engine multiple times without data changes' do
+      it 'does not create extraneous update events' do
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+
+        # First run - should create add event
+        expect do
+          generate_candidates(pool)
+        end.to change { Hmis::Ce::Match::CandidateEvent.count }.by(3) # 3 adult clients
+
+        initial_events = find_events_for_client(adult_client.id)
+        expect(initial_events.size).to eq(1)
+        expect(initial_events.first.event_name).to eq('add')
+
+        # Second run with same data - should not create any new events
+        expect do
+          generate_candidates(pool)
+        end.not_to(change { Hmis::Ce::Match::CandidateEvent.count })
+
+        events_after_second_run = find_events_for_client(adult_client.id)
+        expect(events_after_second_run.size).to eq(1) # Still just the original add event
+
+        # Third run with same data - should still not create any new events
+        expect do
+          generate_candidates(pool)
+        end.not_to(change { Hmis::Ce::Match::CandidateEvent.count })
+
+        events_after_third_run = find_events_for_client(adult_client.id)
+        expect(events_after_third_run.size).to eq(1) # Still just the original add event
+      end
+    end
   end
 end
