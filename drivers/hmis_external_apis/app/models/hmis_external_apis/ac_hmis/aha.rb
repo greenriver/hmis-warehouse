@@ -18,7 +18,7 @@ module HmisExternalApis::AcHmis
       return nil if mci_ids.empty?
 
       payload = {
-        'dw_client_id': mci_ids.first, # todo @martha - if client has multiple ids
+        'dw_client_id': mci_ids.join(','),
       }
 
       result = conn.post('api/v1/clients/scores/search/', payload).
