@@ -115,6 +115,7 @@ jobs:
 
     env:
       CLIENT: test
+      ENABLE_HMIS_API: 'true'
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
       DATABASE_DB_TEST: warehouse_test

@@ -111,18 +111,6 @@ RSpec.configure do |config|
     # Ensure we have all the cohort columns
     GrdaWarehouse::Cohorts::CohortColumn.maintain!
   end
-
-  # Wrap tests in a transaction for the warehouse database, unless opted out
-  config.around(:each) do |example|
-    if example.metadata[:no_warehouse_transaction]
-      example.run
-    else
-      GrdaWarehouseBase.transaction do
-        example.run
-        raise ActiveRecord::Rollback
-      end
-    end
-  end
 end
 
 # Drivers

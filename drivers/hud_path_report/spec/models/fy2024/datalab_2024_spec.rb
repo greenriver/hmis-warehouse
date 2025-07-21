@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -12,7 +10,7 @@ require_relative 'datalab_path/path_organization_f'
 require_relative 'datalab_path/path_organization_r'
 require_relative 'datalab_path/path_organization_q'
 
-RSpec.describe 'PATH Datalab 2024', type: :model, no_warehouse_transaction: true do
+RSpec.describe 'PATH Datalab 2024', type: :model do
   include_context 'datalab testkit context'
   def project_type_filter(project_type)
     project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)
