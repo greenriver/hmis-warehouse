@@ -56,9 +56,11 @@ module Types
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
     end
 
+    # Check for most minimal permission needed to resolve this object: either can_view? OR can_view_summary?
     def self.authorized?(object, ctx)
       user = ctx[:current_user]
-      super && user.policy_for(object, policy_type: :ce_referral).can_view?
+      policy = user.policy_for(object, policy_type: :ce_referral)
+      super && (policy.can_view? || policy.can_view_summary?)
     end
 
     def custom_status

@@ -37,10 +37,10 @@ module Types
 
       private
 
-      def scoped_ce_referrals(scope, user: current_user, filters: nil)
+      def scoped_ce_referrals(scope, user: current_user, filters: nil, dangerous_skip_permission_check: false)
         raise unless Hmis::Ce.configuration.enabled?
 
-        scope = scope.viewable_by(user)
+        scope = scope.viewable_by(user) unless dangerous_skip_permission_check
         scope = scope.apply_filters(filters) if filters.present?
         scope.order_by_status
       end

@@ -300,8 +300,9 @@ module Types
     end
 
     def outgoing_ce_referrals(**args)
-      # todo @martha - this applies viewable by, which isn't correct. need dangerous_skip_permission_check
-      resolve_ce_referrals(object.outgoing_ce_referrals, **args)
+      access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
+
+      resolve_ce_referrals(object.outgoing_ce_referrals, dangerous_skip_permission_check: true, **args)
     end
 
     private def check_enrollment_details_access
