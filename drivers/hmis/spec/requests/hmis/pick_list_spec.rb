@@ -11,12 +11,12 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
+  # before(:all) do
+  #   cleanup_test_environment
+  # end
+  # after(:all) do
+  #   cleanup_test_environment
+  # end
 
   include_context 'hmis base setup'
 
@@ -578,9 +578,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     # Unit group with available units
     let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
-    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, project: ce_project, data_source: ds1, status: :open) }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, project: ce_project, data_source: ce_project.data_source, status: :open) }
     let!(:available_unit2) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
-    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, project: ce_project, data_source: ds1, status: :open) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, project: ce_project, data_source: ce_project.data_source, status: :open) }
 
     # Unit group with occupied units
     let!(:occupied_unit) { create(:hmis_unit, project: ce_project, unit_group: unit_group_occupied) }
@@ -629,6 +629,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the project and the user are not in the same data source' do
       let!(:ce_project) { create(:hmis_hud_project) }
+      let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ce_project.data_source, template_type: 'ce_referral', status: 'published') }
 
       it_behaves_like 'returns empty pick list'
     end
