@@ -572,16 +572,16 @@ module Types
       workflow_template = unit_group.workflow_template
 
       user_facing_error_message = "Unit group #{unit_group.name} at project #{target_project.project_name} does not have a correctly configured referral workflow."
-      internal_error_message = "UnitGroup:#{unit_group.id} TargetProject:#{target_project.id} SourceEnrollment:#{source_enrollment.id}"
+      base_error_message = "UnitGroup:#{unit_group.id} TargetProject:#{target_project.id} SourceEnrollment:#{source_enrollment.id}"
 
       unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
-        error_message = "Workflow template not found. #{internal_error_message}"
+        error_message = "Workflow template not found. #{base_error_message}"
         raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
       end
 
       initiation_node = workflow_template.graph.nodes.find(&:delegated_handoff)
       unless initiation_node&.user_task? && initiation_node.form_definition.present?
-        error_message = "Workflow template #{workflow_template.id} does not have a UserTask node with a form definition that is marked 'delegated_handoff'. #{internal_error_message}"
+        error_message = "Workflow template #{workflow_template.id} does not have a UserTask node with a form definition that is marked 'delegated_handoff'. #{base_error_message}"
         raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
       end
 

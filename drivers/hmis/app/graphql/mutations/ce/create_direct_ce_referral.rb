@@ -12,7 +12,7 @@ module Mutations
     argument :source_enrollment_id, ID, required: true
     argument :values_by_link_id, Types::JsonObject, required: true
     argument :values_by_field_name, Types::JsonObject, required: true
-    argument :form_definition_id, ID, required: true # The form that was used to submit the step
+    argument :form_definition_id, ID, required: true # The form that was used to submit the "delegated_handoff" step
     argument :confirmed, Boolean, required: false
 
     field :referral, Types::HmisSchema::CeReferral, null: true # nullable in case of validation errors

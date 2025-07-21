@@ -89,9 +89,9 @@ module Types
         eligible_referral_step_assignment_user_picklist(project)
       when 'PROJECTS_ACCEPTING_CE_REFERRALS'
         projects_accepting_ce_referrals(from_project: project)
-      when 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT'
+      when 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL'
         # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
-        available_unit_groups_for_project(project_id: project_id, user: user)
+        unit_groups_for_project_ce_referral(project_id: project_id, user: user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -617,7 +617,7 @@ module Types
 
       # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
       project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).
-        joins(:organization).preload(:organization).
+        preload(:organization).
         sort_by_option(:organization_and_name)
 
       project_scope.filter_map do |project|
@@ -627,7 +627,7 @@ module Types
       end
     end
 
-    def self.available_unit_groups_for_project(project_id:, user:)
+    def self.unit_groups_for_project_ce_referral(project_id:, user:)
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless user.can_manage_outgoing_referrals? # at any project
 
@@ -636,13 +636,16 @@ module Types
       return [] unless project.accepts_direct_ce_referrals?
 
       project.unit_groups.filter_map do |unit_group|
+        # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
         next unless unit_group.accepts_direct_ce_referrals?
+
+        available_count = unit_group.available_unit_count
 
         {
           code: unit_group.id,
           label: unit_group.name,
-          secondary_label: "#{unit_group.available_unit_count} available",
-          disabled: unit_group.available_unit_count.zero?,
+          secondary_label: "#{available_count} available",
+          disabled: available_count.zero?,
         }
       end
     end
