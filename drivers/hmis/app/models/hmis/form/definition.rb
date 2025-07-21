@@ -619,6 +619,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # For application forms, we now rely on PublishFormDefinition to generate CDEDs, but
   # this is still used in test fixtures and in PublishExternalFormsJob.
   def introspect_custom_data_element_definitions(set_definition_identifier: false, data_source: GrdaWarehouse::DataSource.hmis.first)
+    return unless owner_class.present?
+
     owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 
@@ -636,6 +638,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       key = item.mapping&.custom_field_key
       # find CDED if it exists, or initialize a new one with defaults
       cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
+
+      # raise "CustomDataElementDefinition key is not set for #{item.link_id}" if cded.key.blank?
+      next if cded.key.blank?
 
       # Infer CDED attributes based on Item
       cded.owner_type = owner_type
@@ -690,7 +695,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     walk_definition_nodes do |item|
       link_id = item['link_id']
-
+      raise "must have link id: #{item}" if link_id.blank?
       # Check if there is a required data collection rule for this link_id for this data collection stage (ie role)
       hud_rule = rule_module.hud_data_element_rule(role, link_id)
       if hud_rule
