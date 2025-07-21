@@ -1,0 +1,34 @@
+{
+  "type": "GROUP",
+  "text": "Eligibility Confirmation",
+  "link_id": "eligibility_confirmation",
+  "item": [
+    {
+      "text": "HIV Status",
+      "type": "BOOLEAN",
+      "link_id": "hiv_status",
+      "component": "CHECKBOX",
+      "mapping": {
+        "custom_field_key": "eligibility_confirmation_hiv_status"
+      }
+    },
+    {
+      "text": "Income",
+      "type": "BOOLEAN",
+      "link_id": "income",
+      "component": "CHECKBOX",
+      "mapping": {
+        "custom_field_key": "eligibility_confirmation_income"
+      }
+    },
+    {
+      "text": "Proof of Residency",
+      "type": "BOOLEAN",
+      "link_id": "proof_of_residency",
+      "component": "CHECKBOX",
+      "mapping": {
+        "custom_field_key": "eligibility_confirmation_proof_of_residency"
+      }
+    }
+  ]
+}
