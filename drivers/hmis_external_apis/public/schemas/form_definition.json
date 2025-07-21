@@ -874,7 +874,8 @@
                 "INPUT_GROUP",
                 "TABLE",
                 "SIGNATURE_GROUP",
-                "SIGNATURE"
+                "SIGNATURE",
+                "AHA"
               ]
             },
             "item": {
@@ -914,8 +915,7 @@
           "properties": {
             "component": {
               "enum": [
-                "MINUTES_DURATION",
-                "AHA"
+                "MINUTES_DURATION"
               ]
             }
           }
