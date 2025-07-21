@@ -38,6 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           groupLabel
           groupCode
           initialSelected
+          disabled
         }
       }
     GRAPHQL
@@ -563,18 +564,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT' do
+  describe 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL' do
     let!(:ce_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, accepts_direct_referrals: true) }
     let!(:access_control) { create_access_control(hmis_user, ce_project.organization, with_permission: [:can_manage_outgoing_referrals]) }
 
-    let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group') }
-    let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group') }
-    let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group') }
+    let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
+    let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template, delegated_handoff: true) }
+
+    let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template) }
+    let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template) }
+    let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group', workflow_template: workflow_template) }
 
     # Unit group with available units
     let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, project: ce_project, data_source: ds1, status: :open) }
     let!(:available_unit2) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, project: ce_project, data_source: ds1, status: :open) }
 
     # Unit group with occupied units
     let!(:occupied_unit) { create(:hmis_unit, project: ce_project, unit_group: unit_group_occupied) }
@@ -586,7 +592,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     shared_examples 'returns empty pick list' do
       it 'returns empty array' do
-        response, result = post_graphql(pick_list_type: 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT', project_id: ce_project.id.to_s) { query }
+        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
         expect(response.status).to eq 200
         options = result.dig('data', 'pickList')
 
@@ -595,15 +601,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'with user who has can_manage_outgoing_referrals permission (even without can_view_project)' do
-      it 'returns only unit groups with available units' do
-        response, result = post_graphql(pick_list_type: 'AVAILABLE_UNIT_GROUPS_FOR_PROJECT', project_id: ce_project.id.to_s) { query }
+      it 'returns unit groups' do
+        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
         expect(response.status).to eq 200
         options = result.dig('data', 'pickList')
 
-        expect(options.size).to eq(1) # Does not return unit group with no availability
-        expect(options.first['code']).to eq(unit_group_with_units.id.to_s)
-        expect(options.first['label']).to eq('Available Group')
-        expect(options.first['secondaryLabel']).to eq('2 available')
+        expect(options.size).to eq(3) # Returns all unit groups, but disables the ones that have no availability
+        expect(options).to contain_exactly(
+          a_hash_including('code' => unit_group_with_units.id.to_s, 'label' => 'Available Group', 'secondaryLabel' => '2 available', 'disabled' => false),
+          a_hash_including('code' => unit_group_no_units.id.to_s, 'label' => 'Empty Group', 'secondaryLabel' => '0 available', 'disabled' => true),
+          a_hash_including('code' => unit_group_occupied.id.to_s, 'label' => 'Occupied Group', 'secondaryLabel' => '0 available', 'disabled' => true),
+        )
       end
     end
 

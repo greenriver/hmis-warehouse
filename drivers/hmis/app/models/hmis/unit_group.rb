@@ -44,11 +44,7 @@ module Hmis
     end
 
     def accepts_direct_ce_referrals?
-      return false unless project.accepts_direct_ce_referrals?
-
       return false unless workflow_template.present?
-      return false unless workflow_template.published?
-      return false unless workflow_template.template_type.to_s == 'ce_referral'
 
       initiation_node = workflow_template.graph.nodes.find(&:delegated_handoff)
       return false unless initiation_node.present?
