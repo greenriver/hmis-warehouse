@@ -2,20 +2,15 @@
 
 module Hmis::Ce::Match::Internal
   # Responsible for writing candidate events (`add`, `update`, `remove`) to the
-  # `ce_match_candidate_events` table. It determines the correct event type
-  # based on the candidate's history and bulk-imports the events.
+  # `ce_match_candidate_events` table.
   #
-  # This class uses an implicit method to determine the event type, which relies
-  # on the `Hmis::Ce::Match::Engine` to orchestrate database state correctly.
-  #
-  # Event Determination Logic:
-  # - 'add': A candidate record exists and `created_at` equals `updated_at`.
-  #   This indicates a new record was just inserted by the Engine.
-  # - 'update': A candidate record exists and `created_at` is different from
-  #   `updated_at`. This indicates an existing record was updated.
-  # - 'remove': No candidate record is found for the client. The Engine must
-  #   delete the candidate record *before* calling this writer for clients
-  #   that are no longer eligible.
+  # This class is a simple persistence layer that bulk-imports event data.
+  # The `Hmis::Ce::Match::Engine` is responsible for determining *when* an event
+  # should be logged and what the event type (`event_name`) should be.
+  # Events are only created for meaningful changes:
+  # - `add`: A client becomes a candidate for a pool for the first time.
+  # - `update`: A candidate's `priority_score` changes.
+  # - `remove`: A client is no longer a candidate for a pool.
   class CandidateEventWriter
     def initialize(pool)
       @pool = pool
@@ -30,18 +25,12 @@ module Hmis::Ce::Match::Internal
         where(client_id: client_ids).
         pluck(:client_id, :id).to_h
 
-      event_lookup = @pool.candidates.
-        where(client_proxy_id: client_proxy_id_lookup.values).
-        pluck(:client_proxy_id, Arel.sql("CASE WHEN created_at = updated_at THEN 'add' ELSE 'update' END")).
-        to_h
-
       values = snapshots.map do |snapshot|
         # This will raise if a client doesn't have a proxy, which is what we want.
         # It indicates a logic error elsewhere, as proxies should be created before events.
         client_proxy_id = client_proxy_id_lookup.fetch(snapshot.client_id)
-        event = event_lookup[client_proxy_id] || 'remove'
         {
-          event_name: event,
+          event_name: snapshot.event_name,
           snapshot: snapshot.values,
           candidate_pool_id: @pool.id,
           client_proxy_id: client_proxy_id,

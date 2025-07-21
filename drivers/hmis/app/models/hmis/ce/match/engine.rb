@@ -50,9 +50,9 @@ module Hmis::Ce::Match
         Hmis::Ce::Match::Candidate.transaction do
           # capture snapshots at time of removal for the event log.
           # The intent to log the attributes that caused the client to lose eligibility
-          removed_client_snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
+          snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
           @repo.remove_warehouse_client_candidates(prefilter_result.lost_eligibility_clients)
-          @event_writer.call(removed_client_snapshots, timestamp: started_at)
+          @event_writer.call(snapshots, timestamp: started_at)
         end
       end
 
@@ -64,12 +64,12 @@ module Hmis::Ce::Match
         warehouse_proxy_map = @repo.proxy_by_warehouse_client(batch)
         # track which clients in this batch are currently matched to the pool
         current_warehouse_clients_ids = @repo.current_warehouse_client_ids(batch).to_set
-        # accumulate snapshots for clients in this batch that should be removed
+        # accumulate snapshots for changes to candidates
+        matching_client_snapshots = []
         removed_client_snapshots = []
 
         # Perform In-Memory Evaluation on each client
         matching_candidates = []
-        matching_client_snapshots = []
         batch.each do |client|
           progress_bar&.increment!
           evaluation = @evaluator.call(client)
@@ -77,7 +77,16 @@ module Hmis::Ce::Match
           # Client without a score cannot be prioritized, so do not include them in the pool.
           # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
           if evaluation.priority_score.nil?
-            removed_client_snapshots.push(Snapshot.new(client.id, evaluation.client_values)) if client.id.in?(current_warehouse_clients_ids)
+            if client.id.in?(current_warehouse_clients_ids)
+              # track removal
+              snapshot = Snapshot.new(
+                client_id: client.id,
+                values: evaluation.client_values,
+                event_name: 'remove',
+              )
+              removed_client_snapshots.push(snapshot)
+            end
+
             next
           end
 
@@ -88,7 +97,11 @@ module Hmis::Ce::Match
             created_at: now,
             updated_at: now,
           }
-          snapshot = Snapshot.new(client.id, evaluation.client_values)
+          snapshot = Snapshot.new(
+            client_id: client.id,
+            values: evaluation.client_values,
+            event_name: client.id.in?(current_warehouse_clients_ids) ? 'update' : 'add',
+          )
           matching_client_snapshots.push(snapshot)
         end
 
@@ -97,6 +110,7 @@ module Hmis::Ce::Match
           updated_candidate_ids = @repo.import_candidates(matching_candidates)
           candidate_map = @repo.candidates_by_warehouse_client(updated_candidate_ids)
           @event_writer.call(
+            # filter put snapshots that didn't change
             matching_client_snapshots.filter { |s| candidate_map.key?(s.client_id) },
             timestamp: now,
           )
@@ -111,8 +125,8 @@ module Hmis::Ce::Match
     end
 
     # helper for managing client values for event logging
-    Snapshot = Struct.new(:client_id, :values)
-    private_constant :Snapshot
+    Snapshot = Struct.new(:client_id, :values, :event_name, keyword_init: true)
+    # private_constant :Snapshot # keep public for tests
 
     private
 
@@ -125,7 +139,11 @@ module Hmis::Ce::Match
 
       progress_bar&.max += clients.count
       clients.find_each do |client|
-        snapshot = Snapshot.new(client.id, @evaluator.call(client).client_values)
+        snapshot = Snapshot.new(
+          client_id: client.id,
+          values: @evaluator.call(client).client_values,
+          event_name: 'remove',
+        )
         snapshots.push(snapshot)
         progress_bar&.increment!
       end

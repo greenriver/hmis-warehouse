@@ -27,4 +27,4 @@ The classes within this module are organized into several subdirectories to grou
     * Creates proxy records for all clients if they do not exist
     * Creates or updates candidate records for the pool for newly matched clients or where priority score has changed.
     * Deletes candidate records for clients that no-longer match the pool's expression
-5.  **Event Logging**: The `CandidateEventWriter` records the outcome of the evaluation (`add`, `update`, `remove`) in the `ce_match_candidate_events` table associated with the client's proxy record, creating an audit trail of eligibility changes.
+5.  **Event Logging**: The `CandidateEventWriter` records the outcome of the evaluation (`add`, `update`, `remove`) in the `ce_match_candidate_events` table, creating an audit trail. An event is only logged when there is a meaningful change in the candidate's status: when they are first added, when their priority score changes, or when they are removed from the pool.

@@ -49,6 +49,11 @@ module Hmis::Ce::Match::Internal
     def import_candidates(values)
       return [] if values.empty?
 
+      # The `on_duplicate_key_update` clause is configured to update a candidate only if their
+      # `priority_score` has changed. This is an intentional performance optimization that
+      # avoids unnecessary database writes. It also has the side effect of preventing
+      # 'update' events from being logged when a client's underlying data changes but their
+      # calculated score remains the same.
       result = Hmis::Ce::Match::Candidate.import(
         values, on_duplicate_key_update: {
           conflict_target: [:candidate_pool_id, :client_proxy_id],
