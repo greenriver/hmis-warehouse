@@ -9,3 +9,5 @@ ignore:
   - CVE-2024-29034
   - CVE-2024-6531
   - CVE-2024-8796
+  # CVE-2022-31160: XSS vulnerability in jquery-ui checkboxes - not applicable since we don't use jquery-ui checkbox components
+  - CVE-2022-31160
