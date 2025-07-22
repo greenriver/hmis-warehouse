@@ -25,11 +25,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:target_project1) { create(:hmis_hud_project, data_source: ds1, user: u1) }
   let!(:target_opportunity1) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project1) }
-  let!(:outgoing_referral1) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment1, client: source_enrollment1.client, referral_origin: 'project') }
+  let!(:direct_referral1) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment1, client: source_enrollment1.client, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN) }
 
   let!(:target_project2) { create(:hmis_hud_project, data_source: ds1, user: u1) }
   let!(:target_opportunity2) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project2) }
-  let!(:outgoing_referral2) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment2, client: source_enrollment2.client, referral_origin: 'project') }
+  let!(:direct_referral2) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment2, client: source_enrollment2.client, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN) }
 
   let(:query) do
     <<~GRAPHQL
@@ -75,8 +75,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(outgoing_referrals).to contain_exactly(
           # Expect to resolve summary-level fields like ID and status, but not details like client name
           a_hash_including(
-            'id' => outgoing_referral1.id.to_s,
-            'status' => outgoing_referral1.status,
+            'id' => direct_referral1.id.to_s,
+            'status' => direct_referral1.status,
             'client' => nil,
             'clientName' => nil,
             'access' => {
@@ -84,8 +84,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             },
           ),
           a_hash_including(
-            'id' => outgoing_referral2.id.to_s,
-            'status' => outgoing_referral2.status,
+            'id' => direct_referral2.id.to_s,
+            'status' => direct_referral2.status,
             'client' => nil,
             'clientName' => nil,
             'access' => {
@@ -128,20 +128,36 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(outgoing_referrals).to include(
           # includes detailed access fields like currentSteps and clientName
           a_hash_including(
-            'id' => outgoing_referral1.id.to_s,
+            'id' => direct_referral1.id.to_s,
             'clientName' => source_enrollment1.client.brief_name,
             'access' => {
               'canViewReferralDetails' => true,
             },
           ),
           a_hash_including(
-            'id' => outgoing_referral2.id.to_s,
+            'id' => direct_referral2.id.to_s,
             'clientName' => nil, # can't view the client name
             'access' => {
               'canViewReferralDetails' => false, # can't link to the referral
             },
           ),
         )
+      end
+    end
+
+    context 'with waitlist referrals whose source enrollment is from this project' do
+      # Create a 'waitlist' as opposed to 'direct' referral. It should NOT be included in the query results
+      let!(:source_enrollment3) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project) }
+      let!(:target_opportunity3) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project1) }
+      let!(:waitlist_referral) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity3, source_enrollment: source_enrollment3, referral_origin: Hmis::Ce::Referral::WAITLIST_ORIGIN) }
+
+      it 'does not include waitlist referral in the outgoing referrals query' do
+        response, result = post_graphql(id: source_project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        outgoing_referral_ids = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes').map { |referral| referral['id'] }
+
+        expect(outgoing_referral_ids).to include(direct_referral1.id.to_s, direct_referral2.id.to_s)
+        expect(outgoing_referral_ids).not_to include(waitlist_referral.id.to_s)
       end
     end
 

@@ -302,7 +302,8 @@ module Types
     def outgoing_ce_referrals(**args)
       access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
 
-      resolve_ce_referrals(object.outgoing_ce_referrals, dangerous_skip_permission_check: true, **args)
+      referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
+      resolve_ce_referrals(referral_scope, dangerous_skip_permission_check: true, **args)
     end
 
     private def check_enrollment_details_access
