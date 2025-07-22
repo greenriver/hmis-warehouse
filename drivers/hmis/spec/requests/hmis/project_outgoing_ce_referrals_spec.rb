@@ -33,12 +33,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query GetProjectOutgoingCeReferrals(
+      query GetProjectoutgoingDirectCeReferrals(
         $id: ID!
       ) {
         project(id: $id) {
           id
-          outgoingCeReferrals {
+          outgoingDirectCeReferrals {
             nodesCount
             nodes {
               # summary fields that are always resolved
@@ -70,7 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'resolves outgoing referrals with summary-level data' do
         response, result = post_graphql(id: source_project.id) { query }
         expect(response.status).to eq(200), result.inspect
-        outgoing_referrals = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes')
+        outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
 
         expect(outgoing_referrals).to contain_exactly(
           # Expect to resolve summary-level fields like ID and status, but not details like client name
@@ -101,7 +101,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         it 'resolves the client' do
           response, result = post_graphql(id: source_project.id) { query }
           expect(response.status).to eq(200), result.inspect
-          outgoing_referrals = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes')
+          outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
 
           expect(outgoing_referrals.map { |referral| referral['client'] }).to contain_exactly(
             a_hash_including(
@@ -123,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'resolves full referral details, only for referrals at that project' do
         response, result = post_graphql(id: source_project.id) { query }
         expect(response.status).to eq(200), result.inspect
-        outgoing_referrals = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes')
+        outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
 
         expect(outgoing_referrals).to include(
           # includes detailed access fields like currentSteps and clientName
@@ -154,7 +154,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'does not include waitlist referral in the outgoing referrals query' do
         response, result = post_graphql(id: source_project.id) { query }
         expect(response.status).to eq(200), result.inspect
-        outgoing_referral_ids = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes').map { |referral| referral['id'] }
+        outgoing_referral_ids = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes').map { |referral| referral['id'] }
 
         expect(outgoing_referral_ids).to include(direct_referral1.id.to_s, direct_referral2.id.to_s)
         expect(outgoing_referral_ids).not_to include(waitlist_referral.id.to_s)
@@ -165,7 +165,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:referrals) do
         20.times do
           enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: source_project)
-          create(:hmis_ce_referral, data_source: ds1, source_enrollment: enrollment, referral_origin: 'project')
+          create(:hmis_ce_referral, data_source: ds1, source_enrollment: enrollment, referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN)
         end
       end
 
@@ -174,7 +174,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(id: source_project.id) { query }
           expect(response.status).to eq(200), result.inspect
 
-          expect(result.dig('data', 'project', 'outgoingCeReferrals', 'nodesCount')).to eq(22)
+          expect(result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodesCount')).to eq(22)
         end.to make_database_queries(count: 25..35)
       end
     end
