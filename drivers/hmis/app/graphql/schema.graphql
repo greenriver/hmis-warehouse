@@ -931,13 +931,15 @@ type CeReferral {
   client: Client
 
   """
-  The age of the referred client. Always available, even without full client record access.
+  The age of the referred client. Always available to those who can view the
+  referral, even without full client record access.
   """
   clientAge: Int
   clientId: ID!
 
   """
-  The name of the referred client. Always available, even without full client record access.
+  The name of the referred client. Always available to those who can view the
+  referral, even without full client record access.
   """
   clientName: String
   createdAt: ISO8601DateTime!
@@ -975,6 +977,7 @@ type CeReferral {
 }
 
 type CeReferralAccess {
+  canViewReferralDetails: Boolean!
   canViewTargetProject: Boolean!
   id: ID!
 }
