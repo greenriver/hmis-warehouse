@@ -87,11 +87,9 @@ class Hmis::Unit < Hmis::HmisBase
   # Filter scope
   scope :with_unit_type, ->(unit_type_ids) { where(unit_type_id: unit_type_ids) }
 
-  # Units that are currently available for CE referral
-  scope :accepting_ce_referrals, -> do
-    active.unoccupied_on.
-      joins(:latest_opportunity).where.not(ce_opportunities: { status: 'closed' }).
-      left_joins(:active_referral).where(ce_referrals: { id: nil })
+  # unit is accepting referrals if it is unoccupied and has any opportunities that are accepting referrals
+  scope :accepting_referrals, -> do
+    active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.accepting_referrals)
   end
 
   def self.apply_filters(input)

@@ -27,9 +27,10 @@ module Mutations
       target_project = unit_group.project # does not need to be viewable by current user
       access_denied! unless target_project.accepts_direct_ce_referrals_from?(source_enrollment.project)
 
-      errors = HmisErrors::Errors.new
+      opportunity = unit_group.opportunities.accepting_referrals.first
+      unit = opportunity&.unit
 
-      unit = unit_group.units.preload(:latest_opportunity).accepting_ce_referrals.first
+      errors = HmisErrors::Errors.new
 
       unless unit.present?
         errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
@@ -39,7 +40,6 @@ module Mutations
       form_definition = Hmis::Form::Definition.find(form_definition_id)
       raise unless form_definition.valid_status_for_submit?
 
-      opportunity = unit.latest_opportunity # should be present thanks to accepting_ce_referrals scope
       referral = nil
 
       Hmis::Ce::Referral.transaction do
