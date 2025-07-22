@@ -33,7 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query GetProjectoutgoingDirectCeReferrals(
+      query GetProjectOutgoingDirectCeReferrals(
         $id: ID!
       ) {
         project(id: $id) {
@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
 
         expect(outgoing_referrals).to include(
-          # includes detailed access fields like currentSteps and clientName
+          # for the referral in the project the user has permissions on, include detailed access fields like currentSteps and clientName
           a_hash_including(
             'id' => direct_referral1.id.to_s,
             'clientName' => source_enrollment1.client.brief_name,
@@ -134,11 +134,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'canViewReferralDetails' => true,
             },
           ),
+          # for the other project, can't view client name or other referral details
           a_hash_including(
             'id' => direct_referral2.id.to_s,
-            'clientName' => nil, # can't view the client name
+            'clientName' => nil,
             'access' => {
-              'canViewReferralDetails' => false, # can't link to the referral
+              'canViewReferralDetails' => false,
             },
           ),
         )

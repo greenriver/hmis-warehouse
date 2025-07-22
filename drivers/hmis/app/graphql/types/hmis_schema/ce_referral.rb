@@ -40,7 +40,7 @@ module Types
     summary_field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     summary_field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
-    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
+    # Resolve project fields separately, instead of on the project schema object, in case user can't view the project
     summary_field :target_project_id, ID, null: false
     summary_field :target_project_name, String, null: false
     summary_field :target_project_type, HmisSchema::Enums::ProjectType, null: false
@@ -49,7 +49,6 @@ module Types
     summary_field :referred_by, Application::User, null: true
     summary_field :active, Boolean, null: false, method: :active?
 
-    # Override permissions for the access object so it's always resolved, even when user only has summary-level access
     access_field policy_name: nil, policy_action: nil do
       field :can_view_referral_details, Boolean, null: false
       field :can_view_target_project, Boolean, null: false
