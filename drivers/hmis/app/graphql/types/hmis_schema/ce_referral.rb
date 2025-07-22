@@ -24,31 +24,22 @@ module Types
       field(name, type, **kwargs, policy_name: nil, policy_action: nil)
     end
 
+    # Check for most minimal permission needed to resolve this object: either can_view? OR can_view_summary?
+    def self.authorized?(object, ctx)
+      user = ctx[:current_user]
+      policy = user.policy_for(object, policy_type: :ce_referral)
+      super && (policy.can_view? || policy.can_view_summary?)
+    end
+
+    # Summary fields that anyone who can view the summary of this referral has access to
     summary_field :id, ID, null: false
-    field :opportunity, HmisSchema::CeOpportunity, null: true
-    field :steps, [HmisSchema::CeReferralStep], null: true
     summary_field :status, HmisSchema::Enums::CeReferralStatus, null: false
     summary_field :custom_status, HmisSchema::CeCustomReferralStatus, null: true
     summary_field :client_id, ID, null: false
-    field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the referral, even without full client record access.'
-    field :client_age, Integer, null: true, description: 'The age of the referred client. Always available to those who can view the referral, even without full client record access.'
-
+    # Special case: Client is a "summary field" because it doesn't require referral visibility, but resolving it does require permission to view the client record.
     summary_field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
-
-    field :current_steps, [HmisSchema::CeReferralStep], null: true
-    field :days_on_current_steps, Integer, null: true
-    field :updated_by, Application::User, null: true
-    field :target_enrollment, Types::HmisSchema::Enrollment, null: true, description: 'Target enrollment, if the user has permission to view it.'
     summary_field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
-    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: true
-    field :workflow_template_name, String, null: true
-    field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: true
-    field :notes, HmisSchema::CeReferralNote.page_type, null: true
-
-    # generically resolve current values for any fields referenced by Match Rule expressions
-    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.', method: :resolve_match_rule_fields
-
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
     summary_field :target_project_id, ID, null: false
     summary_field :target_project_name, String, null: false
@@ -64,6 +55,22 @@ module Types
       field :can_view_target_project, Boolean, null: false
     end
 
+    # Detailed fields that only those with full view access should see. Must be nullable
+    field :opportunity, HmisSchema::CeOpportunity, null: true
+    field :steps, [HmisSchema::CeReferralStep], null: true
+    field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the referral, even without full client record access.'
+    field :client_age, Integer, null: true, description: 'The age of the referred client. Always available to those who can view the referral, even without full client record access.'
+    field :current_steps, [HmisSchema::CeReferralStep], null: true
+    field :days_on_current_steps, Integer, null: true
+    field :updated_by, Application::User, null: true
+    field :target_enrollment, Types::HmisSchema::Enrollment, null: true, description: 'Target enrollment, if the user has permission to view it.'
+    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: true
+    field :workflow_template_name, String, null: true
+    field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: true
+    field :notes, HmisSchema::CeReferralNote.page_type, null: true
+    # generically resolve current values for any fields referenced by Match Rule expressions
+    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.', method: :resolve_match_rule_fields
+
     available_filter_options do
       arg :referral_status, [String]
       arg :project, [ID]
@@ -71,13 +78,6 @@ module Types
       arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
-    end
-
-    # Check for most minimal permission needed to resolve this object: either can_view? OR can_view_summary?
-    def self.authorized?(object, ctx)
-      user = ctx[:current_user]
-      policy = user.policy_for(object, policy_type: :ce_referral)
-      super && (policy.can_view? || policy.can_view_summary?)
     end
 
     def custom_status
