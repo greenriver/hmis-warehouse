@@ -56,7 +56,7 @@ module Hmis
     end
 
     def available_unit_count
-      units.accepting_ce_referrals.count
+      units.accepting_referrals.count
     end
 
     private
