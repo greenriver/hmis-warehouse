@@ -21,7 +21,7 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
-      access_denied! unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+      access_denied! unless policy_for(source_enrollment.project, policy_type: :hmis_project).can_send_out_direct_referral?
 
       unit_group = Hmis::UnitGroup.find(target_unit_group_id)
       target_project = unit_group.project # does not need to be viewable by current user
@@ -50,12 +50,11 @@ module Mutations
           end
 
           instance = opportunity.workflow_template.instances.create!
-          referral = opportunity.referrals.create!(
+          referral = opportunity.referrals.originated_from_direct_send.create!(
             workflow_instance: instance,
             referred_by: current_user,
             client: source_enrollment.client,
             source_enrollment: source_enrollment,
-            referral_origin: 'project',
           )
         end
 
