@@ -10,8 +10,15 @@ module Types
   class BaseField < GraphQL::Schema::Field
     argument_class Types::BaseArgument
 
-    def initialize(*args, default_value: nil, permissions: nil, **kwargs, &block)
+    def initialize(*args, default_value: nil, permissions: nil, policy_name: nil, policy_action: nil, **kwargs, &block)
       @permissions = Array.wrap(permissions)
+      @policy_name = policy_name
+      @policy_action = policy_action&.to_sym
+
+      # Validate that policy parameters are used together
+      if (@policy_name.present? && @policy_action.blank?) || (@policy_name.blank? && @policy_action.present?) # rubocop:disable Style/IfUnlessModifier
+        raise ArgumentError, 'policy_name and policy_action must be provided together'
+      end
 
       after_paginate = kwargs.delete(:after_paginate)
       super(*args, **kwargs, &block)
@@ -32,12 +39,20 @@ module Types
     # Field-level authorization
     # https://graphql-ruby.org/authorization/authorization.html#field-authorization
     def authorized?(object, args, ctx)
-      # if `permissions:` was given, then require the current user to have the specified permissions on the object
       base_authorized = super(object, args, ctx)
       if @permissions.any?
+        # if `permissions:` was given, then require the current user to have the specified permissions on the object
         base_authorized && @permissions.all? do |perm|
           GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: perm, entity: object)
         end
+      elsif @policy_name
+        # if `policy_name:` and `policy_action:` were given, require the user to be able to perform that action on that policy
+        current_user = ctx[:current_user]
+        policy = current_user.policy_for(object, policy_type: @policy_name)
+
+        raise ArgumentError, "Policy #{policy.class.name} does not respond to #{@policy_action}" unless @policy_action && policy.respond_to?(@policy_action)
+
+        base_authorized && policy.send(@policy_action)
       else
         base_authorized
       end

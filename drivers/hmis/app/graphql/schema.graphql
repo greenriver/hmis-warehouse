@@ -923,7 +923,7 @@ type CeParticipationsPaginated {
 type CeReferral {
   access: CeReferralAccess!
   active: Boolean!
-  auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated!
+  auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated
 
   """
   The full client record, if the user has permission to view it.
@@ -939,7 +939,7 @@ type CeReferral {
   """
   The name of the referred client. Always available, even without full client record access.
   """
-  clientName: String!
+  clientName: String
   createdAt: ISO8601DateTime!
 
   """
@@ -950,8 +950,8 @@ type CeReferral {
   customStatus: CeCustomReferralStatus
   daysOnCurrentSteps: Int
   id: ID!
-  notes(limit: Int, offset: Int): CeReferralNotesPaginated!
-  opportunity: CeOpportunity!
+  notes(limit: Int, offset: Int): CeReferralNotesPaginated
+  opportunity: CeOpportunity
   referredBy: ApplicationUser
 
   """
@@ -959,8 +959,8 @@ type CeReferral {
   """
   sourceEnrollment: CeReferralSourceEnrollment
   status: CeReferralStatus!
-  steps: [CeReferralStep!]!
-  swimlanes: [CeReferralSwimlane!]!
+  steps: [CeReferralStep!]
+  swimlanes: [CeReferralSwimlane!]
 
   """
   Target enrollment, if the user has permission to view it.

@@ -19,21 +19,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
-  let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: c1) }
+  let!(:source_enrollment1) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project) }
+  let!(:source_enrollment2) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project) }
+  let!(:source_ac) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals]) }
 
-  let!(:target_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
-  let!(:target_opportunity) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project) }
+  let!(:target_project1) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+  let!(:target_opportunity1) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project1) }
+  let!(:outgoing_referral1) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity1, source_enrollment: source_enrollment1, client: source_enrollment1.client, referral_origin: 'project') }
 
-  let!(:outgoing_referral) do
-    create(
-      :hmis_ce_referral,
-      data_source: ds1,
-      opportunity: target_opportunity,
-      source_enrollment: source_enrollment,
-      referred_by: hmis_user,
-      referral_origin: 'project',
-    )
-  end
+  let!(:target_project2) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+  let!(:target_opportunity2) { create(:hmis_ce_opportunity, data_source: ds1, project: target_project2) }
+  let!(:outgoing_referral2) { create(:hmis_ce_referral, data_source: ds1, opportunity: target_opportunity2, source_enrollment: source_enrollment2, client: source_enrollment2.client, referral_origin: 'project') }
 
   let(:query) do
     <<~GRAPHQL
@@ -44,7 +40,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           id
           outgoingCeReferrals {
             nodes {
+              # summary fields that are always resolved
               id
+              status
+
+              # special case summary field that's only resolved when the user has permission to view the client
+              client {
+                id
+                firstName
+              }
+
+              # non-summary fields that are not resolved unless the user has full view permission
+              clientName
+
+              # access object that indicates whether the user can view full details (and link to) this referral
+              access {
+                canViewReferralDetails
+              }
             }
           }
         }
@@ -53,49 +65,90 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'project outgoing_ce_referrals query' do
-    context 'when user has can_manage_outgoing_referrals permission' do
-      let!(:access_control) do
-        create_access_control(
-          hmis_user,
-          source_project,
-          with_permission: [
-            :can_view_project,
-            :can_manage_outgoing_referrals,
-          ],
+    context 'when the user can manage outgoing referrals, but not view full referrals' do
+      it 'resolves outgoing referrals with summary-level data' do
+        response, result = post_graphql(id: source_project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        outgoing_referrals = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes')
+
+        expect(outgoing_referrals).to contain_exactly(
+          # Expect to resolve summary-level fields like ID and status, but not details like client name
+          a_hash_including(
+            'id' => outgoing_referral1.id.to_s,
+            'status' => outgoing_referral1.status,
+            'client' => nil,
+            'clientName' => nil,
+            'access' => {
+              'canViewReferralDetails' => false,
+            },
+          ),
+          a_hash_including(
+            'id' => outgoing_referral2.id.to_s,
+            'status' => outgoing_referral2.status,
+            'client' => nil,
+            'clientName' => nil,
+            'access' => {
+              'canViewReferralDetails' => false,
+            },
+          ),
         )
       end
 
-      it 'resolves outgoing CE referrals successfully' do
-        response, result = post_graphql(id: source_project.id) { query }
+      context 'and the current user can view the client' do
+        let!(:source_ac) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals, :can_view_clients, :can_view_client_name]) }
 
-        expect(response.status).to eq(200), result.inspect
-        project_data = result.dig('data', 'project')
-        expect(project_data['id']).to eq(source_project.id.to_s)
+        it 'resolves the client' do
+          response, result = post_graphql(id: source_project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          outgoing_referrals = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes')
 
-        outgoing_referrals = project_data.dig('outgoingCeReferrals', 'nodes')
-        expect(outgoing_referrals).to be_an(Array)
-        expect(outgoing_referrals.size).to eq(1)
-        expect(outgoing_referrals.first['id']).to eq(outgoing_referral.id.to_s)
+          expect(outgoing_referrals.map { |referral| referral['client'] }).to contain_exactly(
+            a_hash_including(
+              'id' => source_enrollment1.client.id.to_s,
+              'firstName' => source_enrollment1.client.first_name,
+            ),
+            a_hash_including(
+              'id' => source_enrollment2.client.id.to_s,
+              'firstName' => source_enrollment2.client.first_name,
+            ),
+          )
+        end
       end
     end
 
-    context 'when user does not have can_manage_outgoing_referrals permission' do
-      let!(:access_control) do
-        create_access_control(
-          hmis_user,
-          source_project,
-          with_permission: [
-            :can_view_project,
-          ],
-          without_permission: [
-            :can_manage_outgoing_referrals,
-          ],
+    context 'when the user can view full referral details at a target project' do
+      let!(:target_ac) { create_access_control(hmis_user, target_project1, with_permission: [:can_view_project, :can_view_referrals]) }
+
+      it 'resolves full referral details, only for referrals at that project' do
+        response, result = post_graphql(id: source_project.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        outgoing_referrals = result.dig('data', 'project', 'outgoingCeReferrals', 'nodes')
+
+        expect(outgoing_referrals).to include(
+          # includes detailed access fields like currentSteps and clientName
+          a_hash_including(
+            'id' => outgoing_referral1.id.to_s,
+            'clientName' => source_enrollment1.client.brief_name,
+            'access' => {
+              'canViewReferralDetails' => true,
+            },
+          ),
+          a_hash_including(
+            'id' => outgoing_referral2.id.to_s,
+            'clientName' => nil, # can't view the client name
+            'access' => {
+              'canViewReferralDetails' => false, # can't link to the referral
+            },
+          ),
         )
       end
+    end
 
-      it 'raises access denied error' do
-        expect_gql_error(post_graphql(id: source_project.id) { query }, message: 'access denied')
-      end
+    # todo @martha - test for n+1
+
+    it 'raises access denied error when user does not have can_manage_outgoing_referrals' do
+      remove_permissions(source_ac, :can_manage_outgoing_referrals)
+      expect_gql_error(post_graphql(id: source_project.id) { query }, message: 'access denied')
     end
   end
 end
