@@ -24,9 +24,6 @@ module HmisExternalApis::AcHmis
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
 
-      # 404 indicates client was not found # todo @martha - if client not found
-      return nil if result.http_status == 404
-
       score_objects = result.parsed_body&.dig('data')&.flat_map do |response_client|
         response_client.dig('scores')&.filter_map do |score_obj|
           score_value = score_obj.dig('score')
@@ -64,10 +61,27 @@ module HmisExternalApis::AcHmis
     end
 
     def handle_error(result)
-      Rails.logger.error "AHA Error: #{result.error}" if result.error
-      raise(Error, result.error) if result.error
+      if result.error
+        Rails.logger.error "AHA API Error: #{result.error}"
+        raise(Error, result.error)
+      end
 
-      result
+      # Check if HTTP status indicates success (200-299 range)
+      return result if http_status_successful?(result.http_status)
+
+      # Handle specific case: 404 with "No client found" shouldn't raise, just return no ID
+      return result if client_not_found_response?(result)
+
+      Rails.logger.error "AHA HTTP Error: Status #{result.http_status}, Response: #{result.parsed_body}"
+      raise(Error, "Received non-200 HTTP status: #{result.http_status}")
+    end
+
+    def http_status_successful?(status)
+      status.in?(200..299)
+    end
+
+    def client_not_found_response?(result)
+      result.http_status == 404 && result.parsed_body&.dig('message') == 'No client found.'
     end
   end
 end

@@ -29,6 +29,8 @@ module Mutations
       aha = HmisExternalApis::AcHmis::Aha.new
       result = aha.fetch_score(client)
 
+      return { score: nil } if result.nil?
+
       {
         score: result.score,
         alt_aha_flag: result.alt_aha_flag,
