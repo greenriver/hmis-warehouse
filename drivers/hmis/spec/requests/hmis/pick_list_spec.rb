@@ -593,7 +593,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     shared_examples 'returns empty pick list' do
       it 'returns empty array' do
         response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
         expect(options).to be_empty
@@ -603,7 +603,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'with user who has can_manage_outgoing_referrals permission (even without can_view_project)' do
       it 'returns unit groups' do
         response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
         expect(options.size).to eq(3) # Returns all unit groups, but disables the ones that have no availability

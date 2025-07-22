@@ -21,15 +21,16 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
-      access_denied! unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+      access_denied! unless policy_for(source_enrollment.project, policy_type: :hmis_project).can_send_out_direct_referral?
 
       unit_group = Hmis::UnitGroup.find(target_unit_group_id)
       target_project = unit_group.project # does not need to be viewable by current user
       access_denied! unless target_project.accepts_direct_ce_referrals_from?(source_enrollment.project)
 
-      errors = HmisErrors::Errors.new
+      opportunity = unit_group.opportunities.accepting_referrals.first
+      unit = opportunity&.unit
 
-      unit = unit_group.units.preload(:latest_opportunity).accepting_ce_referrals.first
+      errors = HmisErrors::Errors.new
 
       unless unit.present?
         errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
@@ -39,7 +40,6 @@ module Mutations
       form_definition = Hmis::Form::Definition.find(form_definition_id)
       raise unless form_definition.valid_status_for_submit?
 
-      opportunity = unit.latest_opportunity # should be present thanks to accepting_ce_referrals scope
       referral = nil
 
       Hmis::Ce::Referral.transaction do
@@ -50,12 +50,11 @@ module Mutations
           end
 
           instance = opportunity.workflow_template.instances.create!
-          referral = opportunity.referrals.create!(
+          referral = opportunity.referrals.originated_from_direct_send.create!(
             workflow_instance: instance,
             referred_by: current_user,
             client: source_enrollment.client,
             source_enrollment: source_enrollment,
-            referral_origin: 'project',
           )
         end
 
