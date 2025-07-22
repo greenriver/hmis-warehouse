@@ -39,6 +39,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project(id: $id) {
           id
           outgoingCeReferrals {
+            nodesCount
             nodes {
               # summary fields that are always resolved
               id
@@ -144,7 +145,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    # todo @martha - test for n+1
+    context 'with many referrals' do
+      let!(:referrals) do
+        20.times do
+          enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: source_project)
+          create(:hmis_ce_referral, data_source: ds1, source_enrollment: enrollment, referral_origin: 'project')
+        end
+      end
+
+      it 'does not create n+1 query' do
+        expect do
+          response, result = post_graphql(id: source_project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          expect(result.dig('data', 'project', 'outgoingCeReferrals', 'nodesCount')).to eq(22)
+        end.to make_database_queries(count: 25..35)
+      end
+    end
 
     it 'raises access denied error when user does not have can_manage_outgoing_referrals' do
       remove_permissions(source_ac, :can_manage_outgoing_referrals)

@@ -8,7 +8,7 @@
 module Hmis::AuthPolicies::ContextLoaders
   class CeReferralSourceProjectLoader
     def initialize
-      # {referral_id => project_id, ...}
+      # {referral_id => source_project_id, ...}
       @cache = {}
     end
 
