@@ -199,13 +199,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def receives_direct_ce_referrals_from?(source_project)
-    return false unless receives_direct_ce_referrals?
-
     config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
-    # If the config specifies a list of projects that it accepts referrals from, check that this project is in that list.
-    return false if config.receives_direct_referrals_from.present? && config.receives_direct_referrals_from.exclude?(source_project.id)
+    return false unless config&.accepts_direct_referrals?
+    return true unless config.accepts_direct_referrals_from.present? # no projects specified, so accept from all
 
-    true
+    config.accepts_direct_referrals_from.include?(source_project.id)
   end
 
   def services_only_rrh?
