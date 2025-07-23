@@ -432,7 +432,6 @@ module CeWorkflowBuilder
       form_definition_identifier: initial_review_task_form_identifier,
       template: template,
       swimlane: ce_staff_swimlane,
-      # delegated_handoff: true, # Comment back in to test direct referral
     )
 
     create_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(

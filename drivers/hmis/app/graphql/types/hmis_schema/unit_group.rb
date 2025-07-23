@@ -23,10 +23,15 @@ module Types
     field :priority_scheme, HmisSchema::CeMatchRule, null: true
     field :workflow_template_identifier, String, null: true
     field :workflow_template_name, String, null: true
+    field :direct_referral_entrypoint_name, String, null: true
     # TODO(#7538) resolve default contacts for workflow template
 
     def workflow_template_name
       object.workflow_template&.name
+    end
+
+    def direct_referral_entrypoint_name
+      object.direct_referral_entrypoint&.name
     end
 
     def units(**args)

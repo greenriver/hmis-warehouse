@@ -635,7 +635,7 @@ module Types
       return [] unless project.data_source_id == user.hmis_data_source_id
       return [] unless project.accepts_direct_ce_referrals?
 
-      project.unit_groups.filter_map do |unit_group|
+      project.unit_groups.preload(:direct_referral_entrypoint).filter_map do |unit_group|
         # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
         next unless unit_group.accepts_direct_ce_referrals?
 

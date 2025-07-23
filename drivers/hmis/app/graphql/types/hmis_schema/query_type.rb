@@ -579,9 +579,9 @@ module Types
         raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
       end
 
-      initiation_node = workflow_template.graph.nodes.find(&:delegated_handoff)
+      initiation_node = unit_group.direct_referral_entrypoint
       unless initiation_node&.user_task? && initiation_node.form_definition.present?
-        error_message = "Workflow template #{workflow_template.id} does not have a UserTask node with a form definition that is marked 'delegated_handoff'. #{base_error_message}"
+        error_message = "Unit group #{unit_group.id} does not have a correctly configured direct referral entrypoint. #{base_error_message}"
         raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
       end
 

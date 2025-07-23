@@ -28,7 +28,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:source_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: c1, user: u1) }
     let!(:target_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
-    let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template) }
     let!(:form_definition) { create(:hmis_form_definition) }
 
     let!(:initiation_task) do
@@ -37,9 +36,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         template: workflow_template,
         name: 'Direct Referral Initiation',
         form_definition: form_definition,
-        delegated_handoff: true,
       )
     end
+
+    let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template, direct_referral_entrypoint: initiation_task) }
 
     let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, accepts_direct_referrals: true) }
 
@@ -87,19 +87,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    context 'when no direct referral delegated_handoff node exists' do
-      let!(:initiation_task) do
-        create(
-          :hmis_workflow_definition_user_task,
-          template: workflow_template,
-          name: 'Direct Referral Initiation',
-          form_definition: form_definition,
-          delegated_handoff: false,
-        )
-      end
+    context 'when no direct referral entrypoint is configured' do
+      let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template, direct_referral_entrypoint: nil) }
 
       it 'raises API error' do
-        expect_gql_error(post_graphql(**variables) { query }, message: "does not have a UserTask node with a form definition that is marked 'delegated_handoff'")
+        expect_gql_error(post_graphql(**variables) { query }, message: 'does not have a correctly configured direct referral entrypoint')
       end
     end
   end

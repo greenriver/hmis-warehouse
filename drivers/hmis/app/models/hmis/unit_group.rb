@@ -29,6 +29,10 @@ module Hmis
                class_name: 'Hmis::WorkflowDefinition::Template',
                optional: true
 
+    belongs_to :direct_referral_entrypoint,
+               class_name: 'Hmis::WorkflowDefinition::Node',
+               optional: true
+
     validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false }
     validate :workflow_template_is_valid
 
@@ -47,10 +51,9 @@ module Hmis
     def accepts_direct_ce_referrals?
       return false unless workflow_template.present?
 
-      initiation_node = workflow_template.graph.nodes.find(&:delegated_handoff)
-      return false unless initiation_node.present?
-      return false unless initiation_node.user_task?
-      return false unless initiation_node.form_definition.present?
+      return false unless direct_referral_entrypoint.present?
+      return false unless direct_referral_entrypoint.user_task?
+      return false unless direct_referral_entrypoint.form_definition.present?
 
       true
     end

@@ -12559,6 +12559,7 @@ type UnitGroup {
   Total number of units in the group
   """
   capacity: Int!
+  directReferralEntrypointName: String
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!

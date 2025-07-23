@@ -61,8 +61,9 @@ module Mutations
         engine = referral.workflow_engine
         engine.start_workflow!(user: current_user)
 
-        # Find the step that's marked 'delegated_handoff', aka the step that should be completed by the target project
-        step = engine.active_steps.find { |s| s.node.delegated_handoff? }
+        # Find the step that corresponds to the direct referral entrypoint node
+        entrypoint_node = unit_group.direct_referral_entrypoint
+        step = engine.active_steps.find { |s| s.node == entrypoint_node }
         raise unless step.present?
 
         # Intentionally don't check current user's permissions to complete this step.
