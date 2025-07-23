@@ -61,9 +61,8 @@ module Mutations
         engine = referral.workflow_engine
         engine.start_workflow!(user: current_user)
 
-        # Find the step that corresponds to the direct referral entrypoint node
-        entrypoint_node = unit_group.direct_referral_entrypoint
-        step = engine.active_steps.find { |s| s.node == entrypoint_node }
+        # Find the first active user task
+        step = engine.active_steps.find { |s| s.node.user_task? }
         raise unless step.present?
 
         # Intentionally don't check current user's permissions to complete this step.

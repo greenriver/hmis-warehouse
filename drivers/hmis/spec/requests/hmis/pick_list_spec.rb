@@ -572,9 +572,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
     let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template) }
 
-    let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template, direct_referral_entrypoint: initiation_task) }
-    let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template, direct_referral_entrypoint: initiation_task) }
-    let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group', workflow_template: workflow_template, direct_referral_entrypoint: initiation_task) }
+    let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template) }
+    let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template) }
+    let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group', workflow_template: workflow_template) }
 
     # Unit group with available units
     let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }

@@ -9,7 +9,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    # Enable CE configuration for these tests
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
   end
 
@@ -29,19 +28,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
     let!(:form_definition) { create(:hmis_form_definition) }
 
-    let!(:initiation_task) do
-      create(
-        :hmis_workflow_definition_user_task,
-        template: workflow_template,
-        name: 'Direct Referral Initiation',
-        form_definition: form_definition,
-      )
+    let!(:start_event) { create(:hmis_workflow_definition_start_event, template: workflow_template) }
+    let!(:sending_project_task) { create(:hmis_workflow_definition_user_task, template: workflow_template, form_definition: form_definition) }
+    let!(:receiving_project_task) { create(:hmis_workflow_definition_user_task, template: workflow_template) }
+    let(:end_event) { create(:hmis_workflow_definition_end_event, template: workflow_template) }
+
+    before do
+      start_event.connect_to!(sending_project_task)
+      sending_project_task.connect_to!(receiving_project_task)
+      receiving_project_task.connect_to!(end_event)
     end
 
-    let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template, direct_referral_entrypoint: initiation_task) }
-
+    let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template) }
     let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, accepts_direct_referrals: true) }
-
     let!(:access_control) { create_access_control(hmis_user, source_project) }
 
     let(:variables) do
@@ -72,14 +71,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'raises API error' do
         expect_gql_error(post_graphql(**variables) { query }, message: 'Workflow template invalid or not found')
-      end
-    end
-
-    context 'when no direct referral entrypoint is configured' do
-      let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template, direct_referral_entrypoint: nil) }
-
-      it 'raises API error' do
-        expect_gql_error(post_graphql(**variables) { query }, message: 'Direct referral entrypoint invalid or not found')
       end
     end
   end

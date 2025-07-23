@@ -24281,8 +24281,7 @@ CREATE TABLE public.hmis_unit_groups (
     workflow_template_identifier character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    direct_referral_entrypoint_id bigint
+    deleted_at timestamp without time zone
 );
 
 
@@ -66141,13 +66140,6 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public
 
 
 --
--- Name: index_hmis_unit_groups_on_direct_referral_entrypoint_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_unit_groups_on_direct_referral_entrypoint_id ON public.hmis_unit_groups USING btree (direct_referral_entrypoint_id);
-
-
---
 -- Name: index_hmis_unit_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74825,14 +74817,6 @@ ALTER TABLE ONLY public.service_history_services_2005
 
 
 --
--- Name: hmis_unit_groups fk_rails_c08c9b411d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_unit_groups
-    ADD CONSTRAINT fk_rails_c08c9b411d FOREIGN KEY (direct_referral_entrypoint_id) REFERENCES public.wfd_nodes(id);
-
-
---
 -- Name: wfe_steps fk_rails_c0bd988b51; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75095,7 +75079,6 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250716154410'),
 ('20250716131246'),
 ('20250716131240'),
 ('20250716123853'),
