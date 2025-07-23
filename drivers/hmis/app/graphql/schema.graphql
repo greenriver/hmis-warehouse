@@ -9840,7 +9840,7 @@ type Query {
   clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
   deniedPendingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
-  directReferralForm(sourceEnrollmentId: ID!, targetUnitGroupId: ID!): FormDefinition
+  directReferralFormDefinition(targetUnitGroupId: ID!): FormDefinition
 
   """
   Enrollment lookup

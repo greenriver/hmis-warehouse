@@ -555,35 +555,21 @@ module Types
       Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
     end
 
-    field :direct_referral_form, Types::Forms::FormDefinition, null: true do
+    field :direct_referral_form_definition, Types::Forms::FormDefinition, null: true do
       argument :target_unit_group_id, ID, required: true
-      argument :source_enrollment_id, ID, required: true
     end
-    def direct_referral_form(target_unit_group_id:, source_enrollment_id:)
+    def direct_referral_form_definition(target_unit_group_id:)
       access_denied! unless Hmis::Ce.configuration.enabled?
-
-      source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
-      access_denied! unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
 
       unit_group = Hmis::UnitGroup.find(target_unit_group_id)
       target_project = unit_group.project # does not need to be viewable by current user
-      access_denied! unless target_project.accepts_direct_ce_referrals_from?(source_enrollment.project)
+      access_denied! unless target_project.accepts_direct_ce_referrals?
 
       workflow_template = unit_group.workflow_template
-
-      user_facing_error_message = "Unit group #{unit_group.name} at project #{target_project.project_name} does not have a correctly configured referral workflow."
-      base_error_message = "UnitGroup:#{unit_group.id} TargetProject:#{target_project.id} SourceEnrollment:#{source_enrollment.id}"
-
-      unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
-        error_message = "Workflow template not found. #{base_error_message}"
-        raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
-      end
+      raise "Workflow template invalid or not found. unit group id: #{target_unit_group_id}" unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
 
       initiation_node = unit_group.direct_referral_entrypoint
-      unless initiation_node&.user_task? && initiation_node.form_definition.present?
-        error_message = "Unit group #{unit_group.id} does not have a correctly configured direct referral entrypoint. #{base_error_message}"
-        raise HmisErrors::ApiError.new(error_message, display_message: user_facing_error_message)
-      end
+      raise "Direct referral entrypoint invalid or not found. unit group id: #{target_unit_group_id}" unless initiation_node&.user_task? && initiation_node.form_definition.present?
 
       initiation_node.form_definition
     end
