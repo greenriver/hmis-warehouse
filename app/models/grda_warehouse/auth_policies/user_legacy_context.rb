@@ -78,7 +78,11 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
       where(project_id: project_ids).
       pluck(:project_id, :access_group_id).
       group_by(&:shift).
-      transform_values { |v| v.flatten.compact_blank }
+      transform_values do |values|
+        clean_values = values.flatten.compact_blank
+        # Filter out deleted access group. ProjectAccessGroupMember can't do this due to database boundaries
+        active_access_group_ids.intersection(clean_values).to_a
+      end
     @access_group_ids_by_project.merge!(results)
   end
 
@@ -105,7 +109,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
       where(entity_id: data_source_id).
       where.not(access_group_id: nil).
       pluck(:access_group_id)
-    ids.uniq.sort
+    (active_access_group_ids & ids).to_a.sort
   end
 
   # Returns the access group ids that include this project id
@@ -128,10 +132,15 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
   def direct_client_access_group_ids(client_id)
     c_t = GrdaWarehouse::Hud::Client.arel_table
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
-    GrdaWarehouse::DataSource.authoritative.not_hmis.
+    ids = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
       where(gve_t[:access_group_id].not_eq(nil)).
       where(c_t[:id].eq(client_id)).
       pluck(gve_t[:access_group_id])
+    (active_access_group_ids & ids).to_a.sort
+  end
+
+  memoize def active_access_group_ids
+    Set.new(AccessGroup.pluck(:id))
   end
 end
