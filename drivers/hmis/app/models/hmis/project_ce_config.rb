@@ -10,8 +10,8 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   def config_type = 'COORDINATED_ENTRY'
 
   SUPPORTS_WAITLIST_REFERRALS = 'supports_waitlist_referrals'
-  ACCEPTS_DIRECT_REFERRALS = 'accepts_direct_referrals'
-  ACCEPTS_DIRECT_REFERRALS_FROM = 'accepts_direct_referrals_from'
+  RECEIVES_DIRECT_REFERRALS = 'receives_direct_referrals'
+  RECEIVES_DIRECT_REFERRALS_FROM = 'receives_direct_referrals_from'
 
   validate :either_direct_or_waitlist_referrals
 
@@ -27,34 +27,34 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   end
 
   # "direct" referrals are referrals initiated by a sending project.
-  def accepts_direct_referrals?
+  def receives_direct_referrals?
     return false unless options # False by default, needs to be enabled explicitly in the config_options
 
-    options[ACCEPTS_DIRECT_REFERRALS] || false
+    options[RECEIVES_DIRECT_REFERRALS] || false
   end
 
-  def accepts_direct_referrals=(value)
-    set_config_option(ACCEPTS_DIRECT_REFERRALS, value)
+  def receives_direct_referrals=(value)
+    set_config_option(RECEIVES_DIRECT_REFERRALS, value)
   end
 
-  # Optionally, a project can specify which specific projects it accepts direct referrals from.
-  # If this is not specified, but `accepts_direct_referrals` is true, then the project accepts direct referrals from all projects (that have ProjectSendsDirectCeReferralsConfig).
-  def accepts_direct_referrals_from
+  # Optionally, a project can specify which specific projects it receives direct referrals from.
+  # If this is not specified, but `receives_direct_referrals` is true, then the project receives direct referrals from all projects (that have ProjectSendsDirectCeReferralsConfig).
+  def receives_direct_referrals_from
     return nil unless options
 
-    options[ACCEPTS_DIRECT_REFERRALS_FROM]
+    options[RECEIVES_DIRECT_REFERRALS_FROM]
   end
 
-  def accepts_direct_referrals_from=(value)
-    set_config_option(ACCEPTS_DIRECT_REFERRALS_FROM, value)
+  def receives_direct_referrals_from=(value)
+    set_config_option(RECEIVES_DIRECT_REFERRALS_FROM, value)
   end
 
   private
 
   def either_direct_or_waitlist_referrals
     return unless options
-    return if supports_waitlist_referrals? || accepts_direct_referrals?
+    return if supports_waitlist_referrals? || receives_direct_referrals?
 
-    errors.add(:base, 'Project must either accept direct referrals or support waitlist referrals, or both')
+    errors.add(:base, 'Project must either receive direct referrals or support waitlist referrals, or both')
   end
 end

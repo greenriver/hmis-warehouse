@@ -192,21 +192,21 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
-  def accepts_direct_ce_referrals?
+  def receives_direct_ce_referrals?
     config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
 
     return false unless config.present?
-    return false unless config.accepts_direct_referrals?
+    return false unless config.receives_direct_referrals?
 
     true
   end
 
-  def accepts_direct_ce_referrals_from?(source_project)
-    return false unless accepts_direct_ce_referrals?
+  def receives_direct_ce_referrals_from?(source_project)
+    return false unless receives_direct_ce_referrals?
 
     config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
     # If the config specifies a list of projects that it accepts referrals from, check that this project is in that list.
-    return false if config.accepts_direct_referrals_from.present? && config.accepts_direct_referrals_from.exclude?(source_project.id)
+    return false if config.receives_direct_referrals_from.present? && config.receives_direct_referrals_from.exclude?(source_project.id)
 
     true
   end

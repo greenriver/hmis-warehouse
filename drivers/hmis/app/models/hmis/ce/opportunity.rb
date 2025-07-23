@@ -86,8 +86,8 @@ module Hmis::Ce
       )
     }
 
-    # opportunity is accepting referrals if it is "open"
-    scope :accepting_referrals, -> do
+    # opportunity is receiving referrals if it is "open"
+    scope :receiving_referrals, -> do
       where(status: 'open')
     end
 

@@ -16,7 +16,7 @@ module Types
     value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
     value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'
-    value 'PROJECTS_ACCEPTING_CE_REFERRALS', 'Projects that are accepting CE referrals'
+    value 'PROJECTS_RECEIVING_CE_REFERRALS', 'Projects that can receive CE referrals'
     value 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', 'Unit groups for the given project that can accept CE referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'OTHER_FUNDERS', 'OtherFunder values for all Funders across the installation'

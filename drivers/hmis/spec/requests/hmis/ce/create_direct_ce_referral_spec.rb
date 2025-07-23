@@ -20,7 +20,7 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
   let!(:unit) { create(:hmis_unit, unit_group: unit_group) }
   let!(:target_opportunity) { create(:hmis_ce_opportunity, project: project, workflow_template: workflow_template, unit: unit) }
 
-  let!(:target_project_ce_config) { create(:hmis_project_ce_config, project: project, accepts_direct_referrals: true) }
+  let!(:target_project_ce_config) { create(:hmis_project_ce_config, project: project, receives_direct_referrals: true) }
 
   def build_input(contact_date: nil, client_accepted: nil)
     # form structure similar to ce_referral_step_form_definition factory
@@ -114,7 +114,7 @@ RSpec.describe Mutations::Ce::CreateDirectCeReferral, type: :request do
 
     context 'when target project does not accept direct CE referrals' do
       before do
-        target_project_ce_config.update!(accepts_direct_referrals: false)
+        target_project_ce_config.update!(receives_direct_referrals: false)
       end
 
       it 'raises access denied error' do

@@ -40,7 +40,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template) }
-    let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, accepts_direct_referrals: true) }
+    let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, receives_direct_referrals: true) }
     let!(:access_control) { create_access_control(hmis_user, source_project) }
 
     let(:variables) do
@@ -59,7 +59,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when target project does not accept direct referrals' do
-      let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, accepts_direct_referrals: false) }
+      let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, receives_direct_referrals: false) }
 
       it 'raises access denied error' do
         expect_gql_error(post_graphql(**variables) { query }, message: 'access denied')

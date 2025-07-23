@@ -87,8 +87,8 @@ module Types
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
-      when 'PROJECTS_ACCEPTING_CE_REFERRALS'
-        projects_accepting_ce_referrals(from_project: project)
+      when 'PROJECTS_RECEIVING_CE_REFERRALS'
+        projects_receiving_ce_referrals(from_project: project)
       when 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL'
         # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
         unit_groups_for_project_ce_referral(project_id: project_id, user: user)
@@ -611,7 +611,7 @@ module Types
         map(&:to_pick_list_option)
     end
 
-    def self.projects_accepting_ce_referrals(from_project:)
+    def self.projects_receiving_ce_referrals(from_project:)
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
 
@@ -621,7 +621,7 @@ module Types
         sort_by_option(:organization_and_name)
 
       project_scope.filter_map do |project|
-        next unless project.accepts_direct_ce_referrals_from?(from_project)
+        next unless project.receives_direct_ce_referrals_from?(from_project)
 
         project.to_pick_list_option
       end
@@ -633,7 +633,7 @@ module Types
 
       project = Hmis::Hud::Project.find(project_id)
       return [] unless project.data_source_id == user.hmis_data_source_id
-      return [] unless project.accepts_direct_ce_referrals?
+      return [] unless project.receives_direct_ce_referrals?
 
       project.unit_groups.filter_map do |unit_group|
         # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small

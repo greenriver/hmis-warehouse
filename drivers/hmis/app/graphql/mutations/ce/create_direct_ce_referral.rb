@@ -25,9 +25,9 @@ module Mutations
 
       unit_group = Hmis::UnitGroup.find(target_unit_group_id)
       target_project = unit_group.project # does not need to be viewable by current user
-      access_denied! unless target_project.accepts_direct_ce_referrals_from?(source_enrollment.project)
+      access_denied! unless target_project.receives_direct_ce_referrals_from?(source_enrollment.project)
 
-      opportunity = unit_group.opportunities.accepting_referrals.first
+      opportunity = unit_group.opportunities.receiving_referrals.first
       unit = opportunity&.unit
 
       errors = HmisErrors::Errors.new

@@ -7512,9 +7512,9 @@ enum PickListType {
   PROJECT
 
   """
-  Projects that are accepting CE referrals
+  Projects that can receive CE referrals
   """
-  PROJECTS_ACCEPTING_CE_REFERRALS
+  PROJECTS_RECEIVING_CE_REFERRALS
 
   """
   Open Projects that can receive referrals
@@ -9561,12 +9561,12 @@ input ProjectConfigFilterOptions {
 Project Config Input
 """
 input ProjectConfigInput {
-  acceptsDirectReferrals: Boolean
   configType: ProjectConfigType
   lengthOfAbsenceDays: Int
   organizationId: ID
   projectId: ID
   projectType: ProjectType
+  receivesDirectReferrals: Boolean
   supportsWaitlistReferrals: Boolean
 }
 
@@ -9608,11 +9608,12 @@ type ProjectConfigsPaginated {
 }
 
 type ProjectCoordinatedEntryFeatures {
-  """
-  Whether this project accepts direct CE referrals, initiated by a sending project
-  """
-  acceptsDirectReferrals: Boolean!
   id: ID!
+
+  """
+  Whether this project receives direct CE referrals, initiated by a sending project
+  """
+  receivesDirectReferrals: Boolean!
 
   """
   Whether this project sends direct CE Referrals
@@ -12559,7 +12560,6 @@ type UnitGroup {
   Total number of units in the group
   """
   capacity: Int!
-  directReferralEntrypointName: String
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!

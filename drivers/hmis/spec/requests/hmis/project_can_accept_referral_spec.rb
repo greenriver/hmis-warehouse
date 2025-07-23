@@ -78,7 +78,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the referral mode is CE' do
-      let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: destination_project, accepts_direct_referrals: true) }
+      let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: destination_project, receives_direct_referrals: true) }
 
       let(:variables) do
         {
@@ -105,7 +105,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when dest project does not accept ce referrals' do
-        let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: destination_project, accepts_direct_referrals: false) }
+        let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: destination_project, receives_direct_referrals: false) }
 
         it 'raises an error' do
           expect_access_denied post_graphql(**variables) { query }
