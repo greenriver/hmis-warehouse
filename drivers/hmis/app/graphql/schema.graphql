@@ -7514,7 +7514,7 @@ enum PickListType {
   """
   Projects that can receive CE referrals
   """
-  PROJECTS_RECEIVING_CE_REFERRALS
+  PROJECTS_RECEIVING_DIRECT_CE_REFERRALS
 
   """
   Open Projects that can receive referrals
@@ -7538,9 +7538,9 @@ enum PickListType {
   SUB_TYPE_PROVIDED_5
 
   """
-  Unit groups for the given project that can accept CE referrals
+  Unit groups for the given project that can receive CE referrals
   """
-  UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL
+  UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL
 
   """
   User accounts. Deprecated in favor of AUDITABLE_USERS

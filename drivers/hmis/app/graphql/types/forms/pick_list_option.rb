@@ -87,11 +87,11 @@ module Types
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
-      when 'PROJECTS_RECEIVING_CE_REFERRALS'
-        projects_receiving_ce_referrals(from_project: project)
-      when 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL'
+      when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
+        projects_receiving_direct_ce_referrals(from_project: project)
+      when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
         # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
-        unit_groups_for_project_ce_referral(project_id: project_id, user: user)
+        unit_groups_for_project_direct_ce_referral(project_id: project_id, user: user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -611,7 +611,7 @@ module Types
         map(&:to_pick_list_option)
     end
 
-    def self.projects_receiving_ce_referrals(from_project:)
+    def self.projects_receiving_direct_ce_referrals(from_project:)
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
 
@@ -627,7 +627,7 @@ module Types
       end
     end
 
-    def self.unit_groups_for_project_ce_referral(project_id:, user:)
+    def self.unit_groups_for_project_direct_ce_referral(project_id:, user:)
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless user.can_manage_outgoing_referrals? # at any project
 
