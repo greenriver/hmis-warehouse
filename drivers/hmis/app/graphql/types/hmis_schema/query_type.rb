@@ -511,7 +511,7 @@ module Types
     end
     def project_can_accept_referral(destination_project_id:, source_enrollment_id:, referral_mode:)
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
-      access_denied! unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+      access_denied! unless policy_for(source_enrollment.project, policy_type: :hmis_project).can_send_out_direct_referral?
 
       # This doesn't check viewable_by! Users are able to ask whether the project receiving referrals can accept
       # this client, even if they don't otherwise have permission to view the project or its enrollments.
@@ -521,7 +521,7 @@ module Types
       # - it doesn't expose any info about the actual enrollment(s), just a yes/no
       project = Hmis::Hud::Project.find_by(id: destination_project_id)
 
-      access_denied! if referral_mode == 'legacy' && !project.receives_referrals?
+      access_denied! if referral_mode == 'legacy' && !project.receives_legacy_referrals?
       access_denied! if referral_mode == 'coordinated_entry' && !project.accepts_direct_ce_referrals_from?(source_enrollment.project)
 
       # Can't accept the referral if any client in the household has an existing open enrollment in the project.

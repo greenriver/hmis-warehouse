@@ -605,7 +605,7 @@ module Types
 
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.where(data_source_id: data_source_id).
-        receiving_referrals.
+        receiving_legacy_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)

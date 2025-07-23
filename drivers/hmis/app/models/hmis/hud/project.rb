@@ -141,8 +141,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     )
   end
 
-  # Legacy referrals
-  scope :receiving_referrals, -> do
+  scope :receiving_legacy_referrals, -> do
     # Find all active instances that enable the Referral functionality
     instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL).published
     # Find open projects that have an instance that match the criteria, which indicates that the
@@ -189,8 +188,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
   end
 
-  # Legacy referrals
-  def receives_referrals?
+  def receives_legacy_referrals?
     Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
