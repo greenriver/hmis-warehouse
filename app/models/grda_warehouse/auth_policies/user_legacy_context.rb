@@ -81,7 +81,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext
       transform_values do |values|
         clean_values = values.flatten.compact_blank
         # Filter out deleted access group. ProjectAccessGroupMember can't do this due to database boundaries
-        active_access_group_ids.intersection(clean_values).to_a
+        (active_access_group_ids & clean_values).to_a
       end
     @access_group_ids_by_project.merge!(results)
   end
