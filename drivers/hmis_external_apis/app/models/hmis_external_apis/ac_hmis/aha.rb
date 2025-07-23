@@ -14,11 +14,11 @@ module HmisExternalApis::AcHmis
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
 
     def fetch_score(client)
-      mci_ids = client.ac_hmis_mci_ids.map(&:value)
-      return nil if mci_ids.empty?
+      mci_uniq_id = client.ac_hmis_mci_unique_id
+      return nil unless mci_uniq_id.present?
 
       payload = {
-        'dw_client_id': mci_ids.join(','),
+        'dw_client_id': mci_uniq_id.value.to_s,
       }
 
       result = conn.post('api/v1/clients/scores/search/', payload).
