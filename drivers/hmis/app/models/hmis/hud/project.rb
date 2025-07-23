@@ -195,10 +195,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def receives_direct_ce_referrals?
     config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
 
-    return false unless config.present?
-    return false unless config.receives_direct_referrals?
-
-    true
+    config&.receives_direct_referrals?
   end
 
   def receives_direct_ce_referrals_from?(source_project)
