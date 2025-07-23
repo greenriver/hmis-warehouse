@@ -620,8 +620,9 @@ module Types
         preload(:organization).
         sort_by_option(:organization_and_name)
 
-      project_scope.filter_map do |project|
+      project_scope.preload(:unit_groups).filter_map do |project|
         next unless project.receives_direct_ce_referrals_from?(from_project)
+        next unless project.unit_groups.any?
 
         project.to_pick_list_option
       end
