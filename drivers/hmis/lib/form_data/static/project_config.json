@@ -63,12 +63,12 @@
       ]
     },
     {
-      "link_id": "acceptsDirectReferrals",
+      "link_id": "receivesDirectReferrals",
       "required": true,
       "type": "BOOLEAN",
-      "text": "Accepts Direct Referrals",
+      "text": "Receives Direct Referrals",
       "mapping": {
-        "field_name": "acceptsDirectReferrals"
+        "field_name": "receivesDirectReferrals"
       },
       "enable_behavior": "ALL",
       "enable_when": [
