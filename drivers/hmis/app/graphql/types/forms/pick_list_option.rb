@@ -87,11 +87,11 @@ module Types
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
-      when 'PROJECTS_ACCEPTING_CE_REFERRALS'
-        projects_accepting_ce_referrals(from_project: project)
-      when 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL'
+      when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
+        projects_receiving_direct_ce_referrals(from_project: project)
+      when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
         # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
-        unit_groups_for_project_ce_referral(project_id: project_id, user: user)
+        unit_groups_for_project_direct_ce_referral(project_id: project_id, user: user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -605,13 +605,13 @@ module Types
 
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.where(data_source_id: data_source_id).
-        receiving_referrals.
+        receiving_legacy_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
     end
 
-    def self.projects_accepting_ce_referrals(from_project:)
+    def self.projects_receiving_direct_ce_referrals(from_project:)
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
 
@@ -620,25 +620,24 @@ module Types
         preload(:organization).
         sort_by_option(:organization_and_name)
 
-      project_scope.filter_map do |project|
-        next unless project.accepts_direct_ce_referrals_from?(from_project)
+      project_scope.preload(:unit_groups).filter_map do |project|
+        next unless project.receives_direct_ce_referrals_from?(from_project)
+        next unless project.unit_groups.any?
 
         project.to_pick_list_option
       end
     end
 
-    def self.unit_groups_for_project_ce_referral(project_id:, user:)
+    def self.unit_groups_for_project_direct_ce_referral(project_id:, user:)
       return [] unless Hmis::Ce.configuration.enabled?
       return [] unless user.can_manage_outgoing_referrals? # at any project
 
       project = Hmis::Hud::Project.find(project_id)
       return [] unless project.data_source_id == user.hmis_data_source_id
-      return [] unless project.accepts_direct_ce_referrals?
+      return [] unless project.receives_direct_ce_referrals?
 
       project.unit_groups.filter_map do |unit_group|
         # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
-        next unless unit_group.accepts_direct_ce_referrals?
-
         available_count = unit_group.available_unit_count
 
         {

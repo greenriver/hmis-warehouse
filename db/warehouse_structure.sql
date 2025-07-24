@@ -32554,8 +32554,7 @@ CREATE TABLE public.wfd_nodes (
     form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    delegated_handoff boolean DEFAULT false NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -75080,12 +75079,11 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250716154410'),
-('20250716112736'),
 ('20250716131246'),
 ('20250716131240'),
 ('20250716123853'),
 ('20250716122931'),
+('20250716112736'),
 ('20250715152820'),
 ('20250715123705'),
 ('20250714172716'),
@@ -75271,3 +75269,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

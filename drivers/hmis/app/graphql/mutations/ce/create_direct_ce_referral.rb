@@ -25,9 +25,9 @@ module Mutations
 
       unit_group = Hmis::UnitGroup.find(target_unit_group_id)
       target_project = unit_group.project # does not need to be viewable by current user
-      access_denied! unless target_project.accepts_direct_ce_referrals_from?(source_enrollment.project)
+      access_denied! unless target_project.receives_direct_ce_referrals_from?(source_enrollment.project)
 
-      opportunity = unit_group.opportunities.accepting_referrals.first
+      opportunity = unit_group.opportunities.receiving_referrals.first
       unit = opportunity&.unit
 
       errors = HmisErrors::Errors.new
@@ -61,8 +61,8 @@ module Mutations
         engine = referral.workflow_engine
         engine.start_workflow!(user: current_user)
 
-        # Find the step that's marked 'delegated_handoff', aka the step that should be completed by the target project
-        step = engine.active_steps.find { |s| s.node.delegated_handoff? }
+        # Find the first active user task
+        step = engine.active_steps.find { |s| s.node.user_task? }
         raise unless step.present?
 
         # Intentionally don't check current user's permissions to complete this step.

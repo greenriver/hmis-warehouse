@@ -502,18 +502,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'PROJECTS_ACCEPTING_CE_REFERRALS' do
+  describe 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS' do
     let!(:sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+    let!(:unit_group) { create(:hmis_unit_group, project: receiving_project, name: 'Receiving Group') }
     let!(:non_ce_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
-    let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: receiving_project, accepts_direct_referrals: true) }
+    let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: receiving_project, receives_direct_referrals: true) }
 
     before(:each) do
       allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     end
 
     it 'returns projects that accept direct referrals' do
-      response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+      response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
       expect(response.status).to eq 200
       options = result.dig('data', 'pickList')
       expect(options.size).to eq(1)
@@ -524,13 +525,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'when project only supports waitlist referrals' do
       before do
         receiving_ce_config.update!(
-          accepts_direct_referrals: false,
+          receives_direct_referrals: false,
           supports_waitlist_referrals: true,
         )
       end
 
       it 'does not return the project' do
-        response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
         expect(response.status).to eq 200
         options = result.dig('data', 'pickList')
         expect(options).to be_empty
@@ -542,13 +543,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       before do
         receiving_ce_config.update!(
-          accepts_direct_referrals: true,
-          accepts_direct_referrals_from: [allowed_sending_project.id],
+          receives_direct_referrals: true,
+          receives_direct_referrals_from: [allowed_sending_project.id],
         )
       end
 
       it 'returns the project when sending from an allowed project' do
-        response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: allowed_sending_project.id.to_s) { query }
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: allowed_sending_project.id.to_s) { query }
         expect(response.status).to eq 200
         options = result.dig('data', 'pickList')
         expect(options.size).to eq(1)
@@ -556,7 +557,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'does not return the project when sending from a non-allowed project' do
-        response, result = post_graphql(pick_list_type: 'PROJECTS_ACCEPTING_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
         expect(response.status).to eq 200
         options = result.dig('data', 'pickList')
         expect(options).to be_empty
@@ -564,13 +565,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL' do
+  describe 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL' do
     let!(:ce_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
-    let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, accepts_direct_referrals: true) }
+    let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, receives_direct_referrals: true) }
     let!(:access_control) { create_access_control(hmis_user, ce_project.organization, with_permission: [:can_manage_outgoing_referrals]) }
 
     let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
-    let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template, delegated_handoff: true) }
+    let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template) }
 
     let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template) }
     let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template) }
@@ -592,7 +593,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     shared_examples 'returns empty pick list' do
       it 'returns empty array' do
-        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
+        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
@@ -602,7 +603,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'with user who has can_manage_outgoing_referrals permission (even without can_view_project)' do
       it 'returns unit groups' do
-        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
+        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
         expect(response.status).to eq(200), result.inspect
         options = result.dig('data', 'pickList')
 
@@ -622,7 +623,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when project does not accept direct referrals' do
-      let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, supports_waitlist_referrals: true, accepts_direct_referrals: false) }
+      let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, supports_waitlist_referrals: true, receives_direct_referrals: false) }
 
       it_behaves_like 'returns empty pick list'
     end

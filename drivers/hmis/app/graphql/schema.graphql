@@ -7515,9 +7515,9 @@ enum PickListType {
   PROJECT
 
   """
-  Projects that are accepting CE referrals
+  Projects that can receive CE referrals
   """
-  PROJECTS_ACCEPTING_CE_REFERRALS
+  PROJECTS_RECEIVING_DIRECT_CE_REFERRALS
 
   """
   Open Projects that can receive referrals
@@ -7541,9 +7541,9 @@ enum PickListType {
   SUB_TYPE_PROVIDED_5
 
   """
-  Unit groups for the given project that can accept CE referrals
+  Unit groups for the given project that can receive CE referrals
   """
-  UNIT_GROUPS_FOR_PROJECT_CE_REFERRAL
+  UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL
 
   """
   User accounts. Deprecated in favor of AUDITABLE_USERS
@@ -9565,12 +9565,12 @@ input ProjectConfigFilterOptions {
 Project Config Input
 """
 input ProjectConfigInput {
-  acceptsDirectReferrals: Boolean
   configType: ProjectConfigType
   lengthOfAbsenceDays: Int
   organizationId: ID
   projectId: ID
   projectType: ProjectType
+  receivesDirectReferrals: Boolean
   supportsWaitlistReferrals: Boolean
 }
 
@@ -9612,11 +9612,12 @@ type ProjectConfigsPaginated {
 }
 
 type ProjectCoordinatedEntryFeatures {
-  """
-  Whether this project accepts direct CE referrals, initiated by a sending project
-  """
-  acceptsDirectReferrals: Boolean!
   id: ID!
+
+  """
+  Whether this project receives direct CE referrals, initiated by a sending project
+  """
+  receivesDirectReferrals: Boolean!
 
   """
   Whether this project sends direct CE Referrals
@@ -9851,7 +9852,7 @@ type Query {
   clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
   deniedPendingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
-  directReferralForm(sourceEnrollmentId: ID!, targetUnitGroupId: ID!): FormDefinition
+  directReferralFormDefinition(targetUnitGroupId: ID!): FormDefinition
 
   """
   Enrollment lookup

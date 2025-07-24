@@ -432,7 +432,6 @@ module CeWorkflowBuilder
       form_definition_identifier: initial_review_task_form_identifier,
       template: template,
       swimlane: ce_staff_swimlane,
-      # delegated_handoff: true, # Comment back in to test direct referral
     )
 
     create_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
@@ -594,7 +593,7 @@ task ce_define_workflows: [:environment] do
   ce_enabled.value = true
   ce_enabled.save! if ce_enabled.changed?
 
-  data_source = GrdaWarehouse::DataSource.hmis.sole
+  data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
 
   HmisUtil::CeBuilder.create_state_machine_custom_statuses(data_source)
 

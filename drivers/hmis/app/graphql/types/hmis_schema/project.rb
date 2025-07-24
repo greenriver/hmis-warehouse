@@ -152,13 +152,13 @@ module Types
       return nil unless ce_config.present? || sends_referrals_config.present?
 
       supports_waitlist_referrals = ce_config&.supports_waitlist_referrals? || false
-      accepts_direct_referrals = ce_config&.accepts_direct_referrals? || false
+      receives_direct_referrals = ce_config&.receives_direct_referrals? || false
 
       OpenStruct.new(
         id: object.id,
-        supports_referrals: supports_waitlist_referrals || accepts_direct_referrals,
+        supports_referrals: supports_waitlist_referrals || receives_direct_referrals,
         supports_waitlist_referrals: supports_waitlist_referrals,
-        accepts_direct_referrals: accepts_direct_referrals,
+        receives_direct_referrals: receives_direct_referrals,
         sends_direct_referrals: sends_referrals_config.present?,
       )
     end

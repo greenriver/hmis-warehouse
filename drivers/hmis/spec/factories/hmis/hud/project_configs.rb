@@ -30,16 +30,16 @@ FactoryBot.define do
     enabled { true }
 
     transient do
-      accepts_direct_referrals { false }
+      receives_direct_referrals { false }
       supports_waitlist_referrals { true }
-      accepts_direct_referrals_from { nil }
+      receives_direct_referrals_from { nil }
     end
 
     after(:build) do |config, evaluator|
       options = {}
-      options['accepts_direct_referrals'] = evaluator.accepts_direct_referrals
+      options['receives_direct_referrals'] = evaluator.receives_direct_referrals
       options['supports_waitlist_referrals'] = evaluator.supports_waitlist_referrals
-      options['accepts_direct_referrals_from'] = evaluator.accepts_direct_referrals_from if evaluator.accepts_direct_referrals_from.present?
+      options['receives_direct_referrals_from'] = evaluator.receives_direct_referrals_from if evaluator.receives_direct_referrals_from.present?
       config.config_options = options.to_json
     end
   end

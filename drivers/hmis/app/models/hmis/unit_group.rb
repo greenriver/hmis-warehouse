@@ -44,19 +44,8 @@ module Hmis
       Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
     end
 
-    def accepts_direct_ce_referrals?
-      return false unless workflow_template.present?
-
-      initiation_node = workflow_template.graph.nodes.find(&:delegated_handoff)
-      return false unless initiation_node.present?
-      return false unless initiation_node.user_task?
-      return false unless initiation_node.form_definition.present?
-
-      true
-    end
-
     def available_unit_count
-      units.accepting_referrals.count
+      units.receiving_referrals.count
     end
 
     private
