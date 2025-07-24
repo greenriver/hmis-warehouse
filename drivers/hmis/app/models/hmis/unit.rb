@@ -92,6 +92,16 @@ class Hmis::Unit < Hmis::HmisBase
     active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.receiving_referrals)
   end
 
+  # Units are available for occupancy if they are unoccupied and don't have a referral in progress.
+  # This could include any of the following:
+  # - no opportunity (unit hasn't been marked available for referrals)
+  # - unit has only closed opportunities
+  # - unit has an open opportunity, but no referral has been started
+  scope :available_for_occupancy_on, ->(date = Date.current) do
+    locked_unit_ids = joins(:opportunities).merge(Hmis::Ce::Opportunity.locked).pluck(:id)
+    unoccupied_on(date).where.not(id: locked_unit_ids)
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::UnitFilter.new(input).filter_scope(self)
   end

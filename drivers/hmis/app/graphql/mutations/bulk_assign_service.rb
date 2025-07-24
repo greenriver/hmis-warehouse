@@ -30,7 +30,7 @@ module Mutations
       coc_code = project.determine_coc_code(coc_code_arg: input.coc_code)
 
       project_has_units = project.units.exists?
-      available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
+      available_units = project.units.available_for_occupancy_on(input.date_provided).order(updated_at: :desc).to_a
 
       # async record load must be called outside of a db transaction to avoid deadlocks
       enrollment_by_client = clients.to_h do |client|

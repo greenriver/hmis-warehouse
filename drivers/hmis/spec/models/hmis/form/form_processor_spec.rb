@@ -866,6 +866,46 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)
       expect { process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user, definition: definition) }.to raise_error(StandardError)
     end
+
+    describe 'with unit opportunities' do
+      let!(:unit) { create(:hmis_unit, project: p1) }
+      let!(:hud_values) { complete_hud_values.merge('currentUnit' => unit.id) }
+
+      context 'with closed opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :closed) }
+
+        it 'assigns the unit as usual' do
+          expect do
+            process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+            e1.reload
+          end.to change(e1, :current_unit).from(nil).to(unit)
+        end
+      end
+
+      context 'with open opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
+
+        it 'assigns and destroys the opportunity' do
+          expect do
+            process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+            e1.reload
+            unit.reload
+          end.to change(e1, :current_unit).to(unit).
+            and change(Hmis::Ce::Opportunity, :count).by(-1).
+            and change(unit, :latest_opportunity).from(opportunity).to(nil)
+        end
+      end
+
+      context 'with locked opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked) }
+
+        it 'raises an error' do
+          expect do
+            process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(RuntimeError, /Cannot assign to a unit with an active referral/)
+        end
+      end
+    end
   end
 
   describe 'Form processing for Clients' do

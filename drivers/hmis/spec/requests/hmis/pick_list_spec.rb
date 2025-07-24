@@ -378,6 +378,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         un1.update!(unit_type: nil)
         expect(picklist_option_codes(p1, household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
       end
+
+      context 'units with CE opportunities and referrals' do
+        let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+        let!(:unit_with_open_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
+        let!(:unit_with_locked_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
+        let!(:unit_with_closed_opportunity) { create :hmis_unit, project: project, unit_type: br1 }
+
+        let!(:open_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_open_opportunity, project: project, data_source: ds1, status: :open) }
+        let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, project: project, data_source: ds1, status: :locked) }
+        let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, project: project, data_source: ds1, status: :closed) }
+
+        it 'includes unit with open opportunity' do
+          available_units = picklist_option_codes(project)
+          expect(available_units).to contain_exactly(unit_with_open_opportunity.id, unit_with_closed_opportunity.id)
+          expect(available_units).not_to include(unit_with_locked_opportunity.id)
+        end
+      end
     end
 
     context 'ADMIN_AVAILABLE_UNITS_FOR_ENROLLMENT' do
