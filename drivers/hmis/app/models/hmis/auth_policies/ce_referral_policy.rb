@@ -50,7 +50,16 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
     false
   end
 
-  def can_create_note?(...) = can_perform?(...)
+  def can_create_note?(step: nil)
+    return can_perform?(step: step) if step
+
+    # If step is not provided, this check is for creating a global referral note. Allowed if user can perform _any_ available steps.
+    return false unless Hmis::Ce.configuration.enabled?
+    return true if project_permissions.include?(:can_perform_any_referral_tasks)
+    return true if project_permissions.include?(:can_perform_own_referral_tasks) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
+
+    false
+  end
 
   protected
 
