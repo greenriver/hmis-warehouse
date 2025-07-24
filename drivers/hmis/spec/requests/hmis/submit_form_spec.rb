@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -930,7 +932,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # Create external ID for Unit Type which is needed for API request
       mper.create_external_id(source: unit_type, value: '999')
       # Mock the API response
-      result = HmisExternalApis::OauthClientResult.new(
+      result = HmisExternalApis::ExternalApiResult.new(
         parsed_body: { 'referralRequestID' => '123' }, # External ID for the Referral Request
       )
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:post).
