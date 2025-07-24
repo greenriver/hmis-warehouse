@@ -16,12 +16,16 @@ module Types
     # If user lacks sufficient access, the field will be resolved as null.
     def self.field(name, type = nil, **kwargs)
       # See Types::BaseField `authorized?` function.
-      super(name, type, policy_name: :ce_referral, policy_action: :can_view?, **kwargs)
+      can_view_lambda = lambda do |current_user, object|
+        current_user.policy_for(object, policy_type: :ce_referral).can_view?
+      end
+
+      super(name, type, authorize_with: can_view_lambda, **kwargs)
     end
 
     # No field-level authorization is needed here; we know the user can view the referral summary if it's being resolved at all
     def self.summary_field(name, type = nil, **kwargs)
-      field(name, type, **kwargs, policy_name: nil, policy_action: nil)
+      field(name, type, **kwargs, authorize_with: nil)
     end
 
     # Check for most minimal permission needed to resolve this object: either can_view? OR can_view_summary?
@@ -49,7 +53,7 @@ module Types
     summary_field :referred_by, Application::User, null: true
     summary_field :active, Boolean, null: false, method: :active?
 
-    access_field policy_name: nil, policy_action: nil do
+    access_field authorize_with: nil do
       field :can_view_referral_details, Boolean, null: false
       field :can_view_target_project, Boolean, null: false
     end
