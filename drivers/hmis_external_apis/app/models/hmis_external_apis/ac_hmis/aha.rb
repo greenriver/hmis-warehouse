@@ -24,7 +24,10 @@ module HmisExternalApis::AcHmis
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
 
-      score_objects = result.parsed_body&.dig('data')&.flat_map do |response_client|
+      data = result.parsed_body&.dig('data')
+      raise(Error, "AHA response missing `data` key. Response body: `#{result.parsed_body}`") unless data
+
+      score_objects = data.flat_map do |response_client|
         response_client.dig('scores')&.filter_map do |score_obj|
           score_value = score_obj.dig('score')
 
@@ -37,10 +40,10 @@ module HmisExternalApis::AcHmis
             dw_client_id: response_client.dig('dw_client_id'),
             generator: score_obj.dig('generator'),
           )
-        end || []
-      end || []
+        end
+      end
 
-      highest_score_object = score_objects.max_by(&:score)
+      highest_score_object = score_objects.compact.max_by(&:score)
       return nil if highest_score_object.nil? || highest_score_object.score&.negative?
 
       highest_score_object
@@ -72,8 +75,7 @@ module HmisExternalApis::AcHmis
       # Handle specific case: 404 with "No client found" shouldn't raise, just return no ID
       return result if client_not_found_response?(result)
 
-      Rails.logger.error "AHA HTTP Error: Status #{result.http_status}, Response: #{result.parsed_body}"
-      raise(Error, "Received non-200 HTTP status: #{result.http_status}")
+      raise(Error, "AHA HTTP error: Received non-200 HTTP status: #{result.http_status}")
     end
 
     def http_status_successful?(status)
