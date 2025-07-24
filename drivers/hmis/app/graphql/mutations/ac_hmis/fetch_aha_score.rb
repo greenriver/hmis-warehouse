@@ -29,7 +29,7 @@ module Mutations
       aha = HmisExternalApis::AcHmis::Aha.new
       result = aha.fetch_score(client)
 
-      return { score: nil } if result.nil?
+      return { score: -1 } if result.nil?
 
       {
         score: result.score,
