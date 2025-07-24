@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'webmock/rspec'
 
@@ -20,16 +22,16 @@ RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
         :hmis_external_api_ac_hmis_referral_request,
         requested_by: hmis_user,
       )
-      result = HmisExternalApis::OauthClientResult.new(parsed_body: {})
-      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
-        .with(
+      result = HmisExternalApis::ExternalApiResult.new(parsed_body: {})
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch).
+        with(
           "Referral/ReferralRequest/#{referral_request.identifier}",
           {
             'isVoid' => true,
             'requestedBy' => hmis_user.email,
           },
-        )
-        .and_return(result)
+        ).
+        and_return(result)
 
       HmisExternalApis::AcHmis::VoidReferralRequestJob.perform_now(
         referral_request: referral_request,
