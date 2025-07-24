@@ -136,7 +136,7 @@ RSpec.describe 'BulkAssignService', type: :request do
     let!(:unit) { create(:hmis_unit, project: p1) }
     let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
 
-    it 'assigns a unit with open opportunity when enrolling a new client' do
+    it 'assigns the unit and destroys the opportunity' do
       expect do
         perform_mutation
       end.to change { Hmis::Ce::Opportunity.exists?(opportunity.id) }.from(true).to(false)
