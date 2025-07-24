@@ -476,7 +476,8 @@ module ApplicationHelper
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
   #
   def render_paginated_list(scope:, item_name:, list_partial:)
-    pagy, list = controller.send(:pagy, scope)
+    pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
+    pagy, list = controller.send(pagy_sym, scope)
     render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial)
   end
 
@@ -578,5 +579,18 @@ module ApplicationHelper
       form_options: form_options,
       input_attrs: input_attrs,
     )
+  end
+
+  def event_badge_class(event)
+    case event.to_s.downcase
+    when 'create'
+      'badge-success'
+    when 'update'
+      'badge-warning'
+    when 'destroy'
+      'badge-danger'
+    else
+      'badge-secondary'
+    end
   end
 end

@@ -9,11 +9,12 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Referral, type: :model do
-  let(:opportunity) { create(:hmis_ce_opportunity) }
+  let(:data_source) { create(:hmis_data_source) }
+  let(:opportunity) { create(:hmis_ce_opportunity, data_source: data_source) }
 
   describe 'Referral model validations' do
     it 'saves an active referral' do
-      referral = build(:hmis_ce_referral, opportunity: opportunity)
+      referral = build(:hmis_ce_referral, opportunity: opportunity, data_source: data_source)
       expect(referral.valid?).to be_truthy
       expect do
         referral.save!
@@ -32,7 +33,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
     ['initialized', 'in_progress', 'accepted'].each do |status|
       context "when there is an existing #{status} referral" do
-        let!(:existing) { create(:hmis_ce_referral, opportunity: opportunity, status: status) }
+        let!(:existing) { create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: status) }
 
         it 'does not allow creating a new active referral' do
           referral = build(:hmis_ce_referral, opportunity: opportunity)
@@ -63,12 +64,12 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
     context 'when there are several existing rejected referrals' do
       before do
         3.times do
-          create(:hmis_ce_referral, opportunity: opportunity, status: 'rejected')
+          create(:hmis_ce_referral, opportunity: opportunity, data_source: data_source, status: 'rejected')
         end
       end
 
       it 'allows creating a new active referral' do
-        referral = build(:hmis_ce_referral, opportunity: opportunity)
+        referral = build(:hmis_ce_referral, opportunity: opportunity, data_source: data_source)
         expect(referral.valid?).to be_truthy
         expect do
           referral.save!

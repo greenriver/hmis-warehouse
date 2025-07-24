@@ -4,12 +4,22 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
   include ArelHelper
+  include AccessControlAuditData
+  extend BackgroundRenderAction
 
   before_action :require_can_edit_users!
   before_action :set_access_control, only: [:edit, :update, :destroy]
+
+  background_render_action(:render_audits, ::BackgroundRender::AccessControlsAuditsJob) do
+    {
+      user_id: current_user.id,
+    }
+  end
 
   def index
     @access_controls = access_control_scope.
@@ -51,6 +61,12 @@ class Admin::AccessControlsController < ApplicationController
     redirect_to action: :index
   end
 
+  def audits
+    @excel_export = GrdaWarehouse::DocumentExports::AccessControlsAuditExport.new
+    # Processing is backgrounded unless render_inline is set to 1
+    data if params[:render_inline] == '1'
+  end
+
   private def access_control_scope
     AccessControl.user_managed
   end
@@ -76,5 +92,12 @@ class Admin::AccessControlsController < ApplicationController
 
   private def set_access_control
     @access_control = access_control_scope.find(params[:id].to_i)
+  end
+
+  private def data
+    @data ||= begin
+      histories = build_histories(current_user)
+      build_data(histories)
+    end
   end
 end
