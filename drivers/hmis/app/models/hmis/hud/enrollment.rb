@@ -477,9 +477,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
     opportunity = unit.latest_opportunity
-    raise 'Cannot assign to a unit with an active referral' if opportunity.locked? || opportunity.active_referral.present?
 
-    opportunity.destroy! if opportunity.open?
+    if opportunity&.locked?
+      raise 'Cannot assign to a unit with an active referral' unless opportunity.active_referral.client == client
+    end
+
+    opportunity.destroy! if opportunity&.open?
 
     # include project id here since it may not be available during after_save hooks due to WIP
     self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
