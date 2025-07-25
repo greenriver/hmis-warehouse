@@ -479,7 +479,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     opportunity = unit.latest_opportunity
 
     if opportunity&.locked?
-      raise 'Cannot assign to a unit with an active referral' unless opportunity.active_referral.client == client
+      raise 'Cannot assign to a unit with an active referral' unless opportunity.active_referral&.client == client
     end
 
     opportunity.destroy! if opportunity&.open?
