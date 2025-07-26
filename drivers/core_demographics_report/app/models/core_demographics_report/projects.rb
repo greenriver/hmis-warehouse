@@ -58,11 +58,12 @@ module
     end
 
     def enrollment_data_for_export(rows, report_index = 0)
+      column_headers = ['Project', 'Project Type', 'Organization', 'Count']
+      columns_per_report = column_headers.count
       projects = project_names
       rows['_Clients in Projects'] ||= []
       rows['*Clients in Projects'] ||= []
-      rows['*Clients in Projects'] += ['Project', 'Project Type', 'Organization', 'Count']
-      header_column_count = rows['*Clients in Projects'].count
+      rows['*Clients in Projects'] += column_headers
 
       # Use project IDs for row keys to ensure same project appears on same row across reports
       # Add report_index to ensure proper column alignment
@@ -74,7 +75,7 @@ module
         # If this is not the first report, we need to pad with nil values to align columns
         if report_index > 0 && rows[row_key].empty?
           # Pad with nil values for previous reports
-          rows[row_key] += [nil] * (report_index * header_column_count)
+          rows[row_key] += [nil] * (report_index * columns_per_report)
         end
 
         rows[row_key] += [
