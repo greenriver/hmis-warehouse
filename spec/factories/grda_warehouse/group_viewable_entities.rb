@@ -9,7 +9,7 @@
 FactoryBot.define do
   factory :grda_warehouse_group_viewable_entity, class: 'GrdaWarehouse::GroupViewableEntity' do
     access_group { association :access_group }
-    collection { association :collection}
-    entity { association :hud_project}
+    collection { association :collection }
+    entity { association :hud_project }
   end
 end
