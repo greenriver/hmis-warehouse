@@ -874,7 +874,8 @@
                 "INPUT_GROUP",
                 "TABLE",
                 "SIGNATURE_GROUP",
-                "SIGNATURE"
+                "SIGNATURE",
+                "AHA"
               ]
             },
             "item": {
