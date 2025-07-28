@@ -1131,6 +1131,7 @@ type CeReferralStep {
   """
   assignees: [ApplicationUser!]!
   availableAt: ISO8601DateTime
+  customDataElements: [CustomDataElement!]!
   formDefinition: FormDefinition!
 
   """
@@ -6957,7 +6958,7 @@ type Mutation {
     """
     input: SubmitAssessmentInput!
   ): SubmitAssessmentPayload
-  submitCeReferralStep(confirmed: Boolean, formDefinitionId: ID!, input: JsonObject!, referralId: ID!, stepId: ID!): SubmitCeReferralStepPayload
+  submitCeReferralStep(confirmed: Boolean, formDefinitionId: ID!, referralId: ID!, stepId: ID!, valuesByFieldName: JsonObject!, valuesByLinkId: JsonObject!): SubmitCeReferralStepPayload
 
   """
   Submit a form to create/update HUD record(s)

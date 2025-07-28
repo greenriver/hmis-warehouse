@@ -1134,7 +1134,9 @@ FactoryBot.define do
                 'required': true,
                 'warn_if_empty': false,
                 'text': 'Contact Date',
-                'mapping': { 'field_name': 'contact_date' },
+                'mapping': {
+                  'custom_field_key': 'contact_date',
+                },
               },
               {
                 'text': 'Client Accepts Referral',
