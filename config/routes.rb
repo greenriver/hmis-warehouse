@@ -672,14 +672,27 @@ Rails.application.routes.draw do
     resources :patients, only: [:index] do
       collection do
         post :detail
+        # Patient search queries
+        resources :searches, only: [:create], to: 'patients#create_search_queries', as: :create_patient_searches
+        get 'searches/:id', to: 'patients#search', as: :patient_search_query
       end
     end
     resources :team_patients, only: [:index] do
       collection do
         post :detail
+
+        # Patient search queries
+        resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
+        get 'searches/:id', to: 'team_patients#search', as: :team_patient_search_query
       end
     end
-    resources :my_patients, only: [:index]
+    resources :my_patients, only: [:index] do
+      collection do
+        # Patient search queries
+        resources :searches, only: [:create], to: 'my_patients#create_search_queries', as: :create_my_patient_searches
+        get 'searches/:id', to: 'my_patients#search', as: :my_patient_search_query
+      end
+    end
     namespace :he do
       get :search
       resources :cases do
@@ -844,6 +857,9 @@ Rails.application.routes.draw do
           get :disenrollment_accepted
           post :bulk_assign_agency
           post :bulk_assign_agency_and_care_staff
+          # Patient search queries
+          resources :searches, only: [:create], to: 'patient_referrals#create_search_queries', as: :create_patient_referral_searches
+          get 'searches/:id', to: 'patient_referrals#search', as: :patient_referral_search_query
         end
         post :assign_agency
       end
@@ -852,6 +868,9 @@ Rails.application.routes.draw do
         collection do
           get :review
           get :reviewed
+          # Patient search queries
+          resources :searches, only: [:create], to: 'agency_patient_referrals#create_search_queries', as: :create_agency__patient_referral_searches
+          get 'searches/:id', to: 'agency_patient_referrals#search', as: :agency_patient_referral_search_query
         end
       end
       resources :users, only: [:index] do
