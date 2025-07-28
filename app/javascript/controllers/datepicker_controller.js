@@ -45,6 +45,7 @@ export default class extends Controller {
       },
       localization: {
         format: 'MMM d, yyyy',
+        dayViewHeaderFormat: { month: 'long', year: 'numeric' },
       },
     };
 
