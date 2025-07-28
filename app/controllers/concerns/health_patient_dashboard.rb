@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthPatientDashboard
   extend ActiveSupport::Concern
 
@@ -52,7 +54,7 @@ module HealthPatientDashboard
     # @param Hash<String>|nil Filters
     # @return patient_scope, search_scope, active_filter
     def apply_filter(patients, filter)
-      search = search_setup(search: patients, scope: :full_text_search)
+      search = search_setup(search: patients, scope: :full_text_search, search_object: search_query)
       patients = search.distinct if @search_string.present?
       active_filter = false
       return search, patients, active_filter unless filter.present?

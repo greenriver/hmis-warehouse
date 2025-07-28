@@ -26,7 +26,6 @@ module Admin
       @users = user_scope.preload(:access_controls, :roles, :oauth_identities)
       # END_ACL
 
-      @users = @users.text_search(params[:q], sort_by_best_match: !manually_sorted?) if params[:q].present?
       @users = @users.order(sort_column => sort_direction) if manually_sorted?
 
       @pagy, @users = pagy(@users)
@@ -134,6 +133,14 @@ module Admin
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
       respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
+    end
+
+    def search
+      search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:id])
+      return handle_invalid_query('Search query not found') if search_query.nil?
+
+      search_query.touch
+      perform_search(search_query.query_params)
     end
 
     private def copy_user_groups
@@ -307,6 +314,24 @@ module Admin
       @user = User.find(params[:id].to_i)
 
       @agencies = Agency.order(:name)
+    end
+
+    private def perform_search(search_params = {})
+      @query = search_params['q'].presence
+      if @query
+        @users = user_scope.text_search(@query, sort_by_best_match: !manually_sorted?)
+      else
+        @users = user_scope.none
+      end
+
+      @users = @users.order(sort_column => sort_direction) if manually_sorted?
+      @pagy, @users = pagy(@users)
+      render :index
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to admin_users_path
     end
   end
 end

@@ -533,6 +533,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Enrollment Access',
         sub_category: 'Access',
       },
+      can_print_client_case_notes: {
+        description: 'Ability to print case notes from the client profile.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Access',
+      },
     }
   end
 end
