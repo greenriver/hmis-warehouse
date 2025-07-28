@@ -585,6 +585,10 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+
+    # Client search queries
+    resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries
+    get '/client_searches/:id', to: 'cohorts/clients#search', as: 'cohort_client_search_query'
   end
 
   resources :imports, only: [:index, :show] do
@@ -735,6 +739,11 @@ Rails.application.routes.draw do
       resource :edit_history, only: :show
       resource :locations, only: :show
       patch :reactivate, on: :member
+      collection do
+        # User search queries
+        resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+        get '/searches/:id', to: 'users#search', as: 'user_search_query'
+      end
       member do
         post :unlock
         post :un_expire
@@ -751,6 +760,11 @@ Rails.application.routes.draw do
 
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
+      collection do
+        # Inactive user search queries
+        resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+        get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+      end
     end
     resources :account_requests, only: [:index, :edit, :update, :destroy] do
       post :confirm
