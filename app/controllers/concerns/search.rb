@@ -16,6 +16,7 @@ module Search
       return search unless search_object || search_params[:q].present?
 
       @search_string = search_object&.query_params.try(:[], :q) || search_params[:q]&.strip
+
       # Pass the query to the selected scope if present
       return search.send(scope, @search_string) unless scope.nil?
 
