@@ -7,7 +7,7 @@
 
     .o-page__controls
       .o-page__search
-        = render_generic_search_form prompt: @prompt
+        = render_generic_search_form(admin_inactive_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
 
 = render 'admin/users/tabs', selected_path: admin_inactive_users_path
 

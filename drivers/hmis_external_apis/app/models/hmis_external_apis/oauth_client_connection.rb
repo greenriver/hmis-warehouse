@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,31 +8,14 @@
 
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
-  class OauthClientConnection
-    attr_accessor :creds, :client_id, :scope, :headers, :base_url, :connection_timeout, :logger
+  class OauthClientConnection < ExternalApiConnection
+    attr_accessor :client_id, :scope
 
     # @param creds [::GrdaWarehouse::RemoteCredential]
-    def initialize(creds, connection_timeout: 5, logger: OauthClientLogger.new)
-      self.creds = creds
+    def initialize(creds, connection_timeout: 5, logger: ExternalApiLogger.new)
+      super(creds, connection_timeout: connection_timeout, logger: logger)
       self.client_id = creds.client_id
       self.scope = creds.oauth_scope
-      # normalized base_url
-      self.base_url = creds.base_url.strip.gsub(/\/*\z/, '')
-      self.headers = creds.additional_headers
-      self.connection_timeout = connection_timeout
-      self.logger = logger
-    end
-
-    def get(path)
-      request(:get, url_for(path))
-    end
-
-    def post(path, payload)
-      request(:post, url_for(path), payload)
-    end
-
-    def patch(path, payload)
-      request(:patch, url_for(path), payload)
     end
 
     def self.access(client_id)
@@ -43,14 +28,7 @@ module HmisExternalApis
       @access[payload.client.id] = payload
     end
 
-    private
-
-    # normalize leading/trailing slashes
-    def url_for(path)
-      return base_url if path.blank?
-
-      base_url + '/' + path.strip.gsub(/\A\/*/, '')
-    end
+    protected
 
     def request(verb, url, payload = nil)
       result, request_log = logger.capture(creds: creds, url: url, method: verb, payload: payload, headers: merged_headers) do
@@ -66,53 +44,17 @@ module HmisExternalApis
         end
       end
 
-      OauthClientResult.new(
-        body: result.body,
-        content_type: result.content_type,
-        error: nil,
-        error_type: nil,
-        http_method: verb,
-        http_status: result.status,
-        ip: nil,
-        parsed_body: try_parse_json(result.body),
-        request_headers: merged_headers,
-        url: url,
-        request_log: request_log,
-      )
+      create_result(result, verb, url, merged_headers, request_log)
     rescue OAuth2::TimeoutError, OAuth2::ConnectionError => e
-      OauthClientResult.new(
-        body: e.message.presence || 'Unknown Error',
-        error: try_parse_json(e.message) || e.message.presence || 'Unknown Error',
-        error_type: e.class.name,
-        request_log: request_log,
-      )
+      create_connection_error_result(e, request_log)
     rescue OAuth2::Error => e
-      OauthClientResult.new(
-        body: result&.body || e.message,
-        content_type: result&.content_type || e.response&.headers&.dig('content-type'),
-        error: try_parse_json(e.message) || e.message.presence || 'Unknown Error',
-        error_type: e.class.name,
-        http_method: e.response.response.env.method,
-        http_status: result&.status || e.response&.status,
-        ip: nil,
-        parsed_body: try_parse_json(result&.body),
-        request_headers: e.response.response.env.request_headers,
-        request_body: e.response.response.env.request_body,
-        url: e.response.response.env.url.to_s,
-        request_log: request_log,
-      )
+      create_error_result(e, result, request_log)
     end
+
+    private
 
     def merged_headers
-      { 'Content-Type' => 'application/json' }.merge(headers || {})
-    end
-
-    def try_parse_json(str)
-      return nil unless str.present?
-
-      JSON.parse(str)
-    rescue JSON::ParserError
-      nil
+      base_headers.merge(additional_headers || {})
     end
 
     # We can't cache this in redis, but we want to retain access tokens between
@@ -139,6 +81,41 @@ module HmisExternalApis
         creds.client_secret,
         token_url: creds.token_url,
         connection_build: connection_build,
+      )
+    end
+
+    def create_result(result, verb, url, merged_headers, request_log)
+      # result is an OAuth2::Response
+      ExternalApiResult.new(
+        body: result.body,
+        content_type: result.content_type,
+        error: nil,
+        error_type: nil,
+        http_method: verb,
+        http_status: result.status,
+        ip: nil,
+        parsed_body: try_parse_json(result.body),
+        request_headers: merged_headers,
+        url: url,
+        request_log: request_log,
+      )
+    end
+
+    def create_error_result(exception, result, request_log)
+      # exception is an OAuth2::Error, result is an OAuth2::Response or nil
+      ExternalApiResult.new(
+        body: result&.body || exception.message,
+        content_type: result&.headers&.dig('content-type') || exception.response&.headers&.dig('content-type'),
+        error: try_parse_json(exception.message) || exception.message.presence || 'Unknown Error',
+        error_type: exception.class.name,
+        http_method: exception.response&.response&.env&.method,
+        http_status: result&.status || exception.response&.status,
+        ip: nil,
+        parsed_body: try_parse_json(result&.body),
+        request_headers: exception.response&.response&.env&.request_headers,
+        request_body: exception.response&.response&.env&.request_body,
+        url: exception.response&.response&.env&.url&.to_s,
+        request_log: request_log,
       )
     end
   end

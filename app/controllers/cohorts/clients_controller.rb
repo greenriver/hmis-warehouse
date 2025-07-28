@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'json/ext'
 module Cohorts
   class ClientsController < ApplicationController
@@ -103,12 +105,7 @@ module Cohorts
     end
 
     def new
-      @hoh_only = false
-      @clients = client_scope.none
-      @filter = ::Filters::Chronic.new(filter_params[:filter])
-      @hud_filter = ::Filters::HudChronic.new(hud_filter_params[:hud_filter])
-
-      # whitelist for scope
+      setup_search_page
       @populations = chosen_populations
       @actives = actives_params
       @touchpoints = touch_point_params
@@ -135,19 +132,42 @@ module Cohorts
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map { |m| m[/\d+/].to_i }
         @clients = client_scope.where(id: @client_ids)
-      elsif params.dig(:search_form, :q).present?
-        @search = search_setup(scope: :full_text_search)
-        search_client_ids = @search.distinct.select(:id) if @search_string.present?
-        # Calling merge on a scope where both sides access the same attribute
-        # results in throwing out the left-hand of the equation
-        # use a sub-query instead
-        @clients = client_scope.where(id: search_client_ids)
       elsif @touchpoints
         @clients = clients_from_touch_points
       end
 
       @clients = clients_from_heads_of_household if @hoh_only
 
+      calculate_search_result_data
+    end
+
+    def search
+      setup_search_page
+      search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
+      return handle_invalid_query('Search query not found') if search_query.nil?
+
+      search_query.touch
+
+      @search = search_setup(scope: :full_text_search, search_object: search_query)
+      search_client_ids = @search.distinct.select(:id) if @search_string.present?
+      # Calling merge on a scope where both sides access the same attribute
+      # results in throwing out the left-hand of the equation
+      # use a sub-query instead
+      @clients = client_scope.where(id: search_client_ids)
+      calculate_search_result_data
+
+      render :new
+    end
+
+    private def setup_search_page
+      @hoh_only = false
+      @clients = client_scope.none
+      @filter = ::Filters::Chronic.new(filter_params[:filter])
+      @hud_filter = ::Filters::HudChronic.new(hud_filter_params[:hud_filter])
+    end
+
+    # Setup @clients prior to calling this method
+    private def calculate_search_result_data
       counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.reorder(id: :asc).select(:id)).
         pluck(:client_id, :homeless_days, :days_homeless_last_three_years, :literally_homeless_last_three_years)
@@ -163,6 +183,12 @@ module Cohorts
       # Clients is an array of hashes
       @clients.uniq!
       Rails.logger.info "CLIENTS: #{@clients.count}"
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to new_cohort_cohort_client_path(@cohort)
+      return
     end
 
     private def search_scope
