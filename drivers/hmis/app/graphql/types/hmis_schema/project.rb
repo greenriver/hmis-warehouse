@@ -303,7 +303,7 @@ module Types
       access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
 
       referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
-      resolve_ce_referrals(referral_scope, dangerous_skip_permission_check: true, **args)
+      resolve_ce_referrals(referral_scope, sort_order: :created_at, dangerous_skip_permission_check: true, **args)
     end
 
     private def check_enrollment_details_access
