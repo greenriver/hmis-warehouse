@@ -16,11 +16,13 @@ module Types
     # If user lacks sufficient access, the field will be resolved as null.
     def self.field(name, type = nil, **kwargs)
       # See Types::BaseField `authorized?` function.
-      can_view_lambda = lambda do |current_user, object|
-        current_user.policy_for(object, policy_type: :ce_referral).can_view?
+      unless kwargs.key?(:authorize_with)
+        kwargs[:authorize_with] = lambda do |current_user, object|
+          current_user.policy_for(object, policy_type: :ce_referral).can_view?
+        end
       end
-
-      super(name, type, authorize_with: can_view_lambda, **kwargs)
+        
+      super(name, type, **kwargs)
     end
 
     # No field-level authorization is needed here; we know the user can view the referral summary if it's being resolved at all
