@@ -21,7 +21,7 @@ module Types
           current_user.policy_for(object, policy_type: :ce_referral).can_view?
         end
       end
-        
+
       super(name, type, **kwargs)
     end
 
@@ -42,6 +42,7 @@ module Types
     summary_field :status, HmisSchema::Enums::CeReferralStatus, null: false
     summary_field :custom_status, HmisSchema::CeCustomReferralStatus, null: true
     summary_field :client_id, ID, null: false
+    summary_field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the full referral, even without full client record access.'
     # Special case: Client is a "summary field" because it doesn't require referral visibility, but resolving it does require permission to view the client record.
     summary_field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
@@ -63,7 +64,6 @@ module Types
     # Detailed fields that only those with full view access should see. Must be nullable
     field :opportunity, HmisSchema::CeOpportunity, null: true
     field :steps, [HmisSchema::CeReferralStep], null: true
-    field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the referral, even without full client record access.'
     field :client_age, Integer, null: true, description: 'The age of the referred client. Always available to those who can view the referral, even without full client record access.'
     field :current_steps, [HmisSchema::CeReferralStep], null: true
     field :days_on_current_steps, Integer, null: true
@@ -120,10 +120,18 @@ module Types
       load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
 
-    # NOTE: This field intentionally does not check can_view_clients
     def client_name
       c = load_ar_association(object, :client)
-      c.brief_name.presence || c.masked_name
+
+      # This is a summary field. If the current user can view the referral, always return the client name
+      # (even if the current user can't otherwise view that client)
+      return c.brief_name.presence || c.masked_name if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+
+      # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
+      viewable_client = load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
+      return nil unless viewable_client
+
+      viewable_client.brief_name.presence || viewable_client.masked_name
     end
 
     # NOTE: This field intentionally does not check can_view_clients

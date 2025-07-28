@@ -45,14 +45,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               status
 
-              # special case summary field that's only resolved when the user has permission to view the client
+              # special case summary fields that are resolved when the user has permission to view the client
+              clientName
               client {
                 id
                 firstName
               }
 
               # non-summary fields that are not resolved unless the user has full view permission
-              clientName
+              clientAge
 
               # access object that indicates whether the user can view full details (and link to) this referral
               access {
@@ -73,12 +74,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
 
         expect(outgoing_referrals).to contain_exactly(
-          # Expect to resolve summary-level fields like ID and status, but not details like client name
+          # Expect to resolve summary-level fields like ID and status, but not details like clientAge
           a_hash_including(
             'id' => direct_referral1.id.to_s,
             'status' => direct_referral1.status,
             'client' => nil,
-            'clientName' => nil,
+            'clientAge' => nil,
             'access' => {
               'canViewReferralDetails' => false,
             },
@@ -87,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'id' => direct_referral2.id.to_s,
             'status' => direct_referral2.status,
             'client' => nil,
-            'clientName' => nil,
+            'clientAge' => nil,
             'access' => {
               'canViewReferralDetails' => false,
             },
@@ -130,6 +131,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           a_hash_including(
             'id' => direct_referral1.id.to_s,
             'clientName' => source_enrollment1.client.brief_name,
+            'clientAge' => source_enrollment1.client.age,
             'access' => {
               'canViewReferralDetails' => true,
             },
