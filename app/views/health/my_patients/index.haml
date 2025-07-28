@@ -10,7 +10,7 @@
 
 .o-page__controls
   .o-page__search
-    = render 'health/patients/search_form', url: health_my_patients_path
+    = render_generic_search_form(health_create_my_patient_searches_path, method: :post, prompt: 'Search patients...', initial_value: @search_string)
   .o-page__sort
     = render 'health/patients/sort'
   .o-page__filter
