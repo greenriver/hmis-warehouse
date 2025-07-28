@@ -184,6 +184,7 @@ module Types
       root_can :can_view_client_eligible_opportunities
       root_can :can_view_referrals
       root_can :can_view_own_referrals
+      can :print_client_case_notes
     end
 
     def external_ids

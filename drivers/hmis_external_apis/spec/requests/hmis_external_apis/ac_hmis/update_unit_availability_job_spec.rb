@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'webmock/rspec'
 
@@ -38,9 +40,9 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
       enrollment.assign_unit(unit: units.first, start_date: Date.current, user: hmis_user)
       enrollment.save!
 
-      result = HmisExternalApis::OauthClientResult.new(parsed_body: {})
-      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
-        .with(
+      result = HmisExternalApis::ExternalApiResult.new(parsed_body: {})
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch).
+        with(
           'Unit/Capacity',
           {
             'availableUnits' => capacity - 1,
@@ -49,8 +51,8 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
             'requestedBy' => hmis_user.email,
             'unitTypeID' => unit_type_mper_id,
           },
-        )
-        .and_return(result)
+        ).
+        and_return(result)
 
       HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now
     end
