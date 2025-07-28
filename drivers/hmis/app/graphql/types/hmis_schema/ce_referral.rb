@@ -44,9 +44,8 @@ module Types
     summary_field :client_id, ID, null: false
     summary_field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the full referral, even without full client record access.'
     # Special case: Client is a "summary field" because it doesn't require referral visibility, but resolving it does require permission to view the client record.
-    summary_field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
-    summary_field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
+    summary_field :source_enrollment_id, ID, null: false
     # Resolve project fields separately, instead of on the project schema object, in case user can't view the project
     summary_field :target_project_id, ID, null: false
     summary_field :target_project_name, String, null: false
@@ -59,9 +58,12 @@ module Types
     access_field authorize_with: nil do
       field :can_view_referral_details, Boolean, null: false
       field :can_view_target_project, Boolean, null: false
+      field :can_view_source_enrollment_details, Boolean, null: false
     end
 
     # Detailed fields that only those with full view access should see. Must be nullable
+    field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
+    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
     field :opportunity, HmisSchema::CeOpportunity, null: true
     field :steps, [HmisSchema::CeReferralStep], null: true
     field :client_age, Integer, null: true, description: 'The age of the referred client. Always available to those who can view the referral, even without full client record access.'
@@ -129,7 +131,8 @@ module Types
 
       # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
       viewable_client = load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
-      return nil unless viewable_client
+      return c.masked_name unless viewable_client
+      return c.masked_name unless current_permission?(permission: :can_view_client_name, entity: viewable_client)
 
       viewable_client.brief_name.presence || viewable_client.masked_name
     end
@@ -231,10 +234,12 @@ module Types
     def access
       project_id = load_ar_association(object, :opportunity).project_id
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
+      source_enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
 
       {
         can_view_referral_details: policy_for(object, policy_type: :ce_referral).can_view?,
         can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
+        can_view_source_enrollment_details: source_enrollment.present?,
       }
     end
 

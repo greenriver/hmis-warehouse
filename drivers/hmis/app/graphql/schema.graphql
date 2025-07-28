@@ -939,7 +939,7 @@ type CeReferral {
 
   """
   The name of the referred client. Always available to those who can view the
-  referral, even without full client record access.
+  full referral, even without full client record access.
   """
   clientName: String
   createdAt: ISO8601DateTime!
@@ -960,6 +960,7 @@ type CeReferral {
   Limited details about the source enrollment. Available even without full access to the source record.
   """
   sourceEnrollment: CeReferralSourceEnrollment
+  sourceEnrollmentId: ID!
   status: CeReferralStatus!
   steps: [CeReferralStep!]
   swimlanes: [CeReferralSwimlane!]
@@ -978,6 +979,7 @@ type CeReferral {
 
 type CeReferralAccess {
   canViewReferralDetails: Boolean!
+  canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!
   id: ID!
 }
