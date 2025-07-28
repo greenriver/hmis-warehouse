@@ -1326,6 +1326,7 @@ type ClientAccess {
   canManageOwnClientFiles: Boolean!
   canManageScanCards: Boolean!
   canMergeClients: Boolean!
+  canPrintClientCaseNotes: Boolean!
   canUploadClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
@@ -9955,6 +9956,7 @@ type QueryAccess {
   canMergeClients: Boolean!
   canPerformAnyReferralTasks: Boolean!
   canPerformOwnReferralTasks: Boolean!
+  canPrintClientCaseNotes: Boolean!
   canSplitHouseholds: Boolean!
   canStartReferrals: Boolean!
   canTransferEnrollments: Boolean!
