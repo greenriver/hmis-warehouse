@@ -75,9 +75,7 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.custom_importable_files_map
-    custom_files_config.custom_files.map do |file_config|
-      [file_config['filename'], "Custom::#{file_config['class_name']}"]
-    end.to_h
+    custom_files_config.class_name_mapping
   end
 
   def self.importable_files_map
@@ -85,7 +83,7 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.required_files
-    ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config.custom_files.select { |f| f['required'] }.map { |f| f['filename'] }
+    ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config.required_filenames
   end
 
   def self.data_lake_module

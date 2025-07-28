@@ -12,7 +12,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
   included do
     def as_destination_record
-      config = self.class.custom_file_config
+      definition = self.class.custom_file_definition
       klass = self.class.reflect_on_association(:destination_record).klass
 
       # Apply all column mappings using the generic mapper
@@ -20,7 +20,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(
         self,
         mapped_attributes,
-        config['columns'],
+        definition.columns,
       )
 
       record = klass.new(mapped_attributes)
@@ -28,13 +28,13 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       # For augmentations, we explicitly don't update the source hash since that would cause future
       # imports to the augmented class to appear modified
       # We also don't set the source_id as it would cause the source data drill-down to break
-      unless self.class.augments?
-        record.source_hash = source_hash
-        # Note which record we're sending this from for error checking
-        record.source_id = id
-        # For non-augmentations, we need to set the data_source_id
-        record.data_source_id = data_source_id
-      end
+      return record if self.class.augments?
+
+      record.source_hash = source_hash
+      # Note which record we're sending this from for error checking
+      record.source_id = id
+      # For non-augmentations, we need to set the data_source_id
+      record.data_source_id = data_source_id
 
       record
     end
@@ -42,21 +42,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
   class_methods do
     def upsert_column_names(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
-      # Return all warehouse target columns from the column mappings
-      # Remove DateCreated, DateUpdated, DateDeleted, ExportID, UserID if this is an augmentation
-      # Note: version parameter is required by ImportConcern interface but not used
-      # for custom files since structure comes from YAML configuration
-      excluded_augmentation_columns = ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID', 'UserID']
-
-      # Get the warehouse target columns from the mappings (with defaults)
-      warehouse_columns = custom_file_config['columns'].map do |col|
-        mapping = col['warehouse_column_mapping'] || {}
-        # Apply same defaults as ColumnMapper
-        mapping['target_column'] || col['name']
-      end
-
-      excluded_columns = augments? ? excluded_augmentation_columns : ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID']
-      (warehouse_columns - excluded_columns).map(&:to_sym)
+      custom_file_definition.upsert_column_names
     end
 
     # Augmented data should never return new data since it should only update existing records
@@ -82,32 +68,11 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     end
 
     def warehouse_class
-      config = custom_file_config
-      if config['augments_warehouse_table']
-        config['augments_warehouse_table'].constantize
-      elsif config['warehouse_class_name']
-        config['warehouse_class_name'].constantize
-      else
-        super
-      end
+      custom_file_definition.warehouse_class
     end
 
     def create_columns
-      config = custom_file_config
-
-      # Get the warehouse target columns from the mappings (with defaults)
-      warehouse_columns = config['columns'].map do |col|
-        mapping = col['warehouse_column_mapping'] || {}
-        # Apply same defaults as ColumnMapper
-        mapping['target_column'] || col['name']
-      end
-
-      warehouse_columns - [
-        'DateCreated',
-        'DateUpdated',
-        'DateDeleted',
-        'ExportID',
-      ]
+      custom_file_definition.create_columns
     end
 
     # Delegate to the class we are augmenting
@@ -160,7 +125,19 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     end
 
     def augments?
-      custom_file_config['augments_warehouse_table'].present?
+      custom_file_definition.augments?
+    end
+
+    # New method to get the definition object
+    def custom_file_definition
+      @custom_file_definition ||= HmisCsvTwentyTwentySix.custom_files_config.find_definition(
+        "#{name.demodulize.underscore.camelize}.csv",
+      )
+    end
+
+    # Keep backwards compatibility
+    def custom_file_config
+      custom_file_definition.to_h
     end
   end
 end

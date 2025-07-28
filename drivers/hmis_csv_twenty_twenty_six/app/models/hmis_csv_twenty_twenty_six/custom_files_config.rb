@@ -7,16 +7,37 @@
 # frozen_string_literal: true
 
 module HmisCsvTwentyTwentySix
-  # Wraps the custom file configuration and provides helper methods
+  # Simple wrapper that holds CustomFileDefinition objects
   class CustomFilesConfig
-    attr_reader :custom_files
+    attr_reader :definitions
 
-    def initialize(files)
-      @custom_files = files
+    def initialize(files_config_array)
+      @definitions = files_config_array.map { |config| CustomFileDefinition.new(config) }
     end
 
+    # Backwards compatibility - returns array of config hashes
+    def custom_files
+      @definitions.map(&:to_h)
+    end
+
+    # Backwards compatibility - find config hash by filename
     def for(filename)
-      @custom_files.find { |f| f['filename'] == filename }
+      definition = @definitions.find { |d| d.filename == filename }
+      definition&.to_h
+    end
+
+    # Find CustomFileDefinition object by filename
+    def find_definition(filename)
+      @definitions.find { |d| d.filename == filename }
+    end
+
+    # Convenience methods that delegate to the definitions
+    def required_filenames
+      @definitions.select(&:required?).map(&:filename)
+    end
+
+    def class_name_mapping
+      @definitions.map { |d| [d.filename, "Custom::#{d.class_name}"] }.to_h
     end
   end
 end
