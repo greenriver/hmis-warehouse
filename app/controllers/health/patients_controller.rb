@@ -4,13 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class PatientsController < HealthController
     before_action :require_can_view_patients_for_own_agency!
     before_action :require_user_has_health_agency!
     before_action :load_active_agency
     before_action :set_patients
-    before_action :set_dates, only: [:index]
+    before_action :set_dates, only: [:index, :search]
 
     include ClientPathGenerator
     include AjaxModalRails::Controller
@@ -66,6 +68,35 @@ module Health
         order(last_name: :asc, first_name: :asc)
 
       @agency = Health::Agency.find_by(name: agency_name)
+    end
+
+    def create_search_queries
+      safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
+      if query.valid?
+        redirect_to patient_search_query_health_patients_path(id: query.id)
+      else
+        flash[:error] = 'Search query not valid'
+        redirect_to health_patients_path
+        return
+      end
+    end
+
+    def search
+      @search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
+      return handle_invalid_query('Search query not found') if @search_query.nil?
+
+      @search_query.touch
+      # Call the index method to setup all the instance variables
+      index
+      # Render the index view to preserve search results behavior
+      render :index
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to health_patients_path
+      return
     end
 
     def set_dates
