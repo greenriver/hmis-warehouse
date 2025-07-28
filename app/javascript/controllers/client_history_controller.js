@@ -66,8 +66,8 @@ export default class extends Controller {
         useCurrent: false,
         defaultDate: new Date(this.yearValue, this.monthValue - 1, 1),
         restrictions: {
-          minDate: this.minDateValue,
-          maxDate: this.maxDateValue,
+          minDate: this.minDateValue ? new Date(this.minDateValue) : undefined,
+          maxDate: this.maxDateValue ? new Date(this.maxDateValue) : undefined,
         },
         display: {
           viewMode: 'months',
@@ -93,12 +93,30 @@ export default class extends Controller {
       };
       datepicker = new TempusDominus(this.datepickerContainerTarget, options);
 
-      this.datepickerContainerTarget.addEventListener('change.td', (e) => {
-        if (!e.detail.date) return;
-        const date = e.detail.date;
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        this.navigate(month, year);
+      // Prevent dropdown from closing on year-related clicks
+      this.datepickerContainerTarget.addEventListener('click', (e) => {
+        const target = e.target;
+        const isYearAction = target.matches('[data-action="selectYear"]') ||
+          target.matches('[data-action="changeCalendarView"]') ||
+          target.matches('[data-action="selectDecade"]') ||
+          target.closest('[data-action="changeCalendarView"]') ||
+          target.closest('[data-action="selectYear"]') ||
+          target.closest('[data-action="selectDecade"]');
+
+        if (isYearAction) {
+          // Stop the event from bubbling up to Bootstrap dropdown
+          e.stopPropagation();
+        } else if (target.matches('[data-action="selectMonth"]')) {
+          // Only navigate when a month is selected
+          setTimeout(() => {
+            const currentDate = datepicker.dates.picked[0];
+            if (currentDate) {
+              const month = currentDate.getMonth() + 1;
+              const year = currentDate.getFullYear();
+              this.navigate(month, year);
+            }
+          }, 100);
+        }
       });
     });
   }

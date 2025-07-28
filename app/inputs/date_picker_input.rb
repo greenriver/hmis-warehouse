@@ -66,15 +66,16 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
     I18n.t('datepicker.pformat', default: 'MMM d, yyyy')
   end
 
-  def date_view_header_format
-    I18n.t('dayViewHeaderFormat', default: 'MMMM YYYY')
-  end
+  # def date_view_header_format
+  #   I18n.t('dayViewHeaderFormat', default: 'MMMM YYYY')
+  # end
 
   def date_options_base
     {
       localization: {
         locale: I18n.locale.to_s,
         format: picker_pattern,
+        dayViewHeaderFormat: { month: 'long', year: 'numeric' },
       },
     }
   end
