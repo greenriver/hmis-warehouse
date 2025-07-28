@@ -54,6 +54,7 @@ module Types
 
     summary_field :referred_by, Application::User, null: true
     summary_field :active, Boolean, null: false, method: :active?
+    summary_field :origin, HmisSchema::Enums::CeReferralOrigin, null: false, method: :referral_origin
 
     access_field authorize_with: nil do
       field :can_view_referral_details, Boolean, null: false
@@ -85,6 +86,7 @@ module Types
       arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
+      arg :origin, [HmisSchema::Enums::CeReferralOrigin]
     end
 
     def custom_status

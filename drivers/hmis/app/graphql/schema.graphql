@@ -954,6 +954,7 @@ type CeReferral {
   id: ID!
   notes(limit: Int, offset: Int): CeReferralNotesPaginated
   opportunity: CeOpportunity
+  origin: CeReferralOrigin!
   referredBy: ApplicationUser
 
   """
@@ -1027,6 +1028,7 @@ type CeReferralAuditEventsPaginated {
 input CeReferralFilterOptions {
   onCurrentTaskSince: ISO8601Date
   organization: [ID!]
+  origin: [CeReferralOrigin!]
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
@@ -1052,6 +1054,18 @@ type CeReferralNotesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+enum CeReferralOrigin {
+  """
+  Direct
+  """
+  direct_send
+
+  """
+  Waitlist
+  """
+  waitlist
 }
 
 input CeReferralParticipantInput {
@@ -1522,6 +1536,7 @@ type ClientAuditEventsPaginated {
 
 input ClientCeReferralFilterOptions {
   organization: [ID!]
+  origin: [CeReferralOrigin!]
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
@@ -9487,6 +9502,7 @@ input ProjectCeOpportunityFilterOptions {
 }
 
 input ProjectCeReferralFilterOptions {
+  origin: [CeReferralOrigin!]
   referralStatus: [String!]
 }
 
