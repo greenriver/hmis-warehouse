@@ -83,6 +83,35 @@ module Health
       @team = Health::CoordinationTeam.find_by(name: team_name)
     end
 
+    def create_search_queries
+      safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
+      if query.valid?
+        redirect_to team_patient_search_query_health_team_patients_path(id: query.id)
+      else
+        flash[:error] = 'Search query not valid'
+        redirect_to health_team_patients_path
+        return
+      end
+    end
+
+    def search
+      @search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
+      return handle_invalid_query('Search query not found') if @search_query.nil?
+
+      @search_query.touch
+      # Call the index method to setup all the instance variables
+      index
+      # Render the index view to preserve search results behavior
+      render :index
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to health_team_patients_path
+      return
+    end
+
     def set_dates
       @start_date = Date.current.beginning_of_month.to_date
       @end_date = @start_date.end_of_month
