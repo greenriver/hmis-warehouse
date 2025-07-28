@@ -923,7 +923,7 @@ type CeParticipationsPaginated {
 type CeReferral {
   access: CeReferralAccess!
   active: Boolean!
-  auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated!
+  auditEvents(limit: Int, offset: Int): CeReferralAuditEventsPaginated
 
   """
   The full client record, if the user has permission to view it.
@@ -931,15 +931,17 @@ type CeReferral {
   client: Client
 
   """
-  The age of the referred client. Always available, even without full client record access.
+  The age of the referred client. Always available to those who can view the
+  referral, even without full client record access.
   """
   clientAge: Int
   clientId: ID!
 
   """
-  The name of the referred client. Always available, even without full client record access.
+  The name of the referred client. Always available to those who can view the
+  full referral, even without full client record access.
   """
-  clientName: String!
+  clientName: String
   createdAt: ISO8601DateTime!
 
   """
@@ -950,17 +952,19 @@ type CeReferral {
   customStatus: CeCustomReferralStatus
   daysOnCurrentSteps: Int
   id: ID!
-  notes(limit: Int, offset: Int): CeReferralNotesPaginated!
-  opportunity: CeOpportunity!
+  notes(limit: Int, offset: Int): CeReferralNotesPaginated
+  opportunity: CeOpportunity
+  origin: CeReferralOrigin!
   referredBy: ApplicationUser
 
   """
   Limited details about the source enrollment. Available even without full access to the source record.
   """
   sourceEnrollment: CeReferralSourceEnrollment
+  sourceEnrollmentId: ID!
   status: CeReferralStatus!
-  steps: [CeReferralStep!]!
-  swimlanes: [CeReferralSwimlane!]!
+  steps: [CeReferralStep!]
+  swimlanes: [CeReferralSwimlane!]
 
   """
   Target enrollment, if the user has permission to view it.
@@ -975,6 +979,8 @@ type CeReferral {
 }
 
 type CeReferralAccess {
+  canViewReferralDetails: Boolean!
+  canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!
   id: ID!
 }
@@ -1022,6 +1028,7 @@ type CeReferralAuditEventsPaginated {
 input CeReferralFilterOptions {
   onCurrentTaskSince: ISO8601Date
   organization: [ID!]
+  origin: [CeReferralOrigin!]
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
@@ -1047,6 +1054,18 @@ type CeReferralNotesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+enum CeReferralOrigin {
+  """
+  Direct
+  """
+  direct_send
+
+  """
+  Waitlist
+  """
+  waitlist
 }
 
 input CeReferralParticipantInput {
@@ -1518,6 +1537,7 @@ type ClientAuditEventsPaginated {
 
 input ClientCeReferralFilterOptions {
   organization: [ID!]
+  origin: [CeReferralOrigin!]
   project: [ID!]
   projectType: [ProjectType!]
   referralStatus: [String!]
@@ -9443,6 +9463,7 @@ type Project {
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date
   organization: Organization!
+  outgoingDirectCeReferrals(filters: ProjectOutgoingCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   outgoingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
@@ -9503,6 +9524,7 @@ input ProjectCeOpportunityFilterOptions {
 }
 
 input ProjectCeReferralFilterOptions {
+  origin: [CeReferralOrigin!]
   referralStatus: [String!]
 }
 
@@ -9671,6 +9693,13 @@ input ProjectFilterOptions {
   projectType: [ProjectType!]
   searchTerm: String
   status: [ProjectFilterOptionStatus!]
+}
+
+input ProjectOutgoingCeReferralFilterOptions {
+  organization: [ID!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  referralStatus: [String!]
 }
 
 """

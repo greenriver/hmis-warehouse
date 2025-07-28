@@ -82,6 +82,17 @@ module Hmis::Ce
     scope :originated_from_waitlist, -> { where(referral_origin: WAITLIST_ORIGIN) }
     scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
 
+    def self.sort_by_option(option)
+      case option
+      when :status
+        order_by_status
+      when :created_at
+        order(created_at: :desc, id: :desc)
+      else
+        raise NotImplementedError
+      end
+    end
+
     validates :workflow_instance, uniqueness: true
     validates :referral_origin, inclusion: { in: [WAITLIST_ORIGIN, DIRECT_SEND_ORIGIN] }
     validate :unique_referral_per_opportunity

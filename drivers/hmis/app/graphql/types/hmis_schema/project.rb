@@ -131,6 +131,7 @@ module Types
 
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
     ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:on_current_task_since, :workflow_template, :origin], type_name: 'ProjectOutgoingCeReferral' })
 
     def hud_id
       object.project_id
@@ -296,6 +297,13 @@ module Types
 
     def ce_referrals(**args) # Don't resolve in batch
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def outgoing_direct_ce_referrals(**args)
+      access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
+
+      referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
+      resolve_ce_referrals(referral_scope, sort_order: :created_at, dangerous_skip_permission_check: true, **args)
     end
 
     private def check_enrollment_details_access
