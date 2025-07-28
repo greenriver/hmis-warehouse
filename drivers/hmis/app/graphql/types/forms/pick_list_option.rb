@@ -617,6 +617,7 @@ module Types
 
       # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
       project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).
+        where.not(id: from_project.id).
         preload(:organization).
         sort_by_option(:organization_and_name)
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,7 +7,8 @@
 ###
 
 module HmisExternalApis
-  OauthClientResult = Struct.new(
+  # todo @martha - need to filter out the authorization token from being logged
+  ExternalApiResult = Struct.new(
     :body,
     :content_type,
     :error,
