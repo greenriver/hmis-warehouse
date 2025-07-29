@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, o1) }
@@ -38,6 +31,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           groupLabel
           groupCode
           initialSelected
+          disabled
         }
       }
     GRAPHQL
@@ -498,6 +492,152 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         a_hash_including('code' => hmis_user.id.to_s),
         a_hash_including('code' => user_who_can_perform_own_tasks.id.to_s),
       )
+    end
+  end
+
+  describe 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS' do
+    let!(:sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+    let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+    let!(:unit_group) { create(:hmis_unit_group, project: receiving_project, name: 'Receiving Group') }
+    let!(:non_ce_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
+    let!(:receiving_ce_config) { create(:hmis_project_ce_config, project: receiving_project, receives_direct_referrals: true) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    it 'returns projects that accept direct referrals' do
+      response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options.size).to eq(1)
+      expect(options.first['code']).to eq(receiving_project.id.to_s)
+      expect(options.first['label']).to eq(receiving_project.project_name)
+    end
+
+    context 'when the sending project also receives' do
+      let!(:sending_config) { create(:hmis_project_ce_config, project: sending_project, receives_direct_referrals: true) }
+      let!(:sending_unit_group) { create(:hmis_unit_group, project: sending_project, name: 'Another Group') }
+
+      it 'does not include that project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.map { |o| o['code'] }).not_to include(sending_project.id.to_s)
+      end
+    end
+
+    context 'when project only supports waitlist referrals' do
+      before do
+        receiving_ce_config.update!(
+          receives_direct_referrals: false,
+          supports_waitlist_referrals: true,
+        )
+      end
+
+      it 'does not return the project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options).to be_empty
+      end
+    end
+
+    context 'when accepting project restricts direct referrals from specific projects' do
+      let!(:allowed_sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+
+      before do
+        receiving_ce_config.update!(
+          receives_direct_referrals: true,
+          receives_direct_referrals_from: [allowed_sending_project.id],
+        )
+      end
+
+      it 'returns the project when sending from an allowed project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: allowed_sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.size).to eq(1)
+        expect(options.first['code']).to eq(receiving_project.id.to_s)
+      end
+
+      it 'does not return the project when sending from a non-allowed project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options).to be_empty
+      end
+    end
+  end
+
+  describe 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL' do
+    let!(:ce_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+    let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, receives_direct_referrals: true) }
+    let!(:access_control) { create_access_control(hmis_user, ce_project.organization, with_permission: [:can_manage_outgoing_referrals]) }
+
+    let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
+    let!(:initiation_task) { create(:hmis_workflow_definition_user_task, template: workflow_template) }
+
+    let!(:unit_group_with_units) { create(:hmis_unit_group, project: ce_project, name: 'Available Group', workflow_template: workflow_template) }
+    let!(:unit_group_no_units) { create(:hmis_unit_group, project: ce_project, name: 'Empty Group', workflow_template: workflow_template) }
+    let!(:unit_group_occupied) { create(:hmis_unit_group, project: ce_project, name: 'Occupied Group', workflow_template: workflow_template) }
+
+    # Unit group with available units
+    let!(:available_unit1) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
+    let!(:opportunity1) { create(:hmis_ce_opportunity, unit: available_unit1, project: ce_project, data_source: ce_project.data_source, status: :open) }
+    let!(:available_unit2) { create(:hmis_unit, project: ce_project, unit_group: unit_group_with_units) }
+    let!(:opportunity2) { create(:hmis_ce_opportunity, unit: available_unit2, project: ce_project, data_source: ce_project.data_source, status: :open) }
+
+    # Unit group with occupied units
+    let!(:occupied_unit) { create(:hmis_unit, project: ce_project, unit_group: unit_group_occupied) }
+    let!(:unit_occupancy) { create(:hmis_unit_occupancy, unit: occupied_unit, start_date: 1.week.ago) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    shared_examples 'returns empty pick list' do
+      it 'returns empty array' do
+        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options).to be_empty
+      end
+    end
+
+    context 'with user who has can_manage_outgoing_referrals permission (even without can_view_project)' do
+      it 'returns unit groups' do
+        response, result = post_graphql(pick_list_type: 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', project_id: ce_project.id.to_s) { query }
+        expect(response.status).to eq(200), result.inspect
+        options = result.dig('data', 'pickList')
+
+        expect(options.size).to eq(3) # Returns all unit groups, but disables the ones that have no availability
+        expect(options).to contain_exactly(
+          a_hash_including('code' => unit_group_with_units.id.to_s, 'label' => 'Available Group', 'secondaryLabel' => '2 available', 'disabled' => false),
+          a_hash_including('code' => unit_group_no_units.id.to_s, 'label' => 'Empty Group', 'secondaryLabel' => '0 available', 'disabled' => true),
+          a_hash_including('code' => unit_group_occupied.id.to_s, 'label' => 'Occupied Group', 'secondaryLabel' => '0 available', 'disabled' => true),
+        )
+      end
+    end
+
+    context 'with user who does not have can_manage_outgoing_referrals permission' do
+      before { remove_permissions(access_control, :can_manage_outgoing_referrals) }
+
+      it_behaves_like 'returns empty pick list'
+    end
+
+    context 'when project does not accept direct referrals' do
+      let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, supports_waitlist_referrals: true, receives_direct_referrals: false) }
+
+      it_behaves_like 'returns empty pick list'
+    end
+
+    context 'when the project and the user are not in the same data source' do
+      let!(:ce_project) { create(:hmis_hud_project) }
+      let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ce_project.data_source, template_type: 'ce_referral', status: 'published') }
+
+      it_behaves_like 'returns empty pick list'
     end
   end
 end
