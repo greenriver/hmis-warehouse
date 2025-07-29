@@ -24,7 +24,7 @@ module Hmis::Ce::Match
       # Determine processing mode based on whether clients were provided
       if clients.nil?
         # Full refresh - process all clients and remove all unmatched candidates
-        clients = ::GrdaWarehouse::Hud::Client.destination
+        clients = ::GrdaWarehouse::Hud::Client.destinations_for_ce
         incremental = false
       else
         # Incremental - process only provided clients and remove candidates only for those clients

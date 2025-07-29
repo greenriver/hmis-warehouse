@@ -126,7 +126,7 @@ module Hmis::Ce
     def process_dirty_clients(markers, skip_pool_ids:)
       return 0 if markers.empty?
 
-      client_scope = ::GrdaWarehouse::Hud::Client.destination.where(id: markers.map(&:trackable_id))
+      client_scope = destination_client_universe.where(id: markers.map(&:trackable_id))
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where.not(id: skip_pool_ids)
 
       candidate_pool_scope.find_each do |pool|
@@ -163,12 +163,16 @@ module Hmis::Ce
       # Find and mark untracked destination clients
       # Without this, an untracked client would not be matched against opportunities until a
       # candidate pool changes or the daily full refresh occurs.
-      untracked_clients_scope = GrdaWarehouse::Hud::Client.destination.
+      untracked_clients_scope = destination_client_universe.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
       untracked_clients_scope.in_batches do |relation|
         Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: relation.pluck(:id))
       end
+    end
+
+    def destination_client_universe
+      GrdaWarehouse::Hud::Client.destination
     end
   end
 end
