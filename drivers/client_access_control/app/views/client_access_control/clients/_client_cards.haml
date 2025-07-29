@@ -1,0 +1,5 @@
+- if @search_performed && @clients.any?
+  - @clients.each do |client|
+    = render 'client_access_control/clients/client_card', client: client
+- else
+  .none-found No matching clients found.
