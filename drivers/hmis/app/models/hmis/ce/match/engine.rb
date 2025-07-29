@@ -2,137 +2,156 @@
 
 require 'progress_bar'
 
-# * Find all clients that match the given pools's eligibility requirements.
-# * Score each client based on that pools's prioritization formula.
-# * Persist the results as MatchCandidate records to be consumed by opportunities.
+# The Coordinated Entry (CE) Match Engine is responsible for evaluating a universe of clients
+# against a set of eligibility and prioritization rules for a given candidate pool.
+# It identifies which clients are eligible for the pool and calculates a priority score for each.
+# The engine is designed to be idempotent and can be run repeatedly without causing side effects.
 #
-# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
+# See README_FOR_CE_MATCH_ENGINE.md
 module Hmis::Ce::Match
+  # Orchestrates the process of evaluating a universe of clients against a
+  # candidate pool's criteria. It coordinates various components to filter,
+  # evaluate, and persist candidates and their corresponding events.
   class Engine
-    def self.call(...)
-      new.call(...)
+    # Convenience class method to instantiate and call the engine in one step.
+    def self.call(pool, clients: nil, progress: false)
+      new(pool).call(clients, progress: progress)
     end
 
-    # Take a two-step approach to evaluating eligibility to achieve better performance.
-    # 1. Translate the eligibility requirements expression into a SQL condition and filter the clients. Uses field_map.arel_node to achieve this translation. Expression components that cannot be represented in SQL are treated as truthy. This reduces the number of client records that we need to evaluate in the more expensive second step.
-    # 2. Evaluate the eligibility requirement expression against each matched client. We expect all expression variables to be defined.
-    #
-    # @param pool [Hmis::Ce::Match::CandidatePool] The candidate pool to populate with matching clients
-    # @param clients [ActiveRecord::Relation, nil] The clients to evaluate for eligibility. If nil, processes all destination clients (full refresh).
-    # @param progress [Boolean] Whether to display a progress bar during processing
-    def call(pool, clients: nil, progress: false)
-      # Determine processing mode based on whether clients were provided
-      if clients.nil?
-        # Full refresh - process all clients and remove all unmatched candidates
-        clients = ::GrdaWarehouse::Hud::Client.destinations_for_ce
-        incremental = false
-      else
-        # Incremental - process only provided clients and remove candidates only for those clients
-        incremental = true
+    def initialize(pool)
+      @pool = pool
+      @field_map = Hmis::Ce::Match::Expression::FieldMap.new
+      @evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(@pool, @field_map)
+      @event_writer = Hmis::Ce::Match::Internal::CandidateEventWriter.new(@pool)
+      @repo = Hmis::Ce::Match::Internal::CandidateRepository.new(@pool)
+      @prefilter = Hmis::Ce::Match::Internal::SqlPrefilter.new(@pool, @field_map)
+    end
+
+    def call(clients, progress: false)
+      # If clients are provided, incrementally process only provided clients and remove candidates only for those clients
+      validate_clients_parameter!(clients) if clients
+
+      # Full refresh - process all clients and remove all unmatched candidates
+      clients = ::GrdaWarehouse::Hud::Client.destination if clients.nil?
+
+      # optionally track the in-memory evaluations, which is the expensive work
+      progress_bar = nil
+      if progress
+        progress_bar = new_progress_bar
+        progress_bar.max += clients.count
       end
 
-      validate_clients_parameter!(clients)
+      started_at = Time.current
+      # SQL Prefiltering
+      prefilter_result = @prefilter.call(clients)
 
-      eligibility_evaluator = ClientExpressionEvaluator.new(pool.requirement_expression, field_map)
-      priority_evaluator = ClientExpressionEvaluator.new(pool.priority_expression, field_map)
-
-      filtered_clients = crude_eligibility_filter(pool.requirement_expression, clients)
-      bar = new_progress_bar(filtered_clients.count, pool) if progress
-      processed_client_ids = []
-
-      # In incremental mode, track all input clients that should be processed so we can
-      # remove candidates for clients that no longer pass filters (including SQL filter)
-      processed_client_ids = clients.pluck(:id) if incremental
-
-      now = DateTime.current
-      filtered_clients.in_batches do |batch|
-        # First iterate through the batch to import any Client Proxies that aren't present in the db already
-        proxies = []
-        batch.each do |client|
-          # In full mode, track clients as we process them
-          processed_client_ids.push(client.id) unless incremental
-          proxies << Hmis::Ce::ClientProxy.new(client: client)
+      # remove any current clients that the sql filter excluded
+      if prefilter_result.lost_eligibility_clients.exists?
+        Hmis::Ce::Match::Candidate.transaction do
+          # capture snapshots at time of removal for the event log.
+          # The intent to log the attributes that caused the client to lose eligibility
+          snapshots = generate_snapshots(prefilter_result.lost_eligibility_clients, progress_bar)
+          @repo.remove_warehouse_client_candidates(prefilter_result.lost_eligibility_clients)
+          @event_writer.call(snapshots, timestamp: started_at)
         end
-        proxies_by_client = import_proxies!(proxies)
+      end
 
-        # Iterate through a second time to import candidate matches
-        candidates = []
+      prefilter_result.eligible_clients.in_batches do |batch|
+        now = Time.current
+        # import missing Client Proxies
+        @repo.import_proxies(batch, timestamp: now)
+        # efficient lookup for client_id => proxy_id
+        warehouse_proxy_map = @repo.proxy_by_warehouse_client(batch)
+        # track which clients in this batch are currently matched to the pool
+        current_warehouse_clients_ids = @repo.current_warehouse_client_ids(batch).to_set
+        # accumulate snapshots for changes to candidates
+        matching_client_snapshots = []
+        removed_client_snapshots = []
+
+        # Perform In-Memory Evaluation on each client
+        matching_candidates = []
         batch.each do |client|
-          bar&.increment!
-          # note, we could also set an expiration date on the candidate to allow us to skip records we have evaluated recently
-          next unless eligibility_evaluator.call(client)
+          progress_bar&.increment!
+          evaluation = @evaluator.call(client)
 
-          score = priority_evaluator.call(client)
-          # Client with nil score cannot be prioritized, so do not include them in the pool.
-          # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
-          next if score.nil?
+          if evaluation.failed?
+            # track removal if the client is currently in the pool
+            if client.id.in?(current_warehouse_clients_ids)
+              snapshot = Snapshot.new(
+                client_id: client.id,
+                values: evaluation.client_values,
+                event_name: 'remove',
+              )
+              removed_client_snapshots.push(snapshot)
+            end
 
-          candidates << {
-            candidate_pool_id: pool.id,
-            client_proxy_id: proxies_by_client[[client.id, client.class.name]].id,
-            priority_score: score,
+            # early exit
+            next
+          end
+
+          matching_candidates << {
+            candidate_pool_id: @pool.id,
+            client_proxy_id: warehouse_proxy_map[client.id].id,
+            priority_score: evaluation.priority_score,
             created_at: now,
             updated_at: now,
           }
+          snapshot = Snapshot.new(
+            client_id: client.id,
+            values: evaluation.client_values,
+            event_name: client.id.in?(current_warehouse_clients_ids) ? 'update' : 'add',
+          )
+          matching_client_snapshots.push(snapshot)
         end
-        import_candidates!(candidates)
+
+        Hmis::Ce::Match::Candidate.transaction do
+          # import new candidates and log the events
+          updated_candidate_ids = @repo.import_candidates(matching_candidates)
+          candidate_map = @repo.candidates_by_warehouse_client(updated_candidate_ids)
+          @event_writer.call(
+            # filter out snapshots that didn't change
+            matching_client_snapshots.filter { |s| candidate_map.key?(s.client_id) },
+            timestamp: now,
+          )
+
+          # remove stale candidates and log the events
+          @repo.remove_warehouse_client_candidates(removed_client_snapshots.map(&:client_id))
+          @event_writer.call(removed_client_snapshots, timestamp: now)
+        end
       end
 
-      # Remove old candidates that no longer match
-      if incremental
-        # In incremental mode, only remove candidates for clients that were in the input scope
-        # This ensures we remove candidates for clients who no longer pass any filters
-        pool.candidates.joins(:client_proxy).where(
-          ce_client_proxies: { client_id: processed_client_ids, client_type: 'GrdaWarehouse::Hud::Client' },
-        ).where(updated_at: ...now).delete_all
-      else
-        # In full mode, remove all candidates that weren't updated in this run
-        pool.candidates.where(updated_at: ...now).delete_all
-      end
-
-      pool.update!(candidates_generated_at: Time.current)
+      @pool.update!(candidates_generated_at: Time.current)
     end
 
-    protected
+    # helper for managing client values for event logging
+    Snapshot = Struct.new(:client_id, :values, :event_name, keyword_init: true)
+    # private_constant :Snapshot # keep public for tests
+
+    private
 
     def validate_clients_parameter!(clients)
       raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client
     end
 
-    def import_proxies!(values)
-      result = Hmis::Ce::ClientProxy.import(values, on_duplicate_key_ignore: true)
-      raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
+    def generate_snapshots(clients, progress_bar)
+      snapshots = []
 
-      # return a map of [client_id, client_type] to ClientProxy
-      # re-query the Hmis::Ce::ClientProxy table by client ID, not result ID, since duplicate clients would not be included in result.ids
-      Hmis::Ce::ClientProxy.where(client: values.map(&:client)).each_with_object({}) do |record, hash|
-        key = [record.client_id, record.client_type] # Composite key because client is polymorphic
-        hash[key] = record
+      progress_bar&.max += clients.count
+      clients.find_each do |client|
+        snapshot = Snapshot.new(
+          client_id: client.id,
+          values: @evaluator.call(client).client_values,
+          event_name: 'remove',
+        )
+        snapshots.push(snapshot)
+        progress_bar&.increment!
       end
+      snapshots
     end
 
-    def import_candidates!(values)
-      result = Candidate.import(
-        values, on_duplicate_key_update: {
-          conflict_target: [:candidate_pool_id, :client_proxy_id],
-          columns: [:priority_score, :updated_at],
-        }
-      )
-      raise "failed to import Candidates: #{result.inspect}" if result.failed_instances.present?
-    end
-
-    def crude_eligibility_filter(expression, clients)
-      condition = SqlExpressionTranslator.call(expression, field_map)
-      condition ? clients.where(condition) : clients
-    end
-
-    def field_map
-      @field_map ||= FieldMap.new
-    end
-
-    def new_progress_bar(total, pool)
-      puts "Processing pool[#{pool.id}] eligibility: #{pool.requirement_expression.inspect}, priority: #{pool.priority_expression.inspect}"
-      ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
+    def new_progress_bar
+      puts "Processing pool[#{@pool.id}] eligibility: #{@pool.requirement_expression.inspect}, priority: #{@pool.priority_expression.inspect}"
+      ProgressBar.new(0, :counter, :bar, :percentage, :rate, :eta)
     end
   end
 end

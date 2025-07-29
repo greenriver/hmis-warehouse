@@ -2,8 +2,8 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::Ce::Match::SqlExpressionTranslator do
-  let(:field_map) { Hmis::Ce::Match::FieldMap.new }
+RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
+  let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new }
 
   describe '.call' do
     it 'handles simple comparisons' do
