@@ -139,7 +139,8 @@ RSpec.describe 'BulkAssignService', type: :request do
     it 'assigns the unit and destroys the opportunity' do
       expect do
         perform_mutation
-      end.to change { Hmis::Ce::Opportunity.exists?(opportunity.id) }.from(true).to(false)
+        opportunity.reload
+      end.to change(opportunity, :status).from('open').to('closed')
 
       expect(c1.enrollments.first.current_unit).to eq(unit)
     end

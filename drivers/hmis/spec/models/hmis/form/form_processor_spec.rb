@@ -885,14 +885,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       context 'with open opportunity' do
         let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
 
-        it 'assigns and destroys the opportunity' do
+        it 'assigns and closes the opportunity' do
           expect do
             process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
             e1.reload
-            unit.reload
+            opportunity.reload
           end.to change(e1, :current_unit).to(unit).
-            and change(Hmis::Ce::Opportunity, :count).by(-1).
-            and change(unit, :latest_opportunity).from(opportunity).to(nil)
+            and change(opportunity, :status).from('open').to('closed')
         end
       end
 
