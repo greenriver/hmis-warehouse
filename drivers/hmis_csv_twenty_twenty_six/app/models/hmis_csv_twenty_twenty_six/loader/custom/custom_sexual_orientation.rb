@@ -13,6 +13,6 @@ module HmisCsvTwentyTwentySix::Loader::Custom
   class CustomSexualOrientation < HmisCsvTwentyTwentySix::Loader::Custom::Base
     self.table_name = 'hmis_csv_2026_custom_sexual_orientations'
     self.hud_key = :EnrollmentID
-    @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomSexualOrientation.csv')
+    @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomSexualOrientation.csv')
   end
 end

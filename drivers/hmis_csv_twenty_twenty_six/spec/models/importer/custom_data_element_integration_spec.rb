@@ -11,8 +11,7 @@ require 'rails_helper'
 RSpec.describe 'CustomDataElement Integration' do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:importer_log) { create(:hmis_csv_importer_log, data_source: data_source) }
-  let(:config) { HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElement.csv') }
-  let(:columns) { config['columns'] }
+  let(:definition) { HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElement.csv') }
 
   # Create test warehouse records to lookup
   let!(:test_client) { create(:grda_warehouse_hud_client, data_source: data_source, PersonalID: 'CLIENT123') }
@@ -41,7 +40,8 @@ RSpec.describe 'CustomDataElement Integration' do
     let(:mapped_attributes) { {} }
 
     it 'successfully applies all column mappings including record lookup' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Test the record type mapping
       expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Client')
@@ -89,9 +89,9 @@ RSpec.describe 'CustomDataElement Integration' do
         test_record = source_record.dup
         test_record.RecordType = test_case[:record_type]
         test_record.RecordID = test_case[:record_id]
-        test_mapped_attributes = {}
 
-        HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(test_record, test_mapped_attributes, columns)
+        mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+        test_mapped_attributes = mapper.map(test_record)
 
         expect(test_mapped_attributes['owner_type']).to eq(test_case[:expected_class])
         expect(test_mapped_attributes['owner_id']).to eq(test_case[:expected_id])
@@ -102,14 +102,16 @@ RSpec.describe 'CustomDataElement Integration' do
       missing_record = source_record.dup
       missing_record.RecordID = 'MISSING123'
 
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(missing_record, mapped_attributes, columns)
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+      mapped_attributes = mapper.map(missing_record)
 
       expect(mapped_attributes['owner_type']).to eq('GrdaWarehouse::Hud::Client')
       expect(mapped_attributes['owner_id']).to be_nil
     end
 
     it 'handles default column mappings for standard fields' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Default mappings should use the same column name
       expect(mapped_attributes['UserID']).to eq('user123')
@@ -122,7 +124,8 @@ RSpec.describe 'CustomDataElement Integration' do
     end
 
     it 'correctly reports source and mapped attributes with record lookup' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Verify source record is unchanged
       expect(source_record.RecordType).to eq('Client')
@@ -171,40 +174,33 @@ RSpec.describe 'CustomDataElement Integration' do
         ),
       ]
     end
-
-    it 'detects record lookups correctly' do
-      has_lookups = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.record_lookups?(columns)
-      expect(has_lookups).to be true
-    end
+    let(:mapper) { HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns) }
 
     it 'processes batch mappings efficiently' do
       # Use the actual batch API
-      results = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings_batch(source_records, columns)
+      results = mapper.map_batch(source_records)
 
       # Verify we get results for all records
-      expect(results.length).to eq(3)
+      expect(results.size).to eq(3)
 
-      # Verify lookups were resolved correctly
-      expect(results[0]['owner_id']).to eq(test_client.id)
-      expect(results[0]['owner_type']).to eq('GrdaWarehouse::Hud::Client')
+      # Verify lookups were resolved correctly using the source record's HUD key
+      result0 = results[source_records[0].CustomDataElementID]
+      expect(result0['owner_id']).to eq(test_client.id)
+      expect(result0['owner_type']).to eq('GrdaWarehouse::Hud::Client')
 
-      expect(results[1]['owner_id']).to eq(test_enrollment.id)
-      expect(results[1]['owner_type']).to eq('GrdaWarehouse::Hud::Enrollment')
+      result1 = results[source_records[1].CustomDataElementID]
+      expect(result1['owner_id']).to eq(test_enrollment.id)
+      expect(result1['owner_type']).to eq('GrdaWarehouse::Hud::Enrollment')
 
-      expect(results[2]['owner_id']).to be_nil
-      expect(results[2]['owner_type']).to eq('GrdaWarehouse::Hud::Client')
+      result2 = results[source_records[2].CustomDataElementID]
+      expect(result2['owner_id']).to be_nil
+      expect(result2['owner_type']).to eq('GrdaWarehouse::Hud::Client')
     end
 
     it 'handles individual lookups' do
       # Process records individually (simulates non-batch mode)
       results = source_records.map do |source_record|
-        mapped_attributes = {}
-        HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(
-          source_record,
-          mapped_attributes,
-          columns,
-        )
-        mapped_attributes
+        mapper.map(source_record)
       end
 
       # Verify results are the same as batch processing
@@ -247,16 +243,16 @@ RSpec.describe 'CustomDataElement Integration' do
 
   describe 'Configuration validation' do
     it 'has a valid configuration for CustomDataElement.csv' do
-      expect(config).to be_present
-      expect(config['filename']).to eq('CustomDataElement.csv')
-      expect(config['class_name']).to eq('CustomDataElement')
-      expect(config['columns']).to be_an(Array)
-      expect(config['columns'].length).to be > 0
+      expect(definition).to be_present
+      expect(definition.filename).to eq('CustomDataElement.csv')
+      expect(definition.class_name).to eq('CustomDataElement')
+      expect(definition.columns).to be_an(Array)
+      expect(definition.columns.length).to be > 0
     end
 
     it 'has proper warehouse column mappings configured' do
       # Find RecordType column
-      record_type_col = columns.find { |col| col['name'] == 'RecordType' }
+      record_type_col = definition.columns.find { |col| col['name'] == 'RecordType' }
       expect(record_type_col).to be_present
       expect(record_type_col['warehouse_column_mapping']).to be_present
       expect(record_type_col['warehouse_column_mapping']['type']).to eq('value_mapping')
@@ -264,7 +260,7 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(record_type_col['warehouse_column_mapping']['value_mappings']).to be_present
 
       # Find RecordID column
-      record_id_col = columns.find { |col| col['name'] == 'RecordID' }
+      record_id_col = definition.columns.find { |col| col['name'] == 'RecordID' }
       expect(record_id_col).to be_present
       expect(record_id_col['warehouse_column_mapping']).to be_present
       expect(record_id_col['warehouse_column_mapping']['type']).to eq('record_lookup')
@@ -272,7 +268,7 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(record_id_col['warehouse_column_mapping']['lookup_field_mappings']).to be_present
 
       # Find UserID column (should have no explicit mapping)
-      user_id_col = columns.find { |col| col['name'] == 'UserID' }
+      user_id_col = definition.columns.find { |col| col['name'] == 'UserID' }
       expect(user_id_col).to be_present
       expect(user_id_col['warehouse_column_mapping']).to be_nil
     end
@@ -299,20 +295,19 @@ RSpec.describe 'CustomDataElement Integration' do
         )
       end
     end
+    let(:mapper) { HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns) }
 
     it 'processes large batches efficiently without N+1 queries' do
       # Test batch processing - should use very few queries regardless of record count
       expect do
-        results = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings_batch(
-          large_record_set,
-          columns,
-        )
+        results = mapper.map_batch(large_record_set)
 
         # Verify we got results for all records
-        expect(results.length).to eq(10)
+        expect(results.size).to eq(10)
 
         # Verify lookups were resolved correctly
-        results.each_with_index do |result, index|
+        large_record_set.each_with_index do |source_record, index|
+          result = results[source_record.CustomDataElementID]
           expected_client = additional_clients[index]
           expect(result['owner_id']).to eq(expected_client.id)
           expect(result['owner_type']).to eq('GrdaWarehouse::Hud::Client')
@@ -324,21 +319,13 @@ RSpec.describe 'CustomDataElement Integration' do
       # First test individual processing to see how many queries it makes
       expect do
         large_record_set.each do |source_record|
-          mapped_attributes = {}
-          HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(
-            source_record,
-            mapped_attributes,
-            columns,
-          )
+          mapper.map(source_record)
         end
       end.to make_database_queries(count: 10..50) # Individual processing should make more queries
 
       # Now test batch processing - should be much more efficient
       expect do
-        HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings_batch(
-          large_record_set,
-          columns,
-        )
+        mapper.map_batch(large_record_set)
       end.to make_database_queries(count: 1..5) # Batch should be much more efficient
     end
 
@@ -363,13 +350,11 @@ RSpec.describe 'CustomDataElement Integration' do
 
       # Even with 15 records, query count should remain low and constant
       expect do
-        results = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings_batch(
-          larger_record_set,
-          columns,
-        )
+        results = mapper.map_batch(larger_record_set)
 
-        expect(results.length).to eq(15)
-        results.each_with_index do |result, index|
+        expect(results.size).to eq(15)
+        larger_record_set.each_with_index do |source_record, index|
+          result = results[source_record.CustomDataElementID]
           expected_client = large_client_set[index]
           expect(result['owner_id']).to eq(expected_client.id)
           expect(result['owner_type']).to eq('GrdaWarehouse::Hud::Client')
@@ -397,10 +382,10 @@ RSpec.describe 'CustomDataElement Integration' do
         importer_log_id: importer_log.id,
       )
     end
+    let(:mapper) { HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns) }
 
     it 'processes a complete CustomDataElement record as it would in production' do
-      mapped_attributes = {}
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Verify the complete transformation with flexible date matching
       expect(mapped_attributes['CustomDataElementID']).to eq('CDE789')
@@ -443,8 +428,7 @@ RSpec.describe 'CustomDataElement Integration' do
         test_record = source_record.dup
         test_case[:modify]&.call(test_record)
 
-        mapped_attributes = {}
-        HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(test_record, mapped_attributes, columns)
+        mapped_attributes = mapper.map(test_record)
 
         expect(mapped_attributes['owner_id']).to eq(test_case[:expected_owner_id]) if test_case.key?(:expected_owner_id)
 

@@ -14,7 +14,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     include HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     self.table_name = 'hmis_2026_custom_sexual_orientations'
     self.hud_key = :EnrollmentID
-    @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomSexualOrientation.csv')
+    @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomSexualOrientation.csv')
 
     # Associations
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')

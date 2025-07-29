@@ -11,19 +11,25 @@ module HmisCsvTwentyTwentySix
   class CustomFilesConfig
     attr_reader :definitions
 
-    def initialize(files_config_array)
-      @definitions = files_config_array.map { |config| CustomFileDefinition.new(config) }
-    end
+    def initialize(config_dir = nil)
+      config_dir ||= Rails.root.join('drivers', 'hmis_csv_twenty_twenty_six', 'config', 'custom')
+      all_custom_files = []
 
-    # Backwards compatibility - returns array of config hashes
-    def custom_files
-      @definitions.map(&:to_h)
-    end
+      if Dir.exist?(config_dir)
+        Dir.glob(File.join(config_dir, '*.yaml')).sort.each do |config_file|
+          config = YAML.load_file(config_file, permitted_classes: [Date, Time])
+          if config && config['custom_files'].is_a?(Array)
+            all_custom_files.concat(config['custom_files'])
+          else
+            Rails.logger.warn "Custom file config #{config_file} has invalid structure - expecting 'custom_files' array"
+          end
+        rescue StandardError => e
+          Rails.logger.error "Failed to load custom file config #{config_file}: #{e.message}"
+          raise e if Rails.env.development? || Rails.env.test?
+        end
+      end
 
-    # Backwards compatibility - find config hash by filename
-    def for(filename)
-      definition = @definitions.find { |d| d.filename == filename }
-      definition&.to_h
+      @definitions = all_custom_files.map { |config| CustomFileDefinition.new(config) }
     end
 
     # Find CustomFileDefinition object by filename

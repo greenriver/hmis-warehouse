@@ -645,6 +645,8 @@ module HmisCsvImporter::Importer
         # Augmentation classes will always be updating existing records
         next if custom_augmentation?(klass)
 
+        preload_custom_file_data(klass)
+
         destination_class = klass.reflect_on_association(:destination_record).klass
         # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
@@ -700,6 +702,13 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Cache ID lookups for custom files
+    def preload_custom_file_data(klass)
+      return unless custom_file?(klass)
+
+      klass.cache_mapped_attributes(importer_log_id: importer_log.id)
+    end
+
     def un_updateable_warehouse_classes
       [
         'GrdaWarehouse::Hud::Export',
@@ -710,6 +719,7 @@ module HmisCsvImporter::Importer
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
+        preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
           mark_unchanged(klass, file_name)
           mark_incoming_older(klass, file_name)
@@ -1205,6 +1215,12 @@ module HmisCsvImporter::Importer
     # These classes add data to a subset of columns to an existing warehouse class
     private def custom_augmentation?(klass)
       klass.respond_to?(:augments?) && klass.augments?
+    end
+
+    # A helper to determine if the class is a custom file
+    # These classes need to preload mapping data before processing
+    private def custom_file?(klass)
+      klass.respond_to?(:custom_file?) && klass.custom_file?
     end
   end
 end

@@ -14,7 +14,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     include HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     self.table_name = 'hmis_2026_custom_data_elements'
     self.hud_key = :CustomDataElementID
-    @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElement.csv')
+    @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElement.csv')
 
     # Associations
     has_one :destination_record, **hud_assoc(:CustomDataElementID, 'CustomDataElement')

@@ -86,6 +86,11 @@ module HmisCsvTwentyTwentySix
       columns.select { |col| col['required'] == true }
     end
 
+    # Returns columns that are not virtual
+    def real_columns
+      columns.reject { |col| col['type'] == 'virtual' }
+    end
+
     # Returns the key to use for HUD operations (augment_key, warehouse_key, or first column name)
     def hud_key
       augment_key || warehouse_key || columns.first&.dig('name')
@@ -100,32 +105,25 @@ module HmisCsvTwentyTwentySix
     end
 
     def upsert_column_names
-      excluded_augmentation_columns = ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID', 'UserID']
-      excluded_columns = augments? ? excluded_augmentation_columns : ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID']
-
       (warehouse_target_columns - excluded_columns).map(&:to_sym)
     end
 
     def create_columns
-      warehouse_target_columns - [
-        'DateCreated',
-        'DateUpdated',
-        'DateDeleted',
-        'ExportID',
-      ]
+      warehouse_target_columns - always_excluded_columns
     end
 
-    # Backwards compatibility - returns the raw hash
-    def to_h
-      @config_data
+    private def excluded_columns
+      return always_excluded_columns unless augments?
+
+      always_excluded_columns + ['UserID'] # Augmentations have a UserID column
+    end
+
+    private def always_excluded_columns
+      ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID']
     end
 
     def ==(other)
       other.is_a?(self.class) && config_data == other.config_data
-    end
-
-    def hash
-      config_data.hash
     end
   end
 end

@@ -12,16 +12,10 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
   included do
     def as_destination_record
-      definition = self.class.custom_file_definition
       klass = self.class.reflect_on_association(:destination_record).klass
-
-      # Apply all column mappings using the generic mapper
-      mapped_attributes = {}
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(
-        self,
-        mapped_attributes,
-        definition.columns,
-      )
+      # Fetch pre-computed attributes from the cache, defaulting to an empty hash
+      cache = self.class._mapped_attributes_cache || {}
+      mapped_attributes = cache[send(hud_key)] || {}
 
       record = klass.new(mapped_attributes)
 
@@ -41,6 +35,29 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
   end
 
   class_methods do
+    # Manually define accessors for a class instance variable to ensure it's
+    # defined on the including class, not the concern itself.
+    def _mapped_attributes_cache
+      @_mapped_attributes_cache
+    end
+
+    def _mapped_attributes_cache=(cache)
+      @_mapped_attributes_cache = cache
+    end
+
+    # Pre-compute all column mappings for a custom file, caching the result for use in as_destination_record
+    def cache_mapped_attributes(importer_log_id:)
+      # 1. Get all records that will be imported for this run
+      records_to_process = where(importer_log_id: importer_log_id)
+
+      # 2. Instantiate a mapper and batch-process all records at once, populating the cache
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(custom_file_definition.columns)
+      self._mapped_attributes_cache = {}
+      records_to_process.find_in_batches(batch_size: 10_000) do |batch|
+        _mapped_attributes_cache.merge!(mapper.map_batch(batch))
+      end
+    end
+
     def upsert_column_names(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
       custom_file_definition.upsert_column_names
     end
@@ -86,9 +103,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     end
 
     def import_klass
-      return custom_file_config['augment_import_class'].constantize if augments?
-
-      self
+      # Delegate to the augment_import_klass if this is an augmentation, otherwise return self
+      custom_file_definition.augment_import_klass || self
     end
 
     # Prevent deletions for augmentation classes since we only want to update existing records
@@ -124,6 +140,10 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       end
     end
 
+    def custom_file?
+      true
+    end
+
     def augments?
       custom_file_definition.augments?
     end
@@ -134,10 +154,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
         "#{name.demodulize.underscore.camelize}.csv",
       )
     end
-
-    # Keep backwards compatibility
-    def custom_file_config
-      custom_file_definition.to_h
-    end
   end
+
+  # The included block and its `as_destination_record` method remain the same,
+  # but they will now be able to pull efficiently from the pre-populated cache.
 end
