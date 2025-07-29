@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -7422,7 +7422,8 @@ CREATE TABLE public.ce_referrals (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     source_enrollment_id bigint,
-    custom_referral_status_id bigint
+    custom_referral_status_id bigint,
+    referral_origin character varying NOT NULL
 );
 
 
@@ -75160,6 +75161,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250716131240'),
 ('20250716123853'),
 ('20250716122931'),
+('20250716112736'),
 ('20250715220502'),
 ('20250715152820'),
 ('20250715150621'),
@@ -75347,4 +75349,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-

@@ -9,6 +9,11 @@
 # A referral of an individual client to an opportunity
 module Hmis::Ce
   class Referral < GrdaWarehouseBase
+    # Allowed referral origins:
+    WAITLIST_ORIGIN = 'waitlist' # Referral was created from a waitlist (candidate pool) in the target project
+    DIRECT_SEND_ORIGIN = 'direct_send' # Referral was sent from the source project to the target project
+    # Future additions could include: MANUAL, EXTERNAL, ...
+
     include SimpleStateMachine
 
     has_paper_trail
@@ -74,7 +79,22 @@ module Hmis::Ce
       order(acase(conditions, elsewise: 3), updated_at: :desc, id: :asc)
     end
 
+    scope :originated_from_waitlist, -> { where(referral_origin: WAITLIST_ORIGIN) }
+    scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
+
+    def self.sort_by_option(option)
+      case option
+      when :status
+        order_by_status
+      when :created_at
+        order(created_at: :desc, id: :desc)
+      else
+        raise NotImplementedError
+      end
+    end
+
     validates :workflow_instance, uniqueness: true
+    validates :referral_origin, inclusion: { in: [WAITLIST_ORIGIN, DIRECT_SEND_ORIGIN] }
     validate :unique_referral_per_opportunity
     validate :ce_template
     validate :consistent_data_source
