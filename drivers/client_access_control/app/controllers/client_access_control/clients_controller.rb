@@ -36,6 +36,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       redirect_to client_search_query_path(id: search_query.id), status: :moved_permanently
     else
       # render empty search
+      @search_performed = true
       perform_search
     end
   end
@@ -45,6 +46,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     return handle_invalid_query('Search query not found') if search_query.nil?
 
     search_query.touch
+    @search_performed = true
     perform_search(search_query.params)
   end
 

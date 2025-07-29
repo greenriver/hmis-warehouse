@@ -58,7 +58,7 @@ export default class extends Controller {
     const datepicker = new TempusDominus(this.element, finalOptions);
 
     // Listen for when the picker is shown to add text labels
-    this.element.addEventListener('show.td', () => {
+    this.element.addEventListener('show.td', (_event) => {
       // Use a small delay to ensure the DOM is fully rendered
       setTimeout(() => {
         this.addButtonLabels();
@@ -67,9 +67,13 @@ export default class extends Controller {
   }
 
   addButtonLabels() {
-    const todayBtn = document.querySelector('[data-action="today"]');
-    const clearBtn = document.querySelector('[data-action="clear"]');
-    const closeBtn = document.querySelector('[data-action="close"]');
+    // Find the currently visible picker widget
+    const picker = document.querySelector('.tempus-dominus-widget.show');
+    if (!picker) return;
+
+    const todayBtn = picker.querySelector('[data-action="today"]');
+    const clearBtn = picker.querySelector('[data-action="clear"]');
+    const closeBtn = picker.querySelector('[data-action="close"]');
 
     this.formatButton(todayBtn);
     this.formatButton(clearBtn);

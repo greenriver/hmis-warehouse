@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientAccessControl::SearchConcern
   extend ActiveSupport::Concern
   include ActionView::Helpers::TagHelper
@@ -26,10 +28,7 @@ module ClientAccessControl::SearchConcern
       end
 
       # Filter by population for known populations
-      if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(params[:population].to_sym)
-        population = params[:population].to_sym
-        @clients = @clients.public_send(population) if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(population)
-      end
+      @clients = @clients.public_send(selected_population) if selected_population.present?
 
       if params[:data_source_id].present?
         @data_source_id = params[:data_source_id].to_i
@@ -73,10 +72,19 @@ module ClientAccessControl::SearchConcern
     private def sort_title
       @sort_title ||= GrdaWarehouse::Hud::Client::SORT_OPTIONS[selected_sort]
     end
+    helper_method :sort_title
 
     private def sorted
       selected_sort == :best_match
     end
+
+    private def selected_population
+      @selected_population ||= begin
+        available_populations = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values
+        available_populations.detect { |p| p == params[:population]&.to_sym } || :clients
+      end
+    end
+    helper_method :selected_population
 
     private def set_search_client
       id = params[:id].to_i

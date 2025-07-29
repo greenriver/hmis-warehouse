@@ -51,7 +51,7 @@
 
       .o-filtration__option.row
         .col-sm-8
-          - options = options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population])
+          - options = options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, selected_population)
           = render 'inputs/select', field_name: :population, label: 'Population', options: options
 
       .o-filtration__actions.form__actions

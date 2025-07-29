@@ -27,13 +27,10 @@
   - if @pagy.count.positive?
     .client__current-sort-filter
       Currently sorted by:
-      %strong= @sort_title
-    = render 'common/pagination_top', item_name: 'client'
+      %strong= sort_title
   .o-page__main-content.mt-3
     .clients__list
       = render 'clients/new_client'
-      - @clients.each do |client|
-        = render 'client_access_control/clients/client_card', client: client
-    = render 'common/pagination_bottom', item_name: 'client'
+      = render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @clients, item_name: 'client', list_partial: 'client_access_control/clients/client_cards')
 
     = render 'application/js_link', base_path: 'clients/'
