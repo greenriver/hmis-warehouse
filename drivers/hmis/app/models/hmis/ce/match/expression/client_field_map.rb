@@ -15,6 +15,10 @@ module Hmis::Ce::Match::Expression
       all.dig(field.to_sym, :arel_field)
     end
 
+    def joins(field)
+      all.dig(field.to_sym, :joins)
+    end
+
     # Label for user-facing display of resolved field
     def label_for(field)
       field.humanize
@@ -34,6 +38,22 @@ module Hmis::Ce::Match::Expression
 
     def all
       @all ||= {
+        last_enrolled_at: {
+          instance_value: lambda { |c|
+            enrollments = c.hmis_source_clients.joins(:enrollments)
+            return Date.current if enrollments.where.missing(:exit).exists?
+
+            enrollments.joins(:exit).maximum(arel.ex_t['ExitDate'])&.to_date
+          },
+          joins: [{ hmis_source_clients: { enrollments: :exit } }],
+          arel_field: arel.acase(
+            [
+              # if there's no exit, but there is an enrollment, use today
+              [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), Date.current],
+            ],
+            elsewise: arel.ex_t['ExitDate'],
+          ),
+        },
         veteran_status: {
           instance_value: lambda(&:veteran_status),
           arel_field: arel.c_t['VeteranStatus'],

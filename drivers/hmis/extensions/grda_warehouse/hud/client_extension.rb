@@ -25,16 +25,6 @@ module Hmis::GrdaWarehouse::Hud
       has_many :hmis_source_clients, -> { hmis }, class_name: 'Hmis::Hud::Client', through: :hmis_warehouse_client_destination, source: :source
       has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy, foreign_key: :trackable_id
 
-      scope :destinations_with_active_enrollments, ->(range=nil) do
-        now = Time.current
-        range ||= 90.days.ago.to_date..Date.current
-        enrollments = GrdaWarehouse::Hud::Enrollment.open_during_range(range)
-        destination
-          .joins(hmis_source_clients: :enrollments)
-          .merge(enrollments)
-          .distinct
-      end
-
       def as_hmis
         Hmis::Hud::Client.find(id)
       end

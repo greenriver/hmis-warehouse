@@ -47,5 +47,50 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
         expect(result.lost_eligibility_clients).to be_empty
       end
     end
+
+    context 'with an expression that requires a join' do
+      let(:requirement_expression) { "last_enrolled_at > '#{1.year.ago.to_date.to_fs(:db)}'" }
+
+      before do
+        [
+          [client1, 6.months.ago],
+          [client2, 2.years.ago],
+        ].each do |source_client, exit_date|
+          ds = source_client.data_source
+          project = create(:hmis_hud_project,  data_source: ds)
+          enrollment = create(:hmis_hud_enrollment, client: source_client, data_source: ds, project: project, entry_date: exit_date - 1.week)
+          create(:hmis_base_hud_exit, enrollment: enrollment, exit_date: exit_date, data_source: ds)
+        end
+      end
+
+      it 'correctly filters clients based on joined table data' do
+        result = prefilter.call(client_universe)
+        expect(result.eligible_clients.pluck(:id)).to contain_exactly(destination_client1.id)
+        expect(result.lost_eligibility_clients).to be_empty
+      end
+    end
+
+    context 'with a last_enrolled_at expression and a client with an open enrollment' do
+      let(:requirement_expression) { "last_enrolled_at > '#{1.month.ago.to_date.to_fs(:db)}'" }
+
+      before do
+        # client1 has an open enrollment, so should be included
+        ds1 = client1.data_source
+        project1 = create(:hmis_hud_project, data_source: ds1)
+        create(:hmis_hud_enrollment, client: client1, data_source: ds1, project: project1, entry_date: 2.months.ago)
+
+        # client2 has a closed enrollment that does not meet the criteria
+        ds2 = client2.data_source
+        project2 = create(:hmis_hud_project, data_source: ds2)
+        enrollment2 = create(:hmis_hud_enrollment, client: client2, data_source: ds2, project: project2, entry_date: 3.months.ago)
+        create(:hmis_base_hud_exit, enrollment: enrollment2, exit_date: 2.months.ago, data_source: ds2)
+      end
+
+      it 'considers their last_enrolled_at as current date and includes them' do
+        result = prefilter.call(client_universe)
+        expect(result.eligible_clients.pluck(:id)).to contain_exactly(destination_client1.id)
+        expect(result.lost_eligibility_clients).to be_empty
+      end
+    end
   end
 end

@@ -29,6 +29,11 @@ module Hmis::Ce::Match::Expression
       resolver.arel_field(resolved_field)
     end
 
+    def joins(field)
+      resolver, resolved_field = resolver_for(field)
+      resolver.joins(resolved_field)
+    end
+
     # Parses a field name and returns the appropriate field type and resolved field name.
     # Used internally by resolver_for; also exposed publicly for convenience,
     # so external callers can determine the relevant form definitions for a specific match.
