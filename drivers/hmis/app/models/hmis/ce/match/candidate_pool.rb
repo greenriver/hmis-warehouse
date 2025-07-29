@@ -8,6 +8,7 @@ module Hmis::Ce::Match
     self.table_name = 'ce_match_candidate_pools'
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
+    # opportunities may cross-cut projects
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
 

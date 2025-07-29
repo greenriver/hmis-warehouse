@@ -590,6 +590,14 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
+    field :consolidated_waitlist, HmisSchema::CeCandidateConsolidated.array_page_type, null: true
+    def consolidated_waitlist
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      Hmis::Ce::Match::Candidate.all.map(&:rows).flatten
+      # Hmis::Ce::Match::Candidate.all_candidates_by_distinct_unit_group
+    end
+
     field :unit_group, HmisSchema::UnitGroup, null: true do
       argument :id, ID, required: true
     end
