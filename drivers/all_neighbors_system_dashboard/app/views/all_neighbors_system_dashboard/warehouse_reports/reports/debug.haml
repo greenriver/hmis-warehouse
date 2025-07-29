@@ -71,8 +71,8 @@
       Final monthly count
       = dates.map(&:last).last
       %br
-      Looking for #{params[:count_level]}
-      %br in project type: #{params[:project_type]}
+      Looking for #{count_level}
+      %br in project type: #{p_type}
     - sum = dates.map(&:last).sum
 
     %p Found #{sum} in total (by adding counts per month)
@@ -86,7 +86,7 @@
         Clients expected:
         = count
       %p
-        - ids = all_data.clients_for_date(date: d.to_date, count_level: params[:count_level], project_type: params[:project_type])
+        - ids = all_data.clients_for_date(date: d.to_date, count_level: count_level, project_type: p_type)
         Found:
         = ids.count
         %br
@@ -95,7 +95,7 @@
     %h2 Housing Placements Project Type Donut
     .well
 
-      - data = all_data.donut_data.detect { |m| m[:id].to_s == 'age' }[:project_types].detect { |m| m[:project_type] == 'All' }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[:series]
+      - data = all_data.donut_data.detect { |m| m[:id].to_s == 'age' }[:project_types].detect { |m| m[:project_type] == 'All' }[:count_levels].detect { |m| m[:count_level] == count_level }[:series]
       - data.each do |p_type|
         Looking at: #{p_type[:name]}
         - p_type[:series].each do |d|
