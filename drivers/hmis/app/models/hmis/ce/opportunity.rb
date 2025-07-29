@@ -86,6 +86,11 @@ module Hmis::Ce
       )
     }
 
+    # opportunity is receiving referrals if it is "open"
+    scope :receiving_referrals, -> do
+      where(status: 'open')
+    end
+
     SORT_OPTIONS = [:date_available_earliest_first, :date_available_latest_first].freeze
 
     SORT_OPTION_DESCRIPTIONS = {

@@ -88,7 +88,8 @@ module Types
     field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
     field :auto_exit_enabled, Boolean, null: false, description: 'Whether auto-exit is enabled in this project', method: :auto_exit_enabled?
     field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
-    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?
+    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
+    field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -130,6 +131,7 @@ module Types
 
     ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
     ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:on_current_task_since, :workflow_template, :origin], type_name: 'ProjectOutgoingCeReferral' })
 
     def hud_id
       object.project_id
@@ -139,6 +141,26 @@ module Types
       check_enrollment_details_access
 
       resolve_enrollments(object.enrollments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def coordinated_entry_features # Not for batch
+      return nil unless Hmis::Ce.configuration.enabled?
+
+      ce_config = Hmis::ProjectCeConfig.detect_best_config_for_project(object)
+      sends_referrals_config = Hmis::ProjectSendsDirectCeReferralsConfig.detect_best_config_for_project(object)
+
+      return nil unless ce_config.present? || sends_referrals_config.present?
+
+      supports_waitlist_referrals = ce_config&.supports_waitlist_referrals? || false
+      receives_direct_referrals = ce_config&.receives_direct_referrals? || false
+
+      OpenStruct.new(
+        id: object.id,
+        supports_referrals: supports_waitlist_referrals || receives_direct_referrals,
+        supports_waitlist_referrals: supports_waitlist_referrals,
+        receives_direct_referrals: receives_direct_referrals,
+        sends_direct_referrals: sends_referrals_config.present?,
+      )
     end
 
     def assessments(**args)
@@ -275,6 +297,13 @@ module Types
 
     def ce_referrals(**args) # Don't resolve in batch
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def outgoing_direct_ce_referrals(**args)
+      access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
+
+      referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
+      resolve_ce_referrals(referral_scope, sort_order: :created_at, dangerous_skip_permission_check: true, **args)
     end
 
     private def check_enrollment_details_access
