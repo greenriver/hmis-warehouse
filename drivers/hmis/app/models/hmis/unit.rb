@@ -92,6 +92,10 @@ class Hmis::Unit < Hmis::HmisBase
     active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.receiving_referrals)
   end
 
+  scope :without_opportunities, -> do
+    left_outer_joins(:opportunities).where(Hmis::Ce::Opportunity.arel_table[:id].eq(nil))
+  end
+
   # Units are available for occupancy if they are unoccupied and don't have a referral in progress.
   # This could include any of the following:
   # - no opportunity (unit hasn't been marked available for referrals)

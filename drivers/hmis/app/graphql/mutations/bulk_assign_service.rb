@@ -75,7 +75,10 @@ module Mutations
               errors.add :base, :invalid, full_message: 'Failed to enroll client because there are no available units' if available_units.empty?
               raise ActiveRecord::Rollback if errors.any?
 
-              enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
+              unit = available_units.pop
+              enrollment.assign_unit(unit: unit, start_date: input.date_provided, user: current_user)
+
+              unit.latest_opportunity.close! if unit.latest_opportunity&.open?
             end
 
             enrollment.save_new_enrollment!

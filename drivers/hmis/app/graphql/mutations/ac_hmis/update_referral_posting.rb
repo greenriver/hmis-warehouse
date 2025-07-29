@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class AcHmis::UpdateReferralPosting < CleanBaseMutation
     description 'Update a referral posting'
@@ -59,7 +61,7 @@ module Mutations
         if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
           # choose any available unit of type, error if none available
           if posting.unit_type_id
-            unit_to_assign = posting.project&.units&.unoccupied_on&.find_by(unit_type_id: posting.unit_type_id)
+            unit_to_assign = posting.project&.units&.unoccupied_on&.without_opportunities&.find_by(unit_type_id: posting.unit_type_id)
             errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
           end
           raise ActiveRecord::Rollback if errors.any?

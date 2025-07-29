@@ -85,6 +85,12 @@ module Hmis::Hud::Processors
 
       # Assign to specified unit
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)
+
+      return unless unit.latest_opportunity&.open?
+
+      # Defer opportunity closure until enrollment is saved
+      enrollment.opportunities_to_close ||= []
+      enrollment.opportunities_to_close << unit.latest_opportunity
     end
 
     def related_move_in_address_attributes
