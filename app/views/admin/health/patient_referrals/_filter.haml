@@ -2,13 +2,15 @@
   - filter_class = 'client__filter-active'
 - else
   - filter_class = 'client__filter'
-= simple_form_for :filters, url: filters_path, html: {id: 'filter-form'}, method: :get do |f|
+= simple_form_for :filters, url: search_path, html: {id: 'filter-form'}, method: :post do |f|
+  = hidden_field_tag :active_tab, @active_tab || action_name
   - if @active_patient_referral_group.present?
     = hidden_field_tag :group, @active_patient_referral_group
   .o-page__controls
     .o-page__search
+      - value = @search_string || ''
       .input-group
-        = f.input :search, label: false, wrapper_html: {class: 'mb-0'}
+        %input.form-control{name: 'q', value: value, autofocus: true, type: 'search', placeholder: 'Search Referrals...', aria: {label: 'Search Referrals'}}
         %span.input-group-append
           %button.btn.btn-secondary{type: :submit} Search
     -# if show_filters?
