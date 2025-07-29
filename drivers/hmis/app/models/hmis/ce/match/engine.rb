@@ -74,11 +74,9 @@ module Hmis::Ce::Match
           progress_bar&.increment!
           evaluation = @evaluator.call(client)
 
-          # Client without a score cannot be prioritized, so do not include them in the pool.
-          # If needing to include clients that don't have a score, expression should be set up like `IF(my_score = NULL, 0, my_score)`
-          if evaluation.priority_score.nil?
+          if evaluation.failed?
+            # track removal if the client is currently in the pool
             if client.id.in?(current_warehouse_clients_ids)
-              # track removal
               snapshot = Snapshot.new(
                 client_id: client.id,
                 values: evaluation.client_values,
@@ -87,6 +85,7 @@ module Hmis::Ce::Match
               removed_client_snapshots.push(snapshot)
             end
 
+            # early exit
             next
           end
 
@@ -110,7 +109,7 @@ module Hmis::Ce::Match
           updated_candidate_ids = @repo.import_candidates(matching_candidates)
           candidate_map = @repo.candidates_by_warehouse_client(updated_candidate_ids)
           @event_writer.call(
-            # filter put snapshots that didn't change
+            # filter out snapshots that didn't change
             matching_client_snapshots.filter { |s| candidate_map.key?(s.client_id) },
             timestamp: now,
           )
