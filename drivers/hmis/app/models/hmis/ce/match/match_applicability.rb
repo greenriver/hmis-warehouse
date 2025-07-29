@@ -21,8 +21,6 @@
 #   rules for each entity type.
 # - Global and Data Source-level rules are not yet supported (e.g. "all PSH projects in a data source")
 #
-#
-#
 # @attr [Object] owner Entity that determines the applicability scope for this rule
 # @attr [Array<String>] project_types List of project types for which this rule applies
 # @attr [Array<String>] project_funders List of funders for which this rule applies

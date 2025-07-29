@@ -15,9 +15,9 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
   EMPTY_SET = Set.new.freeze
 
   def initialize(user)
-    @user = user
-    raise ArgumentError, 'must be acl user' unless @user.using_acls?
+    raise ArgumentError, 'must be acl user' unless user.is_a?(User) && user.using_acls?
 
+    @user = user
     @coc_codes_by_project = {}
     @collection_ids_by_project = {}
   end
@@ -70,7 +70,12 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       where(project_id: project_ids).
       pluck(:project_id, :collection_id).
       group_by(&:shift).
-      transform_values { |v| v.flatten.compact_blank }
+      transform_values do |values|
+        clean_values = values.flatten.compact_blank
+        # Filter out deleted collection. ProjectCollectionMember can't do this due to database boundaries
+        (active_collection_ids & clean_values).to_a
+      end
+
     @collection_ids_by_project.merge!(results)
   end
 
@@ -98,7 +103,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
       where(entity_id: data_source_id).
       where.not(collection_id: nil).
       pluck(:collection_id)
-    ids.uniq.sort
+    (active_collection_ids & ids).to_a.sort
   end
 
   # Returns the collection ids that include this project id
@@ -121,10 +126,15 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
   def direct_client_collection_ids(client_id)
     c_t = GrdaWarehouse::Hud::Client.arel_table
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
-    GrdaWarehouse::DataSource.authoritative.not_hmis.
+    ids = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
       where(gve_t[:collection_id].not_eq(nil)).
       where(c_t[:id].eq(client_id)).
       pluck(gve_t[:collection_id])
+    (active_collection_ids & ids).to_a.sort
+  end
+
+  memoize def active_collection_ids
+    Set.new(Collection.pluck(:id))
   end
 end

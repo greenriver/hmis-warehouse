@@ -62,21 +62,9 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   def audits
+    @excel_export = GrdaWarehouse::DocumentExports::AccessControlsAuditExport.new
     # Processing is backgrounded unless render_inline is set to 1
     data if params[:render_inline] == '1'
-  end
-
-  def export
-    respond_to do |format|
-      format.csv do
-        audit_history = []
-        histories.each_with_index do |history, index|
-          csv_data = generate_audit_csv(history.version_array, history, include_headers: index == 0)
-          audit_history << csv_data
-        end
-        send_data audit_history.join, filename: "access-controls-component-history-#{Date.current.to_fs(:db)}.csv"
-      end
-    end
   end
 
   private def access_control_scope

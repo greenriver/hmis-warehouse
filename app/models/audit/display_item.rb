@@ -111,7 +111,7 @@ class Audit::DisplayItem
     record = @records_by_type_and_id&.dig(version.item_type, version.item_id)
     record ||= klass.with_deleted.find_by(id: version.item_id)
 
-    display_name = record&.entity_name
+    display_name = record&.entity_name if record.respond_to?(:entity_name)
     display_name ||= record&.name
 
     display_name || version.item_type.underscore.humanize

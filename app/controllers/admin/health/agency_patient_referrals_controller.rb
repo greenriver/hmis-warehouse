@@ -4,11 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin::Health
   class AgencyPatientReferralsController < HealthController
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
-    before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral, :claim_buttons]
+    before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral, :claim_buttons, :search]
 
     include PatientReferral
     helper_method :tab_path_params
@@ -98,9 +100,38 @@ module Admin::Health
       render layout: false if request.xhr?
     end
 
-    private
+    def create_search_queries
+      safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
 
-    def build_relationship(relationship)
+      if query.valid?
+        redirect_to agency_patient_referral_search_query_admin_health_agency_patient_referrals_path(id: query.id, active_tab: params[:active_tab], filters: params[:filters].to_unsafe_h)
+      else
+        flash[:error] = 'Search query not valid'
+        # NOTE: this always redirects to the review tab, you should never get here anyway
+        redirect_to review_admin_health_agency_patient_referrals_path
+        return
+      end
+    end
+
+    def search
+      @search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
+      return handle_invalid_query('Search query not found') if @search_query.nil?
+
+      @search_query.touch
+      @input_values = @search_query.params[:search]
+      # determine which tab to show
+      @active_tab = load_tabs.detect { |tab| tab[:id] == params[:active_tab] }.try(:[], :id) || 'review'
+      send(@active_tab)
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to health_patients_path
+      return
+    end
+
+    private def build_relationship(relationship)
       @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id].to_i) if request.xhr?
       # aka agency_patient_referral
       path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path
@@ -120,15 +151,15 @@ module Admin::Health
       end
     end
 
-    def agency_patient_referral_source
+    private def agency_patient_referral_source
       Health::AgencyPatientReferral
     end
 
-    def patient_referral_source
+    private def patient_referral_source
       Health::PatientReferral
     end
 
-    def relationship_params
+    private def relationship_params
       params.require(:health_agency_patient_referral).permit(
         :claimed,
         :agency_id,
@@ -136,20 +167,20 @@ module Admin::Health
       )
     end
 
-    def load_agency_users
+    private def load_agency_users
       @agency_users = current_user.agency_users
       @user_agencies = current_user.health_agencies
       @no_agency_user_warning = 'You are not assigned to an agency at this time.  Please request assignment to an agency.' if @user_agencies.none?
     end
 
-    def load_tabs
+    private def load_tabs
       @patient_referral_tabs = [
         { id: 'review', tab_text: "Assignments to Review for #{@agency&.name}", path: review_admin_health_agency_patient_referrals_path(tab_path_params) },
         { id: 'reviewed', tab_text: 'Previously Reviewed', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params) },
       ]
     end
 
-    def filters_path
+    private def filters_path
       case action_name
       when 'review'
         review_admin_health_agency_patient_referrals_path
@@ -161,7 +192,7 @@ module Admin::Health
     end
     helper_method :filters_path
 
-    def show_filters?
+    private def show_filters?
       false
     end
     helper_method :show_filters?

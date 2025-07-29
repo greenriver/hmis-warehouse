@@ -183,6 +183,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_start_referrals: {
         description: 'Ability to initiate referrals from the client waitlist in the project',
+        requirements: [:can_view_referrals],
         administrative: false,
         access: [:editable],
         category: 'Referrals',
@@ -306,6 +307,7 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Ability to create clients & edit client demographics',
         administrative: false,
         access: [:editable],
+        requirements: [:can_view_clients],
         category: 'Client Access',
         sub_category: 'Access',
       },
@@ -529,6 +531,13 @@ class Hmis::Role < ::ApplicationRecord
         administrative: false,
         access: [:viewable],
         category: 'Enrollment Access',
+        sub_category: 'Access',
+      },
+      can_print_client_case_notes: {
+        description: 'Ability to print case notes from the client profile.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
         sub_category: 'Access',
       },
     }
