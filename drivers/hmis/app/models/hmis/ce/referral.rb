@@ -146,8 +146,8 @@ module Hmis::Ce
       destination_client = client.destination_client&.as_warehouse
       return [] unless destination_client # if for whatever reason the client doesn't have a destination client, we cannot resolve the fields
 
-      field_map = Hmis::Ce::Match::FieldMap.new
-      calculator = Hmis::Ce::Match::CalculatorFactory.build
+      field_map = Hmis::Ce::Match::Expression::FieldMap.new
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       seen_field_names = Set.new
 
       # Fetch all match rules applicable to the opportunity

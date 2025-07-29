@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# resolve custom data elements (CDEs)
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Expression
+  # FieldMap implementation for CDE fields
   class CdeFieldMap
     # Possible reasons why this could this return nil:
     # * the question was left empty on the form
