@@ -22,7 +22,7 @@
 #   data_source: optional_data_source # Optional data source for the CDEDs
 # )
 # cdeds = generator.run
-# cdeds.map(&:save!) # Save the generated CDEDs
+# cdeds.each(&:save!) # Save the generated CDEDs
 # definition.save! # Save the updated form definition with new CDED mappings, if create_missing_mappings was passed
 #
 # This class ensures that all generated CDEDs are unique and conform to the
@@ -105,9 +105,6 @@ module Hmis
         custom_field_key = item.mapping&.custom_field_key
         return unless custom_field_key
 
-        # HELP! this could be ambiguous... like on NEW_ENROLLMENT_FORM its possible to add custom fields
-        # either to the client OR the Enrollment. but in that case, the record_type should already be set, so maybe its fine?
-        # will this always find the "right" CDED?
         owner_type = determine_owner_type(item)
         Hmis::Hud::CustomDataElementDefinition.find_by(owner_type: owner_type, key: custom_field_key, data_source: @data_source)
       end
@@ -135,8 +132,9 @@ module Hmis
           @definition.owner_class.sti_name # inferred from form 'role'
         end
 
-        # SPECIAL CASE: owner should never be the HmisService model which is a view. Assume custom service
-        # unless this is the specific HUD service form, in which case it is a Hmis::Hud::Service
+        # SPECIAL CASE: owner should never be the HmisService model (which is backed by a view).
+        # Usually owner should be Hmis::Hud::CustomService, unless this is the stock HUD service form,
+        # in which case the cded should be collected onto the Hmis::Hud::Service.
         if owner_type == 'Hmis::Hud::HmisService'
           return @definition.identifier == 'service' ? 'Hmis::Hud::Service' : 'Hmis::Hud::CustomService'
         end

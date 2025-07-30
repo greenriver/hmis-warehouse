@@ -41,7 +41,7 @@ module Mutations
           data_source: GrdaWarehouse::DataSource.hmis.find_by(id: current_user.hmis_data_source_id),
         )
         cdeds = cded_generator.run
-        cdeds.map(&:save!)
+        cdeds.each(&:save!)
 
         # Validate form structure, including HUD requirements
         validation_errors = definition.validate_json_form

@@ -136,7 +136,7 @@ module CeWorkflowBuilder
       data_source: data_source,
     )
     cdeds = cded_generator.run
-    cdeds.map(&:save!)
+    cdeds.each(&:save!)
 
     form_def
   end
