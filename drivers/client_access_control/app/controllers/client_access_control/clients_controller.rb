@@ -36,7 +36,6 @@ class ClientAccessControl::ClientsController < ApplicationController
       redirect_to client_search_query_path(id: search_query.id), status: :moved_permanently
     else
       # render empty search
-      @search_performed = true
       perform_search
     end
   end
@@ -46,7 +45,6 @@ class ClientAccessControl::ClientsController < ApplicationController
     return handle_invalid_query('Search query not found') if search_query.nil?
 
     search_query.touch
-    @search_performed = true
     perform_search(search_query.params)
   end
 
@@ -66,6 +64,7 @@ class ClientAccessControl::ClientsController < ApplicationController
 
     @client = client_source.new(criteria || {}) # populates form inputs
     if criteria
+      @search_performed = true
       clients = client_source.strict_search(criteria, client_scope: client_search_scope)
     else
       clients = client_source.none
@@ -77,6 +76,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   protected def perform_text_search(search_params)
     @query = search_params['q'].presence # populates form input
     if @query
+      @search_performed = true
       clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
     else
       clients = client_source.none

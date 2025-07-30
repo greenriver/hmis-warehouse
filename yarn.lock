@@ -540,10 +540,10 @@ beautifymarker@^1.0.9:
   resolved "https://registry.yarnpkg.com/beautifymarker/-/beautifymarker-1.0.9.tgz#edc49a0667fb87d1a317a78927b47d6b3e602005"
   integrity sha512-kLkiA2+xXg2/kbgeQTiiJQwKnVmiDleDh3yLTeGZGzEKk0RnopB3l2QhkL3rof0Nq/Lxv98pIWH2eAbDl4SauQ==
 
-billboard.js@^3.6.0:
-  version "3.15.1"
-  resolved "https://registry.yarnpkg.com/billboard.js/-/billboard.js-3.15.1.tgz#c086deb2c53bc3b8ad8a0ae07d14f2d4a3489302"
-  integrity sha512-Avqd8VWF5EuVx46AVSuH+AvUlYKbaRpk/rxufmNqG6P/iAzeIMl3Nq2Gyyx60iTqM25EIDkpas2rrZmcb2MvAg==
+billboard.js@^3.16.0:
+  version "3.16.0"
+  resolved "https://registry.yarnpkg.com/billboard.js/-/billboard.js-3.16.0.tgz#ae2a5b3d5aa27a48cd481c94d9ea942c686671f5"
+  integrity sha512-+TfMVZAC3QKzTbhlhStzwSF6MTxWUh2mIqkCcUBx51VmewDLDF85rMV2V8/FHFwc8VosbrSziJ2JPxjnosVkGQ==
   dependencies:
     "@types/d3-selection" "^3.0.11"
     "@types/d3-transition" "^3.0.9"
@@ -702,14 +702,7 @@ cross-spawn@^7.0.6:
   dependencies:
     internmap "^1.0.0"
 
-"d3-array@2 - 3", "d3-array@2.10.0 - 3":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-3.2.0.tgz#15bf96cd9b7333e02eb8de8053d78962eafcff14"
-  integrity sha512-3yXFQo0oG3QCxbF06rMPFyGRMGJNS7NvsV1+2joOjbBE+9xvWQ8+GcMJAjRCzw06zQ3/arXeJgbPYcjUCuC+3g==
-  dependencies:
-    internmap "1 - 2"
-
-"d3-array@2.5.0 - 3", d3-array@3, d3-array@^3.2.0:
+"d3-array@2 - 3", "d3-array@2.10.0 - 3", "d3-array@2.5.0 - 3", d3-array@3, d3-array@^3.2.0:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-3.2.4.tgz#15fec33b237f97ac5d7c986dc77da273a8ed0bb5"
   integrity sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg==
@@ -903,14 +896,7 @@ d3-shape@^1.2.0:
   dependencies:
     d3-time "1 - 3"
 
-"d3-time@1 - 3", "d3-time@2.1.1 - 3":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/d3-time/-/d3-time-3.0.0.tgz#65972cb98ae2d4954ef5c932e8704061335d4975"
-  integrity sha512-zmV3lRnlaLI08y9IMRXSDshQb5Nj77smnfpnd2LrBa/2K281Jijactokeak14QacHs/kKq0AQ121nidNYlarbQ==
-  dependencies:
-    d3-array "2 - 3"
-
-d3-time@3:
+"d3-time@1 - 3", "d3-time@2.1.1 - 3", d3-time@3:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/d3-time/-/d3-time-3.1.0.tgz#9310db56e992e3c0175e1ef385e545e48a9bb5c7"
   integrity sha512-VqKjzBLejbSMT4IgbmVgDjpkYrNWUYJnbCGo874u7MMKIWsILRX+OpX/gTk8MqjpT1A/c6HY2dCA77ZN0lkQ2Q==
@@ -995,7 +981,7 @@ datatables.net@2.3.2:
   dependencies:
     jquery ">=1.7"
 
-debug@4, debug@4.3.3, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2:
+debug@4, debug@4.3.3:
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.3.tgz#04266e0b70a98d4462e6e288e38259213332b664"
   integrity sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==
@@ -1371,7 +1357,12 @@ inputmask@3.3.8:
   resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-3.3.8.tgz#a29c6a24083ced712361be47a7d6c750efd2bb78"
   integrity sha512-AdaIgwNxjM9GsBjuWAFf6Dqh8YbF/mUmE1IXndkn7gP/wTxzxJr//Rkd65M26xC9AyH3Qa1Av3l6RNrIiaOHDw==
 
-"internmap@1 - 2", internmap@^1.0.0:
+"internmap@1 - 2":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/internmap/-/internmap-2.0.3.tgz#6685f23755e43c524e251d29cbc97248e3061009"
+  integrity sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==
+
+internmap@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/internmap/-/internmap-1.0.1.tgz#0017cc8a3b99605f0302f2b198d272e015e5df95"
   integrity sha512-lDB5YccMydFBtasVtxnZ3MRBHuaoE8GKsppq+EchKL2U4nK/DmEpPHNH8MZe5HkMtpSiTSOZwfN0tzYjO/lJEw==
@@ -1539,6 +1530,11 @@ ms@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
+
+ms@^2.1.3:
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
+  integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
 mutation-observer-inner-html-shim@^1.0.0:
   version "1.0.1"
@@ -1748,7 +1744,7 @@ robust-predicates@^3.0.2:
 rw@1:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/rw/-/rw-1.3.3.tgz#3f862dfa91ab766b14885ef4d01124bfda074fb4"
-  integrity sha1-P4Yt+pGrdmsUiF700BEkv9oHT7Q=
+  integrity sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ==
 
 safe-buffer@~5.2.0:
   version "5.2.1"

@@ -17,6 +17,7 @@ module ClientAccessControl::SearchConcern
     def sort_filter_index
       # Filter by date
       if params[:start_date].present? && params[:end_date].present? && params[:start_date].to_date < params[:end_date].to_date
+        @search_performed = true
         @start_date = params[:start_date].to_date
         @end_date = params[:end_date].to_date
         @clients = @clients.where(
@@ -31,12 +32,14 @@ module ClientAccessControl::SearchConcern
       @clients = @clients.public_send(selected_population) if selected_population.present?
 
       if params[:data_source_id].present?
+        @search_performed = true
         @data_source_id = params[:data_source_id].to_i
         @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: { data_source_id: @data_source_id })
       end
 
       vulnerability = params[:vulnerability]
       if vulnerability.present?
+        @search_performed = true
         vispdats = case vulnerability
         when 'low'
           GrdaWarehouse::Vispdat::Base.low_vulnerability
@@ -52,11 +55,13 @@ module ClientAccessControl::SearchConcern
 
       age_group = params[:age_group]
       if age_group.present?
+        @search_performed = true
         group = GrdaWarehouse::Hud::Client.ahar_age_groups[age_group.to_sym]
         @clients = @clients.age_group(**group.slice(:start_age, :end_age))
       end
 
       if params[:data_sharing].present? && params[:data_sharing] == '1'
+        @search_performed = true
         @clients = @clients.full_housing_release_on_file
         @data_sharing = 1
       end
