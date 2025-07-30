@@ -615,46 +615,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
-  # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
-  # For application forms, we now rely on PublishFormDefinition to generate CDEDs, but
-  # this is still used in test fixtures and in PublishExternalFormsJob.
-  def introspect_custom_data_element_definitions(set_definition_identifier: false, data_source: GrdaWarehouse::DataSource.hmis.first)
-    owner_type = owner_class.sti_name
-    raise "unable to determine owner class for form role: #{role}" unless owner_type
-
-    hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
-    cded_scope = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type, data_source: data_source)
-    cdeds_by_key = cded_scope.index_by(&:key)
-
-    cded_records = []
-    walk_definition_nodes(as_open_struct: true) do |item|
-      # Skip non-questions items (Groups and Display items)
-      next if NON_QUESTION_ITEM_TYPES.include?(item.type)
-      # Skip items that already map to a standard (HUD) field
-      next if item.mapping&.field_name
-
-      key = item.mapping&.custom_field_key
-      # find CDED if it exists, or initialize a new one with defaults
-      cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
-
-      # Infer CDED attributes based on Item
-      cded.owner_type = owner_type
-      cded.field_type = self.class.infer_cded_field_type(item.type)
-      cded.repeats = item.repeats || false
-
-      # Infer label for CustomDataElementDefinition based on various labels
-      cded.label = self.class.generate_cded_field_label(item)
-
-      # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
-      cded.form_definition_identifier = identifier if set_definition_identifier
-
-      cded_records << cded
-    end
-
-    cded_records
-  end
-
   # Helper for determining CustomDataElementDefinition attributes
+  # TODO dup with DefinitionValidator?
   def self.infer_cded_field_type(item_type)
     case item_type
     when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'

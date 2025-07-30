@@ -67,9 +67,11 @@ FactoryBot.define do
       next unless instance.published? && evaluator.data_source
 
       # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
-      # Note: this is slightly different from the CDED generation process that happens on publish,
-      # which does not expect any `mapping` to be present on new items.
-      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
+      Hmis::Form::CustomDataElementGenerator.new(
+        definition: instance,
+        create_missing_mappings: false,
+        data_source: evaluator.data_source,
+      ).run.each(&:save!)
     end
   end
 

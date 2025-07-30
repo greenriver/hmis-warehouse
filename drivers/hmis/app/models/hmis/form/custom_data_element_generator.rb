@@ -1,33 +1,58 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
+# CustomDataElementGenerator is responsible for generating and validating
+# CustomDataElementDefinitions (CDEDs) for a given form definition.
+#
+# This class provides functionality to:
+# - Generate new CDEDs for form items that lack a mapping.
+# - Validate existing CDED mappings.
+#
+# Usage:
+# generator = Hmis::Form::CustomDataElementGenerator.new(
+#   definition: form_definition,
+#   hud_user: current_hud_user,
+#   create_missing_mappings: true, # Whether to modify the form definition JSON to include new CDED mappings
+#   set_form_definition_identifier: true, # Whether to set the form_definition_identifier on newly created CDEDs
+#   data_source: optional_data_source # Optional data source for the CDEDs
+# )
+# cdeds = generator.run
+# cdeds.map(&:save!) # Save the generated CDEDs
+# definition.save! # Save the updated form definition with new CDED mappings, if create_missing_mappings was passed
+#
+# This class ensures that all generated CDEDs are unique and conform to the
+# expected structure and type for the given form definition.
 module Hmis
   module Form
     class CustomDataElementGenerator
-      def initialize(definition:, hud_user:, data_source: nil)
+      def initialize(definition:, create_missing_mappings:, set_form_definition_identifier: true, data_source: nil, hud_user: nil)
         @definition = definition
-        @hud_user = hud_user
         @cdeds = []
         @data_source = data_source || GrdaWarehouse::DataSource.hmis.first
+        @hud_user = hud_user || Hmis::Hud::User.system_user(data_source_id: @data_source.id)
+        @create_missing_mappings = create_missing_mappings
+        @set_form_definition_identifier = set_form_definition_identifier
       end
 
-      # initializes `@cdeds` with CustomDataElementDefinitions to be saved
-      # returns array of initialized CustomDataElementDefinitions to be saved
-      # if `mutate_definition` is true, initialized CDEDs for items that don't reference any, and modifies the definition JSON to reference the new CDED key
-      # if `mutate_definition` is false, only initializes CDEDs for items that ALREADY reference a CDED in `custom_field_key`, and does not modify the definition JSON
-      def generate(mutate_definition: true, set_form_definition_identifier: true)
+      def run
         # Prefix all CDED keys with a slug of the form identifier
         cded_key_prefix = @definition.identifier.parameterize.underscore
 
         cded_attributes = {
-          form_definition_identifier: set_form_definition_identifier ? @definition.identifier : nil,
+          form_definition_identifier: @set_form_definition_identifier ? @definition.identifier : nil,
           data_source: @data_source,
-          user_id: hud_user.user_id,
+          user_id: @hud_user.user_id,
         }
 
         # Walk Definition to initialize CustomDataElementDefinitions for any questions that don't already have a mapping
         # and modify the definition JSON to reference the new CDED key
         @definition.walk_definition_nodes do |item_hash|
-          item = Oj.load(item_hash.to_json, mode: :compat, object_class: OpenStruct)          
+          item = Oj.load(item_hash.to_json, mode: :compat, object_class: OpenStruct)
           next if skip_item?(item)
 
           # Lookup existing CDED referenced by item.mapping.custom_field_key
@@ -45,8 +70,8 @@ module Hmis
           custom_field_key = item.mapping&.custom_field_key
 
           # if the item does NOT reference a CDED, we would need to mutate the item to add the custom_field_key reference.
-          # skip if mutate_definition is false.
-          next if !custom_field_key && !mutate_definition
+          # skip if create_missing_mappings is false.
+          next if !custom_field_key && !@create_missing_mappings
 
           # Determine the owner type for the CDED
           owner_type = determine_owner_type(item)
@@ -90,6 +115,7 @@ module Hmis
       def validate_existing_cded(item, cded)
         # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
         # Validate that the CDED has the expected type
+        # FIXME this might be different from DefinitionValidator, check
         expected_field_type = Hmis::Form::Definition.infer_cded_field_type(item.type)
         if cded.field_type != expected_field_type
           raise "item #{item.link_id} references CDED key '#{cded.key}' with type mismatch. Expected CDED to have type '#{expected_field_type}', found CDED with type '#{cded.field_type}'"

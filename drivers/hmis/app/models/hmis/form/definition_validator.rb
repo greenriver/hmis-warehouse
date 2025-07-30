@@ -349,6 +349,7 @@ class Hmis::Form::DefinitionValidator
     cded
   end
 
+  # would be better to integrate with this for validation. repeated code for type checking
   def check_cdeds(document, role)
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
