@@ -22,7 +22,8 @@ module HmisExternalApis::AcHmis
       total_points = score_details.map { |details| details[:points] }.sum
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      # todo @martha - add logging to the db
+      log_calculation(values_by_link_id, score_details, total_points, alt_aha_score)
+
       alt_aha_score
     end
 
@@ -52,6 +53,18 @@ module HmisExternalApis::AcHmis
     end
 
     private
+
+    def log_calculation(values_by_link_id, score_details, total_points, final_score)
+      AcHmis::Scoring::CalculationLog.create!(
+        namespace: ALT_AHA_ALGO_NAMESPACE,
+        final_score: final_score,
+        calculation_details: {
+          score_details: score_details,
+          total_points: total_points,
+        },
+        input_values: values_by_link_id,
+      )
+    end
 
     def convert_logistic_score_to_points(logistic_score, algorithm)
       thresholds = AcHmis::Scoring::Threshold.thresholds_for_algorithm(algorithm)

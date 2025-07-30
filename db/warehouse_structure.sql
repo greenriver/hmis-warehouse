@@ -24150,6 +24150,41 @@ ALTER SEQUENCE public.hmis_scoring_algorithms_id_seq OWNED BY public.hmis_scorin
 
 
 --
+-- Name: hmis_scoring_calculation_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_calculation_logs (
+    id bigint NOT NULL,
+    namespace character varying NOT NULL,
+    client_identifier character varying,
+    final_score numeric(14,12) NOT NULL,
+    calculation_details json NOT NULL,
+    input_values json,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_calculation_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_calculation_logs_id_seq OWNED BY public.hmis_scoring_calculation_logs.id;
+
+
+--
 -- Name: hmis_scoring_rules; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -36462,6 +36497,13 @@ ALTER TABLE ONLY public.hmis_scoring_algorithms ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hmis_scoring_calculation_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_calculation_logs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_scoring_rules id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -40932,6 +40974,14 @@ ALTER TABLE ONLY public.hmis_scoring_algorithm_thresholds
 
 ALTER TABLE ONLY public.hmis_scoring_algorithms
     ADD CONSTRAINT hmis_scoring_algorithms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_calculation_logs hmis_scoring_calculation_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs
+    ADD CONSTRAINT hmis_scoring_calculation_logs_pkey PRIMARY KEY (id);
 
 
 --

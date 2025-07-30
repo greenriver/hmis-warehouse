@@ -40,5 +40,15 @@ class CreateHmisScoringRules < ActiveRecord::Migration[7.0]
     end
 
     add_index :hmis_scoring_algorithm_thresholds, [:hmis_scoring_algorithm_id, :points], name: 'index_hmis_scoring_algorithm_thresholds_unique', unique: true
+
+    create_table :hmis_scoring_calculation_logs do |t|
+      t.string :namespace, null: false
+      t.string :client_identifier, null: true
+      t.decimal :final_score, null: false, precision: 14, scale: 12
+      t.json :calculation_details, null: false
+      t.json :input_values, null: true
+
+      t.timestamps null: false
+    end
   end
 end
