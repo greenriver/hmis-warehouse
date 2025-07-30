@@ -59,24 +59,24 @@
                 %td= service.project&.safe_project_name || 'Extrapolated'
                 %td= service.project&.human_readable_project_type || 'Street Outreach'
                 %td= Time.zone.local_to_utc(service.provided_at).to_date
-      - if @client_history.dates.present?
-        %h3 HMIS Records
-        %table.history__dates-table
-          %thead
-            %tr
-              %th Organization
-              %th Project Name
-              %th Project Type
-              %th Date
-              %th Entry?
-              %th Exit?
-          %tbody
-            - @client_history.ordered_dates.each do |date|
-              - @client_history.dates[date].each do |en|
-                %tr
-                  %td= en[:organization_name]
-                  %td= en[:project_name]
-                  %td= HudUtility2024.project_type en[:project_type]
-                  %td= date
-                  %td= date if en[:record_type] == 'entry'
-                  %td= date if en[:record_type] == 'exit'
+    - if @client_history.dates.present?
+      %h3 HMIS Records
+      %table.history__dates-table
+        %thead
+          %tr
+            %th Organization
+            %th Project Name
+            %th Project Type
+            %th Date
+            %th Entry?
+            %th Exit?
+        %tbody
+          - @client_history.ordered_dates.each do |date|
+            - @client_history.dates[date].each do |en|
+              %tr
+                %td= en[:organization_name]
+                %td= en[:project_name]
+                %td= HudUtility2024.project_type en[:project_type]
+                %td= date
+                %td= date if en[:record_type] == 'entry'
+                %td= date if en[:record_type] == 'exit'
