@@ -24085,6 +24085,107 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 
 
 --
+-- Name: hmis_scoring_algorithm_thresholds; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_algorithm_thresholds (
+    id bigint NOT NULL,
+    hmis_scoring_algorithm_id bigint NOT NULL,
+    threshold numeric(14,12) NOT NULL,
+    points integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_algorithm_thresholds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_algorithm_thresholds_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_algorithm_thresholds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_algorithm_thresholds_id_seq OWNED BY public.hmis_scoring_algorithm_thresholds.id;
+
+
+--
+-- Name: hmis_scoring_algorithms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_algorithms (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    namespace character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_algorithms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_algorithms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_algorithms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_algorithms_id_seq OWNED BY public.hmis_scoring_algorithms.id;
+
+
+--
+-- Name: hmis_scoring_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_rules (
+    id bigint NOT NULL,
+    link_id character varying NOT NULL,
+    min_value numeric(10,2),
+    max_value numeric(10,2),
+    exact_value character varying,
+    weight numeric(14,12) NOT NULL,
+    hmis_scoring_algorithm_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_rules_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rules.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -36347,6 +36448,27 @@ ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_scoring_algorithm_thresholds id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_algorithm_thresholds ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_algorithm_thresholds_id_seq'::regclass);
+
+
+--
+-- Name: hmis_scoring_algorithms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_algorithms ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_algorithms_id_seq'::regclass);
+
+
+--
+-- Name: hmis_scoring_rules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_rules_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -40794,6 +40916,30 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 ALTER TABLE ONLY public.hmis_scan_card_codes
     ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_algorithm_thresholds hmis_scoring_algorithm_thresholds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_algorithm_thresholds
+    ADD CONSTRAINT hmis_scoring_algorithm_thresholds_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_algorithms hmis_scoring_algorithms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_algorithms
+    ADD CONSTRAINT hmis_scoring_algorithms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_rules hmis_scoring_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules
+    ADD CONSTRAINT hmis_scoring_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -60000,6 +60146,13 @@ CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDe
 
 
 --
+-- Name: idx_algo_thresholds_on_algo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_algo_thresholds_on_algo ON public.hmis_scoring_algorithm_thresholds USING btree (hmis_scoring_algorithm_id);
+
+
+--
 -- Name: idx_any_stage; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60403,6 +60556,13 @@ CREATE INDEX idx_on_loader_id_083332ec0e ON public.hmis_csv_2026_custom_data_ele
 --
 
 CREATE INDEX idx_on_system_maintenance_task_id_fa76b5b863 ON public.system_maintenance_task_runs USING btree (system_maintenance_task_id);
+
+
+--
+-- Name: idx_scoring_rules_on_algo; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_scoring_rules_on_algo ON public.hmis_scoring_rules USING btree (hmis_scoring_algorithm_id);
 
 
 --
@@ -66164,6 +66324,27 @@ CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_car
 --
 
 CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
+
+
+--
+-- Name: index_hmis_scoring_algorithm_thresholds_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scoring_algorithm_thresholds_unique ON public.hmis_scoring_algorithm_thresholds USING btree (hmis_scoring_algorithm_id, points);
+
+
+--
+-- Name: index_hmis_scoring_algorithms_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scoring_algorithms_on_name ON public.hmis_scoring_algorithms USING btree (name);
+
+
+--
+-- Name: index_hmis_scoring_rules_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scoring_rules_unique ON public.hmis_scoring_rules USING btree (hmis_scoring_algorithm_id, link_id, min_value, max_value, exact_value);
 
 
 --
@@ -74607,6 +74788,14 @@ ALTER TABLE ONLY public.service_history_services_2029
 
 
 --
+-- Name: hmis_scoring_rules fk_rails_7c9793989e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules
+    ADD CONSTRAINT fk_rails_7c9793989e FOREIGN KEY (hmis_scoring_algorithm_id) REFERENCES public.hmis_scoring_algorithms(id);
+
+
+--
 -- Name: service_history_services_2028 fk_rails_7d15674636; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -74991,6 +75180,14 @@ ALTER TABLE ONLY public.service_history_services_2004
 
 
 --
+-- Name: hmis_scoring_algorithm_thresholds fk_rails_d2d701bba1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_algorithm_thresholds
+    ADD CONSTRAINT fk_rails_d2d701bba1 FOREIGN KEY (hmis_scoring_algorithm_id) REFERENCES public.hmis_scoring_algorithms(id);
+
+
+--
 -- Name: wfe_audit_events fk_rails_d41f2b6ca2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75157,6 +75354,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250730173200'),
 ('20250729183312'),
 ('20250716131246'),
 ('20250716131240'),
@@ -75350,3 +75548,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

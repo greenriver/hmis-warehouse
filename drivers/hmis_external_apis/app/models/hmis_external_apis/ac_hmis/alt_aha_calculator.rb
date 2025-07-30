@@ -8,8 +8,76 @@
 
 module HmisExternalApis::AcHmis
   class AltAhaCalculator
-    def calculate_score(*)
-      nil
+    ALT_AHA_ALGO_NAMESPACE = 'alt_aha'
+
+    def calculate_score(values_by_link_id)
+      return 0 if values_by_link_id.blank?
+
+      algorithms = AcHmis::Scoring::Algorithm.where(namespace: ALT_AHA_ALGO_NAMESPACE)
+
+      score_details = algorithms.map do |algorithm|
+        calculate_algorithm_score(algorithm, values_by_link_id)
+      end
+
+      total_points = score_details.map { |details| details[:points] }.sum
+      alt_aha_score = convert_total_points_to_score(total_points)
+
+      # todo @martha - add logging to the db
+      alt_aha_score
+    end
+
+    def calculate_algorithm_score(algorithm, values_by_link_id)
+      # Get all scoring rules for this algorithm, grouped by link_id
+      rules_by_link_id = AcHmis::Scoring::Rule.rules_by_link_id(algorithm)
+
+      # Calculate weighted score
+      weighted_score = 0
+      values_by_link_id.each do |link_id, response_value|
+        rules = rules_by_link_id[link_id.to_s] || []
+        matching_rule = rules.find { |rule| rule.matches_value?(response_value) }
+
+        # todo @martha discuss whether this is too dissimilar from what we received
+        weighted_score += matching_rule.weight unless matching_rule.nil?
+      end
+
+      logistic_score = 1.0 / (1.0 + Math.exp(-weighted_score))
+      points = convert_logistic_score_to_points(logistic_score, algorithm)
+
+      {
+        algorithm_name: algorithm.name,
+        weighted_score: weighted_score,
+        logistic_score: logistic_score,
+        points: points,
+      }
+    end
+
+    private
+
+    def convert_logistic_score_to_points(logistic_score, algorithm)
+      thresholds = AcHmis::Scoring::Threshold.thresholds_for_algorithm(algorithm)
+
+      # Find the first threshold that the probability exceeds
+      thresholds.each do |threshold, points|
+        return points if logistic_score > threshold
+      end
+
+      # If probability doesn't exceed any threshold, return 0 points
+      0
+    end
+
+    def convert_total_points_to_score(total_points)
+      return 10 if total_points >= 11 && total_points < 16
+      return 9 if total_points >= 9 && total_points < 11
+      return 8 if total_points >= 8 && total_points < 9
+      return 7 if total_points >= 7 && total_points < 8
+      return 6 if total_points >= 6 && total_points < 7
+      return 5 if total_points >= 5 && total_points < 6
+      return 4 if total_points >= 4 && total_points < 5
+      return 3 if total_points >= 3 && total_points < 4
+      return 2 if total_points >= 1 && total_points < 3
+      return 1 if total_points >= 0 && total_points < 1
+
+      0
     end
   end
 end
