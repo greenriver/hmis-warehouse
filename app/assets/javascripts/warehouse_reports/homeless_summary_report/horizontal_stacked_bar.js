@@ -70,7 +70,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
           height: this.height,
         },
         axis: {
-          width: 100,
           rotated: true,
           y: {
             max: this.max_value,
@@ -105,7 +104,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         padding: {
           left: this.padding.left || 250,
           top: 0,
-          bottom: 40,
+          bottom: 50,
         },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
