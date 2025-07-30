@@ -34,10 +34,10 @@ module HmisExternalApis::AcHmis
       weighted_score = 0
       values_by_link_id.each do |link_id, response_value|
         rules = rules_by_link_id[link_id.to_s] || []
-        matching_rule = rules.find { |rule| rule.matches_value?(response_value) }
+        matching_rules = rules.select { |rule| rule.matches_value?(response_value) }
 
-        # todo @martha discuss whether this is too dissimilar from what we received
-        weighted_score += matching_rule.weight unless matching_rule.nil?
+        # Sum weights from all matching rules for this link_id
+        weighted_score += matching_rules.sum(&:weight)
       end
 
       logistic_score = 1.0 / (1.0 + Math.exp(-weighted_score))

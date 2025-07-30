@@ -23,8 +23,9 @@ module AcHmis
       def matches_value?(value)
         return value.to_s == exact_value if exact_value.present?
 
-        # For numeric ranges, assume value is already a number
-        (min_value.nil? || value >= min_value) && (max_value.nil? || value <= max_value)
+        # For numeric ranges: min_value is inclusive, max_value is exclusive [min, max)
+        # This prevents overlapping ranges at boundaries
+        (min_value.nil? || value >= min_value) && (max_value.nil? || value < max_value)
       end
 
       # Get all rules for a specific algorithm, grouped by link_id for efficient lookup

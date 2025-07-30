@@ -89,7 +89,6 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
     end
 
     it 'handles edge cases and missing values gracefully' do
-      # todo @martha test failure with 3 edge case
       # Test with boundary value (exactly 3 should match the 3+ rule, not the 1-3 rule)
       values = {
         'has_abc_ever_happened' => 'Refused',
@@ -143,6 +142,35 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       expect(score_details[:weighted_score].to_f).to eq(-2.5)
       # weighted_score=-2.5 → logistic_score=0.076 → doesn't exceed 0.1 threshold → 0 points
       expect(score_details[:points]).to eq(0)
+    end
+
+    it 'sums weights from multiple matching rules for the same question' do
+      # Create multiple overlapping rules that can both match the same value
+      create(:ac_hmis_scoring_rule, link_id: 'risk_score', min_value: 2, weight: 0.1, algorithm: algorithm1)
+      create(:ac_hmis_scoring_rule, link_id: 'risk_score', min_value: 3, weight: 0.2, algorithm: algorithm1)
+      create(:ac_hmis_scoring_rule, link_id: 'risk_score', min_value: 5, weight: 0.3, algorithm: algorithm1)
+
+      # Test value that matches multiple rules
+      values = {
+        'has_abc_ever_happened' => 'Yes',  # 0.5 weight
+        'risk_score' => 5,                 # Should match all three rules: 0.1 + 0.2 + 0.3 = 0.6
+      }
+      score_details = calculator.calculate_algorithm_score(algorithm1, values)
+      # Should be 0.5 (yes) + 0.6 (sum of three matching risk rules) = 1.1
+      expect(score_details[:weighted_score].to_f).to eq(1.1)
+      # weighted_score=1.1 → logistic_score=0.750 → exceeds 0.7 threshold → 4 points
+      expect(score_details[:points]).to eq(4)
+
+      # Test value that matches fewer rules
+      values_partial = {
+        'has_abc_ever_happened' => 'No',   # -0.5 weight
+        'risk_score' => 3,                 # Should match two rules: 0.1 + 0.2 = 0.3
+      }
+      score_details_partial = calculator.calculate_algorithm_score(algorithm1, values_partial)
+      # Should be -0.5 (no) + 0.3 (sum of two matching risk rules) = -0.2
+      expect(score_details_partial[:weighted_score].to_f).to eq(-0.2)
+      # weighted_score=-0.2 → logistic_score=0.450 → exceeds 0.3 threshold → 2 points
+      expect(score_details_partial[:points]).to eq(2)
     end
   end
 end
