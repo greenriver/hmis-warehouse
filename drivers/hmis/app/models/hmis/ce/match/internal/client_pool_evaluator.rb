@@ -35,7 +35,7 @@ module Hmis::Ce::Match::Internal
     end
 
     def call(client)
-      client_values = @client_field_values[client_id]
+      client_values = @client_field_values[client.id]
 
       # Client without a score cannot be prioritized
       #   * To be eligible priority score must be non-null AND the eligibility requirement must pass

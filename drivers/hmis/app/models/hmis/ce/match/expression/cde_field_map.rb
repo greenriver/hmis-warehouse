@@ -7,6 +7,12 @@ module Hmis::Ce::Match::Expression
       @current_date = current_date
     end
 
+    private
+
+    def arel_helper
+      Hmis::ArelHelper.instance
+    end
+
     # Possible reasons why this could this return nil:
     # * the question was left empty on the form
     # * the question was disabled by conditional logic on the form
@@ -23,8 +29,8 @@ module Hmis::Ce::Match::Expression
         joins(:custom_data_elements).merge(cde_scope)
         order(:date_updated, :id).
         select(
-          arel.wc_t[Arel.star].distinct_on(arel.wc_t[:destination_id]),
-          cde_t[cded.cde_arel_field],
+          arel_helper.wc_t[Arel.star].distinct_on(arel_helper.wc_t[:destination_id]),
+          arel_helper.cde_t[cded.cde_arel_field],
         )
 
       if cded.repeats?
