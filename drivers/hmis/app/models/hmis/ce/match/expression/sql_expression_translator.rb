@@ -14,7 +14,12 @@ module Hmis::Ce::Match::Expression
       # Use the field_map's current_date if available, otherwise use default
       current_date = field_map.respond_to?(:current_date) ? field_map.current_date : Date.current
       calculator = CalculatorFactory.build(current_date: current_date)
-      ast = calculator.ast(expression)
+      begin
+        ast = calculator.ast(expression)
+      rescue Dentaku::Error => e
+        err_with_context = "Error parsing expression '#{expression}': #{e.message}"
+        raise e, err_with_context, e.backtrace
+      end
       translator = new(field_map)
       translator.visit(ast)
       translator.to_arel
@@ -80,7 +85,7 @@ module Hmis::Ce::Match::Expression
       # This will return the number of days between current_date and the field
       Arel::Nodes::Subtraction.new(
         Arel::Nodes::Quoted.new(current_date_value),
-        date_arel
+        date_arel,
       )
     end
 

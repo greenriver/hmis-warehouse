@@ -45,12 +45,13 @@ module Hmis::Ce::Match::Expression
     def all
       @all ||= {
         last_enrolled_at: {
-          instance_value: -> (c) { last_enrollment_date(c) },
+          instance_value: ->(c) { last_enrollment_date(c) },
           joins: [{ hmis_source_clients: { enrollments: :exit } }],
+          # Use current_date for open enrollments (no exit), otherwise use actual exit date
           arel_field: arel.acase(
             [
               # if there's no exit, but there is an enrollment, use today
-              [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), Date.current],
+              [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), @current_date],
             ],
             elsewise: arel.ex_t['ExitDate'],
           ),

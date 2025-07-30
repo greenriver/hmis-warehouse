@@ -35,7 +35,7 @@ module Hmis::Ce::Match::Expression
           when String
             Date.parse(date)
           else
-            return nil
+            raise TypeError, "Expected Date or String, got #{date.class}"
           end
 
           (current_date - parsed_date).to_i

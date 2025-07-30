@@ -58,7 +58,7 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
           [client2, current_date - 2.years],   # Outside 365 days
         ].each do |source_client, exit_date|
           ds = source_client.data_source
-          project = create(:hmis_hud_project,  data_source: ds)
+          project = create(:hmis_hud_project, data_source: ds)
           enrollment = create(:hmis_hud_enrollment, client: source_client, data_source: ds, project: project, entry_date: exit_date - 1.week)
           create(:hmis_base_hud_exit, enrollment: enrollment, exit_date: exit_date, data_source: ds)
         end

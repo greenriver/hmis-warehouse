@@ -54,6 +54,10 @@ module Hmis::Ce::Match::Expression
       nil
     end
 
+    def joins(field)
+      nil
+    end
+
     protected
 
     # client is a destination client

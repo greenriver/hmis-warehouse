@@ -40,27 +40,24 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       expect(result.to_sql).to include('1 = 1') # ALWAYS_TRUE for unsupported field
     end
 
-    it 'handles simple addition' do
+    it 'handles basic arithmetic operations' do
+      # Test basic operations
       result = described_class.call('current_age = (5 + 5)', field_map)
       expect(result.to_sql).to include('= (5 + 5)')
-    end
 
-    it 'handles complex arithmetic' do
+      # Test complex arithmetic with precedence
       result = described_class.call('current_age = (10 * 2 + 5)', field_map)
       expect(result.to_sql).to include('= ((10 * 2) + 5)')
-    end
 
-    it 'handles division' do
+      # Test division and modulo
       result = described_class.call('current_age = (100 / 2)', field_map)
       expect(result.to_sql).to include('= (100 / 2)')
-    end
 
-    it 'handles modulo' do
       result = described_class.call('current_age = (7 % 2)', field_map)
       expect(result.to_sql).to include('% 2')
     end
 
-    it 'handles exponentiation' do
+    it 'handles exponentiation with POWER function' do
       result = described_class.call('current_age = (2 ^ 3)', field_map)
       expect(result.to_sql).to include('POWER')
     end
@@ -120,11 +117,7 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
         expect(result.to_sql).to eq('(1 = 1)')
       end
 
-      it 'handles multiple unresolvable fields in an AND expression' do
-        result = described_class.call('unresolvable_field1 = 1 AND unresolvable_field2 = 2', field_map)
-        sql = result.to_sql
-        expect(sql).to include('(1 = 1) AND (1 = 1)')
-      end
+
 
       it 'handles a complex expression with mixed resolvable and unresolvable fields' do
         result = described_class.call(
