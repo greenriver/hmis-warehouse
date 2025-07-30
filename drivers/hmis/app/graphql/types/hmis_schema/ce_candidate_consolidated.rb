@@ -10,9 +10,10 @@ module Types
   class HmisSchema::CeCandidateConsolidated < Types::BaseObject
     # object is an Open Struct
     field :id, ID, null: false
-    field :client_id, String, null: true
+    field :client_id, ID, null: true # destination client id
+    field :source_client_id, ID, null: true
     field :client_name, String, null: true
-    field :unit_group_name, String, null: true
+    # field :unit_group_name, String, null: true
     field :project_name, String, null: true
     field :project_id, ID, null: true
     field :organization_name, String, null: true
@@ -49,5 +50,6 @@ module Types
         lookup.fetch(key, k)
       end
     end
+
   end
 end

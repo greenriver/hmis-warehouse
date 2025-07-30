@@ -4,6 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# api = HmisExternalApis::AcHmis::DataWarehouseApi.new
+# res = api.client_by_client_id(147563)
+# res["parsed_body"]["data"].map { |h| h.slice('mciUniqId', 'mciUniqIdDate') }
+#
+# spot-checked 2, they returned IDs, so we should be able to populate the missing ones ourselves
 module HmisExternalApis::AcHmis
   class DataWarehouseApi
     SYSTEM_ID = 'ac_hmis_warehouse_api'.freeze

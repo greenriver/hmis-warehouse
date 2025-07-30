@@ -740,7 +740,7 @@ type CeCandidate {
 type CeCandidateConsolidated {
   clientAge: Int
   clientAttributes: JSON
-  clientId: String
+  clientId: ID
   clientName: String
 
   """
@@ -754,7 +754,7 @@ type CeCandidateConsolidated {
   priorityScore: Float
   projectId: ID
   projectName: String
-  unitGroupName: String
+  sourceClientId: ID
   whenAddedToCandidatePool: ISO8601DateTime
   whenUpdatedInCandidatePool: ISO8601DateTime
 }
