@@ -3,6 +3,10 @@
 module Hmis::Ce::Match::Expression
   # FieldMap implementation for CDE fields
   class CdeFieldMap
+    def initialize(current_date: Date.current)
+      @current_date = current_date
+    end
+
     # Possible reasons why this could this return nil:
     # * the question was left empty on the form
     # * the question was disabled by conditional logic on the form
