@@ -58,7 +58,7 @@ module Hmis::Ce::Match::Expression
       nil
     end
 
-    def joins(field)
+    def joins(_field)
       nil
     end
 

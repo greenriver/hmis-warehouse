@@ -117,8 +117,6 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
         expect(result.to_sql).to eq('(1 = 1)')
       end
 
-
-
       it 'handles a complex expression with mixed resolvable and unresolvable fields' do
         result = described_class.call(
           '(unresolvable_field = 1 AND current_age > 18) OR veteran_status = 1',

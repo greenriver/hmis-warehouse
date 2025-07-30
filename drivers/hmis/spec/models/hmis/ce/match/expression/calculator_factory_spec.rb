@@ -39,7 +39,7 @@ RSpec.describe Hmis::Ce::Match::Expression::CalculatorFactory do
       it 'raises error for non-date values' do
         expect do
           calculator.evaluate('DAYS_AGO(date)', date: 123)
-        end.to raise_error(TypeError, "Expected Date or String, got Integer")
+        end.to raise_error(TypeError, 'Expected Date or String, got Integer')
       end
 
       it 'can be used in expressions' do
