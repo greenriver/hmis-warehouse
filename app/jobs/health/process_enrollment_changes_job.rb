@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class ProcessEnrollmentChangesJob < BaseJob
     include HealthEnrollment
@@ -63,6 +65,8 @@ module Health
               errors << conflict_message(transaction)
             end
           end
+        rescue Health::MedicaidIdConflict
+          errors << conflict_message(transaction)
         end
 
         enrollment.disenrollments.each do |transaction|
