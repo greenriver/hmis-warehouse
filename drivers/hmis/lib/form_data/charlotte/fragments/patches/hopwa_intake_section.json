@@ -3,8 +3,8 @@
     "form_identifier": "base-intake",
     "append_items": [
       {
-        "link_id": "custom_hopwa",
-        "text": "HOPWA Section",
+        "link_id": "hopwa_intake",
+        "text": "HOPWA Intake Questions",
         "type": "GROUP",
         "item": [
           {
