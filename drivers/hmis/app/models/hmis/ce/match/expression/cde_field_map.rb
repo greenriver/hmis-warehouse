@@ -48,13 +48,47 @@ module Hmis::Ce::Match::Expression
       end
     end
 
-    # arel not supported.
-    # Enhancement: if expression requires certain CDEs to be present then we could take a rough pass to filter out clients that lack the relevant assessments
-    def arel_field(_field)
-      nil
+    # Returns Arel expression for SQL prefiltering of CDE fields
+    # This enables SQL-level filtering for custom assessment data elements
+    def arel_field(field)
+      cded = parse_entity_type(field)
+
+      # Get the appropriate value column based on field type
+      value_column = value_column_for_field_type(cded.field_type)
+      return nil unless value_column
+
+      # Build a correlated subquery to find the most recent custom assessment value
+      # Custom assessments live on source clients (Hmis::Hud::Client), but the main query
+      # operates on destination clients (GrdaWarehouse::Hud::Client), so we need to join through WarehouseClient
+      assessment_subquery = Hmis::Hud::CustomAssessment.
+        joins(:client).  # Join to the source client
+        joins(:definition).
+        joins(:custom_data_elements).
+        joins('INNER JOIN warehouse_clients ON warehouse_clients.source_id = "Client"."id"').  # Connect source to destination
+        where(
+          Hmis::Form::Definition.arel_table[:identifier].eq(cded.form_definition_identifier)
+        ).
+        where(
+          Hmis::Hud::CustomDataElement.arel_table[:data_element_definition_id].eq(cded.id)
+        ).
+        where(
+          # Correlate with the main query's destination client
+          Arel.sql('warehouse_clients.destination_id = "Client"."id"')
+        ).
+        order(
+          Hmis::Hud::CustomAssessment.arel_table[:date_updated].desc,
+          Hmis::Hud::CustomAssessment.arel_table[:id].desc
+        ).
+        limit(1).
+        select(Hmis::Hud::CustomDataElement.arel_table[value_column])
+
+      # Return the subquery wrapped in Arel
+      Arel::Nodes::SqlLiteral.new("(#{assessment_subquery.to_sql})")
     end
 
     def joins(field)
+      # No joins needed at main query level since we use a correlated subquery
+      # in arel_field to find the most recent custom assessment value
       nil
     end
 
@@ -98,6 +132,32 @@ module Hmis::Ce::Match::Expression
       @cded_lookup ||= Hmis::Hud::CustomDataElementDefinition.all.
         group_by(&:owner_type).
         transform_values { |definitions| definitions.index_by(&:key) }
+    end
+
+    private
+
+    # Maps field types to their corresponding value column in CustomDataElement
+    def value_column_for_field_type(field_type)
+      case field_type.to_s
+      when 'boolean'
+        :value_boolean
+      when 'date'
+        :value_date
+      when 'float'
+        :value_float
+      when 'integer'
+        :value_integer
+      when 'string'
+        :value_string
+      when 'text'
+        :value_text
+      when 'json'
+        :value_json
+      when 'file'
+        :value_file_id
+      else
+        nil
+      end
     end
   end
 end
