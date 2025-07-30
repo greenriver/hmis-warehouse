@@ -4,6 +4,12 @@ module Hmis::Ce::Match::Expression
   # FieldMap implementation for GrdaWarehouse::Hud::Client fields
   # This class resolves fields that are columns on the `Client` table or one of its associations.
   class ClientFieldMap
+    attr_reader :current_date
+
+    def initialize(current_date: Date.current)
+      @current_date = current_date
+    end
+
     def instance_value(client, field)
       callback = all.dig(field.to_sym, :instance_value)
       raise ArgumentError, "Field \"#{field}\" is not supported" unless callback
@@ -39,12 +45,7 @@ module Hmis::Ce::Match::Expression
     def all
       @all ||= {
         last_enrolled_at: {
-          instance_value: lambda { |c|
-            enrollments = c.hmis_source_clients.joins(:enrollments)
-            return Date.current if enrollments.where.missing(:exit).exists?
-
-            enrollments.joins(:exit).maximum(arel.ex_t['ExitDate'])&.to_date
-          },
+          instance_value: -> (c) { last_enrollment_date(c) },
           joins: [{ hmis_source_clients: { enrollments: :exit } }],
           arel_field: arel.acase(
             [
@@ -119,12 +120,15 @@ module Hmis::Ce::Match::Expression
       )
     end
 
-    def current_date
-      @current_date ||= Date.current
-    end
-
     def map_project_types(project_type_ids)
       project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) }
+    end
+
+    def last_enrollment_date(client)
+      enrollments = client.hmis_source_clients.joins(:enrollments)
+      return @current_date if enrollments.where.missing(:exit).exists?
+
+      enrollments.joins(:exit).maximum(arel.ex_t['ExitDate'])&.to_date
     end
   end
 end

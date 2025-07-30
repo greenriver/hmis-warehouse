@@ -19,6 +19,12 @@ module Hmis::Ce::Match::Expression
     CDE = 'cde'
     CLIENT = 'client'
 
+    attr_reader :current_date
+
+    def initialize(current_date: Date.current)
+      @current_date = current_date
+    end
+
     def instance_value(client, field)
       resolver, resolved_field = resolver_for(field)
       resolver.instance_value(client, resolved_field)
@@ -82,7 +88,7 @@ module Hmis::Ce::Match::Expression
     def registered_resolvers
       @registered_resolvers ||= {
         CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new,
-        CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new,
+        CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new(current_date: @current_date),
       }
     end
   end

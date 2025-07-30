@@ -15,8 +15,10 @@ module Hmis::Ce::Match::Internal
 
     # note, the filter only works on candidates that are destination clients
     def call(client_universe)
+      current_date = @field_map.respond_to?(:current_date) ? @field_map.current_date : Date.current
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build(current_date: current_date)
+      ast = calculator.ast(@pool.requirement_expression)
       translator = Hmis::Ce::Match::Expression::SqlExpressionTranslator.new(@field_map)
-      ast = Hmis::Ce::Match::Expression::CalculatorFactory.build.ast(@pool.requirement_expression)
       translator.visit(ast)
       condition = translator.to_arel
       joins = translator.joins.compact

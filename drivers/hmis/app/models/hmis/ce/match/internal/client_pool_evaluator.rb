@@ -13,11 +13,11 @@ module Hmis::Ce::Match::Internal
     end
     private_constant :Result
 
-    def initialize(pool, field_map)
+    def initialize(pool, field_map, current_date: Date.current)
       @pool = pool
 
       @field_map = field_map
-      @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
+      @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build(current_date: current_date)
       @dependencies = [
         pool.requirement_expression,
         pool.priority_expression,

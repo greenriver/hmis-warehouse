@@ -4,8 +4,9 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
   let!(:destination_data_source) { create :destination_data_source }
+  let(:current_date) { Date.new(2024, 12, 26) }
+  let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new(current_date: current_date) }
   let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression) }
-  let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new }
   let(:prefilter) { described_class.new(pool, field_map) }
   let!(:client1) { create(:hmis_hud_client, dob: 20.years.ago) } # age 20
   let!(:client2) { create(:hmis_hud_client, dob: 15.years.ago) } # age 15
@@ -48,13 +49,13 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
       end
     end
 
-    context 'with an expression that requires a join' do
-      let(:requirement_expression) { "last_enrolled_at > '#{1.year.ago.to_date.to_fs(:db)}'" }
+    context 'with an expression that requires a join using DAYS_AGO' do
+      let(:requirement_expression) { 'DAYS_AGO(last_enrolled_at) < 365' }
 
       before do
         [
-          [client1, 6.months.ago],
-          [client2, 2.years.ago],
+          [client1, current_date - 6.months],  # Within 365 days
+          [client2, current_date - 2.years],   # Outside 365 days
         ].each do |source_client, exit_date|
           ds = source_client.data_source
           project = create(:hmis_hud_project,  data_source: ds)
@@ -70,20 +71,20 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
       end
     end
 
-    context 'with a last_enrolled_at expression and a client with an open enrollment' do
-      let(:requirement_expression) { "last_enrolled_at > '#{1.month.ago.to_date.to_fs(:db)}'" }
+    context 'with a last_enrolled_at expression using DAYS_AGO and a client with an open enrollment' do
+      let(:requirement_expression) { 'DAYS_AGO(last_enrolled_at) < 30' }
 
       before do
         # client1 has an open enrollment, so should be included
         ds1 = client1.data_source
         project1 = create(:hmis_hud_project, data_source: ds1)
-        create(:hmis_hud_enrollment, client: client1, data_source: ds1, project: project1, entry_date: 2.months.ago)
+        create(:hmis_hud_enrollment, client: client1, data_source: ds1, project: project1, entry_date: current_date - 2.months)
 
-        # client2 has a closed enrollment that does not meet the criteria
+        # client2 has a closed enrollment that does not meet the criteria (exited >30 days ago)
         ds2 = client2.data_source
         project2 = create(:hmis_hud_project, data_source: ds2)
-        enrollment2 = create(:hmis_hud_enrollment, client: client2, data_source: ds2, project: project2, entry_date: 3.months.ago)
-        create(:hmis_base_hud_exit, enrollment: enrollment2, exit_date: 2.months.ago, data_source: ds2)
+        enrollment2 = create(:hmis_hud_enrollment, client: client2, data_source: ds2, project: project2, entry_date: current_date - 3.months)
+        create(:hmis_base_hud_exit, enrollment: enrollment2, exit_date: current_date - 60.days, data_source: ds2)
       end
 
       it 'considers their last_enrolled_at as current date and includes them' do

@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
-  let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new }
+  let(:current_date) { Date.new(2024, 12, 26) }
+  let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new(current_date: current_date) }
 
   describe '.call' do
     it 'handles simple comparisons' do
@@ -100,6 +101,23 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       it 'handles INCLUDES with unresolvable field by making the expression always true' do
         result = described_class.call('INCLUDES(open_enrollment_project_types, 14)', field_map)
         expect(result.to_sql).to eq('1 = 1')
+      end
+    end
+
+    context 'with DAYS_AGO function' do
+      it 'translates DAYS_AGO function to SQL date subtraction' do
+        result = described_class.call('DAYS_AGO(last_enrolled_at) < 365', field_map)
+        sql = result.to_sql
+        # Should contain the current_date and last_enrolled_at subtraction
+        expect(sql).to include('2024-12-26') # our test current_date
+        expect(sql).to include('< 365')
+        # Should contain some reference to the last_enrolled_at field (might be complex due to CASE statement)
+        expect(sql).to include('ExitDate').or include('CASE')
+      end
+
+      it 'handles DAYS_AGO with unsupported field by making expression always true' do
+        result = described_class.call('DAYS_AGO(unsupported_field) < 30', field_map)
+        expect(result.to_sql).to eq('(1 = 1)')
       end
 
       it 'handles multiple unresolvable fields in an AND expression' do

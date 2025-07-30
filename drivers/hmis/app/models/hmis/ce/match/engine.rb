@@ -14,14 +14,15 @@ module Hmis::Ce::Match
   # evaluate, and persist candidates and their corresponding events.
   class Engine
     # Convenience class method to instantiate and call the engine in one step.
-    def self.call(pool, clients: nil, progress: false)
-      new(pool).call(clients, progress: progress)
+    def self.call(pool, clients: nil, progress: false, current_date: Date.current)
+      new(pool, current_date: current_date).call(clients, progress: progress)
     end
 
-    def initialize(pool)
+    def initialize(pool, current_date: Date.current)
       @pool = pool
-      @field_map = Hmis::Ce::Match::Expression::FieldMap.new
-      @evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(@pool, @field_map)
+      @current_date = current_date
+      @field_map = Hmis::Ce::Match::Expression::FieldMap.new(current_date: @current_date)
+      @evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(@pool, @field_map, current_date: @current_date)
       @event_writer = Hmis::Ce::Match::Internal::CandidateEventWriter.new(@pool)
       @repo = Hmis::Ce::Match::Internal::CandidateRepository.new(@pool)
       @prefilter = Hmis::Ce::Match::Internal::SqlPrefilter.new(@pool, @field_map)
