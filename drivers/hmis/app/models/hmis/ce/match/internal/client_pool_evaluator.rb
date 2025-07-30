@@ -25,17 +25,22 @@ module Hmis::Ce::Match::Internal
         @calculator.dependencies(expression)
       end.sort.uniq
 
-      @client_field_values = {}
+      @client_field_values = Hash.new { |h, k| h[k] = {} }
       @dependencies.each do |field|
-        field_map.client_query(clients, field).each do |client_id, value|
-          @client_field_values[client_id] ||= {}
-          @client_field_values[client_id][field] = value
+        result = field_map.client_query(clients, field)
+        next unless result.respond_to?(:each)
+
+        # Ensure all clients have an entry for this field, even if it's empty
+        clients.find_each do |client|
+          # Default to empty array for array-type fields, nil for single-value fields
+          default_value = field.to_s.include?('project_types') ? [] : nil
+          @client_field_values[client.id][field] = result.fetch(client.id, default_value)
         end
       end
     end
 
     def call(client)
-      client_values = @client_field_values[client.id]
+      client_values = @client_field_values[client.id] || {}
 
       # Client without a score cannot be prioritized
       #   * To be eligible priority score must be non-null AND the eligibility requirement must pass

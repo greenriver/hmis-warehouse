@@ -69,13 +69,13 @@ module Hmis::Ce::Match::Expression
           ),
         },
         veteran_status: {
-          query: ->(clients) { clients.pluck(:id, :veteran_status)},
+          query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
           format_for_display: ->(v) { HudUtility2026.veteran_status(v) },
           arel_field: arel.c_t['VeteranStatus'],
         },
         current_age: {
-          query: ->(clients) { clients.pluck(:id, age_from(current_date, arel.c_t['DOB'])) },
-          arel_field: age_from(current_date, arel.c_t['DOB']),
+          query: ->(clients) { clients.pluck(:id, age_from(@current_date, arel.c_t['DOB'])).to_h },
+          arel_field: age_from(@current_date, arel.c_t['DOB']),
         },
         days_homeless: {
           query: ->(clients) {

@@ -7,37 +7,46 @@ module Hmis::Ce::Match::Expression
       @current_date = current_date
     end
 
-    private
-
-    def arel_helper
-      Hmis::ArelHelper.instance
-    end
-
     # Possible reasons why this could this return nil:
     # * the question was left empty on the form
     # * the question was disabled by conditional logic on the form
     # * the version of the form definition did not include the question at the time the form was submitted
+    def client_query(clients, field)
+      clients_query(clients, field)
+    end
+
     def clients_query(clients, field)
       cded = parse_entity_type(field)
-      cde_scope = Hmis::Hud::CustomDataElement.where(data_element_definition: cded)
 
-      # choose the assessment that was most recently updated
-      cde_values = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
-        where(warehouse_clients: { destination_id: clients.select(:id) }).
-        joins(:definition).
-        where(definition: { identifier: cded.form_definition_identifier }).
-        joins(:custom_data_elements).merge(cde_scope)
-        order(:date_updated, :id).
-        select(
-          arel_helper.wc_t[Arel.star].distinct_on(arel_helper.wc_t[:destination_id]),
-          arel_helper.cde_t[cded.cde_arel_field],
-        )
+      # Get CDE values for all clients in the batch
+      # Using a simpler approach that actually works with Rails
+      results = {}
 
-      if cded.repeats?
-        cde_values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
-      else
-        cde_values.index_by(&:first).transform_values { |row| row.last }
+      clients.find_each do |client|
+        cde_values = custom_assessment_cdes(cded, client).
+          map { |cde| cded.read_value_from(cde) }.
+          compact_blank
+
+        value = if cded.repeats?
+          cde_values
+        else
+          cde_values.first
+        end
+
+        results[client.id] = value if value.present?
       end
+
+      results
+    end
+
+    def joins(_field)
+      # CDE fields don't require additional joins since they're handled via direct queries
+      nil
+    end
+
+    def arel_field(_field)
+      # CDE fields are resolved via queries, not direct arel fields
+      nil
     end
 
     def cdeds_for(fields)
@@ -67,14 +76,10 @@ module Hmis::Ce::Match::Expression
       end
     end
 
-    # arel not supported.
-    # Enhancement: if expression requires certain CDEs to be present then we could take a rough pass to filter out clients that lack the relevant assessments
-    def arel_field(_field)
-      nil
-    end
+    private
 
-    def joins(_field)
-      nil
+    def arel_helper
+      Hmis::ArelHelper.instance
     end
 
     protected
