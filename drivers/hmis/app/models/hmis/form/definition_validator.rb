@@ -42,6 +42,44 @@ class Hmis::Form::DefinitionValidator
     @issues.errors
   end
 
+  # Method to validate individual CustomDataElementDefinition (CDED) against an associated form item.
+  # This is pulled out for reuse by the CustomDataElementGenerator
+  def self.validate_cded(item:, cded:)
+    item_type = item['type']
+    link_id = item['link_id']
+    cded_type = cded.field_type
+
+    case item_type
+    when 'GROUP', 'OBJECT'
+      # We don't expect these types to have custom field mappings. If they do, raise an error
+      raise "Item #{link_id} has type #{item_type}, so it should not have a custom_field_key"
+    when 'DISPLAY'
+      # DISPLAY types should really be in the above category too,
+      # but we have existing cases that store an autofill value
+      return
+    when 'FILE', 'IMAGE'
+      raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'file'
+    when 'STRING', 'TEXT', 'TIME_OF_DAY', 'CHOICE', 'OPEN_CHOICE'
+      raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['string', 'text'].include?(cded_type)
+    when 'BOOLEAN'
+      raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'boolean'
+    when 'DATE'
+      raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['date', 'string', 'text'].include?(cded_type)
+    when 'CURRENCY'
+      raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'string', 'text'].include?(cded_type)
+    when 'INTEGER'
+      raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'integer', 'string', 'text'].include?(cded_type)
+    else
+      raise "Item #{link_id} has unexpected item type #{item_type}"
+    end
+
+    # Ensure that 'repeats' value matches. This determines whether
+    # the CDED can have multiple values for the same owner (e.g. multi-select)
+    item_repeats = item['repeats'] || false
+    cded_repeats = cded.repeats || false
+    raise "item #{link_id} references CDED key '#{cded.key}' with repeats mismatch. Expected CDED with repeats:#{!!item_repeats}, found CDED with repeats:#{!!cded_repeats}" if item_repeats != cded_repeats
+  end
+
   protected
 
   def add_issue(msg)
@@ -354,7 +392,6 @@ class Hmis::Form::DefinitionValidator
     cded_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         cded_check.call(child_item)
-        link_id = child_item['link_id']
         mapping = child_item['mapping']
         next unless mapping&.key?('custom_field_key')
 
@@ -362,33 +399,7 @@ class Hmis::Form::DefinitionValidator
         next unless cded_key
 
         cded = get_cded(child_item, role)
-
-        item_type = child_item['type']
-        cded_type = cded.field_type
-
-        case item_type
-        when 'GROUP', 'OBJECT'
-          # We don't expect these types to have custom field mappings. If they do, raise an error
-          raise "Item #{link_id} has type #{item_type}, so it should not have a custom_field_key"
-        when 'DISPLAY'
-          # DISPLAY types should really be in the above category too,
-          # but we have existing cases that store an autofill value
-          next
-        when 'FILE', 'IMAGE'
-          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'file'
-        when 'STRING', 'TEXT', 'TIME_OF_DAY', 'CHOICE', 'OPEN_CHOICE'
-          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['string', 'text'].include?(cded_type)
-        when 'BOOLEAN'
-          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'boolean'
-        when 'DATE'
-          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['date', 'string', 'text'].include?(cded_type)
-        when 'CURRENCY'
-          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'string', 'text'].include?(cded_type)
-        when 'INTEGER'
-          raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'integer', 'string', 'text'].include?(cded_type)
-        else
-          raise "Item #{link_id} has unexpected item type #{item_type}"
-        end
+        self.class.validate_cded(item: child_item, cded: cded)
       end
     end
     cded_check.call(document)

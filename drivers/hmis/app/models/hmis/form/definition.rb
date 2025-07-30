@@ -615,35 +615,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
-  # Helper for determining CustomDataElementDefinition attributes
-  # TODO dup with DefinitionValidator?
-  def self.infer_cded_field_type(item_type)
-    case item_type
-    when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
-      'string'
-    when 'BOOLEAN'
-      'boolean'
-    when 'DATE'
-      'date'
-    when 'INTEGER'
-      'integer'
-    when 'CURRENCY'
-      'float'
-    when 'FILE', 'IMAGE'
-      'file'
-    else
-      raise "unable to determine cded type for #{item_type}"
-    end
-  end
-
   def numeric_validator
     @numeric_validator ||= Hmis::Form::NumericInputValidator.new
-  end
-
-  # Helper for determining CustomDataElementDefinition attributes
-  def self.generate_cded_field_label(item)
-    label = item.readonly_text.presence || item.brief_text.presence || item.text.presence || item.link_id.humanize
-    ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
   end
 
   def set_hud_requirements

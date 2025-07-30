@@ -33,7 +33,7 @@ module Hmis
       def initialize(definition:, create_missing_mappings:, set_form_definition_identifier: true, data_source: nil, hud_user: nil)
         @definition = definition
         @cdeds = []
-        @data_source = data_source || GrdaWarehouse::DataSource.hmis.first
+        @data_source = data_source || ::GrdaWarehouse::DataSource.hmis.first # ok? raise if in prod?
         @hud_user = hud_user || Hmis::Hud::User.system_user(data_source_id: @data_source.id)
         @create_missing_mappings = create_missing_mappings
         @set_form_definition_identifier = set_form_definition_identifier
@@ -61,17 +61,17 @@ module Hmis
           # If the item references an existing CDED, validate that it has the expected type.
           # Update the label if it has changed.
           if existing_cded
-            validate_existing_cded(item, existing_cded)
-            existing_cded.label = Hmis::Form::Definition.generate_cded_field_label(item)
+            Hmis::Form::DefinitionValidator.validate_cded(item: item, cded: existing_cded)
+            existing_cded.label = generate_cded_field_label(item)
             @cdeds << existing_cded if existing_cded.changed?
             next
           end
 
           custom_field_key = item.mapping&.custom_field_key
 
-          # if the item does NOT reference a CDED, we would need to mutate the item to add the custom_field_key reference.
-          # skip if create_missing_mappings is false.
-          next if !custom_field_key && !@create_missing_mappings
+          # Proceed unless item specifies a custom_field_key mapping, OR  create_missing_mappings is true.
+          # @create_missing_mappings will mutate the definition to add new mappings.
+          next unless custom_field_key || @create_missing_mappings
 
           # Determine the owner type for the CDED
           owner_type = determine_owner_type(item)
@@ -80,9 +80,9 @@ module Hmis
 
           @cdeds << Hmis::Hud::CustomDataElementDefinition.new(
             key: cded_key,
-            label: Hmis::Form::Definition.generate_cded_field_label(item),
+            label: generate_cded_field_label(item),
             repeats: item.repeats || false,
-            field_type: Hmis::Form::Definition.infer_cded_field_type(item.type),
+            field_type: infer_cded_field_type(item),
             owner_type: owner_type,
             **cded_attributes,
           )
@@ -96,6 +96,39 @@ module Hmis
 
       private
 
+      # Generate appropriate 'label' for CDED based on item properties.
+      def generate_cded_field_label(item)
+        # Select the first non-blank label from the item properties. Prefers labels that are typically shorter.
+        label = [
+          item.readonly_text,
+          item.brief_text,
+          item.text,
+          item.link_id.humanize,
+        ].compact_blank.first
+
+        ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
+      end
+
+      # Infer CDED field_type based on Form Item type.
+      def infer_cded_field_type(item)
+        case item.type
+        when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+          'string'
+        when 'BOOLEAN'
+          'boolean'
+        when 'DATE'
+          'date'
+        when 'INTEGER'
+          'integer'
+        when 'CURRENCY'
+          'float'
+        when 'FILE', 'IMAGE'
+          'file'
+        else
+          raise "unable to determine cded type for #{item.type}"
+        end
+      end
+
       def skip_item?(item)
         Hmis::Form::Definition::NON_QUESTION_ITEM_TYPES.include?(item.type) ||
           item.mapping&.field_name
@@ -107,22 +140,6 @@ module Hmis
 
         owner_type = determine_owner_type(item)
         Hmis::Hud::CustomDataElementDefinition.find_by(owner_type: owner_type, key: custom_field_key, data_source: @data_source)
-      end
-
-      def validate_existing_cded(item, cded)
-        # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
-        # Validate that the CDED has the expected type
-        # FIXME this might be different from DefinitionValidator, check
-        expected_field_type = Hmis::Form::Definition.infer_cded_field_type(item.type)
-        if cded.field_type != expected_field_type
-          raise "item #{item.link_id} references CDED key '#{cded.key}' with type mismatch. Expected CDED to have type '#{expected_field_type}', found CDED with type '#{cded.field_type}'"
-        end
-
-        # Validate that the CDED has the expected value for 'repeats'
-        if !!item.repeats != !!cded.repeats
-          raise "item #{item.link_id} references CDED key '#{cded.key}' with repeats mismatch. Expected CDED with repeats:#{!!item.repeats}, found CDED with repeats:#{!!cded.repeats}"
-        end
-        # rubocop:enable Style/IfUnlessModifier, Style/GuardClause
       end
 
       def determine_owner_type(item)
