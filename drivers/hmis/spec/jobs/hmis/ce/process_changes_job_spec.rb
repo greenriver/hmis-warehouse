@@ -18,13 +18,11 @@ RSpec.shared_context 'with ce processing setup' do
   let!(:opportunity) { create(:hmis_ce_opportunity, candidate_pool: pool) }
   let(:now) { Time.current }
 
+  before(:all) { cleanup_test_environment }
+
   before do
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
-  end
-
-  after do
-    clear_enqueued_jobs
   end
 end
 

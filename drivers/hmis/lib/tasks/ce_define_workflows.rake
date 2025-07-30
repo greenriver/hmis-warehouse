@@ -593,7 +593,7 @@ task ce_define_workflows: [:environment] do
   ce_enabled.value = true
   ce_enabled.save! if ce_enabled.changed?
 
-  data_source = GrdaWarehouse::DataSource.hmis.sole
+  data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
 
   HmisUtil::CeBuilder.create_state_machine_custom_statuses(data_source)
 

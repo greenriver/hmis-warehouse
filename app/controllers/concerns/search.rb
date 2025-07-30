@@ -4,16 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Search
   extend ActiveSupport::Concern
 
   included do
-    private def search_setup(columns: [], search: nil, scope: nil)
+    private def search_setup(columns: [], search: nil, scope: nil, search_object: nil)
       columns = Array.wrap(columns)
       search ||= search_scope
-      return search unless search_params[:q].present?
+      return search unless search_object || search_params[:q].present?
 
-      @search_string = search_params[:q].strip
+      @search_string = search_object&.query_params.try(:[], :q) || search_params[:q]&.strip
+
       # Pass the query to the selected scope if present
       return search.send(scope, @search_string) unless scope.nil?
 
