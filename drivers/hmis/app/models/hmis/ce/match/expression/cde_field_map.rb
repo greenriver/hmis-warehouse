@@ -11,18 +11,27 @@ module Hmis::Ce::Match::Expression
     # * the question was left empty on the form
     # * the question was disabled by conditional logic on the form
     # * the version of the form definition did not include the question at the time the form was submitted
-    def instance_value(client, field)
+    def clients_query(clients, field)
       cded = parse_entity_type(field)
+      cde_scope = Hmis::Hud::CustomDataElement.where(data_element_definition: cded)
 
-      cde_values = custom_assessment_cdes(cded, client).
-        map { |cde| cded.read_value_from(cde) }.
-        compact_blank
+      # choose the assessment that was most recently updated
+      cde_values = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
+        where(warehouse_clients: { destination_id: clients.select(:id) }).
+        joins(:definition).
+        where(definition: { identifier: cded.form_definition_identifier }).
+        joins(:custom_data_elements).merge(cde_scope)
+        order(:date_updated, :id).
+        select(
+          arel.wc_t[Arel.star].distinct_on(arel.wc_t[:destination_id]),
+          cde_t[cded.cde_arel_field],
+        )
 
-      # For multi-valued CDEs, return an array of values
-      return cde_values if cded.repeats?
-
-      # For single-valued CDEs, return the single value
-      return cde_values.first
+      if cded.repeats?
+        cde_values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+      else
+        cde_values.index_by(&:first).transform_values { |row| row.last }
+      end
     end
 
     def cdeds_for(fields)

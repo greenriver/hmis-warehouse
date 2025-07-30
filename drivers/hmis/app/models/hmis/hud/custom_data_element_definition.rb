@@ -44,6 +44,30 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 
+  def cde_arel_field
+    cde_t = Hmis::Hud::CustomDataElement.arel
+    case field_type.to_sym
+    when :float
+      cde_t[:value_float]
+    when :integer
+      cde_t[:value_integer]
+    when :boolean
+      cde_t[:value_boolean]
+    when :string
+      cde_t[:value_string]
+    when :text
+      cde_t[:value_text]
+    when :date
+      cde_t[:value_date]
+    when :json
+      cde_t[:value_json]
+    when :file
+      cde_t[:value_file]
+    else
+      raise ArgumentError, "Invalid field type: #{field_type}"
+    end
+  end
+
   def read_value_from(custom_data_element)
     raise ArgumentError, "CustomDataElementDefinition ID mismatch: #{custom_data_element.data_element_definition_id} != #{id}" if custom_data_element.data_element_definition_id != id
 

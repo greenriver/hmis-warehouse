@@ -25,9 +25,9 @@ module Hmis::Ce::Match::Expression
       @current_date = current_date
     end
 
-    def instance_value(client, field)
+    def client_query(clients, field)
       resolver, resolved_field = resolver_for(field)
-      resolver.instance_value(client, resolved_field)
+      resolver.client_query(clients, resolved_field)
     end
 
     def arel_field(field)

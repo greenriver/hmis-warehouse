@@ -10,11 +10,11 @@ module Hmis::Ce::Match::Expression
       @current_date = current_date
     end
 
-    def instance_value(client, field)
-      callback = all.dig(field.to_sym, :instance_value)
+    def client_query(clients, field)
+      callback = all.dig(field.to_sym, :query)
       raise ArgumentError, "Field \"#{field}\" is not supported" unless callback
 
-      callback.call(client)
+      callback.call(clients)
     end
 
     def arel_field(field)
@@ -45,42 +45,48 @@ module Hmis::Ce::Match::Expression
     def all
       @all ||= {
         last_enrolled_at: {
-          instance_value: ->(c) { last_enrollment_date(c) },
-          joins: [{ hmis_source_clients: { enrollments: :exit } }],
-          # Use current_date for open enrollments (no exit), otherwise use actual exit date
-          arel_field: arel.acase(
-            [
-              # if there's no exit, but there is an enrollment, use today
-              [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), @current_date],
-            ],
-            elsewise: arel.ex_t['ExitDate'],
-          ),
+          query: ->(clients) do
+            # FIXME should take be max exit
+            values = GrdaWarehouse::Hud::Enrollment.joins(client: :warehouse_client_source ).
+              left_outer_joins(:exit).
+              where(warehouse_clients: { destination_id: clients.select(:id) }).
+              pluck(
+                arel.wc_t[:destination_id],
+                arel.acase(
+                  [[arel.ex_t[:id].eq(nil), @current_date],],
+                  elsewise: arel.ex_t['ExitDate'],
+                )
+              )
         },
         veteran_status: {
-          instance_value: lambda(&:veteran_status),
-          arel_field: arel.c_t['VeteranStatus'],
+          query: ->(clients) { clients.pluck(:id, :veteran_status)}
           format_for_display: ->(v) { HudUtility2026.veteran_status(v) },
+          arel_field: arel.c_t['VeteranStatus'],
         },
         current_age: {
-          instance_value: ->(c) { c.age(current_date) },
+          query: ->(clients) { clients.pluck(:id, age_from(current_date, arel.c_t['DOB'])) }
           arel_field: age_from(current_date, arel.c_t['DOB']),
         },
         days_homeless: {
-          instance_value: ->(c) do
-            GrdaWarehouse::Hud::Client.days_homeless(client_id: c.id)
-          end,
+          query: ->(clients) {
+            GrdaWarehouse::ServiceHistoryService.where(client_id: clients.select(:id)).
+              homeless.
+              where(shs_t[:date].lteq(current_date)).
+              where.not(date: dates_housed_scope(client_id: client_id)).
+              pluck(:client_id, :date)
+          }
           format_for_display: ->(days) { days.nil? ? nil : "#{days} #{'day'.pluralize(days)}" },
         },
         # Array of Project Types at which the Client has an open Enrollment, including WIP enrollments.
         open_enrollment_project_types: {
-          instance_value: ->(c) do
+          query: ->(clients) {
             Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
               where(warehouse_clients: { destination_id: c.id }).
               open_including_wip.
               joins(:project).
               distinct.
-              pluck(arel.p_t['ProjectType'])
-          end,
+              pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
+          },
           format_for_display: method(:map_project_types),
         },
         # Array of Project Types at which the Client has an open Enrollment, excluding WIP enrollments.

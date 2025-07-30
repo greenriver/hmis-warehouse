@@ -22,7 +22,6 @@ module Hmis::Ce::Match
       @pool = pool
       @current_date = current_date
       @field_map = Hmis::Ce::Match::Expression::FieldMap.new(current_date: @current_date)
-      @evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(@pool, @field_map, current_date: @current_date)
       @event_writer = Hmis::Ce::Match::Internal::CandidateEventWriter.new(@pool)
       @repo = Hmis::Ce::Match::Internal::CandidateRepository.new(@pool)
       @prefilter = Hmis::Ce::Match::Internal::SqlPrefilter.new(@pool, @field_map)
@@ -71,9 +70,10 @@ module Hmis::Ce::Match
 
         # Perform In-Memory Evaluation on each client
         matching_candidates = []
+        evaluator = new_evaluator(batch)
         batch.each do |client|
           progress_bar&.increment!
-          evaluation = @evaluator.call(client)
+          evaluation = evaluator.call(client)
 
           if evaluation.failed?
             # track removal if the client is currently in the pool
@@ -134,14 +134,19 @@ module Hmis::Ce::Match
       raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client
     end
 
+    def new_evaluator(clients)
+      Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, @pool, @field_map, current_date: @current_date)
+    end
+
     def generate_snapshots(clients, progress_bar)
       snapshots = []
 
+      evaluator = new_evaluator(clients)
       progress_bar&.max += clients.count
       clients.find_each do |client|
         snapshot = Snapshot.new(
           client_id: client.id,
-          values: @evaluator.call(client).client_values,
+          values: evaluator.call(client).client_values,
           event_name: 'remove',
         )
         snapshots.push(snapshot)

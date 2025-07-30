@@ -13,7 +13,7 @@ module Hmis::Ce::Match::Internal
     end
     private_constant :Result
 
-    def initialize(pool, field_map, current_date: Date.current)
+    def initialize(clients, pool, field_map, current_date: Date.current)
       @pool = pool
 
       @field_map = field_map
@@ -24,13 +24,18 @@ module Hmis::Ce::Match::Internal
       ].compact_blank.flat_map do |expression|
         @calculator.dependencies(expression)
       end.sort.uniq
+
+      @client_field_values = {}
+      @dependencies.each do |field|
+        field_map.client_query(clients, field).each do |client_id, value|
+          @client_field_values[client_id] ||= {}
+          @client_field_values[client_id][field] = value
+        end
+      end
     end
 
     def call(client)
-      # construct client values for the expression.
-      client_values = @dependencies.to_h do |field|
-        [field, field_map.instance_value(client, field)]
-      end
+      client_values = @client_field_values[client_id]
 
       # Client without a score cannot be prioritized
       #   * To be eligible priority score must be non-null AND the eligibility requirement must pass
