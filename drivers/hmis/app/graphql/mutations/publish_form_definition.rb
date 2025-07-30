@@ -49,6 +49,18 @@ module Mutations
       }
     end
 
+    # This should be pulled into a class!
+    # To be more permissive, we want the logic to allow:
+    #
+    # If the item is a question item with a mapping to a standard field (field_name), skip it.
+    # If the item has a mapping with a custom_field_key,
+    #  then create the CDED for it if it doesn't exist. If it does exist, raise if it doesn't match the type.
+    # If the item is a question item without a mapping,
+    #  then create the CDED for it and add the mapping field to the definition.
+    #
+    # Ideally the class would accept arguments to specify whether to create the CDEDs or not,
+    # and whether to mutat
+    #
     # Adds missing `{mapping: {custom_field_key: '...'}}` to all questions in the form definition
     # Mutates definition.items, adds `mapping.custom_field_key`
     # Returns array of initialized CustomDataElementDefinitions to be saved (for new questions only)
