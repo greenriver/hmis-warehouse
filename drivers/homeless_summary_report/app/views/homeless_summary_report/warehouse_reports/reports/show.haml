@@ -25,7 +25,7 @@
         %h2= measure
         %p= data[:description]
       .ml-auto
-        %a{href: '#', data: { 'bs-toggle' => :collapse, target: "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
+        %a{href: '#', data: { 'bs-toggle' => :collapse, 'bs-target' => "\##{measure_slug}"}, aria: {expanded: 'false', controls: measure_slug}}
           View details
           %i.icon-arrow-circled-down
     - @report.variants.each do |household_category, details|

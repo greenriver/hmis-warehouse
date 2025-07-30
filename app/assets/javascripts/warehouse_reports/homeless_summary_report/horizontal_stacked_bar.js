@@ -63,6 +63,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         data,
         legend: {
           show: (this.legend_holder != null) ? false : true,
+          position: 'right',
         },
         bindto: this.chart_selector,
         size: {

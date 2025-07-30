@@ -69,6 +69,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         data,
         legend: {
           show: true,
+          position: 'right',
         },
         bindto: this.chart_selector,
         size: {
