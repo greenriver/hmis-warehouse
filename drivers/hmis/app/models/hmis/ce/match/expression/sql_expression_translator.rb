@@ -11,9 +11,7 @@ module Hmis::Ce::Match::Expression
 
     # Class method for convenience, similar to how it's used in tests
     def self.call(expression, field_map)
-      # Use the field_map's current_date if available, otherwise use default
-      current_date = field_map.respond_to?(:current_date) ? field_map.current_date : Date.current
-      calculator = CalculatorFactory.build(current_date: current_date)
+      calculator = CalculatorFactory.build(current_date: field_map.current_date)
       begin
         ast = calculator.ast(expression)
       rescue Dentaku::Error => e
@@ -78,13 +76,10 @@ module Hmis::Ce::Match::Expression
       # If the date argument couldn't be resolved to SQL, fall back to ALWAYS_TRUE
       return ALWAYS_TRUE if date_arel == ALWAYS_TRUE
 
-      # Get the current_date from the field_map if it has one, otherwise use CURRENT_DATE
-      current_date_value = @field_map.respond_to?(:current_date) ? @field_map.current_date : Date.current
-
       # Create SQL expression: current_date - date_field
       # This will return the number of days between current_date and the field
       Arel::Nodes::Subtraction.new(
-        Arel::Nodes::Quoted.new(current_date_value),
+        Arel::Nodes::Quoted.new(@field_map.current_date),
         date_arel,
       )
     end
