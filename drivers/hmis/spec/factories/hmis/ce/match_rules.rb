@@ -14,5 +14,6 @@ FactoryBot.define do
   factory :hmis_ce_priority_scheme, parent: :hmis_ce_match_rule do
     rule_type { 'priority_scheme' }
     expression { 'days_homeless' }
+    rank { 1 }
   end
 end

@@ -28,9 +28,15 @@ module Hmis::Ce::Match
     belongs_to :owner, polymorphic: true
 
     validates :name, presence: true
+    validates :rank, uniqueness: { scope: [:owner_type, :owner_id], allow_nil: true }
+
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
     PRIORITY_SCHEME = 'priority_scheme'
     validates :rule_type, presence: true, inclusion: { in: [ELIGIBILITY_REQUIREMENT, PRIORITY_SCHEME] }
+
+    validate :ensure_rank
+
+    scope :by_rank, -> { order(:rank) }
 
     def eligibility_requirement?
       rule_type == ELIGIBILITY_REQUIREMENT
@@ -66,6 +72,13 @@ module Hmis::Ce::Match
 
     def self.for_opportunity(opportunity)
       for_entity(opportunity)
+    end
+
+    private
+
+    def ensure_rank
+      errors.add(:rank, 'is required for priority schemes') if priority_scheme? && rank.blank?
+      errors.add(:rank, 'should only be set for priority schemes') if eligibility_requirement? && rank.present?
     end
   end
 end
