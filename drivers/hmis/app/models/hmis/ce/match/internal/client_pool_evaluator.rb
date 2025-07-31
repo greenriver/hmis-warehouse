@@ -49,7 +49,10 @@ module Hmis::Ce::Match::Internal
     end
 
     def eval_priority(client_values)
-      @calculator.evaluate!(@pool.priority_expression, **client_values)
+      priority_expressions = @pool.priority_expression.split('|||')
+      priority_expressions.map do |expression|
+        @calculator.evaluate!(expression, **client_values)
+      end
     end
   end
 end

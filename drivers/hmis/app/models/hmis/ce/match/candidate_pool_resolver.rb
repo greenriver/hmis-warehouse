@@ -54,7 +54,10 @@ module Hmis::Ce::Match
     def key_for_opportunity(opportunity:)
       rules = all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
       key = []
-      key << (rules.filter(&:priority_scheme?).first&.expression || '0')
+
+      priority_expressions = rules.filter(&:priority_scheme?).map(&:expression)
+      key << priority_expressions&.join('|||') || '0'
+
       key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')
       key
     end
