@@ -14,6 +14,7 @@ module HmisExternalApis::AcHmis
       return 0 if values_by_link_id.blank?
 
       algorithms = AcHmis::Scoring::Algorithm.where(namespace: ALT_AHA_ALGO_NAMESPACE)
+      return 0 if algorithms.empty?
 
       score_details = algorithms.map do |algorithm|
         calculate_algorithm_score(algorithm, values_by_link_id)

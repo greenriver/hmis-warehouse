@@ -21,8 +21,11 @@ module AcHmis
 
       # Check if a given response value matches this rule's criteria
       def matches_value?(value)
+        return false unless value
+
         return value.to_s == exact_value if exact_value.present?
 
+        # TODO @martha - flip this around should be (exclusive, inclusive]
         # For numeric ranges: min_value is inclusive, max_value is exclusive [min, max)
         # This prevents overlapping ranges at boundaries
         (min_value.nil? || value >= min_value) && (max_value.nil? || value < max_value)

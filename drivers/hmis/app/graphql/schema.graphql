@@ -1968,6 +1968,11 @@ enum Component {
   ALERT_WARNING
 
   """
+  Alt AHA component
+  """
+  ALT_AHA
+
+  """
   Render a boolean input item as a checkbox
   """
   CHECKBOX
