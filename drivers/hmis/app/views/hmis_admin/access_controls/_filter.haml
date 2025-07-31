@@ -1,6 +1,6 @@
 - filter_class = if @active_filter then 'client__filter-active' else 'client__filter' end
 .dropdown.o-filtration{class: filter_class}
-  %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { 'bs-toggle' => 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
+  %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { 'bs-toggle' => 'dropdown', 'bs-auto-close' => 'outside' }, aria: { haspopup: 'true', expanded: 'false' }}
     %span Filter
     %span.caret
   .o-filtration__container.dropdown-menu.dropdown-menu-right.options
