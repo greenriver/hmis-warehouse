@@ -38,7 +38,8 @@ module GrdaWarehouse::WarehouseReports
           )
       else
         if user.can_view_all_reports? # rubocop:disable Style/IfInsideElse
-          current_scope
+          # If you can view all reports, regardless of who ran the report, for reports you have access to
+          where(id: user.reports.pluck(:id))
         elsif user.can_view_assigned_reports?
           joins(:group_viewable_entities).
             merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
