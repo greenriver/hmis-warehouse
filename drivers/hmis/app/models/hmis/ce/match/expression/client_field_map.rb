@@ -46,9 +46,10 @@ module Hmis::Ce::Match::Expression
       @all ||= {
         last_enrolled_days: {
           query: ->(clients) do
+            client_ids = clients.pluck(:id)
             values = GrdaWarehouse::Hud::Enrollment.joins(client: :warehouse_client_source).
               left_outer_joins(:exit).
-              where(warehouse_clients: { destination_id: clients.select(:id) }).
+              where(warehouse_clients: { destination_id: client_ids }).
               pluck(
                 arel.wc_t[:destination_id],
                 arel.acase(
@@ -59,7 +60,9 @@ module Hmis::Ce::Match::Expression
                   ),
                 ),
               )
-            values.index_by(&:first).transform_values(&:last)
+            result = values.index_by(&:first).transform_values(&:last)
+            client_ids.each { |client_id| result[client_id] ||= nil }
+            result
           end,
           joins: [{ hmis_source_clients: { enrollments: :exit } }],
           arel_field: arel.acase(
@@ -85,9 +88,10 @@ module Hmis::Ce::Match::Expression
         },
         days_homeless: {
           query: ->(clients) {
+            client_ids = clients.pluck(:id)
             # Get housed dates for all clients to exclude from homeless dates
             housed_dates = GrdaWarehouse::ServiceHistoryService.non_homeless.
-              where(client_id: clients.select(:id)).
+              where(client_id: client_ids).
               pluck(:client_id, :date)
             housed_dates_by_client = housed_dates.group_by(&:first).transform_values { |dates| dates.map(&:last) }
 
@@ -98,12 +102,14 @@ module Hmis::Ce::Match::Expression
               pluck(:client_id, :date)
 
             # Count unique homeless dates per client, excluding housed dates
-            homeless_dates.group_by(&:first).transform_values do |dates|
+            result = homeless_dates.group_by(&:first).transform_values do |dates|
               client_id = dates.first&.first
               housed_for_client = housed_dates_by_client[client_id] || []
               unique_homeless_dates = dates.map(&:last).uniq
               (unique_homeless_dates - housed_for_client).count
             end
+            client_ids.each { |client_id| result[client_id] ||= nil }
+            result
           },
           format_for_display: ->(days) { days.nil? ? nil : "#{days} #{'day'.pluralize(days)}" },
         },
@@ -112,13 +118,13 @@ module Hmis::Ce::Match::Expression
           query: ->(clients) {
             client_ids = clients.pluck(:id)
             values = Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
-              where(warehouse_clients: { destination_id: client_ids}).
+              where(warehouse_clients: { destination_id: client_ids }).
               open_including_wip.
               joins(:project).
               distinct.
               pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
             result = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
-            client_ids.each {|client_id| result[client_id]||=[]}
+            client_ids.each { |client_id| result[client_id] ||= [] }
             result
           },
           format_for_display: method(:map_project_types),
@@ -134,7 +140,7 @@ module Hmis::Ce::Match::Expression
               distinct.
               pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
             result = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
-            client_ids.each {|client_id| result[client_id]||=[]}
+            client_ids.each { |client_id| result[client_id] ||= [] }
             result
           },
           format_for_display: method(:map_project_types),
@@ -149,8 +155,8 @@ module Hmis::Ce::Match::Expression
               joins(:target_project).
               distinct.
               pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
-            results = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
-            client_ids.each {|client_id| result[client_id]||=[]}
+            result = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            client_ids.each { |client_id| result[client_id] ||= [] }
             result
           },
           format_for_display: method(:map_project_types),

@@ -19,19 +19,22 @@ module Hmis::Ce::Match::Expression
       cded = parse_entity_type(field)
 
       # choose the assessment that was most recently updated
+      client_ids = clients.pluck(:id)
       values = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
-        where(warehouse_clients: { destination_id: clients.pluck(:id) }).
+        where(warehouse_clients: { destination_id: client_ids }).
         joins(:definition).
         where(definition: { identifier: cded.form_definition_identifier }).
         order(:date_updated, :id).
         joins(:custom_data_elements).
         pluck(arel.wc_t[:destination_id], cded.cde_arel_field)
 
-      if cded.repeats?
+      result = if cded.repeats?
         values.group_by(&:first).transform_values { |pairs| pairs.map(&:last) }
       else
         values.index_by(&:first).transform_values(&:last)
       end
+      client_ids.each { |client_id| result[client_id] ||= nil }
+      result
     end
 
     def joins(_field)
