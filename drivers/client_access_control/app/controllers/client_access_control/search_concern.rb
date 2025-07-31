@@ -29,7 +29,10 @@ module ClientAccessControl::SearchConcern
       end
 
       # Filter by population for known populations
-      @clients = @clients.public_send(selected_population) if selected_population.present?
+      if selected_population.present?
+        @search_performed = true
+        @clients = @clients.public_send(selected_population)
+      end
 
       if params[:data_source_id].present?
         @search_performed = true

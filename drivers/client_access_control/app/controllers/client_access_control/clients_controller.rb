@@ -77,12 +77,14 @@ class ClientAccessControl::ClientsController < ApplicationController
     @query = search_params['q'].presence # populates form input
     if @query
       @search_performed = true
-      clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+      @clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
     else
-      clients = client_source.none
+      @clients = client_source.none
     end
-    assign_client_list_vars(clients)
+    # sort_filter_index needs @clients to be set, and needs to be called before
+    # assign_client_list_vars, as assign_client_list_vars calls pagy
     sort_filter_index
+    assign_client_list_vars(@clients)
     render 'index'
   end
 
