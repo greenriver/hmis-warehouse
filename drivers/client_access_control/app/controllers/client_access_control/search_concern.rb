@@ -30,7 +30,7 @@ module ClientAccessControl::SearchConcern
 
       # Filter by population for known populations
       if selected_population.present?
-        @search_performed = true
+        @search_performed = true unless selected_population == :clients
         @clients = @clients.public_send(selected_population)
       end
 
