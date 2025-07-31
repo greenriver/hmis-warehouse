@@ -48,6 +48,7 @@ class Hmis::Form::DefinitionValidator
     item_type = item['type']
     link_id = item['link_id']
     cded_type = cded.field_type
+    cded_key = cded.key
 
     case item_type
     when 'GROUP', 'OBJECT'
@@ -78,6 +79,10 @@ class Hmis::Form::DefinitionValidator
     item_repeats = item['repeats'] || false
     cded_repeats = cded.repeats || false
     raise "item #{link_id} references CDED key '#{cded.key}' with repeats mismatch. Expected CDED with repeats:#{!!item_repeats}, found CDED with repeats:#{!!cded_repeats}" if item_repeats != cded_repeats
+  end
+
+  def self.raise_bad_type_match(link_id, item_type, cded_key, cded_type)
+    raise "Item #{link_id} has type #{item_type}, but its custom field key #{cded_key} has an incompatible type #{cded_type}"
   end
 
   protected
@@ -406,6 +411,6 @@ class Hmis::Form::DefinitionValidator
   end
 
   private def raise_bad_type_match(link_id, item_type, cded_key, cded_type)
-    raise "Item #{link_id} has type #{item_type}, but its custom field key #{cded_key} has an incompatible type #{cded_type}"
+    self.class.raise_bad_type_match(link_id, item_type, cded_key, cded_type)
   end
 end

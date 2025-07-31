@@ -69,7 +69,7 @@ module Hmis
 
           custom_field_key = item.mapping&.custom_field_key
 
-          # Proceed unless item specifies a custom_field_key mapping, OR  create_missing_mappings is true.
+          # Proceed unless item specifies a custom_field_key mapping, OR create_missing_mappings is true.
           # @create_missing_mappings will mutate the definition to add new mappings.
           next unless custom_field_key || @create_missing_mappings
 
@@ -139,7 +139,10 @@ module Hmis
         return unless custom_field_key
 
         owner_type = determine_owner_type(item)
-        Hmis::Hud::CustomDataElementDefinition.find_by(owner_type: owner_type, key: custom_field_key, data_source: @data_source)
+        found = Hmis::Hud::CustomDataElementDefinition.find_by(owner_type: owner_type, key: custom_field_key, data_source: @data_source)
+        raise "Form '#{@definition.identifier}' item '#{item.link_id}' references a CDED '#{custom_field_key}' belongs to a different form ('#{found.form_definition_identifier}')" if found&.form_definition_identifier && found&.form_definition_identifier != @definition.identifier
+
+        found
       end
 
       def determine_owner_type(item)
