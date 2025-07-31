@@ -12,10 +12,6 @@ module Hmis::Ce::Match::Expression
     # * the question was disabled by conditional logic on the form
     # * the version of the form definition did not include the question at the time the form was submitted
     def client_query(clients, field)
-      clients_query(clients, field)
-    end
-
-    def clients_query(clients, field)
       cded = parse_entity_type(field)
 
       client_ids = clients.pluck(:id)
@@ -83,8 +79,10 @@ module Hmis::Ce::Match::Expression
         return 'No' if value == false
       when :date
         value&.strftime('%m/%d/%Y')
-      when :string, :integer, :float, :text
-        v&.to_s
+      when :string, :text
+        value&.to_s
+      when :integer, :float
+        value
       end
     end
 

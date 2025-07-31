@@ -33,7 +33,9 @@ module Hmis::Ce::Match::Expression
     # Value for user-facing display of resolved field
     def format_for_display(field, value)
       formatted = all.dig(field.to_sym, :format_for_display)&.call(value)
-      formatted.to_s.presence || value.to_s.presence
+      return value if formatted.nil?
+
+      formatted
     end
 
     protected
