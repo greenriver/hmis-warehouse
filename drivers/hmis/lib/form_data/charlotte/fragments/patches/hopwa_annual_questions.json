@@ -1,11 +1,11 @@
 [
   {
-    "form_identifier": "base-intake",
+    "form_identifier": "base-annual",
     "_comment": "NOTE: These items are duplicated in other patches for other HUD data collection stages. If making changes here, you should probably be making the same changes in the other patches as well.",
     "append_items": [
       {
-        "link_id": "hopwa_intake",
-        "text": "HOPWA Intake Questions",
+        "link_id": "hopwa_annual",
+        "text": "HOPWA Annual Questions",
         "type": "GROUP",
         "item": [
           {
@@ -138,40 +138,6 @@
             "mapping": {
               "custom_field_key": "primary_health_contact"
             }
-          },
-          {
-            "item": [
-              {
-                "text": "Verification Source",
-                "type": "STRING",
-                "link_id": "verification_source",
-                "required": true,
-                "read_only": false,
-                "warn_if_empty": false,
-                "disabled_display": "HIDDEN",
-                "data_collected_about": "HOH",
-                "mapping": {
-                  "custom_field_key": "hiv_status_verification_source"
-                }
-              },
-              {
-                "text": "Verification Date",
-                "type": "DATE",
-                "link_id": "verification_date",
-                "required": true,
-                "read_only": false,
-                "warn_if_empty": false,
-                "disabled_display": "HIDDEN",
-                "data_collected_about": "HOH",
-                "mapping": {
-                  "custom_field_key": "hiv_status_verification_date"
-                }
-              }
-            ],
-            "text": "Source and Date of Client HIV Status Verification",
-            "type": "GROUP",
-            "link_id": "hiv_status_verification",
-            "disabled_display": "HIDDEN"
           },
           {
             "text": "Has the client shown improved viral load or achieved viral suppression?",

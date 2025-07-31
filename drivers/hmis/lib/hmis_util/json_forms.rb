@@ -298,7 +298,7 @@ module HmisUtil
       # record.introspect_custom_data_element_definitions.each(&:save!)
       data_source = GrdaWarehouse::DataSource.hmis.first
       cdeds = record.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: data_source)
-      puts cdeds&.map(&:key)&.inspect
+      puts "Creating/Updating CDEDs: #{cdeds.map(&:key)&.join(', ')}" if cdeds&.any?
       cdeds&.each(&:save!)
 
       # Validate definition
