@@ -12,7 +12,7 @@ module Types
     field :id, ID, null: false
     field :destination_client_id, ID, null: false
     field :client_name, String, null: false, description: 'Masked as "Candidate 123" unless the user has permission to view'
-    field :priority_score, Integer, null: false, default_value: 0
+    field :priority_scores, [Integer], null: false, default_value: [0]
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
 
     def destination_client_id

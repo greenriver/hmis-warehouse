@@ -92,7 +92,7 @@ module Hmis::Ce::Match
           matching_candidates << {
             candidate_pool_id: @pool.id,
             client_proxy_id: warehouse_proxy_map[client.id].id,
-            priority_score: evaluation.priority_score,
+            priority_scores: evaluation.priority_scores,
             created_at: now,
             updated_at: now,
           }

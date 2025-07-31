@@ -490,7 +490,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       it 'creates update events with new snapshot when client data changes but they remain eligible' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
         generate_candidates(pool) # Initial run
-        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(adult_client.age)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([adult_client.age])
 
         # Change data that affects priority score but not eligibility
         adult_client.update!(DOB: 30.years.ago) # current_age changes from 20 to 30
@@ -502,7 +502,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           candidate_pool: pool,
         )
         expect(events.last.snapshot).to include('current_age' => 30)
-        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(30)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([30])
       end
     end
 

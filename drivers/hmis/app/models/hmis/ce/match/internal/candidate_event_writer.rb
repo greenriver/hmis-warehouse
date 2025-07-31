@@ -9,7 +9,7 @@ module Hmis::Ce::Match::Internal
   # should be logged and what the event type (`event_name`) should be.
   # Events are only created for meaningful changes:
   # - `add`: A client becomes a candidate for a pool for the first time.
-  # - `update`: A candidate's `priority_score` changes.
+  # - `update`: A candidate's `priority_scores` change.
   # - `remove`: A client is no longer a candidate for a pool.
   class CandidateEventWriter
     def initialize(pool)

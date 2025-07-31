@@ -17,7 +17,7 @@ RSpec.describe Hmis::Ce::Match::Internal::CandidateRepository, type: :model do
 
   describe '#import_candidates' do
     let!(:existing_candidate) do
-      create(:hmis_ce_match_candidate, candidate_pool: pool, client_proxy: proxy, priority_score: 100)
+      create(:hmis_ce_match_candidate, candidate_pool: pool, client_proxy: proxy, priority_scores: [100])
     end
 
     context 'when a candidate with the same pool and proxy exists' do
@@ -26,13 +26,13 @@ RSpec.describe Hmis::Ce::Match::Internal::CandidateRepository, type: :model do
           {
             candidate_pool_id: pool.id,
             client_proxy_id: proxy.id,
-            priority_score: 200,
+            priority_scores: [200],
           },
         ]
 
         expect do
           repository.import_candidates(values)
-        end.to change { existing_candidate.reload.priority_score }.from(100).to(200)
+        end.to change { existing_candidate.reload.priority_scores }.from([100]).to([200])
       end
 
       it 'does not update the priority_score if it is the same' do
@@ -40,7 +40,7 @@ RSpec.describe Hmis::Ce::Match::Internal::CandidateRepository, type: :model do
           {
             candidate_pool_id: pool.id,
             client_proxy_id: proxy.id,
-            priority_score: 100,
+            priority_scores: [100],
           },
         ]
 
@@ -56,7 +56,7 @@ RSpec.describe Hmis::Ce::Match::Internal::CandidateRepository, type: :model do
           {
             candidate_pool_id: pool.id,
             client_proxy_id: new_proxy.id,
-            priority_score: 50,
+            priority_scores: [50],
           },
         ]
 
@@ -65,7 +65,7 @@ RSpec.describe Hmis::Ce::Match::Internal::CandidateRepository, type: :model do
         end.to change { Hmis::Ce::Match::Candidate.count }.by(1)
 
         new_candidate = Hmis::Ce::Match::Candidate.last
-        expect(new_candidate.priority_score).to eq(50)
+        expect(new_candidate.priority_scores).to eq([50])
       end
     end
   end
