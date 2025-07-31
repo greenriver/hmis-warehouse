@@ -13,11 +13,11 @@ module Hmis::Ce::Match::Internal
     end
     private_constant :Result
 
-    def initialize(clients, pool, field_map, current_date: Date.current)
+    def initialize(clients, pool, field_map)
       @pool = pool
 
       @field_map = field_map
-      @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build(current_date: current_date)
+      @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       @dependencies = [
         pool.requirement_expression,
         pool.priority_expression,
@@ -25,16 +25,11 @@ module Hmis::Ce::Match::Internal
         @calculator.dependencies(expression)
       end.sort.uniq
 
-      @client_field_values = Hash.new { |h, k| h[k] = {} }
+      @client_field_values = {}
       @dependencies.each do |field|
-        result = field_map.client_query(clients, field)
-        next unless result.respond_to?(:each)
-
-        # Ensure all clients have an entry for this field, even if it's empty
-        clients.find_each do |client|
-          # Default to empty array for array-type fields, nil for single-value fields
-          default_value = field.to_s.include?('project_types') ? [] : nil
-          @client_field_values[client.id][field] = result.fetch(client.id, default_value)
+        field_map.client_query(clients, field).each do |client_id, value|
+          @client_field_values[client_id] ||= {}
+          @client_field_values[client_id][field] = value
         end
       end
     end

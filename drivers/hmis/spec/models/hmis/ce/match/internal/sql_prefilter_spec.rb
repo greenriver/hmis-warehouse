@@ -49,8 +49,8 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
       end
     end
 
-    context 'with an expression that requires a join using DAYS_AGO' do
-      let(:requirement_expression) { 'DAYS_AGO(last_enrolled_at) < 365' }
+    context 'with an expression that requires a join using last_enrolled_days' do
+      let(:requirement_expression) { 'last_enrolled_days < 365' }
 
       before do
         [
@@ -71,8 +71,8 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
       end
     end
 
-    context 'with a last_enrolled_at expression using DAYS_AGO and a client with an open enrollment' do
-      let(:requirement_expression) { 'DAYS_AGO(last_enrolled_at) < 30' }
+    context 'with a last_enrolled_days expression and a client with an open enrollment' do
+      let(:requirement_expression) { 'last_enrolled_days < 30' }
 
       before do
         # client1 has an open enrollment, so should be included
@@ -87,7 +87,7 @@ RSpec.describe Hmis::Ce::Match::Internal::SqlPrefilter, type: :model do
         create(:hmis_base_hud_exit, enrollment: enrollment2, exit_date: current_date - 60.days, data_source: ds2)
       end
 
-      it 'considers their last_enrolled_at as current date and includes them' do
+      it 'considers their last_enrolled_days as 0 (still enrolled) and includes them' do
         result = prefilter.call(client_universe)
         expect(result.eligible_clients.pluck(:id)).to contain_exactly(destination_client1.id)
         expect(result.lost_eligibility_clients).to be_empty

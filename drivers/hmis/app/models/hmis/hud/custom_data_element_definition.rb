@@ -45,7 +45,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 
   def cde_arel_field
-    cde_t = Hmis::Hud::CustomDataElement.arel
+    cde_t = Hmis::Hud::CustomDataElement.arel_table
     case field_type.to_sym
     when :float
       cde_t[:value_float]

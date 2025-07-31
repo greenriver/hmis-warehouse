@@ -18,25 +18,20 @@ module Hmis::Ce::Match::Expression
     def clients_query(clients, field)
       cded = parse_entity_type(field)
 
-      # Get CDE values for all clients in the batch
-      # Using a simpler approach that actually works with Rails
-      results = {}
+      # choose the assessment that was most recently updated
+      values = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
+        where(warehouse_clients: { destination_id: clients.pluck(:id) }).
+        joins(:definition).
+        where(definition: { identifier: cded.form_definition_identifier }).
+        order(:date_updated, :id).
+        joins(:custom_data_elements).
+        pluck(arel.wc_t[:destination_id], cded.cde_arel_field)
 
-      clients.find_each do |client|
-        cde_values = custom_assessment_cdes(cded, client).
-          map { |cde| cded.read_value_from(cde) }.
-          compact_blank
-
-        value = if cded.repeats?
-          cde_values
-        else
-          cde_values.first
-        end
-
-        results[client.id] = value if value.present?
+      if cded.repeats?
+        values.group_by(&:first).transform_values { |pairs| pairs.map(&:last) }
+      else
+        values.index_by(&:first).transform_values(&:last)
       end
-
-      results
     end
 
     def joins(_field)
@@ -78,25 +73,11 @@ module Hmis::Ce::Match::Expression
 
     private
 
-    def arel_helper
+    def arel
       Hmis::ArelHelper.instance
     end
 
     protected
-
-    # client is a destination client
-    def custom_assessment_cdes(cded, client)
-      # choose the assessment that was most recently updated
-      record = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
-        where(warehouse_clients: { destination_id: client.id }).
-        joins(:definition).
-        where(definition: { identifier: cded.form_definition_identifier }).
-        order(:date_updated, :id).
-        last
-      return [] unless record
-
-      record.custom_data_elements.where(data_element_definition: cded).to_a
-    end
 
     # parses a key of the format 'custom_assessment.xyz'
     def parse_entity_type(field)

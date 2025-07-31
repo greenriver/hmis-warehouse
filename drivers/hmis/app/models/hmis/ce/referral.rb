@@ -148,7 +148,7 @@ module Hmis::Ce
 
       current_date = Date.current
       field_map = Hmis::Ce::Match::Expression::FieldMap.new(current_date: current_date)
-      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build(current_date: current_date)
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       seen_field_names = Set.new
 
       # Fetch all match rules applicable to the opportunity

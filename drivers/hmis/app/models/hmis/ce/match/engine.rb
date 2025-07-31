@@ -135,7 +135,7 @@ module Hmis::Ce::Match
     end
 
     def new_evaluator(clients)
-      Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, @pool, @field_map, current_date: @current_date)
+      Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, @pool, @field_map)
     end
 
     def generate_snapshots(clients, progress_bar)

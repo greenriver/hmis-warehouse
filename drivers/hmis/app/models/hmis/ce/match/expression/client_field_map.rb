@@ -44,29 +44,35 @@ module Hmis::Ce::Match::Expression
 
     def all
       @all ||= {
-        last_enrolled_at: {
+        last_enrolled_days: {
           query: ->(clients) do
-            # FIXME should take be max exit
-            values = GrdaWarehouse::Hud::Enrollment.joins(client: :warehouse_client_source ).
+            values = GrdaWarehouse::Hud::Enrollment.joins(client: :warehouse_client_source).
               left_outer_joins(:exit).
               where(warehouse_clients: { destination_id: clients.select(:id) }).
               pluck(
                 arel.wc_t[:destination_id],
                 arel.acase(
-                  [[arel.ex_t[:id].eq(nil), @current_date],],
-                  elsewise: arel.ex_t['ExitDate'],
-                )
+                  [[arel.ex_t[:id].eq(nil), 0]], # 0 days if still enrolled
+                  elsewise: Arel::Nodes::Subtraction.new(
+                    Arel::Nodes::Quoted.new(@current_date),
+                    arel.ex_t['ExitDate'],
+                  ),
+                ),
               )
             values.index_by(&:first).transform_values(&:last)
           end,
           joins: [{ hmis_source_clients: { enrollments: :exit } }],
           arel_field: arel.acase(
             [
-              # if there's no exit, but there is an enrollment, use today
-              [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), @current_date],
+              # if there's no exit, but there is an enrollment, use 0 days
+              [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), 0],
             ],
-            elsewise: arel.ex_t['ExitDate'],
+            elsewise: Arel::Nodes::Subtraction.new(
+              Arel::Nodes::Quoted.new(@current_date),
+              arel.ex_t['ExitDate'],
+            ),
           ),
+          format_for_display: ->(days) { days.nil? ? nil : "#{days} #{'day'.pluralize(days)}" },
         },
         veteran_status: {
           query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
@@ -104,39 +110,48 @@ module Hmis::Ce::Match::Expression
         # Array of Project Types at which the Client has an open Enrollment, including WIP enrollments.
         open_enrollment_project_types: {
           query: ->(clients) {
+            client_ids = clients.pluck(:id)
             values = Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
-              where(warehouse_clients: { destination_id: clients.select(:id) }).
+              where(warehouse_clients: { destination_id: client_ids}).
               open_including_wip.
               joins(:project).
               distinct.
               pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
-            values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            result = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            client_ids.each {|client_id| result[client_id]||=[]}
+            result
           },
           format_for_display: method(:map_project_types),
         },
         # Array of Project Types at which the Client has an open Enrollment, excluding WIP enrollments.
         open_enrollment_project_types_excluding_incomplete: {
           query: ->(clients) {
+            client_ids = clients.pluck(:id)
             values = Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
-              where(warehouse_clients: { destination_id: clients.select(:id) }).
+              where(warehouse_clients: { destination_id: client_ids }).
               open_excluding_wip.
               joins(:project).
               distinct.
               pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
-            values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            result = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            client_ids.each {|client_id| result[client_id]||=[]}
+            result
           },
           format_for_display: method(:map_project_types),
         },
         # Array of Project Types at which the Client has an active Referral (e.g. not yet declined or accepted)
         open_referral_project_types: {
           query: ->(clients) {
+            client_ids = clients.pluck(:id)
             values = Hmis::Ce::Referral.joins(client: :warehouse_client_source).
-              where(warehouse_clients: { destination_id: clients.select(:id) }).
+              where(warehouse_clients: { destination_id: client_ids }).
               active.
               joins(:target_project).
               distinct.
               pluck(arel.wc_t[:destination_id], arel.p_t['ProjectType'])
-            values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            results = values.group_by(&:first).transform_values { |rows| rows.map(&:last) }
+            client_ids.each {|client_id| result[client_id]||=[]}
+            result
           },
           format_for_display: method(:map_project_types),
         },
@@ -156,13 +171,6 @@ module Hmis::Ce::Match::Expression
 
     def map_project_types(project_type_ids)
       project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) }
-    end
-
-    def last_enrollment_date(client)
-      enrollments = client.hmis_source_clients.joins(:enrollments)
-      return @current_date if enrollments.where.missing(:exit).exists?
-
-      enrollments.joins(:exit).maximum(arel.ex_t['ExitDate'])&.to_date
     end
   end
 end

@@ -101,20 +101,15 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       end
     end
 
-    context 'with DAYS_AGO function' do
-      it 'translates DAYS_AGO function to SQL date subtraction' do
-        result = described_class.call('DAYS_AGO(last_enrolled_at) < 365', field_map)
+    context 'with last_enrolled_days field' do
+      it 'translates last_enrolled_days comparison to SQL' do
+        result = described_class.call('last_enrolled_days < 365', field_map)
         sql = result.to_sql
-        # Should contain the current_date and last_enrolled_at subtraction
+        # Should contain the current_date and ExitDate subtraction
         expect(sql).to include('2024-12-26') # our test current_date
         expect(sql).to include('< 365')
-        # Should contain some reference to the last_enrolled_at field (might be complex due to CASE statement)
+        # Should contain some reference to the enrollment/exit logic (might be complex due to CASE statement)
         expect(sql).to include('ExitDate').or include('CASE')
-      end
-
-      it 'handles DAYS_AGO with unsupported field by making expression always true' do
-        result = described_class.call('DAYS_AGO(unsupported_field) < 30', field_map)
-        expect(result.to_sql).to eq('(1 = 1)')
       end
 
       it 'handles a complex expression with mixed resolvable and unresolvable fields' do

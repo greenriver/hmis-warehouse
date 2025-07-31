@@ -11,7 +11,7 @@ module Hmis::Ce::Match::Expression
 
     # Class method for convenience, similar to how it's used in tests
     def self.call(expression, field_map)
-      calculator = CalculatorFactory.build(current_date: field_map.current_date)
+      calculator = CalculatorFactory.build
       begin
         ast = calculator.ast(expression)
       rescue Dentaku::Error => e
@@ -43,13 +43,8 @@ module Hmis::Ce::Match::Expression
       result
     end
 
-    def visit_function(node)
-      case node.name
-      when 'DAYS_AGO'
-        handle_days_ago_function(node)
-      else
-        ALWAYS_TRUE
-      end
+    def visit_function(_node)
+      ALWAYS_TRUE
     end
 
     def joins
@@ -61,28 +56,6 @@ module Hmis::Ce::Match::Expression
     end
 
     private
-
-    def handle_days_ago_function(node)
-      # DAYS_AGO(date_field) should calculate the difference in days between current_date and date_field
-      # We need to visit the argument to get the field/expression
-      if node.args.length != 1
-        return ALWAYS_TRUE # Invalid number of arguments
-      end
-
-      date_argument = node.args.first
-      visit(date_argument)
-      date_arel = @node_results[date_argument]
-
-      # If the date argument couldn't be resolved to SQL, fall back to ALWAYS_TRUE
-      return ALWAYS_TRUE if date_arel == ALWAYS_TRUE
-
-      # Create SQL expression: current_date - date_field
-      # This will return the number of days between current_date and the field
-      Arel::Nodes::Subtraction.new(
-        Arel::Nodes::Quoted.new(@field_map.current_date),
-        date_arel,
-      )
-    end
 
     def process(node)
       case node
