@@ -5,12 +5,12 @@ require 'dentaku/visitor/infix'
 
 # Transform an expression into arel based on the arel_fields in field_map. The translation may not be exact and allows untranslatable fields, replacing them with TRUE. The intention is to serve as a first-pass filter on a large record set to reduce the need for expensive application-side evaluations.
 
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Expression
   class SqlExpressionTranslator
     include Dentaku::Visitor::Infix
 
     def self.call(expression, field_map)
-      calculator = Hmis::Ce::Match::CalculatorFactory.build
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       begin
         ast = calculator.ast(expression)
       rescue Dentaku::Error => e

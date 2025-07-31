@@ -447,6 +447,18 @@
   dependencies:
     "@types/d3-selection" "*"
 
+"@types/d3-selection@*", "@types/d3-selection@^3.0.11":
+  version "3.0.11"
+  resolved "https://registry.yarnpkg.com/@types/d3-selection/-/d3-selection-3.0.11.tgz#bd7a45fc0a8c3167a631675e61bc2ca2b058d4a3"
+  integrity sha512-bhAXu23DJWsrI45xafYpkQ4NtcKMwWnAC/vKrd2l+nxMFuvOT3XMYTIj2opv8vq8AO5Yh7Qac/nSeP/3zjTK0w==
+
+"@types/d3-transition@^3.0.9":
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/@types/d3-transition/-/d3-transition-3.0.9.tgz#1136bc57e9ddb3c390dccc9b5ff3b7d2b8d94706"
+  integrity sha512-uZS5shfxzO3rGlu0cC3bjmMFKsXv+SmZZcgp0KD22ts4uGXp5EVYGzu/0YdwZeKmddhcAccYtREJKkPfXkZuCg==
+  dependencies:
+    "@types/d3-selection" "*"
+
 "@types/estree@^1.0.6":
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.8.tgz#958b91c991b1867ced318bedea0e215ee050726e"
@@ -539,6 +551,7 @@ beautifymarker@^1.0.9:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/beautifymarker/-/beautifymarker-1.0.9.tgz#edc49a0667fb87d1a317a78927b47d6b3e602005"
   integrity sha512-kLkiA2+xXg2/kbgeQTiiJQwKnVmiDleDh3yLTeGZGzEKk0RnopB3l2QhkL3rof0Nq/Lxv98pIWH2eAbDl4SauQ==
+
 
 billboard.js@^3.16.0:
   version "3.16.0"
