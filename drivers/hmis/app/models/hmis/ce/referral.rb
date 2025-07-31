@@ -82,6 +82,17 @@ module Hmis::Ce
     scope :originated_from_waitlist, -> { where(referral_origin: WAITLIST_ORIGIN) }
     scope :originated_from_direct_send, -> { where(referral_origin: DIRECT_SEND_ORIGIN) }
 
+    def self.sort_by_option(option)
+      case option
+      when :status
+        order_by_status
+      when :created_at
+        order(created_at: :desc, id: :desc)
+      else
+        raise NotImplementedError
+      end
+    end
+
     validates :workflow_instance, uniqueness: true
     validates :referral_origin, inclusion: { in: [WAITLIST_ORIGIN, DIRECT_SEND_ORIGIN] }
     validate :unique_referral_per_opportunity
@@ -135,8 +146,8 @@ module Hmis::Ce
       destination_client = client.destination_client&.as_warehouse
       return [] unless destination_client # if for whatever reason the client doesn't have a destination client, we cannot resolve the fields
 
-      field_map = Hmis::Ce::Match::FieldMap.new
-      calculator = Hmis::Ce::Match::CalculatorFactory.build
+      field_map = Hmis::Ce::Match::Expression::FieldMap.new
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       seen_field_names = Set.new
 
       # Fetch all match rules applicable to the opportunity

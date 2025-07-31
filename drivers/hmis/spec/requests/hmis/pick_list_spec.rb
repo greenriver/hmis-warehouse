@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  # before(:all) do
-  #   cleanup_test_environment
-  # end
-  # after(:all) do
-  #   cleanup_test_environment
-  # end
-
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, o1) }
@@ -537,6 +530,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(options.size).to eq(1)
       expect(options.first['code']).to eq(receiving_project.id.to_s)
       expect(options.first['label']).to eq(receiving_project.project_name)
+    end
+
+    context 'when the sending project also receives' do
+      let!(:sending_config) { create(:hmis_project_ce_config, project: sending_project, receives_direct_referrals: true) }
+      let!(:sending_unit_group) { create(:hmis_unit_group, project: sending_project, name: 'Another Group') }
+
+      it 'does not include that project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.map { |o| o['code'] }).not_to include(sending_project.id.to_s)
+      end
     end
 
     context 'when project only supports waitlist referrals' do
