@@ -54,6 +54,7 @@ module HealthPatientDashboard
     # @param Hash<String>|nil Filters
     # @return patient_scope, search_scope, active_filter
     def apply_filter(patients, filter)
+      search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:id])
       search = search_setup(search: patients, scope: :full_text_search, search_object: search_query)
       patients = search.distinct if @search_string.present?
       active_filter = false
