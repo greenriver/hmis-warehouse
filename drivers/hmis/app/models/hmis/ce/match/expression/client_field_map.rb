@@ -96,7 +96,7 @@ module Hmis::Ce::Match::Expression
             housed_dates_by_client = housed_dates.group_by(&:first).transform_values { |dates| dates.map(&:last) }
 
             # Get homeless dates for all clients
-            homeless_dates = GrdaWarehouse::ServiceHistoryService.where(client_id: clients.select(:id)).
+            homeless_dates = GrdaWarehouse::ServiceHistoryService.where(client_id: client_ids).
               homeless.
               where(arel.shs_t[:date].lteq(@current_date)).
               pluck(:client_id, :date)
