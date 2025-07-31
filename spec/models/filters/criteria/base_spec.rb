@@ -65,7 +65,8 @@ RSpec.describe Filters::Criteria::Base do
         scope = criteria.viewable_project_scope
         project_ids = scope.pluck(:id)
 
-        expect(project_ids).to include(confidential_project.id)
+        # Verify confidential projects are included as well as non-confidential projects
+        expect(project_ids).to include(confidential_project.id, project_1.id, project_2.id, project_3.id)
       end
     end
 
@@ -112,20 +113,19 @@ RSpec.describe Filters::Criteria::Base do
   end
 
   describe 'separation between projects and reports' do
-    let(:report_role) { create(:role, can_view_assigned_reports: true, can_view_projects: true) }
+    let(:report_role) { create(:role, can_view_assigned_reports: true, can_view_projects: false) }
     let(:project_role) { create(:role, can_view_projects: true, can_view_assigned_reports: false) }
     let(:report_user) { create(:acl_user) }
     let(:project_user) { create(:acl_user) }
 
     before do
-      # Give both users access to the same organization collection
+      # Report user can access all projects for reporting
       organization_collection = create(:collection)
       organization_collection.set_viewables({
                                               organizations: [organization.id],
                                               projects: [project_1.id, project_2.id, project_3.id],
                                             })
 
-      # Report user can access all projects for reporting
       setup_access_control(report_user, report_role, organization_collection)
 
       # Project user can only access specific projects for client dashboards
@@ -134,40 +134,43 @@ RSpec.describe Filters::Criteria::Base do
       setup_access_control(project_user, project_role, project_collection)
     end
 
-    it 'allows running reports for organization data' do
-      report_filter = ::Filters::FilterBase.new(user_id: report_user.id)
-      report_criteria = described_class.new(input: report_filter, config: config)
-
-      scope = report_criteria.viewable_project_scope
-      project_ids = scope.pluck(:id)
-
-      # Report user can see all projects in the organization for reporting
-      expect(project_ids).to include(project_1.id, project_2.id, project_3.id)
-    end
-
-    it 'restricts client dashboard access to specific projects' do
-      project_filter = ::Filters::FilterBase.new(user_id: project_user.id)
-      project_criteria = described_class.new(input: project_filter, config: config)
-
-      scope = project_criteria.viewable_project_scope
-      project_ids = scope.pluck(:id)
-
-      # Project user cannot access any projects for reporting (no can_view_assigned_reports)
-      expect(project_ids).to be_empty
-    end
-
-    it 'demonstrates client dashboard access vs report access' do
+    it 'report and project access are separate using permissions' do
       # Test report access (uses can_view_assigned_reports)
       report_scope = GrdaWarehouse::Hud::Project.viewable_by(report_user, permission: :can_view_assigned_reports)
 
-      # Test client dashboard access (uses can_view_projects)
-      dashboard_scope = GrdaWarehouse::Hud::Project.viewable_by(project_user, permission: :can_view_projects)
+      # Test project access (uses can_view_projects)
+      project_scope = GrdaWarehouse::Hud::Project.viewable_by(project_user, permission: :can_view_projects)
 
-      # Report user can access all organization projects for reporting
+      # Report user can access projects for reporting
       expect(report_scope.pluck(:id)).to include(project_1.id, project_2.id, project_3.id)
 
-      # Project user can only access specific projects for client dashboards
-      expect(dashboard_scope.pluck(:id)).to contain_exactly(project_1.id)
+      # Project user can only access specific projects
+      expect(project_scope.pluck(:id)).to contain_exactly(project_1.id)
+
+      project_user_report_scope = GrdaWarehouse::Hud::Project.viewable_by(project_user, permission: :can_view_assigned_reports)
+      report_user_project_scope = GrdaWarehouse::Hud::Project.viewable_by(report_user, permission: :can_view_projects)
+
+      expect(project_user_report_scope.pluck(:id)).to be_empty
+      expect(report_user_project_scope.pluck(:id)).to be_empty
+    end
+
+    it 'report and project access are separate using filter criteria' do
+      # This test is redundant with the previous test, as `viewable_project_scope` is getting viewable_by `can_view_projects`
+      # as is being tested above, but this is a more direct test of how the filter criteria is used in the wild
+
+      # Test report_user's access to report data using viewable_project_scope
+      report_filter = ::Filters::FilterBase.new(user_id: report_user.id)
+      report_criteria = described_class.new(input: report_filter, config: config)
+      report_user_report_scope = report_criteria.viewable_project_scope
+
+      expect(report_user_report_scope.pluck(:id)).to include(project_1.id, project_2.id, project_3.id)
+
+      # Test project_user's access to report data using viewable_project_scope
+      project_filter = ::Filters::FilterBase.new(user_id: project_user.id)
+      project_criteria = described_class.new(input: project_filter, config: config)
+      project_user_report_scope = project_criteria.viewable_project_scope
+
+      expect(project_user_report_scope.pluck(:id)).to be_empty
     end
   end
 
