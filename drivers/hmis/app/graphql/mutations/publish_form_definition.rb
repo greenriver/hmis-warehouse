@@ -29,6 +29,7 @@ module Mutations
       # Ensure HUD requirements are set correctly (if applicable). This could mutate the definition.
       definition.set_hud_requirements
 
+      errors = []
       Hmis::Form::Definition.transaction do
         # Retire the previously published version
         previous_published_form&.update!(status: Hmis::Form::Definition::RETIRED)
@@ -43,14 +44,15 @@ module Mutations
         cdeds = cded_generator.run
         cdeds.each(&:save!)
 
-        # Validate form structure, including HUD requirements
-        validation_errors = definition.validate_json_form
-        # fixme this should roll back transaction
-        return { errors: validation_errors } if validation_errors.any?
+        # Validate form structure, including HUD requirements and CDED mappings
+        errors = definition.validate_json_form
+        raise ActiveRecord::Rollback if errors.any? # roll back CDED changes if validation fails
 
         # Save the updated form definition
         definition.save!
       end
+
+      return { errors: errors } if errors.any?
 
       {
         form_identifier: definition,
