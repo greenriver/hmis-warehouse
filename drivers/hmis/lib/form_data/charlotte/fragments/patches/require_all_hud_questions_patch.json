@@ -36,26 +36,6 @@
     "required": true
   },
   {
-    "link_id": "first_name",
-    "required": true
-  },
-  {
-    "link_id": "middle_name",
-    "required": true
-  },
-  {
-    "link_id": "last_name",
-    "required": true
-  },
-  {
-    "link_id": "name_suffix",
-    "required": true
-  },
-  {
-    "link_id": "name_dq",
-    "required": true
-  },
-  {
     "link_id": "q_4_03_2",
     "required": true
   },
