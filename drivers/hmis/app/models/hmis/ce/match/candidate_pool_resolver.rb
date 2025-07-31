@@ -55,11 +55,32 @@ module Hmis::Ce::Match
       rules = all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
       key = []
 
-      priority_expressions = rules.filter(&:priority_scheme?).map(&:expression)
-      key << priority_expressions&.join('|||') || '0'
+      # Find the most specific priority schemes by owner type
+      priority_rules = rules.filter(&:priority_scheme?)
+      most_specific_priority_rules = most_specific_rules(priority_rules)
+      priority_expressions = most_specific_priority_rules.sort_by(&:rank).map(&:expression)
+      key << priority_expressions.join('|||') || '0'
 
+      # Eligibility requirements use all applicable rules (no specificity filtering)
       key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')
       key
+    end
+
+    def most_specific_rules(rules)
+      return [] if rules.empty?
+
+      # Owner specificity hierarchy: unit > unit_group > project > organization > data_source
+      specificity_order = {
+        'Hmis::Unit' => 1,
+        'Hmis::UnitGroup' => 2,
+        'Hmis::Hud::Project' => 3,
+        'Hmis::Hud::Organization' => 4,
+        'GrdaWarehouse::DataSource' => 5,
+      }
+
+      # Group by specificity and return the most specific group
+      most_specific_level = rules.map { |rule| specificity_order[rule.owner.class.name] || 999 }.min
+      rules.select { |rule| (specificity_order[rule.owner.class.name] || 999) == most_specific_level }
     end
   end
 end
