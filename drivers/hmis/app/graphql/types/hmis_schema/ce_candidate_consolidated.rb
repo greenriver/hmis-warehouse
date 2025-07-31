@@ -13,7 +13,7 @@ module Types
     field :client_id, ID, null: true # destination client id
     field :source_client_id, ID, null: true
     field :client_name, String, null: true
-    # field :unit_group_name, String, null: true
+    field :unit_group_name, String, null: true
     field :project_name, String, null: true
     field :project_id, ID, null: true
     field :organization_name, String, null: true

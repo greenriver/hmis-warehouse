@@ -59,7 +59,7 @@ module Hmis::Ce::Match
       Hmis::Hud::Project.where(id: project_ids).preload(:organization).map do |project|
         # This could be simplified to:
         # OpenStruct.new(
-        #   project: project,
+        #   unit_group: unit_group,
         #   candidate: self,
         # )
         OpenStruct.new(
@@ -67,7 +67,7 @@ module Hmis::Ce::Match
           destination_client_id: client_id,
           source_client_id: source_client_id,
           client_name: client_name,
-          # TODO if there are multiple candidate pools per project, we need to somehow distinguish them
+          unit_group_name: unit_group.name,
           project_name: project.project_name,
           project_id: project.id,
           organization_name: project.organization.organization_name,
