@@ -40,8 +40,8 @@ module Hmis
       Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
     end
 
-    def priority_scheme
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
+    def priority_schemes
+      Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).by_rank
     end
 
     def available_unit_count

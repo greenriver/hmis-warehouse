@@ -22,7 +22,7 @@ module Types
     field :organization_name, String, null: false
 
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
@@ -91,9 +91,9 @@ module Types
       Hmis::Ce::Match::Rule.eligibility_requirement.for_opportunity(object)
     end
 
-    def priority_scheme
+    def priority_schemes
       # not to be used in batch
-      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).first # there should only be 1
+      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).by_rank
     end
 
     def categories
