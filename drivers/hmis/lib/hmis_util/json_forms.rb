@@ -296,10 +296,6 @@ module HmisUtil
 
       # could create CDEDs here but we plan to do it manually
       # record.introspect_custom_data_element_definitions.each(&:save!)
-      data_source = GrdaWarehouse::DataSource.hmis.first
-      cdeds = record.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: data_source)
-      puts "Creating/Updating CDEDs: #{cdeds.map(&:key)&.join(', ')}" if cdeds&.any?
-      cdeds&.each(&:save!)
 
       # Validate definition
       # puts "Validating FormDefinition: \"#{record.identifier}\" ##{record.id}"
@@ -307,7 +303,7 @@ module HmisUtil
         form_definition,
         role,
         # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
-        # skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
+        skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
