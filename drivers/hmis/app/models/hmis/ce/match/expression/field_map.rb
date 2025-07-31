@@ -67,7 +67,7 @@ module Hmis::Ce::Match::Expression
       label = resolver.label_for(resolved_field)
       clients = GrdaWarehouse::Hud::Client.where(id: client.id)
       value = resolver.client_query(clients, resolved_field)[client.id]
-      formatted = resolver.format_for_display(field, value)
+      resolver.format_for_display(field, value)
 
       [label, value]
     end

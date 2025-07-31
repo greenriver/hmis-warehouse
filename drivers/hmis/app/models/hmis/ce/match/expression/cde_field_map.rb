@@ -76,15 +76,15 @@ module Hmis::Ce::Match::Expression
     private
 
     def _format_for_display(field, value)
-      case value
-      when true
-        'Yes'
-      when false
-        'No'
-      when Date
-        v.strftime('%m/%d/%Y')
-      else
-        v
+      cded = parse_entity_type(field)
+      case cded.field_type.to_sym
+      when :boolean
+        return 'Yes' if value == true
+        return 'No' if value == false
+      when :date
+        value&.strftime('%m/%d/%Y')
+      when :string, :integer, :float, :text
+        v&.to_s
       end
     end
 
