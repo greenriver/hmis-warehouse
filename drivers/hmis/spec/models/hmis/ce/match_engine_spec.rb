@@ -635,4 +635,48 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       end
     end
   end
+
+  describe 'multiple priority expressions' do
+    include_context 'with demographic test clients'
+
+    let(:requirement_expression) { 'current_age > 18' }
+    let(:priority_expression) { 'current_age|||veteran_status' }
+    let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
+
+    it 'evaluates multiple priority expressions and stores them as an array' do
+      generate_candidates(pool)
+
+      # Get destination clients for easier access
+      senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
+      adult_veteran_dest_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
+      adult_non_veteran_dest_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+
+      # Check senior veteran client (68 years old, veteran)
+      senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(senior_veteran_candidate.priority_scores).to eq([68, 1])
+
+      # Check adult veteran client (20 years old, veteran)
+      adult_veteran_candidate = adult_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(adult_veteran_candidate.priority_scores).to eq([20, 1])
+
+      # Check adult non-veteran client (20 years old, non-veteran)
+      adult_non_veteran_candidate = adult_non_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(adult_non_veteran_candidate.priority_scores).to eq([20, 0])
+    end
+
+    it 'handles expressions with commas correctly' do
+      # Test that expressions containing commas don't break the parsing
+      pool_with_comma_expr = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: 'current_age > 18',
+        priority_expression: 'IF(current_age > 50, 100, 0)|||current_age|||veteran_status',
+      )
+
+      generate_candidates(pool_with_comma_expr)
+
+      senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
+      senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_with_comma_expr)
+      expect(senior_veteran_candidate.priority_scores).to eq([100, 68, 1])
+    end
+  end
 end

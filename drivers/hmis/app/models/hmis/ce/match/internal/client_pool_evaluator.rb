@@ -20,7 +20,7 @@ module Hmis::Ce::Match::Internal
       @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       @dependencies = [
         pool.requirement_expression,
-        pool.priority_expression,
+        pool.priority_expression.split('|||'),
       ].compact_blank.flat_map do |expression|
         @calculator.dependencies(expression)
       end.sort.uniq
