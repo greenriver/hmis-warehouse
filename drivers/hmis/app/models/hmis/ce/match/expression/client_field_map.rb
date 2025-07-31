@@ -31,9 +31,9 @@ module Hmis::Ce::Match::Expression
     end
 
     # Value for user-facing display of resolved field
-    def instance_value_for_display(client, field)
-      resolved_value = instance_value(client, field)
-      all.dig(field.to_sym, :format_for_display)&.call(resolved_value) || resolved_value
+    def format_for_display(field, value)
+      formatted = all.dig(field.to_sym, :format_for_display)&.call(value)
+      formatted.to_s.presence || value.to_s.presence
     end
 
     protected
@@ -67,7 +67,8 @@ module Hmis::Ce::Match::Expression
           joins: [{ hmis_source_clients: { enrollments: :exit } }],
           arel_field: arel.acase(
             [
-              # if there's no exit, but there is an enrollment, use 0 days
+              # If an enrollment exists but has no exit record, the client is still enrolled.
+              # In this case, the number of days since last enrollment is 0.
               [arel.ex_t[:id].eq(nil).and(arel.e_t[:id].not_eq(nil)), 0],
             ],
             elsewise: Arel::Nodes::Subtraction.new(
@@ -83,25 +84,31 @@ module Hmis::Ce::Match::Expression
           arel_field: arel.c_t['VeteranStatus'],
         },
         current_age: {
-          query: ->(clients) { clients.pluck(:id, age_from(@current_date, arel.c_t['DOB'])).to_h },
+          query: ->(clients) do
+            clients.pluck(:id, age_from(@current_date, arel.c_t['DOB'])).to_h.transform_values { |v| v&.to_i }
+          end,
           arel_field: age_from(@current_date, arel.c_t['DOB']),
         },
         days_homeless: {
           query: ->(clients) {
             client_ids = clients.pluck(:id)
-            # Get housed dates for all clients to exclude from homeless dates
+            # To accurately count homeless days, we must first identify any days the client was housed,
+            # as these will be excluded from the count. A client can have both homeless and housed
+            # service history records on the same day, with "housed" taking precedence.
             housed_dates = GrdaWarehouse::ServiceHistoryService.non_homeless.
               where(client_id: client_ids).
+              distinct.
               pluck(:client_id, :date)
             housed_dates_by_client = housed_dates.group_by(&:first).transform_values { |dates| dates.map(&:last) }
 
-            # Get homeless dates for all clients
+            # Next, gather all unique days where the client had a homeless status service recorded.
             homeless_dates = GrdaWarehouse::ServiceHistoryService.where(client_id: client_ids).
               homeless.
               where(arel.shs_t[:date].lteq(@current_date)).
               pluck(:client_id, :date)
 
-            # Count unique homeless dates per client, excluding housed dates
+            # Finally, for each client, count the number of unique homeless days,
+            # ensuring any days they were housed are not included in the final count.
             result = homeless_dates.group_by(&:first).transform_values do |dates|
               client_id = dates.first&.first
               housed_for_client = housed_dates_by_client[client_id] || []

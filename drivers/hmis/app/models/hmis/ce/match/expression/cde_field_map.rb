@@ -18,22 +18,30 @@ module Hmis::Ce::Match::Expression
     def clients_query(clients, field)
       cded = parse_entity_type(field)
 
-      # choose the assessment that was most recently updated
       client_ids = clients.pluck(:id)
-      values = Hmis::Hud::CustomAssessment.joins(client: :warehouse_client_source).
-        where(warehouse_clients: { destination_id: client_ids }).
-        joins(:definition).
-        where(definition: { identifier: cded.form_definition_identifier }).
-        order(:date_updated, :id).
-        joins(:custom_data_elements).
-        pluck(arel.wc_t[:destination_id], cded.cde_arel_field)
+      cde_t = Hmis::Hud::CustomDataElement.arel_table
+      values = Hmis::DestinationClientLatestAssessment.
+        where(destination_client_id: client_ids).
+        where(form_identifier: cded.form_definition_identifier).
+        joins(custom_assessment: :custom_data_elements).
+        where(cde_t[:data_element_definition_id].eq(cded.id)).
+        pluck(
+          :destination_client_id,
+          cded.cde_arel_field,
+        )
 
       result = if cded.repeats?
         values.group_by(&:first).transform_values { |pairs| pairs.map(&:last) }
       else
         values.index_by(&:first).transform_values(&:last)
       end
-      client_ids.each { |client_id| result[client_id] ||= nil }
+
+      # Ensure all clients are in the hash, setting a default value for those missing.
+      client_ids.each do |client_id|
+        next if result.key?(client_id)
+
+        result[client_id] = cded.repeats? ? [] : nil
+      end
       result
     end
 
@@ -58,23 +66,27 @@ module Hmis::Ce::Match::Expression
       parse_entity_type(field)&.label
     end
 
-    # Value for user-facing display of resolved field
-    def instance_value_for_display(client, field)
-      value = instance_value(client, field)
-      Array.wrap(value).map do |v|
-        if v.is_a?(TrueClass)
-          'Yes'
-        elsif v.is_a?(FalseClass)
-          'No'
-        elsif v.is_a?(Date)
-          v.strftime('%m/%d/%Y')
-        else
-          v.to_s
-        end
-      end
+    def format_for_display(field, value)
+      cded = parse_entity_type(field)
+      return _format_for_display(field, value) unless cded.repeats?
+
+      Array.wrap(value).map { |v| _format_for_display(field, v) }
     end
 
     private
+
+    def _format_for_display(field, value)
+      case value
+      when true
+        'Yes'
+      when false
+        'No'
+      when Date
+        v.strftime('%m/%d/%Y')
+      else
+        v
+      end
+    end
 
     def arel
       Hmis::ArelHelper.instance

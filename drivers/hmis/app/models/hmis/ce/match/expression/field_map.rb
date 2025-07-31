@@ -65,7 +65,9 @@ module Hmis::Ce::Match::Expression
     def resolve_field_for_display(client, field)
       resolver, resolved_field = resolver_for(field)
       label = resolver.label_for(resolved_field)
-      value = resolver.instance_value_for_display(client, resolved_field)
+      clients = GrdaWarehouse::Hud::Client.where(id: client.id)
+      value = resolver.client_query(clients, resolved_field)[client.id]
+      formatted = resolver.format_for_display(field, value)
 
       [label, value]
     end
@@ -87,7 +89,7 @@ module Hmis::Ce::Match::Expression
     # Registry of available field resolvers.
     def registered_resolvers
       @registered_resolvers ||= {
-        CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new,
+        CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new(current_date: @current_date),
         CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new(current_date: @current_date),
       }
     end

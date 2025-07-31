@@ -3,6 +3,10 @@
 require 'dentaku'
 
 module Hmis::Ce::Match::Internal
+  # This class evaluates a batch of clients against a candidate pool's criteria.
+  # To prevent N+1 queries, it pre-fetches all required field dependencies for the entire
+  # client collection upon initialization. The `call` method then uses this in-memory
+  # cache for fast, individual client evaluation.
   class ClientPoolEvaluator
     attr_reader :expression, :field_map
 
