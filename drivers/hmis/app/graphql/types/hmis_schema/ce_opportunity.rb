@@ -52,9 +52,7 @@ module Types
     def candidates # not for batch
       return Hmis::Ce::Match::Candidate.none unless policy_for(object, policy_type: :ce_opportunity).can_view_candidates?
 
-      Hmis::Ce::Match::Candidate.
-        for_opportunity(object).
-        order(priority_score: :desc, id: :desc)
+      Hmis::Ce::Match::Candidate.for_opportunity(object).prioritized
     end
 
     def referral
