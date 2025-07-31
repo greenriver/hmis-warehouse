@@ -167,30 +167,6 @@
             "disabled_display": "HIDDEN"
           },
           {
-            "text": "Has the client ever been prescribed anti-retroviral therapy?",
-            "type": "CHOICE",
-            "link_id": "has_the_client_ever_been_prescribed_anti",
-            "required": true,
-            "read_only": false,
-            "warn_if_empty": false,
-            "disabled_display": "HIDDEN",
-            "pick_list_options": [
-              {
-                "code": "Yes"
-              },
-              {
-                "code": "No"
-              },
-              {
-                "code": "Unknown"
-              }
-            ],
-            "data_collected_about": "HOH",
-            "mapping": {
-              "custom_field_key": "ever_been_prescribed_anti_retroviral_therapy"
-            }
-          },
-          {
             "text": "Has the client shown improved viral load or achieved viral suppression?",
             "type": "CHOICE",
             "link_id": "has_the_client_shown_improved_viral_load",
