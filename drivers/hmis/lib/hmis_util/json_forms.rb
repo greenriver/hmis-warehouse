@@ -295,11 +295,11 @@ module HmisUtil
       record.set_hud_requirements
 
       # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
-      if GrdaWarehouse::DataSource.hmis.exists? # in testing env?
+      unless Rails.env.test?
         Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
           create_missing_mappings: false,
-          # data_source: , FIXME: pass ds
+          data_source: GrdaWarehouse::DataSource.hmis.first, # fixme
         ).run.each(&:save!)
       end
 
@@ -308,10 +308,7 @@ module HmisUtil
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        # Remove?
-        # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
-        # skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
-        skip_cded_validation: GrdaWarehouse::DataSource.hmis.exists?,
+        skip_cded_validation: Rails.env.test?,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 

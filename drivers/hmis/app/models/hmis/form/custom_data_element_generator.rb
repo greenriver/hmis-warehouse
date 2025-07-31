@@ -16,10 +16,10 @@
 # Usage:
 # generator = Hmis::Form::CustomDataElementGenerator.new(
 #   definition: form_definition,
+#   data_source: data_source,
 #   hud_user: current_hud_user,
 #   create_missing_mappings: true, # Whether to modify the form definition JSON to include new CDED mappings
 #   set_form_definition_identifier: true, # Whether to set the form_definition_identifier on newly created CDEDs
-#   data_source: optional_data_source # Optional data source for the CDEDs
 # )
 # cdeds = generator.run
 # cdeds.each(&:save!) # Save the generated CDEDs
@@ -30,10 +30,10 @@
 module Hmis
   module Form
     class CustomDataElementGenerator
-      def initialize(definition:, create_missing_mappings:, set_form_definition_identifier: true, data_source: nil, hud_user: nil)
+      def initialize(definition:, create_missing_mappings:, data_source:, set_form_definition_identifier: true, hud_user: nil)
         @definition = definition
         @cdeds = []
-        @data_source = data_source || ::GrdaWarehouse::DataSource.hmis.first # ok? raise if in prod?
+        @data_source = data_source
         @hud_user = hud_user || Hmis::Hud::User.system_user(data_source_id: @data_source.id)
         @create_missing_mappings = create_missing_mappings
         @set_form_definition_identifier = set_form_definition_identifier
