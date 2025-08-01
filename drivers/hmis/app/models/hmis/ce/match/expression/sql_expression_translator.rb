@@ -11,16 +11,16 @@ module Hmis::Ce::Match::Expression
 
     # Class method for convenience, returns the translator instance with access to both condition and joins
     def self.call(expression, field_map)
-      calculator = CalculatorFactory.build
+      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       begin
         ast = calculator.ast(expression)
       rescue Dentaku::Error => e
         err_with_context = "Error parsing expression '#{expression}': #{e.message}"
         raise e, err_with_context, e.backtrace
       end
-      translator = new(field_map)
-      translator.visit(ast)
-      translator
+      visitor = new(field_map)
+      visitor.visit(ast)
+      visitor
     end
 
     def initialize(field_map)

@@ -23,8 +23,6 @@ module Hmis::Ce::Match::Expression
       result
     end
 
-    # Arel expression for calculating days since last enrollment.
-    # Used when building SQL queries that need this calculation inline.
     def arel_expression
       arel.acase(
         [
