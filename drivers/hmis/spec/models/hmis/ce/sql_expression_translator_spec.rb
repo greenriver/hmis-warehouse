@@ -101,9 +101,9 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       end
     end
 
-    context 'with last_enrolled_days field' do
-      it 'translates last_enrolled_days comparison to SQL' do
-        result = described_class.call('last_enrolled_days < 365', field_map)
+    context 'with days_since_last_exit field' do
+      it 'translates days_since_last_exit comparison to SQL' do
+        result = described_class.call('days_since_last_exit < 365', field_map)
         sql = result.to_arel.to_sql
         # Should contain the current_date and ExitDate subtraction
         expect(sql).to include('2024-12-26') # our test current_date
