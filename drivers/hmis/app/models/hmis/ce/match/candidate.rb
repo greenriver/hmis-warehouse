@@ -40,6 +40,9 @@ module Hmis::Ce::Match
         joins(candidate_pool: { opportunities: { unit: :unit_group } }).
         select('hmis_ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
         distinct
+        # pass something to count(...) and that might be enough. look at Paginated abstraction and see what you can pass in
+        # subquery correlated subquery
+        # to_sql to dig into it.
     end
 
     # "rows" for this client on the "consolidated waitlist" table
@@ -47,16 +50,22 @@ module Hmis::Ce::Match
       client_id = client_proxy.client.id
       client_name = client_proxy.client.full_name
       # fixme- current DS
-      source_client_id = client_proxy.client.source_clients.join(:data_source).merge(GrdaWarehouse::DataSource.hmis).first
+      source_client_id = client_proxy.client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis).first
 
       # attributes that contributed to eligibility and priority
       # this should really pull from "cache" on candidate table instead of looking at events
       client_attributes = ce_match_candidate_events.max_by(&:created_at)&.snapshot || {}
 
       # which projects is this candidate on the waitlist for?
-      project_ids = candidate_pool.opportunities.joins(:project).select(Hmis::Hud::Project.arel_table[:id]).distinct
+      # project_ids = candidate_pool.opportunities.joins(:project).select(Hmis::Hud::Project.arel_table[:id]).distinct
 
-      Hmis::Hud::Project.where(id: project_ids).preload(:organization).map do |project|
+      # which unit groups is this candidate on the waitlist for?
+      # NOTE this assumes we are getting rid of unit-level eligibility, and making unit group the most granular level
+      unit_group_ids = candidate_pool.opportunities.preload(:unit).map do |opportunity|
+        opportunity.unit.hmis_unit_group_id
+      end.uniq
+      Hmis::UnitGroup.where(id: unit_group_ids).preload(:opportunities, project: :organization).map do |unit_group|
+        project = unit_group.project
         # This could be simplified to:
         # OpenStruct.new(
         #   unit_group: unit_group,
@@ -75,6 +84,7 @@ module Hmis::Ce::Match
           when_updated_in_candidate_pool: updated_at,
           priority_score: priority_score,
           client_attributes: client_attributes,
+          vacancies: unit_group.opportunities.receiving_referrals.count,
           # Y/N has vacancy?
           # TODO eligible vacancy unit_id link? or, just link to Client>Available Units page with prefilter for project
         )

@@ -755,6 +755,8 @@ type CeCandidateConsolidated {
   projectId: ID
   projectName: String
   sourceClientId: ID
+  unitGroupName: String
+  vacancies: Int!
   whenAddedToCandidatePool: ISO8601DateTime
   whenUpdatedInCandidatePool: ISO8601DateTime
 }

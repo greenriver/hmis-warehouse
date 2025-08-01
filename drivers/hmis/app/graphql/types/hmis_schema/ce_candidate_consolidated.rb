@@ -16,6 +16,7 @@ module Types
     field :unit_group_name, String, null: true
     field :project_name, String, null: true
     field :project_id, ID, null: true
+    field :vacancies, Integer, null: false
     field :organization_name, String, null: true
     field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: true
     field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: true
@@ -27,6 +28,11 @@ module Types
     field :client_age, Integer, null: true
     field :open_enrollment_project_types, [Types::HmisSchema::Enums::ProjectType], null: true
     field :open_referral_project_types, [Types::HmisSchema::Enums::ProjectType], null: true
+
+    # last contact date
+    def client_id
+      object.destination_client_id
+    end
 
     # add: candidate pool id
     # add: source client id? how to pick, or include all HMIS?
