@@ -15,10 +15,7 @@ module Hmis::Ce::Match::Internal
 
     # note, the filter only works on candidates that are destination clients
     def call(client_universe)
-      calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
-      ast = calculator.ast(@pool.requirement_expression)
-      translator = Hmis::Ce::Match::Expression::SqlExpressionTranslator.new(@field_map)
-      translator.visit(ast)
+      translator = Hmis::Ce::Match::Expression::SqlExpressionTranslator.call(@pool.requirement_expression, @field_map)
       condition = translator.to_arel
       joins = translator.joins.compact
 

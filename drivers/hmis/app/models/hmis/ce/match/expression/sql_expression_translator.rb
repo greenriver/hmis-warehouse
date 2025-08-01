@@ -9,7 +9,7 @@ module Hmis::Ce::Match::Expression
   class SqlExpressionTranslator
     include Dentaku::Visitor::Infix
 
-    # Class method for convenience, similar to how it's used in tests
+    # Class method for convenience, returns the translator instance with access to both condition and joins
     def self.call(expression, field_map)
       calculator = CalculatorFactory.build
       begin
@@ -20,7 +20,7 @@ module Hmis::Ce::Match::Expression
       end
       translator = new(field_map)
       translator.visit(ast)
-      translator.to_arel
+      translator
     end
 
     def initialize(field_map)
