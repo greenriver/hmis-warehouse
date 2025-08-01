@@ -26,18 +26,21 @@ module Hmis::Ce::Match::Expression
           cded.cde_arel_field,
         )
 
-      result = if cded.repeats?
-        values.group_by(&:first).transform_values { |pairs| pairs.map(&:last) }
+      if cded.repeats?
+        result = values.group_by(&:first).transform_values { |pairs| pairs.map(&:last) }
+        default_value = []
       else
-        values.index_by(&:first).transform_values(&:last)
+        result = values.to_h
+        default_value = nil
       end
 
       # Ensure all clients are in the hash, setting a default value for those missing.
       client_ids.each do |client_id|
         next if result.key?(client_id)
 
-        result[client_id] = cded.repeats? ? [] : nil
+        result[client_id] = default_value
       end
+
       result
     end
 

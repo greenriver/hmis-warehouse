@@ -64,7 +64,7 @@ module Hmis::Ce::Match::Expression
         query: ->(clients) { calculator.call(clients) },
         joins: [{ hmis_source_clients: { enrollments: :exit } }],
         arel_field: calculator.arel_expression,
-        format_for_display: ->(days) { days.nil? ? nil : "#{days} #{'day'.pluralize(days)}" },
+        format_for_display: method(:format_days),
       }
     end
 
@@ -87,28 +87,28 @@ module Hmis::Ce::Match::Expression
     def days_homeless_field
       {
         query: ->(clients) { HomelessDaysCalculator.new(@current_date).call(clients) },
-        format_for_display: ->(days) { days.nil? ? nil : "#{days} #{'day'.pluralize(days)}" },
+        format_for_display: method(:format_days),
       }
     end
 
     def open_enrollment_project_types_field
       {
         query: ->(clients) { project_types_query(clients, Hmis::Hud::Enrollment.open_including_wip, :project) },
-        format_for_display: ->(project_type_ids) { project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) } },
+        format_for_display: method(:format_project_types),
       }
     end
 
     def open_enrollment_project_types_excluding_incomplete_field
       {
         query: ->(clients) { project_types_query(clients, Hmis::Hud::Enrollment.open_excluding_wip, :project) },
-        format_for_display: ->(project_type_ids) { project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) } },
+        format_for_display: method(:format_project_types),
       }
     end
 
     def open_referral_project_types_field
       {
         query: ->(clients) { project_types_query(clients, Hmis::Ce::Referral.active, :target_project) },
-        format_for_display: ->(project_type_ids) { project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) } },
+        format_for_display: method(:format_project_types),
       }
     end
 
@@ -124,5 +124,10 @@ module Hmis::Ce::Match::Expression
       client_ids.each { |client_id| result[client_id] ||= [] }
       result
     end
+
+    # display helpers
+    def helpers = ApplicationController.helpers
+    def format_days(days) = days.nil? ? nil : helpers.pluralize(days, 'day')
+    def format_project_types(project_type_ids) = project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) }
   end
 end

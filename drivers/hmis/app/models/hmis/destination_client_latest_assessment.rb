@@ -5,6 +5,7 @@
 class Hmis::DestinationClientLatestAssessment < GrdaWarehouseBase
   # database view
   self.table_name = 'hmis_destination_client_latest_assessments'
+  def readonly? = true
 
   belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
   belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment'

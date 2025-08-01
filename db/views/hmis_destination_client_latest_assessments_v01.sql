@@ -15,4 +15,4 @@ INNER JOIN "hmis_form_processors" fp ON fp.owner_type = 'Hmis::Hud::CustomAssess
 INNER JOIN "hmis_form_definitions" def ON def."deleted_at" IS NULL
   AND def.id = fp.definition_id
 WHERE wc.destination_id IS NOT NULL
-ORDER BY wc.destination_id, def.identifier, ca."DateUpdated" DESC, ca.id DESC;
+ORDER BY wc.destination_id, def.identifier, ca."AssessmentDate" DESC, ca.id DESC;
