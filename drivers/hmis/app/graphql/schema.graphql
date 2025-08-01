@@ -741,13 +741,13 @@ type CeCandidateConsolidated {
   capacity: Int!
   clientAge: Int
   clientAttributes: JSON
-  clientId: ID
   clientName: String
 
   """
   Custom Data Elements that contributed to eligibility and priority for this candidate pool
   """
   customDataElements: JSON
+  destinationClientId: ID
   id: ID!
   openEnrollmentProjectTypes: [ProjectType!]
   openReferralProjectTypes: [ProjectType!]
@@ -9925,7 +9925,7 @@ type Query {
   Search for clients
   """
   clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
-  consolidatedWaitlist(limit: Int, offset: Int): CeCandidateConsolidatedsPaginated
+  consolidatedWaitlist(limit: Int, offset: Int): CeCandidateConsolidatedsPaginated!
   currentUser: ApplicationUser
   deniedPendingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   directReferralFormDefinition(targetUnitGroupId: ID!): FormDefinition

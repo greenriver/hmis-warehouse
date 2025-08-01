@@ -11,7 +11,7 @@ module Types
     # object is a Hmis::Ce::Match::Candidate with unit_group_id
 
     field :id, ID, null: false
-    field :client_id, ID, null: true # destination client id
+    field :destination_client_id, ID, null: true # destination client id
     field :source_client_id, ID, null: true # fixme implement. need to link to client. can link to warehouse?
     field :client_name, String, null: true
     field :unit_group_name, String, null: true
@@ -31,9 +31,16 @@ module Types
     field :open_enrollment_project_types, [Types::HmisSchema::Enums::ProjectType], null: true
     field :open_referral_project_types, [Types::HmisSchema::Enums::ProjectType], null: true
 
-    # last contact date
-    def client_id
+    # last contact date?
+
+    def destination_client_id
       destination_client&.id
+    end
+
+    def source_client_id
+      return unless destination_client
+
+      destination_client.source_clients.where(data_source_id: current_user.hmis_data_source_id).order(:id).first.id
     end
 
     def client_name
