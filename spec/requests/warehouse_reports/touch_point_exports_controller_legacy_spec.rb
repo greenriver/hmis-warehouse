@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
@@ -12,6 +20,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
     before(:each) do
       add_random_user_with_report_access
       user.legacy_roles << role
+      user.add_viewable(report)
       sign_in(user)
     end
 
@@ -53,6 +62,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
     before(:each) do
       add_random_user_with_report_access
       user.legacy_roles << role
+      user.add_viewable(report)
       sign_in(user)
     end
 

@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 model = GrdaWarehouse::WarehouseReports::ReportDefinition
@@ -61,6 +69,32 @@ RSpec.describe model, type: :model do
           expect(user_ids[user]).to eq ids[r1]
         end
       end
+    end
+  end
+
+  describe PerformanceMeasurement::Report, type: :model do
+    let(:user) { create :acl_user }
+    let(:other_user) { create :acl_user }
+    let(:admin_user) { create :acl_user }
+    let!(:admin_report) { create :simple_reports_report_instance, type: 'PerformanceMeasurement::Report', user_id: admin_user.id }
+    let!(:other_report) { create :simple_reports_report_instance, type: 'PerformanceMeasurement::Report', user_id: other_user.id }
+    let!(:collection) { create(:collection) }
+
+    before do
+      setup_access_control(admin_user, admin_role, collection)
+      setup_access_control(other_user, assigned_report_viewer, collection)
+    end
+
+    it 'admin can see results of other user\'s scorecard' do
+      expect(PerformanceMeasurement::Report.visible_to(admin_user).pluck(:id)).to include(other_report.id)
+    end
+
+    it 'admin can see results of their own scorecard' do
+      expect(PerformanceMeasurement::Report.visible_to(admin_user).pluck(:id)).to include(admin_report.id)
+    end
+
+    it 'other user cannot see results of admin\'s scorecard' do
+      expect(PerformanceMeasurement::Report.visible_to(other_user).pluck(:id)).not_to include(admin_report.id)
     end
   end
 end
