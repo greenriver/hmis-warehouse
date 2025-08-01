@@ -11,7 +11,6 @@ module Hmis::Ce::Match
     has_many :units, through: :opportunities, class_name: 'Hmis::Unit'
     has_many :unit_groups, through: :units, class_name: 'Hmis::UnitGroup'
 
-
     # order by descending priority, NULL values last. Use id as a tie-breaker
     scope :prioritized, -> {
       order(
@@ -32,18 +31,21 @@ module Hmis::Ce::Match
       Hmis::Ce::Match::CandidateEvent.where(candidate_pool_id: candidate_pool_id, client_proxy_id: client_proxy_id)
     end
 
-    # We should be able to replace the below "rows" with something like this that can be paginated,
-    # but I couldn't figure out how to do it with distinct/grouping. We essentially want one Candidate
-    # record per Unit Group.
     def self.all_candidates_by_distinct_unit_group
+      # Hmis::Ce::Match::Candidate.
+      #   joins(candidate_pool: { opportunities: { unit: :unit_group } }).
+      #   select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
+      #   distinct
+
+      latest_event_subquery = Hmis::Ce::Match::CandidateEvent.
+        select('DISTINCT ON (candidate_pool_id, client_proxy_id) id, candidate_pool_id, client_proxy_id').
+        order('candidate_pool_id, client_proxy_id, created_at DESC')
+
       Hmis::Ce::Match::Candidate.
         joins(candidate_pool: { opportunities: { unit: :unit_group } }).
-        select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
+        joins("LEFT JOIN (#{latest_event_subquery.to_sql}) latest_events ON latest_events.candidate_pool_id = ce_match_candidates.candidate_pool_id AND latest_events.client_proxy_id = ce_match_candidates.client_proxy_id").
+        select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id, latest_events.id AS latest_event_id').
         distinct
-        # select('DISTINCT ON (ce_match_candidates.id, hmis_unit_groups.id) ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id')
-        # pass something to count(...) and that might be enough. look at Paginated abstraction and see what you can pass in
-        # subquery correlated subquery
-        # to_sql to dig into it.
     end
 
     # "rows" for this client on the "consolidated waitlist" table

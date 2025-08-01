@@ -25,6 +25,7 @@ module Types
       @authorize_with = authorize_with
 
       after_paginate = kwargs.delete(:after_paginate)
+      nodes_count_proc = kwargs.delete(:nodes_count)
       super(*args, **kwargs, &block)
 
       extension(DefaultValueExtension, default_value: default_value) if default_value
@@ -36,7 +37,7 @@ module Types
       if return_type < ArrayPaginated
         extension(PaginationWrapperExtension, is_array: true, after_paginate: after_paginate)
       else
-        extension(PaginationWrapperExtension, after_paginate: after_paginate)
+        extension(PaginationWrapperExtension, after_paginate: after_paginate, nodes_count_proc: nodes_count_proc)
       end
     end
 
@@ -82,7 +83,7 @@ module Types
         if options[:is_array]
           result = Types::PaginatedArray.new(resolved_object, **pagination_arguments)
         else
-          result = Types::PaginatedScope.new(resolved_object, **pagination_arguments)
+          result = Types::PaginatedScope.new(resolved_object, **pagination_arguments, nodes_count_proc: options[:nodes_count_proc])
         end
         options[:after_paginate]&.call(result.nodes&.to_a, context)
         result
