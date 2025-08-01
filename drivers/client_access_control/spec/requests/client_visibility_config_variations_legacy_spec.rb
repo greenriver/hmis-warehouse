@@ -64,6 +64,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
       end
       let!(:config) { create :config_b, variation }
       let!(:user) { create :user }
+      let!(:report) { create :report_clients_dashboard }
 
       describe 'and the user has a fairly admin-like role' do
         before do
@@ -73,6 +74,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
           user.legacy_roles << can_edit_users
           user.legacy_roles << can_manage_config
           user.legacy_roles << can_edit_data_sources
+          user.add_viewable(report)
           GrdaWarehouse::DataSource.all.each do |ds|
             user.add_viewable(ds)
           end
