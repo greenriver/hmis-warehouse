@@ -34,4 +34,11 @@ FactoryBot.define do
     name { 'Launch OP Analytics (Superset)' }
     description { 'An integration with the Apache Superset business intelligence tool.' }
   end
+
+  factory :report_clients_dashboard, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Reports' }
+    url { 'dashboards/clients' }
+    name { 'All Clients' }
+    description { 'Clients enrolled in homeless projects (ES, SH, SO, TH).' }
+  end
 end
