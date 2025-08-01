@@ -10,7 +10,7 @@ module HmisExternalApis::AcHmis
   class AltAhaCalculator
     ALT_AHA_ALGO_NAMESPACE = 'alt_aha'
 
-    def calculate_score(_assessment_id, values_by_link_id)
+    def calculate_score(_enrollment_id, values_by_link_id)
       return 0 if values_by_link_id.blank?
 
       algorithms = AcHmis::Scoring::Algorithm.where(namespace: ALT_AHA_ALGO_NAMESPACE)
