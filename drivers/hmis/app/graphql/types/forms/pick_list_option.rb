@@ -19,6 +19,7 @@ module Types
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
     field :numeric_value, Integer, 'Numeric value, such as a score', null: true
     field :helper_text, String, 'Helper text/html', null: true
+    field :disabled, Boolean, 'Whether the option should be disabled', null: true
 
     CODE_PATTERN = /^\(([0-9]*)\) /
 
@@ -86,6 +87,11 @@ module Types
         eligible_staff_assignment_user_picklist(project)
       when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
         eligible_referral_step_assignment_user_picklist(project)
+      when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
+        projects_receiving_direct_ce_referrals(from_project: project)
+      when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
+        # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
+        unit_groups_for_project_direct_ce_referral(project_id: project_id, user: user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -184,9 +190,9 @@ module Types
         end
       when 'PROJECT_CONFIG_TYPES'
         # Project config types for selection on the Admin Project Config page.
-        # Hide Coordinated Entry option if CE is not enabled in the installation.
+        # Hide Coordinated Entry options if CE is not enabled in the installation.
         Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
-          next if key == 'COORDINATED_ENTRY' && !Hmis::Ce.configuration.enabled?
+          next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
 
           {
             code: key,
@@ -599,10 +605,49 @@ module Types
 
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.where(data_source_id: data_source_id).
-        receiving_referrals.
+        receiving_legacy_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
+    end
+
+    def self.projects_receiving_direct_ce_referrals(from_project:)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
+
+      # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
+      project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).
+        where.not(id: from_project.id).
+        preload(:organization).
+        sort_by_option(:organization_and_name)
+
+      project_scope.preload(:unit_groups).filter_map do |project|
+        next unless project.receives_direct_ce_referrals_from?(from_project)
+        next unless project.unit_groups.any?
+
+        project.to_pick_list_option
+      end
+    end
+
+    def self.unit_groups_for_project_direct_ce_referral(project_id:, user:)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless user.can_manage_outgoing_referrals? # at any project
+
+      project = Hmis::Hud::Project.find(project_id)
+      return [] unless project.data_source_id == user.hmis_data_source_id
+      return [] unless project.receives_direct_ce_referrals?
+
+      project.unit_groups.filter_map do |unit_group|
+        # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
+        available_count = unit_group.available_unit_count
+
+        {
+          code: unit_group.id,
+          label: unit_group.name,
+          secondary_label: "#{available_count} available",
+          disabled: available_count.zero?,
+        }
+      end
     end
   end
 end

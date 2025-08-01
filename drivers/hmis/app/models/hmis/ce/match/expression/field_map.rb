@@ -14,7 +14,7 @@
 # For namespaced fields, the resolver name is stripped off and the remaining
 # portion is passed to the resolver for further processing.
 #
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Expression
   class FieldMap
     CDE = 'cde'
     CLIENT = 'client'
@@ -76,8 +76,8 @@ module Hmis::Ce::Match
     # Registry of available field resolvers.
     def registered_resolvers
       @registered_resolvers ||= {
-        CDE => Hmis::Ce::Match::CdeFieldMap.new,
-        CLIENT => Hmis::Ce::Match::ClientFieldMap.new,
+        CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new,
+        CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new,
       }
     end
   end

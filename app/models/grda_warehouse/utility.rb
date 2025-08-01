@@ -103,6 +103,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Config,
       GrdaWarehouse::ImportThreshold,
       GrdaWarehouse::NotificationConfiguration,
+      Hmis::Hud::CustomDataElementDefinition,
+      Hmis::Hud::CustomDataElement,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
