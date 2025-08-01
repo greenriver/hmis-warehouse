@@ -37,9 +37,9 @@ module HmisUtil
         iterations += 1
       end
 
-      if iterations >= max_iterations
-        Rails.logger.warn("CeBuilder#build_candidate_pools reached maximum iterations (#{max_iterations}). Dirty markers may not be fully processed.")
-      end
+      return unless iterations >= max_iterations
+
+      Rails.logger.warn("CeBuilder#build_candidate_pools reached maximum iterations (#{max_iterations}). Dirty markers may not be fully processed.")
     end
 
     # Run this to keep state machine statuses in sync with custom statuses

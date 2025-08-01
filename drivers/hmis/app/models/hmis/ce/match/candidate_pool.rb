@@ -32,6 +32,10 @@ module Hmis::Ce::Match
       )
     end
 
+    def active?
+      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id)
+    end
+
     def warehouse_clients
       proxy_scope = Hmis::Ce::ClientProxy.
         joins(:ce_match_candidates).

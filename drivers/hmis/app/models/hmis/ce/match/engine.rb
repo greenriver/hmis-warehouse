@@ -34,7 +34,7 @@ module Hmis::Ce::Match
       # Full refresh - process all clients and remove all unmatched candidates
       is_full_refresh = clients.nil?
       clients = ::GrdaWarehouse::Hud::Client.destination if is_full_refresh
-      Rails.logger.info { "CE Match Engine: Starting for pool_id=#{@pool.id}, full_refresh=#{is_full_refresh}" }
+      log_info { "Starting for pool_id=#{@pool.id}, full_refresh=#{is_full_refresh}" }
 
       # optionally track the in-memory evaluations, which is the expensive work
       progress_bar = nil
@@ -45,17 +45,17 @@ module Hmis::Ce::Match
 
       started_at = Time.current
       # SQL Prefiltering
-      Rails.logger.info { "CE Match Engine: Prefiltering #{clients.count} clients for pool_id=#{@pool.id}" }
+      log_info { "Prefiltering #{clients.count} clients for pool_id=#{@pool.id}" }
       prefilter_result = @prefilter.call(clients)
-      Rails.logger.info do
-        "CE Match Engine: Prefiltering complete for pool_id=#{@pool.id}. " \
+      log_info do
+        "Prefiltering complete for pool_id=#{@pool.id}. " \
         "Eligible: #{prefilter_result.eligible_clients.count}, " \
         "Ineligible: #{prefilter_result.lost_eligibility_clients.count}"
       end
 
       # remove any current clients that the sql filter excluded
       if prefilter_result.lost_eligibility_clients.exists?
-        Rails.logger.info { "CE Match Engine: Removing #{prefilter_result.lost_eligibility_clients.count} clients for pool_id=#{@pool.id} due to prefilter" }
+        log_info { "Removing #{prefilter_result.lost_eligibility_clients.count} clients for pool_id=#{@pool.id} due to prefilter" }
         Hmis::Ce::Match::Candidate.transaction do
           # capture snapshots at time of removal for the event log.
           # The intent to log the attributes that caused the client to lose eligibility
@@ -66,7 +66,7 @@ module Hmis::Ce::Match
       end
 
       prefilter_result.eligible_clients.in_batches do |batch|
-        Rails.logger.info { "CE Match Engine: Processing batch of #{batch.size} for pool_id=#{@pool.id}" }
+        log_info { "Processing batch of #{batch.size} for pool_id=#{@pool.id}" }
         now = Time.current
         # import missing Client Proxies
         @repo.import_proxies(batch, timestamp: now)
@@ -115,15 +115,15 @@ module Hmis::Ce::Match
           matching_client_snapshots.push(snapshot)
         end
 
-        Rails.logger.info do
-          "CE Match Engine: In-memory evaluation complete for batch on pool_id=#{@pool.id}. " \
+        log_info do
+          "In-memory evaluation complete for batch on pool_id=#{@pool.id}. " \
           "Matching: #{matching_candidates.size}, Removals: #{removed_client_snapshots.size}"
         end
 
         Hmis::Ce::Match::Candidate.transaction do
           # import new candidates and log the events
           updated_candidate_ids = @repo.import_candidates(matching_candidates)
-          Rails.logger.info { "CE Match Engine: Imported #{updated_candidate_ids.size} candidates for pool_id=#{@pool.id}" } if updated_candidate_ids.any?
+          log_info { "Imported #{updated_candidate_ids.size} candidates for pool_id=#{@pool.id}" } if updated_candidate_ids.any?
           candidate_map = @repo.candidates_by_warehouse_client(updated_candidate_ids)
           @event_writer.call(
             # filter out snapshots that didn't change
@@ -134,14 +134,14 @@ module Hmis::Ce::Match
           # remove stale candidates and log the events
           if removed_client_snapshots.any?
             @repo.remove_warehouse_client_candidates(removed_client_snapshots.map(&:client_id))
-            Rails.logger.info { "CE Match Engine: Removed #{removed_client_snapshots.size} candidates for pool_id=#{@pool.id}" }
+            log_info { "Removed #{removed_client_snapshots.size} candidates for pool_id=#{@pool.id}" }
             @event_writer.call(removed_client_snapshots, timestamp: now)
           end
         end
       end
 
       @pool.update!(candidates_generated_at: Time.current)
-      Rails.logger.info { "CE Match Engine: Finished for pool_id=#{@pool.id}" }
+      log_info { "Finished for pool_id=#{@pool.id}" }
     end
 
     # helper for managing client values for event logging
@@ -149,6 +149,14 @@ module Hmis::Ce::Match
     # private_constant :Snapshot # keep public for tests
 
     private
+
+    def log_info(message = nil, &block)
+      if block_given?
+        Rails.logger.info { "[MatchEngine] #{block.call}" }
+      else
+        Rails.logger.info("[MatchEngine] #{message}")
+      end
+    end
 
     def validate_clients_parameter!(clients)
       raise ArgumentError, "clients must be an ActiveRecord relation, got #{clients.class.name}" unless clients.is_a?(ActiveRecord::Relation) && clients.klass == GrdaWarehouse::Hud::Client
