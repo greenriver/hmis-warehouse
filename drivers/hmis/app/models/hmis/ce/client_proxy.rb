@@ -17,9 +17,12 @@ module Hmis::Ce
     # In the future, we will add more client types (e.g. VSP)
     belongs_to :client, polymorphic: true, optional: false
     has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :client_proxy_id, dependent: :destroy
+    has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :client_proxy_id, dependent: :destroy
 
     validates :client_id, presence: true, uniqueness: { scope: [:client_type] }
     validate :client_is_destination
+
+    scope :for_warehouse_clients, -> { where(client_type: GrdaWarehouse::Hud::Client.sti_name) }
 
     def client_is_destination
       errors.add :client, 'must be destination client' unless GrdaWarehouse::DataSource.destination_data_source_ids.include?(client.data_source_id)
