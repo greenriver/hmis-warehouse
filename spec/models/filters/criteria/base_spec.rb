@@ -5,6 +5,7 @@ require_relative 'shared_filter_criteria_context'
 
 RSpec.describe Filters::Criteria::Base do
   include_context 'filter criteria setup'
+  include ArelHelper
 
   let(:filter) { ::Filters::FilterBase.new(user_id: user.id) }
   let(:criteria) { described_class.new(input: filter, config: config) }
@@ -88,7 +89,6 @@ RSpec.describe Filters::Criteria::Base do
         project_ids = scope.pluck(:id)
 
         expect(project_ids).to contain_exactly(project_1.id, project_2.id)
-        expect(project_ids).not_to include(project_3.id, confidential_project.id)
       end
     end
 
@@ -120,13 +120,10 @@ RSpec.describe Filters::Criteria::Base do
 
     before do
       # Report user can access all projects for reporting
-      organization_collection = create(:collection)
-      organization_collection.set_viewables({
-                                              organizations: [organization.id],
-                                              projects: [project_1.id, project_2.id, project_3.id],
-                                            })
+      report_collection = create(:collection)
+      report_collection.set_viewables({ projects: [project_1.id, project_2.id, project_3.id] })
 
-      setup_access_control(report_user, report_role, organization_collection)
+      setup_access_control(report_user, report_role, report_collection)
 
       # Project user can only access specific projects for client dashboards
       project_collection = create(:collection)
@@ -142,7 +139,7 @@ RSpec.describe Filters::Criteria::Base do
       project_scope = GrdaWarehouse::Hud::Project.viewable_by(project_user, permission: :can_view_projects)
 
       # Report user can access projects for reporting
-      expect(report_scope.pluck(:id)).to include(project_1.id, project_2.id, project_3.id)
+      expect(report_scope.pluck(:id)).to contain_exactly(project_1.id, project_2.id, project_3.id)
 
       # Project user can only access specific projects
       expect(project_scope.pluck(:id)).to contain_exactly(project_1.id)
@@ -222,7 +219,7 @@ RSpec.describe Filters::Criteria::Base do
       result = filter_for_user_access.apply(scope)
 
       # Should only include enrollments from viewable projects
-      project_ids_in_result = result.joins(:project).distinct.pluck('Project.id')
+      project_ids_in_result = result.joins(:project).distinct.pluck(p_t[:id])
       viewable_project_ids = criteria.viewable_project_scope.pluck(:id)
 
       # The result should be a subset of viewable projects (some projects might not have enrollments)
