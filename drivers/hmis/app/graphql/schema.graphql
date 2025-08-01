@@ -740,26 +740,26 @@ type CeCandidate {
 type CeCandidateConsolidated {
   capacity: Int!
   clientAge: Int
-  clientAttributes: JSON
-  clientName: String
+  clientAttributes: JSON!
+  clientName: String!
 
   """
   Custom Data Elements that contributed to eligibility and priority for this candidate pool
   """
-  customDataElements: JSON
-  destinationClientId: ID
+  customDataElements: JSON!
+  destinationClientId: ID!
   id: ID!
   openEnrollmentProjectTypes: [ProjectType!]
   openReferralProjectTypes: [ProjectType!]
-  organizationName: String
-  priorityScore: Float
-  projectId: ID
-  projectName: String
-  sourceClientId: ID
-  unitGroupName: String
+  organizationName: String!
+  priorityScore: Float!
+  projectId: ID!
+  projectName: String!
+  sourceClientIds: [ID!]!
+  unitGroupName: String!
   vacancies: Int!
-  whenAddedToCandidatePool: ISO8601DateTime
-  whenUpdatedInCandidatePool: ISO8601DateTime
+  whenAddedToCandidatePool: ISO8601DateTime!
+  whenUpdatedInCandidatePool: ISO8601DateTime!
 }
 
 type CeCandidateConsolidatedsPaginated {

@@ -8,25 +8,25 @@
 
 module Types
   class HmisSchema::CeCandidateConsolidated < Types::BaseObject
-    # object is a Hmis::Ce::Match::Candidate with unit_group_id
+    # object is a Hmis::Ce::Match::Candidate with unit_group_id and latest_event_id
 
     field :id, ID, null: false
-    field :destination_client_id, ID, null: true # destination client id
-    field :source_client_id, ID, null: true # fixme implement. need to link to client. can link to warehouse?
-    field :client_name, String, null: true
-    field :unit_group_name, String, null: true
-    field :project_name, String, null: true
-    field :project_id, ID, null: true
+    field :destination_client_id, ID, null: false
+    field :source_client_ids, [ID], null: false
+    field :client_name, String, null: false
+    field :unit_group_name, String, null: false
+    field :project_name, String, null: false
+    field :project_id, ID, null: false
     field :vacancies, Integer, null: false
     field :capacity, Integer, null: false
-    field :organization_name, String, null: true
-    field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: true, method: :created_at
-    field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: true, method: :updated_at
-    field :priority_score, Float, null: true
+    field :organization_name, String, null: false
+    field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
+    field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
+    field :priority_score, Float, null: false
     # FIXME: known FieldMap keys should be pulled out. only CDEs are fully dynamic
-    field :client_attributes, GraphQL::Types::JSON, null: true
+    field :client_attributes, GraphQL::Types::JSON, null: false
     # fixme this should be a CustomDataElement array
-    field :custom_data_elements, GraphQL::Types::JSON, null: true, description: 'Custom Data Elements that contributed to eligibility and priority for this candidate pool'
+    field :custom_data_elements, GraphQL::Types::JSON, null: false, description: 'Custom Data Elements that contributed to eligibility and priority for this candidate pool'
     field :client_age, Integer, null: true
     field :open_enrollment_project_types, [Types::HmisSchema::Enums::ProjectType], null: true
     field :open_referral_project_types, [Types::HmisSchema::Enums::ProjectType], null: true
@@ -34,33 +34,34 @@ module Types
     # last contact date?
 
     def destination_client_id
-      destination_client&.id
+      destination_client.id
     end
 
-    def source_client_id
-      return unless destination_client
-
-      destination_client.source_clients.where(data_source_id: current_user.hmis_data_source_id).order(:id).first.id
+    def source_client_ids
+      load_ar_association(destination_client, :warehouse_client_destination).
+        select { |wcd| wcd.data_source_id == current_user.hmis_data_source_id }.
+        map(&:source_id)
     end
 
     def client_name
-      destination_client&.name
+      destination_client.name
     end
 
     def unit_group_name
-      unit_group&.name
+      unit_group.name
     end
 
     def project_name
-      project&.project_name
+      project.project_name
     end
 
     def project_id
-      project&.id
+      project.id
     end
     # add: candidate pool id
     # add: source client id? how to pick, or include all HMIS?
 
+    # FIXME NOTE: note somewhere that when we migrate in waitlist we need to populate the event table for additions
     def client_attributes
       latest_candidate_event&.snapshot || {}
     end
@@ -102,7 +103,7 @@ module Types
 
     def destination_client
       client_proxy = load_ar_association(object, :client_proxy)
-      load_ar_association(client_proxy, :client) if client_proxy.client_type == 'GrdaWarehouse::Hud::Client'
+      load_ar_association(client_proxy, :client) # if client_proxy.client_type == 'GrdaWarehouse::Hud::Client' ?
     end
 
     def unit_group
