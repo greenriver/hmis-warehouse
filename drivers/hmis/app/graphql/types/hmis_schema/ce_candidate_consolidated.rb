@@ -17,6 +17,7 @@ module Types
     field :project_name, String, null: true
     field :project_id, ID, null: true
     field :vacancies, Integer, null: false
+    field :capacity, Integer, null: false
     field :organization_name, String, null: true
     field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: true
     field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: true

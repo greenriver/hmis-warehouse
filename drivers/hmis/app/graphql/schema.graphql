@@ -738,6 +738,7 @@ type CeCandidate {
 }
 
 type CeCandidateConsolidated {
+  capacity: Int!
   clientAge: Int
   clientAttributes: JSON
   clientId: ID

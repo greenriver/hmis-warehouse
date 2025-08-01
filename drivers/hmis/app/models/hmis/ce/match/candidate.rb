@@ -38,8 +38,9 @@ module Hmis::Ce::Match
     def self.all_candidates_by_distinct_unit_group
       Hmis::Ce::Match::Candidate.
         joins(candidate_pool: { opportunities: { unit: :unit_group } }).
-        select('hmis_ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
+        select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
         distinct
+        # select('DISTINCT ON (ce_match_candidates.id, hmis_unit_groups.id) ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id')
         # pass something to count(...) and that might be enough. look at Paginated abstraction and see what you can pass in
         # subquery correlated subquery
         # to_sql to dig into it.
@@ -85,6 +86,7 @@ module Hmis::Ce::Match
           priority_score: priority_score,
           client_attributes: client_attributes,
           vacancies: unit_group.opportunities.receiving_referrals.count,
+          capacity: unit_group.units.count,
           # Y/N has vacancy?
           # TODO eligible vacancy unit_id link? or, just link to Client>Available Units page with prefilter for project
         )
