@@ -8,75 +8,122 @@
 
 module HmisExternalApis::AcHmis
   class AltAhaCalculator
-    ALT_AHA_ALGO_NAMESPACE = 'alt_aha'
+    ALT_AHA_NAMESPACE = 'alt_aha'
 
     def calculate_score(_enrollment_id, values_by_link_id)
       return 0 if values_by_link_id.blank?
 
-      algorithms = AcHmis::Scoring::Algorithm.where(namespace: ALT_AHA_ALGO_NAMESPACE)
-      return 0 if algorithms.empty?
+      alt_aha_1_result = calculate_algo_1_score(values_by_link_id)
+      alt_aha_2_result = calculate_algo_2_score(values_by_link_id)
+      alt_aha_3_result = calculate_algo_3_score(values_by_link_id)
 
-      score_details = algorithms.map do |algorithm|
-        calculate_algorithm_score(algorithm, values_by_link_id)
-      end
-
-      total_points = score_details.map { |details| details[:points] }.sum
+      total_points = [alt_aha_1_result[:points], alt_aha_2_result[:points], alt_aha_3_result[:points]].sum
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      log_calculation(values_by_link_id, score_details, total_points, alt_aha_score)
+      # log_calculation(values_by_link_id, score_details, total_points, alt_aha_score)
 
       alt_aha_score
     end
+
+    private
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
       # Get all scoring rules for this algorithm, grouped by link_id
       rules_by_link_id = AcHmis::Scoring::Rule.rules_by_link_id(algorithm)
 
-      # Calculate weighted score
-      weighted_score = 0
+      score = 0
       values_by_link_id.each do |link_id, response_value|
         rules = rules_by_link_id[link_id.to_s] || []
         matching_rules = rules.select { |rule| rule.matches_value?(response_value) }
 
         # Sum weights from all matching rules for this link_id
-        weighted_score += matching_rules.sum(&:weight)
+        score += matching_rules.sum(&:weight)
       end
 
-      logistic_score = 1.0 / (1.0 + Math.exp(-weighted_score))
-      points = convert_logistic_score_to_points(logistic_score, algorithm)
+      score
+    end
+
+    def calculate_probability(score)
+      1.0 / (1.0 + Math.exp(-score))
+    end
+
+    def calculate_algo_1_score(values_by_link_id)
+      score = calculate_algorithm_score('alt_aha_1', values_by_link_id)
+      probability = calculate_probability(score)
+
+      # todo @martha - can this be consolidated to reduce repeated code? (but if so, is it any more readable?)
+      if probability > 0.770969964
+        points = 5
+      elsif probability > 0.659553104
+        points = 4
+      elsif probability > 0.554763958
+        points = 3
+      elsif probability > 0.411783946
+        points = 2
+      elsif probability > 0.290397211
+        points = 1
+      else
+        points = 0
+      end
 
       {
-        algorithm_name: algorithm.name,
-        weighted_score: weighted_score,
-        logistic_score: logistic_score,
+        algorithm: 'alt_aha_1',
+        score: score,
+        probability: probability,
         points: points,
       }
     end
 
-    private
+    def calculate_algo_2_score(values_by_link_id)
+      score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
+      probability = calculate_probability(score)
 
-    def log_calculation(values_by_link_id, score_details, total_points, final_score)
-      AcHmis::Scoring::CalculationLog.create!(
-        namespace: ALT_AHA_ALGO_NAMESPACE,
-        final_score: final_score,
-        calculation_details: {
-          score_details: score_details,
-          total_points: total_points,
-        },
-        input_values: values_by_link_id,
-      )
-    end
-
-    def convert_logistic_score_to_points(logistic_score, algorithm)
-      thresholds = AcHmis::Scoring::Threshold.thresholds_for_algorithm(algorithm)
-
-      # Find the first threshold that the probability exceeds
-      thresholds.each do |threshold, points|
-        return points if logistic_score > threshold
+      if probability > 0.790901794
+        points = 5
+      elsif probability > 0.710324173
+        points = 4
+      elsif probability > 0.572049905
+        points = 3
+      elsif probability > 0.404112904
+        points = 2
+      elsif probability > 0.19008731
+        points = 1
+      else
+        points = 0
       end
 
-      # If probability doesn't exceed any threshold, return 0 points
-      0
+      {
+        algorithm: 'alt_aha_2',
+        score: score,
+        probability: probability,
+        points: points,
+      }
+    end
+
+    def calculate_algo_3_score(values_by_link_id)
+      score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
+      probability = calculate_probability(score)
+
+      if probability > 0.833850594
+        points = 5
+      elsif probability > 0.730025792
+        points = 4
+      elsif probability > 0.603898063
+        points = 3
+      elsif probability > 0.428651806
+        points = 2
+      elsif probability > 0.220069799
+        points = 1
+      else
+        points = 0
+      end
+
+      {
+        algorithm: 'alt_aha_3',
+        score: score,
+        probability: probability,
+        points: points,
+      }
     end
 
     def convert_total_points_to_score(total_points)
@@ -92,6 +139,20 @@ module HmisExternalApis::AcHmis
       return 1 if total_points >= 0 && total_points < 1
 
       0
+    end
+
+    # todo @martha - properly log, including assessment ID or enrollment ID?
+    # maybe logging happens when the form is submitted (aka not now)
+    def log_calculation(values_by_link_id, score_details, total_points, final_score)
+      AcHmis::Scoring::CalculationLog.create!(
+        namespace: ALT_AHA_ALGO_NAMESPACE,
+        final_score: final_score,
+        calculation_details: {
+          score_details: score_details,
+          total_points: total_points,
+        },
+        input_values: values_by_link_id,
+      )
     end
   end
 end

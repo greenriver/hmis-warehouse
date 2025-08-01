@@ -11,24 +11,22 @@ module AcHmis
     class Rule < ::GrdaWarehouseBase
       self.table_name = 'hmis_scoring_rules'
 
-      belongs_to :algorithm, class_name: 'AcHmis::Scoring::Algorithm', foreign_key: :hmis_scoring_algorithm_id
-
       validates :link_id, :weight, presence: true
-      validates :link_id, uniqueness: { scope: [:hmis_scoring_algorithm_id, :min_value, :max_value, :exact_value] }
-      validate :must_have_matching_criteria
+      validates :link_id, uniqueness: { scope: [:algorithm, :min_value, :max_value, :exact_value] }
+      validate :valid_matching_criteria
 
-      scope :for_algorithm, ->(algorithm) { joins(:algorithm).where(algorithm: algorithm) }
+      scope :for_algorithm, ->(algorithm) { where(algorithm: algorithm) }
 
       # Check if a given response value matches this rule's criteria
       def matches_value?(value)
         return false unless value
-
         return value.to_s == exact_value if exact_value.present?
 
-        # TODO @martha - flip this around should be (exclusive, inclusive]
-        # For numeric ranges: min_value is inclusive, max_value is exclusive [min, max)
-        # This prevents overlapping ranges at boundaries
-        (min_value.nil? || value >= min_value) && (max_value.nil? || value < max_value)
+        min_val = convert_value(min_value, value)
+        max_val = convert_value(max_value, value)
+
+        # Range check: (exclusive, inclusive]
+        (min_val.nil? || value > min_val) && (max_val.nil? || value <= max_val)
       end
 
       # Get all rules for a specific algorithm, grouped by link_id for efficient lookup
@@ -38,7 +36,29 @@ module AcHmis
 
       private
 
-      def must_have_matching_criteria
+      # Convert string value to same type as reference value
+      def convert_value(string_val, reference_val)
+        return nil if string_val.nil?
+
+        case reference_val
+        when Numeric
+          begin
+            Float(string_val)
+          rescue ArgumentError
+            string_val
+          end
+        when Date, Time
+          begin
+            Time.parse(string_val)
+          rescue ArgumentError
+            string_val
+          end
+        else
+          string_val
+        end
+      end
+
+      def valid_matching_criteria
         errors.add(:base, 'Must specify either exact_value or at least one of min_value/max_value') if exact_value.blank? && min_value.blank? && max_value.blank?
       end
     end
