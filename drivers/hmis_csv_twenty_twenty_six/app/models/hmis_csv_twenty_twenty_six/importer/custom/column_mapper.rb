@@ -321,8 +321,9 @@ module HmisCsvTwentyTwentySix::Importer::Custom
       when 'date'
         value.to_date
       when 'datetime'
-        Time.zone.parse(value)
-      when 'string'
+        value = Time.zone.parse(value) if value.is_a?(String)
+        value
+      when 'string', 'virtual'
         value
       else
         raise ArgumentError, "Unknown column type '#{type}' specified in custom file configuration."
