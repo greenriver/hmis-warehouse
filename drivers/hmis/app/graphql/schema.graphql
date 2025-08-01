@@ -734,7 +734,7 @@ type CeCandidate {
   destinationClientId: ID!
   enrollments(limit: Int, offset: Int): CeReferralSourceEnrollmentsPaginated!
   id: ID!
-  priorityScore: Int!
+  priorityScores: [Int!]!
 }
 
 type CeCandidatesPaginated {
@@ -839,7 +839,7 @@ type CeOpportunity {
   id: ID!
   name: String!
   organizationName: String!
-  priorityScheme: CeMatchRule
+  prioritySchemes: [CeMatchRule!]
   projectId: ID!
   projectName: String!
   projectType: ProjectType!
@@ -12574,7 +12574,7 @@ type Unit {
   name: String!
   occupancyStatus: UnitOccupancyStatus!
   occupants: [Enrollment!]!
-  priorityScheme: CeMatchRule
+  prioritySchemes: [CeMatchRule!]
   project: Project
   unitGroup: UnitGroup
   unitSize: Int
@@ -12615,7 +12615,7 @@ type UnitGroup {
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!
-  priorityScheme: CeMatchRule
+  prioritySchemes: [CeMatchRule!]
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
