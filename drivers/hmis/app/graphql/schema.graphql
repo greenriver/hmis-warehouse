@@ -6824,7 +6824,7 @@ type Mutation {
   """
   Calculate alternative AHA score based on provided assessment values
   """
-  calculateAltAhaScore(valuesByLinkId: JsonObject!): CalculateAltAhaScorePayload
+  calculateAltAhaScore(assessmentId: ID!, valuesByLinkId: JsonObject!): CalculateAltAhaScorePayload
 
   """
   Perform MCI clearance and return matches
