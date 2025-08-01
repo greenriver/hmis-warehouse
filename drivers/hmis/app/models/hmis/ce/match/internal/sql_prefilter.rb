@@ -15,6 +15,8 @@ module Hmis::Ce::Match::Internal
 
     # note, the filter only works on candidates that are destination clients
     def call(client_universe)
+      # The translator walks the expression AST and collects fields and joins used
+      # in this specific expression
       translator = Hmis::Ce::Match::Expression::SqlExpressionTranslator.call(@pool.requirement_expression, @field_map)
       condition = translator.to_arel
       joins = translator.joins.compact

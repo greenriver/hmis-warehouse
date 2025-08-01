@@ -87,15 +87,10 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
       # Client 2 has no 'allergies' data
     end
 
-    it 'selects the value from the most recent assessment' do
-      result = field_map.client_query(all_destination_clients, 'custom_assessment.language_preference')
-      expect(result[destination_client1.id]).to eq('English')
-    end
-
-    it 'fetches values for multiple clients' do
+    it 'fetches values for multiple clients and selects the most recent assessment' do
       result = field_map.client_query(all_destination_clients, 'custom_assessment.language_preference')
       expect(result).to include(
-        destination_client1.id => 'English',
+        destination_client1.id => 'English', # Most recent assessment (not 'Spanish' from older one)
         destination_client2.id => 'French',
       )
     end
@@ -110,15 +105,12 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
       expect(result[destination_client2.id]).to eq([])
     end
 
-    it 'returns nil for clients without a value for a non-repeating field' do
-      result = field_map.client_query(all_destination_clients, 'custom_assessment.language_preference')
-      expect(result[destination_client3.id]).to be_nil
-    end
-
     it 'handles clients without any assessments gracefully' do
+      # Returns empty array for repeating fields
       result_repeating = field_map.client_query(all_destination_clients, 'custom_assessment.allergies')
       expect(result_repeating[destination_client3.id]).to eq([])
 
+      # Returns nil for non-repeating fields
       result_non_repeating = field_map.client_query(all_destination_clients, 'custom_assessment.language_preference')
       expect(result_non_repeating[destination_client3.id]).to be_nil
     end
