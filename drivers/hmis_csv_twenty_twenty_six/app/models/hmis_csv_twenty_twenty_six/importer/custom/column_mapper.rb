@@ -312,11 +312,20 @@ module HmisCsvTwentyTwentySix::Importer::Custom
       return value if value == false
       return nil if value.blank?
 
-      case type
+      # Default to 'string' if type is not specified in the YAML config.
+      type_to_cast = type || 'string'
+
+      case type_to_cast
       when 'integer'
         value.to_i
-      else # Default to string or no-op
+      when 'date'
+        value.to_date
+      when 'datetime'
+        Time.zone.parse(value)
+      when 'string'
         value
+      else
+        raise ArgumentError, "Unknown column type '#{type}' specified in custom file configuration."
       end
     end
   end
