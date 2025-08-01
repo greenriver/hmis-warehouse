@@ -24093,7 +24093,8 @@ CREATE TABLE public.hmis_scoring_calculation_logs (
     namespace character varying NOT NULL,
     final_score numeric(14,12) NOT NULL,
     calculation_details json NOT NULL,
-    custom_assessment_id bigint,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
     user_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -36415,20 +36416,6 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFA
 --
 
 ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval('public.hmis_scan_card_codes_id_seq'::regclass);
-
-
---
--- Name: hmis_scoring_algorithm_thresholds id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_scoring_algorithm_thresholds ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_algorithm_thresholds_id_seq'::regclass);
-
-
---
--- Name: hmis_scoring_algorithms id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_scoring_algorithms ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_algorithms_id_seq'::regclass);
 
 
 --
@@ -60115,13 +60102,6 @@ CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDe
 
 
 --
--- Name: idx_algo_thresholds_on_algo; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_algo_thresholds_on_algo ON public.hmis_scoring_algorithm_thresholds USING btree (hmis_scoring_algorithm_id);
-
-
---
 -- Name: idx_any_stage; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60525,13 +60505,6 @@ CREATE INDEX idx_on_loader_id_083332ec0e ON public.hmis_csv_2026_custom_data_ele
 --
 
 CREATE INDEX idx_on_system_maintenance_task_id_fa76b5b863 ON public.system_maintenance_task_runs USING btree (system_maintenance_task_id);
-
-
---
--- Name: idx_scoring_rules_on_algo; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_scoring_rules_on_algo ON public.hmis_scoring_rules USING btree (hmis_scoring_algorithm_id);
 
 
 --
@@ -66296,10 +66269,10 @@ CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card
 
 
 --
--- Name: index_hmis_scoring_calculation_logs_on_custom_assessment_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_scoring_calculation_logs_on_owner; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_scoring_calculation_logs_on_custom_assessment_id ON public.hmis_scoring_calculation_logs USING btree (custom_assessment_id);
+CREATE INDEX index_hmis_scoring_calculation_logs_on_owner ON public.hmis_scoring_calculation_logs USING btree (owner_type, owner_id);
 
 
 --
@@ -74750,14 +74723,6 @@ ALTER TABLE ONLY public.service_history_services_2029
 
 
 --
--- Name: hmis_scoring_rules fk_rails_7c9793989e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_scoring_rules
-    ADD CONSTRAINT fk_rails_7c9793989e FOREIGN KEY (hmis_scoring_algorithm_id) REFERENCES public.hmis_scoring_algorithms(id);
-
-
---
 -- Name: service_history_services_2028 fk_rails_7d15674636; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75139,14 +75104,6 @@ ALTER TABLE ONLY public.service_history_services_2003
 
 ALTER TABLE ONLY public.service_history_services_2004
     ADD CONSTRAINT fk_rails_cf4f3c98df FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: hmis_scoring_algorithm_thresholds fk_rails_d2d701bba1; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_scoring_algorithm_thresholds
-    ADD CONSTRAINT fk_rails_d2d701bba1 FOREIGN KEY (hmis_scoring_algorithm_id) REFERENCES public.hmis_scoring_algorithms(id);
 
 
 --

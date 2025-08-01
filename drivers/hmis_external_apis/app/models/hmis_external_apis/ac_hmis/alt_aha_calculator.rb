@@ -10,7 +10,7 @@ module HmisExternalApis::AcHmis
   class AltAhaCalculator
     ALT_AHA_NAMESPACE = 'alt_aha'
 
-    def calculate_score(_enrollment_id, values_by_link_id)
+    def calculate_score(values_by_link_id, owner:, user:)
       return 0 if values_by_link_id.blank?
 
       alt_aha_1_result = calculate_algo_1_score(values_by_link_id)
@@ -20,7 +20,18 @@ module HmisExternalApis::AcHmis
       total_points = [alt_aha_1_result[:points], alt_aha_2_result[:points], alt_aha_3_result[:points]].sum
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      # log_calculation(values_by_link_id, score_details, total_points, alt_aha_score)
+      AcHmis::Scoring::CalculationLog.create!(
+        namespace: ALT_AHA_NAMESPACE,
+        final_score: alt_aha_score,
+        calculation_details: {
+          alt_aha_1: alt_aha_1_result,
+          alt_aha_2: alt_aha_2_result,
+          alt_aha_3: alt_aha_3_result,
+          total_points: total_points,
+        },
+        owner: owner,
+        user: user,
+      )
 
       alt_aha_score
     end
@@ -30,6 +41,7 @@ module HmisExternalApis::AcHmis
     def calculate_algorithm_score(algorithm, values_by_link_id)
       # Get all scoring rules for this algorithm, grouped by link_id
       rules_by_link_id = AcHmis::Scoring::Rule.rules_by_link_id(algorithm)
+      raise "No rules found for #{algorithm}" unless rules_by_link_id.any?
 
       score = 0
       values_by_link_id.each do |link_id, response_value|
@@ -48,10 +60,9 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_algo_1_score(values_by_link_id)
-      score = calculate_algorithm_score('alt_aha_1', values_by_link_id)
-      probability = calculate_probability(score)
+      raw_score = calculate_algorithm_score('alt_aha_1', values_by_link_id)
+      probability = calculate_probability(raw_score)
 
-      # todo @martha - can this be consolidated to reduce repeated code? (but if so, is it any more readable?)
       if probability > 0.770969964
         points = 5
       elsif probability > 0.659553104
@@ -67,16 +78,15 @@ module HmisExternalApis::AcHmis
       end
 
       {
-        algorithm: 'alt_aha_1',
-        score: score,
+        raw_score: raw_score,
         probability: probability,
         points: points,
       }
     end
 
     def calculate_algo_2_score(values_by_link_id)
-      score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
-      probability = calculate_probability(score)
+      raw_score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
+      probability = calculate_probability(raw_score)
 
       if probability > 0.790901794
         points = 5
@@ -93,16 +103,15 @@ module HmisExternalApis::AcHmis
       end
 
       {
-        algorithm: 'alt_aha_2',
-        score: score,
+        raw_score: raw_score,
         probability: probability,
         points: points,
       }
     end
 
     def calculate_algo_3_score(values_by_link_id)
-      score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
-      probability = calculate_probability(score)
+      raw_score = calculate_algorithm_score('alt_aha_3', values_by_link_id)
+      probability = calculate_probability(raw_score)
 
       if probability > 0.833850594
         points = 5
@@ -119,8 +128,7 @@ module HmisExternalApis::AcHmis
       end
 
       {
-        algorithm: 'alt_aha_3',
-        score: score,
+        raw_score: raw_score,
         probability: probability,
         points: points,
       }
@@ -139,20 +147,6 @@ module HmisExternalApis::AcHmis
       return 1 if total_points >= 0 && total_points < 1
 
       0
-    end
-
-    # todo @martha - properly log, including assessment ID or enrollment ID?
-    # maybe logging happens when the form is submitted (aka not now)
-    def log_calculation(values_by_link_id, score_details, total_points, final_score)
-      AcHmis::Scoring::CalculationLog.create!(
-        namespace: ALT_AHA_ALGO_NAMESPACE,
-        final_score: final_score,
-        calculation_details: {
-          score_details: score_details,
-          total_points: total_points,
-        },
-        input_values: values_by_link_id,
-      )
     end
   end
 end

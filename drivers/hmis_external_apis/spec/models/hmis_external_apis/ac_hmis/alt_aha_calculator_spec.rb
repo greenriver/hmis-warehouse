@@ -10,167 +10,71 @@ require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
   let(:calculator) { described_class.new }
-  let!(:algorithm1) { create(:ac_hmis_scoring_algorithm) }
+  let(:owner) { create(:hmis_hud_enrollment) }
+  let(:user) { create(:user) }
 
-  let!(:threshold_1) { create(:ac_hmis_scoring_algorithm_threshold, algorithm: algorithm1, threshold: 0.1, points: 1) }
-  let!(:threshold_2) { create(:ac_hmis_scoring_algorithm_threshold, algorithm: algorithm1, threshold: 0.3, points: 2) }
-  let!(:threshold_3) { create(:ac_hmis_scoring_algorithm_threshold, algorithm: algorithm1, threshold: 0.5, points: 3) }
-  let!(:threshold_4) { create(:ac_hmis_scoring_algorithm_threshold, algorithm: algorithm1, threshold: 0.7, points: 4) }
-  let!(:threshold_5) { create(:ac_hmis_scoring_algorithm_threshold, algorithm: algorithm1, threshold: 0.9, points: 5) }
+  describe '#calculate_score' do
+    context 'when no scoring rules exist' do
+      it 'returns 0 when there are no rules' do
+        expect(AcHmis::Scoring::Rule.count).to eq(0)
 
-  let!(:abc_yes) { create(:ac_hmis_scoring_rule, link_id: 'has_abc_ever_happened', exact_value: 'Yes', weight: 0.5, algorithm: algorithm1) }
-  let!(:abc_no) { create(:ac_hmis_scoring_rule, link_id: 'has_abc_ever_happened', exact_value: 'No', weight: -0.5, algorithm: algorithm1) }
-  let!(:abc_refused) { create(:ac_hmis_scoring_rule, link_id: 'has_abc_ever_happened', exact_value: 'Refused', weight: -0.25, algorithm: algorithm1) }
-
-  let!(:xyz_less_than_3) { create(:ac_hmis_scoring_rule, link_id: 'how_many_times_xyz', min_value: 1, max_value: 3, weight: 0.2, algorithm: algorithm1) }
-  let!(:xyz_3plus) { create(:ac_hmis_scoring_rule, link_id: 'how_many_times_xyz', min_value: 3, weight: 0.3, algorithm: algorithm1) }
-
-  describe 'simple weighted score calculations' do
-    it 'calculates score for yes/no/refused questions' do
-      values = { 'has_abc_ever_happened' => 'Yes' }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      expect(score_details[:weighted_score].to_f).to eq(0.5)
-      # weighted_score=0.5 → logistic_score=0.622 → exceeds 0.5 threshold → 3 points
-      expect(score_details[:points]).to eq(3)
-
-      values = { 'has_abc_ever_happened' => 'No' }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      expect(score_details[:weighted_score].to_f).to eq(-0.5)
-      # weighted_score=-0.5 → logistic_score=0.378 → exceeds 0.3 threshold → 2 points
-      expect(score_details[:points]).to eq(2)
-
-      values = { 'has_abc_ever_happened' => 'Refused' }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      expect(score_details[:weighted_score].to_f).to eq(-0.25)
-      # weighted_score=-0.25 → logistic_score=0.438 → exceeds 0.3 threshold → 2 points
-      expect(score_details[:points]).to eq(2)
+        expect do
+          calculator.calculate_score({ 'question_1' => 'Yes' }, owner: owner, user: user)
+        end.to raise_error(RuntimeError, /No rules found/).
+          and not_change(AcHmis::Scoring::CalculationLog, :count)
+      end
     end
 
-    it 'calculates score for numeric questions with ranges' do
-      # Value in 1-3 range
-      values = { 'how_many_times_xyz' => 2 }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      expect(score_details[:weighted_score].to_f).to eq(0.2)
-      # weighted_score=0.2 → logistic_score=0.550 → exceeds 0.5 threshold → 3 points
-      expect(score_details[:points]).to eq(3)
+    context 'when scoring rules exist' do
+      # Set up scoring rules for each algorithm
+      let!(:algo_1_rule_1) { AcHmis::Scoring::Rule.create!(link_id: 'question_1', exact_value: 'Yes', weight: 0.5, algorithm: 'alt_aha_1') }
+      let!(:algo_1_rule_2) { AcHmis::Scoring::Rule.create!(link_id: 'question_2', min_value: '3', weight: 0.3, algorithm: 'alt_aha_1') }
 
-      # Value > 3
-      values = { 'how_many_times_xyz' => 4 }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      expect(score_details[:weighted_score].to_f).to eq(0.3)
-      # weighted_score=0.3 → logistic_score=0.574 → exceeds 0.5 threshold → 3 points
-      expect(score_details[:points]).to eq(3)
-    end
-  end
+      let!(:algo_2_rule_1) { AcHmis::Scoring::Rule.create!(link_id: 'question_1', exact_value: 'Yes', weight: 0.4, algorithm: 'alt_aha_2') }
+      let!(:algo_2_rule_2) { AcHmis::Scoring::Rule.create!(link_id: 'question_3', exact_value: 'High', weight: 0.6, algorithm: 'alt_aha_2') }
 
-  describe 'combined score calculations' do
-    it 'calculates combined score from multiple questions' do
-      # Test combining a yes/no question with a numeric range question
-      values = {
-        'has_abc_ever_happened' => 'Yes',
-        'how_many_times_xyz' => 2,
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should be 0.5 (yes) + 0.2 (2 in range 1-3) = 0.7
-      expect(score_details[:weighted_score].to_f).to eq(0.7)
-      # weighted_score=0.7 → logistic_score=0.668 → exceeds 0.5 threshold → 3 points
-      expect(score_details[:points]).to eq(3)
+      let!(:algo_3_rule_1) { AcHmis::Scoring::Rule.create!(link_id: 'question_1', exact_value: 'Yes', weight: 0.7, algorithm: 'alt_aha_3') }
+      let!(:algo_3_rule_2) { AcHmis::Scoring::Rule.create!(link_id: 'question_4', min_value: '2', weight: 0.8, algorithm: 'alt_aha_3') }
 
-      # Test with negative and positive weights
-      values = {
-        'has_abc_ever_happened' => 'No',
-        'how_many_times_xyz' => 5,
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should be -0.5 (no) + 0.3 (5 >= 3) = -0.2
-      expect(score_details[:weighted_score].to_f).to eq(-0.2)
-      # weighted_score=-0.2 → logistic_score=0.450 → exceeds 0.3 threshold → 2 points
-      expect(score_details[:points]).to eq(2)
-    end
+      it 'returns 0 for blank values' do
+        score = calculator.calculate_score({}, owner: owner, user: user)
+        expect(score).to eq(0)
+      end
 
-    it 'handles edge cases and missing values gracefully' do
-      # Test with boundary value (exactly 3 should match the 3+ rule, not the 1-3 rule)
-      values = {
-        'has_abc_ever_happened' => 'Refused',
-        'how_many_times_xyz' => 3,
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should be -0.25 (refused) + 0.3 (3 matches 3+ rule) = 0.05
-      expect(score_details[:weighted_score].to_f).to eq(0.05)
-      # weighted_score=0.05 → logistic_score=0.512 → exceeds 0.5 threshold → 3 points
-      expect(score_details[:points]).to eq(3)
+      it 'calculates combined score from all three algorithms' do
+        values = {
+          'question_1' => 'Yes',
+          'question_2' => 5,
+          'question_3' => 'High',
+          'question_4' => 3,
+        }
 
-      # Test with unmatched values (should only score for matched rules)
-      values = {
-        'has_abc_ever_happened' => 'Unknown Response',  # No matching rule
-        'how_many_times_xyz' => 2,                      # Matches 1-3 range rule
-        'some_other_question' => 'value',               # No matching rule
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should only score for the xyz question: 0.2
-      expect(score_details[:weighted_score].to_f).to eq(0.2)
-      # weighted_score=0.2 → logistic_score=0.550 → exceeds 0.5 threshold → 3 points
-      expect(score_details[:points]).to eq(3)
-    end
+        score = calculator.calculate_score(values, owner: owner, user: user)
 
-    it 'tests higher point thresholds with larger weighted scores' do
-      # Create additional scoring rules to achieve higher weighted scores
-      create(:ac_hmis_scoring_rule, link_id: 'high_risk_indicator', exact_value: 'Critical', weight: 2.0, algorithm: algorithm1)
+        # Find the log record
+        log = AcHmis::Scoring::CalculationLog.last
+        expect(log.namespace).to eq('alt_aha')
+        expect(log.final_score).to eq(score)
+        expect(log.owner).to eq(owner)
+        expect(log.user).to eq(user)
 
-      values = {
-        'has_abc_ever_happened' => 'Yes',
-        'how_many_times_xyz' => 4,
-        'high_risk_indicator' => 'Critical',
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should be 0.5 (yes) + 0.3 (4 >= 3) + 2.0 (critical) = 2.8
-      expect(score_details[:weighted_score].to_f).to eq(2.8)
-      # weighted_score=2.8 → logistic_score=0.943 → exceeds 0.9 threshold → 5 points
-      expect(score_details[:points]).to eq(5)
-    end
+        # Check intermediate calculations
+        details = log.calculation_details
+        expect(details['alt_aha_1']['raw_score']).to eq(0.8) # 0.5 + 0.3
+        expect(details['alt_aha_1']['probability']).to be_within(0.001).of(0.689)
+        expect(details['alt_aha_1']['points']).to eq(4)
 
-    it 'tests very low scores that get minimal points' do
-      # Create a rule with very negative weight
-      create(:ac_hmis_scoring_rule, link_id: 'protective_factor', exact_value: 'Strong', weight: -2.0, algorithm: algorithm1)
+        expect(details['alt_aha_2']['raw_score']).to eq(1.0) # 0.4 + 0.6
+        expect(details['alt_aha_2']['probability']).to be_within(0.001).of(0.731)
+        expect(details['alt_aha_2']['points']).to eq(4)
 
-      values = {
-        'has_abc_ever_happened' => 'No',
-        'protective_factor' => 'Strong',
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should be -0.5 (no) + -2.0 (strong protection) = -2.5
-      expect(score_details[:weighted_score].to_f).to eq(-2.5)
-      # weighted_score=-2.5 → logistic_score=0.076 → doesn't exceed 0.1 threshold → 0 points
-      expect(score_details[:points]).to eq(0)
-    end
+        expect(details['alt_aha_3']['raw_score']).to eq(1.5) # 0.7 + 0.8
+        expect(details['alt_aha_3']['probability']).to be_within(0.001).of(0.818)
+        expect(details['alt_aha_3']['points']).to eq(4)
 
-    it 'sums weights from multiple matching rules for the same question' do
-      # Create multiple overlapping rules that can both match the same value
-      create(:ac_hmis_scoring_rule, link_id: 'risk_score', min_value: 2, weight: 0.1, algorithm: algorithm1)
-      create(:ac_hmis_scoring_rule, link_id: 'risk_score', min_value: 3, weight: 0.2, algorithm: algorithm1)
-      create(:ac_hmis_scoring_rule, link_id: 'risk_score', min_value: 5, weight: 0.3, algorithm: algorithm1)
-
-      # Test value that matches multiple rules
-      values = {
-        'has_abc_ever_happened' => 'Yes',  # 0.5 weight
-        'risk_score' => 5,                 # Should match all three rules: 0.1 + 0.2 + 0.3 = 0.6
-      }
-      score_details = calculator.calculate_algorithm_score(algorithm1, values)
-      # Should be 0.5 (yes) + 0.6 (sum of three matching risk rules) = 1.1
-      expect(score_details[:weighted_score].to_f).to eq(1.1)
-      # weighted_score=1.1 → logistic_score=0.750 → exceeds 0.7 threshold → 4 points
-      expect(score_details[:points]).to eq(4)
-
-      # Test value that matches fewer rules
-      values_partial = {
-        'has_abc_ever_happened' => 'No',   # -0.5 weight
-        'risk_score' => 3,                 # Should match two rules: 0.1 + 0.2 = 0.3
-      }
-      score_details_partial = calculator.calculate_algorithm_score(algorithm1, values_partial)
-      # Should be -0.5 (no) + 0.3 (sum of two matching risk rules) = -0.2
-      expect(score_details_partial[:weighted_score].to_f).to eq(-0.2)
-      # weighted_score=-0.2 → logistic_score=0.450 → exceeds 0.3 threshold → 2 points
-      expect(score_details_partial[:points]).to eq(2)
+        expect(details['total_points']).to eq(12) # 4 + 4 + 4
+        expect(score).to eq(10) # 12 points converts to score 10
+      end
     end
   end
 end

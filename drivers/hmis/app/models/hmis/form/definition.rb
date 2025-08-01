@@ -494,8 +494,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
-      # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
-      # TODO(##184402463): Add support for RequiredWhen
+      # todo @martha
+      # validate alt-AHA here - put put the actual code in external apis driver and invoke it
+      # re-calculate based on the submitted values and return a validation error if the calculated score doesn't match the submitted score
     end
 
     # Ensure all link IDs are in the FormDefinition

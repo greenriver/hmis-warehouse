@@ -25,7 +25,7 @@ module Mutations
       access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
 
       aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new
-      score = aha_calculator.calculate_score(enrollment_id, values_by_link_id)
+      score = aha_calculator.calculate_score(values_by_link_id, owner: enrollment, user: current_user)
 
       { score: score }
     end

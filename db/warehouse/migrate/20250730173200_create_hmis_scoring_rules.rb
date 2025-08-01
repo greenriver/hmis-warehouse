@@ -26,9 +26,12 @@ class CreateHmisScoringRules < ActiveRecord::Migration[7.0]
     create_table :hmis_scoring_calculation_logs do |t|
       t.string :namespace, null: false
       t.decimal :final_score, null: false, precision: 14, scale: 12
-      t.json :calculation_details, null: false
+      # calculation values stores a json blob of intermediate values in the calculation: for example raw scores and weighted scores.
       # Don't store input values since they are sensitive. They are stored as CDEs when assessment is submitted
-      t.references :custom_assessment
+      t.json :calculation_details, null: false
+
+      # Owner can be a custom assessment (if the assessment is already saved) or enrollment (if this is a calculation happening on a new assessment)
+      t.references :owner, null: false, polymorphic: true
 
       # This refers to the users table in the app db (not warehouse), so fk relationship is not made explicitly here
       t.references :user, null: false, index: false
