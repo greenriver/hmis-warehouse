@@ -8,46 +8,30 @@
 
 class CreateHmisScoringRules < ActiveRecord::Migration[7.0]
   def change
-    create_table :hmis_scoring_algorithms do |t|
-      t.string :name, null: false
-      t.string :namespace, null: false
-
-      t.timestamps null: false
-    end
-
-    add_index :hmis_scoring_algorithms, :name, unique: true
-
     create_table :hmis_scoring_rules do |t|
       t.string :link_id, null: false
-      t.decimal :min_value, null: true, precision: 10, scale: 2
-      t.decimal :max_value, null: true, precision: 10, scale: 2
+      t.string :min_value, null: true
+      t.string :max_value, null: true
       t.string :exact_value, null: true
+      # precision 14, scale 12 = 14 total digits with 12 after decimal point (e.g., 99.123456789012)
       t.decimal :weight, null: false, precision: 14, scale: 12
-      t.references :hmis_scoring_algorithm, null: false, foreign_key: true, index: { name: 'idx_scoring_rules_on_algo' }
+      t.string :algorithm, null: false
 
       t.timestamps null: false
     end
 
-    # Composite unique index to prevent duplicate rules for the same conditions
-    add_index :hmis_scoring_rules, [:hmis_scoring_algorithm_id, :link_id, :min_value, :max_value, :exact_value], name: 'index_hmis_scoring_rules_unique', unique: true
-
-    create_table :hmis_scoring_algorithm_thresholds do |t|
-      t.references :hmis_scoring_algorithm, null: false, foreign_key: true, index: { name: 'idx_algo_thresholds_on_algo' }
-      t.decimal :threshold, null: false, precision: 14, scale: 12
-      t.integer :points, null: false
-
-      t.timestamps null: false
-    end
-
-    add_index :hmis_scoring_algorithm_thresholds, [:hmis_scoring_algorithm_id, :points], name: 'index_hmis_scoring_algorithm_thresholds_unique', unique: true
+    # Prevent duplicate rules for the same conditions
+    add_index :hmis_scoring_rules, [:algorithm, :link_id, :min_value, :max_value, :exact_value], name: 'index_hmis_scoring_rules_unique', unique: true
 
     create_table :hmis_scoring_calculation_logs do |t|
       t.string :namespace, null: false
-      t.string :client_identifier, null: true
       t.decimal :final_score, null: false, precision: 14, scale: 12
       t.json :calculation_details, null: false
-      t.json :input_values, null: true
+      # Don't store input values since they are sensitive. They are stored as CDEs when assessment is submitted
+      t.references :custom_assessment
 
+      # This refers to the users table in the app db (not warehouse), so fk relationship is not made explicitly here
+      t.references :user, null: false, index: false
       t.timestamps null: false
     end
   end
