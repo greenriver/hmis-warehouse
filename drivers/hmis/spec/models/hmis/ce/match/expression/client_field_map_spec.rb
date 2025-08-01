@@ -61,6 +61,23 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
           destination_client2.id => 0, # Still enrolled
         )
       end
+
+      context 'with WIP enrollment' do
+        let(:enrollment1) { client1.enrollments.first }
+        before do
+          # Convert enrollment1 to a WIP enrollment by setting project_id to nil
+          enrollment1.update!(project_id: nil)
+        end
+
+        it 'still calculates days since last exit for WIP enrollments' do
+          expect(enrollment1).to be_in_progress
+          result = field_map.client_query(all_destination_clients, 'days_since_last_exit')
+          expect(result).to eq(
+            destination_client1.id => 10,
+            destination_client2.id => 0, # Still enrolled
+          )
+        end
+      end
     end
 
     context 'for open enrollment project types' do

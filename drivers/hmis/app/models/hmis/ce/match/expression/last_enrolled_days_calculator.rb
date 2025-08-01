@@ -2,7 +2,7 @@
 
 module Hmis::Ce::Match::Expression
   # Calculates the number of days since a client's last enrollment ended.
-  # Returns 0 if the client is still enrolled (no exit date).
+  # Returns 0 if the client is still enrolled (no exit date), even if the currently open enrollment is WIP
   class LastEnrolledDaysCalculator
     def initialize(current_date)
       @current_date = current_date
