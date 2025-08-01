@@ -15,7 +15,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
   describe '#calculate_score' do
     context 'when no scoring rules exist' do
-      it 'returns 0 when there are no rules' do
+      it 'raises error when there are no rules' do
         expect(AcHmis::Scoring::Rule.count).to eq(0)
 
         expect do
@@ -60,15 +60,15 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
         # Check intermediate calculations
         details = log.calculation_details
-        expect(details['alt_aha_1']['raw_score']).to eq(0.8) # 0.5 + 0.3
+        expect(details['alt_aha_1']['raw_score']).to eq('0.8') # 0.5 + 0.3
         expect(details['alt_aha_1']['probability']).to be_within(0.001).of(0.689)
         expect(details['alt_aha_1']['points']).to eq(4)
 
-        expect(details['alt_aha_2']['raw_score']).to eq(1.0) # 0.4 + 0.6
+        expect(details['alt_aha_2']['raw_score']).to eq('1.0') # 0.4 + 0.6
         expect(details['alt_aha_2']['probability']).to be_within(0.001).of(0.731)
         expect(details['alt_aha_2']['points']).to eq(4)
 
-        expect(details['alt_aha_3']['raw_score']).to eq(1.5) # 0.7 + 0.8
+        expect(details['alt_aha_3']['raw_score']).to eq('1.5') # 0.7 + 0.8
         expect(details['alt_aha_3']['probability']).to be_within(0.001).of(0.818)
         expect(details['alt_aha_3']['points']).to eq(4)
 
