@@ -49,7 +49,6 @@ module Hmis::Ce::Match::Expression
         days_since_last_exit: days_since_last_exit_field,
         veteran_status: veteran_status_field,
         current_age: current_age_field,
-        days_homeless: days_homeless_field,
         open_enrollment_project_types: open_enrollment_project_types_field,
         open_enrollment_project_types_excluding_incomplete: open_enrollment_project_types_excluding_incomplete_field,
         open_referral_project_types: open_referral_project_types_field,
@@ -81,13 +80,6 @@ module Hmis::Ce::Match::Expression
       {
         query: ->(clients) { calculator.call(clients) },
         arel_field: calculator.arel_expression,
-      }
-    end
-
-    def days_homeless_field
-      {
-        query: ->(clients) { HomelessDaysCalculator.new(@current_date).call(clients) },
-        format_for_display: method(:format_days),
       }
     end
 

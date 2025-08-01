@@ -40,33 +40,6 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
       end
     end
 
-    # FIXME- verify that we want to use service_history_service as our source of truth for homeless_days
-    # context 'for days_homeless' do
-    #   before do
-    #     # client1 has 5 unique homeless days, but 1 is also housed, so count is 4
-    #     create(:service_history_service, client: destination_client1, date: current_date - 1.day, homeless: true)
-    #     create(:service_history_service, client: destination_client1, date: current_date - 2.days, homeless: true)
-    #     create(:service_history_service, client: destination_client1, date: current_date - 3.days, homeless: true)
-    #     create(:service_history_service, client: destination_client1, date: current_date - 4.days, homeless: true)
-    #     create(:service_history_service, client: destination_client1, date: current_date - 5.days, homeless: true)
-    #     # This one is a housed day, should be excluded
-    #     create(:service_history_service, client: destination_client1, date: current_date - 5.days, homeless: false)
-
-    #     # client2 has 3 unique homeless days
-    #     create(:service_history_service, client: destination_client2, date: current_date - 1.day, homeless: true)
-    #     create(:service_history_service, client: destination_client2, date: current_date - 2.days, homeless: true)
-    #     create(:service_history_service, client: destination_client2, date: current_date - 3.days, homeless: true)
-    #   end
-
-    #   it 'returns the correct number of homeless days' do
-    #     result = field_map.client_query(all_destination_clients, 'days_homeless')
-    #     expect(result).to eq(
-    #       destination_client1.id => 4,
-    #       destination_client2.id => 3,
-    #     )
-    #   end
-    # end
-
     context 'for days_since_last_exit' do
       before do
         ds1 = client1.data_source
