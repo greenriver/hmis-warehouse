@@ -12,8 +12,14 @@ module Types
     field :id, ID, null: false
     field :destination_client_id, ID, null: false
     field :client_name, String, null: false, description: 'Masked as "Candidate 123" unless the user has permission to view'
+    field :priority_score, Integer, null: false, deprecation_reason: 'Replaced by priorityScores'
     field :priority_scores, [Integer], null: false, default_value: [0]
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
+
+    # TODO(#7957) - remove after deprecation period
+    def priority_score
+      priority_scores&.first || 0
+    end
 
     def destination_client_id
       destination_client.id

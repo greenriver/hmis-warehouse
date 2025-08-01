@@ -42,10 +42,16 @@ module Types
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_schemes, [HmisSchema::CeMatchRule], null: true # todo @martha - separate this out into a different diff, make backwards compatible?
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :workflow_template_name, String, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
+
+    # TODO(#7957) - remove after deprecation period
+    def priority_scheme
+      priority_schemes&.first
+    end
 
     def user
       user = load_ar_association(object, :user)
