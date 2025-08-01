@@ -51,7 +51,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
         'label' => 'Assessment Type',
         'key' => 'assessment_type',
         'field_type' => 'string',
-        'repeats' => 'false',
+        'repeats' => false,
       )
     end
 
@@ -61,8 +61,8 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
       # Default mappings should use the same column name
       expect(mapped_attributes).to include(
         'UserID' => 'user123',
-        'DateCreated' => '2024-01-01T10:00:00Z',
-        'DateUpdated' => '2024-01-01T11:00:00Z',
+        'DateCreated' => DateTime.parse('2024-01-01T10:00:00Z'),
+        'DateUpdated' => DateTime.parse('2024-01-01T11:00:00Z'),
         'DateDeleted' => nil,
         'ExportID' => 'export456',
       )
@@ -110,7 +110,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
       expect(mapped_attributes['label']).to eq('Assessment Type')
       expect(mapped_attributes['key']).to eq('assessment_type')
       expect(mapped_attributes['field_type']).to eq('string')
-      expect(mapped_attributes['repeats']).to eq('false')
+      expect(mapped_attributes['repeats']).to eq(false)
 
       # Default mappings
       expect(mapped_attributes['UserID']).to eq('user123')
@@ -225,7 +225,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
           'label' => 'Housing Status',
           'key' => 'housing_status',
           'field_type' => 'string',
-          'repeats' => 'true',
+          'repeats' => true,
           'UserID' => 'admin_user',
           'DateCreated' => '2024-01-15T09:30:00Z',
           'DateUpdated' => '2024-01-15T09:30:00Z',

@@ -323,6 +323,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom
       when 'datetime'
         value = Time.zone.parse(value) if value.is_a?(String)
         value
+      when 'boolean'
+        value.to_s == 'true'
       when 'string', 'virtual'
         value
       else
