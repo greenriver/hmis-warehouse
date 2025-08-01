@@ -13,6 +13,6 @@ module HmisCsvTwentyTwentySix::Loader::Custom
   class CustomGender < HmisCsvTwentyTwentySix::Loader::Custom::Base
     self.table_name = 'hmis_csv_2026_custom_genders'
     self.hud_key = :PersonalID
-    @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomGender.csv')
+    @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomGender.csv')
   end
 end

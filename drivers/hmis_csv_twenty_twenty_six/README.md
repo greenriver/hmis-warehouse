@@ -44,6 +44,45 @@ The importer modules handle the processing of incoming HMIS CSV 2026 files. The 
 
 The custom files system allows for importing additional CSV files beyond the standard HUD HMIS specification.
 
+### General Overview
+```mermaid
+
+graph TD
+    subgraph "A. One-Time Setup (Code Generation)"
+        direction LR
+        YAML[".yaml Config File<br/>(Defines file structure, rules, and mappings)"] -- "Is read by" --> CFM("HmisCsvTwentyTwentySix::CustomFileManager<br/>(The code generator)")
+        CFM -- "Generates" --> GenModels["Generated Models<br/>(e.g., HmisCsvTwentyTwentySix::Importer::Custom::CustomGender)"]
+        CFM -- "Generates" --> Migrations["Database Migrations"]
+    end
+
+    subgraph "B. Runtime Import Process"
+        Upload["User uploads CSVs in a Zip or system imports from S3"] --> Importer("HmisCsvImporter::Importer<br/>(Main import orchestrator)")
+
+        Importer -- "Uses generated model for custom file" --> GenModels
+
+        GenModels -- "Includes shared logic from" --> CIC("HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern")
+
+        CIC -- "Uses for data transformation" --> CM("HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper")
+
+        CM -- "Reads mapping rules from" --> YAML
+
+        CIC -- "Returns processed data to" --> Importer
+
+        Importer -- "Is this data augmenting<br/>an existing table?" --> Decision{"Check: Augmentation or New Data"}
+
+        Decision -- "Yes (e.g., CustomGender)" --> BulkUpdate["Efficiently Bulk Update<br/>existing records in DB"]
+        Decision -- "No (e.g., CustomDataElement)" --> Insert["Insert new records<br/>into a custom table in DB"]
+
+        BulkUpdate --> DB[("Warehouse Database")]
+        Insert --> DB
+    end
+
+
+    class YAML config
+    class CFM,Importer,CIC,CM process
+    class GenModels,Migrations,Upload,Decision,BulkUpdate,Insert,DB component
+```
+
 ### Quick Start
 
 1.  **Create a YAML configuration file** in `drivers/hmis_csv_twenty_twenty_six/config/custom/`

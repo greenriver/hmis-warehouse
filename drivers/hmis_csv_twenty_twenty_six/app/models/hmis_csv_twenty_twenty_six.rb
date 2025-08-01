@@ -48,36 +48,11 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.custom_files_config
-    @custom_files_config ||= begin
-      custom_dir = Rails.root.join('drivers', 'hmis_csv_twenty_twenty_six', 'config', 'custom')
-
-      if Dir.exist?(custom_dir)
-        all_custom_files = []
-
-        # Load all YAML files from the custom directory
-        Dir.glob(File.join(custom_dir, '*.yaml')).sort.each do |config_file|
-          config = YAML.load_file(config_file, permitted_classes: [Date, Time])
-          if config && config['custom_files'].is_a?(Array)
-            all_custom_files.concat(config['custom_files'])
-          else
-            Rails.logger.warn "Custom file config #{config_file} has invalid structure - expecting 'custom_files' array"
-          end
-        rescue StandardError => e
-          Rails.logger.error "Failed to load custom file config #{config_file}: #{e.message}"
-          raise e if Rails.env.development? || Rails.env.test?
-        end
-
-        CustomFilesConfig.new(all_custom_files)
-      else
-        CustomFilesConfig.new([])
-      end
-    end
+    @custom_files_config ||= CustomFilesConfig.new
   end
 
   def self.custom_importable_files_map
-    custom_files_config.custom_files.map do |file_config|
-      [file_config['filename'], "Custom::#{file_config['class_name']}"]
-    end.to_h
+    custom_files_config.class_name_mapping
   end
 
   def self.importable_files_map
@@ -85,7 +60,7 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.required_files
-    ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config.custom_files.select { |f| f['required'] }.map { |f| f['filename'] }
+    ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config.required_filenames
   end
 
   def self.data_lake_module
@@ -125,7 +100,7 @@ module HmisCsvTwentyTwentySix
       begin
         klass = class_name.constantize
         [filename, klass]
-      rescue NameError
+      rescue NameError => e
         # Class doesn't exist yet - custom models haven't been generated
         # This can happen during initialization before generate_custom_models! is called
         Rails.logger.warn "Custom loader class #{class_name} not found. Try running the bootstrap task."

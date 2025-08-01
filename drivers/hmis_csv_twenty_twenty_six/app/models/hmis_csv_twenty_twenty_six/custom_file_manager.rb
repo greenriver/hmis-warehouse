@@ -46,23 +46,21 @@ module HmisCsvTwentyTwentySix
     #
     # @return [void]
     def self.bootstrap_custom_models!
-      HmisCsvTwentyTwentySix.custom_files_config.custom_files.each do |file_config|
-        generate_migration_for_file(file_config)
-        generate_loader_model_file(file_config)
-        generate_importer_model_file(file_config)
+      HmisCsvTwentyTwentySix.custom_files_config.definitions.each do |definition|
+        generate_migration_for_file(definition)
+        generate_loader_model_file(definition)
+        generate_importer_model_file(definition)
       end
     end
 
     # Creates a Loader model file
     #
-    # @param file_config [Hash] Configuration hash from YAML file
+    # @param definition [CustomFileDefinition] Definition object for the custom file
     # @return [void]
     # @private
-    private_class_method def self.generate_loader_model_file(file_config)
-      class_name = file_config['class_name']
-      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/#{class_name.underscore}.rb")
-      table_name = "hmis_csv_2026_#{class_name.underscore.pluralize}"
-      hud_key = file_config['augment_key'] || file_config['warehouse_key'] || file_config['columns'].first['name']
+    private_class_method def self.generate_loader_model_file(definition)
+      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/#{definition.class_name.underscore}.rb")
+      table_name = "hmis_csv_2026_#{definition.class_name.underscore.pluralize}"
 
       content = ::Code.copywright_header
       content += <<~RUBY
@@ -72,10 +70,10 @@ module HmisCsvTwentyTwentySix
         # Re-run HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models! to regenerate.
 
         module HmisCsvTwentyTwentySix::Loader::Custom
-          class #{class_name} < HmisCsvTwentyTwentySix::Loader::Custom::Base
+          class #{definition.class_name} < HmisCsvTwentyTwentySix::Loader::Custom::Base
             self.table_name = '#{table_name}'
-            self.hud_key = :#{hud_key}
-            @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('#{file_config['filename']}')
+            self.hud_key = :#{definition.hud_key}
+            @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('#{definition.filename}')
           end
         end
       RUBY
@@ -85,16 +83,14 @@ module HmisCsvTwentyTwentySix
 
     # Creates an Importer model file
     #
-    # @param file_config [Hash] Configuration hash from YAML file
+    # @param definition [CustomFileDefinition] Definition object for the custom file
     # @return [void]
     # @private
-    private_class_method def self.generate_importer_model_file(file_config)
-      class_name = file_config['class_name']
-      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/custom/#{class_name.underscore}.rb")
-      table_name = "hmis_2026_#{class_name.underscore.pluralize}"
-      associations_code = generate_associations_code(file_config)
-      validations_code = generate_validations_code(file_config)
-      hud_key = file_config['augment_key'] || file_config['warehouse_key'] || file_config['columns'].first['name']
+    private_class_method def self.generate_importer_model_file(definition)
+      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/custom/#{definition.class_name.underscore}.rb")
+      table_name = "hmis_2026_#{definition.class_name.underscore.pluralize}"
+      associations_code = generate_associations_code(definition)
+      validations_code = generate_validations_code(definition)
 
       content = ::Code.copywright_header
       content += <<~RUBY
@@ -104,11 +100,11 @@ module HmisCsvTwentyTwentySix
         # Re-run HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models! to regenerate.
 
         module HmisCsvTwentyTwentySix::Importer::Custom
-          class #{class_name} < HmisCsvTwentyTwentySix::Importer::Custom::Base
+          class #{definition.class_name} < HmisCsvTwentyTwentySix::Importer::Custom::Base
             include HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
             self.table_name = '#{table_name}'
-            self.hud_key = :#{hud_key}
-            @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('#{file_config['filename']}')
+            self.hud_key = :#{definition.hud_key}
+            @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('#{definition.filename}')
 
             # Associations
             #{associations_code}
@@ -122,22 +118,15 @@ module HmisCsvTwentyTwentySix
       File.write(file_path, content)
     end
 
-    private_class_method def self.generate_associations_code(file_config)
-      if file_config['augments_warehouse_table']
-        warehouse_class = file_config['augments_warehouse_table']
-        key_column = file_config['augment_key'] || file_config['columns'].first['name']
-        model_name = warehouse_class.split('::').last
-        "has_one :destination_record, **hud_assoc(:#{key_column}, '#{model_name}')"
-      elsif file_config['warehouse_class_name']
-        warehouse_class_name = file_config['warehouse_class_name']
-        key_column = file_config['warehouse_key'] || file_config['columns'].first['name']
-        model_name = warehouse_class_name.split('::').last
-        "has_one :destination_record, **hud_assoc(:#{key_column}, '#{model_name}')"
-      end
+    private_class_method def self.generate_associations_code(definition)
+      return unless definition.warehouse_class
+
+      model_name = definition.warehouse_class.name.split('::').last
+      "has_one :destination_record, **hud_assoc(:#{definition.hud_key}, '#{model_name}')"
     end
 
-    private_class_method def self.generate_validations_code(file_config)
-      file_config['columns'].map do |column_config|
+    private_class_method def self.generate_validations_code(definition)
+      definition.columns.map do |column_config|
         column_name = column_config['name']
         validations = []
 
@@ -175,13 +164,12 @@ module HmisCsvTwentyTwentySix
 
     # Generates a migration file for a specific custom file if tables don't exist
     #
-    # @param file_config [Hash] Configuration hash from YAML file
+    # @param definition [CustomFileDefinition] Definition object for the custom file
     # @return [void]
     # @private
-    private_class_method def self.generate_migration_for_file(file_config)
-      class_name = file_config['class_name']
-      loader_table = "hmis_csv_2026_#{class_name.underscore.pluralize}"
-      importer_table = "hmis_2026_#{class_name.underscore.pluralize}"
+    private_class_method def self.generate_migration_for_file(definition)
+      loader_table = "hmis_csv_2026_#{definition.class_name.underscore.pluralize}"
+      importer_table = "hmis_2026_#{definition.class_name.underscore.pluralize}"
 
       # Check if tables exist
       loader_exists = GrdaWarehouseBase.connection.table_exists?(loader_table)
@@ -191,11 +179,11 @@ module HmisCsvTwentyTwentySix
 
       # Generate migration
       timestamp = Time.current.strftime('%Y%m%d%H%M%S')
-      migration_name = "create_#{class_name.underscore}_custom_tables"
+      migration_name = "create_#{definition.class_name.underscore}_custom_tables"
       migration_file = "db/warehouse/migrate/#{timestamp}_#{migration_name}.rb"
 
       migration_content = generate_migration_content(
-        file_config: file_config,
+        definition: definition,
         loader_table: loader_table,
         importer_table: importer_table,
         loader_exists: loader_exists,
@@ -209,7 +197,7 @@ module HmisCsvTwentyTwentySix
 
     # Generates the content for a migration file
     #
-    # @param file_config [Hash] Configuration hash from YAML file
+    # @param definition [CustomFileDefinition] Definition object for the custom file
     # @param loader_table [String] Name of the loader table
     # @param importer_table [String] Name of the importer table
     # @param loader_exists [Boolean] Whether loader table exists
@@ -217,7 +205,7 @@ module HmisCsvTwentyTwentySix
     # @param migration_name [String] Name of the migration class
     # @return [String] Migration file content
     # @private
-    private_class_method def self.generate_migration_content(file_config:, loader_table:, importer_table:, loader_exists:, importer_exists:, migration_name:)
+    private_class_method def self.generate_migration_content(definition:, loader_table:, importer_table:, loader_exists:, importer_exists:, migration_name:)
       class_name = migration_name.camelize
 
       content = <<~MIGRATION
@@ -225,8 +213,8 @@ module HmisCsvTwentyTwentySix
 
         class #{class_name} < ActiveRecord::Migration[7.1]
           def change
-        #{generate_loader_table_migration(file_config, loader_table) unless loader_exists}
-        #{generate_importer_table_migration(file_config, importer_table) unless importer_exists}
+        #{generate_loader_table_migration(definition, loader_table) unless loader_exists}
+        #{generate_importer_table_migration(definition, importer_table) unless importer_exists}
             # End generated migration content
           end
         end
@@ -237,20 +225,20 @@ module HmisCsvTwentyTwentySix
 
     # Generates loader table creation code
     #
-    # @param file_config [Hash] Configuration hash from YAML file
+    # @param definition [CustomFileDefinition] Definition object for the custom file
     # @param table_name [String] Name of the loader table
     # @return [String] Migration code for loader table
     # @private
-    private_class_method def self.generate_loader_table_migration(file_config, table_name)
-      columns = real_columns(file_config).map do |col|
+    private_class_method def self.generate_loader_table_migration(definition, table_name)
+      columns = definition.real_columns.map do |col|
         "      t.string '#{col['name']}'"
       end.join("\n")
 
       # Use first real column for index (virtual columns shouldn't be used for indexing)
-      first_column = real_columns(file_config).first['name']
+      first_column = definition.real_columns.first['name']
 
       <<~LOADER_TABLE
-            # #{file_config['class_name']} loader table
+            # #{definition.class_name} loader table
             create_table :#{table_name} do |t|
         #{columns}
 
@@ -265,19 +253,14 @@ module HmisCsvTwentyTwentySix
       LOADER_TABLE
     end
 
-    # Filter out virtual columns - they don't need database columns
-    private_class_method def self.real_columns(file_config)
-      file_config['columns'].reject { |col| col['type'] == 'virtual' }
-    end
-
     # Generates importer table creation code
     #
-    # @param file_config [Hash] Configuration hash from YAML file
+    # @param definition [CustomFileDefinition] Definition object for the custom file
     # @param table_name [String] Name of the importer table
     # @return [String] Migration code for importer table
     # @private
-    private_class_method def self.generate_importer_table_migration(file_config, table_name)
-      columns = real_columns(file_config).map do |col|
+    private_class_method def self.generate_importer_table_migration(definition, table_name)
+      columns = definition.real_columns.map do |col|
         column_type = case col['type']
         when 'integer' then 'integer'
         when 'datetime', 'date' then 'datetime'
@@ -288,10 +271,10 @@ module HmisCsvTwentyTwentySix
       end.join("\n")
 
       # Use first real column for index (virtual columns shouldn't be used for indexing)
-      first_column = real_columns(file_config).first['name']
+      first_column = definition.real_columns.first['name']
 
       <<~IMPORTER_TABLE
-            # #{file_config['class_name']} importer table
+            # #{definition.class_name} importer table
             create_table :#{table_name} do |t|
         #{columns}
 
@@ -324,15 +307,14 @@ module HmisCsvTwentyTwentySix
     #
     # @return [void]
     def self.clean_custom_models!
-      HmisCsvTwentyTwentySix.custom_files_config.custom_files.each do |file_config|
-        remove_loader_model_file(file_config)
-        remove_importer_model_file(file_config)
+      HmisCsvTwentyTwentySix.custom_files_config.definitions.each do |definition|
+        remove_loader_model_file(definition)
+        remove_importer_model_file(definition)
       end
     end
 
-    private_class_method def self.remove_loader_model_file(file_config)
-      class_name = file_config['class_name']
-      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/#{class_name.underscore}.rb")
+    private_class_method def self.remove_loader_model_file(definition)
+      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/#{definition.class_name.underscore}.rb")
 
       if File.exist?(file_path)
         File.delete(file_path)
@@ -342,9 +324,8 @@ module HmisCsvTwentyTwentySix
       end
     end
 
-    private_class_method def self.remove_importer_model_file(file_config)
-      class_name = file_config['class_name']
-      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/custom/#{class_name.underscore}.rb")
+    private_class_method def self.remove_importer_model_file(definition)
+      file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/custom/#{definition.class_name.underscore}.rb")
 
       if File.exist?(file_path)
         File.delete(file_path)

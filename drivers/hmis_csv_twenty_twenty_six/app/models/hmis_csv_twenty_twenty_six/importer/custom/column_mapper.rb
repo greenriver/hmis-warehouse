@@ -7,142 +7,113 @@
 # frozen_string_literal: true
 
 module HmisCsvTwentyTwentySix::Importer::Custom
-  # Handles column mapping from custom CSV files to warehouse tables
+  # A service object that handles column mapping from custom CSV files to warehouse tables.
   #
-  # This class provides generic mapping functionality that can transform
-  # data from custom CSV files into the appropriate warehouse format
-  # based on YAML configuration. It supports several mapping types:
+  # This class is instantiated with a set of mapping rules (derived from a
+  # custom file's YAML configuration) and provides methods to transform
+  # source records into the appropriate warehouse format. It supports:
   #
   # 1.  **Direct mapping**: Simple 1:1 column mapping.
   # 2.  **Value-based multi-column mapping**: Maps source values to different target columns.
   # 3.  **Concatenation mapping**: Combines multiple source values into one target column.
   # 4.  **Value mapping**: Transforms source values based on a lookup table.
-  # 5.  **Record lookup**: Looks up foreign keys in other warehouse tables.
+  # 5.  **Record lookup**: Efficiently looks up foreign keys in other warehouse tables.
   # 6.  **Static value**: Assigns a fixed value to a target column.
   #
-  # == Usage Patterns
+  # == Usage Pattern
   #
-  # The ColumnMapper is used to process records from custom CSV files, applying the transformations
-  # defined in the YAML configuration files. It can be used for both augmenting existing warehouse
-  # tables and for populating new, custom tables.
+  # The ColumnMapper is instantiated with the column configurations from a
+  # CustomFileDefinition. The resulting object can then be used to map one or
+  # many records.
+  #
+  #   # 1. Get the definition for the custom file
+  #   definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('MyFile.csv')
+  #
+  #   # 2. Create a mapper instance with the column rules
+  #   mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+  #
+  #   # 3. Map a single source record
+  #   mapped_attributes = mapper.map(source_record)
+  #
+  #   # 4. Or, map a batch of records efficiently
+  #   all_mapped_attributes = mapper.map_batch(source_records)
   #
   # == Mapping Configuration Examples
   #
   # @example Direct mapping (1:1 column mapping)
-  #   # YAML config:
-  #   warehouse_column_mapping:
-  #     type: "direct"
-  #     target_column: "Woman"
-  #
-  #   # Usage:
-  #   ColumnMapper.apply_mappings(source_record, mapped_attrs, column_configs)
+  #   # warehouse_column_mapping:
+  #   #   type: "direct"
+  #   #   target_column: "Woman"
   #
   # @example Value-based multi-column mapping (coded values to multiple columns)
-  #   # YAML config:
-  #   warehouse_column_mapping:
-  #     type: "value_based_multi_column"
-  #     value_mappings:
-  #       - condition: { value: "1" }
-  #         target_column: "Woman"
-  #         target_value: 1
-  #       - condition: { value: "2" }
-  #         target_column: "Man"
-  #         target_value: 1
-  #
-  #   # This maps gender codes to separate boolean columns.
+  #   # warehouse_column_mapping:
+  #   #   type: "value_based_multi_column"
+  #   #   value_mappings:
+  #   #     - { condition: { value: "1" }, target_column: "Woman", target_value: 1 }
+  #   #     - { condition: { value: "2" }, target_column: "Man",   target_value: 1 }
   #
   # @example Record Lookup Mapping
-  #   # YAML config for looking up an owner_id for a custom data element:
-  #   warehouse_column_mapping:
-  #     type: "record_lookup"
-  #     class_column: "owner_type"
-  #     target_column: "owner_id"
-  #     lookup_field_mappings:
-  #       "GrdaWarehouse::Hud::Client": "PersonalID"
-  #       "GrdaWarehouse::Hud::Enrollment": "EnrollmentID"
+  #   # warehouse_column_mapping:
+  #   #   type: "record_lookup"
+  #   #   class_column: "owner_type"
+  #   #   target_column: "owner_id"
+  #   #   lookup_field_mappings:
+  #   #     "GrdaWarehouse::Hud::Client": "PersonalID"
+  #   #     "GrdaWarehouse::Hud::Enrollment": "EnrollmentID"
   #
   # == Error Handling
   #
   # The mapper handles various error conditions gracefully:
   # - Unknown mapping types are logged as warnings.
+  # - Failed record lookups are logged and result in a nil value.
   # - Invalid data conversions return nil or default values.
   #
   # @see CustomImportConcern For integration with importer classes.
-  # @see CustomFileManager For YAML configuration loading.
+  # @see CustomFileDefinition For the source of the column configurations.
   class ColumnMapper
-    # Applies column mappings from source record to target attributes with efficient record lookup support
-    #
-    # This method supports a two-phase process:
-    # 1. Apply all standard mappings (direct, value_mapping, etc.)
-    # 2. Handle record_lookup mappings in batches for performance
-    #
-    # @param source_records [Array<Object>] Array of source records to process
-    # @param column_configs [Array<Hash>] Array of column configurations from YAML
-    # @return [Array<Hash>] Array of mapped attributes for each record
-    def self.apply_mappings_batch(source_records, column_configs)
-      # Phase 1: Apply all standard mappings
-      results = source_records.map do |source_record|
-        mapped_attributes = {}
-        apply_standard_mappings(source_record, mapped_attributes, column_configs)
-        { source_record: source_record, mapped_attributes: mapped_attributes }
-      end
-
-      # Phase 2: Handle record lookups in batches
-      apply_record_lookups_batch(results, column_configs)
-
-      results.map { |result| result[:mapped_attributes] }
+    def initialize(column_configs)
+      @column_configs = column_configs
+      @record_lookup_configs = @column_configs.select { |col| col.dig('warehouse_column_mapping', 'type') == 'record_lookup' }
     end
 
     # Applies all configured column mappings for a single source record.
     #
-    # This method iterates through the column configurations and applies the appropriate
-    # mapping function for each. For `record_lookup` mappings, it can use an
-    # optional cache to improve performance when called in a batch context.
-    #
-    # @see .apply_mappings_batch for processing an array of records efficiently.
-    #
     # @param source_record [Object] Source record with data to map
-    # @param mapped_attributes [Hash] Hash to store mapped attributes
-    # @param column_configs [Array<Hash>] Array of column configurations from YAML
-    # @param lookup_cache [Hash, nil] Optional cache for record lookups (for batch processing)
-    # @return [void]
-    def self.apply_mappings(source_record, mapped_attributes, column_configs, lookup_cache: nil)
-      column_configs.each do |column_config|
-        column_name = column_config['name']
-        value = source_record[column_name]
+    # @return [Hash] A hash containing the mapped attributes
+    def map(source_record)
+      return {} if source_record.blank?
 
-        # Default to direct mapping with same column name if no mapping specified
-        mapping_config = column_config['warehouse_column_mapping'] || {}
-        mapping_config = apply_mapping_defaults(mapping_config, column_name)
+      hud_key = source_record.hud_key
+      map_batch([source_record])[source_record[hud_key.to_s]] || {}
+    end
 
-        case mapping_config['type']
-        when 'direct'
-          apply_direct_mapping(mapped_attributes, value, mapping_config)
-        when 'value_based_multi_column'
-          apply_value_based_multi_column_mapping(mapped_attributes, value, mapping_config)
-        when 'concatenation'
-          apply_concatenation_mapping(mapped_attributes, value, mapping_config)
-        when 'value_mapping'
-          apply_value_mapping(mapped_attributes, value, mapping_config)
-        when 'record_lookup'
-          apply_record_lookup_mapping(source_record, mapped_attributes, mapping_config, lookup_cache)
-        when 'static_value'
-          apply_static_value_mapping(mapped_attributes, mapping_config)
-        else
-          Rails.logger.warn "Unknown mapping type: #{mapping_config['type']}"
-        end
+    # Applies column mappings from source records to target attributes with efficient record lookup support
+    #
+    # @param source_records [Array<Object>] Array of source records to process
+    # @return [Array<Hash>] Array of mapped attributes for each record
+    def map_batch(source_records)
+      return {} if source_records.empty?
+
+      hud_key = source_records.first.hud_key
+      # Phase 1: Apply all standard mappings
+      results = source_records.map do |source_record|
+        mapped_attributes = {}
+        apply_standard_mappings(source_record, mapped_attributes)
+        { source_record: source_record, mapped_attributes: mapped_attributes }
       end
+
+      # Phase 2: Handle record lookups in batches
+      apply_record_lookups_batch(results)
+      results.map { |result| [result[:source_record][hud_key.to_s], result[:mapped_attributes]] }.to_h
     end
 
     # Applies all standard (non-record-lookup) mappings
     #
     # @param source_record [Object] Source record with data to map
     # @param mapped_attributes [Hash] Hash to store mapped attributes
-    # @param column_configs [Array<Hash>] Array of column configurations from YAML
     # @return [void]
-    # @private
-    private_class_method def self.apply_standard_mappings(source_record, mapped_attributes, column_configs)
-      column_configs.each do |column_config|
+    private def apply_standard_mappings(source_record, mapped_attributes)
+      @column_configs.each do |column_config|
         column_name = column_config['name']
         value = source_record[column_name]
 
@@ -152,18 +123,18 @@ module HmisCsvTwentyTwentySix::Importer::Custom
 
         case mapping_config['type']
         when 'direct'
-          apply_direct_mapping(mapped_attributes, value, mapping_config)
+          apply_direct_mapping(mapped_attributes, value, mapping_config, column_config)
         when 'value_based_multi_column'
           apply_value_based_multi_column_mapping(mapped_attributes, value, mapping_config)
         when 'concatenation'
           apply_concatenation_mapping(mapped_attributes, value, mapping_config)
         when 'value_mapping'
-          apply_value_mapping(mapped_attributes, value, mapping_config)
+          apply_value_mapping(mapped_attributes, value, mapping_config, column_config)
         when 'record_lookup'
           # Skip record lookups in phase 1 - they'll be handled in batch in phase 2
           next
         when 'static_value'
-          apply_static_value_mapping(mapped_attributes, mapping_config)
+          apply_static_value_mapping(mapped_attributes, mapping_config, column_config)
         else
           Rails.logger.warn "Unknown mapping type: #{mapping_config['type']}"
         end
@@ -172,29 +143,20 @@ module HmisCsvTwentyTwentySix::Importer::Custom
 
     # Applies record lookup mappings in batches for performance
     #
-    # This method efficiently handles record lookups by:
-    # 1. Collecting all lookups needed grouped by class and data source
-    # 2. Executing batch queries for each class
-    # 3. Applying results back to the mapped attributes
-    #
     # @param results [Array<Hash>] Array of { source_record:, mapped_attributes: } hashes
-    # @param column_configs [Array<Hash>] Array of column configurations from YAML
     # @return [void]
-    # @private
-    private_class_method def self.apply_record_lookups_batch(results, column_configs)
-      record_lookup_configs = column_configs.select { |col| col.dig('warehouse_column_mapping', 'type') == 'record_lookup' }
-      return if record_lookup_configs.empty?
+    private def apply_record_lookups_batch(results)
+      return if @record_lookup_configs.empty?
 
       # Collect all lookups needed
       lookups_by_class = {}
 
-      record_lookup_configs.each do |column_config|
+      @record_lookup_configs.each do |column_config|
         column_name = column_config['name']
         mapping_config = column_config['warehouse_column_mapping']
         class_column = mapping_config['class_column']
         target_column = mapping_config['target_column']
         lookup_field_mappings = mapping_config['lookup_field_mappings']
-
         results.each_with_index do |result, index|
           source_record = result[:source_record]
           mapped_attributes = result[:mapped_attributes]
@@ -237,8 +199,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     # @param lookup_info [Hash] Information about the lookup to perform
     # @param results [Array<Hash>] Array of result hashes to update
     # @return [void]
-    # @private
-    private_class_method def self.apply_batch_lookup(lookup_info, results)
+    private def apply_batch_lookup(lookup_info, results)
       class_name = lookup_info[:class_name]
       data_source_id = lookup_info[:data_source_id]
       lookup_field = lookup_info[:lookup_field]
@@ -274,25 +235,10 @@ module HmisCsvTwentyTwentySix::Importer::Custom
 
     # Applies default values to mapping configuration
     #
-    # This method provides sensible defaults for mapping configurations:
-    # - Defaults to 'direct' mapping type if not specified
-    # - Defaults target_column to the same as source column name if not specified
-    #
     # @param mapping_config [Hash] The mapping configuration (may be empty)
     # @param column_name [String] The source column name
     # @return [Hash] The mapping configuration with defaults applied
-    #
-    # @example Default behavior
-    #   # For a column named "UserID" with no mapping config
-    #   apply_mapping_defaults({}, "UserID")
-    #   # => { "type" => "direct", "target_column" => "UserID" }
-    #
-    #   # For a column with partial config
-    #   apply_mapping_defaults({ "type" => "value_mapping" }, "RecordType")
-    #   # => { "type" => "value_mapping", "target_column" => "RecordType" }
-    #
-    # @private
-    private_class_method def self.apply_mapping_defaults(mapping_config, column_name)
+    private def apply_mapping_defaults(mapping_config, column_name)
       mapping_config = mapping_config.dup
       mapping_config['type'] ||= 'direct'
       mapping_config['target_column'] ||= column_name
@@ -301,58 +247,21 @@ module HmisCsvTwentyTwentySix::Importer::Custom
 
     # Applies direct column mapping from source to target
     #
-    # This is the simplest mapping type where the source value is directly
-    # copied to the target column without any transformation.
-    #
     # @param mapped_attributes [Hash] Hash to store the mapped attributes
     # @param value [Object] The source value to map
     # @param mapping_config [Hash] Configuration containing the target column
-    # @option mapping_config [String] :target_column The name of the target column
     # @return [void]
-    #
-    # @example Direct mapping
-    #   mapped_attributes = {}
-    #   apply_direct_mapping(mapped_attributes, "John", { "target_column" => "first_name" })
-    #   # mapped_attributes now contains: { "first_name" => "John" }
-    #
-    # @private
-    private_class_method def self.apply_direct_mapping(mapped_attributes, value, mapping_config)
-      mapped_attributes[mapping_config['target_column']] = value
+    private def apply_direct_mapping(mapped_attributes, value, mapping_config, column_config)
+      mapped_attributes[mapping_config['target_column']] = cast_value(value, column_config['type'])
     end
 
     # Applies value-based multi-column mapping
     #
-    # This mapping type allows different source values to be mapped to different
-    # target columns with potentially different target values. It's useful for
-    # transforming coded values into multiple boolean or flag columns.
-    #
     # @param mapped_attributes [Hash] Hash to store the mapped attributes
     # @param value [Object] The source value to evaluate
     # @param mapping_config [Hash] Configuration containing the mapping rules
-    # @option mapping_config [Array<Hash>] :value_mappings Array of mapping rules
     # @return [void]
-    #
-    # @example Value-based mapping for gender
-    #   # YAML config:
-    #   # value_mappings:
-    #   #   - condition: { value: "1" }
-    #   #     target_column: "Woman"
-    #   #     target_value: 1
-    #   #   - condition: { value: "2" }
-    #   #     target_column: "Man"
-    #   #     target_value: 1
-    #
-    #   mapped_attributes = {}
-    #   config = {
-    #     "value_mappings" => [
-    #       { "condition" => { "value" => "1" }, "target_column" => "Woman", "target_value" => 1 }
-    #     ]
-    #   }
-    #   apply_value_based_multi_column_mapping(mapped_attributes, "1", config)
-    #   # mapped_attributes now contains: { "Woman" => 1 }
-    #
-    # @private
-    private_class_method def self.apply_value_based_multi_column_mapping(mapped_attributes, value, mapping_config)
+    private def apply_value_based_multi_column_mapping(mapped_attributes, value, mapping_config)
       mapping_config['value_mappings'].each do |mapping|
         mapped_attributes[mapping['target_column']] = mapping['target_value'] if mapping['condition']['value'] == value
       end
@@ -360,31 +269,11 @@ module HmisCsvTwentyTwentySix::Importer::Custom
 
     # Applies concatenation mapping to combine multiple values
     #
-    # This mapping type concatenates the source value with any existing value
-    # in the target column, using a configurable separator. It's useful for
-    # building composite fields from multiple source columns.
-    #
     # @param mapped_attributes [Hash] Hash to store the mapped attributes
     # @param value [Object] The source value to concatenate
     # @param mapping_config [Hash] Configuration containing target column and separator
-    # @option mapping_config [String] :target_column The name of the target column
-    # @option mapping_config [String] :separator The separator to use (default: ' ')
     # @return [void]
-    #
-    # @example Concatenation mapping
-    #   mapped_attributes = { "full_name" => "John" }
-    #   config = { "target_column" => "full_name", "separator" => " " }
-    #   apply_concatenation_mapping(mapped_attributes, "Doe", config)
-    #   # mapped_attributes now contains: { "full_name" => "John Doe" }
-    #
-    # @example With custom separator
-    #   mapped_attributes = { "tags" => "urgent" }
-    #   config = { "target_column" => "tags", "separator" => ", " }
-    #   apply_concatenation_mapping(mapped_attributes, "priority", config)
-    #   # mapped_attributes now contains: { "tags" => "urgent, priority" }
-    #
-    # @private
-    private_class_method def self.apply_concatenation_mapping(mapped_attributes, value, mapping_config)
+    private def apply_concatenation_mapping(mapped_attributes, value, mapping_config)
       existing_value = mapped_attributes[mapping_config['target_column']] || ''
       separator = mapping_config['separator'] || ' '
       mapped_attributes[mapping_config['target_column']] = [existing_value, value].reject(&:blank?).join(separator)
@@ -392,147 +281,52 @@ module HmisCsvTwentyTwentySix::Importer::Custom
 
     # Applies value mapping based on configuration.
     #
-    # This method handles transformations where a source value needs to be mapped
-    # to a different target value based on a lookup table. It's useful for
-    # transforming coded values or translating between different naming conventions.
-    #
     # @param mapped_attributes [Hash] Hash to store the mapped attributes
     # @param value [Object] The source value to transform
     # @param mapping_config [Hash] Configuration containing the mapping rules
-    # @option mapping_config [String] :target_column The name of the target column
-    # @option mapping_config [Hash] :value_mappings Hash mapping source values to target values
     # @return [void]
-    #
-    # @example Value mapping for record type transformation
-    #   # YAML config:
-    #   # warehouse_column_mapping:
-    #   #   type: "value_mapping"
-    #   #   target_column: "owner_type"
-    #   #   value_mappings:
-    #   #     "Client": "GrdaWarehouse::Hud::Client"
-    #   #     "Enrollment": "GrdaWarehouse::Hud::Enrollment"
-    #
-    #   mapped_attributes = {}
-    #   config = {
-    #     "target_column" => "owner_type",
-    #     "value_mappings" => {
-    #       "Client" => "GrdaWarehouse::Hud::Client",
-    #       "Enrollment" => "GrdaWarehouse::Hud::Enrollment"
-    #     }
-    #   }
-    #   apply_value_mapping(mapped_attributes, "Client", config)
-    #   # mapped_attributes now contains: { "owner_type" => "GrdaWarehouse::Hud::Client" }
-    #
-    # @private
-    private_class_method def self.apply_value_mapping(mapped_attributes, value, mapping_config)
+    private def apply_value_mapping(mapped_attributes, value, mapping_config, column_config)
       target_column = mapping_config['target_column']
       value_mappings = mapping_config['value_mappings']
 
       # Use the mapped value if it exists, otherwise use the original value
       transformed_value = value_mappings[value] || value
-      mapped_attributes[target_column] = transformed_value
+      mapped_attributes[target_column] = cast_value(transformed_value, column_config['type'])
     end
 
     # Applies static value mapping from source to target
     #
-    # This mapping type sets a static value for a target column.
-    #
     # @param mapped_attributes [Hash] Hash to store the mapped attributes
     # @param mapping_config [Hash] Configuration containing the target column and value
-    # @option mapping_config [String] :target_column The name of the target column
-    # @option mapping_config [Object] :value The static value to set
     # @return [void]
-    #
-    # @example Static value mapping
-    #   mapped_attributes = {}
-    #   config = { "target_column" => "data_element_definition_id", "value" => 0 }
-    #   apply_static_value_mapping(mapped_attributes, config)
-    #   # mapped_attributes now contains: { "data_element_definition_id" => 0 }
-    #
-    # @private
-    private_class_method def self.apply_static_value_mapping(mapped_attributes, mapping_config)
-      mapped_attributes[mapping_config['target_column']] = mapping_config['value']
+    private def apply_static_value_mapping(mapped_attributes, mapping_config, column_config)
+      mapped_attributes[mapping_config['target_column']] = cast_value(mapping_config['value'], column_config['type'])
     end
 
-    # Checks if any column configurations require record lookups
-    #
-    # @param column_configs [Array<Hash>] Array of column configurations from YAML
-    # @return [Boolean] True if any columns use record_lookup mapping type
-    def self.record_lookups?(column_configs)
-      column_configs.any? { |col| col.dig('warehouse_column_mapping', 'type') == 'record_lookup' }
-    end
+    # Casts a value to the specified type.
+    # @param value [Object] The value to cast.
+    # @param type [String] The target type (e.g., 'integer', 'string').
+    # @return [Object] The casted value.
+    private def cast_value(value, type)
+      # Preserve boolean false, since `false.blank?` is true.
+      return value if value == false
+      return nil if value.blank?
 
-    # Applies record lookup mapping with optional caching for batch processing
-    #
-    # @param source_record [Object] Source record with data to map
-    # @param mapped_attributes [Hash] Hash to store mapped attributes
-    # @param mapping_config [Hash] Configuration for the record lookup
-    # @param lookup_cache [Hash, nil] Optional cache for record lookups
-    # @return [void]
-    # @private
-    private_class_method def self.apply_record_lookup_mapping(source_record, mapped_attributes, mapping_config, lookup_cache)
-      class_column = mapping_config['class_column']
-      target_column = mapping_config['target_column']
-      lookup_field_mappings = mapping_config['lookup_field_mappings']
-      source_column = mapping_config['source_column'] || 'RecordID'
+      # Default to 'string' if type is not specified in the YAML config.
+      type_to_cast = type || 'string'
 
-      # Get the source values
-      source_value = source_record[source_column]
-      class_name = mapped_attributes[class_column]
-      data_source_id = source_record.data_source_id
-
-      if source_value.blank? || class_name.blank?
-        mapped_attributes[target_column] = nil
-        return
-      end
-
-      lookup_field = lookup_field_mappings[class_name]
-      if lookup_field.blank?
-        Rails.logger.warn "No lookup field mapping found for class: #{class_name}"
-        mapped_attributes[target_column] = nil
-        return
-      end
-
-      if lookup_cache
-        # Use cache for batch processing
-        cache_key = [class_name, data_source_id, lookup_field, source_value]
-        database_id = lookup_cache[cache_key]
-
-        if database_id.nil? && !lookup_cache.key?(cache_key)
-          # Cache miss - this shouldn't happen in proper batch processing
-          Rails.logger.warn "Cache miss during record lookup: #{cache_key}"
-          database_id = perform_individual_lookup(class_name, lookup_field, source_value, data_source_id)
-          lookup_cache[cache_key] = database_id
-        end
+      case type_to_cast
+      when 'integer'
+        value.to_i
+      when 'date'
+        value.to_date
+      when 'datetime'
+        Time.zone.parse(value)
+      when 'string'
+        value
       else
-        # Individual lookup (less efficient)
-        database_id = perform_individual_lookup(class_name, lookup_field, source_value, data_source_id)
+        raise ArgumentError, "Unknown column type '#{type}' specified in custom file configuration."
       end
-
-      if database_id
-        mapped_attributes[target_column] = database_id
-      else
-        Rails.logger.warn "Record lookup failed: #{class_name} with #{lookup_field}=#{source_value} not found"
-        mapped_attributes[target_column] = nil
-      end
-    end
-
-    # Performs an individual record lookup (used when no cache is available)
-    #
-    # @param class_name [String] The target class name to search
-    # @param lookup_field [String] The field name to search by
-    # @param source_value [String] The value to search for
-    # @param data_source_id [Integer, nil] Optional data source ID to scope the search
-    # @return [Integer, nil] The database ID if found, nil otherwise
-    # @private
-    private_class_method def self.perform_individual_lookup(class_name, lookup_field, source_value, data_source_id)
-      klass = class_name.constantize
-      query = klass.where(lookup_field => source_value)
-      query = query.where(data_source_id: data_source_id) if data_source_id && klass.column_names.include?('data_source_id')
-      query.pick(:id)
-    rescue StandardError => e
-      Rails.logger.error "Error during individual record lookup for #{class_name}: #{e.message}"
-      nil
     end
   end
 end

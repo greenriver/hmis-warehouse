@@ -9,9 +9,23 @@
 require 'rails_helper'
 
 RSpec.describe 'CustomDataElementDefinition Integration' do
+  let(:source_record_class) do
+    Class.new(OpenStruct) do
+      def self.hud_key
+        'CustomDataElementDefinitionID'
+      end
+
+      # ColumnMapper needs `[]` to access source values.
+      def [](key)
+        public_send(key)
+      end
+    end
+  end
+
   describe 'CustomDataElementDefinition.csv column mapping' do
-    let(:source_record) do
+    let(:source_record_data) do
       {
+        'CustomDataElementDefinitionID' => 'test-id-123',
         'RecordType' => 'Enrollment',
         'Label' => 'Assessment Type',
         'Key' => 'assessment_type',
@@ -24,13 +38,12 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
         'ExportID' => 'export456',
       }
     end
-
-    let(:mapped_attributes) { {} }
-    let(:config) { HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElementDefinition.csv') }
-    let(:columns) { config['columns'] }
+    let(:source_record) { source_record_class.new(source_record_data) }
+    let(:definition) { HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElementDefinition.csv') }
+    let(:mapper) { HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns) }
 
     it 'successfully applies all column mappings' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Test the exact scenario from the user's manual test
       expect(mapped_attributes).to include(
@@ -43,7 +56,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
     end
 
     it 'handles default column mappings for standard fields' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Default mappings should use the same column name
       expect(mapped_attributes).to include(
@@ -66,17 +79,15 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
       }
 
       record_types.each do |record_type|
-        test_record = source_record.merge('RecordType' => record_type)
-        test_mapped_attributes = {}
-
-        HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(test_record, test_mapped_attributes, columns)
+        test_record_hash = source_record_data.merge('RecordType' => record_type)
+        test_mapped_attributes = mapper.map(source_record_class.new(test_record_hash))
 
         expect(test_mapped_attributes['owner_type']).to eq(expected_mappings[record_type])
       end
     end
 
     it 'produces the same results as the manual test' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapped_attributes = mapper.map(source_record)
 
       # This should match the exact output from the manual test
       expect(mapped_attributes.keys).to include(
@@ -110,23 +121,10 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
     end
 
     it 'correctly reports source and mapped attributes' do
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Verify source record is unchanged
-      expect(source_record).to eq(
-        {
-          'RecordType' => 'Enrollment',
-          'Label' => 'Assessment Type',
-          'Key' => 'assessment_type',
-          'FieldType' => 'string',
-          'Repeats' => 'false',
-          'UserID' => 'user123',
-          'DateCreated' => '2024-01-01T10:00:00Z',
-          'DateUpdated' => '2024-01-01T11:00:00Z',
-          'DateDeleted' => nil,
-          'ExportID' => 'export456',
-        },
-      )
+      expect(source_record.to_h.stringify_keys).to eq(source_record_data)
 
       # Verify mapped attributes has correct transformations
       expect(mapped_attributes.size).to be > 0
@@ -164,21 +162,20 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
 
   describe 'Configuration validation' do
     it 'has a valid configuration for CustomDataElementDefinition.csv' do
-      config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElementDefinition.csv')
+      definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElementDefinition.csv')
 
-      expect(config).to be_present
-      expect(config['filename']).to eq('CustomDataElementDefinition.csv')
-      expect(config['class_name']).to eq('CustomDataElementDefinition')
-      expect(config['columns']).to be_an(Array)
-      expect(config['columns'].length).to be > 0
+      expect(definition).to be_present
+      expect(definition.filename).to eq('CustomDataElementDefinition.csv')
+      expect(definition.class_name).to eq('CustomDataElementDefinition')
+      expect(definition.columns).to be_an(Array)
+      expect(definition.columns.length).to be > 0
     end
 
     it 'has proper warehouse column mappings configured' do
-      config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElementDefinition.csv')
-      columns = config['columns']
+      definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElementDefinition.csv')
 
       # Find RecordType column
-      record_type_col = columns.find { |col| col['name'] == 'RecordType' }
+      record_type_col = definition.columns.find { |col| col['name'] == 'RecordType' }
       expect(record_type_col).to be_present
       expect(record_type_col['warehouse_column_mapping']).to be_present
       expect(record_type_col['warehouse_column_mapping']['type']).to eq('value_mapping')
@@ -186,14 +183,14 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
       expect(record_type_col['warehouse_column_mapping']['value_mappings']).to be_present
 
       # Find Label column
-      label_col = columns.find { |col| col['name'] == 'Label' }
+      label_col = definition.columns.find { |col| col['name'] == 'Label' }
       expect(label_col).to be_present
       expect(label_col['warehouse_column_mapping']).to be_present
       expect(label_col['warehouse_column_mapping']['type']).to eq('direct')
       expect(label_col['warehouse_column_mapping']['target_column']).to eq('label')
 
       # Find UserID column (should have no explicit mapping)
-      user_id_col = columns.find { |col| col['name'] == 'UserID' }
+      user_id_col = definition.columns.find { |col| col['name'] == 'UserID' }
       expect(user_id_col).to be_present
       expect(user_id_col['warehouse_column_mapping']).to be_nil
     end
@@ -201,7 +198,7 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
 
   describe 'Real-world scenario simulation' do
     it 'processes a complete record as it would in production' do
-      source_record = {
+      source_data = {
         'CustomDataElementDefinitionID' => 'def123',
         'RecordType' => 'Client',
         'Label' => 'Housing Status',
@@ -215,11 +212,10 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
         'ExportID' => 'exp789',
       }
 
-      mapped_attributes = {}
-      config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElementDefinition.csv')
-      columns = config['columns']
-
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(source_record, mapped_attributes, columns)
+      source_record = source_record_class.new(source_data)
+      definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElementDefinition.csv')
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(definition.columns)
+      mapped_attributes = mapper.map(source_record)
 
       # Verify the complete transformation
       expect(mapped_attributes).to eq(

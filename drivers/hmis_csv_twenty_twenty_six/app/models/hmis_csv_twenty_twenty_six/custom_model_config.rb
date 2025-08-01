@@ -15,23 +15,18 @@ module HmisCsvTwentyTwentySix
     extend ActiveSupport::Concern
 
     class_methods do
-      # @return [Hash] The YAML configuration for this specific custom file
-      def custom_file_config
-        @custom_file_config
+      def custom_file_definition
+        @custom_file_definition
       end
 
       # @return [Array<String>] A list of all column names from the CSV file
       def hud_csv_headers
-        real_columns.map { |col| col['name'] }
-      end
-
-      def real_columns
-        custom_file_config['columns'].reject { |col| col['type'] == 'virtual' }
+        custom_file_definition.real_columns.map { |col| col['name'] }
       end
 
       # @return [Hash] A hash describing the structure of the file (types, requirements)
       def hmis_structure
-        real_columns.each_with_object({}) do |col, hash|
+        custom_file_definition.real_columns.each_with_object({}) do |col, hash|
           hash[col['name'].to_sym] = {
             type: col['type'] || 'string',
             required: col['required'] || false,

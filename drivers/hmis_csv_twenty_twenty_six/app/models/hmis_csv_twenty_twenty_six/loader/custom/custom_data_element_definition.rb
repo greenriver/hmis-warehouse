@@ -13,6 +13,6 @@ module HmisCsvTwentyTwentySix::Loader::Custom
   class CustomDataElementDefinition < HmisCsvTwentyTwentySix::Loader::Custom::Base
     self.table_name = 'hmis_csv_2026_custom_data_element_definitions'
     self.hud_key = :CustomDataElementDefinitionID
-    @custom_file_config = HmisCsvTwentyTwentySix.custom_files_config.for('CustomDataElementDefinition.csv')
+    @custom_file_definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition('CustomDataElementDefinition.csv')
   end
 end

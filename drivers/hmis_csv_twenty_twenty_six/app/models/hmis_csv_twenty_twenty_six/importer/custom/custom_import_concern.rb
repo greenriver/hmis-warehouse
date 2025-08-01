@@ -12,51 +12,54 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
 
   included do
     def as_destination_record
-      config = self.class.custom_file_config
       klass = self.class.reflect_on_association(:destination_record).klass
-
-      # Apply all column mappings using the generic mapper
-      mapped_attributes = {}
-      HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.apply_mappings(
-        self,
-        mapped_attributes,
-        config['columns'],
-      )
+      # Fetch pre-computed attributes from the cache, defaulting to an empty hash
+      cache = self.class._mapped_attributes_cache || {}
+      mapped_attributes = cache[send(hud_key)] || {}
 
       record = klass.new(mapped_attributes)
 
       # For augmentations, we explicitly don't update the source hash since that would cause future
       # imports to the augmented class to appear modified
       # We also don't set the source_id as it would cause the source data drill-down to break
-      unless self.class.augments?
-        record.source_hash = source_hash
-        # Note which record we're sending this from for error checking
-        record.source_id = id
-        # For non-augmentations, we need to set the data_source_id
-        record.data_source_id = data_source_id
-      end
+      return record if self.class.augments?
+
+      record.source_hash = source_hash
+      # Note which record we're sending this from for error checking
+      record.source_id = id
+      # For non-augmentations, we need to set the data_source_id
+      record.data_source_id = data_source_id
 
       record
     end
   end
 
   class_methods do
-    def upsert_column_names(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
-      # Return all warehouse target columns from the column mappings
-      # Remove DateCreated, DateUpdated, DateDeleted, ExportID, UserID if this is an augmentation
-      # Note: version parameter is required by ImportConcern interface but not used
-      # for custom files since structure comes from YAML configuration
-      excluded_augmentation_columns = ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID', 'UserID']
+    # Manually define accessors for a class instance variable to ensure it's
+    # defined on the including class, not the concern itself.
+    def _mapped_attributes_cache
+      @_mapped_attributes_cache
+    end
 
-      # Get the warehouse target columns from the mappings (with defaults)
-      warehouse_columns = custom_file_config['columns'].map do |col|
-        mapping = col['warehouse_column_mapping'] || {}
-        # Apply same defaults as ColumnMapper
-        mapping['target_column'] || col['name']
+    def _mapped_attributes_cache=(cache)
+      @_mapped_attributes_cache = cache
+    end
+
+    # Pre-compute all column mappings for a custom file, caching the result for use in as_destination_record
+    def cache_mapped_attributes(importer_log_id:)
+      # 1. Get all records that will be imported for this run
+      records_to_process = where(importer_log_id: importer_log_id)
+
+      # 2. Instantiate a mapper and batch-process all records at once, populating the cache
+      mapper = HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper.new(custom_file_definition.columns)
+      self._mapped_attributes_cache = {}
+      records_to_process.find_in_batches(batch_size: 10_000) do |batch|
+        _mapped_attributes_cache.merge!(mapper.map_batch(batch))
       end
+    end
 
-      excluded_columns = augments? ? excluded_augmentation_columns : ['DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID']
-      (warehouse_columns - excluded_columns).map(&:to_sym)
+    def upsert_column_names(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
+      custom_file_definition.upsert_column_names
     end
 
     # Augmented data should never return new data since it should only update existing records
@@ -82,32 +85,11 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     end
 
     def warehouse_class
-      config = custom_file_config
-      if config['augments_warehouse_table']
-        config['augments_warehouse_table'].constantize
-      elsif config['warehouse_class_name']
-        config['warehouse_class_name'].constantize
-      else
-        super
-      end
+      custom_file_definition.warehouse_class
     end
 
     def create_columns
-      config = custom_file_config
-
-      # Get the warehouse target columns from the mappings (with defaults)
-      warehouse_columns = config['columns'].map do |col|
-        mapping = col['warehouse_column_mapping'] || {}
-        # Apply same defaults as ColumnMapper
-        mapping['target_column'] || col['name']
-      end
-
-      warehouse_columns - [
-        'DateCreated',
-        'DateUpdated',
-        'DateDeleted',
-        'ExportID',
-      ]
+      custom_file_definition.create_columns
     end
 
     # Delegate to the class we are augmenting
@@ -121,9 +103,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
     end
 
     def import_klass
-      return custom_file_config['augment_import_class'].constantize if augments?
-
-      self
+      # Delegate to the augment_import_klass if this is an augmentation, otherwise return self
+      custom_file_definition.augment_import_klass || self
     end
 
     # Prevent deletions for augmentation classes since we only want to update existing records
@@ -159,8 +140,22 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       end
     end
 
+    def custom_file?
+      true
+    end
+
     def augments?
-      custom_file_config['augments_warehouse_table'].present?
+      custom_file_definition.augments?
+    end
+
+    # New method to get the definition object
+    def custom_file_definition
+      @custom_file_definition ||= HmisCsvTwentyTwentySix.custom_files_config.find_definition(
+        "#{name.demodulize.underscore.camelize}.csv",
+      )
     end
   end
+
+  # The included block and its `as_destination_record` method remain the same,
+  # but they will now be able to pull efficiently from the pre-populated cache.
 end
