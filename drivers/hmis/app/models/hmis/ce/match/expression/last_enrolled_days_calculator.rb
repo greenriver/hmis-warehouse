@@ -18,7 +18,9 @@ module Hmis::Ce::Match::Expression
           arel_expression,
         )
 
-      result = values.index_by(&:first).transform_values(&:last)
+      # Group by client_id and take the min days value for each client. In future we could optimize
+      # this by moving the min() to sql
+      result = values.group_by(&:first).transform_values { |rows| rows.map(&:last).compact.min }
       client_ids.each { |client_id| result[client_id] ||= nil }
       result
     end
