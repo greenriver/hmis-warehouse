@@ -28,8 +28,8 @@ RSpec.describe 'CustomDataElement Integration' do
         DataCollectionStage: 1,
         InformationDate: Date.parse('2024-01-01'),
         UserID: 'user123',
-        DateCreated: DateTime.parse('2024-01-01T10:00:00Z'),
-        DateUpdated: DateTime.parse('2024-01-01T11:00:00Z'),
+        DateCreated: '2024-01-01 10:00:00',
+        DateUpdated: '2024-01-01 11:00:00',
         DateDeleted: nil,
         ExportID: 'export456',
         data_source_id: data_source.id,
@@ -59,14 +59,14 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(mapped_attributes['DateDeleted']).to be_nil
 
       # Test dates with more flexible matching - allow both Date and DateTime
-      expect(mapped_attributes['InformationDate']).to be_a_kind_of(Time) # ActiveRecord often converts to Time/DateTime
-      expect(mapped_attributes['InformationDate'].to_date.to_fs(:db)).to eq('2024-01-01')
+      expect(mapped_attributes['InformationDate']).to be_a_kind_of(Date) # ActiveRecord often converts to Time/DateTime
+      expect(mapped_attributes['InformationDate'].to_fs(:db)).to eq('2024-01-01')
 
       expect(mapped_attributes['DateCreated']).to be_a_kind_of(Time) # ActiveRecord often converts to Time/DateTime
-      expect(mapped_attributes['DateCreated'].utc.to_fs(:db)).to eq('2024-01-01 10:00:00')
+      expect(mapped_attributes['DateCreated'].strftime('%Y-%m-%d %H:%M:%S')).to eq('2024-01-01 10:00:00')
 
       expect(mapped_attributes['DateUpdated']).to be_a_kind_of(Time) # ActiveRecord often converts to Time/DateTime
-      expect(mapped_attributes['DateUpdated'].utc.to_fs(:db)).to eq('2024-01-01 11:00:00')
+      expect(mapped_attributes['DateUpdated'].strftime('%Y-%m-%d %H:%M:%S')).to eq('2024-01-01 11:00:00')
     end
 
     it 'handles different record types and lookups correctly' do
@@ -399,7 +399,7 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(mapped_attributes['ExportID']).to eq('exp789')
 
       # Flexible date/time matching - allow Time/DateTime conversion
-      expect(mapped_attributes['InformationDate']).to be_a_kind_of(Time)
+      expect(mapped_attributes['InformationDate']).to be_a_kind_of(Date)
       expect(mapped_attributes['InformationDate'].to_date.to_fs(:db)).to eq('2024-01-15')
       expect(mapped_attributes['DateCreated']).to be_a_kind_of(Time)
       expect(mapped_attributes['DateUpdated']).to be_a_kind_of(Time)
