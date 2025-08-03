@@ -47,6 +47,7 @@ custom_files:
         type: "string"
         required: false
         warehouse_column_mapping:
+          type: "direct"
           target_column: "value_string"
       - name: "DataCollectionStage"
         type: "integer"

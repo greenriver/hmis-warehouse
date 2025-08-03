@@ -11,7 +11,18 @@ module HmisCsvTwentyTwentySix
   class CustomFileDefinition
     attr_reader :config_data
 
+    SCHEMA_PATH = Rails.root.join('drivers', 'hmis_csv_twenty_twenty_six', 'config', 'custom_file_schema.json').to_s
+
     def initialize(config_hash)
+      # Validate the configuration hash against our schema using the shared validator.
+      # The `custom_files` key is a wrapper in the YAML, so we validate the inner hash.
+      errors = HmisExternalApis::JsonValidator.perform({ 'custom_files' => [config_hash] }, SCHEMA_PATH)
+
+      if errors.any?
+        # Provide a clear, actionable error message if validation fails.
+        error_message = errors.join("\n")
+        raise "Invalid custom file configuration for '#{config_hash['filename']}':\n#{error_message}"
+      end
       @config_data = config_hash.freeze
     end
 

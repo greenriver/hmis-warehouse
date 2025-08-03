@@ -29,7 +29,9 @@ module HmisCsvTwentyTwentySix
         end
       end
 
-      @definitions = all_custom_files.map { |config| CustomFileDefinition.new(config) }
+      @definitions = all_custom_files.map do |config|
+        CustomFileDefinition.new(config)
+      end
     end
 
     # Find CustomFileDefinition object by filename

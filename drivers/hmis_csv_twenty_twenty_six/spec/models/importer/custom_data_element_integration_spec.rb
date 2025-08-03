@@ -59,7 +59,7 @@ RSpec.describe 'CustomDataElement Integration' do
       expect(mapped_attributes['DateDeleted']).to be_nil
 
       # Test dates with more flexible matching - allow both Date and DateTime
-      expect(mapped_attributes['InformationDate']).to be_a_kind_of(Date) # ActiveRecord often converts to Time/DateTime
+      expect(mapped_attributes['InformationDate']).to be_a_kind_of(Date) # ActiveRecord often converts to Date
       expect(mapped_attributes['InformationDate'].to_fs(:db)).to eq('2024-01-01')
 
       expect(mapped_attributes['DateCreated']).to be_a_kind_of(Time) # ActiveRecord often converts to Time/DateTime
@@ -432,7 +432,7 @@ RSpec.describe 'CustomDataElement Integration' do
 
         expect(mapped_attributes['owner_id']).to eq(test_case[:expected_owner_id]) if test_case.key?(:expected_owner_id)
 
-        expect(mapped_attributes['Value']).to eq(test_case[:expected_value]) if test_case.key?(:expected_value)
+        expect(mapped_attributes['value_string']).to eq(test_case[:expected_value]) if test_case.key?(:expected_value)
       end
     end
   end

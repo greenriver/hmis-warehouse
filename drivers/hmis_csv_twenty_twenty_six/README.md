@@ -166,6 +166,21 @@ You can define how data from a source column is mapped to the warehouse.
 *   **Direct Mapping**: Maps the source value directly to a target column.
 *   **Value-Based Multi-Column Mapping**: Maps different source values to different target columns.
 *   **Concatenation Mapping**: Combines multiple source values into a single target field.
+*   **Record Lookup Mapping**: Looks up foreign keys in other warehouse tables to establish associations.
+*   **Static Value Mapping**: Assigns a fixed value to a target column, useful for setting defaults.
+
+#### `CustomDataElement` Import Process
+
+The import process for `CustomDataElement.csv` demonstrates how multiple mapping types are combined to handle complex requirements. The objective is to place the generic `Value` from the CSV into the correct typed `value_*` column in the `CustomDataElements` table (e.g., `value_string`, `value_date`). This is determined by the `field_type` in the associated `CustomDataElementDefinition` record.
+
+The process is as follows:
+
+1.  **`value_mapping` for `owner_type`**: The `RecordType` from the CSV (e.g., "Client", "Enrollment") is mapped to a full model name (`GrdaWarehouse::Hud::Client`).
+2.  **`record_lookup` for `owner_id`**: Using the `owner_type` from the previous step, the system performs a lookup to find the correct record by its HMIS key (e.g., `PersonalID` for a Client) and establish the polymorphic `owner` association.
+3.  **Dynamic Value Placement**: A custom routine uses the `CustomDataElementDefinitionID` to look up the definition, find its `field_type`, and place the CSV `Value` into the correct `value_string`, `value_integer`, etc., column.
+4.  **Foreign Key Association**: The `CustomImportConcern` establishes the direct foreign key link by setting the `data_element_definition_id` on the `CustomDataElement` record.
+
+This configuration-driven approach allows for complex import logic to be handled without requiring unique code for each new file type.
 
 ### Model and Migration Generation
 
