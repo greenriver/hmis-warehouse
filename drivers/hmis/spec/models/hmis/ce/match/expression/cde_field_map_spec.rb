@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
   let!(:destination_data_source) { create :destination_data_source }
-  let(:current_date) { Date.current }
+  let(:current_date) { Date.new(2024, 12, 26) }
   let(:field_map) { described_class.new(current_date: current_date) }
 
   let(:client1) { create(:hmis_hud_client_with_warehouse_client) }

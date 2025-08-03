@@ -36,7 +36,9 @@ module Hmis::Ce::Match::Expression
 
       # Ensure all clients are in the hash, setting a default value for those missing.
       client_ids.each do |client_id|
-        result[client_id] ||= default_value
+        next if result.key?(client_id)
+
+        result[client_id] = default_value
       end
 
       result
