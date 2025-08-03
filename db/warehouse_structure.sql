@@ -7054,7 +7054,8 @@ CREATE TABLE public.ce_opportunities (
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    unit_id bigint NOT NULL
+    unit_id bigint NOT NULL,
+    stale_rules boolean DEFAULT false NOT NULL
 );
 
 
@@ -75157,6 +75158,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250803183312'),
 ('20250729183312'),
 ('20250716131246'),
 ('20250716131240'),
@@ -75350,3 +75352,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+
