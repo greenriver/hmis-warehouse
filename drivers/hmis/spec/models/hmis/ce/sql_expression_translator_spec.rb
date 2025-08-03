@@ -13,6 +13,32 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       expect(result.to_arel.to_sql).to include('> 18')
     end
 
+    it 'handles all comparison operators' do
+      # Greater than
+      result = described_class.call('current_age > 18', field_map)
+      expect(result.to_arel.to_sql).to include('> 18')
+
+      # Less than
+      result = described_class.call('current_age < 65', field_map)
+      expect(result.to_arel.to_sql).to include('< 65')
+
+      # Greater than or equal
+      result = described_class.call('current_age >= 18', field_map)
+      expect(result.to_arel.to_sql).to include('>= 18')
+
+      # Less than or equal
+      result = described_class.call('current_age <= 65', field_map)
+      expect(result.to_arel.to_sql).to include('<= 65')
+
+      # Equal
+      result = described_class.call('veteran_status = 1', field_map)
+      expect(result.to_arel.to_sql).to include('= 1')
+
+      # Not equal
+      result = described_class.call('veteran_status != 1', field_map)
+      expect(result.to_arel.to_sql).to include('!=').or include('<>')
+    end
+
     it 'handles AND conditions' do
       result = described_class.call('current_age > 18 AND veteran_status = 1', field_map)
       expect(result.to_arel.to_sql).to include('AND')
@@ -62,6 +88,16 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
       expect(result.to_arel.to_sql).to include('POWER')
     end
 
+    it 'handles error conditions with descriptive messages' do
+      expect do
+        described_class.call('current_age > ', field_map)
+      end.to raise_error(Dentaku::Error, /Error parsing expression 'current_age > '/)
+
+      expect do
+        described_class.call('invalid syntax )(', field_map)
+      end.to raise_error(Dentaku::Error, /Error parsing expression 'invalid syntax \)\('/)
+    end
+
     it 'handles mixing math with field references' do
       result = described_class.call('current_age = (veteran_status + 5)', field_map)
       expect(result.to_arel.to_sql).to include('"Client"."VeteranStatus"')
@@ -71,6 +107,21 @@ RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
     it 'handles nested arithmetic expressions' do
       result = described_class.call('current_age = ((10 + 5) * (2 + 3))', field_map)
       expect(result.to_arel.to_sql).to include('((10 + 5) * (2 + 3))')
+    end
+
+    it 'collects joins for fields that require them' do
+      result = described_class.call('days_since_last_exit < 365', field_map)
+      joins = result.joins
+
+      expect(joins).to be_present
+      expect(joins.flatten).to eq([{ hmis_source_clients: { enrollments: :exit } }])
+    end
+
+    it 'does not collect joins for fields that do not require them' do
+      result = described_class.call('veteran_status = 1', field_map)
+      joins = result.joins
+
+      expect(joins).to be_empty
     end
 
     context 'with fields that cannot be resolved into SQL' do
