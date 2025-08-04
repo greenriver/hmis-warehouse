@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # To connect to the API, you need a remote credential labeled 'mci'. Replace
 # the empty strings below with values from the documentation.
 #
@@ -24,10 +26,14 @@
 
 module HmisExternalApis::AcHmis
   class Mci
-    SYSTEM_ID = 'ac_hmis_mci'.freeze
-    PROJECT_TYPES_NOT_REQUIRING_CLEARANCE = [1, 4].freeze # SO, ES NBN
-    MCI_REQUIRED_MSG = 'MCI clearance is required'.freeze
-    MCI_REQUIRED_FOR_ENROLLMENT_MSG = 'MCI clearance is required before this client can be enrolled'.freeze
+    SYSTEM_ID = 'ac_hmis_mci'
+    PROJECT_TYPES_NOT_REQUIRING_CLEARANCE = [
+      1, # Emergency Shelter - Night-by-Night
+      4, # Street Outreach
+      7, # Other (used for Link project)
+    ].freeze
+    MCI_REQUIRED_MSG = 'MCI clearance is required'
+    MCI_REQUIRED_FOR_ENROLLMENT_MSG = 'MCI clearance is required before this client can be enrolled'
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to MCI')
 
