@@ -8,7 +8,6 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
     this._selector_exists = this._selector_exists.bind(this);
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
     this.chart_selector = chart_selector;
-    window.Chart.defaults.global.defaultFontSize = 10;
     this.truncate_labels = (options != null && options.truncate_labels != null) ? options.truncate_labels : 0;
     this.color_map = {};
     this.next_color = 0;
@@ -64,13 +63,13 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         data,
         legend: {
           show: (this.legend_holder != null) ? false : true,
+          position: 'right',
         },
         bindto: this.chart_selector,
         size: {
           height: this.height,
         },
         axis: {
-          width: 100,
           rotated: true,
           y: {
             max: this.max_value,
@@ -105,7 +104,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         padding: {
           left: this.padding.left || 250,
           top: 0,
-          bottom: 40,
+          bottom: 50,
         },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
@@ -113,7 +112,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
           }
         },
       };
-      if(this.legend_holder != null) {
+      if (this.legend_holder != null) {
         config.legend = {
           contents: {
             bindto: this.legend_holder,
@@ -133,7 +132,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
   _colors(c, d) {
     let color;
     let key = this.categories.indexOf(d.id);
-    const colors = window.Chart.defaults.colors;
+    const colors = window.App.chartDefaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {

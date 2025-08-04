@@ -16,7 +16,7 @@
               = f.input permission, as: :boolean
             %td
               - if Role.administrative?(permission: permission)
-                %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+                %i.icon-lock{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Administrative Permission'}}
             %td.permission__description
               %em.text-small.text-muted= Role.description_for permission: permission
 

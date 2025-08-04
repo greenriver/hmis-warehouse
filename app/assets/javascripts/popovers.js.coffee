@@ -3,7 +3,7 @@
 class App.Popovers
   init: () =>
     $('body').popover({
-      selector: '[data-toggle="popover"]',
+      selector: '[data-bs-toggle="popover"]',
       content: ()->
         url = $(this).data('url')
         console.log('hi')

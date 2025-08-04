@@ -48,7 +48,7 @@
           - note_content += "<li class='list-inline-item chip-v1-prs1'>#{cat}</li>"
         - note_content += '</ul></div></div>'
       - note_content += '</p>'
-      %span.icon-info{data: {toggle: :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
+      %span.icon-info{data: { 'bs-toggle' => :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
       - breakdown_notes ||= false
       - if breakdown_notes
         .perf-overview-breakdown-notes

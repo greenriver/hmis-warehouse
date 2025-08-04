@@ -15,7 +15,7 @@
         %br
         = pr.stop_reason_description
     .dropdown
-      = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'}, class: 'btn btn-secondary btn-sm mb-2' do
+      = link_to '#', id: dropdown_id, data: { 'bs-toggle' => 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'}, class: 'btn btn-secondary btn-sm mb-2' do
         = label
         %span.caret
       %ul.dropdown-menu{aria: {labelledby: dropdown_id}}

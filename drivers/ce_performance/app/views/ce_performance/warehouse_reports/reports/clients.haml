@@ -21,13 +21,13 @@
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
 
             - headers.each_value do |header|
               %th= header
-        %tbody.thead-dark
+        %tbody
           - @clients.each.with_index do |client, i|
             %tr
               %th= i + 1
@@ -36,11 +36,11 @@
                 %td
                   - if k.to_s == 'client_id'
                     = link_to value, from_source_client_path(client[k])
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s == 'destination_client_id' && value.present?
                     = link_to value, appropriate_client_path(value)
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
                     = formatted_cell(value)

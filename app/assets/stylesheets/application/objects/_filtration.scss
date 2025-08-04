@@ -10,15 +10,14 @@ $filtration-default-min-width: map-get($filtration-sizes, md);
 $filtrationn-container-padding: space(4);
 $filtrationn-container-offset: -16px;
 
-.o-filtration {
-}
+.o-filtration {}
 
-.o-filtration.filter-active > .btn,
-.o-filtration.client__filter-active > .btn
-{
-  background-color: $brand-primary-ll;
+.o-filtration.filter-active>.btn,
+.o-filtration.client__filter-active>.btn {
+  background-color: var(--brand-primary-llll);
+
   &:hover {
-    color: $gray-darker;
+    color: var(--gray-090);
   }
 }
 
@@ -31,10 +30,12 @@ $filtrationn-container-offset: -16px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+
   @include media-breakpoint-down(sm) {
     .input-group {
       width: 100%;
     }
+
     .o-filtration__separator {
       width: 100%;
       text-align: center;
@@ -43,6 +44,7 @@ $filtrationn-container-offset: -16px;
       justify-content: center;
     }
   }
+
   @include media-breakpoint-up(sm) {
     flex-wrap: nowrap;
   }
@@ -51,6 +53,7 @@ $filtrationn-container-offset: -16px;
 .o-filtration__container {
   min-width: 80vw;
   padding: $filtrationn-container-padding;
+
   @include media-breakpoint-up(md) {
     min-width: $filtration-default-min-width;
   }
@@ -74,7 +77,7 @@ $filtrationn-container-offset: -16px;
   padding-right: $filtrationn-container-padding;
   padding-left: $filtrationn-container-padding;
   padding-bottom: space(2);
-  border-bottom: 1px solid $gray-030;
+  border-bottom: 1px solid var(--gray-030);
   margin-bottom: space(5);
 }
 
@@ -95,5 +98,5 @@ $filtrationn-container-offset: -16px;
   margin-left: $filtrationn-container-offset;
   margin-bottom: $filtrationn-container-offset;
   padding: $filtrationn-container-padding;
-  border-top: 1px solid $gray-030;
+  border-top: 1px solid var(--gray-030);
 }

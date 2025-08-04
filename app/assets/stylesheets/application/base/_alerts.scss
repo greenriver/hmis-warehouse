@@ -1,36 +1,23 @@
 @import '../helpers';
 
-$alerts: (
-  success: $brand-success-l,
-  info: $brand-info,
-  danger: $brand-danger-l,
-  warning: $brand-warning-l,
-);
+// The legacy `$alerts` map and `@each` loop have been removed.
+// Bootstrap 5 now handles alert variants automatically using CSS variables.
+// The default alert theming can be found in `_variables.scss` in Bootstrap's source.
+// We can override those CSS variables directly if further customization is needed.
 
 .alert {
-  color: rgba(0,0,0, .9);
+  color: rgba(0, 0, 0, .9);
+
   a {
     font-weight: bold;
   }
 }
-.alert--flex
-{
+
+.alert--flex {
   display: flex;
 }
 
-@each $name, $color in $alerts {
-  $lighten-factor: 15%;
-  $desaturation-factor: 35%;
-  @if ($name == info) {
-    $lighten-factor: 5%;
-    $desaturation-factor: 5%;
-  }
-  $bg-color: desaturate(lighten($color, $lighten-factor), $desaturation-factor);
-  .alert-#{$name} {
-    background: $bg-color;
-    border-color: desaturate($color, 10%);
-  }
-}
+// Any further custom alert styling that is not variant-specific can go here.
 
 .alert__icon {
   font-size: 2rem;

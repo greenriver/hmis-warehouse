@@ -1,0 +1,17 @@
+:root {
+  /* Primary: #387E92 */
+  --bs-primary-hue: 208;
+  --bs-primary-saturation: 75%;
+  --bs-primary-lightness: 32%;
+
+  /* Theme Background: #1B325D (from default) */
+  --theme-background-hue: 208;
+  --theme-background-saturation: 75%;
+  --theme-background-lightness: 32%;
+}
+
+footer {
+  background-color: #091f2f;
+  box-shadow: none;
+  color: white;
+}

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ClientHistory::EnrollmentView
   attr_accessor :enrollment, :user
   # @param enrollment [Object] the enrollment record for the client
@@ -59,7 +61,7 @@ class ClientHistory::EnrollmentView
     if affiliated_projects_str.present? || residential_projects_str.present?
       title = [affiliated_projects_str, residential_projects_str].compact.join("\n")
       {
-        toggle: :tooltip,
+        'bs-toggle' => :tooltip,
         title: title,
       }
     else

@@ -3,7 +3,7 @@
 - allow_toggle ||= 'yes'
 - default_open ||= 'no'
 - heading_data ||= {}
-- heading_attrs = allow_toggle == 'yes' ? { data: {toggle: 'collapse'}.merge(heading_data), href: "##{id}" } : {}
+- heading_attrs = allow_toggle == 'yes' ? { data: { 'bs-toggle' => 'collapse'}.merge(heading_data), href: "##{id}" } : {}
 - heading_attrs['aria-expanded'] = 'true' if default_open == 'yes'
 - panel_body_padded ||= 'y'
 - heading_slug ||= ''
