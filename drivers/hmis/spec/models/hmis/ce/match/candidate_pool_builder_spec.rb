@@ -28,6 +28,25 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         pool = Hmis::Ce::Match::CandidatePool.last
         expect(opportunity.reload.candidate_pool).to eq(pool)
       end
+
+      it 'captures assignment rules for historical reference' do
+        builder.perform
+        reloaded_opportunity = opportunity.reload
+
+        expect(reloaded_opportunity.assignment_rules).to be_present
+        expect(reloaded_opportunity.assignment_rules).to be_an(Array)
+
+        # Should contain rule attributes for both eligibility and priority rules
+        rule_ids = reloaded_opportunity.assignment_rules.map { |attrs| attrs['id'] }
+        expect(rule_ids).to contain_exactly(rule1.id, rule2.id)
+
+        # Should preserve rule attributes including expressions and types
+        rule_attrs = reloaded_opportunity.assignment_rules.index_by { |attrs| attrs['id'] }
+        expect(rule_attrs[rule1.id]['rule_type']).to eq('eligibility_requirement')
+        expect(rule_attrs[rule2.id]['rule_type']).to eq('priority_scheme')
+        expect(rule_attrs[rule1.id]['expression']).to eq(rule1.expression)
+        expect(rule_attrs[rule2.id]['expression']).to eq(rule2.expression)
+      end
     end
 
     context 'with orphaned candidate pools' do
