@@ -19,7 +19,7 @@ module Hmis::Ce::Match
 
     # Which candidates (clients) are eligible for an opportunity
     scope :for_opportunity, ->(opportunity) do
-      return Hmis::Ce::Opportunity.none unless opportunity.candidate_pool
+      return Hmis::Ce::Match::Candidate.none unless opportunity.candidate_pool
 
       opportunity.candidate_pool.candidates
     end

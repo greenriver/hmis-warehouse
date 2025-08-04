@@ -125,7 +125,7 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   def priority_schemes
-    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).by_rank
+    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).sort_by { |r| [r.rank, r.id] }
   end
 
   # Class method so can use with data loader

@@ -36,8 +36,6 @@ module Hmis::Ce::Match
 
     validate :ensure_rank
 
-    scope :by_rank, -> { order(:rank, :id) }
-
     def eligibility_requirement?
       rule_type == ELIGIBILITY_REQUIREMENT
     end

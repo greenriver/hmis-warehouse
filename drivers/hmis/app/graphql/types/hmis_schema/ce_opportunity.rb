@@ -94,12 +94,12 @@ module Types
 
     def priority_schemes
       # not to be used in batch
-      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).by_rank
+      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).sort_by { |r| [r.rank, r.id] }
     end
 
     # TODO(#7957) - remove after deprecation period
     def priority_scheme
-      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).by_rank.first
+      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).min_by { |r| [r.rank, r.id] }
     end
 
     def categories

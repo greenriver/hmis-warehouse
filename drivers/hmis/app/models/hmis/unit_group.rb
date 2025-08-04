@@ -41,7 +41,7 @@ module Hmis
     end
 
     def priority_schemes
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).by_rank
+      Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).sort_by { |r| [r.rank, r.id] }
     end
 
     def available_unit_count
