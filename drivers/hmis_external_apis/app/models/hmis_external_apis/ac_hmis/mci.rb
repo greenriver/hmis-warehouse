@@ -69,7 +69,6 @@ module HmisExternalApis::AcHmis
                                  mci_id: mci_id,
                                  score: score,
                                  client: MciPayload.build_client(clearance_result),
-                                 # TODO: if no exact match by MCI ID, look for match by MCI Unique ID
                                  existing_client_id: find_client_by_mci(mci_id)&.id,
                                })
       end
