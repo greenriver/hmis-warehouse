@@ -1,18 +1,19 @@
 @import '../helpers';
 
-$column-border-color: $gray-020;
-$column-border-color-l: lighten($column-border-color, 5%);
+$column-border-color: var(--gray-020);
+$column-border-color-l: #f5f4f6;
 $column-header-color: #eff3f8;
 $columns-breakpoint: lg;
 
 .c-columns {
   display: flex;
   flex-direction: column;
-  background: $white;
+  background: var(--white);
   border-bottom: 1px solid $column-border-color;
   position: relative;
   overflow: auto;
   @include scrollbar(10px);
+
   @include media-breakpoint-up($columns-breakpoint) {
     max-height: 80vh;
     flex-direction: row;
@@ -21,7 +22,7 @@ $columns-breakpoint: lg;
 
 .c-columns__veil {
   @include cover;
-  background: rgba($white, .5);
+  background: rgba(var(--white), .5);
   pinter-events: none;
 }
 
@@ -45,6 +46,7 @@ $columns-breakpoint: lg;
   min-width: 250px;
   border-right: 1px solid $column-border-color;
   border-left: 1px solid $column-border-color;
+
   @include media-breakpoint-up($columns-breakpoint) {
     flex-grow: 1;
     flex-shrink: 1;
@@ -66,15 +68,13 @@ $columns-breakpoint: lg;
   flex: 1 1 auto;
   overflow: auto;
   @include scrollbar(5px);
+
   &.inactive {
     opacity: .8;
   }
 }
 
 .c-columns__column-content fieldset {
-  .col-form-label {
-    display: none;
-  }
   .form-check {
     margin: 0;
     padding: 0;
@@ -82,19 +82,23 @@ $columns-breakpoint: lg;
     align-items: center;
     padding-left: space(4);
     border-top: 1px solid $column-border-color-l;
+
     &:hover {
-      background: lighten($gray-015, 2%);
+      background: #f7f7f7;
     }
   }
+
   .form-check input,
   .form-check label {
     margin-bottom: 0;
   }
+
   .form-check input {
     margin: 0;
     padding-right: space(2);
     position: static;
   }
+
   .form-check label {
     // Using @extend because the selector is within this file
     @extend .c-columns__column-list-item;
@@ -122,6 +126,7 @@ $columns-breakpoint: lg;
 .c-columns__column-actions .select2-selection__choice {
   display: none !important; // Overide select2's inline styling
 }
+
 .c-columns__column-actions .select2-search__field {
   width: 100% !important; // Overide select2's inline styling
 }
@@ -145,11 +150,13 @@ $columns-breakpoint: lg;
   margin-left: space(1);
   font-size: rem(20px);
   padding: space(1);
-  color: $gray-060;
+  color: var(--gray-060);
+
   &:hover {
-    color: $black;
+    color: var(--black);
     transform: scale(1.1)
   }
+
   &:active {
     transform: scale(.9)
   }
@@ -158,6 +165,7 @@ $columns-breakpoint: lg;
 .c-columns__column-list {
   @include list-unstyled;
   margin-bottom: 0;
+
   &:empty {
     display: none;
   }
@@ -174,10 +182,11 @@ $columns-breakpoint: lg;
   cursor: pointer;
 
   &:hover {
-    background: lighten($gray-015, 2%);
+    background: #f7f7f7;
+
     span:last-of-type {
       transform: scale(1.5);
-      color: $brand-danger;
+      color: var(--bs-danger);
     }
   }
 }
@@ -186,7 +195,7 @@ $columns-breakpoint: lg;
   &:last-of-type {
     margin-left: auto;
     padding-left: space(3);
-    color: $gray-030;
+    color: var(--gray-030);
     transition: .15s;
     transform: scale(1);
     transform-origin: center;
@@ -195,7 +204,7 @@ $columns-breakpoint: lg;
 
 .c-columns__column-list-item--read-only .asterisk {
   font-size: 12px;
-  color: $gray-050;
+  color: var(--gray-050);
 }
 
 .c-columns__column-list-item-title {
@@ -206,19 +215,30 @@ $columns-breakpoint: lg;
 }
 
 .c-columns__column-list-item-description {
-  color: $gray-060;
-  margin:0;
+  color: var(--gray-060);
+  margin: 0;
 }
 
 .c-columns__column-content .checkbox {
   margin: 0;
+
   label {
     @extend .c-columns__column-list-item;
     display: flex;
     align-items: center;
   }
+
   input {
     position: static;
     margin: 0 space(2) 0 0;
   }
+}
+
+.column-1 {
+  width: 8.33333333%;
+}
+
+.cols-2 {
+  -moz-column-count: 2;
+  -moz-column-gap: 20px;
 }

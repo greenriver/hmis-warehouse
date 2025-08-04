@@ -1,11 +1,12 @@
 @import '../helpers';
 
-.explain { /* to mark elements whose function was not clear from the mock */
+.explain {
+  /* to mark elements whose function was not clear from the mock */
   color: red;
 }
 
 .gray {
-  color: $gray;
+  color: var(--gray-065);
 }
 
 .light,
@@ -15,11 +16,11 @@
 }
 
 .gray-light {
-  color: $gray-light;
+  color: var(--gray-060)
 }
 
 .underline-header {
-  border-bottom: 1px solid $gray-025;
+  border-bottom: 1px solid var(--gray-025);
 }
 
 .no-results {

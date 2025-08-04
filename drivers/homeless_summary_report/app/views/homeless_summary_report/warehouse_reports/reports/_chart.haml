@@ -1,7 +1,7 @@
 - chart_data = @report.chart_data_for(section: measure, household_category: household_category, field: field)
 - variant_slug = "#{[measure.underscore.tr(' ', '_'), household_category, field].join('__')}-chart"
 
-.chart-wrapper
+.chart-wrapper.mb-8
   .row
     .col-sm-4
       %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"

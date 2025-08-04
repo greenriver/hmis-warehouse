@@ -10,17 +10,17 @@
 
 .o-color--positive svg,
 .o-color--success svg {
-  fill: $brand-success;
+  fill: var(--bs-success);
 }
 
 
 .o-color--danger svg {
-  fill: $brand-danger;
+  fill: var(--bs-danger);
 }
 
 
 .o-color--warning svg {
-  fill: $brand-warning;
+  fill: var(--bs-warning);
 }
 
 $sizes: (

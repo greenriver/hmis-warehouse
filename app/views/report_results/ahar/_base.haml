@@ -15,9 +15,9 @@
                 %tr{class: changed_class}
                   - label_text = label.gsub('_', ' ')
                   %th
-                    .text-right  
+                    .text-right
                       - if @result.support[k][label].present?
-                        %a.launch-modal{href: '#', data: {toggle: :modal, target: "##{k}-#{label}-support"}}
+                        %a.launch-modal{href: '#', data: { 'bs-toggle' => :modal, target: "##{k}-#{label}-support"}}
                           = label_text
                         = link_to hud_reports_ahar_fy_2017_support_path(report_result_id: @result.id, category: k, label: label, format: :xlsx) do
                           %span.icon-download2
@@ -43,5 +43,3 @@
     (function($) {
       $('.launch-modal').on('click', function(e){ e.preventDefault();});
     })(jQuery);
-
-  

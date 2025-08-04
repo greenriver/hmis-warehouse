@@ -3,10 +3,12 @@
 .roles {
   .card-header {
     padding: 0;
+
     h2 {
       @include font-bold(18px);
     }
   }
+
   .user-role {
     padding: 0.75rem 1.25rem;
   }
@@ -14,42 +16,52 @@
   .permission-header {
     padding: 0.75rem 1.25rem;
   }
+
   .edit-role-link {
     a:link {
-      color: $gray-080;
+      color: var(--gray-080);
     }
+
     a:visited {
-      color: $gray-080;
+      color: var(--gray-080);
     }
+
     a:hover {
-      color: $gray-080;
+      color: var(--gray-080);
       text-decoration: underline;
     }
+
     a:active {
-      color: $black;
+      color: var(--black);
       text-decoration: underline;
     }
 
   }
+
   .role-wrapper {
     overflow: scroll;
   }
+
   .role-name-header h3 {
     padding: 1rem;
     margin: 0 auto;
     @include font-bold(14px);
   }
+
   .role-column {
     min-width: 25rem;
   }
+
   .c-card__content {
     border-radius: 0;
   }
+
   .panel-group {
     margin-bottom: 0
   }
+
   .administrative {
-    background-color: $gray-015;
+    background-color: var(--gray-015);
     padding: 1rem;
   }
 

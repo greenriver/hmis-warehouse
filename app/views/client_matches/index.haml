@@ -6,7 +6,6 @@
       $(document).on("ajax:success", function (e, data, status, xhr) {
         var cards = $('.client-match[data-id='+data.id+']');
         var rows = cards.closest('.merge-row');
-        $('.tooltip').tooltip('hide');
         cards.fadeOut(100, function() {
           cards.remove();
           rows.each(function() {
@@ -46,7 +45,7 @@
       - id = dest.id
       - id = dest.destination_client.id if dest.source?
       = link_to appropriate_client_path(id) do
-        %span{data: {toggle: :tooltip, title: "Warehouse record for #{dest.full_name}."}}
+        %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Warehouse record for #{dest.full_name}."}}
           = "ID:#{id}"
       %span{style: 'font-weight: normal;'}
       - pii = dest.pii_provider(user: current_user)

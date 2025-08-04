@@ -1,12 +1,11 @@
-%button.btn.btn-sm.btn-secondary{type: :button, data: {toggle: :modal, target: "##{id}"}}
+%button.btn.btn-sm.btn-secondary{type: :button, data: { 'bs-toggle' => :modal, target: "##{id}"}}
   Details
 .modal{id: id, tabindex: -1, role: :dialog, 'aria-labelledby': "#{id}-title"}
   .modal-dialog{role: :document, style: 'max-width: 90vw'}
     .modal-content
       .modal-header
         %h5.modal-title{id:"#{id}-title"}= title
-        %button.close{type: :button, 'data-dismiss': :modal, 'aria-label': 'Close'}
-          %span{'aria-hidden': true} &times;
+        %button.btn-close{type: :button, 'data-bs-dismiss': :modal, 'aria-label': 'Close'}
       .modal-body
         :ruby
           headers = []
