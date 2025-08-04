@@ -7056,7 +7056,7 @@ CREATE TABLE public.ce_opportunities (
     updated_at timestamp(6) without time zone NOT NULL,
     unit_id bigint NOT NULL,
     stale boolean DEFAULT false NOT NULL,
-    initial_rule_attrs json DEFAULT '[]'::json NOT NULL
+    assignment_rules json DEFAULT '[]'::json NOT NULL
 );
 
 

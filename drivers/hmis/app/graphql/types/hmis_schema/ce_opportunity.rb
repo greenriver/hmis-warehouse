@@ -97,13 +97,12 @@ module Types
     end
 
     def revivified_rules
-      result = object.initial_rule_attrs.map do |attrs|
+      @revivified_rules ||= object.assignment_rules.map do |attrs|
         record = Hmis::Ce::Match::Rule.new(attrs)
         record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
         record.freeze
         record
       end
-      result
     end
 
     def categories

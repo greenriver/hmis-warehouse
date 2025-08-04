@@ -55,7 +55,7 @@ module Hmis::Ce::Match
               {
                 candidate_pool_id: target_pool.id,
                 stale: false,
-                initial_rule_attrs: target_rule_attrs,
+                assignment_rules: target_rule_attrs,
               },
             )
           elsif opportunity.candidate_pool_id != target_pool.id
@@ -84,7 +84,7 @@ module Hmis::Ce::Match
         opportunity_updates,
         on_duplicate_key_update: {
           conflict_target: [:id],
-          columns: [:candidate_pool_id, :stale, :initial_rule_attrs],
+          columns: [:candidate_pool_id, :stale, :assignment_rules],
         },
       )
       raise "Failed to update CE Opportunities: #{result.inspect}" if result.failed_instances.present?
