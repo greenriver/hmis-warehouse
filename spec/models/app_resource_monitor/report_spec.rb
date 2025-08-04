@@ -3,17 +3,21 @@
 require 'rails_helper'
 
 RSpec.describe AppResourceMonitor::Report, type: :model do
-  describe '#export_to_csv' do
-    let(:report) { described_class.new }
-    let(:temp_directory) { Dir.mktmpdir }
-    let(:timestamp) { '20241201120000' }
-    let!(:data_source) { create(:grda_warehouse_data_source) }
+  let(:report) { described_class.new }
+  let(:temp_directory) { Dir.mktmpdir }
+  let(:timestamp) { '20241201120000' }
+  let!(:data_source) { create(:grda_warehouse_data_source) }
+  let!(:hud_client) { create(:grda_warehouse_hud_client, data_source: data_source) }
+  let!(:hud_enrollment) do
+    create(:grda_warehouse_hud_enrollment,
+           data_source: data_source,
+           personal_id: hud_client.personal_id)
+  end
+  let!(:hud_project) { create(:grda_warehouse_hud_project, data_source: data_source) }
 
+  describe '#export_to_csv' do
     before do
       allow(report).to receive(:now).and_return(Time.parse('2024-12-01 12:00:00'))
-
-      # Create some HUD records to ensure the inspectors return data
-      create_hud_test_data
     end
 
     after do
@@ -91,8 +95,6 @@ RSpec.describe AppResourceMonitor::Report, type: :model do
   end
 
   describe '#structure_files' do
-    let(:report) { described_class.new }
-
     it 'returns expected structure file paths' do
       files = report.send(:structure_files)
 
@@ -106,13 +108,6 @@ RSpec.describe AppResourceMonitor::Report, type: :model do
   end
 
   describe '#collect_results' do
-    let(:report) { described_class.new }
-    let!(:data_source) { create(:grda_warehouse_data_source) }
-
-    before do
-      create_hud_test_data
-    end
-
     it 'returns expected CSV data keys' do
       results = report.send(:collect_results)
 
@@ -147,27 +142,5 @@ RSpec.describe AppResourceMonitor::Report, type: :model do
       expect(results['hud_project_references']).to be_an(Array)
       expect(results['duplicate_hud_ids']).to be_an(Array)
     end
-  end
-
-  private
-
-  def create_hud_test_data
-    # Create some basic HUD records to ensure the inspectors have data to work with
-    # This creates minimal test data that should allow the inspectors to return results
-
-    # Create a client if the model exists
-    return unless defined?(GrdaWarehouse::Hud::Client)
-
-    client = create(:grda_warehouse_hud_client, data_source: data_source)
-
-    # Create an enrollment if the model exists
-    if defined?(GrdaWarehouse::Hud::Enrollment)
-      create(:grda_warehouse_hud_enrollment,
-             data_source: data_source,
-             personal_id: client.personal_id)
-    end
-
-    # Create a project if the model exists
-    create(:grda_warehouse_hud_project, data_source: data_source) if defined?(GrdaWarehouse::Hud::Project)
   end
 end
