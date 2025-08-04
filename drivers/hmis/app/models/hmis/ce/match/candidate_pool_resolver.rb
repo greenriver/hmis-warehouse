@@ -53,7 +53,6 @@ module Hmis::Ce::Match
 
     def key_for_opportunity(opportunity:)
       rules = all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
-      rules = most_specific_rules(rules)
 
       key = []
       key << priority_expression_for_rules(rules)
@@ -63,8 +62,8 @@ module Hmis::Ce::Match
 
     # Transform multiple priority scheme rules into a single expression that returns an array
     def priority_expression_for_rules(rules)
-      expressions = rules.filter(&:priority_scheme?).
-        sort_by { |r| [r.priority, r.id] }. # need to add rule.priority
+      expressions = most_specific_rules(rules.filter(&:priority_scheme?)).
+        sort_by { |r| [r.rank, r.id] }.
         map(&:expression)
       "{#{expressions.join(', ')}}"
     end
@@ -81,6 +80,12 @@ module Hmis::Ce::Match
       expressions.join(' AND ')
     end
 
+    # An opportunity can respect multiple priority rules, with different `rank` values.
+    # However, an opportunity can't respect multiple different rules with different owners,
+    # because `rank` is unique on owner, not unique globally.
+    # This function filters down the list of priority rules that apply to this opportunity:
+    # If there are rules defined with different owners, pick the most specific owner,
+    # and return all rules applying to that owner
     def most_specific_rules(rules)
       return [] if rules.empty?
 

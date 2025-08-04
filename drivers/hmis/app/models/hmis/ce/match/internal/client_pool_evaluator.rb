@@ -35,7 +35,7 @@ module Hmis::Ce::Match::Internal
       # Client without a score cannot be prioritized
       #   * To be eligible priority score must be non-empty AND the eligibility requirement must pass
       #   * To include clients with empty scores, use a coalescing priority expression such as
-      #     `IF(my_score = NULL, 0, my_score)`
+      #     `{IF(my_score = NULL, 0, my_score)}`
       priority_scores = eval_priority(client_values) if eval_requirement(client_values)
       Result.new(client_values, priority_scores)
     end

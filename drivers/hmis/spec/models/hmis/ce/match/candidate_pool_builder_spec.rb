@@ -116,7 +116,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'uses only the most specific rule (project level)' do
         builder.perform
         pool = Hmis::Ce::Match::CandidatePool.last
-        expect(pool.priority_expression).to eq('project_score')
+        expect(pool.priority_expression).to eq('{project_score}')
       end
     end
 
@@ -128,7 +128,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'uses all rules at that level, ordered by rank' do
         builder.perform
         pool = Hmis::Ce::Match::CandidatePool.last
-        expect(pool.priority_expression).to eq('second_score|||first_score|||third_score')
+        expect(pool.priority_expression).to eq('{second_score, first_score, third_score}')
       end
     end
 
@@ -140,7 +140,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'uses organization-level rules in rank order, ignoring data source rules' do
         builder.perform
         pool = Hmis::Ce::Match::CandidatePool.last
-        expect(pool.priority_expression).to eq('org_second|||org_first')
+        expect(pool.priority_expression).to eq('{org_second, org_first}')
       end
     end
 
@@ -168,7 +168,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         builder.perform
         pool = Hmis::Ce::Match::CandidatePool.last
 
-        expect(pool.priority_expression).to eq('proj_priority')
+        expect(pool.priority_expression).to eq('{proj_priority}')
 
         requirements = pool.requirement_expression.split(' AND ')
         expect(requirements).to contain_exactly('ds_eligible = 1', 'proj_eligible = 1')
