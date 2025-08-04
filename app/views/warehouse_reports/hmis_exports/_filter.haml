@@ -5,7 +5,7 @@
   .well
     .d-flex
       .mr-auto
-        %a.btn.btn-secondary.collapsed{data: { 'bs-toggle' => 'collapse', target: '#recurrence_options', aria: {expanded: false, controls: '#recurrence_options'}}, href: '#'}
+        %a.btn.btn-secondary.collapsed{data: { 'bs-toggle' => 'collapse', 'bs-target' => '#recurrence_options', 'aria-expanded' => false, 'aria-controls' => '#recurrence_options'}, href: '#'}
           Recurring Export Options...
       .ml-2
         = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
