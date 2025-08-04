@@ -552,7 +552,6 @@ beautifymarker@^1.0.9:
   resolved "https://registry.yarnpkg.com/beautifymarker/-/beautifymarker-1.0.9.tgz#edc49a0667fb87d1a317a78927b47d6b3e602005"
   integrity sha512-kLkiA2+xXg2/kbgeQTiiJQwKnVmiDleDh3yLTeGZGzEKk0RnopB3l2QhkL3rof0Nq/Lxv98pIWH2eAbDl4SauQ==
 
-
 billboard.js@^3.16.0:
   version "3.16.0"
   resolved "https://registry.yarnpkg.com/billboard.js/-/billboard.js-3.16.0.tgz#ae2a5b3d5aa27a48cd481c94d9ea942c686671f5"
