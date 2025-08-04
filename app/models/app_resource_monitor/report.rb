@@ -4,14 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'csv'
+require 'fileutils'
 
 # == AppResourceMonitor::Report
 #
 # Collect and report resource information
 #
 class AppResourceMonitor::Report
-  def export_to_csv
+  def export_to_csv(include_structure_files: false)
     results = collect_results
     timestamp = now.to_fs(:number)
     Dir.mktmpdir do |dir|
@@ -20,6 +23,11 @@ class AppResourceMonitor::Report
           filename: Pathname.new(dir).join("#{name}-#{timestamp}.csv"),
           records: records,
         )
+      end
+      if include_structure_files
+        structure_files.each do |name, content|
+          FileUtils.cp(content, Pathname.new(dir).join("#{name}-#{timestamp}.sql"))
+        end
       end
       yield dir
     end
@@ -39,6 +47,15 @@ class AppResourceMonitor::Report
       'hud_enrollment_references' => AppResourceMonitor::HudReferencesInspector.enrollment_references,
       'hud_project_references' => AppResourceMonitor::HudReferencesInspector.project_references,
       'duplicate_hud_ids' => AppResourceMonitor::HudReferencesInspector.duplicate_ids,
+    }
+  end
+
+  def structure_files
+    {
+      'app_structure' => Rails.root.join('db/structure.sql').to_s,
+      'warehouse_structure' => Rails.root.join('db/warehouse_structure.sql').to_s,
+      'reporting_structure' => Rails.root.join('db/reporting_structure.sql').to_s,
+      'health_structure' => Rails.root.join('db/health_structure.sql').to_s,
     }
   end
 

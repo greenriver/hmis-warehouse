@@ -15,6 +15,11 @@ class AppResourceMonitor::CollectStatsJob < ::BaseJob
     DateTime.current.hour == ENV.fetch('COLLECT_STATS_HOUR', 5).to_i
   end
 
+  def include_structure_files?
+    # Run structure dumps on Sundays
+    DateTime.current.wday == 0 && run_hour?
+  end
+
   def active_config?
     active_config.present?
   end
@@ -30,9 +35,10 @@ class AppResourceMonitor::CollectStatsJob < ::BaseJob
 
     instrument_as_maintenance_task do |run|
       prefix = [active_config.path, [ENV.fetch('CLIENT'), Rails.env].map(&:strip).join('-')].join('/')
-      AppResourceMonitor::Report.new.export_to_csv do |directory_name|
+      AppResourceMonitor::Report.new.export_to_csv(include_structure_files: include_structure_files?) do |directory_name|
         active_config.s3.upload_directory(directory_name: directory_name, prefix: prefix)
       end
+
       run.complete!
     end
   end
