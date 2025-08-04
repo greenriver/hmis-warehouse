@@ -18,10 +18,8 @@ module Types
 
     # TODO(#7957) - remove after deprecation period
     def priority_score
-      priority_scores&.first || 0
+      object.priority_scores&.first || 0
     end
-
-    # todo @martha - display priority scores correctly in UI
 
     def destination_client_id
       destination_client.id
