@@ -30,9 +30,9 @@
             %td
               = f.input :end_date, as: :date_picker, label: false
             %td.text-center
-              = f.input :client_notifications, label: false, input_html: { data: { toggle: 'tooltip' }, title: 'Check this box to have the user receive notifications when files or notes are added for this client.'}
+              = f.input :client_notifications, label: false, input_html: { data: { 'bs-toggle' => 'tooltip' , 'bs-title' => 'Check this box to have the user receive notifications when files or notes are added for this client.'}}
             %td.text-center
-              = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
+              = f.input :confidential, label: false, input_html: {data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Confidential relationships will not be displayed in the search results.'}}
             %td
               = f.submit value: 'Add Relationship', class: 'btn btn-primary'
   - @user_clients.each do |user_client|

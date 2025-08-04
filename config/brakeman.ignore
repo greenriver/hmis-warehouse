@@ -226,7 +226,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 48,
+      "line": 53,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"INSERT INTO analytics.app_users (id, first_name, last_name, email)\\nVALUES\\n#{batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")}\\nON CONFLICT (id) DO UPDATE SET\\n  first_name = EXCLUDED.first_name,\\n  last_name = EXCLUDED.last_name,\\n  email = EXCLUDED.email\\n\")",
       "render_path": null,
@@ -1151,7 +1151,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 61,
+      "line": 66,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"DELETE FROM analytics.app_users\\nWHERE id NOT IN (#{User.with_deleted.pluck(:id).map do\n connection.quote(id)\n end.join(\",\")})\\n\")",
       "render_path": null,
@@ -1685,7 +1685,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 96,
+      "line": 94,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1744,6 +1744,40 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "a1ee081aa0142aa299d9e85126139b5511ad8227fe2ec45186893de12af9c176",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/layouts/application.html.haml",
+      "line": 24,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "GrdaWarehouse::Theme.css_file_contents",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "AccessControlsController",
+          "method": "show",
+          "line": 16,
+          "file": "app/controllers/access_controls_controller.rb",
+          "rendered": {
+            "name": "layouts/application",
+            "file": "app/views/layouts/application.html.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "layouts/application"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2199,7 +2233,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 89,
+      "line": 90,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2222,7 +2256,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "drivers/system_pathways/app/controllers/system_pathways/warehouse_reports/reports_controller.rb",
-      "line": 31,
+      "line": 32,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2360,7 +2394,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/hmis_structure/base.rb",
-      "line": 175,
+      "line": 172,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
       "render_path": null,

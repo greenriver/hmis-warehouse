@@ -18,12 +18,12 @@
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
             - HudPathReport::Fy2020::PathClient.detail_headers.each_value do |header|
               %th= header
-        %tbody.thead-dark
+        %tbody
           - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
           - @clients.preload(:data_source, :client).each.with_index do |client, i|
             - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
@@ -34,11 +34,11 @@
                   - if k == 'client_id'
                     = link_to from_source_client_path(client[k]) do
                       = client[k]
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k == 'destination_client_id' && client[k].present?
                     = link_to client[k], appropriate_client_path(client[k])
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k == 'contacts'
                     = count_dates(client[k])

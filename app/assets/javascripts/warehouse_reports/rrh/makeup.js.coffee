@@ -2,7 +2,7 @@
 
 class App.WarehouseReports.Rrh.Makeup
   constructor: (@chart_selector, @data, @support_url) ->
-    Chart.defaults.global.defaultFontSize = 10
+
     @color_map = {}
     @next_color = 0
     @_build_chart()

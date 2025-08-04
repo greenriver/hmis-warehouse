@@ -1,9 +1,15 @@
 @import '../helpers';
 
+.card {
+  background-color: white;
+}
+
 .c-card {
   overflow: auto;
 }
-.c-card-overflow-inherit, .card.c-card-overflow-inherit {
+
+.c-card-overflow-inherit,
+.card.c-card-overflow-inherit {
   overflow: inherit;
 }
 
@@ -21,7 +27,7 @@
 }
 
 .c-card__header--bordered {
-  border-bottom: $gray-015 1px solid;
+  border-bottom: var(--gray-015) 1px solid;
 }
 
 .c-card__header--external {
@@ -29,12 +35,14 @@
   align-items: flex-end;
   padding: 0;
   margin-bottom: space(2);
+
   h1,
   h2,
   h3 {
     margin: 0;
     padding-right: space(4);
   }
+
   a,
   button {
     margin-left: auto;
@@ -43,10 +51,12 @@
 
 .c-card__content {
   @include card-content;
+
   &.highlight {
     animation: highlight 2s;
   }
 }
+
 .minimal-collapse .c-card__content {
   border: 0;
 }
@@ -62,7 +72,14 @@
 
 .c-card__content .form-control,
 .c-card__content textarea,
-.c-card__content input:not([type="submit"]),
+.c-card__content input[type="text"],
+.c-card__content input[type="email"],
+.c-card__content input[type="password"],
+.c-card__content input[type="number"],
+.c-card__content input[type="date"],
+.c-card__content input[type="datetime-local"],
+.c-card__content input[type="time"],
+.c-card__content input[type="url"],
 .c-card__content .select2-selection {
   background-color: $body-bg;
 }
@@ -80,14 +97,17 @@
 .c-card--flush {
   @include card;
   padding: 0;
+
   .table {
     margin-bottom: 0;
   }
+
   .table thead tr th,
   .table tbody tr td {
     &:first-of-type {
       padding-left: rem(15px);
     }
+
     &:last-of-type {
       padding-right: rem(15px);
     }
@@ -104,11 +124,13 @@
 
 .c-card--linked {
   cursor: pointer;
+
   &:focus,
   &:hover {
     color: $text-color;
-    box-shadow: 0 2px 8px rgba($black, .1);
+    box-shadow: 0 2px 8px rgba(var(--black), .1);
   }
+
   &:active {
     background-color: $body-bg;
   }
@@ -120,14 +142,15 @@
   font-weight: 800;
 }
 
-.c-card__description {
-}
+.c-card__description {}
 
 .c-card__content table {
+
   thead tr th:first-of-type,
   tbody tr td:first-of-type {
     padding-left: space(4);
   }
+
   thead tr th:last-of-type,
   tbody tr td:last-of-type {
     padding-right: space(4);
@@ -138,11 +161,16 @@
   margin: 0 !important;
 }
 
+.card .dataTable {
+  margin: 0 !important;
+}
+
 .c-card__content .dataTables_wrapper {
   width: 100%;
   padding-right: 0;
   padding-left: 0;
   overflow: hidden;
+
   .row:last-of-type {
     padding-left: space(4);
     padding-right: space(4);
@@ -153,8 +181,10 @@
 
 .c-card__item {
   padding-bottom: space(6);
+
   &:first-of-type {
     margin-top: -16px;
+
     .c-card__item-header {
       border-top-left-radius: $border-radius-default;
       border-top-right-radius: $border-radius-default;
@@ -171,6 +201,7 @@
 .c-card__item-header {
   display: flex;
   align-items: center;
+
   h4 {
     margin: 0;
     padding-right: space(4);
@@ -194,10 +225,12 @@
 
 .c-card--row {
   &.children-visible {
+
     &,
-    + table {
+    +table {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
+
     .c-card__content {
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
@@ -207,25 +240,30 @@
 
 .c-card__toggle {
   color: red;
-  &.open { }
+
+  &.open {}
 }
 
 .c-card__detail-col {
   display: flex;
   margin-bottom: space(4);
   flex: 1 1 100%;
+
   &:first-child {
     margin-top: space(4);
   }
+
   &:last-child {
     margin-bottom: 0;
   }
+
   @include media-breakpoint-up(lg) {
     &:first-child {
       margin-top: 0;
       max-width: 33%;
       flex: 1 1 33%;
     }
+
     padding-top: space(4);
     flex: 1 1 auto;
   }
@@ -233,6 +271,7 @@
 
 .c-card__detail-col--reversed-mobile {
   flex-direction: column-reverse;
+
   @include media-breakpoint-up(lg) {
     flex-direction: column;
   }
@@ -248,9 +287,10 @@
   display: flex;
   align-items: center;
   width: 100%;
-  border-top: $gray-015 1px solid;
+  border-top: var(--gray-015) 1px solid;
   flex-wrap: wrap;
   padding: 0 space(4);
+
   .btn {
     display: block;
   }
@@ -270,6 +310,7 @@
 
 .c-card__content-block {
   padding: space(4);
+
   h3 {
     font-size: 1.25rem;
   }
@@ -280,7 +321,7 @@
 }
 
 .c-card__content-block--danger {
-  background-color: lighten($brand-danger-l, 5%);
+  background-color: var(--brand-danger-lll);
   padding: space(4);
 }
 
@@ -298,33 +339,40 @@
 .c-card--internal {
   display: flex;
   flex: 1;
+
   .card-content {
     flex: 1;
     min-height: 100px;
     background: #f9f9f9;
   }
+
   .card-title {
     margin-top: 0;
     margin-bottom: space(3);
   }
 }
+
 $levels: (
-  warning: $brand-warning,
-  danger: $brand-danger,
-  info: $brand-info,
+  warning: var(--bs-warning),
+  danger: var(--bs-danger),
+  info: var(--bs-info),
 );
+
 @each $level, $color in $levels {
   .c-card--#{$level} {
     border-color: rgba($color, .35);
+
     .card-content {
       background: rgba($color, .2);
     }
   }
 }
+
 .c-card--form {
   .form-group {
     margin-bottom: 10px;
   }
+
   .form-group:last-child {
     margin-bottom: 0;
   }

@@ -10,11 +10,11 @@
 }
 .shared {
   font-size: 1.4em;
-  color: $brand-success;
+  color: var(--bs-success);
 }
 .excluded {
   font-size: 1.4em;
-  color: $brand-danger;
+  color: var(--bs-danger);
 }
 .color-box {
   color: transparent;

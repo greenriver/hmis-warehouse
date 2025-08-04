@@ -17,6 +17,7 @@ module ClientLocationHistory
     before_action :set_client
 
     def map
+      @per_page_js = ['map_with_markers']
       client_ids = [@client.id]
       # Include any source clients with a location, but make sure we only bring in those that are visible to the current user
       client_ids += ::GrdaWarehouse::Hud::Client.source_visible_to(current_user, client_ids: @client.source_client_ids).where(id: @client.source_client_ids).pluck(:id) if @client.destination?

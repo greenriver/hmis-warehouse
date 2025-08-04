@@ -1,25 +1,24 @@
 @import '../helpers';
 
-.client-tabs__health-emergency
-{
-  background-color: lighten($brand-danger-l, 5%);
+.client-tabs__health-emergency {
+  background-color: var(--brand-danger-lll);
   margin-bottom: - space(4);
   margin-left: -30px;
   margin-right: -30px;
   padding: 0.25rem 30px;
   width: 110%;
 }
-.client-tabs__health-emergency h3
-{
+
+.client-tabs__health-emergency h3 {
   font-size: 1.2rem;
-  color: $brand-danger;
+  color: var(--bs-danger);
   text-transform: uppercase;
 }
-.nav-tabs >
-{
-  li.health-emergency.nav-item > a,
-  li.health-emergency.nav-item.active > a
-  {
-    color: $brand-danger;
+
+.nav-tabs> {
+
+  li.health-emergency.nav-item>a,
+  li.health-emergency.nav-item.active>a {
+    color: var(--bs-danger);
   }
 }

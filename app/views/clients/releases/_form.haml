@@ -49,7 +49,7 @@
                 - options = {class: 'jFileTag'}
                 - data = {}
                 - if item.note.present?
-                  - data.merge!({toggle: :popover, trigger: :manual, title: item.name, content: item.note})
+                  - data.merge!({'bs-toggle' => :popover, trigger: :manual, title: item.name, content: item.note})
                 - if item.consent_form
                   - data.merge!({consent: true})
                 - if item.coc_available

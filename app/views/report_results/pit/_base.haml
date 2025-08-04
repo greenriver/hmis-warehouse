@@ -8,7 +8,7 @@
       - else
         - display_title = "#{title.humanize} population"
       %li.nav-item{role: :presentation}
-        %a{href: "\##{title}", role: :tab, data: {toggle: :tab}, class: ['nav-link', active]}= display_title
+        %a{href: "\##{title}", role: :tab, data: { 'bs-toggle' => :tab}, class: ['nav-link', active]}= display_title
       - active = ''
   .tab-content
     - active = 'active'
@@ -24,7 +24,7 @@
                 %tr
                   %th
                   %th{colspan: breakdowns.count - 1}
-                    %span{data: {toggle: :tooltip, title: 'Where sheltered only, data shows in ES column'}}
+                    %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Where sheltered only, data shows in ES column'}}
                       Sheltered
                   %th
                     Unsheltered
@@ -42,7 +42,7 @@
                     - breakdowns.each do |cat, v|
                       %td
                         - if @result.support[title][population.to_s][category.to_s][cat.to_s].is_a? Hash
-                          %a.launch-modal{href: '#', data: {toggle: :modal, target: "\##{population.to_s}-#{question_slug}-#{cat}-support"}}
+                          %a.launch-modal{href: '#', data: { 'bs-toggle' => :modal, target: "\##{population.to_s}-#{question_slug}-#{cat}-support"}}
                             = v
                         - else
                           = v

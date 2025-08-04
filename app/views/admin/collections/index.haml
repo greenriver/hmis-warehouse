@@ -27,7 +27,7 @@
             %th.text-center Access Controls
             %th.text-center
               System Collection
-              %i.icon-info{data: {toggle: :tooltip, title: 'System collections are automatically maintained, and cannot be removed.'}}
+              %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'System collections are automatically maintained, and cannot be removed.'}}
             %th Action
         %tbody
           - @collections.each do |collection|

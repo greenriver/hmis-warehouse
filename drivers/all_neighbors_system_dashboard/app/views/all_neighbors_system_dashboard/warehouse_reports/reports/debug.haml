@@ -32,15 +32,14 @@
     .mr-4
       .input-group
         %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-        %span.input-group-append
-          %button.btn.btn-secondary Search
+        %button.btn.btn-secondary Search
 
   %table.table.table-sm.table-bordered.mb-0.datatable
-    %thead.thead-dark
+    %thead.table-dark
       %tr
         - headers.each do |label|
           %th= label
-    %tbody.thead-dark
+    %tbody
       - enrollments.each do |en|
         %tr
           - en.debug_attributes.each do |key, value|

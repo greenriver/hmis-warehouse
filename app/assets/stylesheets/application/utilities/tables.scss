@@ -19,12 +19,14 @@
 }
 
 tr.even td {
-  background-color: $gray-015;
+  background-color: var(--gray-015);
 }
+
 .table-striped {
-  background-color: $white;
+  background-color: var(--white);
   margin-bottom: 0;
 }
+
 .table-responsive {
   border: 1px solid rgba(0, 0, 0, 0.125);
   border-radius: 0.25rem;
@@ -33,19 +35,23 @@ tr.even td {
 .pagy-container {
   display: flex;
   align-items: center;
+
   nav {
     margin-left: auto;
   }
+
   ul.pagination {
     margin-bottom: 0;
   }
+
   .o-page__sort .btn {
     font-weight: 400;
     padding: 0.25rem 1.25rem;
     line-height: 1.5;
     min-height: 2.5rem;
   }
-  .o-page__sort ~ nav {
+
+  .o-page__sort~nav {
     margin-left: 2rem;
   }
 }
