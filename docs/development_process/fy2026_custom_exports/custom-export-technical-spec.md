@@ -80,7 +80,7 @@ def available_custom_file_types
   HmisCsvTwentyTwentySix::CustomFilesConfig.custom_file_types
 end
 
-def def for_params
+def for_params
   # ... existing code ...
   custom_file_types: custom_file_types,
   # ... existing code ...

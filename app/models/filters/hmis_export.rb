@@ -38,6 +38,7 @@ module Filters
     attribute :zip_password, String
     attribute :encryption_type, String
     attribute :_aj_symbol_keys, String
+    attribute :custom_file_types, Array, default: []
 
     validates_presence_of :start_date, :end_date
 
@@ -74,6 +75,7 @@ module Filters
       self.s3_prefix = filters.dig(:s3_prefix) unless filters.dig(:s3_prefix).nil?
       self.zip_password = filters.dig(:zip_password) unless filters.dig(:zip_password).nil?
       self.encryption_type = filters.dig(:encryption_type) unless filters.dig(:encryption_type).nil?
+      self.custom_file_types = filters.dig(:custom_file_types) || []
 
       super(filters)
     end
@@ -103,6 +105,7 @@ module Filters
           s3_prefix: s3_prefix,
           zip_password: zip_password,
           encryption_type: encryption_type,
+          custom_file_types: custom_file_types,
         },
       )
     end
@@ -281,6 +284,21 @@ module Filters
       else
         return super
       end
+    end
+
+    def available_custom_file_types
+      return [] unless version == '2026'
+
+      begin
+        HmisCsvTwentyTwentySix.custom_files_config.definitions.map(&:filename)
+      rescue StandardError => e
+        Rails.logger.warn "Failed to load available custom file types: #{e.message}"
+        []
+      end
+    end
+
+    def valid_custom_file_types
+      custom_file_types & available_custom_file_types
     end
   end
 end

@@ -158,6 +158,7 @@ module WarehouseReports
           organization_ids: [],
           data_source_ids: [],
           coc_codes: [],
+          custom_file_types: [],
         ),
       )
     end

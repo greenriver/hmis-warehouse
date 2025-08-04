@@ -93,6 +93,4 @@ The HMIS warehouse has recently implemented the ability to import custom files v
 ## Future Considerations
 
 - Support for custom files in future HMIS CSV versions
-- Advanced filtering of custom file contents
-- Custom file export scheduling and automation
-- Integration with external systems expecting custom files
+- Advanced filtering or data cleanup of custom file contents
