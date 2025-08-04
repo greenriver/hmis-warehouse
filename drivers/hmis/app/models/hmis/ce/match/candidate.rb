@@ -7,6 +7,7 @@ module Hmis::Ce::Match
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
     belongs_to :client_proxy, class_name: 'Hmis::Ce::ClientProxy'
 
+    # todo @martha - is causing n+1?
     scope :prioritized, -> {
       # Order by priority_scores arrays:
       # Compare element by element (priority_scores[0], then priority_scores[1], etc.)

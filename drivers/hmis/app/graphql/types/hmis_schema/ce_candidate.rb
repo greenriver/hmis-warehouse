@@ -21,6 +21,8 @@ module Types
       priority_scores&.first || 0
     end
 
+    # todo @martha - display priority scores correctly in UI
+
     def destination_client_id
       destination_client.id
     end

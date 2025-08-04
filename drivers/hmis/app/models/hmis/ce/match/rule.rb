@@ -72,6 +72,7 @@ module Hmis::Ce::Match
       for_entity(opportunity)
     end
 
+    # todo @martha - Need some special logic to determine if the rank positions change, because that should trigger recalculating the pool.
     private
 
     def ensure_rank
