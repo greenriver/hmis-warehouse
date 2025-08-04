@@ -41,6 +41,7 @@ module ClientAccessControl
         contact_types: (params[:contact_types] || '').split(','),
       }
       @current_date = Date.new(@year, @month, 1)
+      @per_page_js = ['client_history']
     end
 
     def queue

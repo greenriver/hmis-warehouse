@@ -18,12 +18,12 @@
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
             - HudDataQualityReport::Fy2020::DqClient.detail_headers.each_value do |header|
               %th= header
-        %tbody.thead-dark
+        %tbody
           - @clients.each.with_index do |client, i|
             %tr
               %th= i + 1
@@ -32,12 +32,12 @@
                   - if k == 'client_id'
                     = link_to from_source_client_path(client[k]) do
                       = client[k]
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s == 'destination_client_id'
                     = link_to appropriate_client_path(client[k]) do
                       = client[k]
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s.starts_with?('hiv_aids') && !can_view_hiv_status?
                     %i.light redacted

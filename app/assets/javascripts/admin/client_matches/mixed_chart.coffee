@@ -2,7 +2,7 @@
 
 class App.Admin.ClientMatches.MixedChart
   constructor: (@chart_selector, options) ->
-    Chart.defaults.global.defaultFontSize = 10
+
     @color_map = {}
     @next_color = 0
     @_build_chart()
@@ -67,4 +67,3 @@ class App.Admin.ClientMatches.MixedChart
         @color_map[key] = color
         @next_color = @next_color % colors.length
     return color
-

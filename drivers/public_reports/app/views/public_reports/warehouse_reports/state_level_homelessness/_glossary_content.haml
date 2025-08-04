@@ -3,7 +3,7 @@
     .context__container
       .context__header
         %h3= Translation.translate('Public Glossary Header')
-        %button.btn.btn-dark.ml-auto{role: :button, aria: {controls: :context, expanded: :false}, data: { target: '#context', toggle: :collapse}}
+        %button.btn.btn-dark.ml-auto{role: :button, aria: {controls: :context, expanded: :false}, data: { target: '#context', 'bs-toggle' => :collapse}}
           %i.bi.bi-x-lg.mr-1
           %span Close
       .context__content

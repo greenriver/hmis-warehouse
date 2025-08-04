@@ -5,7 +5,7 @@
       %div Overview
       - if @html
         .ml-auto
-          %i.icon-info{data: {toggle: :tooltip, title: info_description}}
+          %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => info_description}}
     - if @pdf
       .description=info_description
 

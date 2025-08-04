@@ -22822,6 +22822,23 @@ ALTER SEQUENCE public.hmis_csv_loader_logs_id_seq OWNED BY public.hmis_csv_loade
 
 
 --
+-- Name: hmis_destination_client_latest_assessments; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_destination_client_latest_assessments AS
+ SELECT DISTINCT ON (wc.destination_id, def.identifier) wc.destination_id AS destination_client_id,
+    ca.id AS custom_assessment_id,
+    def.identifier AS form_identifier
+   FROM ((((public.warehouse_clients wc
+     JOIN public."Client" c ON (((c."DateDeleted" IS NULL) AND (c.id = wc.source_id))))
+     JOIN public."CustomAssessments" ca ON (((ca."DateDeleted" IS NULL) AND (ca.data_source_id = c.data_source_id) AND ((ca."PersonalID")::text = (c."PersonalID")::text))))
+     JOIN public.hmis_form_processors fp ON ((((fp.owner_type)::text = 'Hmis::Hud::CustomAssessment'::text) AND (fp.owner_id = ca.id))))
+     JOIN public.hmis_form_definitions def ON (((def.deleted_at IS NULL) AND (def.id = fp.definition_id))))
+  WHERE (wc.destination_id IS NOT NULL)
+  ORDER BY wc.destination_id, def.identifier, ca."DateUpdated" DESC, ca.id DESC;
+
+
+--
 -- Name: hmis_dqt_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -75160,6 +75177,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250803183312'),
+('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),
 ('20250716131240'),

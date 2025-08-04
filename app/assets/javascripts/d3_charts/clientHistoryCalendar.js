@@ -27,7 +27,7 @@ class AppClientHistoryCalendar {
     return cssClass;
   }
 
-  draw(filters) {
+  draw(filters, eventsData) {
     // console.log('filters', filters)
     this.data.forEach((weekData, i) => {
       // console.log('weekData', weekData)
@@ -227,7 +227,7 @@ class AppClientHistoryCalendar {
 
       bars.selectAll(`.${this.prefixClass('project', 'end')}`)
         .data((d) => {
-          if(includesEnd(d)) {
+          if (includesEnd(d)) {
             if (d.exit_date == new Date().toJSON().slice(0, 10)) {
               return [];
             } else {
@@ -307,7 +307,7 @@ class AppClientHistoryCalendar {
       projectLabels.append('strong').html((d) => d.project_type_name);
       projectLabels.append('span').html((d) => d.project_name);
 
-      const events = Object.keys(this.eventsData).filter((e) => e != 'extrapolation');
+      const events = Object.keys(eventsData).filter((e) => e != 'extrapolation');
 
       events.forEach((event) => {
         var dayClass = this.prefixClass('day-event');

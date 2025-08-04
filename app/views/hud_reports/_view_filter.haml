@@ -1,6 +1,6 @@
 - filter_class = if @active_filter then 'filter-active' else 'filter' end
 #filter-anchor.dropdown.o-filtration{class: filter_class}
-  %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
+  %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { 'bs-toggle' => 'dropdown', 'bs-auto-close' => 'outside' }, aria: { haspopup: 'true', expanded: 'false' }}
     %span Filter
     %span.caret
 
@@ -17,13 +17,11 @@
           .o-filtration__option-row
             .input-group.date{ data: { provide: :datepicker }}
               %input.form-control{ name: :start, type: :text, value: @view_filter[:start] }
-              .input-group-append
-                %button.icon-calendar.btn.btn-secondary{ type: 'button' }
+              %button.icon-calendar.btn.btn-secondary{ type: 'button' }
             .o-filtration__separator to
             .input-group.date{ data: {provide: :datepicker }}
               %input.form-control{ name: :end, type: :text, value: @view_filter[:end] }
-              %span.input-group-append
-                %button.icon-calendar.btn.btn-secondary{ type: 'button' }
+              %button.icon-calendar.btn.btn-secondary{ type: 'button' }
 
       .o-filtration__option.row
         .col-sm-12

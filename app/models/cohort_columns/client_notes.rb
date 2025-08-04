@@ -52,7 +52,7 @@ module CohortColumns
       path = cohort_cohort_client_client_notes_path(cohort, cohort_client)
       # Sort pattern
       html = content_tag(:div, class: 'd-flex') do
-        content_tag(:span, "#{max_updated_at} #{note_count}", class: 'hidden') + link_to(pluralize(note_count, 'note'), path, class: 'badge badge-primary py-1 px-2 mr-auto', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }) +
+        content_tag(:span, "#{max_updated_at} #{note_count}", class: 'hidden') + link_to(pluralize(note_count, 'note'), path, class: 'badge text-bg-primary my-1 py-1 px-2 mr-auto', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }) +
         content_tag(:span, " #{updated_at&.to_date}", style: 'height: 16px;', class: 'ml-4')
       end
       html

@@ -1,0 +1,20 @@
+:root {}
+
+body>header,
+.o-header--page {
+  background-color: rgb(29, 94, 162);
+}
+
+footer {
+  background-color: white;
+  box-shadow: none;
+  color: rgb(29, 94, 162);
+}
+
+.o-header--page__title a {
+  color: rgb(28, 26, 27);
+}
+
+.site-menu .menu-icon {
+  color: #ffbd59;
+}

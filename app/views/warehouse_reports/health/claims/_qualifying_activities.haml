@@ -28,5 +28,5 @@
                     - if qa.procedure_valid?
                       = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
                     - else
-                      %span{data: {toggle: :tooltip, title: "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s} is not a valid Procedure Code"}}
+                      %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s} is not a valid Procedure Code"}}
                         = "#{qa.procedure_code}>#{qa.modifiers.join('>').to_s}"
