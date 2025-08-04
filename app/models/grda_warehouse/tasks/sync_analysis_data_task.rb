@@ -36,19 +36,20 @@ module GrdaWarehouse::Tasks
     protected
 
     def sync_app_users(batch_size: 500)
-      User.with_deleted.find_in_batches(batch_size: batch_size) do |batch|
+      User.with_deleted.preload(:agency).find_in_batches(batch_size: batch_size) do |batch|
         values_sql = batch.map do |user|
           sanitize_sql_for_insert(user)
         end.join(",\n")
 
         sql = <<~SQL
-          INSERT INTO analytics.app_users (id, first_name, last_name, email)
+          INSERT INTO analytics.app_users (id, first_name, last_name, email, agency_name)
           VALUES
           #{values_sql}
           ON CONFLICT (id) DO UPDATE SET
             first_name = EXCLUDED.first_name,
             last_name = EXCLUDED.last_name,
-            email = EXCLUDED.email
+            email = EXCLUDED.email,
+            agency_name = EXCLUDED.agency_name
         SQL
         connection.execute(sql)
       end
@@ -77,11 +78,12 @@ module GrdaWarehouse::Tasks
     def sanitize_sql_for_insert(user)
       ActiveRecord::Base.sanitize_sql_array(
         [
-          '(?, ?, ?, ?)',
+          '(?, ?, ?, ?, ?)',
           user.id,
           user.first_name,
           user.last_name,
           user.email,
+          user.agency&.name,
         ],
       )
     end

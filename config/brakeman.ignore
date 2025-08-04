@@ -24,29 +24,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "03398b9f6e9b4fc6121f4d1213d7d04cf0cb7e457c6da533a03dfae90ba1fc7d",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_access_control/app/controllers/client_access_control/search_concern.rb",
-      "line": 31,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientAccessControl::SearchConcern",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "038bcd60acffeb30ca826c9b5f82d7628089aec25339d562440efa0b130911ca",
@@ -222,29 +199,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "1419d56311ba8b0ccc7fb748c44f87e4814b63f13cd2a6fda3be83c03e6ef0f4",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 53,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "connection.execute(\"INSERT INTO analytics.app_users (id, first_name, last_name, email)\\nVALUES\\n#{batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")}\\nON CONFLICT (id) DO UPDATE SET\\n  first_name = EXCLUDED.first_name,\\n  last_name = EXCLUDED.last_name,\\n  email = EXCLUDED.email\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Tasks::SyncAnalysisDataTask",
-        "method": "sync_app_users"
-      },
-      "user_input": "batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "150ecb715f71e17ac9457b3b0a5a938f6c8023af3e2199132fce57d1e6c60309",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -410,7 +364,7 @@
       "check_name": "EOLRails",
       "message": "Support for Rails 7.1.5.1 ends on 2025-10-01",
       "file": "Gemfile.lock",
-      "line": 1660,
+      "line": 1651,
       "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
       "code": null,
       "render_path": null,
@@ -1170,7 +1124,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
-      "line": 66,
+      "line": 67,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"DELETE FROM analytics.app_users\\nWHERE id NOT IN (#{User.with_deleted.pluck(:id).map do\n connection.quote(id)\n end.join(\",\")})\\n\")",
       "render_path": null,
@@ -1632,6 +1586,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "85e6d1964af4de89c14a1b048ab9c823589736524f1ed2cec0be25b3734b0e43",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/tasks/sync_analysis_data_task.rb",
+      "line": 54,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"INSERT INTO analytics.app_users (id, first_name, last_name, email, agency_name)\\nVALUES\\n#{batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")}\\nON CONFLICT (id) DO UPDATE SET\\n  first_name = EXCLUDED.first_name,\\n  last_name = EXCLUDED.last_name,\\n  email = EXCLUDED.email,\\n  agency_name = EXCLUDED.agency_name\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Tasks::SyncAnalysisDataTask",
+        "method": "sync_app_users"
+      },
+      "user_input": "batch.map do\n sanitize_sql_for_insert(user)\n end.join(\",\\n\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "88ba6947358eb613f838a50fc8a1b137f655dda08126594643d90dca1df7daa9",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1773,7 +1750,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/layouts/application.html.haml",
-      "line": 24,
+      "line": 26,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "GrdaWarehouse::Theme.css_file_contents",
       "render_path": [
