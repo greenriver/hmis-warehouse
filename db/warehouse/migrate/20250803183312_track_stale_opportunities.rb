@@ -9,7 +9,8 @@
 class TrackStaleOpportunities < ActiveRecord::Migration[7.1]
   def up
     safety_assured do
-      add_column :ce_opportunities, :stale_rules, :boolean, default: false, null: false
+      add_column :ce_opportunities, :stale, :boolean, default: false, null: false
+      add_column :ce_opportunities, :initial_rule_attrs, :json, null: false, default: []
     end
   end
 end

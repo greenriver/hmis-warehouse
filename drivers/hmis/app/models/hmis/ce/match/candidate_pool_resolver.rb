@@ -4,7 +4,7 @@
 module Hmis::Ce::Match
   class CandidatePoolResolver
     def all_rules
-      # Cache all Rules in a class variable to reduce database hits
+      # Cache all Rules in an instance variable to reduce database hits
       @all_rules ||= Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
     end
 
@@ -20,6 +20,8 @@ module Hmis::Ce::Match
 
       opportunity_scope.preload(project: [:organization, :funders]).find_each do |opportunity|
         key = key_for_opportunity(opportunity: opportunity)
+        next unless key
+
         grouped[key] ||= []
         grouped[key] << opportunity
       end
@@ -43,6 +45,11 @@ module Hmis::Ce::Match
       candidate_pools_by_key[key]
     end
 
+    def opportunity_rules(opportunity)
+      @opportunity_rules ||= {}
+      @opportunity_rules[opportunity.id] ||= all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
+    end
+
     private
 
     def load_candidate_pools_by_key
@@ -52,7 +59,8 @@ module Hmis::Ce::Match
     end
 
     def key_for_opportunity(opportunity:)
-      rules = all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
+      rules = opportunity_rules(opportunity)
+
       key = []
       key << (rules.filter(&:priority_scheme?).first&.expression || '0')
       key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')

@@ -69,13 +69,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
-    context 'with stale_rules tracking' do
+    context 'with stale tracking' do
       let!(:tracked_opportunity) do
         create(:hmis_ce_opportunity,
                project: project,
                data_source: project.data_source,
                candidate_pool: nil,
-               stale_rules: false)
+               stale: false)
       end
       let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: organization) }
       let!(:rule2) { create(:hmis_ce_priority_scheme, owner: organization) }
@@ -108,7 +108,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           # First run establishes the pool assignment with initial rules
           builder.perform
           first_pool = tracked_opportunity.reload.candidate_pool
-          expect(tracked_opportunity.stale_rules).to be_falsey
+          expect(tracked_opportunity.stale).to be_falsey
 
           # Capture the initial pool expressions that were applied
           initial_priority = first_pool.priority_expression
@@ -127,7 +127,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           # The opportunity should be flagged as stale because the rules changed
           # but it should remain in the original pool
           expect(tracked_opportunity.candidate_pool).to eq(first_pool) # Stays in original pool
-          expect(tracked_opportunity.stale_rules).to be_truthy # But flagged as stale
+          expect(tracked_opportunity.stale).to be_truthy # But flagged as stale
 
           # Verify that a new pool would have been created with different expressions
           # if this was a new opportunity
@@ -149,16 +149,16 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
           # First assign opportunity to a pool and mark as stale
           builder.perform
           tracked_opportunity.reload
-          tracked_opportunity.update_column(:stale_rules, true)
+          tracked_opportunity.update_column(:stale, true)
         end
 
-        it 'clears stale_rules flag when rules are stable' do
-          expect(tracked_opportunity.reload.stale_rules).to be_truthy
+        it 'clears stale flag when rules are stable' do
+          expect(tracked_opportunity.reload.stale).to be_truthy
 
           builder = described_class.new(Hmis::Ce::Opportunity.where(id: tracked_opportunity.id))
           builder.perform
 
-          expect(tracked_opportunity.reload.stale_rules).to be_falsey
+          expect(tracked_opportunity.reload.stale).to be_falsey
         end
       end
 
@@ -178,13 +178,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
                  project: project,
                  data_source: project.data_source,
                  candidate_pool: correct_pool,
-                 stale_rules: true)
+                 stale: true)
         end
 
         before do
           # Reset the new_opportunity to unassigned state for the main test
           new_opportunity.update_column(:candidate_pool_id, nil)
-          new_opportunity.update_column(:stale_rules, false)
+          new_opportunity.update_column(:stale, false)
         end
 
         it 'handles new assignments and stale flag clearing in single operation' do
@@ -196,11 +196,11 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
           # New opportunity gets assigned and not flagged as stale
           expect(new_opportunity.candidate_pool).to be_present
-          expect(new_opportunity.stale_rules).to be_falsey
+          expect(new_opportunity.stale).to be_falsey
 
           # Stale opportunity gets unstaled if in correct pool
           expect(stale_opportunity.candidate_pool).to eq(correct_pool)
-          expect(stale_opportunity.stale_rules).to be_falsey
+          expect(stale_opportunity.stale).to be_falsey
         end
       end
     end

@@ -50,7 +50,7 @@ module Hmis::Ce
     end
 
     scope :active, -> { where.not(status: 'closed') }
-    scope :stale_rules, -> { where(stale_rules: true) }
+    scope :stale, -> { where(stale: true) }
 
     # TODO(#7537) - implement "available_on_date". For now, return all
     scope :available_on_date, ->(_date) { all }

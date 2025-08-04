@@ -48,22 +48,31 @@ module Hmis::Ce::Match
         opportunities.each do |opportunity|
           attrs = opportunity.attributes.symbolize_keys
           if opportunity.candidate_pool_id.nil?
-            # New opportunity - assign to pool
-            opportunity_updates << attrs.merge({
-                                                 candidate_pool_id: target_pool.id,
-                                                 stale_rules: false,
-                                               })
+            target_rule_attrs = @candidate_pool_resolver.opportunity_rules(opportunity).map(&:attributes)
+
+            # New opportunity - assign to pool and capture the current rules for historical reporting
+            opportunity_updates << attrs.merge(
+              {
+                candidate_pool_id: target_pool.id,
+                stale: false,
+                initial_rule_attrs: target_rule_attrs,
+              },
+            )
           elsif opportunity.candidate_pool_id != target_pool.id
             # Existing opportunity - rules changed, flag as stale but don't change pool
-            opportunity_updates << attrs.merge({
-                                                 candidate_pool_id: opportunity.candidate_pool_id, # Keep existing pool
-                                                 stale_rules: true,
-                                               })
-          elsif opportunity.stale_rules?
+            opportunity_updates << attrs.merge(
+              {
+                candidate_pool_id: opportunity.candidate_pool_id, # Keep existing pool
+                stale: true,
+              },
+            )
+          elsif opportunity.stale?
             # Opportunity already in correct pool - ensure it's not flagged
-            opportunity_updates << attrs.merge({
-                                                 stale_rules: false,
-                                               })
+            opportunity_updates << attrs.merge(
+              {
+                stale: false,
+              },
+            )
           end
         end
       end
@@ -75,7 +84,7 @@ module Hmis::Ce::Match
         opportunity_updates,
         on_duplicate_key_update: {
           conflict_target: [:id],
-          columns: [:candidate_pool_id, :stale_rules],
+          columns: [:candidate_pool_id, :stale, :initial_rule_attrs],
         },
       )
       raise "Failed to update CE Opportunities: #{result.inspect}" if result.failed_instances.present?

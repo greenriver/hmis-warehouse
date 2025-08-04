@@ -8,9 +8,13 @@
 
 module Types
   class HmisSchema::CeMatchRule < Types::BaseObject
-    # object is a Hmis::Ce::Match::Rule
+    # object is a Hmis::Ce::Match::Rule or an attribute Hash
 
     field :id, ID, null: false
+    def id
+      object.graphql_id || object.id
+    end
+
     field :name, String, null: false
     field :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwner, null: false, description: 'Rule applies to projects within this related entity (eg a Data Source, Project, Organization), possibly limited by project type or funder'
     field :expression, String, null: false
