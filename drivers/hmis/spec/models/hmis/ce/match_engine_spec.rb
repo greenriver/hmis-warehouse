@@ -21,7 +21,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
   # Override in specific tests
   let(:requirement_expression) { 'TRUE' }
-  let(:priority_expression) { '0' }
+  let(:priority_expression) { '{0}' }
 
   def generate_candidates(pool, clients: nil)
     described_class.call(pool, clients: clients)
@@ -477,7 +477,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     include_context 'with demographic test clients'
 
     let(:requirement_expression) { 'current_age > 18' }
-    let(:priority_expression) { 'current_age' }
+    let(:priority_expression) { '{current_age}' }
     let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
 
     def find_events_for_client(client_id)
@@ -531,7 +531,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'when client fails priority evaluation' do
-      let(:priority_expression) { 'IF(current_age > 18, current_age, NULL)' }
+      let(:priority_expression) { '{IF(current_age > 18, current_age, NULL)}' }
 
       it 'creates remove events for clients with nil priority scores' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
@@ -580,7 +580,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'event snapshot content' do
-      let(:priority_expression) { 'current_age + veteran_status' }
+      let(:priority_expression) { '{current_age, veteran_status}' }
 
       it 'includes relevant field values in the snapshot' do
         veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
@@ -640,7 +640,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     include_context 'with demographic test clients'
 
     let(:requirement_expression) { 'current_age > 18' }
-    let(:priority_expression) { 'current_age|||veteran_status' }
+    let(:priority_expression) { '{current_age, veteran_status}' }
     let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
 
     it 'evaluates multiple priority expressions and stores them as an array' do
@@ -669,7 +669,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       pool_with_comma_expr = create(
         :hmis_ce_match_candidate_pool,
         requirement_expression: 'current_age > 18',
-        priority_expression: 'IF(current_age > 50, 100, 0)|||current_age|||veteran_status',
+        priority_expression: '{IF(current_age > 50, 100, 0), current_age, veteran_status}',
       )
 
       generate_candidates(pool_with_comma_expr)

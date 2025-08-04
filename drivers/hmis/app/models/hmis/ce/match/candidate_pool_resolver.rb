@@ -53,17 +53,32 @@ module Hmis::Ce::Match
 
     def key_for_opportunity(opportunity:)
       rules = all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
+      rules = most_specific_rules(rules)
+
       key = []
-
-      # Find the most specific priority schemes by owner type
-      priority_rules = rules.filter(&:priority_scheme?)
-      most_specific_priority_rules = most_specific_rules(priority_rules)
-      priority_expressions = most_specific_priority_rules.sort_by(&:rank).map(&:expression)
-      key << priority_expressions.join('|||') || '0'
-
-      # Eligibility requirements use all applicable rules (no specificity filtering)
-      key << (rules.filter(&:eligibility_requirement?).map(&:expression).join(' AND ') || 'TRUE')
+      key << priority_expression_for_rules(rules)
+      key << eligibility_expression_for_rules(rules)
       key
+    end
+
+    # Transform multiple priority scheme rules into a single expression that returns an array
+    def priority_expression_for_rules(rules)
+      expressions = rules.filter(&:priority_scheme?).
+        sort_by { |r| [r.priority, r.id] }. # need to add rule.priority
+        map(&:expression)
+      "{#{expressions.join(', ')}}"
+    end
+
+    # Transform multiple eligibility requirement rules into a single expression
+    # Multiple rules are combined with AND logic
+    def eligibility_expression_for_rules(rules)
+      expressions = rules.filter(&:eligibility_requirement?).
+        sort_by(&:id).
+        map(&:expression)
+
+      return 'TRUE' if expressions.empty?
+
+      expressions.join(' AND ')
     end
 
     def most_specific_rules(rules)

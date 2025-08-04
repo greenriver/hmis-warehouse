@@ -20,7 +20,7 @@ module Hmis::Ce::Match::Internal
       @calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       @dependencies = [
         pool.requirement_expression,
-        pool.priority_expression.split('|||'),
+        pool.priority_expression,
       ].compact_blank.flat_map do |expression|
         @calculator.dependencies(expression)
       end.sort.uniq
@@ -49,10 +49,7 @@ module Hmis::Ce::Match::Internal
     end
 
     def eval_priority(client_values)
-      priority_expressions = @pool.priority_expression.split('|||')
-      priority_expressions.map do |expression|
-        @calculator.evaluate!(expression, **client_values)
-      end
+      @calculator.evaluate!(@pool.priority_expression, **client_values)
     end
   end
 end
