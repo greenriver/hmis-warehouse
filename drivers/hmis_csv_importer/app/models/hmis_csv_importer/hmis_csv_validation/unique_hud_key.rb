@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Validate that for any given importer_log_id there is only
 # one record marked valid for import
 class HmisCsvImporter::HmisCsvValidation::UniqueHudKey < HmisCsvImporter::HmisCsvValidation::Error
@@ -13,6 +15,8 @@ class HmisCsvImporter::HmisCsvValidation::UniqueHudKey < HmisCsvImporter::HmisCs
       group(klass.hud_key).
       having(nf('COUNT', [klass.hud_key]).gt(1)).
       count
+
+    return [] if incorrect_counts.is_a?(Integer) && incorrect_counts.zero?
     return [] if incorrect_counts.empty?
 
     failures = []

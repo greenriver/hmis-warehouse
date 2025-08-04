@@ -1,0 +1,74 @@
+# config/hmis_csv_twenty_twenty_six_custom_files.yml
+custom_files:
+  - filename: "CustomDataElement.csv"
+    class_name: "CustomDataElement"
+    required: false
+    description: "Custom data element values"
+    warehouse_key: "CustomDataElementID"
+    warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
+    columns:
+      - name: "CustomDataElementID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+      - name: "CustomDataElementDefinitionID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+      - name: "RecordType"
+        type: "string"
+        required: true
+        validations:
+          - "inclusion: { in: ['Client', 'Enrollment', 'Exit', 'Project', 'Organization'] }"
+        warehouse_column_mapping:
+          type: "value_mapping"
+          target_column: "owner_type"
+          value_mappings:
+            "Client": "GrdaWarehouse::Hud::Client"
+            "Enrollment": "GrdaWarehouse::Hud::Enrollment"
+            "Exit": "GrdaWarehouse::Hud::Exit"
+            "Project": "GrdaWarehouse::Hud::Project"
+            "Organization": "GrdaWarehouse::Hud::Organization"
+      - name: "RecordID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "record_lookup"
+          class_column: "owner_type"
+          target_column: "owner_id"
+          lookup_field_mappings: # note: these can probably be pulled from hud_key
+            "GrdaWarehouse::Hud::Client": "PersonalID"
+            "GrdaWarehouse::Hud::Enrollment": "EnrollmentID"
+            "GrdaWarehouse::Hud::Exit": "ExitID"
+            "GrdaWarehouse::Hud::Project": "ProjectID"
+            "GrdaWarehouse::Hud::Organization": "OrganizationID"
+      - name: "Value"
+        type: "string"
+        required: false
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "value_string"
+      - name: "DataCollectionStage"
+        type: "integer"
+        required: false
+      - name: "InformationDate"
+        type: "date"
+        required: false
+      - name: "UserID"
+        type: "string"
+      - name: "DateCreated"
+        type: "datetime"
+      - name: "DateUpdated"
+        type: "datetime"
+      - name: "DateDeleted"
+        type: "datetime"
+      - name: "ExportID"
+        type: "string"
+      # Add this virtual column to always set data_element_definition_id to 0
+      - name: "_data_element_definition_id_default"
+        type: "virtual"
+        warehouse_column_mapping:
+          type: "static_value"
+          target_column: "data_element_definition_id"
+          value: 0

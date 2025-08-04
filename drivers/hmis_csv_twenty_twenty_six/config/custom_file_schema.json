@@ -1,0 +1,359 @@
+{
+  "$id": "open-path-schemas/csv-2026-custom-file-schema.json",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "additionalProperties": false,
+  "title": "HMIS CSV Twenty Twenty Six Custom File Configuration",
+  "type": "object",
+  "properties": {
+    "custom_files": {
+      "type": "array",
+      "description": "Array of custom file definitions",
+      "items": {
+        "$ref": "#/definitions/customFileDefinition"
+      }
+    }
+  },
+  "required": [
+    "custom_files"
+  ],
+  "definitions": {
+    "customFileDefinition": {
+      "type": "object",
+      "description": "Definition for a single custom CSV file",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "description": "The CSV filename (e.g., 'CustomGender.csv')",
+          "pattern": "^[A-Za-z0-9_]+\\.csv$"
+        },
+        "class_name": {
+          "type": "string",
+          "description": "The class name to generate (e.g., 'CustomGender')",
+          "pattern": "^[A-Z][A-Za-z0-9]*$"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this file is required in imports",
+          "default": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the file's purpose"
+        },
+        "warehouse_key": {
+          "type": "string",
+          "description": "Primary key field for warehouse tables (for new tables)"
+        },
+        "warehouse_class_name": {
+          "type": "string",
+          "description": "Full class name for warehouse model (for new tables)",
+          "pattern": "^[A-Z][A-Za-z0-9:]*$"
+        },
+        "augments_warehouse_table": {
+          "type": "string",
+          "description": "Full class name of existing warehouse table to augment",
+          "pattern": "^[A-Z][A-Za-z0-9:]*$"
+        },
+        "augment_key": {
+          "type": "string",
+          "description": "Key field to use for augmentation lookups"
+        },
+        "augment_import_class": {
+          "type": "string",
+          "description": "Full class name of the importer to use for augmentation",
+          "pattern": "^[A-Z][A-Za-z0-9:]*$"
+        },
+        "columns": {
+          "type": "array",
+          "description": "Column definitions for the CSV file",
+          "items": {
+            "$ref": "#/definitions/columnDefinition"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "filename",
+        "class_name",
+        "columns"
+      ],
+      "anyOf": [
+        {
+          "description": "Augmentation file configuration",
+          "required": [
+            "augments_warehouse_table",
+            "augment_key"
+          ]
+        },
+        {
+          "description": "New warehouse table configuration",
+          "required": [
+            "warehouse_class_name"
+          ]
+        }
+      ]
+    },
+    "columnDefinition": {
+      "type": "object",
+      "description": "Definition for a single column in the CSV file",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Column name as it appears in the CSV header",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Data type for the column",
+          "enum": [
+            "string",
+            "integer",
+            "boolean",
+            "date",
+            "datetime",
+            "virtual"
+          ]
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this column is required (cannot be empty)",
+          "default": false
+        },
+        "max_length": {
+          "type": "integer",
+          "description": "Maximum length for string columns",
+          "minimum": 1
+        },
+        "validations": {
+          "type": "array",
+          "description": "List of validation rules to apply",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "String validation (e.g., 'NonBlank' or Rails validation syntax)"
+              },
+              {
+                "type": "object",
+                "description": "Complex validation rule",
+                "properties": {
+                  "class": {
+                    "type": "string",
+                    "description": "Validation class name"
+                  },
+                  "arguments": {
+                    "type": "object",
+                    "description": "Arguments for the validation"
+                  }
+                },
+                "required": [
+                  "class"
+                ]
+              }
+            ]
+          }
+        },
+        "warehouse_column_mapping": {
+          "$ref": "#/definitions/warehouseColumnMapping"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ]
+    },
+    "warehouseColumnMapping": {
+      "type": "object",
+      "description": "Configuration for how to map this column to the warehouse",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Type of mapping to apply",
+          "enum": [
+            "direct",
+            "value_mapping",
+            "value_based_multi_column",
+            "concatenation",
+            "record_lookup",
+            "static_value"
+          ]
+        },
+        "target_column": {
+          "type": "string",
+          "description": "Target column name in the warehouse table"
+        },
+        "value_mappings": {
+          "oneOf": [
+            {
+              "type": "object",
+              "description": "Simple value mapping (key-value pairs)",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            },
+            {
+              "type": "array",
+              "description": "Complex value mappings for multi-column",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "condition": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": [
+                          "string",
+                          "number",
+                          "boolean"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "value"
+                    ]
+                  },
+                  "target_column": {
+                    "type": "string"
+                  },
+                  "target_value": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                },
+                "required": [
+                  "condition",
+                  "target_column",
+                  "target_value"
+                ]
+              }
+            }
+          ]
+        },
+        "separator": {
+          "type": "string",
+          "description": "Separator for concatenation mapping",
+          "default": " "
+        },
+        "class_column": {
+          "type": "string",
+          "description": "Column that contains the class name for record lookup"
+        },
+        "lookup_field_mappings": {
+          "type": "object",
+          "description": "Mapping of class names to lookup fields for record lookup",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "description": "Static value to assign for static_value mapping"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "direct"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target_column"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "value_mapping"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target_column",
+              "value_mappings"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "value_based_multi_column"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value_mappings"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "concatenation"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target_column"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "record_lookup"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "class_column",
+              "target_column",
+              "lookup_field_mappings"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "static_value"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target_column",
+              "value"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

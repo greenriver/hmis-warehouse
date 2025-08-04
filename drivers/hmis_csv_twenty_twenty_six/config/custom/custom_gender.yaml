@@ -1,0 +1,73 @@
+# config/hmis_csv_twenty_twenty_six_custom_files.yml
+custom_files:
+  - filename: "CustomGender.csv"
+    class_name: "CustomGender"
+    required: false
+    description: "Gender identity data in FY2024 format"
+    augments_warehouse_table: "GrdaWarehouse::Hud::Client"
+    augment_key: "PersonalID"
+    augment_import_class: "HmisCsvTwentyTwentySix::Importer::Client"
+    columns:
+      - name: "PersonalID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "PersonalID"
+      - name: "Woman"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "Woman"
+      - name: "Man"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "Man"
+      - name: "NonBinary"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "NonBinary"
+      - name: "CulturallySpecific"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "CulturallySpecific"
+      - name: "Transgender"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "Transgender"
+      - name: "Questioning"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "Questioning"
+      - name: "DifferentIdentity"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "DifferentIdentity"
+      - name: "GenderNone"
+        type: "integer"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "GenderNone"
+      - name: "DifferentIdentityText"
+        type: "string"
+        warehouse_column_mapping:
+          type: "direct"
+          target_column: "DifferentIdentityText"
+      # Standard HMIS fields
+      - name: "DateCreated"
+        type: "datetime"
+      - name: "DateUpdated"
+        type: "datetime"
+      - name: "UserID"
+        type: "string"
+      - name: "DateDeleted"
+        type: "datetime"
+      - name: "ExportID"
+        type: "string"
