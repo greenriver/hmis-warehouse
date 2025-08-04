@@ -10,8 +10,7 @@
     .mr-4
       .input-group
         %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-        %span.input-group-append
-          %button.btn.btn-secondary Search
+        %button.btn.btn-secondary Search
     .ml-auto
       - key = if @result.key.present? then @result.key else @result.title end
       = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: key, format: :xlsx), class: ['btn', 'btn-secondary'] do
@@ -23,16 +22,16 @@
     - headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report, export: false) else @result.detail_columns end
     .card.overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
 
             - headers.each_value do |header|
               %th= header[:title]
-        %tbody.thead-dark
+        %tbody
           - @items.each.with_index do |item, i|
             %tr
-              %th= i + 1
+              %th.table-dark= i + 1
               - data_source_link_available = item.data_source.present? && item.data_source.hmis_link_available?
               - headers.each_key do |k|
                 -# - value = item.public_send(k)
@@ -42,7 +41,7 @@
                   - if k.to_s == 'destination_client_id'
                     = link_to appropriate_client_path(item[k]) do
                       = value
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
                       %i.icon-info
                   - elsif k.to_s == 'hmis_enrollment_id'
                     = hmis_external_link(item.enrollment, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value

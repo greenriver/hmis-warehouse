@@ -20,13 +20,13 @@
           %tr
             %td
               - tooltip = "Method: #{i.method}"
-              %span.action{data: {toggle: :tooltip, title: tooltip}}
+              %span.action{data: { 'bs-toggle' => :tooltip, 'bs-title' => tooltip}}
                 = i.action_name
 
             %td= link_to title, i.path
             %td
               - tooltip = "Class: #{i.item_model}"
-              %span.action{data: {toggle: :tooltip, title: tooltip}}
+              %span.action{data: { 'bs-toggle' => :tooltip, 'bs-title' => tooltip}}
                 = i.clean_object_name
             %td= i.created_at
             %td= i.ip_address

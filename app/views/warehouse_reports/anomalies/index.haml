@@ -6,13 +6,13 @@
 .warehouse-reports__anomalies
   %ul.nav.nav-tabs{role: :tablist}
     %li.nav-item{role: :presentation}
-      %a{href: "#new", role: :tab, data: {toggle: :tab}, aria: {controls: :new}, class: 'nav-link active'}
+      %a{href: "#new", role: :tab, data: { 'bs-toggle' => :tab}, aria: {controls: :new}, class: 'nav-link active'}
         New
     %li.nav-item{role: :presentation}
-      %a{href: "#unresolved", role: :tab, data: {toggle: :tab}, aria: {controls: :unresolved}, class: 'nav-link'}
+      %a{href: "#unresolved", role: :tab, data: { 'bs-toggle' => :tab}, aria: {controls: :unresolved}, class: 'nav-link'}
         Unresolved
     %li.nav-item{role: :presentation}
-      %a{href: "#resolved", role: :tab, data: {toggle: :tab}, aria: {controls: :resolved}, class: 'nav-link'}
+      %a{href: "#resolved", role: :tab, data: { 'bs-toggle' => :tab}, aria: {controls: :resolved}, class: 'nav-link'}
         Resolved
 
   .tab-content

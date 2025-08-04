@@ -4,28 +4,35 @@ footer {
   min-height: $footer-height;
   display: flex;
   align-items: center;
-  background-color: $footer-background;
+  background-color: var(--theme-background);
   /* box-shadow: inset 0 0 0 2px rgba(0,0,0,0.50); */
-  color: $footer-foreground;
+  color: var(--theme-foreground);
   z-index: $page-z-index;
-  padding-bottom: 200px; /* for sticky footer */
+  padding-bottom: 200px;
+  /* for sticky footer */
 }
 
 footer p {
   margin: 0;
   font-size: rem(12px);
 }
+
 footer .site-description {
   @include media-breakpoint-up(lg) {
     width: 50%;
   }
 }
+
 footer .custom-footer-content {
-  a:link, a:visited {
-    color: $footer-foreground;
+
+  a:link,
+  a:visited {
+    color: var(--theme-foreground);
     text-decoration: underline;
   }
-  a:hover, a:active {
+
+  a:hover,
+  a:active {
     text-decoration: none;
   }
 

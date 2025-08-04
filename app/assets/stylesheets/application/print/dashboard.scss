@@ -1,6 +1,7 @@
 @import '../helpers';
 
 @media print {
+
   p,
   .ho-container,
   .o-chart,
@@ -54,6 +55,7 @@
       font-size: .275in;
       border: 0;
       color: #457687;
+
       &:not(:first-child) {
         margin-top: space(6);
       }
@@ -75,34 +77,35 @@
   }
 
   .warehouse-reports__completed * {
-      print-color-adjust: exact;
+    print-color-adjust: exact;
   }
+
   .warehouse-reports__completed .parameter-label,
   .warehouse-reports__chronic .parameter-label,
   .warehouse-reports__disabled .parameter-label,
   .warehouse-reports__active-veterans .parameter-label,
   .warehouse-reports__parameters .parameter-label,
-  .reports .parameter-label
-  {
+  .reports .parameter-label {
     border-radius: 5px 0px 0px 5px;
   }
+
   .warehouse-reports__completed .parameter-value,
   .warehouse-reports__chronic .parameter-value,
   .warehouse-reports__disabled .parameter-value,
   .warehouse-reports__active-veterans .parameter-value,
   .warehouse-reports__parameters .parameter-value,
-  .reports .parameter-value
-  {
+  .reports .parameter-value {
     border-radius: 0px 5px 5px 0px;
     white-space: nowrap;
     max-width: 100%;
   }
+
   .label-default {
-    background: $gray-030;
+    background: var(--gray-030);
   }
 
   .label-primary {
-    background: $brand-primary-l;
+    background: var(--brand-primary-lll);
   }
 
   .metric {
@@ -119,9 +122,11 @@
     padding: 0 space(6);
     max-width: 33%;
     text-align: center;
+
     &.l-page__w-50 {
       max-width: 50%;
     }
+
     &:only-child {
       max-width: none;
       width: 100%;
@@ -129,20 +134,25 @@
       margin-bottom: 0;
       padding: 0;
     }
+
     [class*=icon] {
       font-size: 1in;
     }
+
     .title {
       font-size: .25in;
       color: #777;
     }
+
     .description {
       margin: 0;
       color: #999;
     }
+
     .metric {
       font-size: .25in;
       font-weight: 700;
+
       a {
         color: $link-color;
       }
@@ -181,13 +191,16 @@
 
   .ho-container--lead .chunk {
     text-align: left !important;
+
     [class^=icon] {
       font-size: 2in;
     }
+
     .metric {
       font-size: .35in;
       color: black;
     }
+
     .description {
       font-size: .25in;
     }
@@ -203,12 +216,14 @@
 
   .o-chart {
     position: relative;
+
     text {
       font-size: .125in;
     }
   }
 
-  [class^="icon-"], [class*=" icon-"] {
+  [class^="icon-"],
+  [class*=" icon-"] {
     vertical-align: top;
   }
 
@@ -217,14 +232,18 @@
       vertical-align: top;
     }
   }
+
   .pdf-hide {
     display: none;
   }
+
   @for $i from 1 through length($indicator-colors) {
     $color: nth($indicator-colors, $i);
+
     .performance-measurement--highlight-#{$i} {
       background: $color;
     }
+
     .performance-measurement--highlight-light-#{$i} {
       background: lighten($color, 5%);
     }

@@ -7,7 +7,7 @@
     %td
       - if @cohort.user_can_edit_cohort_clients current_user
         - if current_user.can_add_cohort_clients? || ! cohort_client.ineligible?
-          = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
+          = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, 'bs-toggle' => :tooltip, 'bs-title': "Edit #{cohort_client.name}", 'bs-placement' => :right}, class: 'btn btn-primary btn-sm' do
             %span.icon-pencil
       - if inactivity_class == 'homeless_inactive'
         = "No homeless service in over #{@cohort.days_of_inactivity} days"

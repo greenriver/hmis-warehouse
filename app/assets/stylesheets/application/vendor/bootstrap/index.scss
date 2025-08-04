@@ -1,47 +1,79 @@
-/*!
- * Bootstrap v4.3.1 (https://getbootstrap.com/)
- * Copyright 2011-2019 The Bootstrap Authors
- * Copyright 2011-2019 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- */
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Bootstrap 5 Customization
+//
+// This file selectively imports Bootstrap 5 components to control the final
+// CSS size and manage dependencies explicitly.
+//
+// The recommended import order for customization is:
+// 1. Bootstrap's functions.
+// 2. Your custom variable overrides.
+// 3. Bootstrap's core variables, mixins, and root styles.
+// 4. The rest of the Bootstrap components you need.
+// 5. Bootstrap's utility API.
+// 6. Your custom styles that override or extend Bootstrap.
+//
+// See: https://getbootstrap.com/docs/5.3/customize/sass/
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// ~~~~~~~~~~~~~~~~~
-// Partial containing all native bootstrap settings, tools, variables
-// So we can import them selectivily elsewhere if necessary
-@import "bootstrap_settings_tools";
-// ~~~~~~~~~~~~~~~~~
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "bootstrap/scss/functions";
 
-@import "bootstrap/root";
-@import "bootstrap/reboot";
-@import "bootstrap/type";
-@import "bootstrap/images";
-@import "bootstrap/code";
-@import "bootstrap/grid";
-@import "bootstrap/tables";
-@import "bootstrap/forms";
-@import "bootstrap/buttons";
-@import "bootstrap/transitions";
-@import "bootstrap/dropdown";
-@import "bootstrap/button-group";
-@import "bootstrap/input-group";
-@import "bootstrap/custom-forms"; // TODO: can't upgrade autoprefixer until https: //github.com/twbs/bootstrap/commit/f82b2ba20d50d49a1554f4fa2891e3e65760fa98
-@import "bootstrap/nav";
-/* @import "bootstrap/navbar"; */
-@import "bootstrap/card";
-/* @import "bootstrap/breadcrumb"; */
-@import "bootstrap/pagination";
-@import "bootstrap/badge";
-/* @import "bootstrap/jumbotron"; */
-@import "bootstrap/alert";
-@import "bootstrap/progress";
-/* @import "bootstrap/media"; */
-@import "bootstrap/list-group";
-@import "bootstrap/close";
-@import "bootstrap/toasts";
-@import "bootstrap/modal";
-@import "bootstrap/tooltip";
-@import "bootstrap/popover";
-/* @import "bootstrap/carousel"; */
-@import "bootstrap/spinners";
-@import "bootstrap/utilities";
-@import "bootstrap/print";
+// 2. Include any default variable overrides here.
+// This file should ONLY contain variable definitions to override Bootstrap's
+// defaults. It is the single point of configuration for the Bootstrap framework.
+@import "application/_settings/custom_bootstrap_variables";
+
+// 3. Include remainder of required Bootstrap stylesheets.
+// This is where Bootstrap's default variables are set. Your overrides from
+// the step above will be respected.
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/root";
+
+// 4. Include any optional Bootstrap CSS as needed.
+// Only include the components you are actually using in the application.
+// Accordion
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/images";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/tables";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/dropdown";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/card";
+@import "bootstrap/scss/accordion";
+@import "bootstrap/scss/breadcrumb";
+@import "bootstrap/scss/pagination";
+@import "bootstrap/scss/badge";
+@import "bootstrap/scss/alert";
+@import "bootstrap/scss/progress";
+@import "bootstrap/scss/list-group";
+@import "bootstrap/scss/close";
+@import "bootstrap/scss/toasts";
+@import "bootstrap/scss/modal";
+@import "bootstrap/scss/tooltip";
+@import "bootstrap/scss/popover";
+@import "bootstrap/scss/carousel";
+@import "bootstrap/scss/spinners";
+@import "bootstrap/scss/offcanvas";
+@import "bootstrap/scss/placeholders";
+
+// Helpers
+@import "bootstrap/scss/helpers";
+
+// 5. Optionally include utilities API last to generate classes based on the
+//    Sass map in `_utilities.scss`. This is powerful but adds to compile time.
+@import "bootstrap/scss/utilities/api";
+
+// 6. Add additional custom code here.
+// This is for styles that depend on or modify Bootstrap's compiled CSS, like
+// backwards-compatibility layers.
+@import 'application/bootstrap_v4_compatibility';

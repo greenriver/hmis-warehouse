@@ -22,6 +22,7 @@
   @include poppins-normal;
   font-size: 1.2em;
   margin-bottom: 40px;
+
   @include media-breakpoint-up(sm) {
     width: 80%;
     margin: 60px auto 0;
@@ -35,7 +36,7 @@
 
 @each $direction, $name in $directions {
   .border-#{$direction} {
-    border-#{$name}: 1px solid $gray-015;
+    border-#{$name}: 1px solid var(--gray-015);
   }
 }
 
