@@ -1,7 +1,17 @@
 # frozen_string_literal: true
 
-# update candidate pools to reflect the current opportunities, requirements and priority configuration
-
+# Synchronizes candidate pools with the current set of opportunities and their matching rules.
+#
+# Candidate pools group opportunities that share the same eligibility requirements and
+# prioritization schemes. This allows the CE matching engine to efficiently evaluate
+# clients against multiple similar opportunities at once.
+#
+# The builder:
+# 1. Creates new pools for unique rule combinations that don't exist yet
+# 2. Assigns opportunities to their correct pools based on current rules
+# 3. Flags opportunities as "stale" when their rules have changed
+# 4. Cleans up orphaned pools that are no longer needed
+#
 module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize(opportunities)
@@ -48,31 +58,21 @@ module Hmis::Ce::Match
         opportunities.each do |opportunity|
           attrs = opportunity.attributes.symbolize_keys
           if opportunity.candidate_pool_id.nil?
-            target_rule_attrs = @candidate_pool_resolver.opportunity_rules(opportunity).map(&:attributes)
 
             # New opportunity - assign to pool and capture the current rules for historical reporting
             opportunity_updates << attrs.merge(
               {
                 candidate_pool_id: target_pool.id,
                 stale: false,
-                assignment_rules: target_rule_attrs,
+                assignment_rules: @candidate_pool_resolver.opportunity_rules(opportunity).map(&:attributes),
               },
             )
           elsif opportunity.candidate_pool_id != target_pool.id
             # Existing opportunity - rules changed, flag as stale but don't change pool
-            opportunity_updates << attrs.merge(
-              {
-                candidate_pool_id: opportunity.candidate_pool_id, # Keep existing pool
-                stale: true,
-              },
-            )
+            opportunity_updates << attrs.merge({ stale: true })
           elsif opportunity.stale?
             # Opportunity already in correct pool - ensure it's not flagged
-            opportunity_updates << attrs.merge(
-              {
-                stale: false,
-              },
-            )
+            opportunity_updates << attrs.merge({ stale: false })
           end
         end
       end

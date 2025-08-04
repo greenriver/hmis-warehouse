@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# Encapsulates shared logic for matching opportunities to candidate pools
+# Resolves the mapping between opportunities and their candidate pools based on
+# eligibility requirements and prioritization rules.
+#
 module Hmis::Ce::Match
   class CandidatePoolResolver
     def all_rules
@@ -20,7 +22,6 @@ module Hmis::Ce::Match
 
       opportunity_scope.preload(project: [:organization, :funders]).find_each do |opportunity|
         key = key_for_opportunity(opportunity: opportunity)
-        next unless key
 
         grouped[key] ||= []
         grouped[key] << opportunity
@@ -58,6 +59,8 @@ module Hmis::Ce::Match
       end
     end
 
+    # Generates a unique key for an opportunity based on its applicable rules
+    # Returns an array of [priority_expression, eligibility_expression]
     def key_for_opportunity(opportunity:)
       rules = opportunity_rules(opportunity)
 

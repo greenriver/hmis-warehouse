@@ -26,7 +26,7 @@ module Hmis::Ce
     validates :name, presence: true
     validate :unique_opportunity_per_unit
     validate :consistent_data_source
-    validate :candidate_pool_is_stable, on: :update
+    validate :validate_candidate_pool_is_stable, on: :update
 
     state_machine_config column: 'status' do
       state :open, initial: true
@@ -127,8 +127,9 @@ module Hmis::Ce
 
     private
 
-    def candidate_pool_is_stable
-      return unless candidate_pool_id_changed? && candidate_pool_id_was.present?
+    def validate_candidate_pool_is_stable
+      return unless candidate_pool_id_changed?
+      return if candidate_pool_id_was.nil?
 
       errors.add(:candidate_pool_id, 'cannot be changed after initial assignment')
     end
@@ -146,7 +147,6 @@ module Hmis::Ce
     end
 
     def consistent_data_source
-      return if project.nil?
       return if project.data_source == workflow_template.data_source
 
       errors.add(:project, 'must be in same data source as workflow template')

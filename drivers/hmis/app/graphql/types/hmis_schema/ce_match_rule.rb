@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::CeMatchRule < Types::BaseObject
-    # object is a Hmis::Ce::Match::Rule or an attribute Hash
+    # object is a Hmis::Ce::Match::Rule
 
     field :id, ID, null: false
     def id

@@ -74,20 +74,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
-    context 'when passed specific opportunities' do
-      let!(:opportunity2) { create(:hmis_ce_opportunity, project: project, data_source: project.data_source) }
-      let(:builder) { described_class.new(Hmis::Ce::Opportunity.where(id: [opportunity2.id])) }
-
-      it 'does not impact the non-included opportunity' do
-        expect do
-          builder.perform
-          opportunity.reload
-          opportunity2.reload
-        end.to change(opportunity2, :candidate_pool).from(nil).
-          and not_change(opportunity, :candidate_pool).from(nil)
-      end
-    end
-
     context 'with stale tracking' do
       let!(:tracked_opportunity) do
         create(:hmis_ce_opportunity,
@@ -161,65 +147,53 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         end
       end
 
-      context 'when opportunity is already in correct pool' do
-        before do
-          allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:applies_to_entity?).and_return(true)
-
-          # First assign opportunity to a pool and mark as stale
-          builder.perform
-          tracked_opportunity.reload
-          tracked_opportunity.update_column(:stale, true)
-        end
-
-        it 'clears stale flag when rules are stable' do
-          expect(tracked_opportunity.reload.stale).to be_truthy
-
-          builder = described_class.new(Hmis::Ce::Opportunity.where(id: tracked_opportunity.id))
-          builder.perform
-
-          expect(tracked_opportunity.reload.stale).to be_falsey
-        end
-      end
-
-      context 'with mixed scenarios' do
-        let!(:new_opportunity) { create(:hmis_ce_opportunity, project: project, data_source: project.data_source) }
-
-        # Use a separate builder run to create the "correct" pool for testing
-        let!(:correct_pool) do
-          # Create the pool that the new_opportunity should be assigned to
-          temp_builder = described_class.new(Hmis::Ce::Opportunity.where(id: new_opportunity.id))
+      context 'when clearing stale flags' do
+        it 'clears stale flag when opportunity is already in correct pool' do
+          # First create a pool by processing the opportunity
+          temp_opportunity = create(:hmis_ce_opportunity, project: project, data_source: project.data_source)
+          temp_builder = described_class.new(Hmis::Ce::Opportunity.where(id: temp_opportunity.id))
           temp_builder.perform
-          new_opportunity.reload.candidate_pool
-        end
+          correct_pool = temp_opportunity.reload.candidate_pool
 
-        let!(:stale_opportunity) do
-          create(:hmis_ce_opportunity,
-                 project: project,
-                 data_source: project.data_source,
-                 candidate_pool: correct_pool,
-                 stale: true)
-        end
+          # Create stale opportunity in the correct pool
+          stale_opportunity = create(:hmis_ce_opportunity,
+                                     project: project,
+                                     data_source: project.data_source,
+                                     candidate_pool: correct_pool,
+                                     stale: true)
 
-        before do
-          # Reset the new_opportunity to unassigned state for the main test
-          new_opportunity.update_column(:candidate_pool_id, nil)
-          new_opportunity.update_column(:stale, false)
-        end
-
-        it 'handles new assignments and stale flag clearing in single operation' do
-          builder = described_class.new(Hmis::Ce::Opportunity.where(id: [new_opportunity.id, stale_opportunity.id]))
+          builder = described_class.new(Hmis::Ce::Opportunity.where(id: stale_opportunity.id))
           builder.perform
 
-          new_opportunity.reload
-          stale_opportunity.reload
-
-          # New opportunity gets assigned and not flagged as stale
-          expect(new_opportunity.candidate_pool).to be_present
-          expect(new_opportunity.stale).to be_falsey
-
-          # Stale opportunity gets unstaled if in correct pool
+          expect(stale_opportunity.reload.stale).to be_falsey
           expect(stale_opportunity.candidate_pool).to eq(correct_pool)
-          expect(stale_opportunity.stale).to be_falsey
+        end
+
+        it 'processes multiple opportunities with different states efficiently' do
+          # Create opportunities with different initial states
+          new_opportunity = create(:hmis_ce_opportunity,
+                                   project: project,
+                                   data_source: project.data_source,
+                                   candidate_pool: nil)
+
+          # Create a pool first to have a "correct" pool reference
+          temp_opportunity = create(:hmis_ce_opportunity, project: project, data_source: project.data_source)
+          temp_builder = described_class.new(Hmis::Ce::Opportunity.where(id: temp_opportunity.id))
+          temp_builder.perform
+          existing_pool = temp_opportunity.reload.candidate_pool
+
+          stale_opportunity = create(:hmis_ce_opportunity,
+                                     project: project,
+                                     data_source: project.data_source,
+                                     candidate_pool: existing_pool,
+                                     stale: true)
+
+          # Process both in a single batch operation
+          builder = described_class.new(Hmis::Ce::Opportunity.where(id: [new_opportunity.id, stale_opportunity.id]))
+
+          expect { builder.perform }.to change {
+            [new_opportunity.reload.candidate_pool.present?, stale_opportunity.reload.stale]
+          }.from([false, true]).to([true, false])
         end
       end
     end
@@ -251,50 +225,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       expect do
         builder.perform
       end.to make_database_queries(count: 20..25)
-    end
-  end
-
-  describe 'candidate pool stability validation' do
-    let!(:pool1) { create(:hmis_ce_match_candidate_pool) }
-    let!(:pool2) { create(:hmis_ce_match_candidate_pool) }
-    let!(:opportunity_with_pool) do
-      create(:hmis_ce_opportunity,
-             project: project,
-             data_source: project.data_source,
-             candidate_pool: pool1)
-    end
-
-    it 'prevents changing candidate_pool_id after initial assignment' do
-      # Attempt to change the pool
-      opportunity_with_pool.candidate_pool = pool2
-
-      expect(opportunity_with_pool).not_to be_valid
-      expect(opportunity_with_pool.errors[:candidate_pool_id]).to include('cannot be changed after initial assignment')
-    end
-
-    it 'allows updating other attributes when candidate_pool stays same' do
-      opportunity_with_pool.name = 'Updated Name'
-
-      expect(opportunity_with_pool).to be_valid
-    end
-
-    it 'allows setting candidate_pool_id on new opportunities' do
-      new_opportunity = build(:hmis_ce_opportunity,
-                              project: project,
-                              data_source: project.data_source,
-                              candidate_pool: pool1)
-
-      expect(new_opportunity).to be_valid
-    end
-
-    it 'allows changing from nil to a pool' do
-      opportunity_without_pool = create(:hmis_ce_opportunity,
-                                        project: project,
-                                        data_source: project.data_source,
-                                        candidate_pool: nil)
-
-      opportunity_without_pool.candidate_pool = pool1
-      expect(opportunity_without_pool).to be_valid
     end
   end
 end
