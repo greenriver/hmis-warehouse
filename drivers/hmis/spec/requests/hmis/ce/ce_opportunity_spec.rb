@@ -46,7 +46,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodes {
                 id
                 destinationClientId
-                priorityScore
+                priorityScores
                 clientName
               }
             }
@@ -172,17 +172,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(candidates.size).to eq(2)
 
           # Verify candidates are ordered by priority score
-          expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
+          expect(candidates.map { |c| c['priorityScores'] }).to eq([[100], [80]])
 
           # Verify first candidate (highest priority)
           expect(candidates[0]).to include(
-            'priorityScore' => 100,
+            'priorityScores' => [100],
             'destinationClientId' => client_2.destination_client.id.to_s,
           )
 
           # Verify second candidate
           expect(candidates[1]).to include(
-            'priorityScore' => 80,
+            'priorityScores' => [80],
             'destinationClientId' => client_1.destination_client.id.to_s,
           )
         end

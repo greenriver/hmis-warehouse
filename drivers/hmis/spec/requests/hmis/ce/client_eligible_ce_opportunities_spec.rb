@@ -113,7 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 candidates {
                   nodes {
                     id
-                    priorityScore
+                    priorityScores
                     destinationClientId
                   }
                 }
@@ -152,7 +152,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         first_opportunity = opportunities.first
         expect(first_opportunity['candidates']['nodes']).to be_an(Array)
         expect(first_opportunity['candidates']['nodes'].first).to include(
-          'priorityScore' => kind_of(Integer),
+          'priorityScores' => kind_of(Array),
           'destinationClientId' => client.destination_client.id.to_s,
         )
       end

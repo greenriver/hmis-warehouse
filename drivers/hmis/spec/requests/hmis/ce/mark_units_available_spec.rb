@@ -64,7 +64,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
       end
 
       context 'when the candidate pool already exists' do
-        let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless', candidates_generated_at: 2.hours.ago) }
+        let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: '{days_homeless}', candidates_generated_at: 2.hours.ago) }
         let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: project) }
         let!(:rule2) { create(:hmis_ce_priority_scheme, owner: project) }
 
@@ -86,7 +86,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         end
 
         context 'when the candidate pool is stale' do
-          let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless', candidates_generated_at: 3.days.ago) }
+          let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: '{days_homeless}', candidates_generated_at: 3.days.ago) }
 
           it 'enqueues a job but does not mark the pool as dirty' do
             response = nil
