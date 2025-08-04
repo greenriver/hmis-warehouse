@@ -6,7 +6,7 @@ $ho-container__margin: 40px;
 $ho-color-0: #0C2639;
 // grays
 $ho-color-1: #f1f1f1;
-$ho-color-2: $gray-034;
+$ho-color-2: var(--gray-034);
 $ho-color-3: #777777;
 
 $ho-current-patient: #00549E;
@@ -32,6 +32,7 @@ h2.ho-sub__h2 {
   margin-top: space(4);
   margin-bottom: space(6);
   @include ho-container;
+
   .ho-chart__title {
     margin-bottom: $ho-padding * 2;
     margin-top: 10px;
@@ -66,6 +67,7 @@ h2.ho-sub__h2 {
 
 #rrh-report__container .c-spinner {
   display: inline-block;
+
   &::before {
     width: 50px;
     height: 50px;
@@ -177,14 +179,17 @@ h2.ho-sub__h2 {
 .ho-patient__container {
   @include ho-container;
 }
+
 .ho-patient__name {
   margin-top: 0px;
   border-bottom: 1px solid $ho-color-2;
   padding: 10px 0px;
 }
+
 .ho-patient__details {
   padding-left: 10px;
 }
+
 .ho-patient__detail {
   display: inline-block;
   background-color: $ho-color-1;
@@ -192,26 +197,31 @@ h2.ho-sub__h2 {
   margin-right: $ho-padding;
   margin-bottom: $ho-padding;
   border-radius: 2px;
+
   span {
     padding: 0px 4px;
     @include open-sans-condensed-bold;
     color: $ho-color-3;
   }
 }
+
 .ho-patient__content {
   table {
     table-layout: fixed;
     width: 100%;
   }
+
   tr:first-child td {
     border-top: 2px solid $ho-color-1;
   }
+
   td {
     padding: 4px $ho-padding;
     font-weight: bold;
     vertical-align: top;
     border-bottom: 2px solid $ho-color-1;
   }
+
   td small {
     font-weight: normal;
     text-transform: uppercase;
@@ -222,6 +232,7 @@ h2.ho-sub__h2 {
 
 .ho-compare__fc {
   border-left: 1px solid $ho-color-2;
+
   @include media-breakpoint-up(sm) {
     border-left: none;
     margin-top: 20px;
@@ -246,6 +257,7 @@ h2.ho-sub__h2 {
   font-weight: normal;
   font-size: 22px;
   color: #777777;
+
   span {
     padding-top: 5px;
     display: block;
@@ -265,18 +277,23 @@ h2.ho-sub__h2 {
   width: 100%;
   table-layout: fixed;
   padding: 0px 10px;
-  th, td {
+
+  th,
+  td {
     text-align: center;
     border-bottom: 1px solid $ho-color-2;
   }
+
   th {
     font-weight: normal;
     background-color: $ho-color-1;
     position: relative;
+
     small {
       display: block;
     }
   }
+
   td {
     border-bottom: 1px solid $ho-color-2;
   }
@@ -335,6 +352,7 @@ h2.ho-sub__h2 {
 .ho-compare__key {
   display: inline-block;
   margin-bottom: 5px;
+
   @include media-breakpoint-up(xs) {
     display: block;
     margin-bottom: 10px;
@@ -343,6 +361,7 @@ h2.ho-sub__h2 {
 
 .ho-compare__key:not(:last-child) {
   margin-right: 30px;
+
   @include media-breakpoint-up(xs) {
     margin-right: 0px;
   }
@@ -356,11 +375,13 @@ h2.ho-sub__h2 {
 
 .d3-claims__legend {
   display: inline-block;
+
   .ho-hint {
     float: right;
     margin-right: $ho-padding * 2;
+
     @include media-breakpoint-up(sm) {
-      float:none;
+      float: none;
       margin-right: 0px;
     }
   }
@@ -372,12 +393,14 @@ h2.ho-sub__h2 {
   border-right: 1px solid $ho-color-2;
   position: relative;
   margin-bottom: 20px;
+
   .x-axis {
     position: absolute;
     top: -29px;
     right: 0px;
     border-bottom: 1px solid $ho-color-2;
   }
+
   .x-axis__max {
     font-size: 20px;
     margin-right: 5px;
@@ -405,6 +428,7 @@ h2.ho-sub__h2 {
 
 .d3-top__bar-inner {
   position: relative;
+
   span {
     left: 100%;
     position: absolute;
@@ -443,7 +467,8 @@ h2.ho-sub__h2 {
 }
 
 .d3-housing-status__chart .y-axis,
-.d3-housing-status__chart .x-axis{
+.d3-housing-status__chart .x-axis {
+
   path,
   line {
     stroke: #CCCCCC;
@@ -455,13 +480,13 @@ h2.ho-sub__h2 {
   @include open-sans-condensed-bold;
 }
 
-.d3-housing-status__chart .x-axis{
+.d3-housing-status__chart .x-axis {
   text {
     @include open-sans-normal;
   }
 }
 
-.d3-housing-status__chart .status__line{
+.d3-housing-status__chart .status__line {
   pointer-events: none;
 }
 
@@ -498,11 +523,12 @@ h2.ho-sub__h2 {
 
 //initiative reports
 
-.warehouse-reports__initiatives > h2 {
+.warehouse-reports__initiatives>h2 {
   margin-top: 60px;
   margin-bottom: 30px;
   border-bottom: 1px solid #000000;
   position: relative;
+
   span {
     padding: 0px 10px;
     position: absolute;
@@ -511,9 +537,10 @@ h2.ho-sub__h2 {
     background-color: #f9f9f9;
   }
 }
+
 .loso__container .ho-container__header h4 {
   margin-top: 0px;
-  display:inline-block;
+  display: inline-block;
 }
 
 .loso-footer {
@@ -526,13 +553,15 @@ h2.ho-sub__h2 {
 }
 
 table.table.loso-table {
-  table-layout:fixed;
+  table-layout: fixed;
   min-width: 100%;
   margin-bottom: 0px;
 }
 
 table.table.loso-table tr:last-of-type {
-  th, td {
+
+  th,
+  td {
     border-bottom: 1px solid #dddddd;
   }
 }
@@ -549,6 +578,7 @@ table.table.loso-table th.loso-table__label {
 
 [data-d3-key] {
   position: relative;
+
   span {
     position: absolute;
     left: 0px;
@@ -602,6 +632,7 @@ table.table.loso-table th.loso-table__label {
 
 .loso-zoom-buttons {
   margin-bottom: 10px;
+
   button {
     // display: inline-block;
     width: 25px;
@@ -611,12 +642,13 @@ table.table.loso-table th.loso-table__label {
     border: 1px solid #ccc;
     background-color: #f2f2f2;
   }
+
   button:hover {
     background-color: darken(#f2f2f2, 5%);
   }
 }
-.bb-region-y-even
-{
-  fill: $gray-lighter;
+
+.bb-region-y-even {
+  fill: var(--gray-020);
   fill-opacity: 0.5;
 }

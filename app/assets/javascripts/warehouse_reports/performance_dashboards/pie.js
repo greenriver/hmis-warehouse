@@ -59,7 +59,7 @@ window.App.WarehouseReports.PerformanceDashboards.Pie = class Pie {
     if (key.id != null) {
       key = key.id;
     }
-    const colors = window.Chart.defaults.colors;
+    const colors = window.App.chartDefaults.colors;
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {

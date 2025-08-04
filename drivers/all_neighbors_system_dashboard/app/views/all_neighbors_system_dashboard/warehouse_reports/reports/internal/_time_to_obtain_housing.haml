@@ -33,7 +33,7 @@
     .d-flex.justify-content-center{id: legend_id(tab[:id], 'id_to_move_in')}
   .p-4.border-top
     - table_id = table_id(tab[:id], 'id_to_move_in')
-    = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
+    = link_to "javascript:void(0)", data: { 'bs-toggle' => 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
       %span Insights - Household Average Days
       %i.icon-angle-down
   .collapse{id: table_id}
@@ -50,7 +50,7 @@
     .d-flex.justify-content-center{id: legend_id(tab[:id], 'scatter')}
   .p-4.border-top
     - table_id = table_id(tab[:id], 'scatter')
-    = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
+    = link_to "javascript:void(0)", data: { 'bs-toggle' => 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
       %span Table - Average Days from Referral to Move-In by Project
       %i.icon-angle-down
   .collapse{id: table_id}

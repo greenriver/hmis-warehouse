@@ -12,5 +12,4 @@
       sanitized_html = sanitize(msg, tags: allowed_tags, attributes: allowed_attributes)
     .mt-4{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}
       = sanitized_html
-      %button.close.ml-auto{href: '#', 'data-dismiss': 'alert', 'aria-label': 'close'}
-        %span.icon-cross
+      %button.btn-close.ml-auto{href: '#', 'data-bs-dismiss': 'alert', 'aria-label': 'close'}

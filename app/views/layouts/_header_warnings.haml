@@ -13,12 +13,13 @@
               %i.icon-exit.ml-2
 - if !Rails.env.production? && !ENV['HIDE_NON_PRODUCTION_WARNING']
   #non-production-warning
-    .d-flex.pt-2.pb-2
+    .d-flex
       .git-branch.ml-auto
-        .label.label-info
-          = ENV['CLIENT']
-          - if ENV['EKS']
-            (EKS)
+        .navbar-text
+          .label.label-info
+            = ENV['CLIENT']
+            - if ENV['EKS']
+              (EKS)
       .git-branch.ml-4
         = branch_info
       .git-branch.ml-4

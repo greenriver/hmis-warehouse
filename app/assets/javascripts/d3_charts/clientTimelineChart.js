@@ -112,7 +112,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     .attr('stroke', '#ccc');
   yAxis
     .selectAll('text')
-    .attr('data-toggle', 'tooltip')
+    .attr('data-bs-toggle', 'tooltip')
     .attr('data-html', true)
     .attr('title', (i) => {
       // eslint-disable-next-line no-unused-vars
@@ -143,7 +143,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     .attr('x', (d) => xScale(d.from))
     .attr('aria-label', (d) => d.label)
     .attr('title', (d) => d.label)
-    .attr('data-toggle', 'tooltip')
+    .attr('data-bs-toggle', 'tooltip')
     .attr('width', (d) => xScale(d.to) - xScale(d.from))
     .attr('height', yScale.bandwidth())
     .attr('class', (d) => `c-swatch__display--fill-${cocCodes.indexOf(d.cocCode)}`);

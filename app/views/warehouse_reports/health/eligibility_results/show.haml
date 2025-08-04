@@ -8,11 +8,11 @@
 
 %ul.nav.nav-tabs{role: :tablist}
   %li.nav-item{role: :presentation}
-    %a.nav-link.active{href: '#eligible-patients', aria: {controls: 'eligible-patients'}, data: {toggle: :tab}, role: :tab} Eligible Patients
+    %a.nav-link.active{href: '#eligible-patients', aria: {controls: 'eligible-patients'}, data: { 'bs-toggle' => :tab}, role: :tab} Eligible Patients
   %li.nav-item{role: :presentation}
-    %a.nav-link{href: '#ineligible-patients', aria: {controls: 'ineligible-patients'}, data: {toggle: :tab}, role: :tab} Ineligible Patients
+    %a.nav-link{href: '#ineligible-patients', aria: {controls: 'ineligible-patients'}, data: { 'bs-toggle' => :tab}, role: :tab} Ineligible Patients
   %li.nav-item{role: :presentation}
-    %a.nav-link{href: '#aco-changed-patients', aria: {controls: 'aco-changed-patients'}, data: {toggle: :tab}, role: :tab} Patients with ACO Changes
+    %a.nav-link{href: '#aco-changed-patients', aria: {controls: 'aco-changed-patients'}, data: { 'bs-toggle' => :tab}, role: :tab} Patients with ACO Changes
 
 .tab-content
   #eligible-patients.tab-pane.active{role: :tabpanel}

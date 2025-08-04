@@ -22,22 +22,21 @@ $footer-height: $footer-logo-height + $footer-logo-padding !default;
 $border-radius-default: .35rem;
 
 $directions: (
- 't': top,
- 'l': left,
- 'b': bottom,
- 'r': right
-) !default;
+  't': top,
+  'l': left,
+  'b': bottom,
+  'r': right) !default;
 
 // Z-index scale
-$zIndex-1:   100;
-$zIndex-2:   200;
-$zIndex-3:   300;
-$zIndex-4:   400;
-$zIndex-5:   500;
-$zIndex-6:   600;
-$zIndex-7:   700;
-$zIndex-8:   800;
-$zIndex-9:   900;
+$zIndex-1: 100;
+$zIndex-2: 200;
+$zIndex-3: 300;
+$zIndex-4: 400;
+$zIndex-5: 500;
+$zIndex-6: 600;
+$zIndex-7: 700;
+$zIndex-8: 800;
+$zIndex-9: 900;
 $zIndex-10: 1000;
 
 $page-z-index: $zIndex-4; // header and footer
@@ -53,23 +52,32 @@ $zIndex-3--notice: $zIndex-3;
 $textarea-min-height: 150px;
 
 // Navs
-$nav-tab-active-border-color: darken($brand-primary, 10%);
-$nav-tab-active-active-bg: lighten($tab-bg, 30%);
-$nav-tab-active-color: darken($tab-bg, 40%);
+$nav-tab-active-border-color: var(--nav-tab-active-border-color, #3b6576
+);
+$nav-tab-active-active-bg: var(--nav-tab-active-active-bg, #d8e1ed);
+$nav-tab-active-color: var(--nav-tab-active-color, #324760);
 
 // Font-families
-$font-body   : 'Open Sans', Arial, 'Helvetica Neue', Helvetica, sans-serif;
-$font-header : 'Open Sans Condensed', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-body : 'Open Sans',
+Arial,
+'Helvetica Neue',
+Helvetica,
+sans-serif;
+$font-header : 'Open Sans Condensed',
+Arial,
+'Helvetica Neue',
+Helvetica,
+sans-serif;
 $font-weights: (
-  normal   : 400,
-  default  : 400,
+  normal : 400,
+  default : 400,
   semibold : 600,
-  bold     : 700,
+  bold : 700,
 );
 
-$input-bg:          $white !default;
+$input-bg: var(--white, white) !default;
 $input-disabled: #eeeeee !default;
-$input-disabled-bg: $gray-025 !default;
+$input-disabled-bg: var(--gray-025, rgb(242, 242, 242)) !default;
 
 
 // Cards

@@ -1,24 +1,29 @@
 @import '../helpers';
 
 // .c-chart
-.c-chart--horizontal-bar, .c-chart--vertical-bar {
+.c-chart--horizontal-bar,
+.c-chart--vertical-bar {
   svg {
     overflow: visible !important;
   }
+
   .bb-chart-text .bb-text {
     font-weight: bold;
     font-size: 16px;
     fill: black !important;
     font-family: $font-body;
   }
+
   .bb-ygrid {
     stroke-dasharray: 0 0;
   }
+
   .bb-ygrid,
   .tick line,
   .domain {
-    stroke: darken(#E1E1E1, 1%);
+    stroke: #dedede;
   }
+
   .tick tspan {
     font-weight: 400;
     font-family: $font-body;
@@ -27,14 +32,16 @@
     margin-bottom: 4px;
   }
 }
+
 .performance-measurement,
 .ce-performance {
   .c-chart--vertical-bar {
     .bb-chart-text .bb-text {
       fill: white !important;
     }
+
     .bb-ygrid-line line {
-      stroke: $brand-success;
+      stroke: var(--bs-success);
     }
   }
 }

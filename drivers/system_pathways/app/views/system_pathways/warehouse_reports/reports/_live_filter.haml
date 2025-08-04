@@ -13,4 +13,4 @@
       = f.input :involves_ce, as: :select_two, collection: @filter.ce_options, label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE', include_blank: 'All'
   .d-flex
     .ml-auto
-      = f.submit 'Update View'
+      = f.submit 'Update View', class: 'btn btn-primary'

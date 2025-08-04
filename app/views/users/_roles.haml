@@ -2,7 +2,7 @@
   .c-columns__column-header
     %h3.c-columns__column-title Roles
   .c-columns__column-content
-    = f.association :legacy_roles, as: :check_boxes, label_method: :role_name, collection: roles, label: false
+    = f.association :legacy_roles, as: :check_boxes, label_method: :role_name, collection: roles, label: false, wrapper: :vertical_collection_no_legend
     =# f.input :dnd_staff, label: 'DND Staff'
     =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
 

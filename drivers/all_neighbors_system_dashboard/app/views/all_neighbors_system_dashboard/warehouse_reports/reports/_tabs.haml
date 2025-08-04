@@ -4,4 +4,4 @@
       - link_classes = ['nav-link']
       - if i == 0
         - link_classes.push('active')
-      = link_to tab[:name], "##{tab[:id]}", class: link_classes, id: "#{tab[:id]}_tab", data: {toggle: 'tab'}, role: 'tab', aria: {controls: tab[:id]}
+      = link_to tab[:name], "##{tab[:id]}", class: link_classes, id: "#{tab[:id]}_tab", data: { 'bs-toggle' => 'tab'}, role: 'tab', aria: {controls: tab[:id]}

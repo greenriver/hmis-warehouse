@@ -1,0 +1,25 @@
+:root {
+  /* Primary: #00407F */
+  --bs-primary-hue: 212;
+  --bs-primary-saturation: 100%;
+  --bs-primary-lightness: 25%;
+
+  /* Theme Background: #00407F */
+  --theme-background-hue: 212;
+  --theme-background-saturation: 100%;
+  --theme-background-lightness: 25%;
+}
+
+footer {
+  background-color: white;
+  box-shadow: none;
+  color: rgb(28, 26, 27);
+}
+
+footer .seal-image {
+  max-width: 400px;
+}
+
+.o-header--page__title a {
+  color: rgb(28, 26, 27);
+}

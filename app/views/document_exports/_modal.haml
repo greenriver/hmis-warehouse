@@ -9,7 +9,7 @@
       .mr-2= render 'spinner'
       %div Please wait, your request is being processed.  You can continue to use the site and return for your download.
     .text-right
-      %button.btn.btn-secondary{"data-dismiss" => "modal", :type => "button"} Cancel
+      %button.btn.btn-secondary{"data-bs-dismiss" => "modal", :type => "button"} Cancel
 
   .doc-export-part.completed
     .lead.mb-4
@@ -21,7 +21,7 @@
     .lead.mb-3
       We're sorry, an error occurred while processing your request. Please try again.
     .text-right
-      %button.btn.btn-secondary{"data-dismiss" => "modal", :type => "button"} Close
+      %button.btn.btn-secondary{"data-bs-dismiss" => "modal", :type => "button"} Close
 
 :css
   .doc-export-part {

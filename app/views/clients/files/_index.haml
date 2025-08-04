@@ -12,23 +12,23 @@
     = render 'clients/files/blank_file_list', file_list_title: 'Blank Files'
 
 - if @client.client_files.any? || @deleted_files.any?
-  %ul.files-nav.nav.nav-tabs
+  %ul.files-nav.nav.nav-tabs{role: 'tablist'}
     - unless can_use_separated_consent?
       %li.nav-item
-        %a.nav-link{href: '#consent', role: "presentation", data: {toggle: :tab}}
+        %a.nav-link#consent-tab{href: '#consent', role: "tab", data: { 'bs-toggle' => :tab}}
           Consent Forms
     %li.nav-item
-      %a.nav-link{href: '#other', role: "presentation", data: {toggle: :tab}}
+      %a.nav-link#other-tab{href: '#other', role: "tab", data: { 'bs-toggle' => :tab}}
         - if can_use_separated_consent?
           Files
         - else
           Other Files
     - if can_manage_client_files?
       %li.nav-item
-        %a.nav-link{href: '#deleted', role: "presentation", data: {toggle: :tab}}
+        %a.nav-link#deleted-tab{href: '#deleted', role: "tab", data: { 'bs-toggle' => :tab}}
           Deleted Files
   .tab-content
-    .tab-pane.fade.show#consent
+    .tab-pane.fade#consent{role: 'tabpanel'}
       - if @consent_files.any?
         %section
           %header.o-section-card__header
@@ -37,7 +37,7 @@
         = render 'clients/files/file_list', files: @consent_files, paginate: false, consent: true
       - else
         No consent files
-    .tab-pane.fade#other
+    .tab-pane.fade#other{role: 'tabpanel'}
       - if @files.any?
         %section.o-section-card
           %header.o-section-card__header
@@ -47,7 +47,7 @@
         = render 'clients/files/file_list', files: @files, paginate: true, consent: false
       - else
         No other files
-    .tab-pane.fade#deleted
+    .tab-pane.fade#deleted{role: 'tabpanel'}
       - if can_manage_client_files? && @deleted_files.any?
         = render 'clients/files/deleted_file_list', files: @deleted_files
       - else

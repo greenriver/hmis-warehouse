@@ -37,7 +37,7 @@ jobs:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.ruby }}
         run: |
           ignore_patterns="db/schema.rb\|bin/rails\|bin/rake\|bin/bundle"
-          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*.rb" | tr "\n" " ./"`
+          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep -v $ignore_patterns | grep "**/*\.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi

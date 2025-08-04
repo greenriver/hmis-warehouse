@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module SystemPathways::ChartBase
   extend ActiveSupport::Concern
 
@@ -318,6 +320,11 @@ module SystemPathways::ChartBase
         SystemPathways::Enrollment.where(final_enrollment: true).
           joins(:client).
           merge(filtered_clients.where.not(returned_project_type: nil)).
+          distinct
+      elsif from == 'Served by Homeless System'
+        SystemPathways::Enrollment.where(from_project_type: nil, project_type: to).
+          joins(:client).
+          merge(filtered_clients).
           distinct
       else
         SystemPathways::Enrollment.where(from_project_type: from, project_type: to).

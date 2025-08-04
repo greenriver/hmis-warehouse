@@ -13,8 +13,10 @@
       .mr-4
         %h1= @title
       .ml-auto
-        - logo = inline_asset_base64("theme/logo/#{ENV['CAREPLAN_LOGO']}") rescue nil
-        = image_tag(logo, width: 250) if logo.present?
+        - logo = GrdaWarehouse::Theme.careplan_logo
+        - if logo.attached?
+          - content_type = logo.blob.content_type
+          = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_careplan_logo}", style: 'width: 70%;')
 
     = yield
 
