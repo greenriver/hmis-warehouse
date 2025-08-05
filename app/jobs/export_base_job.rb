@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ExportBaseJob < BaseJob
   include ::ArelHelper
 
@@ -24,6 +26,7 @@ class ExportBaseJob < BaseJob
       version: options[:version],
       confidential: options[:confidential],
       options: options[:options],
+      custom_file_types: options[:custom_file_types] || [],
     ).export!
 
     if (recurring_hmis_export = recurring_hmis_export(options))

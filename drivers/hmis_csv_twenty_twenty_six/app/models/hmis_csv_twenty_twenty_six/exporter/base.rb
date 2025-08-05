@@ -38,7 +38,8 @@ module HmisCsvTwentyTwentySix::Exporter
       confidential: false,
       options: {},
       file_path: 'var/hmis_export',
-      debug: true
+      debug: true,
+      custom_file_types: []
     )
       setup_notifier('HMIS Exporter 2026')
       @version = version
@@ -61,6 +62,7 @@ module HmisCsvTwentyTwentySix::Exporter
       @confidential = confidential
       @enforce_project_date_scope = enforce_project_date_scope
       @selected_options = options
+      @custom_file_types = custom_file_types || []
       # We also provide CoC Codes via options, make sure those are added to any CoC codes provided for backwards
       # compatibility with old code
       @coc_codes += options['coc_codes'] if options['coc_codes'].present?
@@ -147,6 +149,9 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def file_name_for(klass)
       return 'Export.csv' if klass == HmisCsvTwentyTwentySix::Exporter::Export
+
+      # Handle custom file classes
+      return klass.custom_file_name if klass.ancestors.include?(HmisCsvTwentyTwentySix::Exporter::Custom::Base)
 
       hmis_class_for(klass).hud_csv_file_name(version: '2026')
     end
@@ -249,8 +254,47 @@ module HmisCsvTwentyTwentySix::Exporter
       }
     end
 
+    def custom_file_mappings
+      return {} if @custom_file_types.blank?
+
+      mappings = {}
+      @custom_file_types.each do |filename|
+        definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition(filename)
+        next unless definition
+
+        # Dynamically determine the exporter class name
+        exporter_class_name = "HmisCsvTwentyTwentySix::Exporter::Custom::#{definition.class_name}"
+        importer_class_name = "HmisCsvTwentyTwentySix::Importer::Custom::#{definition.class_name}"
+
+        begin
+          exporter_class = exporter_class_name.constantize
+          importer_class = importer_class_name.constantize
+
+          # Determine scope based on what warehouse table is augmented
+          scope_name = case definition.augments_warehouse_table
+          when 'GrdaWarehouse::Hud::Client'
+            :client_scope
+          when 'GrdaWarehouse::Hud::Enrollment'
+            :enrollment_scope
+          when 'GrdaWarehouse::Hud::Project', 'GrdaWarehouse::Hud::Organization'
+            :project_scope
+          else
+            :client_scope # default
+          end
+
+          mappings[exporter_class] = {
+            hmis_class: importer_class,
+            scope: scope_name,
+          }
+        rescue NameError
+          Rails.logger.warn "Custom exporter class #{exporter_class_name} not found. Run HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models! to generate it."
+        end
+      end
+      mappings
+    end
+
     def exportable_files
-      self.class.class_mappings.map do |export_class, details|
+      standard_files = self.class.class_mappings.map do |export_class, details|
         [
           export_class,
           {
@@ -258,7 +302,20 @@ module HmisCsvTwentyTwentySix::Exporter
             details[:scope] => send(details[:scope]),
           },
         ]
-      end.to_h.freeze
+      end.to_h
+
+      # Add custom files if requested
+      custom_files = custom_file_mappings.map do |export_class, details|
+        [
+          export_class,
+          {
+            hmis_class: details[:hmis_class],
+            details[:scope] => send(details[:scope]),
+          },
+        ]
+      end.to_h
+
+      standard_files.merge(custom_files).freeze
     end
 
     def hmis_class(klass)

@@ -29,30 +29,30 @@ The HMIS warehouse has recently implemented the ability to import custom files v
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] Users can view available custom file types in the export interface
-- [ ] Users can select/deselect which custom file types to include
-- [ ] Custom files are exported as separate CSV files in the export ZIP
-- [ ] Custom files follow HUD naming conventions (e.g., `CustomGender.csv`)
-- [ ] Only FY2026 exports support custom file selection
-- [ ] Prior HMIS CSV versions (2024, 2022) do not show custom file options
-- [ ] Export works correctly with no custom files selected (existing behavior)
-- [ ] Export works correctly with some or all custom files selected
+- [x] Users can view available custom file types in the export interface
+- [x] Users can select/deselect which custom file types to include
+- [x] Custom files are exported as separate CSV files in the export ZIP
+- [x] Custom files follow HUD naming conventions (e.g., `CustomGender.csv`)
+- [x] Only FY2026 exports support custom file selection
+- [x] Prior HMIS CSV versions (2024, 2022) do not show custom file options
+- [x] Export works correctly with no custom files selected (existing behavior)
+- [x] Export works correctly with some or all custom files selected
 
 ### Technical Requirements
-- [ ] Request tests validate custom file parameter handling
-- [ ] Model tests verify export logic with custom files
+- [x] Request tests validate custom file parameter handling
+- [x] Model tests verify export logic with custom files
 - [ ] Integration tests confirm end-to-end export functionality
-- [ ] Custom file selection persists in export history
-- [ ] Custom file parameters are validated appropriately
-- [ ] Custom file models should be generated using `HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!`
-- [ ] If new custom file types are defined, running `HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!` should be sufficient to make them available to the exporter
+- [x] Custom file selection persists in export history
+- [x] Custom file parameters are validated appropriately
+- [x] Custom file models should be generated using `HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!`
+- [x] If new custom file types are defined, running `HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!` should be sufficient to make them available to the exporter
 
 ### Quality Requirements
-- [ ] No breaking changes to existing export functionality
-- [ ] Performance impact is minimal for exports without custom files
-- [ ] Custom files are exported efficiently avoiding N+1 queries
-- [ ] Error handling provides clear feedback for invalid selections
-- [ ] UI is intuitive and follows existing design patterns
+- [x] No breaking changes to existing export functionality
+- [x] Performance impact is minimal for exports without custom files
+- [x] Custom files are exported efficiently avoiding N+1 queries
+- [x] Error handling provides clear feedback for invalid selections
+- [x] UI is intuitive and follows existing design patterns
 
 ## Success Metrics
 

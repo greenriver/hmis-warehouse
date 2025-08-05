@@ -30,7 +30,8 @@
 .well
   .row
     .col-sm-3
-      = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
+      - version_custom_files = ::Filters::HmisExport.options_for_version.to_h { |label, value| [value, ::Filters::HmisExport.new(version: value).available_custom_file_types] }
+      = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two, input_html: { 'data-custom-file-exports-target': 'version', 'data-action': 'change->custom-file-exports#toggleVisibility', 'data-custom-files': version_custom_files.to_json }
     .col-sm-3
       = f.input :source_type, collection: ::Filters::HmisExport.available_source_types, include_blank: false, as: :select_two
     .col-sm-3
@@ -60,3 +61,9 @@
         for the period type is a superset of
         %strong Reporting period
         and additionally includes any records associated with enrollments that changed during the selected time range.
+- if include_custom_files.present?
+  %h3.custom-files-section{ 'data-custom-file-exports-target': 'section' } Custom Files
+  .well.custom-files-section{ 'data-custom-file-exports-target': 'section' }
+    .row
+      .col-sm-12
+        = f.input :custom_file_types, collection: [], as: :select_two, input_html: { multiple: true, placeholder: 'Choose custom files to include', 'data-custom-file-exports-target': 'select' }, label: 'Custom File Types', hint: 'Select which custom file types to include in your export alongside the standard HMIS CSV files.'

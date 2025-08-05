@@ -73,6 +73,10 @@ module HmisCsvTwentyTwentySix
       @config_data['augment_import_class']
     end
 
+    def augments_export_class
+      @config_data['augments_export_class']
+    end
+
     def augments?
       augments_warehouse_table.present?
     end
