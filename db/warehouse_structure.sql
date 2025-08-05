@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -341,7 +341,8 @@ CREATE TABLE analytics.app_users (
     id bigint NOT NULL,
     first_name character varying,
     last_name character varying,
-    email character varying
+    email character varying,
+    agency_name character varying
 );
 
 
@@ -639,7 +640,8 @@ CREATE TABLE public.cas_analytics_referral_contacts (
     contact_id bigint,
     contact_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    cas_user_id bigint
 );
 
 
@@ -654,7 +656,8 @@ CREATE VIEW analytics.cas_referral_contacts AS
     contact_id,
     contact_type,
     created_at,
-    updated_at
+    updated_at,
+    cas_user_id
    FROM public.cas_analytics_referral_contacts;
 
 
@@ -665,7 +668,8 @@ CREATE VIEW analytics.cas_referral_contacts AS
 CREATE TABLE public.cas_analytics_referral_users (
     id bigint NOT NULL,
     email character varying,
-    referral_id bigint
+    referral_id bigint,
+    cas_user_id bigint
 );
 
 
@@ -676,7 +680,8 @@ CREATE TABLE public.cas_analytics_referral_users (
 CREATE VIEW analytics.cas_referral_users AS
  SELECT id,
     email,
-    referral_id
+    referral_id,
+    cas_user_id
    FROM public.cas_analytics_referral_users;
 
 
@@ -22833,7 +22838,7 @@ CREATE VIEW public.hmis_destination_client_latest_assessments AS
      JOIN public.hmis_form_processors fp ON ((((fp.owner_type)::text = 'Hmis::Hud::CustomAssessment'::text) AND (fp.owner_id = ca.id))))
      JOIN public.hmis_form_definitions def ON (((def.deleted_at IS NULL) AND (def.id = fp.definition_id))))
   WHERE (wc.destination_id IS NOT NULL)
-  ORDER BY wc.destination_id, def.identifier, ca."DateUpdated" DESC, ca.id DESC;
+  ORDER BY wc.destination_id, def.identifier, ca."AssessmentDate" DESC, ca.id DESC;
 
 
 --
@@ -75174,6 +75179,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250804124300'),
+('20250804124243'),
+('20250804122929'),
 ('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),
