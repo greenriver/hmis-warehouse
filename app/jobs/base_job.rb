@@ -101,4 +101,25 @@ class BaseJob < ApplicationJob
   def calculated_attempts
     0
   end
+
+  def with_job_lock(lock_name:, timeout_seconds: 0, &block)
+    # We acquire a transactional advisory lock using the main application's database connection
+    # (`ApplicationRecord`) instead of the data warehouse's (`GrdaWarehouseBase`).
+    #
+    # WHY: A background job can run for a long time. Tying the lock to a transaction on the main
+    # warehouse DB could be is expensive. Using a separate DB for locking isolates the
+    # warehouse from this risk.
+    #
+    # The lock is transactional, meaning it's automatically released when the block finishes
+    # or if the job crashes, preventing orphaned locks
+
+    raise 'should use different dbs for transactional advisory locks' if ApplicationRecord.connection.current_database == GrdaWarehouseBase.connection.current_database
+
+    ApplicationRecord.with_advisory_lock(
+      lock_name,
+      timeout_seconds: timeout_seconds,
+      transaction: true,
+      &block
+    )
+  end
 end

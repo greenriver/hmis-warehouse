@@ -46,7 +46,7 @@ module Hmis::Ce
 
       instrument_as_maintenance_task do |run|
         # ensure only one instance of this job runs simultaneously
-        with_lock do
+        with_job_lock(lock_name: self.class.name.to_s) do
           @progress = progress
           log_info('Acquired lock, starting change processing')
           reconcile_untracked_records
@@ -148,11 +148,6 @@ module Hmis::Ce
 
       Hmis::Ce::ChangeMarker.mark_processed(markers)
       markers.map(&:trackable_id).max + 1
-    end
-
-    def with_lock(&block)
-      lock_name = self.class.name.to_s
-      ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
     end
 
     private
