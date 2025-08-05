@@ -13,8 +13,8 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTaskRun < GrdaWarehouseBase
 
   scope :completed, -> { where.not(completed_at: nil) }
 
-  def self.average_run_time
-    average('EXTRACT(EPOCH FROM (completed_at - started_at))')
+  def self.calculate_average_run_time(run_ids)
+    where(id: run_ids).average('EXTRACT(EPOCH FROM (completed_at - started_at))')
   end
 
   def completed?

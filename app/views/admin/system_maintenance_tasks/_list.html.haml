@@ -16,7 +16,7 @@
           average_run_time = task.average_run_time
         %tr
           %td
-            - display_name = task.name.split(/(#|: )/).last
+            - display_name = task.name.split(/(#|: )/).first
             %span{title: task.name, data: { 'bs-toggle': :tooltip }}= display_name
             %td= number_with_delimiter task.system_maintenance_task_runs.completed.count
             %td
