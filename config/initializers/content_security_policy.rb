@@ -26,25 +26,10 @@
 Rails.application.config.content_security_policy do |policy|
   public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
 
-  # Get Superset base URL for CSP if available
-  superset_base_url = begin
-    Superset.superset_base_url if defined?(Superset)
-  rescue StandardError
-    nil
-  end
-
   policy.default_src(:self)
   policy.object_src(:none) # Prevents potentially dangerous browser plugins
   policy.base_uri(:self) # Only allows base URLs from your own domain, prevents cross-origin base URL injection
-  # form-action seems to trigger violations. Leave disabled for now (by default it allows everything)
-  # policy.form_action( # Protects against form-action hijacking
-  #   *[
-  #     :self,
-  #     ("https://#{ENV['FQDN']}" if ENV['FQDN'].present?), # explicit app domain for Okta auth
-  #     ("https://#{ENV['OKTA_DOMAIN']}" if ENV['OKTA_DOMAIN'].present?), # okta auth form redirect location
-  #     superset_base_url, # Superset dashboard integration
-  #   ].compact_blank,
-  # )
+
   policy.frame_ancestors(
     *[
       :self, # Self-embedding for public reports
@@ -101,9 +86,12 @@ Rails.application.config.content_security_policy do |policy|
     'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
     'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js library for system dashboards, health analytics, public reports, and HMIS data quality visualization
     'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
+    'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library - newer version used in external forms
 
     # Public Reports - UI Components
     'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/', # Bootstrap framework for responsive UI
+    'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/', # Bootstrap framework - version used in external forms
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/', # Bootstrap framework - version used in performance measurement
     'https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/', # Date picker component
     'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/', # Date picker component (cdnjs)
     'https://code.jquery.com', # jQuery for DOM manipulation and event handling
@@ -126,9 +114,12 @@ Rails.application.config.content_security_policy do |policy|
       # Data Visualization & Analytics
       'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
       'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library styles
+      'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library styles - newer version
 
       # Public Reports - UI Components
       'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/', # Bootstrap framework styles
+      'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/', # Bootstrap framework styles - version used in external forms
+      'https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/', # Bootstrap framework styles - version used in performance measurement
       'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap icon font
       'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/', # Bootstrap date picker
     ].compact_blank,
