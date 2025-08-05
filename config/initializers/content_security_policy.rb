@@ -133,7 +133,7 @@ Rails.application.config.content_security_policy do |policy|
 
       # Monitoring
       'https://sentry.io/', # Sentry error reporting
-      'https://*.ingest.sentry.io', # Sentry data ingestion endpoints
+      'https://*.ingest.sentry.io/', # Sentry data ingestion endpoints
       'https://*.ingest.us.sentry.io', # Sentry US region ingestion endpoints
 
       # Public Reports - UI Components
