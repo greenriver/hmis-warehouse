@@ -42,10 +42,13 @@ module Hmis::Ce
       next_pool_id ||= 0
       next_client_id ||= 0
 
+      log_info("Starting with next_pool_id: #{next_pool_id}, next_client_id: #{next_client_id}")
+
       instrument_as_maintenance_task do |run|
         # ensure only one instance of this job runs simultaneously
         with_lock do
           @progress = progress
+          log_info('Acquired lock, starting change processing')
           reconcile_untracked_records
 
           # get a batch of dirty clients
@@ -56,20 +59,24 @@ module Hmis::Ce
           # execute client query before pool processing. This ensures that if a new dirty client mark
           # appears while we are processing pools, the client won't be incorrectly marked as clean
           dirty_client_markers = dirty_client_markers.to_a
+          log_info("Found #{dirty_client_markers.count} dirty client markers to process")
 
           # load the dirty pools
           dirty_pool_markers = Hmis::Ce::ChangeMarker.dirty.pools.batch(
             start_id: next_pool_id,
             limit: 10,
           ).to_a
+          log_info("Found #{dirty_pool_markers.count} dirty pool markers to process")
           # process dirty pools
           next_pool_id = process_dirty_pools(dirty_pool_markers)
+          log_info('Completed processing dirty pools')
 
           # now process dirty clients, skipping the pools we just processed
           next_client_id = process_dirty_clients(
             dirty_client_markers,
             skip_pool_ids: dirty_pool_markers.map(&:trackable_id),
           )
+          log_info('Completed processing dirty clients')
           run.complete!
 
           schedule_next_batch(
@@ -77,6 +84,7 @@ module Hmis::Ce
             next_client_id: next_client_id,
             wait_time: wait_time,
           )
+          log_info('Batch completed successfully')
         end
       end
     end
@@ -91,6 +99,7 @@ module Hmis::Ce
     def schedule_next_batch(next_pool_id: 0, next_client_id: 0, wait_time: nil)
       return unless wait_time
 
+      log_info("Scheduling next batch with wait_time: #{wait_time}")
       self.class.set(wait: wait_time).perform_later(
         next_pool_id: next_pool_id,
         next_client_id: next_client_id,
@@ -105,14 +114,17 @@ module Hmis::Ce
     def process_dirty_pools(markers)
       return 0 if markers.empty?
 
+      log_info("Processing #{markers.count} dirty pools")
       # we expect processing an individual pool to be expensive; load one pool at a time mark it as clean
       # as soon as it's done
       markers.each do |marker|
-        pool = ::Hmis::Ce::Match::CandidatePool.active.find_by(id: marker.trackable_id)
-        next unless pool
+        pool = ::Hmis::Ce::Match::CandidatePool.find_by(id: marker.trackable_id)
 
-        Hmis::Ce::Match::Engine.call(pool, progress: @progress)
-        marker.mark_processed
+        # only process active pools
+        Hmis::Ce::Match::Engine.call(pool, progress: @progress) if pool&.active?
+
+        # if no pool was found destroy the marker. Otherwise mark it as clean
+        pool ? marker.mark_processed : marker.destroy!
       end
 
       markers.map(&:trackable_id).max + 1
@@ -126,6 +138,7 @@ module Hmis::Ce
     def process_dirty_clients(markers, skip_pool_ids:)
       return 0 if markers.empty?
 
+      log_info("Processing #{markers.count} dirty clients against active pools")
       client_scope = ::GrdaWarehouse::Hud::Client.destination.where(id: markers.map(&:trackable_id))
       candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active.where.not(id: skip_pool_ids)
 
@@ -144,6 +157,10 @@ module Hmis::Ce
 
     private
 
+    def log_info(message)
+      Rails.logger.info("[ProcessChangesJob] #{message}")
+    end
+
     # Safeguard to ensure data integrity. This method finds and corrects active pools and
     # destination clients that should be tracked but are missing a change marker.
     #
@@ -151,14 +168,20 @@ module Hmis::Ce
     # ensures that any records that slip through (e.g., due to a new data import path) are not
     # ignored by the incremental processor.
     def reconcile_untracked_records
+      log_info('Starting reconciliation of untracked records')
+
       # Find and mark untracked active pools
       untracked_pools_scope = Hmis::Ce::Match::CandidatePool.active.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
 
+      untracked_pools_count = 0
       untracked_pools_scope.in_batches do |relation|
-        Hmis::Ce::ChangeMarker.upsert_or_bump_version('Hmis::Ce::Match::CandidatePool', trackable_ids: relation.pluck(:id))
+        batch_ids = relation.pluck(:id)
+        untracked_pools_count += batch_ids.count
+        Hmis::Ce::ChangeMarker.upsert_or_bump_version('Hmis::Ce::Match::CandidatePool', trackable_ids: batch_ids)
       end
+      log_info("Reconciled #{untracked_pools_count} untracked pools") if untracked_pools_count > 0
 
       # Find and mark untracked destination clients
       # Without this, an untracked client would not be matched against opportunities until a
@@ -166,9 +189,14 @@ module Hmis::Ce
       untracked_clients_scope = GrdaWarehouse::Hud::Client.destination.
         left_outer_joins(:change_marker).
         where(hmis_ce_change_markers: { id: nil })
+
+      untracked_clients_count = 0
       untracked_clients_scope.in_batches do |relation|
-        Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: relation.pluck(:id))
+        batch_ids = relation.pluck(:id)
+        untracked_clients_count += batch_ids.count
+        Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: batch_ids)
       end
+      log_info("Reconciled #{untracked_clients_count} untracked clients") if untracked_clients_count > 0
     end
   end
 end

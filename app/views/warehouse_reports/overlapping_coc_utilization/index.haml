@@ -12,30 +12,19 @@
 .l-page-heading.mb-4
   %h1= title
 
-.warehouse-reports__ad_hoc-export.c-report{id: report_id}
+.warehouse-reports__ad_hoc-export.c-report{id: report_id, data: { controller: 'coc-overlap', 'coc-overlap-shapes-value': @shapes.to_json } }
   .pb-5(style='border-bottom: 1px solid #ccc; margin-bottom: 3em')
     = render 'form', form_id: form_id
   .mb-6
-    %h2.j-title Overview of Shared Client by Project Type and CoC
-    .h5-prs1.j-subtitle
+    %h2.j-title{data: {'coc-overlap-target': 'title'}} Overview of Shared Client by Project Type and CoC
+    .h5-prs1.j-subtitle{data: {'coc-overlap-target': 'subtitle'}}
   .row
     .col-md-4
       = render 'map', map_id: map_id
     .col-md-8
-      %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;'}
+      %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;', data: {'coc-overlap-target': 'results'}}
         .d-flex
           .mr-2
             %i.icon-info
           .text-lead
             Select two different CoCs for a breakdown of services provided to shared clients of Primary CoC and Secondary CoC.
-
-= content_for :page_js do
-  :javascript
-    App.Reports.cocOverlap({
-      resultsSelector: '##{results_id}',
-      formSelector: '##{form_id}',
-      mapProps: {
-        elementId: "#{map_id}",
-        shapes: #{@shapes.to_json.html_safe},
-      },
-    })

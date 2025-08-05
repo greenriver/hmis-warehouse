@@ -1,19 +1,22 @@
 @import '../helpers';
 
+// The input[type=submit] already receives the `.btn` class from Rails helpers.
+// We apply color variants using Bootstrap's standard classes, which are
+// built to work with CSS variables, instead of the custom button mixin.
 input[type=submit] {
-  @include button($brand-primary);
+  @extend .btn-primary;
 }
 
 input[type=submit].btn-danger {
-  @include button($brand-danger);
+  @extend .btn-danger;
 }
 
 input[type=submit].btn-warning {
-  @include button($brand-warning);
+  @extend .btn-warning;
 }
 
 input[type=submit].btn-info {
-  @include button($brand-info);
+  @extend .btn-info;
 }
 
 input[type=number] {

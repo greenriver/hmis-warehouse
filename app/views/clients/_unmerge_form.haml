@@ -41,9 +41,9 @@
                 %tr
                   %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
                   - if GrdaWarehouse::Config.get(:healthcare_available)
-                    %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                    %td.text-center{data: { 'bs-toggle' => :tooltip, 'bs-title' => "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
                       = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
-                    %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                    %td.text-center{data: { 'bs-toggle' => :tooltip, 'bs-title' => "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
                       = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
                   %td= c.data_source&.short_name
                   %td= c.uuid
@@ -56,7 +56,7 @@
                       = user.name
 
                     - if (match = c.warehouse_client_source.client_match)
-                      %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: {toggle: :popover, trigger: :click, title: 'Match Details', html: :true, content: "#{client_match_scorecard(match)}"}}
+                      %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: { 'bs-toggle' => :popover, trigger: :click, title: 'Match Details', html: :true, content: "#{client_match_scorecard(match)}"}}
                         Match Details
 
         .form-actions

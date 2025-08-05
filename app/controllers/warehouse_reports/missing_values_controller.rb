@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class MissingValuesController < ApplicationController
     include WarehouseReportAuthorization
@@ -35,6 +37,7 @@ module WarehouseReports
     SOURCES = ['all', 'data_source', 'organization', 'project'].map(&:humanize).map(&:titleize).freeze
 
     def index
+      @per_page_js = ['missing_values']
       report_params = { user: current_user }
       report_params.merge!(query_params[:q]) if params[:q]
       @query = MissingValuesQuery.new(**report_params.symbolize_keys)

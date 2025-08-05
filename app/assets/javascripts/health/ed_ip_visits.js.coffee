@@ -2,7 +2,7 @@
 
 class App.Health.EdIpVisits
   constructor: (@chart_selector, @url) ->
-    Chart.defaults.global.defaultFontSize = 10
+
     @color_map = {}
     @next_color = 0
     @_build_charts()
@@ -79,4 +79,3 @@ class App.Health.EdIpVisits
         @color_map[key] = color
         @next_color = @next_color % colors.length
     return color
-

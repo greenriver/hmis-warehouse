@@ -3,6 +3,10 @@
     flex: 1 1 100%;
     border: 0;
   }
-
-.d-flex.align-items-stretch{style: "min-height: 100vh"}
-  %iframe{src: public_report_style_guide_path}
+= render 'breadcrumbs'
+%h1 Public Reports
+.row
+  .col-sm-10
+    .d-flex.align-items-stretch{style: "min-height: 100vh"}
+      %iframe{src: public_report_style_guide_path}
+  .col-sm-2= render 'pages'

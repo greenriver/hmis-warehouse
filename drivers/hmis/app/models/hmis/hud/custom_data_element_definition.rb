@@ -24,6 +24,17 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     :file,
   ].freeze
 
+  FIELD_TYPE_TO_COLUMN = {
+    float: :value_float,
+    integer: :value_integer,
+    boolean: :value_boolean,
+    string: :value_string,
+    text: :value_text,
+    date: :value_date,
+    json: :value_json,
+    file: :value_file,
+  }.freeze
+
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :assessments
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
@@ -44,28 +55,11 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
 
-  def read_value_from(custom_data_element)
-    raise ArgumentError, "CustomDataElementDefinition ID mismatch: #{custom_data_element.data_element_definition_id} != #{id}" if custom_data_element.data_element_definition_id != id
+  def cde_arel_field
+    cde_t = Hmis::Hud::CustomDataElement.arel_table
+    column_name = FIELD_TYPE_TO_COLUMN[field_type.to_sym]
+    raise ArgumentError, "Invalid field type: #{field_type}" unless column_name
 
-    case field_type.to_sym
-    when :float
-      custom_data_element.value_float
-    when :integer
-      custom_data_element.value_integer
-    when :boolean
-      custom_data_element.value_boolean
-    when :string
-      custom_data_element.value_string
-    when :text
-      custom_data_element.value_text
-    when :date
-      custom_data_element.value_date
-    when :json
-      custom_data_element.value_json
-    when :file
-      custom_data_element.value_file
-    else
-      raise ArgumentError, "Invalid field type: #{field_type}"
-    end
+    cde_t[column_name]
   end
 end

@@ -7,16 +7,15 @@
   .mr-4
     .input-group
       %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-      %span.input-group-append
-        %button.btn.btn-secondary Search
+      %button.btn.btn-secondary Search
 .card
   .overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-      %thead.thead-dark
+      %thead.table-dark
         %tr
           - MaReports::MonthlyPerformance::Enrollment.detail_headers.each_value do |label|
             %th= label
-      %tbody.thead-dark
+      %tbody
         - @report.enrollments_for(@key, @sub_key).each do |enrollment|
           %tr
             - MaReports::MonthlyPerformance::Enrollment.detail_headers.each_key do |column|

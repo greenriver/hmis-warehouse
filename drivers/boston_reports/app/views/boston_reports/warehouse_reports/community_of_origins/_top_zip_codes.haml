@@ -35,5 +35,5 @@
               %tr
                 %td= "Zip Code #{d[:zip_code] || 'Unknown'}"
                 %td.text-right
-                  %span{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
+                  %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "#{d[:count]} of #{d[:total]}" }}
                     = number_to_percentage(d[:percent], precision: 1, strip_insignificant_zeros: true)

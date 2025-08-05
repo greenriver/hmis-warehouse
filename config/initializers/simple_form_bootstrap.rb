@@ -139,7 +139,16 @@ SimpleForm.setup do |config|
     b.use :html5
     b.wrapper :legend_tag, tag: 'legend', class: 'col-form-label pt-0' do |ba|
       ba.use :label_text
+      ba.use :input, class: 'form-check-input', error_class: 'is-invalid', valid_class: ''
     end
+
+    b.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
+    b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
+  end
+
+  # Add this custom wrapper
+  config.wrappers :vertical_collection_no_legend, item_wrapper_class: 'form-check', item_label_class: 'form-check-label', tag: 'fieldset', class: 'form-group', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
+    b.use :html5
     b.use :input, class: 'form-check-input', error_class: 'is-invalid', valid_class: ''
     b.use :full_error, wrap_with: { tag: 'div', class: 'invalid-feedback d-block' }
     b.use :hint, wrap_with: { tag: 'small', class: 'form-text' }
