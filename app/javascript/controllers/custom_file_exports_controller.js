@@ -6,53 +6,52 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log('CustomFiles controller connected');
     this.toggleVisibility();
+
+    // Listen for Select2 events on the version target
+    if (this.hasVersionTarget) {
+      const $versionSelect = window.$(this.versionTarget);
+      $versionSelect.on('select2:select select2:unselect select2:close', () => {
+        this.toggleVisibility();
+      });
+    }
   }
 
   toggleVisibility() {
-    console.log('toggleVisibility called');
-    console.log('hasVersionTarget:', this.hasVersionTarget);
-    console.log('hasSectionTargets:', this.hasSectionTargets);
-    
-    if (!this.hasVersionTarget || !this.hasSectionTargets) {
-      console.log('Returning early - missing targets');
+    // The hashed HMIS export uses the same page, but doesn't include custom files
+    if (!this.hasVersionTarget || !this.hasSectionTarget) {
       return;
     }
-    
+
     const version = this.versionTarget.value;
     const customFilesData = JSON.parse(this.versionTarget.dataset.customFiles || '{}');
-    const availableFiles = customFilesData[version] || [];
-    
-    console.log('Version:', version, 'Available files:', availableFiles);
-    
+    const availableFiles = customFilesData[version] || {};
+
     // Show/hide the entire section based on whether files are available
-    const showSection = availableFiles.length > 0;
-    
+    const showSection = Object.keys(availableFiles).length > 0;
+
     this.sectionTargets.forEach((section) => {
       section.style.display = showSection ? '' : 'none';
     });
-    
+
     // Update the select options
     if (this.hasSelectTarget && showSection) {
       this.updateSelectOptions(availableFiles);
     }
   }
-  
+
   updateSelectOptions(files) {
     const select = this.selectTarget;
-    
-    // Clear existing options except the first (placeholder)
-    while (select.options.length > 1) {
-      select.remove(1);
-    }
-    
-    // Add new options
-    files.forEach(file => {
-      const option = new Option(file, file);
+
+    // Clear ALL existing options (including the first one)
+    select.innerHTML = '';
+
+    // Add new options - files is now a hash where keys are display titles and values are file names
+    Object.entries(files).forEach(([displayTitle, fileName]) => {
+      const option = new Option(displayTitle, fileName);
       select.add(option);
     });
-    
+
     // Trigger Select2 update if it's initialized
     if (window.$ && window.$(select).data('select2')) {
       window.$(select).trigger('change.select2');

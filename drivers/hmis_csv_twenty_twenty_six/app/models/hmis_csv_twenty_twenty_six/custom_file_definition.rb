@@ -31,6 +31,10 @@ module HmisCsvTwentyTwentySix
       @config_data['filename']
     end
 
+    def for_select
+      ["#{description} (#{filename})", filename]
+    end
+
     def class_name
       @config_data['class_name']
     end

@@ -45,7 +45,7 @@
   - if report.filter.custom_file_types.present?
     .report-parameters__parameter
       %label.label.label-default.parameter-label Custom Files
-      %label.label.label-primary.parameter-value= report.filter.custom_file_types.join(', ')
+      %label.label.label-primary.parameter-value= report.filter.custom_file_types.compact_blank.join(', ')
 .report-parameters.border-top.pt-4
   = report.describe_filter_as_html
   - opts = report.filter.to_h

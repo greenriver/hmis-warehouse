@@ -21,6 +21,3 @@ application.register("filter-projects", FilterProjectsController)
 // TODO: this is only needed on some pages
 import ChartLoaderController from "./chart_loader_controller.js"
 application.register("chart-loader", ChartLoaderController)
-
-import CustomFilesController from "./custom_files_controller.js"
-application.register("custom-files", CustomFilesController)

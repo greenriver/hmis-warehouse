@@ -75,7 +75,7 @@ module Filters
       self.s3_prefix = filters.dig(:s3_prefix) unless filters.dig(:s3_prefix).nil?
       self.zip_password = filters.dig(:zip_password) unless filters.dig(:zip_password).nil?
       self.encryption_type = filters.dig(:encryption_type) unless filters.dig(:encryption_type).nil?
-      self.custom_file_types = filters.dig(:custom_file_types) || []
+      self.custom_file_types = filters.dig(:custom_file_types)&.compact_blank || []
 
       super(filters)
     end
@@ -290,7 +290,7 @@ module Filters
       return [] unless version == '2026'
 
       begin
-        HmisCsvTwentyTwentySix.custom_files_config.definitions.map(&:filename)
+        HmisCsvTwentyTwentySix.custom_files_config.definitions.map(&:for_select).to_h
       rescue StandardError => e
         Rails.logger.warn "Failed to load available custom file types: #{e.message}"
         []
