@@ -137,7 +137,7 @@ Rails.application.config.content_security_policy do |policy|
       'https://*.ingest.us.sentry.io', # Sentry US region ingestion endpoints
 
       # Public Reports - UI Components
-      'https://ka-f.fontawesome.com/releases/v5.15.4/webfonts/', # FontAwesome asset loading and updates
+      'https://ka-f.fontawesome.com/releases/', # FontAwesome asset loading and updates
     ].compact_blank,
   )
 
