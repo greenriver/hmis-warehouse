@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # see https://services.etosoftware.com
 require 'json'
 require 'restclient'
@@ -73,7 +75,7 @@ module EtoApi
       @tz_offset = sso_result['TimeZoneOffset'].to_i.to_s # null => 0
       enterprises = api_get_json "#{@endpoints[:security]}/GetSSOEnterprises/#{@auth_token}"
       @site_creds = nil
-      (@enterprise_guid = enterprises.detect { |e| e['Value'] == @enterprise }.try { |e| e['Key'] }) || raise("Cant find enterprise: #{@enterprise}")
+      (@enterprise_guid = enterprises&.detect { |e| e['Value'] == @enterprise }.try { |e| e['Key'] }) || raise("Cant find enterprise: #{@enterprise}")
     end
 
     def connected?
