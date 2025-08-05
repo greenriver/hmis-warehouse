@@ -2,7 +2,7 @@
 
 %ul.nav.nav-tabs.mb-0
   %li.nav-item
-    %a.nav-link.active{href: '#by_category', role: "presentation", data: {toggle: :tab}, aria: {controls:"by-category", selected:"true"}}
+    %a.nav-link.active{href: '#by_category', role: "presentation", data: { 'bs-toggle' => :tab}, aria: {controls:"by-category", selected:"true"}}
       By Category
   %li.nav-item
     = link_to 'By Client', by_client_hmis_data_quality_tool_warehouse_reports_report_path(@report), class: 'nav-link'

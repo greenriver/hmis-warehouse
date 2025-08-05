@@ -1,7 +1,7 @@
 - note = cohort_client_note
 
 - if note.note.length > 19
-  %p{data: {toggle: 'popover', placement: 'bottom', content: note.note, trigger: 'hover', container: 'body'}}
+  %p{data: { 'bs-toggle' => 'popover', placement: 'bottom', content: note.note, trigger: 'hover', container: 'body'}}
     = truncate(note.note, length: 20)
 - else
   = note.note

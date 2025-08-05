@@ -17,17 +17,17 @@
         %tr
           %td
             - display_name = task.name.split(/(#|: )/).last
-            %span{title: task.name, data: { toggle: :tooltip }}= display_name
+            %span{title: task.name, data: { 'bs-toggle': :tooltip }}= display_name
             %td= number_with_delimiter task.system_maintenance_task_runs.completed.count
             %td
               - if last_alert
-                %span{title: last_alert, data: { toggle: :tooltip }}
+                %span{title: last_alert, data: { 'bs-toggle': :tooltip }}
                   = time_ago_in_words(last_alert) + ' ago'
               - else
                 %span.text-muted Never
             %td
               - if last_completed
-                %span{title: last_completed, data: { toggle: :tooltip }}
+                %span{title: last_completed, data: { 'bs-toggle': :tooltip }}
                   = time_ago_in_words(last_completed) + ' ago'
               - else
                 %span.text-muted Never

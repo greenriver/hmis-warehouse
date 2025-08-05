@@ -1,128 +1,132 @@
 = render 'breadcrumbs'
+%h1 Icon Font
 .row
-  .col-sm-8
-    %h1 Icon Font from https://fontello.com
-    %p See the readme.md in /app/assets/fonts for instructions on adding additional characters
-    %p Char codes associated with class-names located in app/assets/stylesheets/settings/_icons.scss
-    %h4.mb-3 Icons Currently Available in This App
-
-:ruby
-  # Char codes located in app/assets/stylesheets/settings/_icons.scss
-  icons = %W(
-    angle-down
-    angle-left
-    angle-right
-    angle-up
-    arrow-circled-down
-    arrow-circled-right
-    arrow-down
-    arrow-left
-    arrow-left2
-    arrow-right
-    arrow-right2
-    arrow-up
-    award
-    bell
-    break
-    calendar
-    cancel-circle
-    cancel-circled
-    cancel-circled2
-    chart-bar
-    chart-pie
-    check
-    check-circle
-    checkbox-checked
-    checkbox-unchecked
-    checkmark
-    checkmark2
-    child
-    child1
-    city
-    clip-board-check
-    clock-o
-    cog
-    copy
-    cross
-    database
-    download2
-    enlarge2
-    enter
-    envelope-o
-    equalizer
-    exit
-    eye
-    eye-blocked
-    file-drawn
-    file-excel
-    file-pdf
-    file-text
-    filter
-    flag
-    go
-    group
-    group-alt
-    heart
-    heart-empty
-    helping-hands
-    home3
-    hourglass
-    house
-    info
-    link-ext
-    link-ext
-    list
-    list-numbered
-    list2
-    lock
-    map
-    medical-provider
-    medkit
-    mental-health
-    menu
-    minus
-    minus-circle
-    minus-circled
-    moon
-    moon-inv
-    move
-    notification
-    nurse-clipboard
-    ok-circled
-    ok-circled2
-    passport
-    pencil
-    plus
-    plus-circled
-    printer
-    question
-    reminder
-    return
-    right-circled2
-    settings_backup_restore
-    shrink2
-    spin1
-    spin2
-    star
-    stop
-    team
-    times-circle-o
-    undo
-    unlocked
-    up-circle
-    upload2
-    user
-    user2
-    users
-    users2
-    warning
-    wheelchair
-  )
-
-.style-guide__icon-list
-  - icons.each_slice(4) do |icons|
+  .col-sm-10
     .row
-      - icons.each do |icon|
-        .col-sm-3.mb-6
-          %i{ class: "icon-#{icon}" }
-          %pre= ".icon-#{icon}"
+      .col-sm-8
+        %h1 Icon Font from https://fontello.com
+        %p See the readme.md in /app/assets/fonts for instructions on adding additional characters
+        %p Char codes associated with class-names located in app/assets/stylesheets/settings/_icons.scss
+        %h4.mb-3 Icons Currently Available in This App
+
+    :ruby
+      # Char codes located in app/assets/stylesheets/settings/_icons.scss
+      icons = %W(
+        angle-down
+        angle-left
+        angle-right
+        angle-up
+        arrow-circled-down
+        arrow-circled-right
+        arrow-down
+        arrow-left
+        arrow-left2
+        arrow-right
+        arrow-right2
+        arrow-up
+        award
+        bell
+        break
+        calendar
+        cancel-circle
+        cancel-circled
+        cancel-circled2
+        chart-bar
+        chart-pie
+        check
+        check-circle
+        checkbox-checked
+        checkbox-unchecked
+        checkmark
+        checkmark2
+        child
+        child1
+        city
+        clip-board-check
+        clock-o
+        cog
+        copy
+        cross
+        database
+        download2
+        enlarge2
+        enter
+        envelope-o
+        equalizer
+        exit
+        eye
+        eye-blocked
+        file-drawn
+        file-excel
+        file-pdf
+        file-text
+        filter
+        flag
+        go
+        group
+        group-alt
+        heart
+        heart-empty
+        helping-hands
+        home3
+        hourglass
+        house
+        info
+        link-ext
+        link-ext
+        list
+        list-numbered
+        list2
+        lock
+        map
+        medical-provider
+        medkit
+        mental-health
+        menu
+        minus
+        minus-circle
+        minus-circled
+        moon
+        moon-inv
+        move
+        notification
+        nurse-clipboard
+        ok-circled
+        ok-circled2
+        passport
+        pencil
+        plus
+        plus-circled
+        printer
+        question
+        reminder
+        return
+        right-circled2
+        settings_backup_restore
+        shrink2
+        spin1
+        spin2
+        star
+        stop
+        team
+        times-circle-o
+        undo
+        unlocked
+        up-circle
+        upload2
+        user
+        user2
+        users
+        users2
+        warning
+        wheelchair
+      )
+
+    .style-guide__icon-list
+      - icons.each_slice(4) do |icons|
+        .row
+          - icons.each do |icon|
+            .col-sm-3.mb-6
+              %i{ class: "icon-#{icon}" }
+              %pre= ".icon-#{icon}"
+  .col-sm-2= render 'pages'

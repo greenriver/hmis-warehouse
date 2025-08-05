@@ -5,17 +5,21 @@
   display: flex;
   justify-content: flex-start;
   flex-wrap: wrap;
+
   &--right {
     justify-content: flex-end;
+
     input,
     a,
     button {
       margin-left: space(2);
     }
   }
+
   &--stacked {
     display: inline-flex;
     flex-direction: column;
+
     button {
       margin-bottom: space(3);
     }
@@ -36,7 +40,7 @@ form.inline-form {
 }
 
 label {
-  color: $gray-070;
+  color: var(--gray-070);
   /* @include open-sans-medium; */
 }
 
@@ -73,19 +77,21 @@ label {
   padding-left: 0;
 }
 
-.has-error {
-  /* @include form-control-validation($brand-danger, $brand-danger, $brand-danger); */
-}
+.form-group.has-error {
+  label {
+    color: var(--bs-danger);
+  }
 
-.error .form-control {
-  border-color: $brand-danger;
-  background: rgba($brand-danger-l, .1);
+  .form-control {
+    border-color: var(--bs-danger);
+    background: var(--brand-danger-lll);
+  }
 }
 
 .errors,
 .error label,
 .error-block {
-  color: $brand-danger;
+  color: var(--bs-danger);
 }
 
 .form-group .form-group {
@@ -103,7 +109,7 @@ label {
 .contact-on-match--icon-link:hover,
 .contact-on-match--icon-link:focus {
   text-decoration: none;
-  color: darken($text-color, 15);
+  color: var(--gray-080);
 }
 
 .selected-contact {
@@ -117,7 +123,7 @@ label {
 
 .input__button-size {
   padding: 6px 12px;
-  border: 1px solid $gray-030;
+  border: 1px solid var(--gray-030);
   vertical-align: bottom;
 }
 
@@ -141,84 +147,103 @@ label {
   border: 1px solid rgba(0, 0, 0, 0.15);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
   padding-left: 0px;
-  li {list-style: none;}
+
+  li {
+    list-style: none;
+  }
 }
+
 .ui-menu-item-wrapper {
   padding: 10px 20px;
 }
 
 .ui-state-active {
-  background-color: $cob-sg-blue-006;
+  background-color: var(--brand-primary-l);
   color: #FFFFFF;
 }
 
 .radio-button-buttons__container {
   font-size: 0px;
+
   label {
     position: relative;
     font-size: 12px;
     cursor: pointer;
   }
+
   input {
     position: absolute;
     opacity: 0;
   }
+
   span {
     display: inline-block;
     padding: 6px 12px;
-    background-color: $gray-020;
+    background-color: var(--gray-020);
     color: $text-color;
     text-transform: uppercase;
   }
+
   label:not(:last-child) {
-    span {border-right: 1px solid #FFF;}
+    span {
+      border-right: 1px solid #FFF;
+    }
   }
+
   label:first-child {
     span {
       border-top-left-radius: 4px;
       border-bottom-left-radius: 4px;
     }
   }
+
   label:last-child {
     span {
       border-top-right-radius: 4px;
       border-bottom-right-radius: 4px;
     }
   }
-  label input:checked ~ span {
-    background-color: $brand-primary;
+
+  label input:checked~span {
+    background-color: var(--bs-primary);
     color: #FFFFFF;
   }
 }
 
 .radio-button-list__container {
   min-width: 100px;
+
   label {
     display: block;
     position: relative;
     cursor: pointer;
   }
+
   input {
     position: absolute;
     opacity: 0;
   }
+
   span {
     display: block;
     padding: 6px 12px;
   }
-  label input:checked ~ span {
-    background-color: $brand-primary;
+
+  label input:checked~span {
+    background-color: var(--bs-primary);
     color: #FFFFFF;
   }
-  label input:hover ~ span,
-  label input:focus ~ span {
-    background-color: $brand-primary;
+
+  label input:hover~span,
+  label input:focus~span {
+    background-color: var(--bs-primary);
     color: #FFFFFF;
   }
 }
 
 .string-collection-with-other__container {
   margin-bottom: 30px;
+
   .form-group {
     margin-bottom: 0px;
   }
@@ -242,27 +267,30 @@ textarea.form-control {
 .form-control-faux {
   display: flex;
   align-items: center;
-  border-color: $gray-020;
+  border-color: var(--gray-020);
 }
-.form-control:focus
-{
-  box-shadow: inset 0 0 0 0.2rem rgba(69, 118, 135, 0.25);
+
+.form-control:focus {
+  box-shadow: inset 0 0 0 0.2rem color-mix(in srgb, var(--bs-primary) 25%, transparent);
 }
-label.readonly-label
-{
+
+label.readonly-label {
   font-weight: 600;
 }
 
-.readonly-value
-{
+.readonly-value {
   font-weight: font-weight(normal);
 }
-.mini-login-form
-{
+
+.mini-login-form {
   max-width: 20em;
-  .form-control
-  {
+
+  .form-control {
     height: calc(1em + 1rem + 2px);
     font-size: 0.8rem;
   }
+}
+
+label.date_picker {
+  margin-bottom: 0.5rem;
 }

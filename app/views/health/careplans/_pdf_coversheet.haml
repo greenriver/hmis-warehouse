@@ -6,9 +6,11 @@
   .l-print__section
     %h1= title
 
-  - if ENV['CAREPLAN_LOGO'].present?
+  - logo = GrdaWarehouse::Theme.careplan_logo
+  - if logo.attached?
     %div{style: "text-align:center;"}
-      = image_tag(inline_asset_base64("theme/logo/#{ENV['CAREPLAN_LOGO']}"), style: 'width: 70%;')
+      - content_type = logo.blob.content_type
+      = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_careplan_logo}", style: 'width: 70%;')
 
   %div.l-print__section
     %div{style: "margin-bottom: 8px; margin-top: 30px;"}
@@ -29,7 +31,7 @@
         %strong
           %u ACTION REQUIRED:
       If you are the patient's PCP, please review and provide your signature on the signature page.
-  
+
   .coverSheet__details
     %div{style: 'margin-bottom: 20px;'}
       %p.muted

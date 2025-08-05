@@ -5,6 +5,5 @@
       .modal-header
         %h5.modal-title{id: label_id}= title
         - if !blocker
-          %button.close{ type: "button", "data-dismiss" => "modal", "aria-label" => "Close" }
-            %span{ "aria-hidden" => "true" } &times;
+          %button.btn-close{ type: "button", "data-bs-dismiss" => "modal", "aria-label" => "Close" }
       = content

@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -341,7 +341,8 @@ CREATE TABLE analytics.app_users (
     id bigint NOT NULL,
     first_name character varying,
     last_name character varying,
-    email character varying
+    email character varying,
+    agency_name character varying
 );
 
 
@@ -639,7 +640,8 @@ CREATE TABLE public.cas_analytics_referral_contacts (
     contact_id bigint,
     contact_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    cas_user_id bigint
 );
 
 
@@ -654,7 +656,8 @@ CREATE VIEW analytics.cas_referral_contacts AS
     contact_id,
     contact_type,
     created_at,
-    updated_at
+    updated_at,
+    cas_user_id
    FROM public.cas_analytics_referral_contacts;
 
 
@@ -665,7 +668,8 @@ CREATE VIEW analytics.cas_referral_contacts AS
 CREATE TABLE public.cas_analytics_referral_users (
     id bigint NOT NULL,
     email character varying,
-    referral_id bigint
+    referral_id bigint,
+    cas_user_id bigint
 );
 
 
@@ -676,7 +680,8 @@ CREATE TABLE public.cas_analytics_referral_users (
 CREATE VIEW analytics.cas_referral_users AS
  SELECT id,
     email,
-    referral_id
+    referral_id,
+    cas_user_id
    FROM public.cas_analytics_referral_users;
 
 
@@ -22817,6 +22822,23 @@ CREATE SEQUENCE public.hmis_csv_loader_logs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_csv_loader_logs_id_seq OWNED BY public.hmis_csv_loader_logs.id;
+
+
+--
+-- Name: hmis_destination_client_latest_assessments; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_destination_client_latest_assessments AS
+ SELECT DISTINCT ON (wc.destination_id, def.identifier) wc.destination_id AS destination_client_id,
+    ca.id AS custom_assessment_id,
+    def.identifier AS form_identifier
+   FROM ((((public.warehouse_clients wc
+     JOIN public."Client" c ON (((c."DateDeleted" IS NULL) AND (c.id = wc.source_id))))
+     JOIN public."CustomAssessments" ca ON (((ca."DateDeleted" IS NULL) AND (ca.data_source_id = c.data_source_id) AND ((ca."PersonalID")::text = (c."PersonalID")::text))))
+     JOIN public.hmis_form_processors fp ON ((((fp.owner_type)::text = 'Hmis::Hud::CustomAssessment'::text) AND (fp.owner_id = ca.id))))
+     JOIN public.hmis_form_definitions def ON (((def.deleted_at IS NULL) AND (def.id = fp.definition_id))))
+  WHERE (wc.destination_id IS NOT NULL)
+  ORDER BY wc.destination_id, def.identifier, ca."AssessmentDate" DESC, ca.id DESC;
 
 
 --
@@ -75157,6 +75179,10 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250804124300'),
+('20250804124243'),
+('20250804122929'),
+('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),
 ('20250716131240'),
@@ -75350,3 +75376,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

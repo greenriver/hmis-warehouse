@@ -25,21 +25,21 @@
           %button.btn.btn-secondary Search
   .card.overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-      %thead.thead-dark
+      %thead.table-dark
         %tr
           %th
           - @report.detail_headers(key: @key).each_value do |header|
             %th= header
-      %tbody.thead-dark
+      %tbody
         - @report.clients_for_question(@key, :reporting, project_id: project_id).each.with_index do |client, i|
           %tr
-            %th= i + 1
+            %th.table-dark= i + 1
             - @report.detail_headers(key: @key).each_key do |k|
               %td{style: 'max-width: 600px;'}
                 - if k.to_s == 'client_id'
                   = link_to appropriate_client_path(client[k]) do
                     = client[k]
-                  %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                  %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                     %i.icon-info
                 - else
                   = formatted_cell(client[k], k, project_id: params[:project_id])

@@ -14,11 +14,19 @@
   text-transform: uppercase;
 }
 
-@for $i from 1 through length($indicator-colors) {
-  $color: lighten(nth($indicator-colors, $i), 10%);
+// Pre-calculated map to replace the loop with lighten() and determine-color-for-best-contrast()
+$heading-highlights: (
+  1: (bg: #e6d9ed, color: #222),
+  // lighten(#decbe4, 10%)
+  2: (bg: #d9e0f0, color: #222),
+  // lighten(#cbd5e8, 10%)
+  3: (bg: #f0f9d8, color: #222) // lighten(#e6f5c9, 10%)
+);
+
+@each $i, $props in $heading-highlights {
   .c-heading--highlight-#{$i} {
-    color: determine-color-for-best-contrast($color);
-    background: $color;
+    color: map-get($props, color);
+    background: map-get($props, bg);
     padding: space(2);
   }
 }

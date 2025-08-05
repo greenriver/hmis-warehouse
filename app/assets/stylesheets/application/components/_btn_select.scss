@@ -7,10 +7,12 @@
   border: 0;
   background: none;
   padding: 0;
+
   &:focus {
     outline: 0;
     box-shadow: none;
   }
+
   &.checked {
     @include checkbox-checked;
   }
@@ -29,11 +31,12 @@
 .c-btn-select--light {
   &.not-checked {
     &::before {
-      background: $white;
-      border-color: $gray-060;
+      background: var(--white);
+      border-color: var(--gray-060);
     }
+
     &::after {
-      color: $gray-040;
+      color: var(--gray-040);
     }
   }
 }

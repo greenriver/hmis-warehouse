@@ -3,7 +3,7 @@
     - data = {}
     - data[:title] = title if defined?(title)
     - data[:content] = description if defined?(description)
-    - data.merge!({ toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom })
+    - data.merge!({ 'bs-toggle' => :popover, boundary: :window, trigger: :focus, placement: :bottom })
     .c-indicator__title.text-center
       = indicator[:title]
       - if data[:title].present?

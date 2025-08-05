@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Example for testing:
 # GrdaWarehouse::Theme.create!(
 #   client: 'myclient', # should match ENV['CLIENT']
@@ -19,21 +21,17 @@
 #   }
 # )
 
-# Notes for remote credential setup
-# creds = GrdaWarehouse::RemoteCredentials::S3.where(slug: 'theme').first_or_initialize
-# creds.update(
-#   bucket: 'openpath-ecs-assets',
-#   region: 'us-east-1',
-#   s3_access_key_id: 'local_access_key',
-#   s3_secret_access_key: 'local_secret_key',
-#   s3_prefix: "#{ENV['CLIENT']}-warehouse-#{Rails.env}-ecs",
-#   active: true,
-# )
-# theme = GrdaWarehouse::Theme.first_or_create(client: ENV.fetch('CLIENT'))
-# theme.update(remote_credential: creds)
 module GrdaWarehouse
   class Theme < GrdaWarehouseBase
-    belongs_to :remote_credential, class_name: 'GrdaWarehouse::RemoteCredentials::S3', optional: true
+    has_one_attached :logo do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100]
+    end
+    has_one_attached :print_logo do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100]
+    end
+    has_one_attached :careplan_logo do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100]
+    end
 
     # Max 1 theme per HMIS origin
     validates_uniqueness_of :hmis_origin,
@@ -41,10 +39,101 @@ module GrdaWarehouse
                             if: :hmis_theme?, # only run validation if this is an HMIS theme
                             conditions: -> { where.not(hmis_value: [nil, '']) } # only validate uniqueness against other HMIS themes
 
-    def set_theme_defaults
-      # Fetch files from S3 if available or use defaults
-      self.css_file_contents ||= css_file_contents_remote.presence || css_file_contents_default
-      self.scss_file_contents ||= scss_file_contents_remote.presence || scss_file_contents_default
+    # Encapsulate the logic for getting the theme CSS
+    # If the theme is not set, set it to the default and save it for the future
+    def self.css_file_contents
+      theme = active_theme
+      return theme.css_file_contents if theme.css_file_contents.present?
+
+      theme.set_theme_default_css!
+      theme.save!
+      theme.css_file_contents
+    end
+
+    def self.logo
+      theme = active_theme
+      theme.set_theme_default_logo! unless theme.logo.attached?
+      theme.logo
+    end
+
+    def self.print_logo
+      theme = active_theme
+      theme.set_theme_default_print_logo! unless theme.print_logo.attached?
+      theme.print_logo
+    end
+
+    def self.careplan_logo
+      active_theme.careplan_logo
+    end
+
+    def self.active_theme
+      where(client: ENV.fetch('CLIENT')).first_or_create
+    end
+
+    def set_theme_default_logo!
+      return if logo.attached?
+      return unless logo_file_exists?
+
+      logo.attach(logo_default)
+    end
+
+    def set_theme_default_print_logo!
+      return if print_logo.attached?
+
+      print_logo.attach(print_logo_default) if print_logo_file_exists?
+      print_logo.attach(logo_default) if logo_file_exists?
+    end
+
+    def logo_default
+      find_and_open_logo(ENV['LOGO'])
+    end
+
+    def print_logo_default
+      find_and_open_logo(ENV['PRINT_LOGO'])
+    end
+
+    def self.encoded_logo
+      Base64.strict_encode64(active_theme.logo.download)
+    end
+
+    def self.encoded_print_logo
+      Base64.strict_encode64(active_theme.print_logo.download)
+    end
+
+    def self.encoded_careplan_logo
+      Base64.strict_encode64(active_theme.careplan_logo.download)
+    end
+
+    private def find_logo_path(logo_name)
+      default_logo = 'open_path.svg'
+      return logo_directory.join(default_logo) if logo_name.blank?
+
+      logo_base_path = logo_directory.join(logo_name)
+      found_path = Dir.glob(logo_base_path.to_s + '.*').first
+      return logo_directory.join(default_logo) if found_path.blank?
+
+      found_path
+    end
+
+    private def find_and_open_logo(logo_name)
+      ::File.open(find_logo_path(logo_name))
+    end
+
+    private def logo_directory
+      Rails.root.join('app', 'assets', 'images', 'theme', 'logo')
+    end
+    private def logo_file_exists?
+      ::File.exist?(find_logo_path(ENV['LOGO']))
+    end
+
+    private def print_logo_file_exists?
+      ::File.exist?(find_logo_path(ENV['PRINT_LOGO']))
+    end
+
+    def set_theme_default_css!
+      return if css_file_contents.present?
+
+      self.css_file_contents = css_file_contents_default
     end
 
     def hmis_theme?
@@ -62,101 +151,21 @@ module GrdaWarehouse
       hmis_themes.find { |t| !t.hmis_origin.present? }
     end
 
-    private def s3
-      remote_credential&.s3
-    end
-
-    private def css_file_contents_remote
-      return unless remote_credential
-      return unless remote_css_file_exists?
-
-      s3.get_as_io(key: remote_css_full_file_path)&.read
-    end
-
-    private def remote_css_file_exists?
-      s3.fetch_key_list(prefix: remote_css_file_path).include?(remote_css_full_file_path)
-    end
-
-    private def remote_css_file_path
-      "#{remote_credential.s3_prefix}/#{css_file_path}"
-    end
-
-    def css_file_path
-      'app/assets/stylesheets/theme/styles'
-    end
-
-    def css_file_name
-      '_variables.scss'
-    end
-
-    private def remote_css_full_file_path
-      "#{remote_css_file_path}/#{css_file_name}"
-    end
-
-    def store_remote_css_file
-      return unless remote_credential
-
-      # Write the local file for dev environments
-      ::File.open("#{css_file_path}/#{css_file_name}", 'w') { |f| f.write(css_file_contents) } if Rails.env.development?
-      # store the S3 version
-      s3.store(content: css_file_contents, name: remote_css_full_file_path)
-    end
-
-    # This happens automatically when we deploy, but for testing locally
-    def fetch_remote_css_file
-      s3.fetch(file_name: css_file_name, prefix: remote_css_file_path, target_path: "#{css_file_path}/#{css_file_name}")
-    end
-
     private def css_file_contents_default
-      'span {}'
+      # Select the correct theme stylesheet based on ENV['CLIENT']
+      client_theme_name = ENV['CLIENT'].presence
+      sheet_name = client_specific_css_file_exists? ? client_theme_name : 'default'
+      ::File.read(Rails.root.join(::File.join(*self.class.css_path, "#{sheet_name}.css")))
     end
 
-    private def scss_file_contents_remote
-      return unless remote_credential
-      return unless remote_scss_file_exists?
-
-      s3.get_as_io(key: remote_scss_full_file_path)&.read
+    def self.css_path
+      ['app', 'assets', 'stylesheets', 'application', '_custom']
     end
 
-    private def remote_scss_file_exists?
-      s3.fetch_key_list(prefix: remote_scss_file_path).include?(remote_scss_full_file_path)
-    end
-
-    private def remote_scss_file_path
-      "#{remote_credential.s3_prefix}/#{scss_file_path}"
-    end
-
-    def scss_file_path
-      'app/assets/stylesheets/application/_custom/theme'
-    end
-
-    def scss_file_name
-      "#{ENV.fetch('CLIENT', 'client')}.scss"
-    end
-
-    private def remote_scss_full_file_path
-      "#{remote_scss_file_path}/#{scss_file_name}"
-    end
-
-    def store_remote_scss_file
-      return unless remote_credential
-
-      # Write the local file for dev environments
-      ::File.open("#{scss_file_path}/#{scss_file_name}", 'w') { |f| f.write(scss_file_contents) } if Rails.env.development?
-      # store the S3 version
-      s3.store(content: scss_file_contents, name: remote_scss_full_file_path)
-    end
-
-    # This happens automatically when we deploy, but for testing locally
-    def fetch_remote_scss_file
-      s3.fetch(file_name: scss_file_name, prefix: remote_scss_file_path, target_path: "#{scss_file_path}/#{scss_file_name}")
-    end
-
-    private def scss_file_contents_default
-      sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', "#{ENV['CLIENT']}.scss")
-      return '' unless ENV['CLIENT'].present? && ::File.exist?(sheet)
-
-      ::File.read(sheet)
+    private def client_specific_css_file_exists?
+      client_theme_name = ENV['CLIENT'].presence
+      css_file = Rails.root.join(::File.join(*self.class.css_path, "#{client_theme_name}.css"))
+      client_theme_name && ::File.exist?(css_file)
     end
   end
 end

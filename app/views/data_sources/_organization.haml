@@ -9,7 +9,7 @@
         .mb-1.badge.badge-info.badge-pill.c-tag-pill Confidential Organization
       - if org.dmh
         Treated as DMH for chronic calculations
-    .col-sm-4.text-right
+    .col-sm-4.text-end
       - if can_edit_organizations?
         .mb-4
           = link_to edit_organization_path(org), class: 'btn btn-secondary btn-sm' do
