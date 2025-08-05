@@ -280,6 +280,8 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
 
+      data_source = GrdaWarehouse::DataSource.hmis.order(:id).first # TODO(#6612, #6691): specify data source for seeding. for now choose first.
+
       # Find or initialize the definition record
       record = Hmis::Form::Definition.where(
         identifier: identifier,
@@ -296,11 +298,13 @@ module HmisUtil
 
       # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
       unless Rails.env.test?
-        Hmis::Form::CustomDataElementGenerator.new(
+        cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
           create_missing_mappings: false,
-          data_source: GrdaWarehouse::DataSource.hmis.first, # fixme
-        ).run.each(&:save!)
+          data_source: data_source,
+          set_form_definition_identifier: !record.hud_assessment?, # don't set for custom fields on HUD assessments because they are often repeated across data collection stages
+        ).run
+        cdeds.each(&:save!)
       end
 
       # Validate definition

@@ -140,7 +140,7 @@ module Hmis
 
         owner_type = determine_owner_type(item)
         found = Hmis::Hud::CustomDataElementDefinition.find_by(owner_type: owner_type, key: custom_field_key, data_source: @data_source)
-        raise "Form '#{@definition.identifier}' item '#{item.link_id}' references a CDED '#{custom_field_key}' belongs to a different form ('#{found.form_definition_identifier}')" if found&.form_definition_identifier && found&.form_definition_identifier != @definition.identifier
+        raise "Form '#{@definition.identifier}' item '#{item.link_id}' references a CDED '#{custom_field_key}' belongs to a different form ('#{found.form_definition_identifier}')" if found&.form_definition_identifier.present? && found&.form_definition_identifier != @definition.identifier
 
         found
       end
