@@ -885,13 +885,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       context 'with open opportunity' do
         let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
 
-        it 'assigns and closes the opportunity' do
+        it 'raises an error' do
           expect do
             process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
-            e1.reload
-            opportunity.reload
-          end.to change(e1, :current_unit).to(unit).
-            and change(opportunity, :status).from('open').to('closed')
+          end.to raise_error(RuntimeError, /Cannot assign directly to a unit receiving referrals/)
         end
       end
 
@@ -901,7 +898,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         it 'raises an error' do
           expect do
             process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
-          end.to raise_error(RuntimeError, /Cannot assign to a unit with an active referral/)
+          end.to raise_error(RuntimeError, /Cannot assign directly to a unit receiving referrals/)
         end
       end
     end

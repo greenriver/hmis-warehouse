@@ -30,7 +30,7 @@ module Mutations
       coc_code = project.determine_coc_code(coc_code_arg: input.coc_code)
 
       project_has_units = project.units.exists?
-      available_units = project.units.available_for_occupancy_on(input.date_provided).order(updated_at: :desc).to_a
+      available_units = project.units.unoccupied_on(input.date_provided).not_receiving_referrals.order(updated_at: :desc).to_a
 
       # async record load must be called outside of a db transaction to avoid deadlocks
       enrollment_by_client = clients.to_h do |client|
@@ -75,10 +75,7 @@ module Mutations
               errors.add :base, :invalid, full_message: 'Failed to enroll client because there are no available units' if available_units.empty?
               raise ActiveRecord::Rollback if errors.any?
 
-              unit = available_units.pop
-              enrollment.assign_unit(unit: unit, start_date: input.date_provided, user: current_user)
-
-              unit.latest_opportunity.close! if unit.latest_opportunity&.open?
+              enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
             end
 
             enrollment.save_new_enrollment!

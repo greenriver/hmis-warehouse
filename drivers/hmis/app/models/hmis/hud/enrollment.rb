@@ -464,15 +464,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     unit_type.track_availability(project_id: project_id, user_id: user_id)
   end
 
-  # close opportunities via attr to avoid adding complexity to form processor
-  attr_accessor :opportunities_to_close
-  after_save :close_deferred_opportunities, if: :opportunities_to_close
-  def close_deferred_opportunities
-    opportunities_to_close.each do |opportunity|
-      opportunity.close! if opportunity.open?
-    end
-  end
-
   def assign_unit(unit:, start_date:, user:)
     current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
     # ignore: this enrollment is already assigned to this unit
@@ -486,8 +477,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
     opportunity = unit.latest_opportunity
-    if opportunity&.locked?
-      raise 'Cannot assign to a unit with an active referral' unless opportunity.active_referral&.client == client
+    if opportunity&.locked? || opportunity&.open?
+      raise 'Cannot assign directly to a unit receiving referrals' unless opportunity.active_referral&.client == client
     end
 
     # include project id here since it may not be available during after_save hooks due to WIP

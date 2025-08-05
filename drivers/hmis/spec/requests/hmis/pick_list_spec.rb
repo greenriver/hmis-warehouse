@@ -382,10 +382,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_locked_opportunity, project: project, data_source: ds1, status: :locked) }
         let!(:closed_opportunity) { create(:hmis_ce_opportunity, unit: unit_with_closed_opportunity, project: project, data_source: ds1, status: :closed) }
 
-        it 'includes unit with open opportunity' do
+        it 'does not include unit with open or locked opportunities' do
           available_units = picklist_option_codes(project)
-          expect(available_units).to contain_exactly(unit_with_open_opportunity.id, unit_with_closed_opportunity.id)
-          expect(available_units).not_to include(unit_with_locked_opportunity.id)
+          expect(available_units).to contain_exactly(unit_with_closed_opportunity.id)
+          expect(available_units).not_to include(unit_with_locked_opportunity.id, unit_with_open_opportunity.id)
         end
       end
     end

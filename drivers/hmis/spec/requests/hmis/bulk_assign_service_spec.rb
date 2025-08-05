@@ -132,20 +132,6 @@ RSpec.describe 'BulkAssignService', type: :request do
       and change(old_enrollment.services, :count).by(0)
   end
 
-  context 'when unit has open opportunity' do
-    let!(:unit) { create(:hmis_unit, project: p1) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
-
-    it 'assigns the unit and closes the opportunity' do
-      expect do
-        perform_mutation
-        opportunity.reload
-      end.to change(opportunity, :status).from('open').to('closed')
-
-      expect(c1.enrollments.first.current_unit).to eq(unit)
-    end
-  end
-
   describe 'failure scenarios' do
     # give user access to everything at p2. We will test removing access from p1.
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
@@ -192,6 +178,20 @@ RSpec.describe 'BulkAssignService', type: :request do
     it 'fails if the only available unit has a locked opportunity (referral in progress)' do
       unit = create(:hmis_unit, project: p1)
       create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked)
+
+      expect do
+        response, result = perform_mutation
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'bulkAssignService', 'errors')
+        expect(errors.length).to eq(1)
+        expect(errors.first['fullMessage']).to match(/no available units/)
+      end.to not_change(Hmis::Hud::Service, :count)
+    end
+
+    it 'fails if the only available unit has an open opportunity' do
+      unit = create(:hmis_unit, project: p1)
+      create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open)
 
       expect do
         response, result = perform_mutation

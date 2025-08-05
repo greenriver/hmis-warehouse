@@ -537,10 +537,10 @@ module Types
     def self.admin_available_units_for_enrollment(project, household_id: nil)
       return [] unless project
 
-      # Return units that are available for occupancy, AND units already occupied by household members.
+      # Return units that are unoccupied/not receiving referrals, AND units already occupied by household members.
 
-      # IDs of units that are unoccupied and don't currently have a referral underway
-      available = project.units.available_for_occupancy_on.pluck(:id)
+      # IDs of units that are unoccupied and not receiving referrals
+      available = project.units.unoccupied_on.not_receiving_referrals.pluck(:id)
 
       # IDs of units that are currently assigned to members of this household
       hh_units = if household_id.present?
