@@ -1,0 +1,129 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+require_relative 'shared_ce_processing_context'
+
+RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
+  include ActiveJob::TestHelper
+  include_context 'with ce processing setup'
+
+  before do
+    Hmis::Ce::ChangeMarker.delete_all
+  end
+
+  it 'processes dirty pools against all clients' do
+    create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
+
+    # We expect the job to create candidates for all 3 clients
+    expect { described_class.perform_now }.to change(Hmis::Ce::Match::Candidate, :count).by(3)
+
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
+
+    # Verify that candidates were created for the correct clients
+    client_ids = [client1.id, client2.id, client3.id]
+    candidate_client_ids = Hmis::Ce::Match::Candidate.joins(:client_proxy).where(candidate_pool: pool).pluck('ce_client_proxies.client_id')
+    expect(candidate_client_ids).to match_array(client_ids)
+  end
+
+  it 'processes multiple dirty pools' do
+    pool2 = create(:hmis_ce_match_candidate_pool)
+    create(:hmis_ce_opportunity, candidate_pool: pool2)
+
+    create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
+    create(:hmis_ce_change_marker, trackable: pool2, current_version: 1, processed_version: 0)
+
+    # Should create candidates for both pools (3 clients each = 6 total)
+    expect { described_class.perform_now }.to change(Hmis::Ce::Match::Candidate, :count).by(6)
+
+    # Both pools should be marked as processed
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool2).processed_version).to eq(1)
+  end
+
+  it 'handles missing pools gracefully' do
+    pool_id = pool.id
+    # Create marker first, then destroy the pool
+    create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
+
+    # Remove opportunity first to avoid deletion restriction
+    opportunity.destroy!
+    pool.destroy!
+
+    # Should not raise an error and should clean up the marker
+    expect { described_class.perform_now }.not_to raise_error
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable_id: pool_id, trackable_type: 'Hmis::Ce::Match::CandidatePool')).to be_nil
+  end
+
+  context 'when no dirty pools' do
+    it 'does not call the match engine' do
+      create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 1)
+
+      expect(Hmis::Ce::Match::Engine).not_to receive(:call)
+      described_class.perform_now
+    end
+  end
+
+  context 'with untracked records' do
+    it 'creates change markers for untracked pools' do
+      # pool is untracked
+      create(:hmis_ce_change_marker, trackable: client1)
+
+      expect do
+        described_class.perform_now
+      end.to change(Hmis::Ce::ChangeMarker, :count).by(1) # pool only
+
+      expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool)).to be_present
+    end
+  end
+
+  context 'with self-scheduling' do
+    it 'schedules next batch when wait_time is provided' do
+      travel_to now do
+        described_class.perform_now(wait_time: 5.minutes)
+
+        enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
+        expect(enqueued_job).to be_present
+        expect(enqueued_job[:at].to_i).to eq((now + 5.minutes).to_i)
+      end
+    end
+
+    it 'does not schedule next batch when wait_time is nil' do
+      described_class.perform_now(wait_time: nil)
+
+      enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
+      expect(enqueued_job).to be_nil
+    end
+  end
+
+  describe '.enqueue_if_not_already_running' do
+    it 'enqueues job when none are running' do
+      expect { described_class.enqueue_if_not_already_running(wait_time: 5.minutes) }.
+        to have_enqueued_job(described_class)
+    end
+
+    it 'does not enqueue job when one is already queued' do
+      # First job
+      described_class.perform_later(wait_time: 5.minutes)
+      # Clear the jobs queue to simulate the check
+      clear_enqueued_jobs
+
+      # Mock the jobs_for_class to return a job (simulating one already queued)
+      allow(Delayed::Job).to receive(:jobs_for_class).with(described_class.name).and_return([double('job')])
+
+      expect { described_class.enqueue_if_not_already_running(wait_time: 5.minutes) }.
+        not_to have_enqueued_job(described_class)
+    end
+  end
+
+  describe 'queue configuration' do
+    it 'runs on the long_running queue' do
+      expect(described_class.queue_name).to eq(ENV.fetch('DJ_LONG_QUEUE_NAME', 'long_running'))
+    end
+  end
+end

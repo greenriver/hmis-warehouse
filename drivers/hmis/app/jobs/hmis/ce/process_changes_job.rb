@@ -9,9 +9,13 @@
 #
 # Hmis::Ce::ProcessChangesJob
 #
-# Continuously processes dirty CE (Coordinated Entry) clients and candidate pools to maintain
-# up-to-date eligibility calculations. This job self-schedules to ensure  continuous processing
-# while using advisory locks to prevent concurrent execution.
+# DEPRECATED: This job has been replaced by two specialized jobs for better performance:
+# - ProcessPoolsJob: Handles expensive pool processing on long_running queue
+# - ProcessClientsJob: Handles fast client processing on default queue
+#
+# This job is maintained for backwards compatibility but should not be used for new implementations.
+# The concurrent job architecture provides better responsiveness by preventing pool processing
+# from blocking client updates.
 #
 # See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 #

@@ -67,5 +67,30 @@ module Hmis::Ce::Match
       cdeds = Hmis::Ce::Match::Expression::CdeFieldMap.new.cdeds_for(cde_fields)
       cdeds.pluck(:form_definition_identifier).uniq
     end
+
+    # Executes a block with an exclusive advisory lock on this specific pool.
+    # Used by ProcessPoolsJob to prevent concurrent pool processing.
+    #
+    # @param timeout_seconds [Integer] Maximum time to wait for lock acquisition
+    # @return [Boolean] true if lock was acquired and block executed, false if timeout
+    def with_exclusive_lock(timeout_seconds: 60, &block)
+      ::GrdaWarehouseBase.with_advisory_lock(advisory_lock_name, timeout_seconds: timeout_seconds, &block)
+    end
+
+    # Attempts to execute a block with a non-blocking advisory lock on this specific pool.
+    # Used by ProcessClientsJob to coordinate with ProcessPoolsJob.
+    #
+    # @return [Boolean] true if lock was acquired and block executed, false if pool is busy
+    def with_non_blocking_lock(&block)
+      ::GrdaWarehouseBase.with_advisory_lock(advisory_lock_name, timeout_seconds: 0, &block)
+    end
+
+    private
+
+    # Generates the advisory lock name for this pool
+    # @return [String] Lock name used for coordinating pool access between jobs
+    def advisory_lock_name
+      "Hmis::Ce::PoolLock::#{id}"
+    end
   end
 end
