@@ -76,7 +76,7 @@ module EtoApi
       enterprises = api_get_json "#{@endpoints[:security]}/GetSSOEnterprises/#{@auth_token}"
       @site_creds = nil
       @enterprise_guid = enterprises&.detect { |e| e['Value'] == @enterprise }.try { |e| e['Key'] }
-      Rails.logger.error("Cant find enterprise: #{@enterprise}") if @enterprise_guid.blank?
+      Rails.logger.error("Cant find enterprise: #{@enterprise} in #{enterprises&.map { |e| e['Value'] }.inspect}") if @enterprise_guid.blank?
     end
 
     def connected?
