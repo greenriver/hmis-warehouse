@@ -37,7 +37,7 @@ module CeWorkflows
     end
 
     # This method builds the QA housing workflow version 1, which is a referral workflow for housing opportunities
-    # TODO: make this work with direct referral for housing transfers. Add an additional initial step? the "continue workflow" doesn't make sense
+    # TODO: make this more ergonomic for Direct Referrals (housing transfers). The "continue workflow" doesn't make sense.
     def build_housing_workflow
       identifier = 'housing_workflow_v1'
       template_name = 'Housing Referral Workflow V1'
