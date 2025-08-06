@@ -75,7 +75,8 @@ module EtoApi
       @tz_offset = sso_result['TimeZoneOffset'].to_i.to_s # null => 0
       enterprises = api_get_json "#{@endpoints[:security]}/GetSSOEnterprises/#{@auth_token}"
       @site_creds = nil
-      (@enterprise_guid = enterprises&.detect { |e| e['Value'] == @enterprise }.try { |e| e['Key'] }) || Rails.logger.error("Cant find enterprise: #{@enterprise}")
+      @enterprise_guid = enterprises&.detect { |e| e['Value'] == @enterprise }.try { |e| e['Key'] }
+      Rails.logger.error("Cant find enterprise: #{@enterprise}") if @enterprise_guid.blank?
     end
 
     def connected?
