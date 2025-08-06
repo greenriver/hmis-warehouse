@@ -1,3 +1,18 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+##
+# CeWorkflows::Builder
+# Utility class for scripts that build Coordinated Entry (CE) workflow definitions.
+# Provides helper methods for deleting, creating, and wiring up workflow templates, events, and related objects.
+# Intended for use in Rake tasks or other scripts that automate the setup or teardown of CE workflows.
+# Not intended for use in production application logic.
+#
 module CeWorkflows
   class Builder
     def self.delete_template_and_associated_data(template_identifier)

@@ -2,51 +2,51 @@
 title: Admin Assign Workflow
 ---
 flowchart TD
-start_referral_1975(("Start Referral<br/><br/>EFFECT: Start Workflow → Start Referral"))
-start_referral_1975--> admin_assign_1976
-admin_assign_1976("Admin Assign<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
-admin_assign_1976--> create_ce_event_1977
-create_ce_event_1977("Create CE Event (script)<br/><br/>EFFECT: Complete Step → Create Ce Event")
-create_ce_event_1977--> provider_outcome_1978
-provider_outcome_1978("Provider Outcome<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
-provider_outcome_1978--> exclusive_gateway_provider_outcome_1_1991
-exclusive_gateway_provider_outcome_1_1991{"Exclusive Gateway: provider_outcome_1"}
-exclusive_gateway_provider_outcome_1_1991-- IF move_forward = 0 --> denial_review_1981
-exclusive_gateway_provider_outcome_1_1991--> create_enrollment_1987
-denial_review_1981("Denial Review<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: denial_pending")
-denial_review_1981--> exclusive_gateway_denial_review_1_1994
-exclusive_gateway_denial_review_1_1994{"Exclusive Gateway: denial_review_1"}
-exclusive_gateway_denial_review_1_1994-- IF denial_review_decision = 1 --> exclusive_gateway_admin_decline_gateway_1990
-exclusive_gateway_denial_review_1_1994--> provider_outcome_second_attempt_1979
-exclusive_gateway_admin_decline_gateway_1990{"Exclusive Gateway: admin_decline_gateway"}
-exclusive_gateway_denial_review_2_1995-- IF denial_review_decision = 1 --> exclusive_gateway_admin_decline_gateway_1990
-denial_review_third_1983--> exclusive_gateway_admin_decline_gateway_1990
-confirm_success_1984-- IF move_forward = 0 --> exclusive_gateway_admin_decline_gateway_1990
-exclusive_gateway_admin_decline_gateway_1990-- IF referral_result = 2 --> update_ce_event_with_result_unsuccessful_referral_client_rejected_1986
-exclusive_gateway_admin_decline_gateway_1990-- IF referral_result = 3 --> update_ce_event_with_result_unsuccessful_referral_provider_rejected_1985
-exclusive_gateway_admin_decline_gateway_1990--> referral_declined_1989
-update_ce_event_with_result_unsuccessful_referral_client_rejected_1986("Update CE Event with result 'Unsuccessful referral: client rejected' (script)<br/><br/>EFFECT: Complete Step → Set Ce Event Result<br/>PARAMS: referral_result: 2")
-update_ce_event_with_result_unsuccessful_referral_client_rejected_1986--> referral_declined_1989
-referral_declined_1989(("Referral Declined<br/><br/>EFFECT: End Workflow → Reject Referral"))
-update_ce_event_with_result_unsuccessful_referral_provider_rejected_1985--> referral_declined_1989
-update_ce_event_with_result_unsuccessful_referral_provider_rejected_1985("Update CE Event with result 'Unsuccessful referral: provider rejected' (script)<br/><br/>EFFECT: Complete Step → Set Ce Event Result<br/>PARAMS: referral_result: 3")
-provider_outcome_second_attempt_1979("Provider Outcome (Second Attempt)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
-provider_outcome_second_attempt_1979--> exclusive_gateway_provider_outcome_2_1992
-exclusive_gateway_provider_outcome_2_1992{"Exclusive Gateway: provider_outcome_2"}
-exclusive_gateway_provider_outcome_2_1992-- IF move_forward = 0 --> denial_review_second_1982
-exclusive_gateway_provider_outcome_2_1992--> create_enrollment_1987
-denial_review_second_1982("Denial Review (Second)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: denial_pending")
-denial_review_second_1982--> exclusive_gateway_denial_review_2_1995
-exclusive_gateway_denial_review_2_1995{"Exclusive Gateway: denial_review_2"}
-exclusive_gateway_denial_review_2_1995--> provider_outcome_third_attempt_1980
-provider_outcome_third_attempt_1980("Provider Outcome (Third Attempt)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
-provider_outcome_third_attempt_1980--> exclusive_gateway_provider_outcome_3_1993
-exclusive_gateway_provider_outcome_3_1993{"Exclusive Gateway: provider_outcome_3"}
-exclusive_gateway_provider_outcome_3_1993-- IF move_forward = 0 --> denial_review_third_1983
-exclusive_gateway_provider_outcome_3_1993--> create_enrollment_1987
-denial_review_third_1983("Denial Review (Third)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: denial_pending")
-create_enrollment_1987("Create Enrollment (script)<br/><br/>EFFECT: Complete Step → Create Enrollment")
-create_enrollment_1987--> confirm_success_1984
-confirm_success_1984("Confirm Success")
-confirm_success_1984-- IF move_forward = 1 --> referral_accepted_1988
-referral_accepted_1988(("Referral Accepted<br/><br/>EFFECT: End Workflow → Accept Referral<br/>---<br/>EFFECT: End Workflow → Set Ce Event Result<br/>PARAMS: referral_result: 1"))
+start_referral_2022(("Start Referral<br/><br/>EFFECT: Start Workflow → Start Referral"))
+start_referral_2022--> admin_assign_2023
+admin_assign_2023("Admin Assign<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
+admin_assign_2023--> create_ce_event_2024
+create_ce_event_2024("Create CE Event (script)<br/><br/>EFFECT: Complete Step → Create Ce Event")
+create_ce_event_2024--> provider_outcome_2025
+provider_outcome_2025("Provider Outcome<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
+provider_outcome_2025--> exclusive_gateway_provider_outcome_1_2038
+exclusive_gateway_provider_outcome_1_2038{"Exclusive Gateway: provider_outcome_1"}
+exclusive_gateway_provider_outcome_1_2038-- IF move_forward = 0 --> denial_review_2028
+exclusive_gateway_provider_outcome_1_2038--> create_enrollment_2034
+denial_review_2028("Denial Review<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: denial_pending")
+denial_review_2028--> exclusive_gateway_denial_review_1_2041
+exclusive_gateway_denial_review_1_2041{"Exclusive Gateway: denial_review_1"}
+exclusive_gateway_denial_review_1_2041-- IF denial_review_decision = 1 --> exclusive_gateway_admin_decline_gateway_2037
+exclusive_gateway_denial_review_1_2041--> provider_outcome_second_attempt_2026
+exclusive_gateway_admin_decline_gateway_2037{"Exclusive Gateway: admin_decline_gateway"}
+exclusive_gateway_denial_review_2_2042-- IF denial_review_decision = 1 --> exclusive_gateway_admin_decline_gateway_2037
+denial_review_third_2030--> exclusive_gateway_admin_decline_gateway_2037
+confirm_success_2031-- IF move_forward = 0 --> exclusive_gateway_admin_decline_gateway_2037
+exclusive_gateway_admin_decline_gateway_2037-- IF referral_result = 2 --> update_ce_event_with_result_unsuccessful_referral_client_rejected_2033
+exclusive_gateway_admin_decline_gateway_2037-- IF referral_result = 3 --> update_ce_event_with_result_unsuccessful_referral_provider_rejected_2032
+exclusive_gateway_admin_decline_gateway_2037--> referral_declined_2036
+update_ce_event_with_result_unsuccessful_referral_client_rejected_2033("Update CE Event with result 'Unsuccessful referral: client rejected' (script)<br/><br/>EFFECT: Complete Step → Set Ce Event Result<br/>PARAMS: referral_result: 2")
+update_ce_event_with_result_unsuccessful_referral_client_rejected_2033--> referral_declined_2036
+referral_declined_2036(("Referral Declined<br/><br/>EFFECT: End Workflow → Reject Referral"))
+update_ce_event_with_result_unsuccessful_referral_provider_rejected_2032--> referral_declined_2036
+update_ce_event_with_result_unsuccessful_referral_provider_rejected_2032("Update CE Event with result 'Unsuccessful referral: provider rejected' (script)<br/><br/>EFFECT: Complete Step → Set Ce Event Result<br/>PARAMS: referral_result: 3")
+provider_outcome_second_attempt_2026("Provider Outcome (Second Attempt)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
+provider_outcome_second_attempt_2026--> exclusive_gateway_provider_outcome_2_2039
+exclusive_gateway_provider_outcome_2_2039{"Exclusive Gateway: provider_outcome_2"}
+exclusive_gateway_provider_outcome_2_2039-- IF move_forward = 0 --> denial_review_second_2029
+exclusive_gateway_provider_outcome_2_2039--> create_enrollment_2034
+denial_review_second_2029("Denial Review (Second)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: denial_pending")
+denial_review_second_2029--> exclusive_gateway_denial_review_2_2042
+exclusive_gateway_denial_review_2_2042{"Exclusive Gateway: denial_review_2"}
+exclusive_gateway_denial_review_2_2042--> provider_outcome_third_attempt_2027
+provider_outcome_third_attempt_2027("Provider Outcome (Third Attempt)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: assigned")
+provider_outcome_third_attempt_2027--> exclusive_gateway_provider_outcome_3_2040
+exclusive_gateway_provider_outcome_3_2040{"Exclusive Gateway: provider_outcome_3"}
+exclusive_gateway_provider_outcome_3_2040-- IF move_forward = 0 --> denial_review_third_2030
+exclusive_gateway_provider_outcome_3_2040--> create_enrollment_2034
+denial_review_third_2030("Denial Review (Third)<br/><br/>EFFECT: Enable Step → Set Custom Referral Status<br/>PARAMS: custom_status_key: denial_pending")
+create_enrollment_2034("Create Enrollment (script)<br/><br/>EFFECT: Complete Step → Create Enrollment")
+create_enrollment_2034--> confirm_success_2031
+confirm_success_2031("Confirm Success")
+confirm_success_2031-- IF move_forward = 1 --> referral_accepted_2035
+referral_accepted_2035(("Referral Accepted<br/><br/>EFFECT: End Workflow → Accept Referral<br/>---<br/>EFFECT: End Workflow → Set Ce Event Result<br/>PARAMS: referral_result: 1"))
