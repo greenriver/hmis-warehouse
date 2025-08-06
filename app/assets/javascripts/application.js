@@ -14,15 +14,10 @@
 // Vendor libs
 ////////////////////
 //= require jquery3
-//= require popper
-//= require bootstrap-sprockets
-//= require bootstrap
 //= require jquery_ujs
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
-//= require bootstrap-datepicker/dist/js/bootstrap-datepicker.min
-//= require chart.js/dist/Chart.bundle.min
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
@@ -41,8 +36,6 @@
 //= require billboard.js/dist/billboard.min
 //= require ag-grid-community/dist/ag-grid-community.min.noStyle.js
 //= require moment/moment
-//= require bootstrap-datetimepicker
-//= require stimulus/dist/stimulus.umd
 //= require vendor/rfdc/rfdc
 //= require promise-polyfill/dist/polyfill.min
 
@@ -52,7 +45,6 @@
 //= require namespace
 //= require polyfills
 //= require ajax_modal_rails
-//= require popovers
 //= require util
 //= require site_menu
 //= require ssm
@@ -63,12 +55,8 @@
 //= require viewable_entities
 //= require ./cable
 //= require ./test_channel
-//= require ./init_stimulus
-//= require ./background_render
 //= require_directory ./admin/client_matches
 //= require_directory ./census
-//= require_directory ./maps
-//= require_directory ./reports
 //= require_directory ./rollups
 //= require_directory ./sections
 //= require_directory ./health
@@ -91,13 +79,7 @@
 
 //= require_directory ./data_quality_reports
 //= require affix
-//= require list_search
-//= require stimulus_select
-//= require inactive-session-modal-controller
-//= require chart_loader
-//= require filter_projects
 //= require TableWithToggleRows
-//= require role_table
 //= require documentExport.js
 //= require file_dropzone
 

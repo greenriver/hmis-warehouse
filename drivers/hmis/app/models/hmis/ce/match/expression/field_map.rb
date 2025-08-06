@@ -19,14 +19,25 @@ module Hmis::Ce::Match::Expression
     CDE = 'cde'
     CLIENT = 'client'
 
-    def instance_value(client, field)
+    attr_reader :current_date
+
+    def initialize(current_date: Date.current)
+      @current_date = current_date
+    end
+
+    def client_query(clients, field)
       resolver, resolved_field = resolver_for(field)
-      resolver.instance_value(client, resolved_field)
+      resolver.client_query(clients, resolved_field)
     end
 
     def arel_field(field)
       resolver, resolved_field = resolver_for(field)
       resolver.arel_field(resolved_field)
+    end
+
+    def joins(field)
+      resolver, resolved_field = resolver_for(field)
+      resolver.joins(resolved_field)
     end
 
     # Parses a field name and returns the appropriate field type and resolved field name.
@@ -54,9 +65,11 @@ module Hmis::Ce::Match::Expression
     def resolve_field_for_display(client, field)
       resolver, resolved_field = resolver_for(field)
       label = resolver.label_for(resolved_field)
-      value = resolver.instance_value_for_display(client, resolved_field)
+      clients = GrdaWarehouse::Hud::Client.where(id: client.id)
+      value = resolver.client_query(clients, resolved_field)[client.id]
+      formatted = resolver.format_for_display(resolved_field, value)
 
-      [label, value]
+      [label, formatted]
     end
 
     protected
@@ -76,8 +89,8 @@ module Hmis::Ce::Match::Expression
     # Registry of available field resolvers.
     def registered_resolvers
       @registered_resolvers ||= {
-        CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new,
-        CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new,
+        CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new(current_date: @current_date),
+        CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new(current_date: @current_date),
       }
     end
   end

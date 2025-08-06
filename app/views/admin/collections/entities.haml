@@ -5,8 +5,7 @@
   .mr-4.w-50
     .input-group
       %input.w-50#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-      %span.input-group-append
-        %button.btn.btn-secondary Search
+      %button.btn.btn-secondary Search
 = simple_form_for @collection, url: bulk_entities_admin_collection_path(@collection, entities: entity_type), method: :patch do |f|
   .overflow-auto{ style: 'max-height: 600px;'}
     = render @collection.partial_for(entity_type), f: f, entity_type: entity_type

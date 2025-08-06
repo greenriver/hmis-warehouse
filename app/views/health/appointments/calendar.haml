@@ -16,6 +16,6 @@
         - data = {}
         - if day[:visits].present?
           - details = controller.render_to_string(partial: 'calendar_details', layout: false, locals: { visits: day[:visits] })
-          - data = { toggle: :popover, boundary: :window, trigger: :focus, placement: :left, title: day[:date], content: details, html: :true }
+          - data = { 'bs-toggle' => :popover, boundary: :window, trigger: :focus, placement: :left, title: day[:date], content: details, html: :true }
         .c-cal__day{class: class_name, title: day[:date], data: data}
           = day[:date].day

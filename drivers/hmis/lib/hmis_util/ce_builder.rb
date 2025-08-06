@@ -30,7 +30,17 @@ module HmisUtil
 
       # Process all dirty pools and clients using the production job
       # This populates the pools by calling the match engine with the same logic used in production
-      Hmis::Ce::ProcessChangesJob.new.perform(progress: progress) while Hmis::Ce::ChangeMarker.dirty.exists?
+      hit_max_iterations = false
+      10.times do
+        break unless Hmis::Ce::ChangeMarker.dirty.exists?
+
+        Hmis::Ce::ProcessChangesJob.new.perform(progress: progress)
+        hit_max_iterations = Hmis::Ce::ChangeMarker.dirty.exists?
+      end
+
+      return unless hit_max_iterations
+
+      Rails.logger.warn('CeBuilder#build_candidate_pools reached maximum iterations (10). Dirty markers may not be fully processed.')
     end
 
     # Run this to keep state machine statuses in sync with custom statuses

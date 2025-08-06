@@ -47,6 +47,7 @@ App.D3Chart.Sankey = class Sankey {
       .style('opacity', 0)
       .attr('class', 'tooltip')
       .style('background-color', 'white')
+      .style('position', 'absolute')
       .style('box-shadow', '5px 5px 10px 1px #ABABAB');
   }
 
@@ -184,10 +185,10 @@ App.D3Chart.Sankey = class Sankey {
       .attr('x2', d => d.target.x0)
       .call(gradient => gradient.append('stop')
         .attr('offset', '0%')
-        .attr('stop-color', ({ source: { index: i }}, d) => this.color_for_target(G[i], links[d])))
+        .attr('stop-color', ({ source: { index: i } }, d) => this.color_for_target(G[i], links[d])))
       .call(gradient => gradient.append('stop')
         .attr('offset', '100%')
-        .attr('stop-color', ({ target: { index: i }}, d) => this.color_for_target(G[i], links[d])));
+        .attr('stop-color', ({ target: { index: i } }, d) => this.color_for_target(G[i], links[d])));
     // Target specific node and link
     // move it
     // d3.select(‘#id’).node().__datum___
@@ -259,7 +260,7 @@ App.D3Chart.Sankey = class Sankey {
         }
 
         let percent = link.value / link.source.value;
-        if(percent < 0.04) return '';
+        if (percent < 0.04) return '';
         return d3.format('.0%')(percent);
       });
     let color = this.color;
@@ -273,7 +274,7 @@ App.D3Chart.Sankey = class Sankey {
 
   color_for_target(id, item) {
     // Hide any items where the link or node value is 0
-    if(item.value == 0) {
+    if (item.value == 0) {
       return 'transparent';
     }
     return this.targetColors[id] == null ? this.color(id) : this.targetColors[id];
@@ -325,7 +326,7 @@ App.D3Chart.Sankey = class Sankey {
     count_tr
       .append('td')
       .text(d3.format(',.1~f')(node.value));
-    if(node.id) {
+    if (node.id) {
       return;
     } else {
       let percent_tr = tbody
@@ -349,7 +350,7 @@ App.D3Chart.Sankey = class Sankey {
   }
 
   title(node) {
-    if(node.id) {
+    if (node.id) {
       return node.id;
     } else {
       return `${node.source.id} → ${node.target.id}`;
@@ -359,7 +360,7 @@ App.D3Chart.Sankey = class Sankey {
   // eslint-disable-next-line no-unused-vars
   move(event, node) {
     // eslint-disable-next-line no-unused-vars
-    let domain = { 'x domain': [0, $(this.chart_selector).width()], 'y domain': [0, $(this.chart_selector).height()]  };
+    let domain = { 'x domain': [0, $(this.chart_selector).width()], 'y domain': [0, $(this.chart_selector).height()] };
     // eslint-disable-next-line no-unused-vars
     let range = { 'x range': [0, this.width], 'y range': [0, this.height] };
     let xScale = this.d3Sankey.scaleLinear();

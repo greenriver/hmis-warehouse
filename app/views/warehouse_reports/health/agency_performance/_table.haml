@@ -8,23 +8,23 @@
       %tr.agency-performance__labels
         %th= entity_label
         %th Patients Assigned
-        %th.agency-performance__date-effected{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:without_required_qa]}}
+        %th.agency-performance__date-effected{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:without_required_qa]}}
           Valid QA Needed This Month
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:without_required_f2f_visit]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:without_required_f2f_visit]}}
           F2F Visit Needed this Month
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:with_discharge_followup_completed]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:with_discharge_followup_completed]}}
           7 Day Post-IP Discharge Follow Ups Completed
-        %th.agency-performance__date-effected{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:with_completed_intake]}}
+        %th.agency-performance__date-effected{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:with_completed_intake]}}
           Intake Complete (Consent, Comprehensive Assessment, HRSN, Care Plan)
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:initial_intake_due]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:initial_intake_due]}}
           Initial Intake Due Within 30 Days
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:initial_intake_overdue]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:initial_intake_overdue]}}
           Initial Intake Overdue
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:intake_renewal_due]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:intake_renewal_due]}}
           Annual Intake Renewal Due Within 30 Days
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:intake_renewal_overdue]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:intake_renewal_overdue]}}
           Annual Intake Renewal Overdue
-        %th{data: {toggle: :tooltip, title: report.class::DESCRIPTIONS[:without_required_wellcare_visit]}}
+        %th{data: { 'bs-toggle' => :tooltip, 'bs-title' => report.class::DESCRIPTIONS[:without_required_wellcare_visit]}}
           No Annual Well Care Visits in 12 Months
     %tbody
       - entities.each do |entity|

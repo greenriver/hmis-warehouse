@@ -29,11 +29,12 @@
               = link_to result.last_run_status, report_report_result_path(@report, result)
           %td= result.created_at
           - if @report.has_options?
-            %td.warehouse-reports__completed.d-flex
-              .options
-                = @report.describe_filter_as_html(result)
-              .ml-auto.nobr
-                = render 'filters/view_filter_details', filter_hash: @report.filter_from_result(result).to_h, selected_keys: @report.allowed_options(result)
+            %td.warehouse-reports__completed
+              .d-flex
+                .options
+                  = @report.describe_filter_as_html(result)
+                .ml-auto.nobr
+                  = render 'filters/view_filter_details', filter_hash: @report.filter_from_result(result).to_h, selected_keys: @report.allowed_options(result)
           %td= result.user.name
           %td= result.completed_in
           %td

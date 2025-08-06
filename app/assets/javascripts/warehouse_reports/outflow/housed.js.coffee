@@ -2,7 +2,7 @@
 
 class App.WarehouseReports.Outflow.Housed
   constructor: (@chart_selector, @data) ->
-    Chart.defaults.global.defaultFontSize = 10
+
     @color_map = {}
     @next_color = 0
     @_build_chart()
@@ -52,4 +52,3 @@ class App.WarehouseReports.Outflow.Housed
         @color_map[key] = color
         @next_color = @next_color % colors.length
     return color
-
