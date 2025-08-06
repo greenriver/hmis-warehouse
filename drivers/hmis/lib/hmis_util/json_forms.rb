@@ -120,6 +120,7 @@ module HmisUtil
         # Load non-system forms
         [
           [:services, :SERVICE],
+          [:ce_referral_steps, :CE_REFERRAL_STEP],
           [:occurrence_point_forms, :OCCURRENCE_POINT],
         ].each do |dirname, role|
           forms[role] ||= {}
@@ -295,7 +296,7 @@ module HmisUtil
       record.set_hud_requirements
 
       # could create CDEDs here but we plan to do it manually
-      # record.introspect_custom_data_element_definitions.each(&:save!)
+      record.introspect_custom_data_element_definitions(set_definition_identifier: true).each(&:save!) if record.role.to_sym == :CE_REFERRAL_STEP
 
       # Validate definition
       # puts "Validating FormDefinition: \"#{record.identifier}\" ##{record.id}"

@@ -1,0 +1,84 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "date",
+      "mapping": {
+        "custom_field_key": "housing_workflow_denial_review_2_date"
+      },
+      "required": true
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_denial_review_2_note"
+      },
+      "required": false
+    },
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "denial_review_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_denial_review_2_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        {
+          "code": "1",
+          "label": "Approve Denial"
+        },
+        {
+          "code": "0",
+          "label": "Send Back"
+        }
+      ]
+    },
+    {
+      "_comment": "TODO. these need to be mapped to UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED/UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED or add another question to capture",
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "denial_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_denial_review_2_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "denial_review_decision",
+          "answer_code": "1"
+        }
+      ],
+      "enable_behavior": "ALL",
+      "pick_list_options": [
+        {
+          "code": "HMIS user error"
+        },
+        {
+          "code": "Inability to complete intake"
+        },
+        {
+          "code": "Does not meet eligibility criteria"
+        },
+        {
+          "code": "No longer interested in this program"
+        },
+        {
+          "code": "No longer experiencing homelessness"
+        },
+        {
+          "code": "Estimated vacancy no longer available"
+        },
+        {
+          "code": "Enrolled, but declined HMIS data entry"
+        }
+      ]
+    }
+  ]
+}
