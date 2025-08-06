@@ -46,7 +46,7 @@ module HmisCsvTwentyTwentySix::Exporter
 
       note_involved_user_ids(scope: export_scope, export: export)
 
-      export_scope.preload([join_tables] + [:user]).distinct
+      export_scope.preload(*enrollment_related_preloads(export)).distinct
     end
 
     def self.transforms

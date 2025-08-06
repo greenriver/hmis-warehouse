@@ -15,9 +15,15 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       'CustomDataElementDefinition.csv'
     end
 
-    def self.export_scope(**options)
-      # Use the inferred export scope based on warehouse table
-      HmisCsvTwentyTwentySix::Exporter::Client.export_scope(**options)
+    def self.export_scope(**_options)
+      # No export class specified
+      []
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElementDefinition,
+      ]
     end
   end
 end

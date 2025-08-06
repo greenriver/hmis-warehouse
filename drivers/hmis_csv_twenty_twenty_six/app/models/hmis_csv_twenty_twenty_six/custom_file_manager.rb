@@ -92,6 +92,7 @@ module HmisCsvTwentyTwentySix
       table_name = "hmis_2026_#{definition.class_name.underscore.pluralize}"
       associations_code = generate_associations_code(definition)
       validations_code = generate_validations_code(definition)
+      hmis_configuration_code = generate_hmis_configuration_code(definition)
 
       content = ::Code.copywright_header
       content += <<~RUBY
@@ -112,6 +113,8 @@ module HmisCsvTwentyTwentySix
 
             # Validations
             #{validations_code}
+
+            #{hmis_configuration_code}
           end
         end
       RUBY
@@ -127,6 +130,7 @@ module HmisCsvTwentyTwentySix
     private_class_method def self.generate_exporter_model_file(definition)
       file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/custom/#{definition.class_name.underscore}.rb")
       export_scope_code = generate_export_scope_code(definition)
+      adjust_keys_code = generate_adjust_keys_code(definition)
 
       content = ::Code.copywright_header
       content += <<~RUBY
@@ -144,6 +148,12 @@ module HmisCsvTwentyTwentySix
             def self.export_scope(**options)
               #{export_scope_code}
             end
+
+            def self.transforms
+              [
+                HmisCsvTwentyTwentySix::Exporter::Custom::#{definition.class_name},
+              ]
+            end#{adjust_keys_code.present? ? "\n\n#{adjust_keys_code}" : ''}
           end
         end
       RUBY
@@ -389,32 +399,51 @@ module HmisCsvTwentyTwentySix
     # @return [String] Ruby code for the export_scope method
     # @private
     private_class_method def self.generate_export_scope_code(definition)
-      if definition.augments_export_class.present?
-        # Use the explicitly configured export class
-        export_class = definition.augments_export_class
-        [
-          "# Use the same export scope as the standard #{export_class.split('::').last} exporter",
-          "#{export_class}.export_scope(**options)",
-        ].join("\n      ")
-      else
-        # Fallback: try to infer from warehouse table (for backwards compatibility)
-        warehouse_table = definition.augments_warehouse_table
-        export_class = case warehouse_table
-        when 'GrdaWarehouse::Hud::Client'
-          'HmisCsvTwentyTwentySix::Exporter::Client'
-        when 'GrdaWarehouse::Hud::Enrollment'
-          'HmisCsvTwentyTwentySix::Exporter::Enrollment'
-        when 'GrdaWarehouse::Hud::Project', 'GrdaWarehouse::Hud::Organization'
-          'HmisCsvTwentyTwentySix::Exporter::Project'
-        else
-          'HmisCsvTwentyTwentySix::Exporter::Client'
-        end
+      export_class = definition.augments_export_class
+      return "# No export class specified\n      []" if export_class.blank?
 
-        [
-          '# Use the inferred export scope based on warehouse table',
-          "#{export_class}.export_scope(**options)",
-        ].join("\n      ")
-      end
+      [
+        "# Use the same export scope as the standard #{export_class.split('::').last} exporter",
+        "#{export_class}.export_scope(**options)",
+      ].join("\n      ")
+    end
+
+    # Generates the adjust_keys method code based on the configuration
+    #
+    # @param definition [CustomFileDefinition] Definition object for the custom file
+    # @return [String] Ruby code for the adjust_keys method
+    # @private
+    private_class_method def self.generate_adjust_keys_code(definition)
+      export_class = definition.augments_export_class
+      return '' if export_class.blank?
+
+      <<~RUBY.strip
+        def self.adjust_keys(row, export)
+          # Delegate to the standard exporter's adjust_keys method
+          #{export_class}.adjust_keys(row, export)
+        end
+      RUBY
+    end
+
+    # Generates the hmis_configuration method code based on the YAML columns
+    private_class_method def self.generate_hmis_configuration_code(definition)
+      column_configs = definition.columns.map do |col|
+        type = col['type'].in?(['integer', 'datetime', 'date', 'boolean']) ? ":#{col['type']}" : ':string'
+        options = []
+        options << "limit: #{col['max_length']}" if col['max_length']
+        options << 'null: false' if col['required']
+        options_str = options.any? ? ", #{options.join(', ')}" : ''
+
+        "        #{col['name']}: { type: #{type}#{options_str} },"
+      end.join("\n")
+
+      <<~RUBY.strip
+        def self.hmis_configuration(_version: '2026')
+          {
+        #{column_configs}
+          }
+        end
+      RUBY
     end
   end
 end

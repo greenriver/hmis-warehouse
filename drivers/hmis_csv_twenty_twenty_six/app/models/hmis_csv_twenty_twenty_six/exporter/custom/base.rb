@@ -14,21 +14,9 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
 
     attr_accessor :export, :batch_size
 
-    def initialize(
-      start_date:,
-      end_date:,
-      period_type:,
-      directive:,
-      hash_status:,
-      export:,
-      projects:,
-      faked_pii: false,
-      confidential: false,
-      user_id:
-    )
-      super
-
-      @export = export
+    def initialize(options)
+      @options = options
+      @export = options[:export]
       @batch_size = 10_000
     end
 
@@ -48,8 +36,9 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       []
     end
 
+    # Use the same pattern as standard exporters
     def self.temp_model_name
-      "HmisCsvTwentyTwentySix::Temp::#{custom_file_name.gsub('.csv', '').camelize}"
+      "#{name.demodulize}Temp"
     end
 
     def temp_model_name

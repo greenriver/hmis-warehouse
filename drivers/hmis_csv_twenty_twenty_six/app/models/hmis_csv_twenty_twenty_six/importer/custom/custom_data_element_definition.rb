@@ -30,5 +30,21 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :Label, length: { maximum: 255 }
     validates :Repeats, presence: true
     validates :Repeats, inclusion: { in: [true, false, 0, 1, '0', '1', 'true', 'false'] }, allow_blank: true
+
+    def self.hmis_configuration(version: '2026')
+  {
+        CustomDataElementDefinitionID: { type: :string, null: false },
+        Key: { type: :string, null: false },
+        RecordType: { type: :string, null: false },
+        FieldType: { type: :string, null: false },
+        Label: { type: :string, limit: 255, null: false },
+        Repeats: { type: :boolean, null: false },
+        DateCreated: { type: :datetime },
+        DateUpdated: { type: :datetime },
+        UserID: { type: :string },
+        DateDeleted: { type: :datetime },
+        ExportID: { type: :string },
+  }
+end
   end
 end

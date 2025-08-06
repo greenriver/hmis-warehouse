@@ -36,11 +36,12 @@ export default class extends Controller {
 
     // Update the select options
     if (this.hasSelectTarget && showSection) {
-      this.updateSelectOptions(availableFiles);
+      const selectedFiles = JSON.parse(this.selectTarget.dataset.selectedCustomFiles || '[]');
+      this.updateSelectOptions(availableFiles, selectedFiles);
     }
   }
 
-  updateSelectOptions(files) {
+  updateSelectOptions(files, selectedFiles) {
     const select = this.selectTarget;
 
     // Clear ALL existing options (including the first one)
@@ -48,7 +49,7 @@ export default class extends Controller {
 
     // Add new options - files is now a hash where keys are display titles and values are file names
     Object.entries(files).forEach(([displayTitle, fileName]) => {
-      const option = new Option(displayTitle, fileName);
+      const option = new Option(displayTitle, fileName, false, selectedFiles.includes(fileName));
       select.add(option);
     });
 

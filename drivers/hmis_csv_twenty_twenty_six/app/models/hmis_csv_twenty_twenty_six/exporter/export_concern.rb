@@ -78,6 +78,12 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       end
     end
 
+    # Converts join_tables hash to proper preload arguments
+    def self.enrollment_related_preloads(export)
+      join_tables = enrollment_related_join_tables(export)
+      [:user, join_tables]
+    end
+
     def self.project_exists_for_model(project_scope, hmis_class)
       project_scope.where(
         p_t[:ProjectID].eq(hmis_class.arel_table[:ProjectID]).

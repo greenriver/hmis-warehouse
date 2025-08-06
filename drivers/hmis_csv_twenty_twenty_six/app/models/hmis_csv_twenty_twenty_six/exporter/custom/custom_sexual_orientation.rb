@@ -19,5 +19,16 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       # Use the same export scope as the standard Enrollment exporter
       HmisCsvTwentyTwentySix::Exporter::Enrollment.export_scope(**options)
     end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation,
+      ]
+    end
+
+    def self.adjust_keys(row, export)
+      # Delegate to the standard exporter's adjust_keys method
+      HmisCsvTwentyTwentySix::Exporter::Enrollment.adjust_keys(row, export)
+    end
   end
 end

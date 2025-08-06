@@ -29,5 +29,25 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :Questioning, numericality: { only_integer: true }, allow_blank: true
     validates :DifferentIdentity, numericality: { only_integer: true }, allow_blank: true
     validates :GenderNone, numericality: { only_integer: true }, allow_blank: true
+
+    def self.hmis_configuration(version: '2026')
+      {
+        PersonalID: { type: :string, null: false },
+        Woman: { type: :integer },
+        Man: { type: :integer },
+        NonBinary: { type: :integer },
+        CulturallySpecific: { type: :integer },
+        Transgender: { type: :integer },
+        Questioning: { type: :integer },
+        DifferentIdentity: { type: :integer },
+        GenderNone: { type: :integer },
+        DifferentIdentityText: { type: :string },
+        DateCreated: { type: :datetime },
+        DateUpdated: { type: :datetime },
+        UserID: { type: :string },
+        DateDeleted: { type: :datetime },
+        ExportID: { type: :string },
+      }
+    end
   end
 end

@@ -26,7 +26,7 @@ class ExportBaseJob < BaseJob
       version: options[:version],
       confidential: options[:confidential],
       options: options[:options],
-      custom_file_types: options[:custom_file_types] || [],
+      custom_file_types: options.dig(:options, :custom_file_types)&.compact_blank || [],
     ).export!
 
     if (recurring_hmis_export = recurring_hmis_export(options))
