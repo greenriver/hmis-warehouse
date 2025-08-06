@@ -110,30 +110,6 @@ module CeWorkflowBuilder
     )
   end
 
-  # def self.create_step_form(identifier:, definition:, data_source:, title: nil)
-  #   form_def = Hmis::Form::Definition.new(
-  #     identifier: identifier,
-  #     status: :published,
-  #     title: title || identifier.titleize,
-  #     role: :CE_REFERRAL_STEP,
-  #     version: 0,
-  #     definition: definition,
-  #   )
-  #   raise 'Form definition must be present' if definition.blank?
-
-  #   errors = Hmis::Form::DefinitionValidator.perform(definition, form_def.role, skip_cded_validation: true)
-  #   raise "Form definition #{form_def.identifier} is not valid: #{errors.map(&:full_message)}" if errors.any?
-
-  #   # Ensure form does not try to collect onto related record types (Eg Enrollment), it should only
-  #   # record CDEs so that it retains data as it was when the task was performed.
-  #   # TODO(#7321) - implement generic validation for this in the DefinitionValidator
-  #   raise 'Step Form definition should only collect Custom Data Elements' if form_def.link_id_item_hash.values.find { |item| item.mapping&.field_name }
-
-  #   form_def.save!
-  #   form_def.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: data_source).each(&:save!)
-  #   form_def
-  # end
-
   # This method builds the QA housing workflow version 1, which is a referral workflow for housing opportunities.
   # Future improvements:
   # - Generate Custom Data Element Definitions (CDEDs) for the form fields, for reporting. Update field keys as appropriate.
@@ -150,13 +126,19 @@ module CeWorkflowBuilder
       initial_client_engagement: 'housing_workflow_initial_client_engagement',
       client_engagement: 'housing_workflow_client_engagement',
       client_offer_outcome: 'housing_workflow_client_offer_outcome',
-      provider_outcome: 'housing_workflow_provider_outcome',
-      denial_review: 'housing_workflow_denial_review',
+      provider_outcome_1: 'housing_workflow_provider_outcome_1',
+      provider_outcome_2: 'housing_workflow_provider_outcome_2',
+      provider_outcome_3: 'housing_workflow_provider_outcome_3',
+      denial_review_1: 'housing_workflow_denial_review_1',
+      denial_review_2: 'housing_workflow_denial_review_2',
+      denial_review_3: 'housing_workflow_denial_review_3',
       confirm_success: 'housing_workflow_confirm_success',
     }.freeze
 
-    puts "Creating workflow definition template '#{identifier}'"
+    missing_identifiers = workflow_form_identifiers.values - Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: workflow_form_identifiers.values).pluck(:identifier)
+    raise "Some form definitions are missing. Did you run 'rails driver:hmis:seed_definitions'? #{missing_identifiers.join(', ')}" if missing_identifiers.any?
 
+    puts "Creating workflow definition template '#{identifier}'"
     template = create_template(identifier, template_name, data_source)
 
     # Create Swimlanes
@@ -164,8 +146,6 @@ module CeWorkflowBuilder
     project_staff_swimlane = template.swimlanes.create!(name: 'Project Staff')
 
     # Create Statuses
-    # "Matching in Progress" => "Assigned" => "Accepted"
-    # "Matching in Progress" => "Assigned" => "Denial Pending" => "Declined"
     matching_in_progress_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
       key: 'matching_in_progress',
       name: 'Matching In Progress',
@@ -183,6 +163,7 @@ module CeWorkflowBuilder
     )
     denied_pending_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': denied_pending_status.key }}]
     assigned_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': assigned_status.key }}]
+    matching_in_progress_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': matching_in_progress_status.key }}]
 
     start_event = create_start_event(template)
 
@@ -191,6 +172,7 @@ module CeWorkflowBuilder
       form_definition_identifier: workflow_form_identifiers.fetch(:initial_review),
       template: template,
       swimlane: ce_staff_swimlane,
+      trigger_config: matching_in_progress_status_trigger_config,
     )
     initial_client_engagement_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Initial Client Engagement',
@@ -210,7 +192,7 @@ module CeWorkflowBuilder
       template_id: template.id,
       trigger_config: [
         {
-          event: 'complete_step',
+          event: 'complete_step', # enable_step doesn't work for script tasks. we should validate it since its ignored.
           message: 'create_ce_event',
         },
       ],
@@ -221,37 +203,32 @@ module CeWorkflowBuilder
       form_definition_identifier: workflow_form_identifiers.fetch(:client_offer_outcome),
       template_id: template.id,
       swimlane: ce_staff_swimlane,
-    )
-
-    client_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
-      name: 'Update CE Event with result "Unsuccessful referral: client rejected"',
-      template_id: template.id,
-      trigger_config: [
-        {
-          event: 'complete_step',
-          message: 'set_ce_event_result',
-          params: { referral_result: '2' },
-        },
-      ],
+      # TODO can we do this? instead of having a separate ScriptTask for it
+      # trigger_config: [
+      #   {
+      #     event: 'enable_step',
+      #     message: 'create_ce_event',
+      #   },
+      # ],
     )
 
     provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Provider Outcome',
-      form_definition_identifier: workflow_form_identifiers.fetch(:provider_outcome),
+      form_definition_identifier: workflow_form_identifiers.fetch(:provider_outcome_1),
       template_id: template.id,
       swimlane: project_staff_swimlane,
       trigger_config: assigned_status_trigger_config,
     )
     provider_outcome_task_2 = Hmis::WorkflowDefinition::UserTask.create!(
-      name: 'Provider Outcome - re-review',
-      form_definition_identifier: workflow_form_identifiers.fetch(:provider_outcome), # FIXME use different form
+      name: 'Provider Outcome (Second Attempt)',
+      form_definition_identifier: workflow_form_identifiers.fetch(:provider_outcome_2),
       template_id: template.id,
       swimlane: project_staff_swimlane,
       trigger_config: assigned_status_trigger_config,
     )
     provider_outcome_task_3 = Hmis::WorkflowDefinition::UserTask.create!(
-      name: 'Provider Outcome - final re-review',
-      form_definition_identifier: workflow_form_identifiers.fetch(:provider_outcome), # FIXME use different form
+      name: 'Provider Outcome (Third Attempt)',
+      form_definition_identifier: workflow_form_identifiers.fetch(:provider_outcome_3),
       template_id: template.id,
       swimlane: project_staff_swimlane,
       trigger_config: assigned_status_trigger_config,
@@ -265,6 +242,18 @@ module CeWorkflowBuilder
           event: 'complete_step',
           message: 'set_ce_event_result',
           params: { referral_result: '3' },
+        },
+      ],
+    )
+
+    client_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+      name: 'Update CE Event with result "Unsuccessful referral: client rejected"',
+      template_id: template.id,
+      trigger_config: [
+        {
+          event: 'complete_step',
+          message: 'set_ce_event_result',
+          params: { referral_result: '2' },
         },
       ],
     )
@@ -286,30 +275,28 @@ module CeWorkflowBuilder
 
     denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Denial Review',
-      form_definition_identifier: workflow_form_identifiers.fetch(:denial_review),
+      form_definition_identifier: workflow_form_identifiers.fetch(:denial_review_1),
       template_id: template.id,
       swimlane: ce_staff_swimlane,
       trigger_config: denied_pending_trigger_config,
     )
 
     denial_review_task_2 = Hmis::WorkflowDefinition::UserTask.create!(
-      name: 'Denial Review - re-review',
-      form_definition_identifier: workflow_form_identifiers.fetch(:denial_review), # FIXME use different form
+      name: 'Denial Review (Second)',
+      form_definition_identifier: workflow_form_identifiers.fetch(:denial_review_2),
       template_id: template.id,
       swimlane: ce_staff_swimlane,
       trigger_config: denied_pending_trigger_config,
     )
 
     denial_review_task_3 = Hmis::WorkflowDefinition::UserTask.create!(
-      name: 'Denial Review - final re-review',
-      form_definition_identifier: workflow_form_identifiers.fetch(:denial_review), # FIXME use different form
+      name: 'Denial Review (Third)',
+      form_definition_identifier: workflow_form_identifiers.fetch(:denial_review_3),
       template_id: template.id,
       swimlane: ce_staff_swimlane,
       trigger_config: denied_pending_trigger_config,
     )
 
-    # TODO would be better if this happened automatically when intake is completed.
-    # and/or block this from completing if intake is still WIP. post-mvp, link ticket.
     confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Confirm Success',
       form_definition_identifier: workflow_form_identifiers.fetch(:confirm_success),
@@ -327,85 +314,82 @@ module CeWorkflowBuilder
     accept_event = create_accept_event(template, update_ce_event: true)
     decline_event = create_decline_event(template)
 
-    initial_review_task_gateway = create_gateway(template, 'initial_review_task')
+    # Set up gateway for declining that closes the CE Event if a ReferralResult outcome has been specified.
+    # If neither condition matches, it declines the referral without updating the CE Event.
+    # NOTE: this depends on forms being set up correctly so they collect referral_result if a CE Event has been created.
+    admin_decline_gateway = create_gateway(template, 'admin_decline_gateway')
+    admin_decline_gateway.connect_to!(client_rejects_ce_event_task, condition: 'referral_result = UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED')
+    admin_decline_gateway.connect_to!(provider_rejects_ce_event_task, condition: 'referral_result = UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED')
+    admin_decline_gateway.connect_to!(decline_event)
+    client_rejects_ce_event_task.connect_to!(decline_event)
+    provider_rejects_ce_event_task.connect_to!(decline_event)
 
-    client_offer_outcome_gateway = create_gateway(template, 'client_offer_outcome')
-
-    client_offer_outcome_gateway = create_gateway(template, 'ce_offer_outcome')
-    provider_outcome_gateway_1 = create_gateway(template, 'provider_outcome_1')
-    provider_outcome_gateway_2 = create_gateway(template, 'provider_outcome_2')
-    provider_outcome_gateway_3 = create_gateway(template, 'provider_outcome_3')
-    denial_review_gateway_1 = create_gateway(template, 'denial_review_1')
-    denial_review_gateway_2 = create_gateway(template, 'denial_review_2')
-
+    # Start Referral => Initial Review
     start_event.connect_to!(initial_review_task)
 
     # Initial Review => Gateway => Initial Client Engagement (or Decline)
+    initial_review_task_gateway = create_gateway(template, 'initial_review_task')
     initial_review_task.connect_to!(initial_review_task_gateway)
-    # Initial Review Gateway => CE Make Offer Task OR Decline Event.
-    # Exclusive Gateway, so only the first outflow that matches condition is followed.
-    initial_review_task_gateway.connect_to!(decline_event, condition: 'move_forward = 0')
-    initial_review_task_gateway.connect_to!(create_ce_event_task) # default outflow, so this branch appears under "unavailable tasks". TODO: confirm if this is the right place to create the CE
-    create_ce_event_task.connect_to!(initial_client_engagement_task)
+    initial_review_task_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
+    initial_review_task_gateway.connect_to!(initial_client_engagement_task) # happy path: move to next task
 
     # Initial Client Engagement => Client Engagement
-    initial_client_engagement_task.connect_to!(client_engagement_task)
+    initial_client_engagement_task.connect_to!(client_engagement_task) # can't bail out from this point?
 
-    # Client Engagement => Gateway => Client Offer Outcome (or Decline)
-    client_engagement_task.connect_to!(client_offer_outcome_task)
-    # client_engagement_task.connect_to!(client_offer_outcome_gateway)
-    # client_offer_outcome_gateway.connect_to!(client_offer_outcome_task, condition: 'move_forward = 0')
+    # Client Engagement => Gateway => Create CE Event (Script) (or Decline)
+    client_engagement_gateway = create_gateway(template, 'client_engagement_task')
+    client_engagement_task.connect_to!(client_engagement_gateway)
+    client_engagement_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
+    client_engagement_gateway.connect_to!(create_ce_event_task) # happy path: create CE event
 
+    # Create CE Event (Script) => Client Offer Outcome
+    create_ce_event_task.connect_to!(client_offer_outcome_task)
 
-    # Client Offer Outcome => Gateway => Provider Outcome (or Decline)
+    # Client Offer Outcome => Gateway => Provider Outcome 1 (or Decline)
+    client_offer_outcome_gateway = create_gateway(template, 'client_offer_outcome')
     client_offer_outcome_task.connect_to!(client_offer_outcome_gateway)
-    # Exclusive Gateway, so only the first outflow that matches condition is followed.
-    client_offer_outcome_gateway.connect_to!(client_rejects_ce_event_task, condition: 'move_forward = 0')
-    client_rejects_ce_event_task.connect_to!(decline_event)
-    client_offer_outcome_gateway.connect_to!(provider_outcome_task) # default outflow, so it appears under "unavailable tasks"
+    client_offer_outcome_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0')
+    client_offer_outcome_gateway.connect_to!(provider_outcome_task) # happy path: continue to provider outcome
 
-    # Project Offer Task => Project Offer Outcome Gateway
+    # Provider Outcome 1 => Gateway => Denial Review 1 OR Create Enrollment (Script)
+    provider_outcome_gateway_1 = create_gateway(template, 'provider_outcome_1')
     provider_outcome_task.connect_to!(provider_outcome_gateway_1)
-    provider_outcome_task_2.connect_to!(provider_outcome_gateway_2)
-    provider_outcome_task_3.connect_to!(provider_outcome_gateway_3)
-
-    # Project Offer Outcome Gateway => Accept Event OR Create Enrollment Task
-    # Exclusive Gateway, so only the first outflow that matches condition is followed.
     provider_outcome_gateway_1.connect_to!(denial_review_task, condition: 'move_forward = 0')
     provider_outcome_gateway_1.connect_to!(create_enrollment_task)
 
+    # Provider Outcome 2 => Gateway => Denial Review 2 OR Create Enrollment (Script)
+    provider_outcome_gateway_2 = create_gateway(template, 'provider_outcome_2')
+    provider_outcome_task_2.connect_to!(provider_outcome_gateway_2)
     provider_outcome_gateway_2.connect_to!(denial_review_task_2, condition: 'move_forward = 0')
     provider_outcome_gateway_2.connect_to!(create_enrollment_task)
 
+    # Provider Outcome 3 => Gateway => Denial Review 3 OR Create Enrollment (Script)
+    provider_outcome_gateway_3 = create_gateway(template, 'provider_outcome_3')
+    provider_outcome_task_3.connect_to!(provider_outcome_gateway_3)
     provider_outcome_gateway_3.connect_to!(denial_review_task_3, condition: 'move_forward = 0')
     provider_outcome_gateway_3.connect_to!(create_enrollment_task)
 
-    # Denial Review Task => Denial Review Gateway
+    # Denial Review 1 => Gateway => Decline OR send back to Provider Outcome
+    denial_review_gateway_1 = create_gateway(template, 'denial_review_1')
     denial_review_task.connect_to!(denial_review_gateway_1)
-    # Denial Review Gateway => Decline OR Send to Provider Outcome 2
-    # Exclusive Gateway, so only the first outflow that matches condition is followed.
-    denial_review_gateway_1.connect_to!(provider_rejects_ce_event_task, condition: 'denial_review_decision = 1') # Accept Denial
-    provider_rejects_ce_event_task.connect_to!(decline_event)
-    denial_review_gateway_1.connect_to!(provider_outcome_task_2) # Send back. We make this the default task, so that the project offer task doesn't get hidden in the Available Tasks UI due to its conditional inflows...
+    denial_review_gateway_1.connect_to!(admin_decline_gateway, condition: 'denial_review_decision = 1') # Accept Denial
+    denial_review_gateway_1.connect_to!(provider_outcome_task_2) # "Send back" to next attempt at Provider Outcome
 
-    # second loop
+    # Denial Review 2 => Gateway => Decline OR send back to Provider Outcome
+    denial_review_gateway_2 = create_gateway(template, 'denial_review_2')
     denial_review_task_2.connect_to!(denial_review_gateway_2)
-    denial_review_gateway_2.connect_to!(provider_rejects_ce_event_task, condition: 'denial_review_decision = 1') # Accept Denial
-    provider_rejects_ce_event_task.connect_to!(decline_event)
-    denial_review_gateway_2.connect_to!(provider_outcome_task_3)
+    denial_review_gateway_2.connect_to!(admin_decline_gateway, condition: 'denial_review_decision = 1') # Accept Denial
+    denial_review_gateway_2.connect_to!(provider_outcome_task_3) # "Send back" to next attempt at Provider Outcome
 
-    # third loop - denial CANNOT BE SENT BACK
-    # denial_review_task_3.connect_to!(denial_review_gateway_2)
-    denial_review_task_3.connect_to!(provider_rejects_ce_event_task, condition: 'denial_review_decision = 1') # Accept Denial
-    provider_rejects_ce_event_task.connect_to!(decline_event)
+    # Denial Review 2 => Gateway => Decline. Cannot be "sent back" to Provider Outcome.
+    denial_review_task_3.connect_to!(admin_decline_gateway)
 
-
-    # Create Enrollment Task => Confirm Success Task
+    # Create Enrollment (Script) => Confirm Success Task
     create_enrollment_task.connect_to!(confirm_success_task)
 
     # Confirm Success Task => Accept Event
-    confirm_success_task.connect_to!(provider_rejects_ce_event_task, condition: 'move_forward = 0')
-    confirm_success_task.connect_to!(accept_event)
+    confirm_success_task.connect_to!(admin_decline_gateway, condition: 'move_forward = 0')
+    confirm_success_task.connect_to!(accept_event, condition: 'move_forward = 1')
 
     template.validate!
 

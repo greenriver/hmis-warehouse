@@ -304,7 +304,7 @@ module HmisUtil
         form_definition,
         role,
         # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
-        skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
+        skip_cded_validation: record.role.to_sym != :CE_REFERRAL_STEP && (ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?),
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
