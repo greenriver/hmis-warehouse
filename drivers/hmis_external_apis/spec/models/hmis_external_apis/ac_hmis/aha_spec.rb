@@ -115,7 +115,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     it 'calls API with comma-separated list of all sibling MCI IDs' do
       result = aha.fetch_score(client)
       expect(result.score).to eq(9) # Returns the highest score
-      expect(result.alt_aha_flag).to be true
+      expect(result.mci_quality_indicator).to eq(1)
     end
   end
 end
