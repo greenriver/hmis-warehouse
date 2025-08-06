@@ -110,17 +110,18 @@ module CeWorkflowBuilder
     )
   end
 
-  # This method builds the QA housing workflow version 1, which is a referral workflow for housing opportunities.
-  # Future improvements:
-  # - Generate Custom Data Element Definitions (CDEDs) for the form fields, for reporting. Update field keys as appropriate.
-  # - Refine forms and workflow
-  # - Clean up decline reasons, they are copy-pasted across forms
+  # TODO: workflow for admin assign referrals to non-housing projects
+  def self.build_admin_assign_workflow(data_source)
+  end
+
+  # This method builds the QA housing workflow version 1, which is a referral workflow for housing opportunities
+  # TODO: make this work with direct referral for housing transfers. Add an initial step?
   def self.build_housing_workflow_v1(data_source)
     identifier = 'housing_workflow_v1'
     template_name = 'Housing Referral Workflow V1'
     delete_template_and_associated_data(identifier)
 
-    # form identifiers
+    # FormDefinition identifiers for the workflow steps
     workflow_form_identifiers = {
       initial_review: 'housing_workflow_initial_review',
       initial_client_engagement: 'housing_workflow_initial_client_engagement',
@@ -187,29 +188,17 @@ module CeWorkflowBuilder
       swimlane: ce_staff_swimlane,
     )
 
-    create_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
-      name: 'Create CE Event',
-      template_id: template.id,
-      trigger_config: [
-        {
-          event: 'complete_step', # enable_step doesn't work for script tasks. we should validate it since its ignored.
-          message: 'create_ce_event',
-        },
-      ],
-    )
-
     client_offer_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Client Offer Outcome',
       form_definition_identifier: workflow_form_identifiers.fetch(:client_offer_outcome),
       template_id: template.id,
       swimlane: ce_staff_swimlane,
-      # TODO can we do this? instead of having a separate ScriptTask for it
-      # trigger_config: [
-      #   {
-      #     event: 'enable_step',
-      #     message: 'create_ce_event',
-      #   },
-      # ],
+      trigger_config: [
+        {
+          event: 'enable_step',
+          message: 'create_ce_event',
+        },
+      ],
     )
 
     provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
@@ -269,10 +258,6 @@ module CeWorkflowBuilder
       ],
     )
 
-    # denied pending ("Provider Outcome")=> send back ("Denial Review" task)
-    # denied pending ("Provider Outcome 2")=> send back ("Denial Review 2" task)
-    # denied pending ("Provider Outcome 3")=> ("Denial Review 3" task) can no longer send back. denial review must accept the denial. different form.
-
     denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
       name: 'Denial Review',
       form_definition_identifier: workflow_form_identifiers.fetch(:denial_review_1),
@@ -318,8 +303,8 @@ module CeWorkflowBuilder
     # If neither condition matches, it declines the referral without updating the CE Event.
     # NOTE: this depends on forms being set up correctly so they collect referral_result if a CE Event has been created.
     admin_decline_gateway = create_gateway(template, 'admin_decline_gateway')
-    admin_decline_gateway.connect_to!(client_rejects_ce_event_task, condition: 'referral_result = UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED')
-    admin_decline_gateway.connect_to!(provider_rejects_ce_event_task, condition: 'referral_result = UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED')
+    admin_decline_gateway.connect_to!(client_rejects_ce_event_task, condition: 'referral_result = 2')
+    admin_decline_gateway.connect_to!(provider_rejects_ce_event_task, condition: 'referral_result = 3')
     admin_decline_gateway.connect_to!(decline_event)
     client_rejects_ce_event_task.connect_to!(decline_event)
     provider_rejects_ce_event_task.connect_to!(decline_event)
@@ -334,16 +319,16 @@ module CeWorkflowBuilder
     initial_review_task_gateway.connect_to!(initial_client_engagement_task) # happy path: move to next task
 
     # Initial Client Engagement => Client Engagement
-    initial_client_engagement_task.connect_to!(client_engagement_task) # can't bail out from this point?
+    initial_client_engagement_task.connect_to!(client_engagement_task) # TODO CONFIRM: can't bail out from this point?
 
     # Client Engagement => Gateway => Create CE Event (Script) (or Decline)
     client_engagement_gateway = create_gateway(template, 'client_engagement_task')
     client_engagement_task.connect_to!(client_engagement_gateway)
     client_engagement_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
-    client_engagement_gateway.connect_to!(create_ce_event_task) # happy path: create CE event
+    client_engagement_gateway.connect_to!(client_offer_outcome_task) # happy path: move to next task
 
     # Create CE Event (Script) => Client Offer Outcome
-    create_ce_event_task.connect_to!(client_offer_outcome_task)
+    # create_ce_event_task.connect_to!(client_offer_outcome_task)
 
     # Client Offer Outcome => Gateway => Provider Outcome 1 (or Decline)
     client_offer_outcome_gateway = create_gateway(template, 'client_offer_outcome')

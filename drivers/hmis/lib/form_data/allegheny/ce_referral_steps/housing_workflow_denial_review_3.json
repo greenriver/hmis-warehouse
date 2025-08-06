@@ -85,7 +85,6 @@
       "text": "Referral Result",
       "type": "CHOICE",
       "link_id": "referral_result",
-      "helper_text": "Referral Result to store on the CE Event.",
       "mapping": {
         "custom_field_key": "housing_workflow_denial_review_3_referral_result"
       },
@@ -101,11 +100,11 @@
       "enable_behavior": "ALL",
       "pick_list_options": [
         {
-          "code": "UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED",
+          "code": "2",
           "label": "Unsuccessful referral: client rejected"
         },
         {
-          "code": "UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED",
+          "code": "3",
           "label": "Unsuccessful referral: provider rejected"
         }
       ]
