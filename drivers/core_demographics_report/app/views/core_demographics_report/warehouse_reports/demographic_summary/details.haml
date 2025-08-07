@@ -6,8 +6,7 @@
   .mr-4
     .input-group
       %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-      %span.input-group-append
-        %button.btn.btn-secondary Search
+      %button.btn.btn-secondary Search
   .ml-auto
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon.icon-download2

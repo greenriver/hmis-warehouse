@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientLocationHistory
   class ProjectsController < ApplicationController
     before_action :set_project
@@ -11,6 +13,7 @@ module ClientLocationHistory
     before_action :require_can_view_project_locations!
 
     def map
+      @per_page_js = ['map_with_markers']
       # find locations tied to Enrollments in the project. Join client to drop locations that don't have a client.
       @locations = @project.enrollment_location_histories.joins(:client).where(located_on: filter.range)
       @markers = @locations.map { |l| l.as_marker(current_user, [:name, :seen_on]) }

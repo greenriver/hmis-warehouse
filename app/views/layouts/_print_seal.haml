@@ -1,0 +1,4 @@
+- logo = GrdaWarehouse::Theme.print_logo
+- if logo.attached?
+  - content_type = logo.blob.content_type
+  = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_print_logo}", class: :seal, width: 250)

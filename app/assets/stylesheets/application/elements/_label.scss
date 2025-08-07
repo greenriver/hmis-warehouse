@@ -1,19 +1,21 @@
 @import '../helpers';
 
 label {
-  color: $gray-070;
+  color: var(--gray-070);
 }
 
 .label-helper {
   font-style: italic;
   font-size: 95%;
   font-weight: normal;
+
   &--info,
   &--optional {
-    color: $brand-primary;
+    color: var(--bs-primary);
   }
+
   &--required {
-    color: $brand-danger;
+    color: var(--bs-danger);
   }
 }
 
@@ -26,25 +28,25 @@ label {
 }
 
 .label-info {
-  background: $brand-info;
+  background: var(--bs-info);
 }
 
 .label-default {
-  background: $gray-030;
+  background: var(--gray-030);
 }
 
 .label-primary {
-  background: $brand-primary-l;
+  background: var(--brand-primary-lll);
 }
 
 .label-danger {
-  background: $brand-danger-l;
+  background: var(--brand-danger-lll);
 }
 
 .label-success {
-  background: $brand-success-l;
+  background: var(--brand-success-l);
 }
 
 .label-warning {
-  background: $brand-warning-l;
+  background: var(--brand-warning-lll);
 }

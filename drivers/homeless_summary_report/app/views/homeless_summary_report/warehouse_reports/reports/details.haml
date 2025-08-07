@@ -18,7 +18,7 @@
   .card
     .overflow-x-scroll{style: "height: 500px"}
       %table.table.table-sm.table-bordered.table-fixed
-        %thead.thead-dark
+        %thead.table-dark
           %tr
             %th
             %th Client
@@ -26,7 +26,7 @@
             %th Last Name
             - @data_cells.each do |cell|
               %th= cell.to_s.gsub('_', ' ')
-        %tbody.thead-dark
+        %tbody
           - @detail_clients.each_with_index do |client, index|
             %tr
               - row_num = index + 1

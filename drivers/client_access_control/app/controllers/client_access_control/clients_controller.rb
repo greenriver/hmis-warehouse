@@ -64,6 +64,7 @@ class ClientAccessControl::ClientsController < ApplicationController
 
     @client = client_source.new(criteria || {}) # populates form inputs
     if criteria
+      @search_performed = true
       clients = client_source.strict_search(criteria, client_scope: client_search_scope)
     else
       clients = client_source.none
@@ -75,12 +76,15 @@ class ClientAccessControl::ClientsController < ApplicationController
   protected def perform_text_search(search_params)
     @query = search_params['q'].presence # populates form input
     if @query
-      clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+      @search_performed = true
+      @clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
     else
-      clients = client_source.none
+      @clients = client_source.none
     end
-    assign_client_list_vars(clients)
+    # sort_filter_index needs @clients to be set, and needs to be called before
+    # assign_client_list_vars, as assign_client_list_vars calls pagy
     sort_filter_index
+    assign_client_list_vars(@clients)
     render 'index'
   end
 
@@ -128,6 +132,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def show
+    @per_page_js = ['map_with_markers']
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     log_item(@client)
     @note = GrdaWarehouse::ClientNotes::Base.new

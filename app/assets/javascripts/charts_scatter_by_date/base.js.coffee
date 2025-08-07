@@ -17,56 +17,60 @@ class App.ChartsScatterByDate.Base
         @element.append("<h4 class='text-center'>No Records Found</h4>")
       $('.jLoading').remove()
   _build_charts: ->
-    # Default chart options
-    Chart.defaults.global.defaultFontSize = 10
-    Chart.defaults.global.title.position = 'top'
-    Chart.defaults.global.legend.display = false
-    Chart.defaults.global.hover.onHover = @_process_hover
-    # Chart.defaults.global.legend.position = 'right'
-    Chart.defaults.global.tooltips.bodyFontSize = 12
-    Chart.defaults.global.tooltips.displayColors = false
-    Chart.defaults.global.elements.point.hitRadius = 2
-    Chart.defaults.global.elements.point.radius = 2
-    Chart.defaults.global.onClick = @_follow_link
-
     @_build_chart()
 
   _individual_chart: (data, id, options) ->
     chart_id = "chart-chart-#{id}"
-    @element.append("<canvas id='#{chart_id}' height='#{@height}' width='#{@width}' class='chart-chart'>")
-    chart_canvas = $("\##{chart_id}")
+    @element.append("<div id='#{chart_id}' class='chart-chart'>")
+
     default_options =
-      bezierCurve: false,
-      scales:
-        xAxes: [
-          type: 'time',
-          time:
-            minUnit: 'day'
-            min: @start_date,
-            max: @end_date,
-        ],
-        yAxes: [
-          ticks:
-            beginAtZero: true
-        ],
-    options = $.extend(true, options, default_options)
-    @charts[id] = new Chart chart_canvas,
-      type: 'scatter',
-      data: data,
-      options: options,
+      bindto: "##{chart_id}"
+      size:
+        height: @height
+      data: data
+      axis:
+        x:
+          type: 'timeseries'
+          min: new Date(@start_date)
+          max: new Date(@end_date)
+          tick:
+            fit: true
+        y:
+          padding: { bottom: 0 }
+          min: 0
+      legend:
+        show: false
+      point:
+        r: 2
+
+    final_options = $.extend(true, default_options, options)
+    @charts[id] = window.bb.generate(final_options)
 
   # Override as necessary
-  _follow_link: (event) =>
-    event.preventDefault()
+  _follow_link: (d) =>
+    return
 
-  _format_tooltip_label: (tool_tip) =>
-    return unless tool_tip
-    d = new Date(tool_tip.xLabel)
-    date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
-    tool_tip.label = [
-      date_string,
-      "Client count: #{tool_tip.yLabel}"
-    ]
+  _format_tooltip_contents: (d) =>
+    return unless d && d.length > 0
 
-  _process_hover: (event, item) =>
+    point = d[0]
+    date = point.x
+    date_string = new Date(date.getTime() + (date.getTimezoneOffset() * 60000)).toDateString()
+    value = point.value
+
+    html = """
+      <table class="bb-tooltip">
+        <tbody>
+          <tr><td class="name">#{date_string}</td></tr>
+          <tr><td class="name">#{point.name}: #{value}</td></tr>
+        </tbody>
+      </table>
+    """
+    return html
+
+
+  _process_hover: (d) =>
+    return
+
+  _process_hover_out: (d) =>
     return
