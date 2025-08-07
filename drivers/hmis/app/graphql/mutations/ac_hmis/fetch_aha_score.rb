@@ -13,7 +13,7 @@ module Mutations
     argument :client_id, ID, required: true
 
     field :score, Integer, null: true
-    field :alt_aha_flag, Boolean, null: true
+    field :mci_quality_indicator, Integer, null: true
     field :dw_client_id, String, null: true
     field :generator, String, null: true
 
@@ -33,7 +33,7 @@ module Mutations
 
       {
         score: result.score,
-        alt_aha_flag: result.alt_aha_flag,
+        mci_quality_indicator: result.mci_quality_indicator,
         dw_client_id: result.dw_client_id,
         generator: result.generator,
       }

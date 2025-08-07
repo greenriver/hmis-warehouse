@@ -537,8 +537,11 @@ module Types
     def self.admin_available_units_for_enrollment(project, household_id: nil)
       return [] unless project
 
-      # Eligible units are unoccupied units, PLUS units occupied by household members
-      unoccupied_units = project.units.unoccupied_on.pluck(:id)
+      # Return units that are unoccupied/not receiving referrals, AND units already occupied by household members.
+
+      # IDs of units that are unoccupied and not receiving referrals
+      available = project.units.unoccupied_on.not_receiving_referrals.pluck(:id)
+
       # IDs of units that are currently assigned to members of this household
       hh_units = if household_id.present?
         hh_en_ids = project.enrollments.where(household_id: household_id).pluck(:id)
@@ -547,7 +550,7 @@ module Types
         []
       end
 
-      eligible_units = Hmis::Unit.where(id: unoccupied_units + hh_units)
+      eligible_units = Hmis::Unit.where(id: available + hh_units)
 
       eligible_units.preload(:unit_type).
         order(:unit_type_id, :id).
