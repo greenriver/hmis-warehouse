@@ -47,10 +47,10 @@
       = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
     - if current_user.can_view_confidential_project_names?
       .col-sm-3
-        .pt-no-label= f.input :confidential, as: :boolean, label: 'Replace confidential project and organization names with the confidential version?'
+        .pt-no-label= f.input :confidential, as: :pretty_boolean, label: 'Replace confidential project and organization names with the confidential version?'
     - if can_export_anonymous_hmis_data?
       .col-sm-4
-        .pt-no-label= f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
+        .pt-no-label= f.input :faked_pii, as: :pretty_boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
   .row
     .col-sm-12
       %h4 Notes About Choices

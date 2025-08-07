@@ -41,7 +41,7 @@ module HmisExternalApis::AcHmis
 
           OpenStruct.new(
             score: score_value.to_i,
-            alt_aha_flag: score_obj.dig('metadata', 'alt_aha_flag')&.to_i == 1,
+            mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
             dw_client_id: response_client.dig('dw_client_id'),
             generator: score_obj.dig('generator'),
           )
