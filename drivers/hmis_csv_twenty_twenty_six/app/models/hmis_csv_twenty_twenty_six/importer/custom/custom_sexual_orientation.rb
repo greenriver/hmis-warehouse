@@ -23,7 +23,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :EnrollmentID, presence: true
     validates :SexualOrientation, numericality: { only_integer: true }, allow_blank: true
 
-    def self.hmis_configuration(_version: '2026')
+    def self.hmis_configuration(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
       {
         EnrollmentID: { type: :string, null: false },
         PersonalID: { type: :string },

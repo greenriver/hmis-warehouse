@@ -30,7 +30,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :DifferentIdentity, numericality: { only_integer: true }, allow_blank: true
     validates :GenderNone, numericality: { only_integer: true }, allow_blank: true
 
-    def self.hmis_configuration(_version: '2026')
+    def self.hmis_configuration(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
       {
         PersonalID: { type: :string, null: false },
         Woman: { type: :integer },

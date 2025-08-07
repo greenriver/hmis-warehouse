@@ -31,7 +31,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :Repeats, presence: true
     validates :Repeats, inclusion: { in: [true, false, 0, 1, '0', '1', 'true', 'false'] }, allow_blank: true
 
-    def self.hmis_configuration(_version: '2026')
+    def self.hmis_configuration(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
       {
         CustomDataElementDefinitionID: { type: :string, null: false },
         Key: { type: :string, null: false },

@@ -27,7 +27,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :RecordID, presence: true
     validates :DataCollectionStage, numericality: { only_integer: true }, allow_blank: true
 
-    def self.hmis_configuration(_version: '2026')
+    def self.hmis_configuration(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
       {
         CustomDataElementID: { type: :string, null: false },
         CustomDataElementDefinitionID: { type: :string, null: false },

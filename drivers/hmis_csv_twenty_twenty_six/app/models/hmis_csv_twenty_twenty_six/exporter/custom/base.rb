@@ -65,6 +65,23 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       self.class.hmis_csv_headers(version: version)
     end
 
+    # Provide hmis_configuration by delegating to the associated importer class
+    def self.hmis_configuration(version: '2026')
+      # Find the corresponding importer class
+      importer_class_name = name.gsub('::Exporter::', '::Importer::')
+      begin
+        importer_class = importer_class_name.constantize
+        importer_class.hmis_configuration(version: version)
+      rescue NameError
+        Rails.logger.warn "Could not find importer class #{importer_class_name} for #{name}"
+        {}
+      end
+    end
+
+    def hmis_configuration(version: '2026')
+      self.class.hmis_configuration(version: version)
+    end
+
     private
 
     # Helper method to get the custom file definition

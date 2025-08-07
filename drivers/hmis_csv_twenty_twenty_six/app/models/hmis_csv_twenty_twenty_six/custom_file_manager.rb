@@ -442,7 +442,7 @@ module HmisCsvTwentyTwentySix
 
       # rubocop:disable Layout/HeredocIndentation
       <<~RUBY.strip
-    def self.hmis_configuration(_version: '2026')
+    def self.hmis_configuration(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
       {
 #{column_configs}
       }
