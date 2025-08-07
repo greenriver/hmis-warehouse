@@ -34,7 +34,6 @@ module HmisUtil
       10.times do
         break unless Hmis::Ce::ChangeMarker.dirty.exists?
 
-        # Process pools first (more expensive), then clients (faster updates)
         Hmis::Ce::ProcessClientsJob.new.perform(progress: progress)
         Hmis::Ce::ProcessPoolsJob.new.perform(progress: progress)
         hit_max_iterations = Hmis::Ce::ChangeMarker.dirty.exists?
