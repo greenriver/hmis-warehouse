@@ -281,6 +281,8 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
 
+      data_source = GrdaWarehouse::DataSource.hmis.order(:id).first # TODO(#6612, #6691): specify data source for seeding. for now choose first.
+
       # Find or initialize the definition record
       record = Hmis::Form::Definition.where(
         identifier: identifier,
@@ -295,16 +297,23 @@ module HmisUtil
       # Ensure HUD rules are set
       record.set_hud_requirements
 
-      # This will be replaced with PR#5610 which adds automated CDED generation
-      # record.introspect_custom_data_element_definitions(set_definition_identifier: true).each(&:save!) if record.role.to_sym == :CE_REFERRAL_STEP
+      # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
+      unless Rails.env.test?
+        cdeds = Hmis::Form::CustomDataElementGenerator.new(
+          definition: record,
+          create_missing_mappings: false,
+          data_source: data_source,
+          set_form_definition_identifier: !record.hud_assessment?, # don't set for custom fields on HUD assessments because they are often repeated across data collection stages
+        ).run
+        cdeds.each(&:save!)
+      end
 
       # Validate definition
       # puts "Validating FormDefinition: \"#{record.identifier}\" ##{record.id}"
       errors = Hmis::Form::DefinitionValidator.perform(
         form_definition,
         role,
-        # Don't validate CDEDs in test/dev env, to make it easier to test seeding installation-specific forms
-        skip_cded_validation: ENV.fetch('SKIP_CDED_VALIDATION', 'false') == 'true' || Rails.env.test? || Rails.env.development?,
+        skip_cded_validation: Rails.env.test?,
       )
       raise(JsonFormException, errors.first.full_message) if errors.any?
 
