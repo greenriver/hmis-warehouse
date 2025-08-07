@@ -21,11 +21,11 @@
   .row.border-top
     .col-4.py-2
       .pctc-print__table-title Identifying Information
-    .col.py-2.border-left
+    .col.py-2.border-start
       %strong.pr-2= @careplan.identifying_information[:name].first
       %span= @careplan.name
   .row
-    .col-8.border-top.border-right.py-2
+    .col-8.border-top.border-end.py-2
       %strong= @careplan.identifying_information[:email].first
       %div= @careplan.email
     .col-4
@@ -59,7 +59,7 @@
   .row
     .col-4.py-2
       .pctc-print__table-title Demographic Information
-    .col.border-left.py-2
+    .col.border-start.py-2
       %strong.pr-2= @careplan.demographic_information_1[:scribe].first
       %span= @careplan.scribe
   .row

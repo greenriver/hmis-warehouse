@@ -23,7 +23,7 @@
                 .chart-bar.chart.pt-0{ data: { active_date: active_date }, class: [chart_class, "active_date_#{active_date}"]}
                 = render 'bar_js', data: js_data, chart_class: chart_class, active_date: active_date, groups: groups, category: category
               - if adult_plus_child
-                .w-30.d-sm-flex.border-right.border-dark
+                .w-30.d-sm-flex.border-end.border-dark
                   .total-for-type.mb-auto.mt-auto.jTotalCount{data: { dates: dates.to_json }}= total
               - else
                 .w-30.d-sm-flex
