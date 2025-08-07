@@ -1,6 +1,7 @@
 @import '../helpers';
 
-@media print {
+// setting media all, even though this is only used for print, as some of our printing methods don't always think they are printing
+@media all {
   body {
     font-family: $font-family-sans-serif;
   }
