@@ -12,7 +12,10 @@
         body {
           background-color: white;
         }
-
+        .border, .border-start, .border-end, .border-top, .border-bottom {
+          print-color-adjust: exact !important;
+          -webkit-print-color-adjust: exact !important;
+        }
   %body
 
     = yield
