@@ -103,5 +103,57 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       expect(details['alt_aha_2']['raw_score']).to eq('0.0')  # no match (question_2 missing, doesn't meet range)
       expect(details['alt_aha_3']['raw_score']).to eq('0.0')  # no match (question_3 missing, nil * weight = 0)
     end
+
+    it 'handles include rules for array responses' do
+      # Add an includes rule
+      AcHmis::Scoring::Rule.create!(
+        link_id: 'question_5',
+        form_definition_identifier: 'test_form',
+        criteria_type: AcHmis::Scoring::Rule::INCLUDE,
+        criteria_config: { 'include' => 'option_b' },
+        weight: 0.6,
+        algorithm: 'alt_aha_1',
+      )
+
+      values = {
+        'question_1' => 'Yes', # exact_match: contributes 0.5
+        'question_5' => ['option_a', 'option_b', 'option_c'], # includes: contributes 0.6
+        'question_4' => 'not_nil', # prevents nil match
+      }
+
+      calculator.calculate_score(values, owner: owner, user: user)
+
+      log = AcHmis::Scoring::CalculationLog.last
+      details = log.calculation_details
+
+      # Should get 0.5 (exact match) + 0.6 (includes value) = 1.1
+      expect(details['alt_aha_1']['raw_score']).to eq('1.1')
+    end
+
+    it 'handles includes rules that do not match' do
+      # Same rule as above
+      AcHmis::Scoring::Rule.create!(
+        link_id: 'question_5',
+        form_definition_identifier: 'test_form',
+        criteria_type: AcHmis::Scoring::Rule::INCLUDE,
+        criteria_config: { 'include' => 'option_z' },
+        weight: 0.6,
+        algorithm: 'alt_aha_1',
+      )
+
+      values = {
+        'question_1' => 'Yes', # exact_match: contributes 0.5
+        'question_5' => ['option_a', 'option_b', 'option_c'], # does not include option_z: contributes 0
+        'question_4' => 'not_nil', # prevents nil match
+      }
+
+      calculator.calculate_score(values, owner: owner, user: user)
+
+      log = AcHmis::Scoring::CalculationLog.last
+      details = log.calculation_details
+
+      # Should get only 0.5 (exact match)
+      expect(details['alt_aha_1']['raw_score']).to eq('0.5')
+    end
   end
 end

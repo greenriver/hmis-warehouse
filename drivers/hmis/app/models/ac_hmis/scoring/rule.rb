@@ -14,7 +14,8 @@ module AcHmis
       RANGE = 'range'
       EXACT_MATCH = 'exact_match'
       VALUE = 'value'
-      CRITERIA_TYPES = [RANGE, EXACT_MATCH, VALUE].freeze
+      INCLUDE = 'include'
+      CRITERIA_TYPES = [RANGE, EXACT_MATCH, VALUE, INCLUDE].freeze
 
       validates :link_id, :form_definition_identifier, :algorithm, :criteria_type, :weight, presence: true
       validates :criteria_type, inclusion: { in: CRITERIA_TYPES }
@@ -34,6 +35,7 @@ module AcHmis
 
         weighted_value = 1 if criteria_type == RANGE && range_match?(response_value)
         weighted_value = 1 if criteria_type == EXACT_MATCH && exact_match?(response_value)
+        weighted_value = 1 if criteria_type == INCLUDE && include?(response_value)
         weighted_value = convert_to_numeric(response_value) || 0 if criteria_type == VALUE
 
         weighted_value * weight
@@ -66,6 +68,14 @@ module AcHmis
         value.to_s == match_value.to_s
       end
 
+      def include?(value)
+        include_value = criteria_config['include']
+        return false if include_value.nil? || value.nil?
+
+        # Check if the response array includes the target value (convert both to strings for comparison)
+        Array.wrap(value).map(&:to_s).include?(include_value.to_s)
+      end
+
       def convert_to_numeric(value)
         case value
         when Numeric
@@ -83,6 +93,7 @@ module AcHmis
       def valid_criteria_config
         validate_range_config if criteria_type == RANGE
         validate_exact_match_config if criteria_type == EXACT_MATCH
+        validate_include_config if criteria_type == INCLUDE
       end
 
       def validate_range_config
@@ -102,6 +113,10 @@ module AcHmis
       def validate_exact_match_config
         # `match_value` key has to exist, but value can be nil, if we want to match nils explicitly
         errors.add(:criteria_config, 'Exact match criteria must specify a match_value') unless criteria_config.key?('match_value')
+      end
+
+      def validate_include_config
+        errors.add(:criteria_config, 'Include criteria must specify an include value') unless criteria_config.key?('include')
       end
     end
   end
