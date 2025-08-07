@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MaYyaReport
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers
@@ -100,59 +102,7 @@ module MaYyaReport
         A4b: a_t[:entry_date].lt(report_start_date).and(a_t[:currently_homeless].eq(true)),
         # A4c: nil,
 
-        A5a: a_t[:direct_assistance].eq(true),
-        A5b: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Move-in'),
-              )),
-        A5c: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Rent'),
-              )),
-        A5d: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Rent arrears'),
-              )),
-        A5e: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Utilities'),
-              )),
-        A5f: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Transportation'),
-              )),
-        A5g: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Education'),
-              )),
-        A5h: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Legal'),
-              )),
-        A5i: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Child care'),
-              )),
-        A5j: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Work'),
-              )),
-        A5k: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Medical'),
-              )),
-        A5l: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Cell phone'),
-              )),
-        A5m: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Food/Groceries'),
-              )),
-        A5n: a_t[:direct_assistance].eq(true).
-          and(Arel.sql(
-                json_contains_text(:flex_funds, 'Other'),
-              )),
+        # A5 removed in FY2026
 
         # NOTE: currently_homeless and at_risk_of_homelessness are mutually exclusive
         TotalYYAServedHomeless: a_t[:currently_homeless].eq(true),
@@ -205,21 +155,18 @@ module MaYyaReport
         # Ea: nil,
         # Eb: nil,
 
-        F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
-        F1b: a_t[:followup_previous_period].eq(false).
-          and(Arel.sql(
-                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth)
-              )),
+        # F1 removed in FY2026
 
         F2a: g_population, # "Report Once" should handled because reporting periods don't overlap
-        F2b: a_t[:currently_homeless].eq(true).
-          and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
-          and(a_t[:subsequent_current_living_situations].not_eq([])),
-        F2c: a_t[:currently_homeless].eq(true).
-          and(a_t[:rehoused_on].not_eq(nil)).
-          and(a_t[:followup_previous_period].eq(false)).
-          and(Arel.sql(json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current)))),
-        F2d: nil, # Handled as a special case in
+        # F2b, F2c, F2d removed in FY2026
+        # F2b: a_t[:currently_homeless].eq(true).
+        #   and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
+        #   and(a_t[:subsequent_current_living_situations].not_eq([])),
+        # F2c: a_t[:currently_homeless].eq(true).
+        #   and(a_t[:rehoused_on].not_eq(nil)).
+        #   and(a_t[:followup_previous_period].eq(false)).
+        #   and(Arel.sql(json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current)))),
+        # F2d: nil, # Handled as a special case in
 
         G1a: g_population.and(a_t[:age].lt(18)),
         G1b: g_population.and(a_t[:gender].eq(1)),
