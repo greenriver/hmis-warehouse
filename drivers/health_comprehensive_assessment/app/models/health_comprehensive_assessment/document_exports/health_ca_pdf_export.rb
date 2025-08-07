@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthComprehensiveAssessment::DocumentExports
   class HealthCaPdfExport < ::Health::DocumentExport
     include ApplicationHelper
@@ -72,6 +74,7 @@ module HealthComprehensiveAssessment::DocumentExports
           print_background: true,
           prefer_css_page_size: true,
           scale: 1,
+          format: 'tabloid',
         }
 
         first_page_options = options_no_header.merge(
