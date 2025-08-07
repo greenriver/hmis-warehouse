@@ -3,7 +3,7 @@
   = simple_form_for @batch, as: :role, url: url, method: :patch do |f|
     .card-header
       .d-flex
-        .user-role.w-25.d-flex.border-right.border-dark{style: 'min-width: 350px;'}
+        .user-role.w-25.d-flex.border-end.border-dark{style: 'min-width: 350px;'}
           %h2 User Roles
           .ml-auto
             = link_to path_for_new, class: 'btn btn-secondary btn-sm' do
@@ -14,17 +14,17 @@
         .mr-auto.my-auto.hide{ data: { 'role-manager' => { target: 'changeButton' }}}= f.submit 'Save Changes', class: 'btn btn-sm'
     .d-flex
       .w-25{style: 'min-width: 350px;'}
-        .card-body.border-right.border-dark
+        .card-body.border-end.border-dark
           %label.w-100{for: 'search-roles'} Search
           %input#search-roles.form-control.j-table__search.w-100{placeholder: 'Search permissions', data: { 'role-manager' => { target: 'searchInput' }, action: 'keyup->role-manager#searchPermissions'}}
-        .administrative-permissions.d-flex.administrative.border-right.border-dark
+        .administrative-permissions.d-flex.administrative.border-end.border-dark
           .form-check.form-switch
             %input.form-check-input{type: :checkbox, role: :switch, id: 'administrative-permissions-toggle', checked: :checked, data: { 'role-manager': { target: 'administrativeFilter' }, action: 'change->role-manager#toggleAdmin' }}
           .ml-2.my-auto
             Administrative Permissions
           .ml-auto.my-auto
             %i.icon-lock
-        .list-group.list-group-flush.role-names.border-right.border-dark
+        .list-group.list-group-flush.role-names.border-end.border-dark
           %h4.mx-auto Show/Hide Roles
           - @roles.each.with_index do |role, i|
             - role_color_class = "role-color-#{i+1 % 50}"
