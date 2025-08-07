@@ -10,6 +10,8 @@ module HmisExternalApis::AcHmis
   class AltAhaCalculator
     ALT_AHA_NAMESPACE = 'alt_aha'
 
+    # Calculate the alt-AHA score based on the values submitted.
+    # owner can be: an enrollment (on an unsaved assessment), or an assessment (when the assessment is being saved)
     def calculate_score(values_by_link_id, owner:, user:)
       alt_aha_1_result = calculate_algo_1_score(values_by_link_id)
       alt_aha_2_result = calculate_algo_2_score(values_by_link_id)
@@ -37,20 +39,13 @@ module HmisExternalApis::AcHmis
     private
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
-      # Get all scoring rules for this algorithm, grouped by link_id
       rules_by_link_id = AcHmis::Scoring::Rule.rules_by_link_id(algorithm)
-      raise "No rules found for #{algorithm}" unless rules_by_link_id.any?
+      raise "No rules found for #{algorithm}" if rules_by_link_id.empty?
 
-      score = 0
-      values_by_link_id.each do |link_id, response_value|
+      values_by_link_id.sum do |link_id, response_value|
         rules = rules_by_link_id[link_id.to_s] || []
-        matching_rules = rules.select { |rule| rule.matches_value?(response_value) }
-
-        # Sum weights from all matching rules for this link_id
-        score += matching_rules.sum(&:weight)
+        rules.sum { |rule| rule.evaluate(response_value) }
       end
-
-      score
     end
 
     def calculate_probability(score)

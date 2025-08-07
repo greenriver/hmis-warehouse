@@ -8,11 +8,10 @@
 
 FactoryBot.define do
   factory :ac_hmis_scoring_rule, class: 'AcHmis::Scoring::Rule' do
-    association :algorithm, factory: :ac_hmis_scoring_algorithm
     link_id { 'test_question' }
+    form_definition_identifier { 'test_form' }
+    algorithm { 'test_algorithm' }
+    criteria_type { AcHmis::Scoring::Rule::VALUE }
     weight { 0.5 }
-    exact_value { nil }
-    min_value { nil }
-    max_value { nil }
   end
 end

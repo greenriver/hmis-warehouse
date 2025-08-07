@@ -11,55 +11,96 @@ module AcHmis
     class Rule < ::GrdaWarehouseBase
       self.table_name = 'hmis_scoring_rules'
 
-      validates :link_id, :weight, presence: true
-      validates :link_id, uniqueness: { scope: [:algorithm, :min_value, :max_value, :exact_value] }
-      validate :valid_matching_criteria
+      RANGE = 'range'
+      EXACT_MATCH = 'exact_match'
+      VALUE = 'value'
+      CRITERIA_TYPES = [RANGE, EXACT_MATCH, VALUE].freeze
+
+      validates :link_id, :form_definition_identifier, :algorithm, :criteria_type, :weight, presence: true
+      validates :criteria_type, inclusion: { in: CRITERIA_TYPES }
+      validate :valid_criteria_config
 
       scope :for_algorithm, ->(algorithm) { where(algorithm: algorithm) }
-
-      # Check if a given response value matches this rule's criteria
-      def matches_value?(value)
-        return false unless value
-        return value.to_s == exact_value if exact_value.present?
-
-        min_val = convert_value(min_value, value)
-        max_val = convert_value(max_value, value)
-
-        # Range check: (exclusive, inclusive]
-        (min_val.nil? || value > min_val) && (max_val.nil? || value <= max_val)
-      end
+      # todo @martha - do something with the form identifier?
 
       # Get all rules for a specific algorithm, grouped by link_id for efficient lookup
       def self.rules_by_link_id(algorithm)
         for_algorithm(algorithm).group_by(&:link_id)
       end
 
+      # Evaluate this rule against a response value and return the score contribution
+      def evaluate(response_value)
+        weighted_value = 0
+
+        weighted_value = 1 if criteria_type == RANGE && range_match?(response_value)
+        weighted_value = 1 if criteria_type == EXACT_MATCH && exact_match?(response_value)
+        weighted_value = convert_to_numeric(response_value) || 0 if criteria_type == VALUE
+
+        weighted_value * weight
+      end
+
       private
 
-      # Convert string value to same type as reference value
-      def convert_value(string_val, reference_val)
-        return nil if string_val.nil?
+      def range_match?(value)
+        numeric_value = convert_to_numeric(value)
+        return false if numeric_value.nil?
 
-        case reference_val
-        when Numeric
-          begin
-            Float(string_val)
-          rescue ArgumentError
-            string_val
+        criteria_config.all? do |operator, threshold|
+          case operator
+          when 'gt' then numeric_value > threshold
+          when 'gte' then numeric_value >= threshold
+          when 'lt' then numeric_value < threshold
+          when 'lte' then numeric_value <= threshold
+          else true # ignore unknown operators
           end
-        when Date, Time
-          begin
-            Time.parse(string_val)
-          rescue ArgumentError
-            string_val
-          end
-        else
-          string_val
         end
       end
 
-      def valid_matching_criteria
-        errors.add(:base, 'Must specify either exact_value or at least one of min_value/max_value') if exact_value.blank? && min_value.blank? && max_value.blank?
+      def exact_match?(value)
+        # todo @martha - how does this evaluate missing?
+        match_value = criteria_config['match_value']
+        return false if match_value.nil? # shouldn't happen, rule would be invalid
+
+        value.to_s == match_value.to_s
+      end
+
+      def convert_to_numeric(value)
+        case value
+        when Numeric
+          value
+        when String
+          begin
+            # Try integer first, then float
+            value.match?(/\A-?\d+\z/) ? Integer(value) : Float(value)
+          rescue ArgumentError
+            nil
+          end
+        end
+      end
+
+      def valid_criteria_config
+        validate_range_config if criteria_type == RANGE
+        validate_exact_match_config if criteria_type == EXACT_MATCH
+      end
+
+      def validate_range_config
+        valid_operators = ['gt', 'gte', 'lt', 'lte']
+        config_operators = criteria_config.keys & valid_operators
+
+        errors.add(:criteria_config, 'Range criteria must specify at least one of: gt, gte, lt, lte') if config_operators.empty?
+        errors.add(:criteria_config, 'Cannot specify both gt and gte') if criteria_config.key?('gt') && criteria_config.key?('gte')
+        errors.add(:criteria_config, 'Cannot specify both lt and lte') if criteria_config.key?('lt') && criteria_config.key?('lte')
+
+        # Check bounds make sense
+        lower = criteria_config['gt'] || criteria_config['gte']
+        upper = criteria_config['lt'] || criteria_config['lte']
+        errors.add(:criteria_config, 'Lower bound must be less than upper bound') if lower && upper && lower >= upper
+      end
+
+      def validate_exact_match_config
+        return unless criteria_config['match_value'].nil?
+
+        errors.add(:criteria_config, 'Exact match criteria must specify a match_value')
       end
     end
   end

@@ -10,18 +10,26 @@ class CreateHmisScoringRules < ActiveRecord::Migration[7.0]
   def change
     create_table :hmis_scoring_rules do |t|
       t.string :link_id, null: false
-      t.string :min_value, null: true
-      t.string :max_value, null: true
-      t.string :exact_value, null: true
-      # precision 14, scale 12 = 14 total digits with 12 after decimal point (e.g., 99.123456789012)
-      t.decimal :weight, null: false, precision: 14, scale: 12
+      t.string :form_definition_identifier, null: false
       t.string :algorithm, null: false
-
+      
+      # The type of scoring criteria - determines how to evaluate the response value
+      t.string :criteria_type, null: false # 'range', 'exact_match', 'value'
+      
+      # JSON field containing the criteria configuration
+      # Examples:
+      # Range: {"gte": 1000, "lt": 2000}. Multiply weight by 1 when response is in range
+      #        {"gt": 0} for "greater than 0"
+      #        {"lte": 100} for "less than or equal to 100"
+      # Exact match: {"match_value": "Yes"}. Multiply weight by 1 when response is exact match
+      # Value: {}. Multiply weight by the response value
+      t.json :criteria_config, null: false, default: {}
+      
+      # The weight to multiply by when criteria are met
+      t.decimal :weight, null: false, precision: 14, scale: 12
+      
       t.timestamps null: false
     end
-
-    # Prevent duplicate rules for the same conditions
-    add_index :hmis_scoring_rules, [:algorithm, :link_id, :min_value, :max_value, :exact_value], name: 'index_hmis_scoring_rules_unique', unique: true
 
     create_table :hmis_scoring_calculation_logs do |t|
       t.string :namespace, null: false

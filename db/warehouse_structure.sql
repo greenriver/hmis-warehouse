@@ -24149,11 +24149,11 @@ ALTER SEQUENCE public.hmis_scoring_calculation_logs_id_seq OWNED BY public.hmis_
 CREATE TABLE public.hmis_scoring_rules (
     id bigint NOT NULL,
     link_id character varying NOT NULL,
-    min_value character varying,
-    max_value character varying,
-    exact_value character varying,
-    weight numeric(14,12) NOT NULL,
+    form_definition_identifier character varying NOT NULL,
     algorithm character varying NOT NULL,
+    criteria_type character varying NOT NULL,
+    criteria_config json DEFAULT '{}'::json NOT NULL,
+    weight numeric(14,12) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -66295,13 +66295,6 @@ CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card
 --
 
 CREATE INDEX index_hmis_scoring_calculation_logs_on_owner ON public.hmis_scoring_calculation_logs USING btree (owner_type, owner_id);
-
-
---
--- Name: index_hmis_scoring_rules_unique; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_scoring_rules_unique ON public.hmis_scoring_rules USING btree (algorithm, link_id, min_value, max_value, exact_value);
 
 
 --
