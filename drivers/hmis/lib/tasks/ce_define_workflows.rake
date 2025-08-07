@@ -26,12 +26,14 @@ task ce_define_workflows: [:environment] do
   end
 
   # Write each diagram to a file in generated_diagrams/ to track changes in version control
-  if Rails.env.development?
-    templates.each do |template|
-      filename = File.join('drivers/hmis/lib/ce_workflows/generated_diagrams/', "#{template.identifier}.mmd")
-      File.write(filename, template.to_mermaid_diagram)
-    end
-  end
+  # Commented-out because the diagrams are not stable, they contain database IDs. I think this would be helpful to
+  # add if we can generate stable diagrams.
+  # if Rails.env.development?
+  #   templates.each do |template|
+  #     filename = File.join('drivers/hmis/lib/ce_workflows/generated_diagrams/', "#{template.identifier}.mmd")
+  #     File.write(filename, template.to_mermaid_diagram)
+  #   end
+  # end
 
   puts 'Generated Mermaid Diagrams:'
   puts templates.map(&:to_mermaid_diagram).join("\n\n")
