@@ -409,8 +409,4 @@ class Hmis::Form::DefinitionValidator
     end
     cded_check.call(document)
   end
-
-  private def raise_bad_type_match(link_id, item_type, cded_key, cded_type)
-    self.class.raise_bad_type_match(link_id, item_type, cded_key, cded_type)
-  end
 end
