@@ -11,8 +11,6 @@ module HmisExternalApis::AcHmis
     ALT_AHA_NAMESPACE = 'alt_aha'
 
     def calculate_score(values_by_link_id, owner:, user:)
-      return 0 if values_by_link_id.blank?
-
       alt_aha_1_result = calculate_algo_1_score(values_by_link_id)
       alt_aha_2_result = calculate_algo_2_score(values_by_link_id)
       alt_aha_3_result = calculate_algo_3_score(values_by_link_id)
