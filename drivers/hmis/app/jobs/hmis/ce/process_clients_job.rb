@@ -19,7 +19,7 @@ module Hmis::Ce
   class ProcessClientsJob < BaseJob
     include NotifierConfig
 
-    queue_as :default
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
     # Enqueues the job only if no other instance is currently queued or running.
     # This prevents job queue buildup while ensuring the processing continues.
