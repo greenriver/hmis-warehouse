@@ -23,8 +23,8 @@ module HmisCsvTwentyTwentySix::Importer::Custom
     validates :EnrollmentID, presence: true
     validates :SexualOrientation, numericality: { only_integer: true }, allow_blank: true
 
-    def self.hmis_configuration(version: '2026')
-  {
+    def self.hmis_configuration(_version: '2026')
+      {
         EnrollmentID: { type: :string, null: false },
         PersonalID: { type: :string },
         SexualOrientation: { type: :integer },
@@ -34,7 +34,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
         UserID: { type: :string },
         DateDeleted: { type: :datetime },
         ExportID: { type: :string },
-  }
-end
+      }
+    end
   end
 end

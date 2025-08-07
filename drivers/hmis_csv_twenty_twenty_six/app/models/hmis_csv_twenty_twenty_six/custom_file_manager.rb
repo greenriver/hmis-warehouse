@@ -131,6 +131,7 @@ module HmisCsvTwentyTwentySix
       file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/custom/#{definition.class_name.underscore}.rb")
       export_scope_code = generate_export_scope_code(definition)
       adjust_keys_code = generate_adjust_keys_code(definition)
+      options_param = definition.augments_export_class.present? ? 'options' : '_options'
 
       content = ::Code.copywright_header
       content += <<~RUBY
@@ -145,7 +146,7 @@ module HmisCsvTwentyTwentySix
               '#{definition.filename}'
             end
 
-            def self.export_scope(**options)
+            def self.export_scope(**#{options_param})
               #{export_scope_code}
             end
 
@@ -153,7 +154,7 @@ module HmisCsvTwentyTwentySix
               [
                 HmisCsvTwentyTwentySix::Exporter::Custom::#{definition.class_name},
               ]
-            end#{adjust_keys_code.present? ? "\n\n#{adjust_keys_code}" : ''}
+            end#{adjust_keys_code.present? ? "\n\n    #{adjust_keys_code}" : ''}
           end
         end
       RUBY
@@ -417,12 +418,14 @@ module HmisCsvTwentyTwentySix
       export_class = definition.augments_export_class
       return '' if export_class.blank?
 
+      # rubocop:disable Layout/HeredocIndentation
       <<~RUBY.strip
-        def self.adjust_keys(row, export)
-          # Delegate to the standard exporter's adjust_keys method
-          #{export_class}.adjust_keys(row, export)
-        end
+    def self.adjust_keys(row, export)
+      # Delegate to the standard exporter's adjust_keys method
+      #{export_class}.adjust_keys(row, export)
+    end
       RUBY
+      # rubocop:enable Layout/HeredocIndentation
     end
 
     # Generates the hmis_configuration method code based on the YAML columns
@@ -437,13 +440,15 @@ module HmisCsvTwentyTwentySix
         "        #{col['name']}: { type: #{type}#{options_str} },"
       end.join("\n")
 
+      # rubocop:disable Layout/HeredocIndentation
       <<~RUBY.strip
-        def self.hmis_configuration(_version: '2026')
-          {
-        #{column_configs}
-          }
-        end
+    def self.hmis_configuration(_version: '2026')
+      {
+#{column_configs}
+      }
+    end
       RUBY
+      # rubocop:enable Layout/HeredocIndentation
     end
   end
 end
