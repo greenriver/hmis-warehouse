@@ -42,8 +42,9 @@ module HmisExternalApis::AcHmis
       rules_by_link_id = AcHmis::Scoring::Rule.rules_by_link_id(algorithm)
       raise "No rules found for #{algorithm}" if rules_by_link_id.empty?
 
-      values_by_link_id.sum do |link_id, response_value|
-        rules = rules_by_link_id[link_id.to_s] || []
+      # Evaluate all rules, treating missing values as nil
+      rules_by_link_id.sum do |link_id, rules|
+        response_value = values_by_link_id[link_id]
         rules.sum { |rule| rule.evaluate(response_value) }
       end
     end

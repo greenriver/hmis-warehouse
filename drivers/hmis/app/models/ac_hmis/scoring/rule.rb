@@ -57,10 +57,12 @@ module AcHmis
       end
 
       def exact_match?(value)
-        # todo @martha - how does this evaluate missing?
         match_value = criteria_config['match_value']
-        return false if match_value.nil? # shouldn't happen, rule would be invalid
 
+        # Handle nil matching explicitly
+        return value.nil? if match_value.nil?
+
+        # For non-nil values, convert both to strings for comparison
         value.to_s == match_value.to_s
       end
 
@@ -98,9 +100,8 @@ module AcHmis
       end
 
       def validate_exact_match_config
-        return unless criteria_config['match_value'].nil?
-
-        errors.add(:criteria_config, 'Exact match criteria must specify a match_value')
+        # `match_value` key has to exist, but value can be nil, if we want to match nils explicitly
+        errors.add(:criteria_config, 'Exact match criteria must specify a match_value') unless criteria_config.key?('match_value')
       end
     end
   end
