@@ -210,6 +210,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
       permission: :can_manage_external_form_submissions,
     },
+    CE_REFERRAL_STEP: {
+      owner_class: 'Hmis::WorkflowExecution::Step',
+      authorize: -> { raise 'not expected to be submitted via submit form' },
+    },
   }.freeze
 
   # HUD-defined numeric representation of Data Collection Stage for each HUD Assessment

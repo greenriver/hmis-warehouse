@@ -13,7 +13,14 @@ module Types
 
       class_methods do
         def ce_referrals_field(name = :ce_referrals, description = nil, filter_args: {}, **override_options, &block)
-          default_field_options = { type: Types::HmisSchema::CeReferral.page_type, null: false, description: description }
+          default_field_options = {
+            type: Types::HmisSchema::CeReferral.page_type,
+            null: false,
+            description: description,
+            after_paginate: ->(nodes, ctx) {
+              ctx[:current_user].policy_context.preload_referral_dependencies(nodes.map(&:id))
+            },
+          }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             filters_argument HmisSchema::CeReferral, **filter_args

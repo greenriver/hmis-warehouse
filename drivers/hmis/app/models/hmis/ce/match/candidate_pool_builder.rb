@@ -11,11 +11,13 @@ module Hmis::Ce::Match
 
     # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
     def perform
+      updated_ids = []
       with_lock do
         Hmis::Ce::Match::CandidatePool.transaction do
-          _perform
+          updated_ids = _perform
         end
       end
+      updated_ids
     end
 
     protected
@@ -27,18 +29,23 @@ module Hmis::Ce::Match
 
     def _perform
       grouped = @candidate_pool_resolver.opportunities_by_key(opportunity_scope: @opportunities)
-      update_pools!(grouped.keys)
+      created_ids = create_new_pools!(grouped.keys)
       update_opportunity_pools!(grouped)
       cleanup_orphan_pools
+      created_ids
     end
 
     # Update the opportunity records with their candidate pools
     def update_opportunity_pools!(grouped)
       current_pools = @candidate_pool_resolver.reload_candidate_pools_by_key
+      pool_ids = []
       grouped.each do |key, opportunities|
         pool = current_pools.fetch(key)
         @opportunities.where(id: opportunities.map(&:id)).update_all(candidate_pool_id: pool.id)
+        pool_ids << pool.id
       end
+      # bump timestamps on used pools for tracking orphans
+      Hmis::Ce::Match::CandidatePool.where(id: pool_ids).touch_all
     end
 
     def now
@@ -46,22 +53,23 @@ module Hmis::Ce::Match
     end
 
     # Create candidate pools, if they don't exist, for the given [priority, requirement] keys
-    def update_pools!(values)
+    # Returns the IDs of newly created pools
+    def create_new_pools!(values)
       attrs = values.map do |priority_expression, requirement_expression|
         {
           priority_expression: priority_expression,
           requirement_expression: requirement_expression,
-          configuration_updated_at: now,
         }
       end
       result = Hmis::Ce::Match::CandidatePool.import(
         attrs,
-        on_duplicate_key_update: {
+        on_duplicate_key_ignore: {
           conflict_target: [:priority_expression, :requirement_expression],
-          columns: [:configuration_updated_at],
         },
       )
       raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+      result.ids
     end
 
     # Delete pools that haven't been used in a while
@@ -71,7 +79,8 @@ module Hmis::Ce::Match
 
       expiration_date = now - duration.days
       Hmis::Ce::Match::CandidatePool.
-        where(configuration_updated_at: ...expiration_date).
+        orphaned.
+        where(updated_at: ...expiration_date).
         find_each(&:destroy!)
     end
   end

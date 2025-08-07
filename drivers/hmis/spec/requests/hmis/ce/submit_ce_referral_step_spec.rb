@@ -19,6 +19,21 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
     )
   end
 
+  def build_input(contact_date: nil, client_accepted: nil)
+    # form structure is defined in factory ce_referral_step_form_definition.
+    # these are the same because the link_id and custom_field_key match.
+    {
+      values_by_link_id: {
+        'contact_date' => contact_date,
+        'client_accepted' => client_accepted,
+      },
+      values_by_field_name: {
+        'contact_date' => contact_date,
+        'client_accepted' => client_accepted,
+      },
+    }
+  end
+
   describe 'submit step mutation' do
     let!(:other_user) { create(:user, first_name: 'someone', last_name: 'else') }
     let!(:other_hmis_user) { other_user.related_hmis_user(ds1) }
@@ -34,14 +49,16 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
         mutation SubmitCeReferralStep(
           $referralId: ID!
           $stepId: ID!
-          $input: JsonObject!
+          $valuesByLinkId: JsonObject!
+          $valuesByFieldName: JsonObject!
           $confirmed: Boolean
           $formDefinitionId: ID!
         ) {
           submitCeReferralStep(
             referralId: $referralId
             stepId: $stepId
-            input: $input
+            valuesByLinkId: $valuesByLinkId
+            valuesByFieldName: $valuesByFieldName
             confirmed: $confirmed
             formDefinitionId: $formDefinitionId
           ) {
@@ -75,13 +92,14 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
     end
 
     context 'with valid input' do
+      let(:contact_date) { 1.day.ago.to_date }
       let(:variables) do
         {
           **base_variables,
-          input: {
-            contact_date: 1.day.ago,
+          **build_input(
+            contact_date: contact_date.strftime('%Y-%m-%d'),
             client_accepted: 1,
-          }.stringify_keys,
+          ),
         }
       end
 
@@ -98,6 +116,22 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
             referral.reload
           end.to change(step, :status).to('completed').
             and change(step, :completed_at).from(nil)
+        end
+
+        it 'processes responses onto associated Custom Data Elements' do
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result&.inspect
+          end.to change(step.custom_data_elements, :count).from(0).to(2)
+
+          date_cded = step.custom_data_element_definitions.find_by(key: 'contact_date')
+          acceptance_cded = step.custom_data_element_definitions.find_by(key: 'client_accepted')
+
+          expect(step.form_processor).to be_present
+          expect(step.custom_data_elements).to contain_exactly(
+            have_attributes(value_date: contact_date.to_date, data_element_definition_id: date_cded.id),
+            have_attributes(value_string: '1', data_element_definition_id: acceptance_cded.id),
+          )
         end
       end
 
@@ -138,10 +172,10 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
       let(:variables) do
         {
           **base_variables,
-          input: {
+          **build_input(
             contact_date: 1.day.ago,
             client_accepted: nil,
-          }.stringify_keys,
+          ),
         }
       end
 

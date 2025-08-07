@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisUtil
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException
 
-    DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
+    DATA_DIR = 'drivers/hmis/lib/form_data'
 
     def initialize(env_key: nil)
       @env_key = env_key if env_key.presence # allow override for testing
@@ -143,7 +145,11 @@ module HmisUtil
       end
     end
 
-    def apply_patches(tree, patches)
+    # Apply applicable patches to the "tree" which is a top-level item in the form definition.
+    # The patches passed may not apply to this tree. They are only applied if the `link_id` matches
+    # an item in the tree.
+    # Patches can override item attributes (such as "text") or append/prepend items to Group items.
+    def apply_item_patches(tree, patches)
       nodes_by_id = {}
       result = tree.deep_dup
       walk_nodes(result) do |node|
@@ -173,13 +179,36 @@ module HmisUtil
       [result, applied_patches]
     end
 
+    # Similar to apply_item_patches, but applies patches to the overall form
+    # instead of to an individual item. This was added to support appending an item
+    # to the Service form.
+    def apply_form_patches(definition, patches, identifier:)
+      result = definition.deep_dup
+      applied_patches = []
+      patches.filter { |patch| patch['form_identifier'] == identifier && !patch.key?('link_id') }.each do |patch|
+        result['item'].unshift(*patch['prepend_items']) if patch['prepend_items'].present?
+        result['item'].push(*patch['append_items']) if patch['append_items'].present?
+        applied_patches << patch['form_identifier']
+      end
+      [result, applied_patches]
+    end
+
     def apply_all_patches!(definition, identifier:)
       applied_patches = []
       Dir.glob("#{DATA_DIR}/#{env_key}/fragments/patches/*.json") do |file_path|
-        # patch_name = File.basename(file_path, '.json')
         file = File.read(file_path)
+        patches = JSON.parse(file)
+        # Split patches into "item patches" and "form patches"
+        item_patches, form_patches = patches.partition { |h| h.key?('link_id') }
+
+        # Apply form-level patches (appending and prepending items to system forms)
+        result, applied = apply_form_patches(definition, form_patches, identifier: identifier)
+        definition.replace(result)
+        applied_patches.push(*applied)
+
+        # Apply item-level patches (overriding item attributes, and appending/prepending items to groups)
         definition['item'].each do |item|
-          result, applied = apply_patches(item, JSON.parse(file))
+          result, applied = apply_item_patches(item, item_patches)
           item.replace(result)
           applied_patches.push(*applied)
         end

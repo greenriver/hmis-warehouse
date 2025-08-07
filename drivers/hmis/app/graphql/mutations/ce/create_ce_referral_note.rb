@@ -17,13 +17,11 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       referral = Hmis::Ce::Referral.viewable_by(current_user).find(referral_id)
-      access_denied! unless current_user.permissions_for?(referral.target_project, :can_perform_any_referral_tasks, :can_perform_own_referral_tasks, mode: :any)
 
-      # If step specified, ensure the user has permission to perform actions on that step
-      if step_id
-        step = referral.steps.find(step_id) # ensure step_id is valid
-        access_denied! unless current_user.can_perform_referral_step?(step)
-      end
+      # Load the step (if provided) and authorize
+      step = referral.steps.find(step_id) if step_id
+      referral_policy = policy_for(referral, policy_type: :ce_referral)
+      access_denied! unless referral_policy.can_create_note?(step: step)
 
       referral.notes.create!(note: note, user: current_user, wfe_step_id: step_id)
 

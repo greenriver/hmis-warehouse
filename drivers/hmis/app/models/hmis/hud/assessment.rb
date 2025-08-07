@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -13,6 +15,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::FormSubmittable
+  include ::Hmis::MarkClientAsDirtyBehavior
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -14,5 +16,11 @@ FactoryBot.define do
     created_at { Time.current }
     updated_at { Time.current }
     config_options { { 'length_of_absence_days': 30 }.to_json }
+  end
+
+  factory :hmis_project_staff_assignment_config, class: 'Hmis::ProjectStaffAssignmentConfig' do
+    association :project, factory: :hmis_hud_project
+    created_at { Time.current }
+    updated_at { Time.current }
   end
 end

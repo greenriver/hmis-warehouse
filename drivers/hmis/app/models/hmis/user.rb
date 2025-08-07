@@ -14,7 +14,10 @@
 # u.user_group_members.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
+
 class Hmis::User < ApplicationRecord
+  include Memery
+
   include UserConcern
   include HasRecentItems
   self.table_name = :users
@@ -101,30 +104,6 @@ class Hmis::User < ApplicationRecord
         select(Hmis::User.arel_table[:id]) # select ids to ensure the returned scope doesn't include complexity from the join
       where(id: user_ids)
     end
-  end
-
-  def can_view_my_dashboard?
-    key = [self.class.name, __method__, id]
-    Rails.cache.fetch(key, expires_in: 1.minutes) do
-      # This is a one-off custom logic permission for determining when to show "My Dashbord" in HMIS. It is resolved on the root access object.
-      # This logic may evolve as we add more capabilities to the dashboard.
-      # If we have more use-cases for this, we could make a helper in BaseAccess that accepts custom evaluation logic.
-      return false unless Hmis::ProjectStaffAssignmentConfig.exists? # micro optimization for installations without staff assignment
-
-      project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
-      Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
-    end
-  end
-
-  def can_perform_referral_step?(step)
-    referral = Hmis::Ce::Referral.find_by(workflow_instance: step.instance)
-    project = referral.target_project
-
-    # User can perform any tasks in this project
-    return true if can_perform_any_referral_tasks_for?(project)
-
-    # User can perform their own tasks, AND this task is assigned to them
-    can_perform_own_referral_tasks_for?(project) && step.assignments.any? { |assignment| assignment.user == self }
   end
 
   def lock_access!(opts = {})
@@ -287,5 +266,17 @@ class Hmis::User < ApplicationRecord
     @accessible_data_source_ids[data_source_id] = can_access_ds
 
     can_access_ds
+  end
+
+  memoize def policy_for(resource, policy_type:)
+    policy_name = "#{policy_type.to_s.camelize}Policy"
+    policy_class = "Hmis::AuthPolicies::#{policy_name}".safe_constantize
+    raise ArgumentError, "policy not found: #{policy_name}" unless policy_class
+
+    policy_class.new(resource: resource, context: policy_context)
+  end
+
+  memoize def policy_context
+    Hmis::AuthPolicies::UserContext.new(self)
   end
 end

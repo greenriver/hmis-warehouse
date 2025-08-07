@@ -15,6 +15,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
       before do
         allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:applies_to_entity?).and_return(true)
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
       end
 
       it 'creates pools based on unique rule combinations' do
@@ -26,19 +28,30 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         pool = Hmis::Ce::Match::CandidatePool.last
         expect(opportunity.reload.candidate_pool).to eq(pool)
       end
+    end
 
-      it 'updates existing pools configuration timestamp' do
-        pool = create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless')
+    context 'with orphaned candidate pools' do
+      let(:expiration_days) { 30 }
+      let!(:old_orphaned_pool) do
+        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago)
+      end
+      let!(:new_orphaned_pool) do
+        create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days - 1).days.ago)
+      end
+      let!(:active_pool) { create(:hmis_ce_match_candidate_pool, updated_at: (expiration_days + 1).days.ago) }
+      let!(:opportunity_with_pool) { create(:hmis_ce_opportunity, candidate_pool: active_pool) }
 
-        expect { builder.perform }.to(change { pool.reload.configuration_updated_at })
+      before do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:days_to_retain_orphan_candidate_pools).and_return(expiration_days)
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
       end
 
-      it 'cleans up unused pools after expiration period' do
-        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:days_to_retain_orphan_candidate_pools).and_return(90)
-        old_pool = create(:hmis_ce_match_candidate_pool, configuration_updated_at: 7.months.ago)
-
-        expect { builder.perform }.to change(Hmis::Ce::Match::CandidatePool, :count).by(0)
-        expect(Hmis::Ce::Match::CandidatePool.exists?(old_pool.id)).to be false
+      it 'deletes old orphaned pools but not new or active ones' do
+        expect { builder.send(:cleanup_orphan_pools) }.to change(Hmis::Ce::Match::CandidatePool, :count).by(-1)
+        expect(Hmis::Ce::Match::CandidatePool.exists?(old_orphaned_pool.id)).to be_falsey
+        expect(Hmis::Ce::Match::CandidatePool.exists?(new_orphaned_pool.id)).to be_truthy
+        expect(Hmis::Ce::Match::CandidatePool.exists?(active_pool.id)).to be_truthy
       end
     end
 

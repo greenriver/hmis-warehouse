@@ -112,6 +112,8 @@ module Hmis::WorkflowExecution
       message_handler.call(message)
     end
 
+    # event types: start_workflow, end_workflow, pass_gateway,
+    # enable_step → start_step → complete_step
     def process_triggers(node:, event_type:, user:, step: nil)
       results = node.triggers.map do |trigger|
         next unless event_type == trigger.event
@@ -162,6 +164,7 @@ module Hmis::WorkflowExecution
       when Hmis::WorkflowDefinition::UserTask
         step = enable_step!(node)
         assign_task!(step)
+        process_triggers(node: node, event_type: 'enable_step', user: user)
       when Hmis::WorkflowDefinition::ScriptTask
         step = enable_step!(node)
         # Immediately complete the step without waiting for user action

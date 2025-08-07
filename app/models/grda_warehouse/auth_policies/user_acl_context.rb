@@ -15,9 +15,9 @@ class GrdaWarehouse::AuthPolicies::UserAclContext
   EMPTY_SET = Set.new.freeze
 
   def initialize(user)
-    @user = user
-    raise ArgumentError, 'must be acl user' unless @user.using_acls?
+    raise ArgumentError, 'must be acl user' unless user.is_a?(User) && user.using_acls?
 
+    @user = user
     @coc_codes_by_project = {}
     @collection_ids_by_project = {}
   end

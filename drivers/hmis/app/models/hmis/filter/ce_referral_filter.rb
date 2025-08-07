@@ -12,7 +12,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
     scope = ensure_scope(scope)
     scope.
-      yield_self(&method(:with_statuses)).
+      yield_self(&method(:with_referral_statuses)).
       yield_self(&method(:with_projects)).
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_workflow_template_identifiers)).
@@ -22,8 +22,11 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
 
   protected
 
-  def with_statuses(scope)
-    with_filter(scope, :status) { scope.where(status: input.status) }
+  def with_referral_statuses(scope)
+    with_filter(scope, :referral_status) do
+      custom_statuses = Hmis::Ce::CustomReferralStatus.where(key: input.referral_status)
+      scope.where(custom_status: custom_statuses)
+    end
   end
 
   def with_projects(scope)

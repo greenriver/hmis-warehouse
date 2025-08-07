@@ -31,6 +31,7 @@ RSpec.shared_context 'ce spec helper' do
   let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+  let!(:state_machine_statuses) { HmisUtil::CeBuilder.create_state_machine_custom_statuses(ds1) }
   let!(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
   let!(:workflow_instance) { workflow_template.instances.create! }
 
@@ -51,7 +52,7 @@ RSpec.shared_context 'ce spec helper' do
   let!(:case_manager_swimlane) { workflow_template.swimlanes.create!(name: 'Case Managers') }
   let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
 
-  let!(:ce_step_definition) { create(:ce_referral_step_form_definition) }
+  let!(:ce_step_definition) { create(:ce_referral_step_form_definition, data_source: ds1) }
 
   let!(:client_acceptance_task) do
     create(

@@ -23,6 +23,7 @@ module Hmis::GrdaWarehouse::Hud
       # (Associations defined on GrdaWarehouse::Hud::Client are represented as GrdaWarehouse::WarehouseClient and GrdaWarehouse::Hud::Client respectively)
       has_many :hmis_warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id
       has_many :hmis_source_clients, -> { hmis }, class_name: 'Hmis::Hud::Client', through: :hmis_warehouse_client_destination, source: :source
+      has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy, foreign_key: :trackable_id
 
       def as_hmis
         Hmis::Hud::Client.find(id)

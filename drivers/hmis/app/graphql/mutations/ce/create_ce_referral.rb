@@ -17,7 +17,6 @@ module Mutations
       raise unless Hmis::Ce.configuration.enabled?
 
       opportunity = Hmis::Ce::Opportunity.viewable_by(current_user).find(opportunity_id)
-      access_denied! unless current_permission?(permission: :can_start_referrals, entity: opportunity.project)
 
       # client/enrollment don't need to be viewable by the current user
       if source_enrollment_id
@@ -29,7 +28,7 @@ module Mutations
         raise 'Either a client_id or a source_enrollment_id is required'
       end
 
-      access_denied! unless client.data_source_id == current_user.hmis_data_source_id # Needs to be in the same data source
+      access_denied! unless policy_for(opportunity, policy_type: :ce_opportunity).can_create_referral?(client: client)
 
       referral = nil
       opportunity.with_lock do

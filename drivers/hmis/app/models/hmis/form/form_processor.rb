@@ -155,6 +155,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     @owner_container_name ||= case owner
     when Hmis::Hud::Assessment
       'CeAssessment' # special case since the container name and class name don't match
+    when Hmis::WorkflowExecution::Step
+      'WorkflowStep' # use a key thats more specific than "Step"
     else
       owner.class.name.demodulize
     end
@@ -414,6 +416,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
       # External forms
       FormSubmission: Hmis::Hud::Processors::ExternalFormSubmissionProcessor,
+      # Workflow Execution Step forms
+      WorkflowStep: Hmis::Hud::Processors::WorkflowStepProcessor,
     }.freeze
   end
 

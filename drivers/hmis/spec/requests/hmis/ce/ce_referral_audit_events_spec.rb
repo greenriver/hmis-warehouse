@@ -52,6 +52,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when referral is accepted' do
+      let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: project, coc_code: 'CO-500' }
+      let(:accept_referral) do
+        create(
+          :hmis_workflow_definition_end_event,
+          template: workflow_template,
+          name: 'accept referral',
+          trigger_config: [
+            {
+              event: 'end_workflow',
+              message: Hmis::Ce::ReferralMessageHandler::ACCEPT_REFERRAL_MESSAGE,
+            },
+            {
+              event: 'end_workflow',
+              message: 'create_enrollment', # trigger another message on the end_workflow event. this one should not get returned as an audit event
+            },
+          ],
+        )
+      end
+
       before do
         2.times do
           step = referral.workflow_engine.active_steps.first

@@ -17,6 +17,12 @@
           "value": 23
         },
         {
+          "_comment": "Specific YHDP Project. Added in order to expand C3 collection to Update assessment. (HudAssessmentFormRules only applies HUD rules to standard collection stages Intake/Exit, which is why this additional rule is needed.)",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "804"
+        },
+        {
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "755"

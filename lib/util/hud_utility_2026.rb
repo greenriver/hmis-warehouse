@@ -365,6 +365,40 @@ module HudUtility2026
     ].freeze
   end
 
+  def ce_events_by_code
+    {
+      es: 10,
+      th: 11,
+      th_rrh: 12,
+      rrh: 13,
+      psh: 14,
+      oph: 15,
+    }.freeze
+  end
+
+  def project_to_ce_event_type(project) # Logic is from Data Dictionary 4.20.2 Coordinated Entry Event
+    project_type = project.project_type
+
+    es_types = residential_project_type_numbers_by_code[:es] + residential_project_type_numbers_by_code[:sh]
+    return ce_events_by_code[:es] if es_types.include?(project_type)
+
+    th_rrh_types = residential_project_type_numbers_by_code[:th] + residential_project_type_numbers_by_code[:rrh]
+    if th_rrh_types.include?(project_type)
+      # If the project has specific open funders, record this as a joint TH/RRH event. (12)
+      return ce_events_by_code[:th_rrh] if project.funders.open_on_date.where(funder: ce_event_joint_th_rrh_funders).any?
+
+      # Otherwise, record the event corresponding to the project type (11 or 13)
+      return ce_events_by_code[:th] if residential_project_type_numbers_by_code[:th].include?(project_type)
+      return ce_events_by_code[:rrh] if residential_project_type_numbers_by_code[:rrh].include?(project_type)
+    end
+
+    psh_types = residential_project_type_numbers_by_code[:psh]
+    return ce_events_by_code[:psh] if psh_types.include?(project_type)
+
+    oph_types = residential_project_type_numbers_by_code[:oph]
+    ce_events_by_code[:oph] if oph_types.include?(project_type)
+  end
+
   ######
   # START 2024 Deprecated fields
   ######
@@ -716,6 +750,10 @@ module HudUtility2026
   # SPM definition of CoC funded projects
   def spm_coc_funders
     [2, 3, 4, 5, 43, 44, 54, 55, 56]
+  end
+
+  def ce_event_joint_th_rrh_funders
+    [45, 54, 55]
   end
 
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.

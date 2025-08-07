@@ -342,8 +342,8 @@ namespace :grda_warehouse do
     end
 
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
-      # Generate CE candidate pools and run the match engine daily in the early morning
-      Hmis::MatchCandidatesJob.perform_later
+      # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
+      Hmis::Ce::BuildCandidatePoolsJob.perform_later
     end
 
     # Purge old soft-deleted records
@@ -404,6 +404,13 @@ namespace :grda_warehouse do
     end
 
     BuildTranslationCacheJob.perform_later
+
+    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
+      safely_execute do
+        # enqueue CE processor if it's not already running. Once enqueued it should self-sustain
+        Hmis::Ce::ProcessChangesJob.enqueue_if_not_already_running(wait_time: 5.minutes)
+      end
+    end
 
     # Disabled pg-hero status job for now. This doesn't have the required permissions
     # to run in RDS. Note, pg-hero still works without it

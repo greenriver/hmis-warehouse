@@ -16,6 +16,7 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
   let(:project) { create :hmis_hud_project, data_source: ds1 }
   let(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let(:swimlane) { template.swimlanes.create!(name: 'Case Managers') }
+  let!(:state_machine_statuses) { HmisUtil::CeBuilder.create_state_machine_custom_statuses(ds1) }
 
   # Create workflow nodes
   let!(:start_event) do

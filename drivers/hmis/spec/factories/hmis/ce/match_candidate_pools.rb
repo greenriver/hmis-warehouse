@@ -4,6 +4,5 @@ FactoryBot.define do
   factory :hmis_ce_match_candidate_pool, class: 'Hmis::Ce::Match::CandidatePool' do
     requirement_expression { 'TRUE' }
     sequence(:priority_expression, &:to_s)
-    configuration_updated_at { Date.new(2024, 1, 1) }
   end
 end
