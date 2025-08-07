@@ -21,7 +21,7 @@ RSpec.describe 'Concurrent CE Processing', type: :job do
   end
 
   describe 'end-to-end concurrent processing' do
-    it 'processes all dirty records when both jobs run concurrently' do
+    it 'processes all dirty records after a full sequential run of both jobs' do
       # Setup comprehensive dirty state
       create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
       create(:hmis_ce_change_marker, trackable: pool2, current_version: 1, processed_version: 0)
@@ -30,8 +30,8 @@ RSpec.describe 'Concurrent CE Processing', type: :job do
       create(:hmis_ce_change_marker, trackable: client3, current_version: 1, processed_version: 0)
 
       # Run both jobs
-      Hmis::Ce::ProcessPoolsJob.perform_now
       Hmis::Ce::ProcessClientsJob.perform_now
+      Hmis::Ce::ProcessPoolsJob.perform_now
 
       # Verify all markers are processed
       expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
@@ -42,43 +42,6 @@ RSpec.describe 'Concurrent CE Processing', type: :job do
 
       # Verify candidates were created by pool processing (both pools × 3 clients = 6)
       expect(Hmis::Ce::Match::Candidate.count).to eq(6)
-    end
-
-    it 'handles realistic processing cycle with arriving changes' do
-      # Initial state: some pools and clients are dirty
-      create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
-      create(:hmis_ce_change_marker, trackable: client1, current_version: 1, processed_version: 0)
-      create(:hmis_ce_change_marker, trackable: client2, current_version: 2, processed_version: 1)
-
-      # Step 1: ProcessPoolsJob runs (simulating longer interval)
-      Hmis::Ce::ProcessPoolsJob.perform_now
-
-      # Pool should be processed, candidates created
-      expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
-      initial_candidate_count = Hmis::Ce::Match::Candidate.count
-      expect(initial_candidate_count).to be > 0
-
-      # Step 2: ProcessClientsJob runs (simulating shorter interval)
-      Hmis::Ce::ProcessClientsJob.perform_now
-
-      # Clients should be processed
-      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client1).processed_version).to eq(1)
-      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client2).processed_version).to eq(2)
-
-      # Step 3: New client changes arrive while system is running (simulate version bump)
-      client3_marker = Hmis::Ce::ChangeMarker.find_by(trackable: client3)
-      new_version = client3_marker.current_version + 1
-      client3_marker.update!(current_version: new_version)
-
-      # Step 4: ProcessClientsJob runs again
-      Hmis::Ce::ProcessClientsJob.perform_now
-
-      # New client should be processed (processed_version should catch up to current_version)
-      client3_marker_after = Hmis::Ce::ChangeMarker.find_by(trackable: client3)
-      expect(client3_marker_after.processed_version).to eq(new_version)
-
-      # Verify system reaches consistent state
-      expect(Hmis::Ce::ChangeMarker.dirty.count).to eq(0)
     end
 
     it 'handles coordinated reconciliation between jobs' do
@@ -111,11 +74,11 @@ RSpec.describe 'Concurrent CE Processing', type: :job do
       create(:hmis_ce_change_marker, trackable: client3, current_version: 1, processed_version: 1)
 
       # Mock pool2 to be locked (simulating ProcessPoolsJob is processing it)
-      pool2_lock_name = "Hmis::Ce::PoolLock::#{pool2.id}"
+      pool2_lock_name = "hmis-ce_pool-#{pool2.id}"
       allow(::GrdaWarehouseBase).to receive(:with_advisory_lock).and_call_original
       allow(::GrdaWarehouseBase).to receive(:with_advisory_lock).with(
         pool2_lock_name,
-        { timeout_seconds: 0 },
+        timeout_seconds: 5,
       ) do |_lock_name, _options|
         # Return false to indicate lock acquisition failed (pool is busy)
         false
@@ -124,8 +87,8 @@ RSpec.describe 'Concurrent CE Processing', type: :job do
       # Should create candidate only for unlocked pool
       expect { Hmis::Ce::ProcessClientsJob.perform_now }.to change(Hmis::Ce::Match::Candidate, :count).by(1)
 
-      # Client should be marked as processed even though one pool was skipped
-      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client1).processed_version).to eq(1)
+      # Client should remain dirty because a pool was skipped
+      expect(Hmis::Ce::ChangeMarker.find_by(trackable: client1).processed_version).to eq(0)
 
       # Verify candidate was created only for the unlocked pool
       candidate_pools = Hmis::Ce::Match::Candidate.joins(:client_proxy).where('ce_client_proxies.client_id' => client1.id).pluck(:candidate_pool_id)

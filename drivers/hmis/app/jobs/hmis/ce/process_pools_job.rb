@@ -94,34 +94,37 @@ module Hmis::Ce
     def process_dirty_pools(markers)
       return 0 if markers.empty?
 
-      log_info("Processing #{markers.count} dirty pools")
+      log_info("Processing up to #{markers.count} dirty pools")
+
+      # Paginate from the ID of the last pool we attempted to process in this batch.
+      max_processed_trackable_id = nil
 
       markers.each do |marker|
+        max_processed_trackable_id = [marker.trackable_id, max_processed_trackable_id].compact.max
         pool = ::Hmis::Ce::Match::CandidatePool.find_by(id: marker.trackable_id)
-
         unless pool&.active?
-          # if no pool was found or pool is inactive, destroy/mark the marker
           pool ? marker.mark_processed : marker.destroy!
           next
         end
 
-        # Acquire an exclusive lock on this specific pool
-        acquired_lock = pool.with_exclusive_lock do
+        # Acquire a blocking lock on this specific pool to prevent other jobs from processing it.
+        acquired_lock = pool.lock_for_processing(timeout_seconds: 60) do
           log_info("Acquired pool lock for pool #{pool.id}, running match engine")
           Hmis::Ce::Match::Engine.call(pool, progress: @progress)
           marker.mark_processed
           log_info("Completed processing pool #{pool.id}")
         end
 
-        unless acquired_lock
-          log_warning("Failed to acquire lock for pool #{pool.id} within timeout")
-          # Pool remains dirty and will be retried on the next run
+        log_warning("Failed to acquire lock for pool #{pool.id} within timeout") unless acquired_lock
+
+        # YIELDING LOGIC: If clients are dirty, exit to let the client job run.
+        if Hmis::Ce::ChangeMarker.dirty.clients.exists?
+          log_info('Dirty clients detected. Yielding to client processor.')
+          break
         end
       end
 
-      return 0 if markers.empty?
-
-      markers.map(&:trackable_id).max + 1
+      max_processed_trackable_id ? max_processed_trackable_id + 1 : 0
     end
 
     def with_lock(&block)

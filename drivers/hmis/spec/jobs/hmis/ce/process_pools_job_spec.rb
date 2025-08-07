@@ -82,44 +82,8 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
     end
   end
 
-  context 'with self-scheduling' do
-    it 'schedules next batch when wait_time is provided' do
-      travel_to now do
-        described_class.perform_now(wait_time: 5.minutes)
-
-        enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
-        expect(enqueued_job).to be_present
-        expect(enqueued_job[:at].to_i).to eq((now + 5.minutes).to_i)
-      end
-    end
-
-    it 'does not schedule next batch when wait_time is nil' do
-      described_class.perform_now(wait_time: nil)
-
-      enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
-      expect(enqueued_job).to be_nil
-    end
-  end
-
-  describe '.enqueue_if_not_already_running' do
-    it 'enqueues job when none are running' do
-      expect { described_class.enqueue_if_not_already_running(wait_time: 5.minutes) }.
-        to have_enqueued_job(described_class)
-    end
-
-    it 'does not enqueue job when one is already queued' do
-      # First job
-      described_class.perform_later(wait_time: 5.minutes)
-      # Clear the jobs queue to simulate the check
-      clear_enqueued_jobs
-
-      # Mock the jobs_for_class to return a job (simulating one already queued)
-      allow(Delayed::Job).to receive(:jobs_for_class).with(described_class.name).and_return([double('job')])
-
-      expect { described_class.enqueue_if_not_already_running(wait_time: 5.minutes) }.
-        not_to have_enqueued_job(described_class)
-    end
-  end
+  it_behaves_like 'a self-scheduling job', wait_time: 5.minutes
+  it_behaves_like 'a job that can be enqueued if not already running', wait_time: 5.minutes
 
   describe 'queue configuration' do
     it 'runs on the long_running queue' do

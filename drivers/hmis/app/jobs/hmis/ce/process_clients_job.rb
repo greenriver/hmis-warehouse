@@ -102,8 +102,8 @@ module Hmis::Ce
       pools_skipped = 0
 
       candidate_pool_scope.find_each do |pool|
-        # Attempt to acquire a non-blocking lock on this specific pool
-        acquired_lock = pool.with_non_blocking_lock do
+        # Attempt to acquire a non-blocking lock on this specific pool to see if it's busy.
+        acquired_lock = pool.lock_for_processing(timeout_seconds: 5) do
           log_debug("Acquired pool lock for pool #{pool.id}, running match engine for clients")
           Hmis::Ce::Match::Engine.call(pool, clients: client_scope, progress: @progress)
           pools_processed += 1
@@ -117,10 +117,18 @@ module Hmis::Ce
 
       log_info("Processed clients against #{pools_processed} pools, skipped #{pools_skipped} busy pools")
 
-      # Mark all client markers as processed since we've attempted to process them against all available pools
-      Hmis::Ce::ChangeMarker.mark_processed(markers)
-      return 0 if markers.empty?
+      # Only mark clients as processed if they were evaluated against all available pools.
+      # If any pools were skipped, the clients will remain dirty to be reprocessed on the next run.
+      if pools_skipped.zero?
+        Hmis::Ce::ChangeMarker.mark_processed(markers)
+        log_info("Marked #{markers.count} client markers as processed.")
+      else
+        log_info(
+          "#{markers.count} client markers remain dirty because #{pools_skipped} pools were skipped.",
+        )
+      end
 
+      # Paginate based on the client's ID (trackable_id) to process the next batch.
       markers.map(&:trackable_id).max + 1
     end
 
