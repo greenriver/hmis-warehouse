@@ -151,6 +151,7 @@ module MaYyaReport
           and(a_t[:current_school_attendance].in([1, 2])). # Enrolled
           and(a_t[:current_educational_status].eq(4)).and(a_t[:head_of_household].eq(true)), # other post-secondary
         D4f: a_t[:health_insurance].eq(true).and(a_t[:head_of_household].eq(true)),
+        D4g: a_t[:employed].eq(true).and(a_t[:head_of_household].eq(true)),
 
         # Ea: nil,
         # Eb: nil,
@@ -158,6 +159,7 @@ module MaYyaReport
         # F1 removed in FY2026
 
         F2a: g_population, # "Report Once" should handled because reporting periods don't overlap
+        F2b: g_population.and(a_t[:returned_within_2_years].eq(true)), # b. returned to homeless (within 2 years of being housed)
         # F2b, F2c, F2d removed in FY2026
         # F2b: a_t[:currently_homeless].eq(true).
         #   and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
@@ -304,20 +306,20 @@ module MaYyaReport
         A4a: 'Number of YYA completing new intake: YYA experiencing homelessness',
         A4b: 'Number of YYA continuing in case management',
         # A4c: 'Number of YYA turned away',
-        A5a: 'Total number of YYA who received direct financial assistance/flex funds',
-        A5b: 'Number of YYA who received assistance with Move-in costs',
-        A5c: 'Number of YYA who received assistance with Rent',
-        A5d: 'Number of YYA who received assistance with Rent arrears',
-        A5e: 'Number of YYA who received assistance with Utilities',
-        A5f: 'Number of YYA who received assistance with Transportation-related costs',
-        A5g: 'Number of YYA who received assistance with Education-related costs',
-        A5h: 'Number of YYA who received assistance with Legal costs',
-        A5i: 'Number of YYA who received assistance with Child care',
-        A5j: 'Number of YYA who received assistance with Work-related costs',
-        A5k: 'Number of YYA who received assistance with Medical costs',
-        A5l: 'Number of YYA who received assistance with Cell phone costs',
-        A5m: 'Number of YYA who received assistance with Food/groceries',
-        A5n: 'Number of YYA who received assistance with Other costs',
+        # A5a: 'Total number of YYA who received direct financial assistance/flex funds',
+        # A5b: 'Number of YYA who received assistance with Move-in costs',
+        # A5c: 'Number of YYA who received assistance with Rent',
+        # A5d: 'Number of YYA who received assistance with Rent arrears',
+        # A5e: 'Number of YYA who received assistance with Utilities',
+        # A5f: 'Number of YYA who received assistance with Transportation-related costs',
+        # A5g: 'Number of YYA who received assistance with Education-related costs',
+        # A5h: 'Number of YYA who received assistance with Legal costs',
+        # A5i: 'Number of YYA who received assistance with Child care',
+        # A5j: 'Number of YYA who received assistance with Work-related costs',
+        # A5k: 'Number of YYA who received assistance with Medical costs',
+        # A5l: 'Number of YYA who received assistance with Cell phone costs',
+        # A5m: 'Number of YYA who received assistance with Food/groceries',
+        # A5n: 'Number of YYA who received assistance with Other costs',
         TotalYYAServedHomeless: 'Number of unduplicated YYA served (update each quarter)',
         TotalYYAServedPrevention: 'Number of unduplicated YYA served (update each quarter)',
         # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
@@ -350,14 +352,15 @@ module MaYyaReport
         D4d: 'Number of YYA served who were enrolled (full or part time) in a 2 or 4 year college',
         D4e: 'Number of YYA served who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program)',
         D4f: 'Number of YYA served who had Health insurance at intake',
+        D4g: 'Number of YYA served who are working a full or part time time job (Employment Status)',
         # Ea: 'Number of Meetings',
         # Eb: 'Number of unduplicated participants',
-        F1a: 'Number of YYA contacted for follow up 3 mos. after receiving prevention services',
-        F1b: 'Number of YYA who remain housed 3 mos. after receiving prevention services',
+        # F1a: 'Number of YYA contacted for follow up 3 mos. after receiving prevention services',
+        # F1b: 'Number of YYA who remain housed 3 mos. after receiving prevention services',
         F2a: 'The number of  YYA who transition into stabilized housing',
-        F2b: 'Number of YYA contacted for follow up 3 mos. after receiving rehousing services',
-        F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
-        F2d: 'Zip codes of stabilized housing (please list)',
+        F2b: 'Returned to homeless (within 2 years of being housed)',
+        # F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
+        # F2d: 'Zip codes of stabilized housing (please list)',
         G1a: 'Number of YYA served who were Under 18',
         G1b: 'Number of YYA served who identified as Man',
         G1c: 'Number of YYA served who identified as Woman',
