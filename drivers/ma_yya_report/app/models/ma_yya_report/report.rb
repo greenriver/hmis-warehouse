@@ -392,6 +392,33 @@ module MaYyaReport
       cell(cell_name)&.structured_data&.join(', ')
     end
 
+    def format_value(value, key)
+      return HudUtility2026.gender(value) if key == 'gender'
+      return format_race(value) if key == 'race'
+
+      case value
+      when Array
+        value.join(', ')
+      when TrueClass, FalseClass
+        value ? 'Yes' : 'No'
+      else
+        value
+      end
+    end
+
+    private def format_race(value)
+      if value.in?(HudUtility2026.race_known_ids)
+        field = HudUtility2024.race_id_to_field_name[value]
+        return HudUtility2026.race(field)
+      elsif value == 10
+        return 'Multi-racial'
+      elsif value.in?(HudUtility2026.race_nones.keys)
+        return HudUtility2026.race_none(value)
+      end
+
+      value
+    end
+
     def self.yya_projects(user)
       ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
     end

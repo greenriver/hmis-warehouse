@@ -5,12 +5,20 @@
 %h1.mb-5
   = @cell
 
-.overflow-x-scroll{style: "height: 800px"}
-  %table.table.table-sm.table-bordered.table-fixed
-    - attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at', 'ethnicity']
+.d-flex.mb-4
+  .mr-4
+    .input-group
+      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+      %button.btn.btn-secondary Search
+
+%p Showing #{pluralize(number_with_delimiter(@members.count), 'client')}.
+.card.overflow-x-scroll{style: "height: 800px"}
+  %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
     %thead.table-dark
-      - (['first_name', 'last_name'] + attributes).each do |name|
-        %th= name.humanize
+      %tr
+        - attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at', 'ethnicity']
+        - (['first_name', 'last_name'] + attributes).each do |name|
+          %th= name.humanize
     %tbody
       - @members.each do |member|
         %tr
@@ -21,4 +29,14 @@
             - if attribute == 'client_id'
               %td= link_to client_details[attribute], client_path(client_details[attribute]), target: '_blank'
             - else
-              %td= client_details[attribute]
+              %td= @report.format_value(client_details[attribute], attribute)
+
+= content_for :page_js do
+  :javascript
+    let table = $('.datatable').DataTable({
+      paging: false,
+      "dom": 'lrtip'
+    });
+    $('#table_search').keyup(function(){
+      table.search($(this).val()).draw();
+    });
