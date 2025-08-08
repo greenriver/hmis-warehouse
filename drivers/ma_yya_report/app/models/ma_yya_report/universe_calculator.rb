@@ -72,7 +72,7 @@ module MaYyaReport
             former_juvenile_justice_ward: enrollment.enrollment.FormerWardJuvenileJustice == 1,
             voluntary_dcf_service: enrollment.enrollment.ReferralSource == 30,
             voluntary_dys_yes_service: enrollment.enrollment.ReferralSource == 34,
-            exchange_for_sex: enrollment.exit&.ExchangeForSex == 1,
+            exchange_for_sex: enrollment.enrollment.exit&.ExchangeForSex == 1,
             returned_within_2_years: returned_within_2_years?(client_id),
           )
         end
@@ -158,8 +158,8 @@ module MaYyaReport
 
         returned_within_2_years_client_ids = Set.new
         situations_by_client_id = {}
-        GrdaWarehouse::Hud::CurrentLivingSituation.joins(enrollment: :client).
-          where(e_t[:client_id].in(client_scope.select(:id))).
+        ::GrdaWarehouse::Hud::CurrentLivingSituation.joins(enrollment: { service_history_enrollment: :client }).
+          where(c_t[:id].in(client_scope.pluck(:id))).
           order(InformationDate: :desc).
           pluck(c_t[:id], :InformationDate, :CurrentLivingSituation, e_t[:EntryDate]).
           each do |client_id, information_date, current_living_situation, entry_date|
