@@ -16,6 +16,7 @@ RSpec.describe Mutations::Ce::CreateCeReferral, type: :request do
         :can_view_units,
         :can_start_referrals,
         :can_view_referrals,
+        :can_view_prioritized_client_lists,
       ],
     )
   end
