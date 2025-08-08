@@ -288,7 +288,7 @@ module HmisUtil
         identifier: identifier,
         role: role,
         version: 0,
-      ).first_or_initialize(title: title || role.to_s.humanize)
+      ).first_or_initialize(title: title || identifier.to_s.humanize)
       record.managed_in_version_control = true
       record.definition = form_definition
       record.title = title if title.present?
@@ -386,20 +386,24 @@ module HmisUtil
     }.freeze
 
     # Load form definitions for editing and creating records
-    public def seed_record_form_definitions
+    public def seed_record_form_definitions(roles: [])
+      added_identifiers = []
       record_forms_by_role.each do |role, definition_hash|
+        next if roles.any? && !roles.map(&:to_s).include?(role.to_s)
+
         definition_hash.each do |identifier, form_definition|
-          # puts "#{identifier} => #{role}"
+          # puts "Loading #{identifier} => #{role}"
+          added_identifiers << identifier
           load_definition(
             form_definition: form_definition,
             identifier: identifier,
             role: role,
-            title: FORM_TITLES[identifier],
+            title: FORM_TITLES[identifier], # for ce step, humanize file name?
           )
         end
       end
       ensure_system_instances_exist!
-      # puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
+      # puts "Saved definitions with identifiers: #{added_identifiers.join(', ')}"
     end
 
     # Load form definitions for HUD assessments

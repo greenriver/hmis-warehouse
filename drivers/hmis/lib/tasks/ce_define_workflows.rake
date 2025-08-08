@@ -15,12 +15,12 @@ task ce_define_workflows: [:environment] do
 
   data_source = GrdaWarehouse::DataSource.hmis.order(:id).first
 
-  HmisUtil::CeBuilder.create_state_machine_custom_statuses(data_source)
+  CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
 
   puts "Creating workflow templates in data source #{data_source.id} (#{data_source.name})"
   templates = []
   Hmis::Hud::Base.transaction do
-    ac_builder = CeWorkflows::AcBuilder.new(data_source)
+    ac_builder = CeWorkflows::Ac::WorkflowBuilder.new(data_source)
     templates << ac_builder.build_housing_workflow
     templates << ac_builder.build_admin_assign_workflow
   end
