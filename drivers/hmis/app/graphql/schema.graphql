@@ -782,6 +782,15 @@ type CeCandidatesPaginated {
   pagesCount: Int!
 }
 
+type CeConsolidatedWaitlist {
+  candidates(limit: Int, offset: Int): CeCandidateConsolidatedsPaginated!
+
+  """
+  Columns available in the consolidated waitlist
+  """
+  clientAttributeColumns: [KeyValue!]!
+}
+
 type CeCustomReferralStatus {
   id: ID!
   key: String!
@@ -9890,6 +9899,7 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  ceConsolidatedWaitlist: CeConsolidatedWaitlist!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
@@ -9925,7 +9935,6 @@ type Query {
   Search for clients
   """
   clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
-  consolidatedWaitlist(limit: Int, offset: Int): CeCandidateConsolidatedsPaginated!
   currentUser: ApplicationUser
   deniedPendingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   directReferralFormDefinition(targetUnitGroupId: ID!): FormDefinition
