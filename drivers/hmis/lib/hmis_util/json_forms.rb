@@ -398,7 +398,7 @@ module HmisUtil
             form_definition: form_definition,
             identifier: identifier,
             role: role,
-            title: FORM_TITLES[identifier], # for ce step, humanize file name?
+            title: FORM_TITLES[identifier],
           )
         end
       end
