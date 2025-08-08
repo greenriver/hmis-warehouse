@@ -18,13 +18,18 @@ module CeWorkflows
       initial_client_engagement: 'housing_workflow_initial_client_engagement',
       client_engagement: 'housing_workflow_client_engagement',
       client_offer_outcome: 'housing_workflow_client_offer_outcome',
+      # These 3 provider outcome forms are the same, but collect onto different custom data element definitions.
+      # Could have used the same form for all, but felt that having unique cdeds would simplify reporting.
       provider_outcome_1: 'housing_workflow_provider_outcome_1',
       provider_outcome_2: 'housing_workflow_provider_outcome_2',
       provider_outcome_3: 'housing_workflow_provider_outcome_3',
+      # First 2 denial review forms are the same. The third one is slightly different because it only allows "approving" the denial,
+      # since it can no longer be sent back to the provider. Use 3 different forms for the same reason as above.
       denial_review_1: 'housing_workflow_denial_review_1',
       denial_review_2: 'housing_workflow_denial_review_2',
       denial_review_3: 'housing_workflow_denial_review_3',
       confirm_success: 'housing_workflow_confirm_success',
+      # First step in non-housing direct referral workflows
       initial_outgoing_referral: 'admin_assign_workflow_initial_outgoing_referral',
     }.freeze
 
@@ -36,8 +41,8 @@ module CeWorkflows
       raise "Some form definitions are missing. Did you run 'rails driver:hmis:seed_definitions'? #{missing_identifiers.join(', ')}" if missing_identifiers.any?
     end
 
-    # This method builds the QA housing workflow version 1, which is a referral workflow for housing opportunities
-    # TODO: make this more ergonomic for Direct Referrals (housing transfers). The "continue workflow" doesn't make sense.
+    # This method builds the AC housing workflow, which is a referral workflow for housing opportunities.
+    # TODO: make this more ergonomic for Direct Referrals (used for housing transfers). The "continue workflow" field doesn't make sense in that scenario.
     def build_housing_workflow
       identifier = 'housing_workflow_v1'
       template_name = 'Housing Referral Workflow V1'
@@ -114,7 +119,7 @@ module CeWorkflows
       # Initial Client Engagement => Client Engagement
       initial_client_engagement_task.connect_to!(client_engagement_task) # TODO CONFIRM: can't bail out from this point?
 
-      # Client Engagement => Gateway => Create CE Event (Script) (or Decline)
+      # Client Engagement => Gateway => Client Offer Outcome (or Decline)
       client_engagement_gateway = CeWorkflows::Builder.create_gateway(template, 'client_engagement_task')
       client_engagement_task.connect_to!(client_engagement_gateway)
       client_engagement_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
@@ -135,7 +140,7 @@ module CeWorkflows
       template
     end
 
-    # Workflow for admin assign referrals to non-housing projects
+    # This method builds the Admin Assign workflow, which is a workflow meant to be used for direct (outgoing) referrals to non-housing projects
     def build_admin_assign_workflow
       identifier = 'admin_assign_workflow'
       template_name = 'Admin Assign Workflow'
