@@ -183,7 +183,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_start_referrals: {
         description: 'Ability to initiate referrals from the client waitlist in the project',
-        requirements: [:can_view_referrals],
+        requirements: [:can_view_referrals, :can_view_prioritized_client_lists],
         administrative: false,
         access: [:editable],
         category: 'Referrals',
