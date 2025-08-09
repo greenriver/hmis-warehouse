@@ -20,12 +20,13 @@
 #    Rule Applies to All VA-funded Projects in Organization Y:
 #      { owner: organization_y, applicability_config: { project_funders: [37, 38, 39] } }
 #
-# The `for_entity` and `for_opportunity` methods allow querying rules that apply to specific entities or opportunities.
 module Hmis::Ce::Match
   class Rule < GrdaWarehouseBase
     self.table_name = 'ce_match_rules'
 
+    ALLOWED_OWNER_TYPES = ['Hmis::UnitGroup', 'Hmis::Hud::Project', 'Hmis::Hud::Organization'].freeze
     belongs_to :owner, polymorphic: true
+    validates :owner_type, inclusion: { in: ALLOWED_OWNER_TYPES }
 
     validates :name, presence: true
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
@@ -62,13 +63,13 @@ module Hmis::Ce::Match
       applicability.call(entity)
     end
 
+    # Returns all rules applicable to the given entity (UnitGroup/Project/Organization),
+    # considering owner lineage and applicability_config (project_types, project_funders).
+    # Loads all rules and filters in Ruby to respect polymorphic owner lineage and config.
+    # Intended for relatively small rule cardinality.
     def self.for_entity(entity)
       all_rules = preload(:owner).order(:owner_type, :id).to_a
       all_rules.filter { |rule| rule.applies_to_entity?(entity) }
-    end
-
-    def self.for_opportunity(opportunity)
-      for_entity(opportunity)
     end
   end
 end

@@ -59,7 +59,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
 
         expect(unit.latest_opportunity).to be_present
-        expect(unit.latest_opportunity.candidate_pool).to be_present
+        # With no rules, candidate_pool should be nil (default key)
+        expect(unit.latest_opportunity.candidate_pool).to be_nil
         expect(unit.latest_opportunity.workflow_template).to eq(template)
       end
 

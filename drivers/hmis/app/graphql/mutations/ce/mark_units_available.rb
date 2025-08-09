@@ -32,12 +32,13 @@ module Mutations
         [unit.id, workflow_template]
       end.to_h
 
-      candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
+      rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
+      pool_repository = Hmis::Ce::Match::CandidatePoolRepository.new
 
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|
           template = unit_to_template.fetch(unit.id)
-          build_opportunity_for_unit(unit, template, candidate_pool_resolver)
+          build_opportunity_for_unit(unit, template, rule_resolver, pool_repository)
         end
 
         result = Hmis::Ce::Opportunity.import!(opportunities)
@@ -49,7 +50,7 @@ module Mutations
 
     private
 
-    def build_opportunity_for_unit(unit, template, candidate_pool_resolver)
+    def build_opportunity_for_unit(unit, template, rule_resolver, pool_repository)
       raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
 
       unit_desc = unit.unit_type&.description
@@ -62,7 +63,13 @@ module Mutations
         workflow_template_identifier: template.identifier,
       )
 
-      opportunity.candidate_pool = candidate_pool_resolver.candidate_pool_for_opportunity(opportunity: opportunity)
+      # Assign candidate_pool if a non-default key exists; otherwise leave nil
+      key = rule_resolver.key_for_unit_group(
+        unit_group: unit.unit_group,
+        project: unit.project,
+        organization: unit.project.organization,
+      )
+      opportunity.candidate_pool = pool_repository.find_by_key(key)
       opportunity
     end
   end

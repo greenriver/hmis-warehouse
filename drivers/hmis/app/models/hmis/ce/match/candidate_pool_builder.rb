@@ -12,11 +12,19 @@
 # 3. Flags opportunities as "stale" when their rules have changed
 # 4. Cleans up orphaned pools that are no longer needed
 #
+# Semantics and concurrency notes:
+# - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
+# - The default key ['0','TRUE'] represents "no specific rules"; do not create a pool for this key.
+#   UnitGroups with the default key should have `candidate_pool_id = NULL`.
+# - Bulk creation relies on a DB unique index over (priority_expression, requirement_expression) and is idempotent.
+# - Uses an advisory lock and a transaction to avoid concurrent races during batch operations.
+#
 module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize(opportunities)
       @opportunities = opportunities
-      @candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
+      @rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
+      @pool_repository = Hmis::Ce::Match::CandidatePoolRepository.new
     end
 
     # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
@@ -38,16 +46,29 @@ module Hmis::Ce::Match
     end
 
     def _perform
-      grouped = @candidate_pool_resolver.opportunities_by_key(opportunity_scope: @opportunities)
-      created_ids = create_new_pools!(grouped.keys)
+      # Always process unit groups to keep waitlist (candidate pools) up to date regardless of opportunities
+      unit_group_created_ids, unit_group_update_count = upsert_unit_group_pools!
+
+      # Then process opportunities and their assignments without moving existing opportunities between pools
+      grouped = opportunities_grouped_by_key(@opportunities)
+      created_ids = @pool_repository.create_for_keys(grouped.keys)
       update_opportunity_pools!(grouped)
       cleanup_orphan_pools
-      created_ids
+
+      Rails.logger.info(
+        format(
+          '[CE CandidatePoolBuilder]: unit_groups_processed=%d, unit_group_associations_updated=%d, pools_created=%d',
+          Hmis::UnitGroup.count,
+          unit_group_update_count,
+          (unit_group_created_ids.size + created_ids.size),
+        ),
+      )
+      (unit_group_created_ids + created_ids).uniq
     end
 
     # Update the opportunity records with their candidate pools
     def update_opportunity_pools!(grouped)
-      current_pools = @candidate_pool_resolver.reload_candidate_pools_by_key
+      current_pools = @pool_repository.all_by_key
 
       # Collect all opportunity updates for a single upsert
       opportunity_updates = []
@@ -59,12 +80,19 @@ module Hmis::Ce::Match
           attrs = opportunity.attributes.symbolize_keys
           if opportunity.candidate_pool_id.nil?
 
-            # New opportunity - assign to pool and capture the current rules for historical reporting
+            # New opportunity: assign to a pool and capture the rules at this moment for historical reporting.
+            # The `assignment_rules` are NOT updated in subsequent runs to ensure stability for analytics,
+            # even if the underlying rule definitions change. The `stale` flag indicates when the live
+            # rules no longer match the initial assignment.
             opportunity_updates << attrs.merge(
               {
                 candidate_pool_id: target_pool.id,
                 stale: false,
-                assignment_rules: @candidate_pool_resolver.opportunity_rules(opportunity).map(&:attributes),
+                assignment_rules: @rule_resolver.rules_for_context(
+                  unit_group: opportunity.unit&.unit_group,
+                  project: opportunity.project,
+                  organization: opportunity.project.organization,
+                ).map(&:attributes),
               },
             )
           elsif opportunity.candidate_pool_id != target_pool.id
@@ -94,24 +122,68 @@ module Hmis::Ce::Match
       @now ||= Time.current
     end
 
-    # Create candidate pools, if they don't exist, for the given [priority, requirement] keys
-    # Returns the IDs of newly created pools
-    def create_new_pools!(values)
-      attrs = values.map do |priority_expression, requirement_expression|
-        {
-          priority_expression: priority_expression,
-          requirement_expression: requirement_expression,
-        }
-      end
-      result = Hmis::Ce::Match::CandidatePool.import(
-        attrs,
-        on_duplicate_key_ignore: {
-          conflict_target: [:priority_expression, :requirement_expression],
-        },
-      )
-      raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+    # Group opportunities by non-default keys; default (nil) keys are ignored
+    # Returns a Hash: { [priority_expression, requirement_expression] => [opportunities...] }
+    def opportunities_grouped_by_key(opportunity_scope)
+      # Use find_each + manual build to avoid loading full array in memory; rely on resolver memoization
+      grouped = {}
+      opportunity_scope.preload(:unit, project: [:organization, :funders]).find_each do |opportunity|
+        unit_group = opportunity.unit&.unit_group
+        key = @rule_resolver.key_for_unit_group(
+          unit_group: unit_group,
+          project: opportunity.project,
+          organization: opportunity.project.organization,
+        )
+        next if key.nil?
 
-      result.ids
+        (grouped[key] ||= []) << opportunity
+      end
+      grouped
+    end
+
+    # Build and assign candidate pools for all unit groups.
+    # - Compute effective key for each unit group
+    # - Create pools for non-default keys
+    # - Assign unit_groups.candidate_pool_id accordingly (NULL if default key)
+    # Returns newly created pool IDs for dirty marking
+    def upsert_unit_group_pools!
+      keys_by_unit_group_id = @rule_resolver.keys_for_all_unit_groups
+
+      # Create pools for unique keys, excluding default (nil)
+      unique_keys = keys_by_unit_group_id.values.uniq
+      non_default_keys = unique_keys.compact
+      created_ids = @pool_repository.create_for_keys(non_default_keys)
+
+      # Refresh pool lookup
+      pools_by_key = @pool_repository.all_by_key
+
+      # Prepare bulk updates for unit groups
+      unit_group_updates = []
+      Hmis::UnitGroup.where(id: keys_by_unit_group_id.keys).find_each do |unit_group|
+        key = keys_by_unit_group_id[unit_group.id]
+        desired_candidate_pool_id = key.nil? ? nil : pools_by_key[key]&.id
+
+        next if unit_group.candidate_pool_id == desired_candidate_pool_id
+
+        # Only include columns needed for bulk upsert for clarity and performance
+        unit_group_updates << { id: unit_group.id, candidate_pool_id: desired_candidate_pool_id }
+      end
+
+      updated_count = 0
+      if unit_group_updates.any?
+        result = Hmis::UnitGroup.import!(
+          unit_group_updates,
+          on_duplicate_key_update: {
+            conflict_target: [:id],
+            columns: [:candidate_pool_id],
+          },
+        )
+        raise "Failed to update Unit Groups with candidate pool assignments: #{result.inspect}" if result.failed_instances.present?
+
+        updated_count = unit_group_updates.size
+      end
+
+      [created_ids, updated_count]
     end
 
     # Delete pools that haven't been used in a while

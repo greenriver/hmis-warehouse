@@ -76,7 +76,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has rules' do
       let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: nil, unit: unit }
-      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit) }
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit.unit_group) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
@@ -92,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
-          a_hash_including('id' => "#{opportunity.id}.#{rule1.id}", 'ownerType' => 'UNIT'),
+          a_hash_including('id' => "#{opportunity.id}.#{rule1.id}", 'ownerType' => 'UNIT_GROUP'),
           a_hash_including('id' => "#{opportunity.id}.#{rule2.id}", 'ownerType' => 'PROJECT'),
           a_hash_including('id' => "#{opportunity.id}.#{rule3.id}", 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
           a_hash_including('id' => "#{opportunity.id}.#{rule4.id}", 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),

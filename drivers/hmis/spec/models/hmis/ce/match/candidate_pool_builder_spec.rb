@@ -14,7 +14,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:rule2) { create(:hmis_ce_priority_scheme, owner: organization) }
 
       before do
-        allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:applies_to_entity?).and_return(true)
         allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
         allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
       end
@@ -136,9 +135,9 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
           # Verify that a new pool would have been created with different expressions
           # if this was a new opportunity
-          resolver = Hmis::Ce::Match::CandidatePoolResolver.new
-          scope = Hmis::Ce::Opportunity.where(id: tracked_opportunity.id)
-          new_key = resolver.opportunities_by_key(opportunity_scope: scope).keys.first
+          resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
+          unit_group = tracked_opportunity.reload.unit&.unit_group
+          new_key = resolver.key_for_unit_group(unit_group: unit_group, project: project, organization: organization)
           expected_new_priority = new_key.first
           expected_new_requirement = new_key.second
 
@@ -216,7 +215,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
   describe 'when there are many rules' do
     before do
-      50.times { create(:hmis_ce_eligibility_requirement, owner: opportunity) }
+      # Opportunity-level rules are no longer allowed; generate on project and organization only
       50.times { create(:hmis_ce_eligibility_requirement, owner: project) }
       50.times { create(:hmis_ce_eligibility_requirement, owner: organization) }
     end

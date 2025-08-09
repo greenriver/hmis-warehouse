@@ -18,6 +18,7 @@ module Hmis
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
+    belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
 

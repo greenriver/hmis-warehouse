@@ -9,6 +9,10 @@
 # The `MatchApplicability` class determines whether a Coordinated Entry (CE) rule applies to a given entity
 # (e.g., Opportunity, Unit, Unit Group, Project, or Organization) based on project criteria.
 #
+# Notes:
+# - Filters by owner lineage and optional `project_types` / `project_funders` constraints.
+# - `Organization` entities have no project context, so only owner lineage is considered.
+#
 # This class evaluates applicability rules for entities by checking:
 # - Whether the rule's owner matches the entity or one of its parent entities.
 # - Whether the entity's project type matches the rule's allowed project types.
@@ -73,11 +77,6 @@ module Hmis::Ce::Match
     # Find all ancestor records. If the Rule's "owner" is any of these records, then the rule applies to this entity.
     def gather_parents(entity)
       parents = case entity
-      when Hmis::Ce::Opportunity
-        unit = entity.unit
-        [unit, unit.unit_group, unit.project, unit.project.organization]
-      when Hmis::Unit
-        [entity, entity.unit_group, entity.project, entity.project.organization]
       when Hmis::UnitGroup
         [entity, entity.project, entity.project.organization]
       when Hmis::Hud::Project
@@ -85,7 +84,7 @@ module Hmis::Ce::Match
       when Hmis::Hud::Organization
         [entity]
       else
-        raise "Unexpected entity type for CE rule evaluation: #{entity.class.name}"
+        raise ArgumentError, "Unexpected entity type for CE rule evaluation: #{entity.class.name}"
       end
       parents
     end

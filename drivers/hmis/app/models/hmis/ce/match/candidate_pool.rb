@@ -9,6 +9,7 @@ module Hmis::Ce::Match
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
+    has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: :candidate_pool_id, dependent: :restrict_with_exception
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
 
     attr_readonly :requirement_expression, :priority_expression
@@ -19,11 +20,20 @@ module Hmis::Ce::Match
       where(id: active_ids)
     }
 
+    # orphan pools can be safely deleted after a period if inactivity
     scope :orphaned, -> {
-      where.not(
-        id: ::Hmis::Ce::Opportunity.active.select(:candidate_pool_id).where.not(candidate_pool_id: nil),
-      )
+      referenced_ids = [
+        ::Hmis::Ce::Opportunity,
+        ::Hmis::UnitGroup,
+      ].flat_map do |scope|
+        scope.where.not(candidate_pool_id: nil).distinct.pluck(:candidate_pool_id)
+      end
+
+      where.not(id: referenced_ids)
     }
+
+    # Composite uniqueness is enforced at the DB level: (priority_expression, requirement_expression)
+    # Bulk creation/upserts rely on this to be idempotent.
 
     def self.mark_all_dirty
       Hmis::Ce::ChangeMarker.upsert_or_bump_version(
