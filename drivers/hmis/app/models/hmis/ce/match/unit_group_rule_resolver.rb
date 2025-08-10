@@ -2,7 +2,7 @@
 
 module Hmis::Ce::Match
   # Resolves rule-derived keys for UnitGroup/Project/Organization contexts without any caching.
-  # Returns nil when no specific rules apply (i.e., legacy default ['0','TRUE']).
+  # Returns nil when no specific rules apply
   class UnitGroupRuleResolver
     def initialize
       @rules_cache = {}
@@ -21,10 +21,13 @@ module Hmis::Ce::Match
       priority_expression = select_priority_expression(rules)
       requirement_expression = compose_requirement_expression(rules)
 
-      key = [priority_expression, requirement_expression]
-      key = nil if default_key?(key)
+      return @key_cache[cache_key] = nil if priority_expression.nil? && requirement_expression.nil?
+
+      key = [
+        priority_expression || '0',
+        requirement_expression || 'TRUE',
+      ]
       @key_cache[cache_key] = key
-      key
     end
 
     # Compute keys for all unit groups in the system
@@ -78,18 +81,13 @@ module Hmis::Ce::Match
     end
 
     def select_priority_expression(rules)
-      rules.detect(&:priority_scheme?)&.expression || '0'
+      rules.detect(&:priority_scheme?)&.expression
     end
 
     def compose_requirement_expression(rules)
-      expressions = rules.select(&:eligibility_requirement?).map(&:expression)
-      return 'TRUE' if expressions.empty?
-
-      expressions.join(' AND ')
-    end
-
-    def default_key?(key)
-      key == ['0', 'TRUE']
+      rules.select(&:eligibility_requirement?).
+        map(&:expression).
+        join(' AND ').presence
     end
   end
 end

@@ -1,21 +1,19 @@
 # frozen_string_literal: true
 
-# Synchronizes candidate pools with the current set of opportunities and their matching rules.
-#
-# Candidate pools group opportunities that share the same eligibility requirements and
-# prioritization schemes. This allows the CE matching engine to efficiently evaluate
-# clients against multiple similar opportunities at once.
+# Manages the lifecycle of Candidate Pools, which are driven by rules associated with Unit Groups.
+# This class ensures that pools are created for all unique rule sets, associates Unit Groups with
+# the correct pools, and handles the initial assignment of Opportunities.
 #
 # The builder:
-# 1. Creates new pools for unique rule combinations that don't exist yet
-# 2. Assigns opportunities to their correct pools based on current rules
-# 3. Flags opportunities as "stale" when their rules have changed
-# 4. Cleans up orphaned pools that are no longer needed
+# 1. Creates Candidate Pools for all unique rule sets derived from Unit Groups.
+# 2. Associates Unit Groups with their corresponding Candidate Pool.
+# 3. Assigns new Opportunities to a pool and flags existing ones as "stale" if their rules change.
+# 4. Cleans up orphaned pools that are no longer referenced by Unit Groups or Opportunities.
 #
 # Semantics and concurrency notes:
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
-# - The default key ['0','TRUE'] represents "no specific rules"; do not create a pool for this key.
-#   UnitGroups with the default key should have `candidate_pool_id = NULL`.
+# - A `nil` key represents the default case where no specific rules apply; do not create a pool for this key.
+#   UnitGroups with a `nil` key will have `candidate_pool_id = NULL`.
 # - Bulk creation relies on a DB unique index over (priority_expression, requirement_expression) and is idempotent.
 # - Uses an advisory lock and a transaction to avoid concurrent races during batch operations.
 #
@@ -125,7 +123,6 @@ module Hmis::Ce::Match
     # Group opportunities by non-default keys; default (nil) keys are ignored
     # Returns a Hash: { [priority_expression, requirement_expression] => [opportunities...] }
     def opportunities_grouped_by_key(opportunity_scope)
-      # Use find_each + manual build to avoid loading full array in memory; rely on resolver memoization
       grouped = {}
       opportunity_scope.preload(:unit, project: [:organization, :funders]).find_each do |opportunity|
         unit_group = opportunity.unit&.unit_group
@@ -149,24 +146,20 @@ module Hmis::Ce::Match
     def upsert_unit_group_pools!
       keys_by_unit_group_id = @rule_resolver.keys_for_all_unit_groups
 
-      # Create pools for unique keys, excluding default (nil)
-      unique_keys = keys_by_unit_group_id.values.uniq
-      non_default_keys = unique_keys.compact
-      created_ids = @pool_repository.create_for_keys(non_default_keys)
-
-      # Refresh pool lookup
-      pools_by_key = @pool_repository.all_by_key
+      # Create pools for unique keys
+      created_ids = @pool_repository.create_for_keys(keys_by_unit_group_id.values.uniq.compact)
 
       # Prepare bulk updates for unit groups
       unit_group_updates = []
+      pools_by_key = @pool_repository.all_by_key
       Hmis::UnitGroup.where(id: keys_by_unit_group_id.keys).find_each do |unit_group|
-        key = keys_by_unit_group_id[unit_group.id]
-        desired_candidate_pool_id = key.nil? ? nil : pools_by_key[key]&.id
+        computed_key = keys_by_unit_group_id[unit_group.id]
+        candidate_pool_id = pools_by_key[computed_key]&.id if computed_key
 
-        next if unit_group.candidate_pool_id == desired_candidate_pool_id
+        next if unit_group.candidate_pool_id == candidate_pool_id
 
-        # Pass all attributes to satisfy validations; `on_duplicate_key_update` will only modify `candidate_pool_id`
-        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: desired_candidate_pool_id)
+        # Pass all attributes to satisfy validations
+        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: candidate_pool_id)
       end
 
       updated_count = 0

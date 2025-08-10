@@ -34,8 +34,8 @@ The classes within this module are organized into several subdirectories to grou
 - **Candidate Pool Key**: `[priority_expression, requirement_expression]` (Strings). Default/no‑specific‑rules returns `nil` (no pool is created; associations remain `NULL`).
 - **Rule Precedence**: Priority scheme selection is by owner precedence `UnitGroup > Project > Organization`; tie-breaker by rule `id`. Eligibility requirements from all applicable owners are combined with logical AND in deterministic order.
 - **Idempotent Creation**: Pools are uniquely identified by `(priority_expression, requirement_expression)` at the DB level; bulk creation uses upserts that ignore duplicates.
-- **Builder Semantics**: Do not move existing opportunities between pools when rules change; mark as `stale`. No pool is created for the default key; `UnitGroup`s with default key have `candidate_pool_id = NULL`.
-- **Caching Scope**: `UnitGroupRuleResolver` may memoize within process for performance. Pool caching is encapsulated in `CandidatePoolRepository` (process‑local); no explicit reload API is exposed (tests can call `clear_cache`).
+- **Builder Semantics**: Do not move existing opportunities between pools when rules change; mark as `stale`. No pool is created for the default key.
+- **Caching Scope**: `UnitGroupRuleResolver` may memoize within process for performance. Pool caching is encapsulated in `CandidatePoolRepository`.
 
 ## Unit Group–Driven Maintenance
 

@@ -2,7 +2,10 @@
 
 # Hmis::Ce::Match::CandidatePool
 # Describes the eligibility requirements and prioritization for a client.
-
+#
+# Composite uniqueness is enforced at the DB level: (priority_expression, requirement_expression)
+# Bulk creation/upserts rely on this to be idempotent.
+#
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
     self.table_name = 'ce_match_candidate_pools'
@@ -31,9 +34,6 @@ module Hmis::Ce::Match
 
       where.not(id: referenced_ids)
     }
-
-    # Composite uniqueness is enforced at the DB level: (priority_expression, requirement_expression)
-    # Bulk creation/upserts rely on this to be idempotent.
 
     def self.mark_all_dirty
       Hmis::Ce::ChangeMarker.upsert_or_bump_version(

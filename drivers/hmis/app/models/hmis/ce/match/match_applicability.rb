@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # The `MatchApplicability` class determines whether a Coordinated Entry (CE) rule applies to a given entity
-# (e.g., Opportunity, Unit, Unit Group, Project, or Organization) based on project criteria.
+# (e.g., Unit Group, Project, or Organization) based on project criteria.
 #
 # Notes:
 # - Filters by owner lineage and optional `project_types` / `project_funders` constraints.
@@ -21,7 +21,7 @@
 # Note:
 # - This class does NOT determine client eligibility itself; it determines which rules
 #   should be used for eligibility/priority.
-# - It supports evaluation against various entities (eg Project, Unit, etc) to support viewing applicable
+# - It supports evaluation against various entities (eg Project, Unit Group, etc) to support viewing applicable
 #   rules for each entity type.
 # - Global and Data Source-level rules are not yet supported (e.g. "all PSH projects in a data source")
 #
@@ -30,7 +30,7 @@
 # @attr [Array<String>] project_funders List of funders for which this rule applies
 module Hmis::Ce::Match
   MatchApplicability = Struct.new(:owner, :project_types, :project_funders, keyword_init: true) do
-    def call(entity) # Opportunity, Unit, Unit Group, Project, or Organization
+    def call(entity) # Unit Group, Project, or Organization
       project = determine_project(entity)
 
       owner_matches = owner_matches_entity?(entity) # One of Entity's ancestors is the owner of this Rule
@@ -45,7 +45,7 @@ module Hmis::Ce::Match
 
     # Checks whether the rule `owner` match this entity.
     # Checks all parent records, i.e. will return true for a Unit if the rule is set on that unit's Project
-    def owner_matches_entity?(entity) # Opportunity, Unit, Unit Group, Project, or Organization
+    def owner_matches_entity?(entity) # Unit Group, Project, or Organization
       raise unless owner # unexpected, owner is required in db
 
       gather_parents(entity).any? { |potential_owner| potential_owner == owner }
@@ -63,14 +63,14 @@ module Hmis::Ce::Match
 
     def determine_project(entity)
       case entity
-      when Hmis::Ce::Opportunity, Hmis::Unit, Hmis::UnitGroup
+      when Hmis::UnitGroup
         entity.project
       when Hmis::Hud::Project
         entity
       when Hmis::Hud::Organization
         nil
       else
-        raise "Unexpected entity type for CE rule evaluation: #{entity.class.name}"
+        raise ArgumentError, "Unexpected entity type for CE rule evaluation: #{entity.class.name}"
       end
     end
 
