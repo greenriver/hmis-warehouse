@@ -77,5 +77,21 @@ module Hmis::Ce::Match
       cdeds = Hmis::Ce::Match::Expression::CdeFieldMap.new.cdeds_for(cde_fields)
       cdeds.pluck(:form_definition_identifier).uniq
     end
+
+    # Acquire a transactional advisory lock for CE Candidate Pool processing.
+    # When shared: true, multiple readers can proceed unless an exclusive lock is held.
+    # The lock is held for the duration of a DB transaction.
+    def self.lock_for_maintenance(shared: false, timeout_seconds: 10, &block)
+      lock_name = 'CandidatePoolMaintenance'
+      GrdaWarehouseBase.transaction do
+        GrdaWarehouseBase.with_advisory_lock(
+          lock_name,
+          timeout_seconds: timeout_seconds,
+          shared: shared,
+          transaction: true,
+          &block
+        )
+      end
+    end
   end
 end

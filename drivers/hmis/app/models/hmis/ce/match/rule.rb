@@ -27,11 +27,17 @@ module Hmis::Ce::Match
     ALLOWED_OWNER_TYPES = ['Hmis::UnitGroup', 'Hmis::Hud::Project', 'Hmis::Hud::Organization'].freeze
     belongs_to :owner, polymorphic: true
     validates :owner_type, inclusion: { in: ALLOWED_OWNER_TYPES }
+    validate :owner_is_not_changed, on: :update
+    validate :rule_type_is_not_changed, on: :update
 
     validates :name, presence: true
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
     PRIORITY_SCHEME = 'priority_scheme'
     validates :rule_type, presence: true, inclusion: { in: [ELIGIBILITY_REQUIREMENT, PRIORITY_SCHEME] }
+
+    after_create :rebuild_candidate_pools
+    after_destroy :rebuild_candidate_pools
+    after_update :rebuild_candidate_pools, if: :rule_logic_changed?
 
     # for revivified records, allow id override for safe client caching
     attr_accessor :graphql_id
@@ -81,6 +87,27 @@ module Hmis::Ce::Match
     def self.for_entity(entity)
       all_rules = preload(:owner).order(:owner_type, :id).to_a
       all_rules.filter { |rule| rule.applies_to_entity?(entity) }
+    end
+
+    private
+
+    def owner_is_not_changed
+      errors.add(:owner, 'cannot be changed') if will_save_change_to_owner_id? || will_save_change_to_owner_type?
+    end
+
+    def rule_type_is_not_changed
+      errors.add(:rule_type, 'cannot be changed') if will_save_change_to_rule_type?
+    end
+
+    def rule_logic_changed?
+      # For updates, only rebuild if relevant attributes changed.
+      saved_change_to_rule_type? || saved_change_to_expression? || saved_change_to_applicability_config?
+    end
+
+    def rebuild_candidate_pools
+      Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
+        Hmis::Ce::Match::CandidatePoolBuilder.new.perform
+      end
     end
   end
 end

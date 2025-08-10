@@ -14,7 +14,7 @@ module Mutations
     def resolve(unit_ids:)
       raise unless Hmis::Ce.configuration.enabled?
 
-      units = Hmis::Unit.preload(:unit_type, :current_occupants, :opportunities, :latest_opportunity).where(id: unit_ids)
+      units = Hmis::Unit.preload(:unit_type, :current_occupants, :opportunities, :latest_opportunity, unit_group: :workflow_template).where(id: unit_ids)
       raise 'Not found' unless units.any?
 
       project_ids = units.pluck(:project_id).uniq
@@ -24,22 +24,15 @@ module Mutations
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
       access_denied! unless policy_for(project, policy_type: :hmis_project).can_manage_units?
 
-      # Determine which template to use for each unit based on Unit Group configuration.
-      unit_to_template = units.preload(unit_group: :workflow_template).map do |unit|
-        workflow_template = unit.unit_group&.workflow_template # load Workflow Template record to validate it exists
-        raise 'Unable to mark unit available because there is no associated workflow template' unless workflow_template
-
-        [unit.id, workflow_template]
-      end.to_h
-
-      Hmis::Unit.transaction do
+      Hmis::Ce::Match::CandidatePool.lock_for_maintenance(shared: true) do
         opportunities = units.map do |unit|
-          template = unit_to_template.fetch(unit.id)
-          build_opportunity_for_unit(unit, template)
+          build_opportunity_for_unit(unit)
         end
 
-        result = Hmis::Ce::Opportunity.import!(opportunities)
-        Hmis::Ce::BuildCandidatePoolsJob.perform_later(opportunity_ids: result.ids)
+        Hmis::Ce::Opportunity.import!(opportunities)
+
+        pool_ids_to_dirty = units.map { |unit| unit.unit_group.candidate_pool_id }.uniq.compact
+        Hmis::Ce::Match::CandidatePool.where(id: pool_ids_to_dirty).mark_all_dirty if pool_ids_to_dirty.any?
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
@@ -47,35 +40,31 @@ module Mutations
 
     private
 
-    def build_opportunity_for_unit(unit, template)
+    def build_opportunity_for_unit(unit)
       raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
+
+      unit_group = unit.unit_group
+      raise 'Unit must be in a Unit Group to be marked available' unless unit_group
+      raise 'Unit Group has no Candidate Pool' unless unit_group.candidate_pool_id
+
+      workflow_template = unit_group.workflow_template
+      raise 'Unit Group has no Workflow Template' unless workflow_template
 
       unit_desc = unit.unit_type&.description
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
 
-      opportunity = Hmis::Ce::Opportunity.new(
+      Hmis::Ce::Opportunity.new(
         unit: unit,
         project: unit.project,
         name: opportunity_name,
-        workflow_template_identifier: template.identifier,
+        workflow_template_identifier: workflow_template.identifier,
+        candidate_pool_id: unit_group.candidate_pool_id,
+        assignment_rules: rule_resolver.rules_for_unit_group(unit_group).map(&:attributes),
       )
-
-      # Assign candidate_pool if a non-default key exists; otherwise leave nil
-      key = rule_resolver.key_for_unit_group(
-        unit_group: unit.unit_group,
-        project: unit.project,
-        organization: unit.project.organization,
-      )
-      opportunity.candidate_pool = pool_repository.find_by_key(key)
-      opportunity
     end
 
     def rule_resolver
       @rule_resolver ||= Hmis::Ce::Match::UnitGroupRuleResolver.new
-    end
-
-    def pool_repository
-      @pool_repository ||= Hmis::Ce::Match::CandidatePoolRepository.new
     end
   end
 end

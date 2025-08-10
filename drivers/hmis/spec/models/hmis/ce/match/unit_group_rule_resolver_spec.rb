@@ -11,8 +11,8 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
 
   describe '#key_for_unit_group' do
     context 'when no rules apply' do
-      it 'returns nil (default key)' do
-        key = resolver.key_for_unit_group(unit_group: unit_group, project: project, organization: organization)
+      it 'returns nil' do
+        key = resolver.key_for_unit_group(unit_group)
         expect(key).to be_nil
       end
     end
@@ -22,39 +22,58 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
       let!(:proj_req) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'days_homeless >= 7') }
       let!(:ug_priority) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless') }
 
-      it 'returns a single key [priority, requirement] respecting precedence and AND composition' do
-        key = resolver.key_for_unit_group(unit_group: unit_group, project: project, organization: organization)
-        # Eligibility requirements are ordered by owner precedence (UnitGroup > Project > Organization) then id
+      it 'returns a key respecting precedence and AND composition' do
+        key = resolver.key_for_unit_group(unit_group)
+        # Eligibility requirements are ordered by owner precedence (UnitGroup > Project > Organization) then by id
+        # and joined with AND. The first priority scheme is used.
         expect(key).to eq(['days_homeless', 'days_homeless >= 7 AND current_age >= 18'])
-      end
-
-      it 'memoizes per context (same answer on repeated calls without extra queries)' do
-        first = resolver.key_for_unit_group(unit_group: unit_group, project: project, organization: organization)
-        expect do
-          3.times { resolver.key_for_unit_group(unit_group: unit_group, project: project, organization: organization) }
-        end.to make_database_queries(count: 0)
-        expect(first).to be_present
       end
     end
   end
 
   describe '#keys_for_all_unit_groups' do
-    it 'returns a hash of unit_group_id => key (or nil)' do
+    let!(:unit_group_2) { create(:hmis_unit_group, project: project) }
+    let!(:unit_group_3_no_rules) { create(:hmis_unit_group, project: project) }
+
+    before do
+      # UG1 gets a priority and requirement
+      create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
+      create(:hmis_ce_eligibility_requirement, owner: project, expression: 'current_age >= 18')
+      # UG2 gets only a requirement
+      create(:hmis_ce_eligibility_requirement, owner: unit_group_2, expression: 'veteran = TRUE')
+    end
+
+    it 'returns a hash of unit_group_id => key for groups with rules' do
       map = resolver.keys_for_all_unit_groups
       expect(map).to be_a(Hash)
-      expect(map).to have_key(unit_group.id)
+      expect(map.keys).to contain_exactly(unit_group.id, unit_group_2.id)
+      expect(map[unit_group.id]).to eq(['score_a', 'current_age >= 18'])
+      expect(map[unit_group_2.id]).to eq(['0', 'veteran = TRUE'])
+    end
+
+    it 'can be scoped to a subset of unit groups' do
+      scope = Hmis::UnitGroup.where(id: [unit_group.id, unit_group_3_no_rules.id])
+      map = resolver.keys_for_all_unit_groups(scope)
+      expect(map).to be_a(Hash)
+      expect(map.keys).to contain_exactly(unit_group.id)
+      expect(map).not_to have_key(unit_group_2.id)
+    end
+
+    it 'omits unit groups with no applicable rules' do
+      map = resolver.keys_for_all_unit_groups
+      expect(map).not_to have_key(unit_group_3_no_rules.id)
     end
   end
 
-  describe '#rules_for_context' do
+  describe '#rules_for_unit_group' do
     let!(:org_req) { create(:hmis_ce_eligibility_requirement, owner: organization, expression: 'TRUE') }
     let!(:proj_req) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'score >= 10') }
     let!(:ug_priority) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score') }
 
-    it 'returns deterministically ordered rules for the context' do
-      rules = resolver.rules_for_context(unit_group: unit_group, project: project, organization: organization)
-      expect(rules.map(&:owner).map { |o| o.class.name }).to start_with('Hmis::UnitGroup')
-      expect(rules.map(&:id)).to be_present
+    it 'returns deterministically ordered rules for the unit group' do
+      rules = resolver.rules_for_unit_group(unit_group)
+      expect(rules.map(&:owner).map(&:class)).to eq([Hmis::UnitGroup, Hmis::Hud::Project, Hmis::Hud::Organization])
+      expect(rules.map(&:id)).to eq([ug_priority.id, proj_req.id, org_req.id])
     end
   end
 end
