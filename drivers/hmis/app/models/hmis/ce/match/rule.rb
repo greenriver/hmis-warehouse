@@ -52,6 +52,18 @@ module Hmis::Ce::Match
       where(rule_type: PRIORITY_SCHEME)
     end
 
+    # Order rules by owner precedence (UnitGroup > Project > Organization) then by id
+    # This ordering ensures deterministic rule resolution for consistent key generation
+    scope :by_owner_precedence, -> do
+      owner_type_case = Arel::Nodes::Case.new(arel_table[:owner_type]).
+        when('Hmis::UnitGroup').then(0).
+        when('Hmis::Hud::Project').then(1).
+        when('Hmis::Hud::Organization').then(2).
+        else(99)
+
+      order(owner_type_case, :id)
+    end
+
     def applies_to_entity?(entity)
       config = applicability_config.symbolize_keys || {}
       applicability = MatchApplicability.new(

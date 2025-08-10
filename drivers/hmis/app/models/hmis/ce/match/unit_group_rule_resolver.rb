@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match
-  # Resolves rule-derived keys for UnitGroup/Project/Organization contexts without any caching.
+  # Resolves rule-derived keys for UnitGroup/Project/Organization contexts with optimized caching.
   # Returns nil when no specific rules apply
   class UnitGroupRuleResolver
     def initialize
       @rules_cache = {}
       @key_cache = {}
+      @all_rules_by_precedence = nil
     end
 
     # Compute the effective key for a UnitGroup context.
@@ -45,29 +46,15 @@ module Hmis::Ce::Match
       results
     end
 
-    # Return rules applicable to the context, ordered deterministically by owner precedence then id
-    OWNER_PRECEDENCE = {
-      'Hmis::UnitGroup' => 0,
-      'Hmis::Hud::Project' => 1,
-      'Hmis::Hud::Organization' => 2,
-    }.freeze
-    private_constant :OWNER_PRECEDENCE
-
     def rules_for_context(unit_group:, project:, organization:)
       cache_key = entity_cache_key(unit_group, project, organization)
       return @rules_cache[cache_key] if @rules_cache.key?(cache_key)
 
       entity = unit_group || project || organization
-      return [] unless entity
+      return @rules_cache[cache_key] = [] unless entity
 
-      candidates = all_rules_for_resolver.select { |rule| rule.applies_to_entity?(entity) }
-
-      ordered = candidates.sort_by do |rule|
-        precedence = OWNER_PRECEDENCE.fetch(rule.owner_type, 99)
-        [precedence, rule.id || 0]
-      end
-      @rules_cache[cache_key] = ordered
-      ordered
+      applicable_rules = all_rules_by_precedence.filter { |rule| rule.applies_to_entity?(entity) }
+      @rules_cache[cache_key] = applicable_rules
     end
 
     private
@@ -76,8 +63,13 @@ module Hmis::Ce::Match
       [unit_group&.id, project&.id, organization&.id]
     end
 
-    def all_rules_for_resolver
-      @all_rules_for_resolver ||= Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
+    # Load and sort all rules once using the model's scope, then reuse for all subsequent operations
+    def all_rules_by_precedence
+      @all_rules_by_precedence ||= begin
+        # preload owner is required for `rule.applies_to_entity?`
+        rules = Hmis::Ce::Match::Rule.preload(:owner).by_owner_precedence.to_a
+        rules.freeze # Immutable after loading
+      end
     end
 
     def select_priority_expression(rules)
@@ -85,7 +77,7 @@ module Hmis::Ce::Match
     end
 
     def compose_requirement_expression(rules)
-      rules.select(&:eligibility_requirement?).
+      rules.filter(&:eligibility_requirement?).
         map(&:expression).
         join(' AND ').presence
     end
