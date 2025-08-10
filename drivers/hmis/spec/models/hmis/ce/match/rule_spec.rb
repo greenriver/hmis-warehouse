@@ -17,41 +17,39 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
   end
 
   describe 'callbacks' do
-    let(:builder_instance) { instance_double(Hmis::Ce::Match::CandidatePoolBuilder, perform: true) }
-
     before do
-      allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:new).and_return(builder_instance)
+      allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
     end
 
     it 'calls CandidatePoolBuilder after creation' do
       create(:hmis_ce_priority_scheme, owner: project)
-      expect(builder_instance).to have_received(:perform)
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
     end
 
     it 'calls CandidatePoolBuilder after destroy' do
       rule.destroy
-      expect(builder_instance).to have_received(:perform)
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
     end
 
     context 'on update' do
       it 'calls CandidatePoolBuilder if expression changes' do
         rule.update(expression: 'new_expression')
-        expect(builder_instance).to have_received(:perform)
+        expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
       end
 
       it 'calls CandidatePoolBuilder if rule_type changes' do
         rule.update(rule_type: 'priority_scheme')
-        expect(builder_instance).to have_received(:perform)
+        expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
       end
 
       it 'calls CandidatePoolBuilder if applicability_config changes' do
         rule.update(applicability_config: { project_types: [1] })
-        expect(builder_instance).to have_received(:perform)
+        expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
       end
 
       it 'does not call CandidatePoolBuilder if only name changes' do
         rule.update(name: 'New Name')
-        expect(builder_instance).not_to have_received(:perform)
+        expect(Hmis::Ce::Match::CandidatePoolBuilder).not_to have_received(:call)
       end
     end
   end

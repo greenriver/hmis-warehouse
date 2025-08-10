@@ -60,7 +60,7 @@ module Hmis
 
     def rebuild_candidate_pool
       Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
-        Hmis::Ce::Match::CandidatePoolBuilder.new.perform(unit_group_ids: [id])
+        Hmis::Ce::Match::CandidatePoolBuilder.call(unit_group_ids: [id])
       end
     end
 

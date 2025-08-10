@@ -83,7 +83,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:funder) { create(:hmis_hud_funder, project: project, data_source: project.data_source) }
       let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.funder] }) }
       before do
-        Hmis::Ce::Match::CandidatePoolBuilder.new(Hmis::Ce::Opportunity.where(id: opportunity.id)).perform
+        Hmis::Ce::Match::CandidatePoolBuilder.call
       end
 
       it 'returns rules with their correct ownerTypes' do

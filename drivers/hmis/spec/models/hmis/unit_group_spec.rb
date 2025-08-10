@@ -16,15 +16,13 @@ RSpec.describe Hmis::UnitGroup, type: :model do
   end
 
   describe 'callbacks' do
-    let(:builder_instance) { instance_double(Hmis::Ce::Match::CandidatePoolBuilder, perform: true) }
-
     before do
-      allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:new).and_return(builder_instance)
+      allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
     end
 
     it 'calls CandidatePoolBuilder after creation with its own id' do
       new_unit_group = create(:hmis_unit_group, project: project)
-      expect(builder_instance).to have_received(:perform).with(unit_group_ids: [new_unit_group.id])
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call).with(unit_group_ids: [new_unit_group.id])
     end
   end
 end

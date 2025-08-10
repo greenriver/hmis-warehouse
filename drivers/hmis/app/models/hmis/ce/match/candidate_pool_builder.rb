@@ -20,12 +20,16 @@
 #
 module Hmis::Ce::Match
   class CandidatePoolBuilder
+
     def initialize
       @rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
       @pool_repository = Hmis::Ce::Match::CandidatePoolRepository.new
     end
 
-    def perform(unit_group_ids: nil, force_reprocessing: false)
+    # Class-level convenience
+    def self.call(...) = new.call(...)
+
+    def call(unit_group_ids: nil, force_reprocessing: false)
       unit_group_scope = Hmis::UnitGroup.all
       unit_group_scope = unit_group_scope.where(id: unit_group_ids) if unit_group_ids
 

@@ -48,7 +48,7 @@ module HmisUtil
     def mark_pools_dirty_and_build(opportunities:, cleanup_orphans: false, force_reprocessing: nil)
       Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
         unit_group_ids = opportunities&.distinct&.pluck(:unit_group_id)&.compact
-        Hmis::Ce::Match::CandidatePoolBuilder.new.perform(unit_group_ids: unit_group_ids, force_reprocessing: force_reprocessing)
+        Hmis::Ce::Match::CandidatePoolBuilder.call(unit_group_ids: unit_group_ids, force_reprocessing: force_reprocessing)
       end
 
       # Optional immediate cleanup for development (production uses time-based cleanup)

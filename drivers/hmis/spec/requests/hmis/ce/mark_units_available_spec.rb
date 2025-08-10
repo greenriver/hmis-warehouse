@@ -91,7 +91,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
         it 'captures assignment rules for historical reference' do
           # Run the builder to ensure the unit group gets a pool based on the rule
-          Hmis::Ce::Match::CandidatePoolBuilder.new.perform
+          Hmis::Ce::Match::CandidatePoolBuilder.call
           unit_group.reload
 
           _response, result = post_graphql(**variables) { mutation }
