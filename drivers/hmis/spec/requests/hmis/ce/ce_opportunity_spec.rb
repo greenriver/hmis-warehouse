@@ -213,6 +213,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'when the opportunity has several referrals' do
+      let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit, workflow_template: workflow_template }
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
       let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
       let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }

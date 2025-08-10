@@ -165,8 +165,8 @@ module Hmis::Ce::Match
 
         next if unit_group.candidate_pool_id == desired_candidate_pool_id
 
-        # Only include columns needed for bulk upsert for clarity and performance
-        unit_group_updates << { id: unit_group.id, candidate_pool_id: desired_candidate_pool_id }
+        # Pass all attributes to satisfy validations; `on_duplicate_key_update` will only modify `candidate_pool_id`
+        unit_group_updates << unit_group.attributes.symbolize_keys.merge(candidate_pool_id: desired_candidate_pool_id)
       end
 
       updated_count = 0
