@@ -215,7 +215,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
   describe 'when there are many rules' do
     before do
-      # Opportunity-level rules are no longer allowed; generate on project and organization only
       50.times { create(:hmis_ce_eligibility_requirement, owner: project) }
       50.times { create(:hmis_ce_eligibility_requirement, owner: organization) }
     end
