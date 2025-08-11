@@ -100,8 +100,7 @@ module Hmis::Ce::Match
       # Mark opportunities as stale if their pool no longer matches their unit group's pool
       Hmis::Ce::Opportunity.
         joins(unit: :unit_group).
-        where.not(hmis_unit_groups: { candidate_pool_id: nil }).
-        where('ce_opportunities.candidate_pool_id != hmis_unit_groups.candidate_pool_id').
+        where('ce_opportunities.candidate_pool_id IS DISTINCT FROM hmis_unit_groups.candidate_pool_id').
         update_all(stale: true)
 
       # Un-mark opportunities that are currently stale but are now in the correct pool
@@ -109,7 +108,7 @@ module Hmis::Ce::Match
       Hmis::Ce::Opportunity.
         where(stale: true).
         joins(unit: :unit_group).
-        where('ce_opportunities.candidate_pool_id = hmis_unit_groups.candidate_pool_id').
+        where('ce_opportunities.candidate_pool_id IS NOT DISTINCT FROM hmis_unit_groups.candidate_pool_id').
         update_all(stale: false)
     end
 
