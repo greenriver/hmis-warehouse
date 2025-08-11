@@ -12,7 +12,7 @@ This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMar
 
 - **`Hmis::Ce::ChangeMarker`**: A polymorphic model that tracks the state of other records (currently `GrdaWarehouse::Hud::Client` and `Hmis::Ce::Match::CandidatePool`). It uses `current_version` and `processed_version` to determine if a record is "dirty."
 - **`Hmis::Ce::ProcessPoolsJob`**: A self-scheduling job that processes dirty candidate pools on the long-running queue. It uses per-pool advisory locks to coordinate with the client processor.
-- **`Hmis::Ce::ProcessClientsJob`**: A self-scheduling job that processes dirty clients on the default queue for fast updates. It uses non-blocking per-pool locks to coordinate with the pool processor.
+- **`Hmis::Ce::ProcessClientsJob`**: A self-scheduling job that processes dirty clients on the short-running queue for fast updates. It uses non-blocking per-pool locks to coordinate with the pool processor.
 - **`Hmis::Ce::BuildCandidatePoolsJob`**: A job triggered by actions like marking units available. It creates or updates candidate pools and marks them as dirty for processing.
 - **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved.
 

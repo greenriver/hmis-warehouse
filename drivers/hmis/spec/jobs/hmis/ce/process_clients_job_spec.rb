@@ -85,8 +85,8 @@ RSpec.describe Hmis::Ce::ProcessClientsJob, type: :job do
   it_behaves_like 'a job that can be enqueued if not already running', wait_time: 1.minute
 
   describe 'queue configuration' do
-    it 'runs on the default queue' do
-      expect(described_class.queue_name).to eq('default')
+    it 'runs on the short_running queue' do
+      expect(described_class.queue_name).to eq('short_running')
     end
   end
 end

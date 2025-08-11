@@ -409,9 +409,9 @@ namespace :grda_warehouse do
       safely_execute do
         # enqueue CE processors if they're not already running. Once enqueued they should self-sustain
         # ProcessPoolsJob handles expensive pool processing on a longer interval
-        Hmis::Ce::ProcessPoolsJob.enqueue_if_not_already_running(wait_time: 5.minutes)
+        Hmis::Ce::ProcessPoolsJob.enqueue_if_not_already_running(wait_time: 10.minutes)
         # ProcessClientsJob handles fast client processing on a shorter interval
-        Hmis::Ce::ProcessClientsJob.enqueue_if_not_already_running(wait_time: 30.seconds)
+        Hmis::Ce::ProcessClientsJob.enqueue_if_not_already_running(wait_time: 2.minutes)
       end
     end
 
