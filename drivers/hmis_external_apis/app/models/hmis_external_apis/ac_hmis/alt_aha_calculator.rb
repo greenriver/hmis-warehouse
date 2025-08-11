@@ -31,8 +31,8 @@ module HmisExternalApis::AcHmis
 
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      # If owner and user were passed, this calculation should be logged
-      # If not, this is a verification calculation when the assessment was submitted, and doesn't need to be logged
+      # If owner and user were passed, this calculation should be logged.
+      # Otherwise, assume this is a verification of a calculation that was already persisted, and skip logging
       if @user && @owner
         AcHmis::Scoring::CalculationLog.create!(
           namespace: ALT_AHA_NAMESPACE,
@@ -54,7 +54,10 @@ module HmisExternalApis::AcHmis
     private
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
-      rules_by_link_id = AcHmis::Scoring::Rule.for_form(@form_definition_identifier).rules_by_link_id(algorithm)
+      rules_by_link_id = AcHmis::Scoring::Rule.
+        for_form(@form_definition_identifier).
+        for_algorithm(algorithm).
+        group_by(&:link_id)
       raise "No rules found for #{algorithm} #{@form_definition_identifier}" if rules_by_link_id.empty?
 
       # Evaluate all rules, treating missing values as nil

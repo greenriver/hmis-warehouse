@@ -24,11 +24,6 @@ module AcHmis
       scope :for_algorithm, ->(algorithm) { where(algorithm: algorithm) }
       scope :for_form, ->(form_definition_identifier) { where(form_definition_identifier: form_definition_identifier) }
 
-      # Get all rules for a specific algorithm, grouped by link_id for efficient lookup
-      def self.rules_by_link_id(algorithm)
-        for_algorithm(algorithm).group_by(&:link_id)
-      end
-
       # Evaluate this rule against a response value and return the score contribution
       def evaluate(response_value)
         weighted_value = 0
@@ -47,6 +42,7 @@ module AcHmis
         numeric_value = convert_to_numeric(value)
         return false if numeric_value.nil?
 
+        # gather up all the range-related criteria in a list and check if they all match.
         criteria_config.all? do |operator, threshold|
           case operator
           when 'gt' then numeric_value > threshold
@@ -111,7 +107,7 @@ module AcHmis
       end
 
       def validate_exact_match_config
-        # `match_value` key has to exist, but value can be nil, if we want to match nils explicitly
+        # `match_value` key has to exist, but value can be nil
         errors.add(:criteria_config, 'Exact match criteria must specify a match_value') unless criteria_config.key?('match_value')
       end
 
