@@ -411,8 +411,11 @@ namespace :grda_warehouse do
 
     if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       safely_execute do
-        # enqueue CE processor if it's not already running. Once enqueued it should self-sustain
-        Hmis::Ce::ProcessChangesJob.enqueue_if_not_already_running(wait_time: 5.minutes)
+        # enqueue CE processors if they're not already running. Once enqueued they should self-sustain
+        # ProcessPoolsJob handles expensive pool processing on a longer interval
+        Hmis::Ce::ProcessPoolsJob.enqueue_if_not_already_running(wait_time: 10.minutes)
+        # ProcessClientsJob handles fast client processing on a shorter interval
+        Hmis::Ce::ProcessClientsJob.enqueue_if_not_already_running(wait_time: 2.minutes)
       end
     end
 

@@ -3,6 +3,47 @@
 # place for storing utility methods that we need to run manually/locally until all CE configuration functionality is in place
 module HmisUtil
   class CeBuilder
+    # Development utility
+    # Run this after changing/adding/removing match expressions
+    #
+    # @param clients [ActiveRecord::Relation, nil] Optional client scope to mark as dirty for processing.
+    #   If provided, these clients will be marked dirty and processed along with any other dirty records.
+    #   If nil, only processes existing dirty records.
+    # @param opportunities [ActiveRecord::Relation, nil] Optional opportunities scope to limit pool building
+    # @param progress [Boolean] Whether to show progress during processing
+    # @param cleanup_orphans [Boolean] Whether to immediately remove orphaned pools (development only)
+    def self.build_candidate_pools(clients: nil, opportunities: nil, progress: false, cleanup_orphans: false)
+      # Build candidate pools using the production job
+      # This creates/updates pools based on active opportunities and marks them as dirty
+      Hmis::Ce::BuildCandidatePoolsJob.new.perform(opportunity_ids: opportunities&.pluck(:id))
+
+      # Optional immediate cleanup for development (production uses time-based cleanup)
+      Hmis::Ce::Match::CandidatePool.orphaned.find_each(&:destroy!) if cleanup_orphans
+
+      if clients
+        # Mark the specified clients as dirty so they get processed
+        Hmis::Ce::ChangeMarker.upsert_or_bump_version(
+          'GrdaWarehouse::Hud::Client',
+          trackable_ids: clients.pluck(:id),
+        )
+      end
+
+      # Process all dirty pools and clients using the production jobs
+      # This populates the pools by calling the match engine with the same logic used in production
+      hit_max_iterations = false
+      10.times do
+        break unless Hmis::Ce::ChangeMarker.dirty.exists?
+
+        Hmis::Ce::ProcessClientsJob.new.perform(progress: progress)
+        Hmis::Ce::ProcessPoolsJob.new.perform(progress: progress)
+        hit_max_iterations = Hmis::Ce::ChangeMarker.dirty.exists?
+      end
+
+      return unless hit_max_iterations
+
+      Rails.logger.warn('CeBuilder#build_candidate_pools reached maximum iterations (10). Dirty markers may not be fully processed.')
+    end
+
     # Run this to keep state machine statuses in sync with custom statuses
     def self.create_state_machine_custom_statuses(data_source)
       Hmis::Ce::Referral.state_machine_states.map do |state|
@@ -17,65 +58,6 @@ module HmisUtil
         status.name = label
         status.save!
       end
-    end
-
-    # convenience methods
-    def self.build_candidate_pools(...) = new.build_candidate_pools(...)
-    def self.rebuild_clients(...) = new.rebuild_clients(...)
-
-    # Development utility
-    # Run this after changing/adding/removing match expressions
-    #
-    # @param opportunities [ActiveRecord::Relation, nil] Optional opportunities scope to limit pool building
-    # @param progress [Boolean] Whether to show progress during processing
-    # @param cleanup_orphans [Boolean] Whether to immediately remove orphaned pools (development only)
-    def build_candidate_pools(opportunities: nil, progress: false, cleanup_orphans: false)
-      mark_pools_dirty_and_build(opportunities: opportunities, cleanup_orphans: cleanup_orphans)
-      process_dirty_markers(progress: progress)
-    end
-
-    # Force rebuild for specific clients
-    #
-    # @param clients [ActiveRecord::Relation] Clients to mark as dirty and process
-    # @param progress [Boolean] Whether to show progress during processing
-    def rebuild_clients(clients:, progress: false)
-      mark_clients_dirty(clients)
-      process_dirty_markers(progress: progress)
-    end
-
-    private
-
-    def mark_pools_dirty_and_build(opportunities:, cleanup_orphans: false)
-      Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
-        unit_group_ids = opportunities&.distinct&.pluck(:unit_group_id)&.compact
-        Hmis::Ce::Match::CandidatePoolBuilder.call(unit_group_ids: unit_group_ids, force_reprocessing: true)
-      end
-
-      # Optional immediate cleanup for development (production uses time-based cleanup)
-      Hmis::Ce::Match::CandidatePool.orphaned.find_each(&:destroy!) if cleanup_orphans
-    end
-
-    def mark_clients_dirty(clients)
-      return unless clients.present?
-
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version(
-        'GrdaWarehouse::Hud::Client',
-        trackable_ids: clients.pluck(:id),
-      )
-    end
-
-    def process_dirty_markers(progress: false)
-      hit_max_iterations = false
-      10.times do
-        break unless Hmis::Ce::ChangeMarker.dirty.exists?
-
-        Hmis::Ce::ProcessChangesJob.new.perform(progress: progress)
-        hit_max_iterations = Hmis::Ce::ChangeMarker.dirty.exists?
-      end
-
-      return unless hit_max_iterations
-
-      Rails.logger.warn('CeBuilder processing reached maximum iterations (10). Dirty markers may not be fully processed.')
     end
   end
 end

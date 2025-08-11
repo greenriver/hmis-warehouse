@@ -6,12 +6,14 @@ The change tracking system for Coordinated Entry (CE) efficiently processes clie
 
 The change tracking system addresses the performance challenges of full reprocessing by implementing an incremental update mechanism. Instead of re-evaluating all clients and candidate pools whenever data changes, this system identifies only the records that have been modified ("dirty" records) and processes them in batches.
 
-This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMarker` model and a self-scheduling background job, `Hmis::Ce::ProcessChangesJob`, which continuously processes these changes.
+This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMarker` model and two specialized self-scheduling background jobs that continuously process these changes in parallel for optimal performance.
 
 ### Core Components
 
 - **`Hmis::Ce::ChangeMarker`**: A polymorphic model that tracks the state of other records (currently `GrdaWarehouse::Hud::Client` and `Hmis::Ce::Match::CandidatePool`). It uses `current_version` and `processed_version` to determine if a record is "dirty."
-- **`Hmis::Ce::ProcessChangesJob`**: A self-scheduling job that runs continuously to process dirty records. It uses an advisory lock to prevent concurrent runs.
+- **`Hmis::Ce::ProcessPoolsJob`**: A self-scheduling job that processes dirty candidate pools on the long-running queue. It uses per-pool advisory locks to coordinate with the client processor.
+- **`Hmis::Ce::ProcessClientsJob`**: A self-scheduling job that processes dirty clients on the short-running queue for fast updates. It uses non-blocking per-pool locks to coordinate with the pool processor.
+- **`Hmis::Ce::BuildCandidatePoolsJob`**: A job triggered by actions like marking units available. It creates or updates candidate pools and marks them as dirty for processing.
 - **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved.
 
 ## Workflow
@@ -19,43 +21,58 @@ This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMar
 The following diagram illustrates the flow of data from a user action to final processing:
 
 ```mermaid
+
+
 sequenceDiagram
     participant UserAction as User Action<br/>(e.g., Edit Client)
-    participant RailsApp as Rails Application
+    participant GraphqlAPI as GraphqlAPI
     participant MarkClientAsDirtyBehavior as MarkClientAsDirtyBehavior
     participant IdentifyDuplicates as IdentifyDuplicates
+    participant BuildCandidatePoolsJob as Hmis::Ce::BuildCandidatePoolsJob
     participant ChangeMarker as Hmis::Ce::ChangeMarker
-    participant CandidatePoolBuilder as Hmis::Ce::Match::<br>CandidatePoolBuilder
-    participant ProcessChangesJob as Hmis::Ce::ProcessChangesJob
+    participant ProcessPoolsJob as Hmis::Ce::ProcessPoolsJob
+    participant ProcessClientsJob as Hmis::Ce::ProcessClientsJob
 
-    UserAction->>+RailsApp: Submits a change (e.g., assessment)
-    RailsApp->>+MarkClientAsDirtyBehavior: after_save callback
-    MarkClientAsDirtyBehavior->>+ChangeMarker: upsert_or_bump_version (source client)
-    ChangeMarker-->>-MarkClientAsDirtyBehavior: Increments `current_version`
-    MarkClientAsDirtyBehavior-->>-RailsApp: Done
-
-    Note over RailsApp,IdentifyDuplicates: Client creation/update triggers deduplication
-    RailsApp->>+IdentifyDuplicates: Runs periodically or on client changes
-    IdentifyDuplicates->>+ChangeMarker: upsert_or_bump_version (destination client)
-    ChangeMarker-->>-IdentifyDuplicates: Marks destination client dirty
-    IdentifyDuplicates-->>-RailsApp: Done
-
-    alt Rule/UnitGroup/Opportunity Changes
-        UserAction->>+RailsApp: Create/Update/Delete Rule or UnitGroup
-        RailsApp-->>CandidatePoolBuilder: after_save/destroy callbacks
-        CandidatePoolBuilder->>+ChangeMarker: Marks new/updated pools dirty
-        ChangeMarker-->>-CandidatePoolBuilder: Done
-        UserAction->>+RailsApp: Mark Units Available
-        RailsApp-->>ChangeMarker: Marks affected pools dirty
+    alt Client Changes
+      UserAction->>+GraphqlAPI: Submits a change (e.g., assessment)
+      GraphqlAPI->>+MarkClientAsDirtyBehavior: after_save callback
+      MarkClientAsDirtyBehavior->>+ChangeMarker: upsert_or_bump_version (source client)
+      ChangeMarker-->>-MarkClientAsDirtyBehavior: Increments `current_version`
+      MarkClientAsDirtyBehavior-->>-GraphqlAPI: Done
     end
 
-    loop Continuous Processing
-        ProcessChangesJob->>ProcessChangesJob: Self-schedules (e.g., every 10 mins)
-        ProcessChangesJob->>+ChangeMarker: Finds dirty markers <br/> (current_version > processed_version)
-        ChangeMarker-->>-ProcessChangesJob: Returns dirty client/pool markers
-        ProcessChangesJob->>ProcessChangesJob: Processes dirty pools and clients
-        ProcessChangesJob->>+ChangeMarker: Marks processed items as clean <br/> (processed_version = current_version)
-        ChangeMarker-->>-ProcessChangesJob: Done
+    alt Identify Duplicates
+    Note over GraphqlAPI,IdentifyDuplicates: Client creation/update triggers deduplication
+    GraphqlAPI->>+IdentifyDuplicates: Runs periodically or on client changes
+    IdentifyDuplicates->>+ChangeMarker: upsert_or_bump_version (destination client)
+    ChangeMarker-->>-IdentifyDuplicates: Marks destination client dirty
+    IdentifyDuplicates-->>-GraphqlAPI: Done
+    end
+
+    alt Pool Changes
+        UserAction->>+GraphqlAPI: Mark Units Available
+        GraphqlAPI->>+BuildCandidatePoolsJob: Enqueues job
+        BuildCandidatePoolsJob->>+ChangeMarker: Marks new pools dirty
+        ChangeMarker-->>-BuildCandidatePoolsJob: Done
+        BuildCandidatePoolsJob-->>-GraphqlAPI: Done
+    end
+
+    loop Concurrent Processing (Pools)
+        ProcessPoolsJob->>ProcessPoolsJob: Self-schedules (e.g., every 5 mins)
+        ProcessPoolsJob->>+ChangeMarker: Finds dirty pool markers <br/> (current_version > processed_version)
+        ChangeMarker-->>-ProcessPoolsJob: Returns dirty pool markers
+        ProcessPoolsJob->>ProcessPoolsJob: Processes dirty pools with exclusive locks
+        ProcessPoolsJob->>+ChangeMarker: Marks processed pools as clean <br/> (processed_version = current_version)
+        ChangeMarker-->>-ProcessPoolsJob: Done
+    end
+
+    loop Concurrent Processing (Clients)
+        ProcessClientsJob->>ProcessClientsJob: Self-schedules (e.g., every 1 min)
+        ProcessClientsJob->>+ChangeMarker: Finds dirty client markers <br/> (current_version > processed_version)
+        ChangeMarker-->>-ProcessClientsJob: Returns dirty client markers
+        ProcessClientsJob->>ProcessClientsJob: Processes dirty clients with non-blocking locks
+        ProcessClientsJob->>+ChangeMarker: Marks processed clients as clean <br/> (processed_version = current_version)
+        ChangeMarker-->>-ProcessClientsJob: Done
     end
 ```
 
@@ -66,19 +83,32 @@ sequenceDiagram
 A record is considered **dirty** if its `current_version` is greater than its `processed_version` in the `hmis_ce_change_markers` table.
 
 - **`current_version`**: Incremented each time a change occurs on the tracked record.
-- **`processed_version`**: Updated to match `current_version` after the `ProcessChangesJob` has finished processing the record.
+- **`processed_version`**: Updated to match `current_version` after the processing jobs have finished processing the record.
 
 This ensures that any changes made while a job is running will be picked up in the next processing cycle.
 
-#### 2. Continuous Processing via Self-Scheduling Job
+#### 2. Concurrent Processing via Specialized Self-Scheduling Jobs
 
-The `Hmis::Ce::ProcessChangesJob` is designed to run continuously without relying on a frequent cron schedule.
+The CE system uses two specialized jobs that run concurrently for optimal performance:
 
-- When the job finishes a batch, it re-enqueues itself with a configurable delay (e.g., 10 minutes).
-- Cron calls `enqueue_if_not_already_running` periodically to ensure that the job is always enqueued.
-- An advisory lock guarantees that only one instance of the job can execute at a time, preventing race conditions.
-- The job processes in batches. It does stops after completing a batch of records to avoid hogging resources, requeueing itself to continue work.
-- A data integrity safeguard (`reconcile_untracked_records`) ensures all active pools and destination clients have change markers.
+**`Hmis::Ce::ProcessPoolsJob` (Pool Processing)**
+- Runs on the long-running queue with longer intervals (e.g., 5 minutes)
+- Handles computationally expensive pool processing operations
+- Uses exclusive advisory locks on individual pools to prevent concurrent access
+- When a pool is locked by this job, client processing will skip it gracefully
+
+**`Hmis::Ce::ProcessClientsJob` (Client Processing)**
+- Runs on the default queue with shorter intervals (e.g., 1 minute) for fast updates
+- Processes client eligibility changes quickly without waiting for pool processing
+- Uses non-blocking advisory locks - skips pools that are busy being processed
+- Provides low-latency updates for client-matching scenarios
+
+**Coordination & Safety**
+- Both jobs use job-level advisory locks to prevent multiple instances of the same job
+- Per-pool advisory locks coordinate access between the two jobs safely
+- Both jobs include data integrity safeguards to ensure all records have change markers
+- Self-scheduling: jobs re-enqueue themselves with configurable delays after batch completion
+- Cron calls `enqueue_if_not_already_running` periodically to ensure jobs remain active
 
 #### 3. Integration with Application Models
 
@@ -94,5 +124,5 @@ The `GrdaWarehouse::Tasks::IdentifyDuplicates` task flags changes to destination
 
 The incremental change tracking system works alongside the existing daily full refresh mechanism:
 
-- **Incremental Processing**: The `ProcessChangesJob` runs frequently to process only dirty records, providing near real-time updates.
-- **Daily Full Refresh**: A daily Rake task runs `CandidatePoolBuilder` for all unit groups to serve as a comprehensive backup and catch-all for any missed changes.
+- **Incremental Processing**: The `ProcessPoolsJob` and `ProcessClientsJob` run frequently to process only dirty records, providing near real-time updates with optimal performance through concurrent processing.
+- **Daily Full Refresh**: The `BuildCandidatePoolsJob` runs daily to rebuild all candidate pools, serving as a comprehensive backup and catch-all for any missed changes.
