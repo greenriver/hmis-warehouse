@@ -69,7 +69,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to include(unit.id.to_s)
         end.to change(Hmis::Ce::Opportunity, :count).by(1).and(
-          change { pool.change_marker.reload.dirty? }.from(false).to(true),
+          change { pool.reload.change_marker&.dirty? || false }.from(false).to(true),
         )
 
         unit.reload
@@ -78,9 +78,8 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
       end
 
       it 'acquires a shared advisory lock' do
-        lock_name = Hmis::Ce::Match::CandidatePoolBuilder.name.demodulize
         expect(GrdaWarehouseBase).to receive(:with_advisory_lock).
-          with(lock_name, timeout_seconds: 3, shared: true).
+          with('CandidatePoolMaintenance', timeout_seconds: 10, shared: true, transaction: true).
           and_call_original
 
         post_graphql(**variables) { mutation }

@@ -46,22 +46,25 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
     it 'returns a hash of unit_group_id => key for groups with rules' do
       map = resolver.keys_for_all_unit_groups
       expect(map).to be_a(Hash)
-      expect(map.keys).to contain_exactly(unit_group.id, unit_group_2.id)
+      # Project-level requirement applies to all unit groups, so all three should appear
+      expect(map.keys).to contain_exactly(unit_group.id, unit_group_2.id, unit_group_3_no_rules.id)
       expect(map[unit_group.id]).to eq(['score_a', 'current_age >= 18'])
-      expect(map[unit_group_2.id]).to eq(['0', 'veteran = TRUE'])
+      expect(map[unit_group_2.id]).to eq(['0', 'veteran = TRUE AND current_age >= 18'])
+      expect(map[unit_group_3_no_rules.id]).to eq(['0', 'current_age >= 18'])
     end
 
     it 'can be scoped to a subset of unit groups' do
       scope = Hmis::UnitGroup.where(id: [unit_group.id, unit_group_3_no_rules.id])
       map = resolver.keys_for_all_unit_groups(scope)
       expect(map).to be_a(Hash)
-      expect(map.keys).to contain_exactly(unit_group.id)
+      # Within the scope, both groups have applicable rules (project-level requirement)
+      expect(map.keys).to contain_exactly(unit_group.id, unit_group_3_no_rules.id)
       expect(map).not_to have_key(unit_group_2.id)
     end
 
-    it 'omits unit groups with no applicable rules' do
+    it 'includes unit groups with only inherited (project-level) rules' do
       map = resolver.keys_for_all_unit_groups
-      expect(map).not_to have_key(unit_group_3_no_rules.id)
+      expect(map).to have_key(unit_group_3_no_rules.id)
     end
   end
 

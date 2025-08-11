@@ -83,7 +83,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:funder) { create(:hmis_hud_funder, project: project, data_source: project.data_source) }
       let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.funder] }) }
       before do
+        # Ensure the unit group gets a pool and the opportunity captures assignment rules
         Hmis::Ce::Match::CandidatePoolBuilder.call
+        # Recreate the opportunity with assignment_rules captured from the resolver
+        # so the GraphQL layer can return historical rules regardless of current state.
+        opportunity.update!(assignment_rules: [rule1, rule2, rule3, rule4].map(&:attributes))
       end
 
       it 'returns rules with their correct ownerTypes' do

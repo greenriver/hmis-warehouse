@@ -20,7 +20,6 @@
 #
 module Hmis::Ce::Match
   class CandidatePoolBuilder
-
     def initialize
       @rule_resolver = Hmis::Ce::Match::UnitGroupRuleResolver.new
       @pool_repository = Hmis::Ce::Match::CandidatePoolRepository.new
@@ -99,7 +98,7 @@ module Hmis::Ce::Match
 
     def update_stale_flags!
       # Mark opportunities as stale if their pool no longer matches their unit group's pool
-      Hmis::Ce::Opportunity.active.
+      Hmis::Ce::Opportunity.
         joins(unit: :unit_group).
         where.not(hmis_unit_groups: { candidate_pool_id: nil }).
         where('ce_opportunities.candidate_pool_id != hmis_unit_groups.candidate_pool_id').
@@ -107,7 +106,7 @@ module Hmis::Ce::Match
 
       # Un-mark opportunities that are currently stale but are now in the correct pool
       # (e.g., if rules were changed and then changed back)
-      Hmis::Ce::Opportunity.active.
+      Hmis::Ce::Opportunity.
         where(stale: true).
         joins(unit: :unit_group).
         where('ce_opportunities.candidate_pool_id = hmis_unit_groups.candidate_pool_id').
