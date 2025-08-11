@@ -3,7 +3,7 @@
     %li
       = yield :prepended_nav_items
     - if user_signed_in?
-      %li.c-header-nav__item.border-right-0
+      %li.c-header-nav__item.border-end-0
         = render 'layouts/messages'
 
       %li.c-header-nav__mobile-link
@@ -15,4 +15,3 @@
       %li.c-header-nav__item
         = link_to new_user_session_path, class: 'c-header-nav__link' do
           Sign In
-
