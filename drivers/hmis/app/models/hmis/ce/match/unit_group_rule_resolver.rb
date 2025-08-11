@@ -22,22 +22,14 @@ module Hmis::Ce::Match
     end
 
     # Compute keys for all unit groups in the system.
-    # Returns a Hash: { unit_group_id => [priority_expression, requirement_expression] or nil }
+    # Returns a Hash: { unit_group_id => [priority_expression, requirement_expression] }
     def keys_for_all_unit_groups(unit_group_scope = Hmis::UnitGroup.all)
-      results = {}
-      unit_group_scope.find_each do |unit_group|
-        rules = all_rules.filter { |rule| rule.applies_to_entity?(unit_group) }
-        priority_expression = select_priority_expression(rules)
-        requirement_expression = compose_requirement_expression(rules)
-
-        next if priority_expression.nil? && requirement_expression.nil?
-
-        results[unit_group.id] = [
-          priority_expression || '0',
-          requirement_expression || 'TRUE',
+      unit_group_scope.find_each.to_h do |unit_group|
+        [
+          unit_group.id,
+          key_for_unit_group(unit_group),
         ]
-      end
-      results
+      end.compact_blank
     end
 
     def rules_for_unit_group(unit_group)

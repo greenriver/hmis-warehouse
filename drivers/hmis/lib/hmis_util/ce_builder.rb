@@ -3,10 +3,6 @@
 # place for storing utility methods that we need to run manually/locally until all CE configuration functionality is in place
 module HmisUtil
   class CeBuilder
-    # convenience methods
-    def self.build_candidate_pools(...) = new.build_candidate_pools(...)
-    def self.rebuild_clients(...) = new.rebuild_clients(...)
-
     # Run this to keep state machine statuses in sync with custom statuses
     def self.create_state_machine_custom_statuses(data_source)
       Hmis::Ce::Referral.state_machine_states.map do |state|
@@ -23,14 +19,18 @@ module HmisUtil
       end
     end
 
+    # convenience methods
+    def self.build_candidate_pools(...) = new.build_candidate_pools(...)
+    def self.rebuild_clients(...) = new.rebuild_clients(...)
+
     # Development utility
     # Run this after changing/adding/removing match expressions
     #
     # @param opportunities [ActiveRecord::Relation, nil] Optional opportunities scope to limit pool building
     # @param progress [Boolean] Whether to show progress during processing
     # @param cleanup_orphans [Boolean] Whether to immediately remove orphaned pools (development only)
-    def build_candidate_pools(opportunities: nil, progress: false, cleanup_orphans: false, force_reprocessing: true)
-      mark_pools_dirty_and_build(opportunities: opportunities, cleanup_orphans: cleanup_orphans, force_reprocessing: true)
+    def build_candidate_pools(opportunities: nil, progress: false, cleanup_orphans: false)
+      mark_pools_dirty_and_build(opportunities: opportunities, cleanup_orphans: cleanup_orphans)
       process_dirty_markers(progress: progress)
     end
 
@@ -45,10 +45,10 @@ module HmisUtil
 
     private
 
-    def mark_pools_dirty_and_build(opportunities:, cleanup_orphans: false, force_reprocessing: nil)
+    def mark_pools_dirty_and_build(opportunities:, cleanup_orphans: false)
       Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
         unit_group_ids = opportunities&.distinct&.pluck(:unit_group_id)&.compact
-        Hmis::Ce::Match::CandidatePoolBuilder.call(unit_group_ids: unit_group_ids, force_reprocessing: force_reprocessing)
+        Hmis::Ce::Match::CandidatePoolBuilder.call(unit_group_ids: unit_group_ids, force_reprocessing: true)
       end
 
       # Optional immediate cleanup for development (production uses time-based cleanup)

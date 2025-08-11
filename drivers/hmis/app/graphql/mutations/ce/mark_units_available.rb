@@ -17,7 +17,7 @@ module Mutations
       units = Hmis::Unit.preload(:unit_type, :current_occupants, :opportunities, :latest_opportunity, unit_group: :workflow_template).where(id: unit_ids)
       raise 'Not found' unless units.any?
 
-      project_ids = units.pluck(:project_id).uniq
+      project_ids = units.map(&:project_id).uniq
       raise 'Not found' if project_ids.empty?
       raise 'Cannot manage units across projects' if project_ids.size > 1
 

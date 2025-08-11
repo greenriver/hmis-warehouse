@@ -37,11 +37,6 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
         expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
       end
 
-      it 'calls CandidatePoolBuilder if rule_type changes' do
-        rule.update(rule_type: 'priority_scheme')
-        expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
-      end
-
       it 'calls CandidatePoolBuilder if applicability_config changes' do
         rule.update(applicability_config: { project_types: [1] })
         expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)

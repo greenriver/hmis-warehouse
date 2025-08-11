@@ -1,10 +1,29 @@
 # frozen_string_literal: true
 
-# Hmis::Ce::Match::CandidatePool
-# Describes the eligibility requirements and prioritization for a client.
 #
-# Composite uniqueness is enforced at the DB level: (priority_expression, requirement_expression)
-# Bulk creation/upserts rely on this to be idempotent.
+# Hmis::Ce::Match::CandidatePool
+#
+# A dynamic waitlist of client candidates who match a specific set of Coordinated
+# Entry (CE) rules. Each pool is uniquely defined by a combination of a
+# `priority_expression` and a `requirement_expression`.
+#
+# The pool serves as the central context for the `Hmis::Ce::Match::Engine`, which
+# evaluates clients against the pool's expressions to populate the waitlist with
+# `Hmis::Ce::Match::Candidate` records.
+#
+# Candidate Pools are not intended to be created or managed manually. They are
+# generated and maintained automatically by the `CandidatePoolBuilder` service.
+#
+# 1.  **Creation**: The builder inspects all `Hmis::UnitGroup`s and their associated
+#     `Hmis::Ce::Match::Rule`s. For each unique combination of rules, it creates
+#     a corresponding Candidate Pool.
+#
+# 2.  **Association**: Once a pool is created, the builder associates the relevant
+#     `UnitGroup`s with it via the `candidate_pool_id` foreign key.
+#
+# 3.  **Cleanup**: Pools that are no longer referenced by any `UnitGroup` or active
+#     `Opportunity` are considered "orphaned" and are automatically deleted after a
+#     configurable period.
 #
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
