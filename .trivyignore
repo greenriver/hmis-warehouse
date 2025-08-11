@@ -7,3 +7,6 @@ CVE-2025-43857
 # owner of esbuild indicates this is a false-positive; esbuild doesn't use crypto/x509
 # https://github.com/evanw/esbuild/issues/4204
 CVE-2025-22874
+
+# This go vuln is not exploitable. The esbuild package is not yet updated
+CVE-2025-47907
