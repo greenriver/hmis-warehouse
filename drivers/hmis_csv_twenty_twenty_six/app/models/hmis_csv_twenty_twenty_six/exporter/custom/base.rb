@@ -28,7 +28,7 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       self.class.custom_file_name
     end
 
-    def export_scope(batch_size: @batch_size)
+    def self.export_scope(batch_size: @batch_size)
       raise NotImplementedError, 'Custom exporters must define export_scope'
     end
 

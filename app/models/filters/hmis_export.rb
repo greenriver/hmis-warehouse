@@ -287,18 +287,18 @@ module Filters
     end
 
     def available_custom_file_types
-      return [] unless version == '2026'
+      return {} unless version == '2026'
 
       begin
         HmisCsvTwentyTwentySix.custom_files_config.definitions.map(&:for_select).to_h
       rescue StandardError => e
         Rails.logger.warn "Failed to load available custom file types: #{e.message}"
-        []
+        {}
       end
     end
 
     def valid_custom_file_types
-      custom_file_types & available_custom_file_types
+      custom_file_types & available_custom_file_types.values
     end
   end
 end

@@ -12,10 +12,12 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
   include AccessControlSetup
 
   let(:user) { create(:acl_user) }
-  let(:role) { create(:role, can_export_hmis_data: true) }
+  let(:role) { create(:role, can_export_hmis_data: true, can_view_assigned_reports: true) }
   let(:collection) { create(:collection) }
+  let!(:report) { create :hmis_export_report }
 
   before do
+    collection.set_viewables({ reports: [report.id] })
     # Set up user permissions for HMIS exports
     setup_access_control(user, role, collection)
     sign_in(user)

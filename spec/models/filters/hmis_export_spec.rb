@@ -82,9 +82,9 @@ RSpec.describe Filters::HmisExport, type: :model do
 
       it 'returns available custom file types from configuration' do
         available_types = filter.available_custom_file_types
-        expect(available_types).to be_an(Array)
+        expect(available_types).to be_a(Hash)
         # Should include the files from our test configuration
-        expect(available_types).to include('CustomGender.csv', 'CustomSexualOrientation.csv')
+        expect(available_types.values).to include('CustomGender.csv', 'CustomSexualOrientation.csv')
       end
 
       it 'handles errors gracefully' do
@@ -92,7 +92,7 @@ RSpec.describe Filters::HmisExport, type: :model do
         expect(Rails.logger).to receive(:warn).with(/Failed to load available custom file types/)
 
         available_types = filter.available_custom_file_types
-        expect(available_types).to eq([])
+        expect(available_types).to eq({})
       end
     end
 
@@ -101,7 +101,7 @@ RSpec.describe Filters::HmisExport, type: :model do
 
       it 'returns empty array' do
         available_types = filter.available_custom_file_types
-        expect(available_types).to eq([])
+        expect(available_types).to eq({})
       end
     end
 
@@ -110,7 +110,7 @@ RSpec.describe Filters::HmisExport, type: :model do
 
       it 'returns empty array' do
         available_types = filter.available_custom_file_types
-        expect(available_types).to eq([])
+        expect(available_types).to eq({})
       end
     end
   end
