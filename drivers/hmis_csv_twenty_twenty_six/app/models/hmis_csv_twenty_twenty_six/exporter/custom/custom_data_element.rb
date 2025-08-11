@@ -15,15 +15,69 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       'CustomDataElement.csv'
     end
 
-    def self.export_scope(**_options)
-      # No export class specified
-      []
+    def self.export_scope(**options)
+      warehouse_class = GrdaWarehouse::Hud::CustomDataElement
+
+      # Create a union of scopes for each owner type, delegating to their export_scope
+      scopes = []
+
+      # Get the scope mapping from the custom base class
+      scope_mapping = HmisCsvTwentyTwentySix::Exporter::Custom::Base.exporter_scope_mapping
+
+      {
+        'Client' => 'GrdaWarehouse::Hud::Client',
+        'Enrollment' => 'GrdaWarehouse::Hud::Enrollment',
+        'Exit' => 'GrdaWarehouse::Hud::Exit',
+        'Project' => 'GrdaWarehouse::Hud::Project',
+        'Organization' => 'GrdaWarehouse::Hud::Organization',
+      }.each do |granular_class_name, owner_type|
+        export_class = "HmisCsvTwentyTwentySix::Exporter::#{granular_class_name}".constantize
+        next unless export_class.respond_to?(:export_scope)
+
+        # Get the IDs of records being exported for this owner type
+        # Each exporter requires different scope parameters, so we provide only what it needs
+        required_scope_param = scope_mapping[granular_class_name]
+        if required_scope_param && options.key?(required_scope_param)
+          # Build the arguments hash with only the required scope parameter and export
+          scope_args = { required_scope_param => options[required_scope_param], export: options[:export] }
+          owner_ids_scope = export_class.export_scope(**scope_args).select(:id)
+        else
+          # Fallback: skip this exporter if we don't have the required scope
+          Rails.logger.warn "Skipping #{granular_class_name} exporter - missing required scope #{required_scope_param}"
+          next
+        end
+
+        # Find records that reference these exported records
+        scope = warehouse_class.where(
+          owner_type: owner_type,
+          owner_id: owner_ids_scope,
+        )
+
+        scopes << scope
+      end
+
+      # Union all the scopes together
+      return warehouse_class.none if scopes.empty?
+
+      combined_scope = scopes.shift
+      scopes.each do |scope|
+        combined_scope = combined_scope.or(scope)
+      end
+
+      combined_scope
     end
 
     def self.transforms
       [
         HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElement,
       ]
+    end
+
+    def self.adjust_keys(row, _export)
+      row.UserID = row.user_id || 'op-system'
+      row[:CustomDataElementID] = row.id
+
+      row
     end
   end
 end

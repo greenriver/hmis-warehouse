@@ -6,6 +6,7 @@ custom_files:
     description: "Custom data element values"
     warehouse_key: "CustomDataElementID"
     warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
+    export_limiting_column: "RecordType"
     columns:
       - name: "CustomDataElementID"
         type: "string"

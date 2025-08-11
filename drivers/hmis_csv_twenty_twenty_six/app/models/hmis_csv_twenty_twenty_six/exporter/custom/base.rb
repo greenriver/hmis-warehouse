@@ -53,12 +53,12 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       self.class.hud_csv_file_name(version: version)
     end
 
-    # Override to provide custom CSV headers
+    # Override to provide custom CSV headers, excluding virtual columns
     def self.hmis_csv_headers(_version: '2026')
       definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition(custom_file_name)
       return [] unless definition
 
-      definition.columns.map { |col| col['name'] }
+      definition.columns.reject { |col| col['type'] == 'virtual' }.map { |col| col['name'] }
     end
 
     def hmis_csv_headers(version: '2026')
@@ -80,6 +80,20 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
 
     def hmis_configuration(version: '2026')
       self.class.hmis_configuration(version: version)
+    end
+
+    # Creates a mapping of exporter class names to their required scope parameters
+    # by extracting scope information from the main base exporter's class_mappings
+    def self.exporter_scope_mapping
+      @exporter_scope_mapping ||= begin
+        mapping = {}
+        HmisCsvTwentyTwentySix::Exporter::Base.class_mappings.each do |exporter_class, details|
+          # Extract the class name (e.g., "Client" from "HmisCsvTwentyTwentySix::Exporter::Client")
+          class_name = exporter_class.name.demodulize
+          mapping[class_name] = details[:scope]
+        end
+        mapping.freeze
+      end
     end
 
     private

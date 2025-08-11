@@ -279,7 +279,7 @@ module HmisCsvTwentyTwentySix::Exporter
           when 'GrdaWarehouse::Hud::Project', 'GrdaWarehouse::Hud::Organization'
             :project_scope
           else
-            :client_scope # default
+            :project_scope # For custom files that don't augment a warehouse table, we default to project scope, so we can fetch the data source ids.
           end
 
           mappings[exporter_class] = {

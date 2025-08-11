@@ -35,6 +35,12 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         SexualOrientation: 1,
         SexualOrientationOther: nil,
       )
+
+      # Get custom data element test data from ExportHelper2026
+      @custom_data_element_definition = ExportHelper2026.custom_data_element_definitions.first
+      @custom_data_element_definition.update(data_source_id: @client.data_source_id)
+      @custom_data_element = ExportHelper2026.custom_data_elements.first
+      @custom_data_element.update(data_source_id: @client.data_source_id)
     end
 
     after(:all) do
@@ -50,7 +56,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
           period_type: 3,
           directive: 3,
           user_id: ExportHelper2026.user.id,
-          custom_file_types: ['CustomGender.csv', 'CustomSexualOrientation.csv'],
+          custom_file_types: ['CustomGender.csv', 'CustomSexualOrientation.csv', 'CustomDataElementDefinition.csv', 'CustomDataElement.csv'],
         )
         @export = @exporter.export!(cleanup: false, zip: false, upload: false)
       end
@@ -58,6 +64,8 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       it 'includes custom files in exportable_files' do
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender')
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation')
+        expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElementDefinition')
+        expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElement')
       end
 
       it 'generates CustomGender.csv file' do
@@ -125,6 +133,77 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         ]
         expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation.hmis_csv_headers).to eq(expected_headers)
       end
+
+      it 'generates CustomDataElementDefinition.csv file' do
+        custom_data_element_definition_file = File.join(@exporter.file_path, 'CustomDataElementDefinition.csv')
+        expect(File.exist?(custom_data_element_definition_file)).to be_truthy
+      end
+
+      it 'includes custom data element definition data in export' do
+        custom_data_element_definition_file = File.join(@exporter.file_path, 'CustomDataElementDefinition.csv')
+        csv_content = CSV.read(custom_data_element_definition_file, headers: true)
+
+        expect(csv_content.length).to be > 0
+        # Check that our test data is included
+        definition_row = csv_content.find { |row| row['CustomDataElementDefinitionID'] == @custom_data_element_definition.CustomDataElementDefinitionID }
+        expect(definition_row).to be_present
+        expect(definition_row['Key']).to eq(@custom_data_element_definition.key)
+        expect(definition_row['Label']).to eq(@custom_data_element_definition.label)
+        expect(definition_row['RecordType']).to eq('Client')
+        expect(definition_row['FieldType']).to eq('string')
+        expect(definition_row['Repeats']).to eq('false')
+      end
+
+      it 'sets correct ExportID on custom data element definition records' do
+        custom_data_element_definition_file = File.join(@exporter.file_path, 'CustomDataElementDefinition.csv')
+        csv_content = CSV.read(custom_data_element_definition_file, headers: true)
+
+        csv_content.each do |row|
+          expect(row['ExportID']).to eq(@export.export_id)
+        end
+      end
+
+      it 'returns correct CSV headers for CustomDataElementDefinition' do
+        expected_headers = [
+          'CustomDataElementDefinitionID', 'Key', 'RecordType', 'FieldType', 'Label', 'Repeats', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'
+        ]
+        expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElementDefinition.hmis_csv_headers).to eq(expected_headers)
+      end
+
+      it 'generates CustomDataElement.csv file' do
+        custom_data_element_file = File.join(@exporter.file_path, 'CustomDataElement.csv')
+        expect(File.exist?(custom_data_element_file)).to be_truthy
+      end
+
+      it 'includes custom data element data in export' do
+        custom_data_element_file = File.join(@exporter.file_path, 'CustomDataElement.csv')
+        csv_content = CSV.read(custom_data_element_file, headers: true)
+
+        expect(csv_content.length).to be > 0
+        # Check that our test data is included
+        element_row = csv_content.find { |row| row['CustomDataElementID'] == @custom_data_element.CustomDataElementID }
+        expect(element_row).to be_present
+        expect(element_row['CustomDataElementDefinitionID']).to eq(@custom_data_element_definition.CustomDataElementDefinitionID)
+        expect(element_row['RecordType']).to eq('Client')
+        expect(element_row['RecordID']).to eq(@custom_data_element.owner_id.to_s)
+        expect(element_row['Value']).to eq(@custom_data_element.value_string)
+      end
+
+      it 'sets correct ExportID on custom data element records' do
+        custom_data_element_file = File.join(@exporter.file_path, 'CustomDataElement.csv')
+        csv_content = CSV.read(custom_data_element_file, headers: true)
+
+        csv_content.each do |row|
+          expect(row['ExportID']).to eq(@export.export_id)
+        end
+      end
+
+      it 'returns correct CSV headers for CustomDataElement' do
+        expected_headers = [
+          'CustomDataElementID', 'CustomDataElementDefinitionID', 'RecordType', 'RecordID', 'Value', 'DataCollectionStage', 'InformationDate', 'UserID', 'DateCreated', 'DateUpdated', 'DateDeleted', 'ExportID'
+        ]
+        expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElement.hmis_csv_headers).to eq(expected_headers)
+      end
     end
 
     describe 'without custom file types selected' do
@@ -144,6 +223,8 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       it 'does not include custom files in exportable_files' do
         expect(@exporter_no_custom.exportable_files.keys.map(&:name)).not_to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender')
         expect(@exporter_no_custom.exportable_files.keys.map(&:name)).not_to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation')
+        expect(@exporter_no_custom.exportable_files.keys.map(&:name)).not_to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElementDefinition')
+        expect(@exporter_no_custom.exportable_files.keys.map(&:name)).not_to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElement')
       end
 
       it 'does not generate CustomGender.csv file' do
@@ -154,6 +235,16 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       it 'does not generate CustomSexualOrientation.csv file' do
         custom_sexual_orientation_file = File.join(@exporter_no_custom.file_path, 'CustomSexualOrientation.csv')
         expect(File.exist?(custom_sexual_orientation_file)).to be_falsy
+      end
+
+      it 'does not generate CustomDataElementDefinition.csv file' do
+        custom_data_element_definition_file = File.join(@exporter_no_custom.file_path, 'CustomDataElementDefinition.csv')
+        expect(File.exist?(custom_data_element_definition_file)).to be_falsy
+      end
+
+      it 'does not generate CustomDataElement.csv file' do
+        custom_data_element_file = File.join(@exporter_no_custom.file_path, 'CustomDataElement.csv')
+        expect(File.exist?(custom_data_element_file)).to be_falsy
       end
     end
   end

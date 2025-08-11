@@ -123,6 +123,13 @@ module HmisCsvTwentyTwentySix
       end
     end
 
+    def export_limiting_column_value_mapping
+      return unless @config_data['export_limiting_column']
+
+      column = columns.find { |col| col['name'] == @config_data['export_limiting_column'] }
+      column.dig('warehouse_column_mapping', 'value_mappings')
+    end
+
     def upsert_column_names
       (warehouse_target_columns - excluded_columns).map(&:to_sym)
     end

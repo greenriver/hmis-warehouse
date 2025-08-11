@@ -15,15 +15,28 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       'CustomDataElementDefinition.csv'
     end
 
-    def self.export_scope(**_options)
-      # No export class specified
-      []
+    def self.export_scope(**options)
+      warehouse_class = GrdaWarehouse::Hud::CustomDataElementDefinition
+
+      # No export limiting column - export all records for the relevant data sources
+      data_source_ids = options[:project_scope].distinct.pluck(:data_source_id) if options[:project_scope]
+      data_source_ids ||= [0] # if we can't determine any relevant data sources, include no data
+      combined_scope = warehouse_class.where(data_source_id: data_source_ids)
+
+      combined_scope
     end
 
     def self.transforms
       [
         HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElementDefinition,
       ]
+    end
+
+    def self.adjust_keys(row, _export)
+      row.UserID = row.user_id || 'op-system'
+      row[:CustomDataElementDefinitionID] = row.id
+
+      row
     end
   end
 end
