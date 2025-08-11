@@ -22,7 +22,7 @@ module AcHmis
       validate :valid_criteria_config
 
       scope :for_algorithm, ->(algorithm) { where(algorithm: algorithm) }
-      # todo @martha - do something with the form identifier?
+      scope :for_form, ->(form_definition_identifier) { where(form_definition_identifier: form_definition_identifier) }
 
       # Get all rules for a specific algorithm, grouped by link_id for efficient lookup
       def self.rules_by_link_id(algorithm)

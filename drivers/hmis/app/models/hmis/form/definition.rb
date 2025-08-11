@@ -494,9 +494,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
-      # todo @martha
-      # validate alt-AHA here - put put the actual code in external apis driver and invoke it
+      # todo @martha - validate alt-AHA here - put put the actual code in external apis driver and invoke it
       # re-calculate based on the submitted values and return a validation error if the calculated score doesn't match the submitted score
+      # this tiime actually save the assessment id as the owner of the score calculation?
     end
 
     # Ensure all link IDs are in the FormDefinition

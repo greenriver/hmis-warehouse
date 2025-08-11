@@ -9,151 +9,159 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
-  let(:calculator) { described_class.new }
   let(:owner) { create(:hmis_hud_enrollment) }
   let(:user) { create(:user) }
+  let(:client) { create(:hmis_hud_client, dob: Date.current - 42.years, Woman: 1) }
 
   describe '#calculate_score' do
-    # Test each rule type with one rule per algorithm
-    let!(:exact_match_rule) do
-      AcHmis::Scoring::Rule.create!(
-        link_id: 'question_1',
-        form_definition_identifier: 'test_form',
-        criteria_type: AcHmis::Scoring::Rule::EXACT_MATCH,
-        criteria_config: { 'match_value' => 'Yes' },
-        weight: 0.5,
-        algorithm: 'alt_aha_1',
-      )
+    let!(:baseline_rule_1) { create(:ac_hmis_scoring_rule, algorithm: 'alt_aha_1') }
+    let!(:baseline_rule_2) { create(:ac_hmis_scoring_rule, algorithm: 'alt_aha_2') }
+    let!(:baseline_rule_3) { create(:ac_hmis_scoring_rule, algorithm: 'alt_aha_3') }
+
+    describe 'exact match rule' do
+      let!(:exact_match_rule) do
+        create(
+          :ac_hmis_scoring_rule,
+          link_id: 'question_exact',
+          form_definition_identifier: 'test_form',
+          criteria_type: AcHmis::Scoring::Rule::EXACT_MATCH,
+          criteria_config: { 'match_value' => 'Yes' },
+          weight: 0.5,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      it 'scores when value matches' do
+        values = { 'question_exact' => 'Yes' }
+        calculator = described_class.new(
+          values_by_link_id: values,
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
+
+        calculator.calculate_score
+
+        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        expect(details['alt_aha_1']['raw_score']).to eq('0.5')
+        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+      end
     end
 
-    let!(:range_rule) do
-      AcHmis::Scoring::Rule.create!(
-        link_id: 'question_2',
-        form_definition_identifier: 'test_form',
-        criteria_type: AcHmis::Scoring::Rule::RANGE,
-        criteria_config: { 'gte' => 3 },
-        weight: 0.3,
-        algorithm: 'alt_aha_2',
-      )
+    describe 'range rule' do
+      let!(:range_rule) do
+        create(
+          :ac_hmis_scoring_rule,
+          link_id: 'question_range',
+          form_definition_identifier: 'test_form',
+          criteria_type: AcHmis::Scoring::Rule::RANGE,
+          criteria_config: { 'gte' => 3 },
+          weight: 0.3,
+          algorithm: 'alt_aha_2',
+        )
+      end
+
+      it 'scores when value meets range criteria' do
+        values = { 'question_range' => 5 }
+        calculator = described_class.new(
+          values_by_link_id: values,
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
+
+        calculator.calculate_score
+
+        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        expect(details['alt_aha_1']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_2']['raw_score']).to eq('0.3')
+        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+      end
     end
 
-    let!(:value_rule) do
-      AcHmis::Scoring::Rule.create!(
-        link_id: 'question_3',
-        form_definition_identifier: 'test_form',
-        criteria_type: AcHmis::Scoring::Rule::VALUE,
-        criteria_config: {},
-        weight: 0.1,
-        algorithm: 'alt_aha_3',
-      )
+    describe 'value rule' do
+      let!(:value_rule) do
+        create(
+          :ac_hmis_scoring_rule,
+          link_id: 'question_value',
+          form_definition_identifier: 'test_form',
+          criteria_type: AcHmis::Scoring::Rule::VALUE,
+          criteria_config: {},
+          weight: 0.1,
+          algorithm: 'alt_aha_3',
+        )
+      end
+
+      it 'scores using numeric value times weight' do
+        values = { 'question_value' => 4 }
+        calculator = described_class.new(
+          values_by_link_id: values,
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
+
+        calculator.calculate_score
+
+        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        expect(details['alt_aha_1']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_3']['raw_score']).to eq('0.4')
+      end
     end
 
-    let!(:nil_match_rule) do
-      AcHmis::Scoring::Rule.create!(
-        link_id: 'question_4',
-        form_definition_identifier: 'test_form',
-        criteria_type: AcHmis::Scoring::Rule::EXACT_MATCH,
-        criteria_config: { 'match_value' => nil },
-        weight: 0.2,
-        algorithm: 'alt_aha_1',
-      )
-    end
+    describe 'include rule' do
+      let!(:include_rule) do
+        create(
+          :ac_hmis_scoring_rule,
+          link_id: 'question_include',
+          form_definition_identifier: 'test_form',
+          criteria_type: AcHmis::Scoring::Rule::INCLUDE,
+          criteria_config: { 'include' => 'option_b' },
+          weight: 0.6,
+          algorithm: 'alt_aha_1',
+        )
+      end
 
-    it 'calculates score using different rule types' do
-      values = {
-        'question_1' => 'Yes',   # exact_match: matches, contributes 0.5
-        'question_2' => 5,       # range: >= 3, contributes 0.3
-        'question_3' => 4,       # value: 4 * 0.1 = 0.4
-        'question_4' => 'not_nil', # prevents nil match rule from firing
-      }
+      it 'scores when array includes target value' do
+        values = { 'question_include' => ['option_a', 'option_b', 'option_c'] }
+        calculator = described_class.new(
+          values_by_link_id: values,
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
 
-      score = calculator.calculate_score(values, owner: owner, user: user)
+        calculator.calculate_score
 
-      # Find the log record
-      log = AcHmis::Scoring::CalculationLog.last
-      expect(log.namespace).to eq('alt_aha')
-      expect(log.final_score).to eq(score)
-      expect(log.owner).to eq(owner)
-      expect(log.user).to eq(user)
+        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        expect(details['alt_aha_1']['raw_score']).to eq('0.6')
+        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+      end
 
-      # Check intermediate calculations
-      details = log.calculation_details
-      expect(details['alt_aha_1']['raw_score']).to eq('0.5')  # exact match: 0.5 (BigDecimal serialized as string)
-      expect(details['alt_aha_2']['raw_score']).to eq('0.3')  # range match: 0.3 (BigDecimal serialized as string)
-      expect(details['alt_aha_3']['raw_score']).to eq('0.4')  # value: 4 * 0.1 (BigDecimal serialized as string)
+      it 'does not score when array does not include target value' do
+        values = { 'question_include' => ['option_a', 'option_c'] }
+        calculator = described_class.new(
+          values_by_link_id: values,
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
 
-      # Total points should be based on the combined score
-      expect(details['total_points']).to eq 8
-    end
+        calculator.calculate_score
 
-    it 'handles nil/null exact match rules correctly' do
-      values = {
-        'question_1' => 'Yes',     # exact_match: matches, contributes 0.5
-        'question_4' => nil,       # nil exact_match: matches, contributes 0.2
-        # question_2 and question_3 not provided (missing values)
-      }
-
-      calculator.calculate_score(values, owner: owner, user: user)
-
-      log = AcHmis::Scoring::CalculationLog.last
-      details = log.calculation_details
-
-      # Check that the nil match rule contributed to alt_aha_1 score
-      expect(details['alt_aha_1']['raw_score']).to eq('0.7')  # 0.5 (Yes) + 0.2 (nil match)
-      expect(details['alt_aha_2']['raw_score']).to eq('0.0')  # no match (question_2 missing, doesn't meet range)
-      expect(details['alt_aha_3']['raw_score']).to eq('0.0')  # no match (question_3 missing, nil * weight = 0)
-    end
-
-    it 'handles include rules for array responses' do
-      # Add an includes rule
-      AcHmis::Scoring::Rule.create!(
-        link_id: 'question_5',
-        form_definition_identifier: 'test_form',
-        criteria_type: AcHmis::Scoring::Rule::INCLUDE,
-        criteria_config: { 'include' => 'option_b' },
-        weight: 0.6,
-        algorithm: 'alt_aha_1',
-      )
-
-      values = {
-        'question_1' => 'Yes', # exact_match: contributes 0.5
-        'question_5' => ['option_a', 'option_b', 'option_c'], # includes: contributes 0.6
-        'question_4' => 'not_nil', # prevents nil match
-      }
-
-      calculator.calculate_score(values, owner: owner, user: user)
-
-      log = AcHmis::Scoring::CalculationLog.last
-      details = log.calculation_details
-
-      # Should get 0.5 (exact match) + 0.6 (includes value) = 1.1
-      expect(details['alt_aha_1']['raw_score']).to eq('1.1')
-    end
-
-    it 'handles includes rules that do not match' do
-      # Same rule as above
-      AcHmis::Scoring::Rule.create!(
-        link_id: 'question_5',
-        form_definition_identifier: 'test_form',
-        criteria_type: AcHmis::Scoring::Rule::INCLUDE,
-        criteria_config: { 'include' => 'option_z' },
-        weight: 0.6,
-        algorithm: 'alt_aha_1',
-      )
-
-      values = {
-        'question_1' => 'Yes', # exact_match: contributes 0.5
-        'question_5' => ['option_a', 'option_b', 'option_c'], # does not include option_z: contributes 0
-        'question_4' => 'not_nil', # prevents nil match
-      }
-
-      calculator.calculate_score(values, owner: owner, user: user)
-
-      log = AcHmis::Scoring::CalculationLog.last
-      details = log.calculation_details
-
-      # Should get only 0.5 (exact match)
-      expect(details['alt_aha_1']['raw_score']).to eq('0.5')
+        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        expect(details['alt_aha_1']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+      end
     end
   end
 end

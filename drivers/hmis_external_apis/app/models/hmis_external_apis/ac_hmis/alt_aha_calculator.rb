@@ -10,14 +10,25 @@ module HmisExternalApis::AcHmis
   class AltAhaCalculator
     ALT_AHA_NAMESPACE = 'alt_aha'
 
-    # Calculate the alt-AHA score based on the values submitted.
-    # owner can be: an enrollment (on an unsaved assessment), or an assessment (when the assessment is being saved)
-    def calculate_score(values_by_link_id, owner:, user:)
-      alt_aha_1_result = calculate_algo_1_score(values_by_link_id)
-      alt_aha_2_result = calculate_algo_2_score(values_by_link_id)
-      alt_aha_3_result = calculate_algo_3_score(values_by_link_id)
+    # owner can be: an enrollment (when AHA score is calculated on an unsaved assessment), or an assessment (when the assessment is being saved)
+    def initialize(values_by_link_id:, client:, user:, owner:, form_definition_identifier:)
+      @values_by_link_id = values_by_link_id.merge(
+        # inject values from client
+        'client_demographics_age' => client.age,
+        'client_demographics_gender' => client.gender_fields,
+      )
+      @user = user
+      @owner = owner
+      @form_definition_identifier = form_definition_identifier
+    end
 
-      total_points = [alt_aha_1_result[:points], alt_aha_2_result[:points], alt_aha_3_result[:points]].sum
+    def calculate_score
+      alt_aha_1_result = calculate_algo_1_score(@values_by_link_id)
+      alt_aha_2_result = calculate_algo_2_score(@values_by_link_id)
+      alt_aha_3_result = calculate_algo_3_score(@values_by_link_id)
+      total_points = [alt_aha_1_result, alt_aha_2_result, alt_aha_3_result].
+        sum { |result| result[:points] + result[:intercept] }
+
       alt_aha_score = convert_total_points_to_score(total_points)
 
       AcHmis::Scoring::CalculationLog.create!(
@@ -29,8 +40,8 @@ module HmisExternalApis::AcHmis
           alt_aha_3: alt_aha_3_result,
           total_points: total_points,
         },
-        owner: owner,
-        user: user,
+        owner: @owner,
+        user: @user,
       )
 
       alt_aha_score
@@ -39,8 +50,8 @@ module HmisExternalApis::AcHmis
     private
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
-      rules_by_link_id = AcHmis::Scoring::Rule.rules_by_link_id(algorithm)
-      raise "No rules found for #{algorithm}" if rules_by_link_id.empty?
+      rules_by_link_id = AcHmis::Scoring::Rule.for_form(@form_definition_identifier).rules_by_link_id(algorithm)
+      raise "No rules found for #{algorithm} #{@form_definition_identifier}" if rules_by_link_id.empty?
 
       # Evaluate all rules, treating missing values as nil
       rules_by_link_id.sum do |link_id, rules|
@@ -75,6 +86,7 @@ module HmisExternalApis::AcHmis
         raw_score: raw_score,
         probability: probability,
         points: points,
+        intercept: -0.412537657,
       }
     end
 
@@ -100,6 +112,7 @@ module HmisExternalApis::AcHmis
         raw_score: raw_score,
         probability: probability,
         points: points,
+        intercept: -0.6995659699,
       }
     end
 
@@ -125,6 +138,7 @@ module HmisExternalApis::AcHmis
         raw_score: raw_score,
         probability: probability,
         points: points,
+        intercept: 1.065580188,
       }
     end
 
