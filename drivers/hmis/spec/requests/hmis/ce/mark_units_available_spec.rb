@@ -63,14 +63,12 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         unit_group.update!(candidate_pool: pool)
       end
 
-      it 'creates a new opportunity and marks the pool as dirty' do
+      it 'creates a new opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to include(unit.id.to_s)
-        end.to change(Hmis::Ce::Opportunity, :count).by(1).and(
-          change { pool.reload.change_marker&.dirty? || false }.from(false).to(true),
-        )
+        end.to change(Hmis::Ce::Opportunity, :count).by(1)
 
         unit.reload
         expect(unit.latest_opportunity.candidate_pool).to eq(pool)

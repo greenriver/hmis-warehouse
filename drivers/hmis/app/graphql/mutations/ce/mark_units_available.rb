@@ -30,9 +30,6 @@ module Mutations
         end
 
         Hmis::Ce::Opportunity.import!(opportunities)
-
-        pool_ids_to_dirty = units.map { |unit| unit.unit_group.candidate_pool_id }.uniq.compact
-        Hmis::Ce::Match::CandidatePool.where(id: pool_ids_to_dirty).mark_all_dirty if pool_ids_to_dirty.any?
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
