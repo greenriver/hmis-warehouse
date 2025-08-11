@@ -2,12 +2,12 @@
 
 # Manages the lifecycle of Candidate Pools, which are driven by rules associated with Unit Groups.
 # This class ensures that pools are created for all unique rule sets, associates Unit Groups with
-# the correct pools, and handles the initial assignment of Opportunities.
+# the correct pools, and maintains the `stale` flag on opportunities.
 #
 # The builder:
 # 1. Creates Candidate Pools for all unique rule sets derived from Unit Groups.
 # 2. Associates Unit Groups with their corresponding Candidate Pool.
-# 3. Assigns new Opportunities to a pool and flags existing ones as "stale" if their rules change.
+# 3. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
 # 4. Cleans up orphaned pools that are no longer referenced by Unit Groups or Opportunities.
 #
 # Semantics and concurrency notes:
@@ -17,7 +17,7 @@
 # - Bulk creation relies on a DB unique index over (priority_expression, requirement_expression) and is idempotent.
 # - Concurrency/transactions are handled by callers. This class performs pure operations without
 #   acquiring locks or opening transactions.
-#
+# - Triggered automatically by Rule and UnitGroup callbacks. Can be called manually via `CeBuilder`
 module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize
