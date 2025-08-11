@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
   let(:owner) { create(:hmis_hud_enrollment) }
-  let(:user) { create(:user) }
+  let(:user) { create(:hmis_user) }
   let(:client) { create(:hmis_hud_client, dob: Date.current - 42.years, Woman: 1) }
 
   describe '#calculate_score' do
