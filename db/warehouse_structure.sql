@@ -7059,7 +7059,9 @@ CREATE TABLE public.ce_opportunities (
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    unit_id bigint NOT NULL
+    unit_id bigint NOT NULL,
+    stale boolean DEFAULT false NOT NULL,
+    assignment_rules json DEFAULT '[]'::json NOT NULL
 );
 
 
@@ -75291,6 +75293,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250804124300'),
 ('20250804124243'),
 ('20250804122929'),
+('20250803183312'),
 ('20250730173200'),
 ('20250730004713'),
 ('20250729183312'),

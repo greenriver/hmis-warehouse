@@ -14,7 +14,8 @@
 @import 'billboard.js/dist/billboard.min.css';
 
 @import 'datatables_bootstrap';
-@import 'application/vendor/icons';
+@import 'application/vendor/icons_embedded'; // Embedded font data for PDFs
+@import 'application/vendor/icons'; // Icon class definitions and mappings
 @import '@eonasdan/tempus-dominus/dist/css/tempus-dominus';
 
 // 3. Application-specific Styles
@@ -28,3 +29,6 @@
 @import 'application/modules/**/*';
 @import 'application/overrides/**/*';
 @import 'application/utilities/**/*';
+@import 'application/print/base';
+@import 'application/print/dashboard';
+@import 'application/print/roi';

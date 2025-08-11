@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthPctp::DocumentExports
   class HealthPctpPdfExport < ::Health::DocumentExport
     include ApplicationHelper
@@ -66,6 +68,7 @@ module HealthPctp::DocumentExports
           print_background: true,
           prefer_css_page_size: true,
           scale: 1,
+          format: 'tabloid',
           margin: {
             top: '0.8in',
             bottom: '1.2in',
