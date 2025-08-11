@@ -28,7 +28,7 @@ module Mutations
       aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
         values_by_link_id: values_by_link_id,
         client: enrollment.client,
-        user: user,
+        user: current_user,
         owner: enrollment,
         form_definition_identifier: form_definition_identifier,
       )

@@ -12,7 +12,7 @@ module AcHmis
       self.table_name = 'hmis_scoring_calculation_logs'
 
       belongs_to :owner, polymorphic: true
-      belongs_to :user
+      belongs_to :user, class_name: 'Hmis::User'
 
       validates :namespace, :final_score, :calculation_details, presence: true
     end
