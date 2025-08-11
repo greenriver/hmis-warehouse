@@ -5,7 +5,6 @@ require 'rails_helper'
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
   let!(:organization) { create(:hmis_hud_organization) }
   let!(:project) { create(:hmis_hud_project, organization: organization) }
-  let(:builder) { described_class.new }
 
   before do
     allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:rebuild_candidate_pools) # prevent automatic rebuilds
@@ -28,13 +27,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
 
       it 'creates pools for unique rule combinations and marks them dirty' do
-        expect { builder.call }.to change(Hmis::Ce::Match::CandidatePool, :count).by(2)
+        expect { described_class.call }.to change(Hmis::Ce::Match::CandidatePool, :count).by(2)
         # Both newly created pools should be marked dirty
         expect(Hmis::Ce::ChangeMarker.dirty.pools.count).to eq(2)
       end
 
       it 'assigns unit groups to the appropriate pools' do
-        builder.call
+        described_class.call
         pool1 = Hmis::Ce::Match::CandidatePool.find_by(priority_expression: 'score_1')
         pool2 = Hmis::Ce::Match::CandidatePool.find_by(requirement_expression: 'b = 2')
 
@@ -43,12 +42,12 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
 
       it 'leaves candidate_pool_id nil for unit groups with no rules' do
-        builder.call
+        described_class.call
         expect(unit_group_no_rules.reload.candidate_pool_id).to be_nil
       end
 
       it 'can be scoped to specific unit groups' do
-        expect { builder.call(unit_group_ids: [unit_group_1.id]) }.
+        expect { described_class.call(unit_group_ids: [unit_group_1.id]) }.
           to change(Hmis::Ce::Match::CandidatePool, :count).by(1)
         expect(unit_group_1.reload.candidate_pool).to be_present
         # unit_group_2 should not have been processed/associated
@@ -61,13 +60,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
       it 'updates the unit group association to the new pool' do
         create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
-        builder.call
+        described_class.call
         first_pool_id = unit_group.reload.candidate_pool_id
         expect(first_pool_id).to be_present
 
         # Add a rule, which changes the key and should result in a new pool
         create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
-        builder.call
+        described_class.call
         second_pool_id = unit_group.reload.candidate_pool_id
 
         expect(second_pool_id).to be_present
@@ -82,28 +81,28 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       before do
         # Initial run to assign pool to opportunity and unit group
         create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
-        builder.call
+        described_class.call
         opportunity.update!(candidate_pool_id: unit_group.reload.candidate_pool_id)
         # Ensure any stale flags are cleared after alignment
-        builder.call
+        described_class.call
         expect(opportunity.reload.stale).to be_falsey
       end
 
       it 'marks opportunity as stale when unit group pool changes' do
         # Change the rule for the unit group, which will cause it to be assigned a new pool
         create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
-        expect { builder.call }.to change { opportunity.reload.stale }.from(false).to(true)
+        expect { described_class.call }.to change { opportunity.reload.stale }.from(false).to(true)
       end
 
       it 'clears stale flag when unit group pool reverts' do
         # Make the opportunity stale
         rule = create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
-        builder.call
+        described_class.call
         expect(opportunity.reload.stale).to be_truthy
 
         # Remove the rule, reverting the unit group to its original pool
         rule.destroy
-        builder.call
+        described_class.call
         expect(opportunity.reload.stale).to be_falsey
       end
     end
@@ -124,7 +123,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
 
       it 'deletes old orphaned pools but not new or active ones' do
-        expect { builder.call }.to change(Hmis::Ce::Match::CandidatePool, :count).by(-1)
+        expect { described_class.call }.to change(Hmis::Ce::Match::CandidatePool, :count).by(-1)
         expect(Hmis::Ce::Match::CandidatePool.exists?(old_orphaned_pool.id)).to be_falsey
         expect(Hmis::Ce::Match::CandidatePool.exists?(new_orphaned_pool.id)).to be_truthy
         expect(Hmis::Ce::Match::CandidatePool.exists?(active_pool.id)).to be_truthy
@@ -135,12 +134,12 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
   describe 'locking behavior' do
     it 'defers locking to callers (no direct advisory lock held by builder)' do
       expect(GrdaWarehouseBase).not_to receive(:with_advisory_lock)
-      builder.call
+      described_class.call
     end
 
     it 'does not open a top-level transaction (callers own transactional semantics)' do
       expect(Hmis::Ce::Match::CandidatePool).not_to receive(:transaction)
-      builder.call
+      described_class.call
     end
   end
 end

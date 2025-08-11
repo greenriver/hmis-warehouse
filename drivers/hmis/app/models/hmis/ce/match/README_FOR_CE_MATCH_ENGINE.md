@@ -8,7 +8,7 @@ The classes within this module are organized into several subdirectories to grou
 
 - **`/` (ActiveRecord Models & Public API)**
   - Contains the main ActiveRecord models (`CandidatePool`, `Candidate`, `CandidateEvent`, `Rule`).
-  - Contains the public-facing API classes that orchestrate the matching process (`Engine`, `CandidatePoolBuilder`, `MatchApplicability`). These are the primary entry points for interacting with the match engine.
+  - Contains the public-facing API classes that orchestrate the matching process (`Engine`, `CandidatePoolBuilder`, `UnitGroupRuleResolver`, `CandidatePoolRepository`, `MatchApplicability`). These are the primary entry points for interacting with the match engine.
 
 - **`internal/` (Internal Components)**
   - Houses the service objects that are used internally by the `Engine`. These classes are considered implementation details and should not be called directly from outside the `Hmis::Ce::Match` module.
@@ -39,5 +39,5 @@ The classes within this module are organized into several subdirectories to grou
 
 ## Unit Group–Driven Maintenance
 
-- `CandidatePoolBuilder` always processes all `UnitGroup`s on every run to keep waitlist pools up‑to‑date regardless of opportunities.
-- When specific `opportunity_ids` are provided to `BuildCandidatePoolsJob`, only opportunity assignment/stale updates are scoped; unit group processing still runs for all groups.
+- The `CandidatePoolBuilder` is the primary tool for maintaining pools. It can be invoked for all unit groups to ensure all waitlists are up-to-date, or it can be scoped to a specific set of `unit_group_ids` for more targeted updates.
+- This process is triggered automatically by callbacks on `Hmis::Ce::Match::Rule` and `Hmis::UnitGroup` models, and as a full refresh by a daily Rake task.

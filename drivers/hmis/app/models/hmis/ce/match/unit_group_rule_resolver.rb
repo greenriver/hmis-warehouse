@@ -24,10 +24,6 @@ module Hmis::Ce::Match
     # Compute keys for all unit groups in the system.
     # Returns a Hash: { unit_group_id => [priority_expression, requirement_expression] or nil }
     def keys_for_all_unit_groups(unit_group_scope = Hmis::UnitGroup.all)
-      # Preload all rules once to avoid N+1 queries inside the loop.
-      # This is feasible because the total number of rules is expected to be small.
-      all_rules = Hmis::Ce::Match::Rule.by_owner_precedence.preload(:owner).to_a
-
       results = {}
       unit_group_scope.find_each do |unit_group|
         rules = all_rules.filter { |rule| rule.applies_to_entity?(unit_group) }
@@ -47,12 +43,18 @@ module Hmis::Ce::Match
     def rules_for_unit_group(unit_group)
       # In-memory filter of all rules is efficient due to small number of total rules.
       # The `by_owner_precedence` scope ensures deterministic key generation.
-      Hmis::Ce::Match::Rule.by_owner_precedence.preload(:owner).filter do |rule|
+      all_rules.filter do |rule|
         rule.applies_to_entity?(unit_group)
       end
     end
 
     private
+
+    def all_rules
+      # Cache all Rules in an instance variable to reduce database hits
+      # The set of rules is expected to be small enough to hold in memory for the life of the resolver.
+      @all_rules ||= Hmis::Ce::Match::Rule.by_owner_precedence.preload(:owner).to_a
+    end
 
     def select_priority_expression(rules)
       # The first priority scheme found is used, respecting owner precedence.

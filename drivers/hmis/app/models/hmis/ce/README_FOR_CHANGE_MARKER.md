@@ -12,7 +12,6 @@ This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMar
 
 - **`Hmis::Ce::ChangeMarker`**: A polymorphic model that tracks the state of other records (currently `GrdaWarehouse::Hud::Client` and `Hmis::Ce::Match::CandidatePool`). It uses `current_version` and `processed_version` to determine if a record is "dirty."
 - **`Hmis::Ce::ProcessChangesJob`**: A self-scheduling job that runs continuously to process dirty records. It uses an advisory lock to prevent concurrent runs.
-- **`Hmis::Ce::BuildCandidatePoolsJob`**: A job triggered by actions like marking units available. It creates or updates candidate pools and marks them as dirty for processing.
 - **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved.
 
 ## Workflow
@@ -26,7 +25,7 @@ sequenceDiagram
     participant MarkClientAsDirtyBehavior as MarkClientAsDirtyBehavior
     participant IdentifyDuplicates as IdentifyDuplicates
     participant ChangeMarker as Hmis::Ce::ChangeMarker
-    participant BuildCandidatePoolsJob as Hmis::Ce::BuildCandidatePoolsJob
+    participant CandidatePoolBuilder as Hmis::Ce::Match::<br>CandidatePoolBuilder
     participant ProcessChangesJob as Hmis::Ce::ProcessChangesJob
 
     UserAction->>+RailsApp: Submits a change (e.g., assessment)
@@ -41,12 +40,13 @@ sequenceDiagram
     ChangeMarker-->>-IdentifyDuplicates: Marks destination client dirty
     IdentifyDuplicates-->>-RailsApp: Done
 
-    alt Client or Pool Changes
+    alt Rule/UnitGroup/Opportunity Changes
+        UserAction->>+RailsApp: Create/Update/Delete Rule or UnitGroup
+        RailsApp-->>CandidatePoolBuilder: after_save/destroy callbacks
+        CandidatePoolBuilder->>+ChangeMarker: Marks new/updated pools dirty
+        ChangeMarker-->>-CandidatePoolBuilder: Done
         UserAction->>+RailsApp: Mark Units Available
-        RailsApp->>+BuildCandidatePoolsJob: Enqueues job
-        BuildCandidatePoolsJob->>+ChangeMarker: Marks new pools dirty
-        ChangeMarker-->>-BuildCandidatePoolsJob: Done
-        BuildCandidatePoolsJob-->>-RailsApp: Done
+        RailsApp-->>ChangeMarker: Marks affected pools dirty
     end
 
     loop Continuous Processing
@@ -95,4 +95,4 @@ The `GrdaWarehouse::Tasks::IdentifyDuplicates` task flags changes to destination
 The incremental change tracking system works alongside the existing daily full refresh mechanism:
 
 - **Incremental Processing**: The `ProcessChangesJob` runs frequently to process only dirty records, providing near real-time updates.
-- **Daily Full Refresh**: The `BuildCandidatePoolsJob` runs daily at to rebuild all candidate pools, serving as a comprehensive backup and catch-all for any missed changes.
+- **Daily Full Refresh**: A daily Rake task runs `CandidatePoolBuilder` for all unit groups to serve as a comprehensive backup and catch-all for any missed changes.
