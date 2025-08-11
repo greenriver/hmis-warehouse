@@ -28,6 +28,13 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         GenderNone: 0,
         DifferentIdentityText: nil,
       )
+
+      # Create some custom sexual orientation data for testing
+      @enrollment = ExportHelper2026.projects.first.enrollments.first
+      @enrollment.update(
+        SexualOrientation: 1,
+        SexualOrientationOther: nil,
+      )
     end
 
     after(:all) do
@@ -43,13 +50,14 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
           period_type: 3,
           directive: 3,
           user_id: ExportHelper2026.user.id,
-          custom_file_types: ['CustomGender.csv'],
+          custom_file_types: ['CustomGender.csv', 'CustomSexualOrientation.csv'],
         )
         @export = @exporter.export!(cleanup: false, zip: false, upload: false)
       end
 
       it 'includes custom files in exportable_files' do
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender')
+        expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation')
       end
 
       it 'generates CustomGender.csv file' do
@@ -84,6 +92,39 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         ]
         expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender.hmis_csv_headers).to eq(expected_headers)
       end
+
+      it 'generates CustomSexualOrientation.csv file' do
+        custom_sexual_orientation_file = File.join(@exporter.file_path, 'CustomSexualOrientation.csv')
+        expect(File.exist?(custom_sexual_orientation_file)).to be_truthy
+      end
+
+      it 'includes custom sexual orientation data in export' do
+        custom_sexual_orientation_file = File.join(@exporter.file_path, 'CustomSexualOrientation.csv')
+        csv_content = CSV.read(custom_sexual_orientation_file, headers: true)
+
+        expect(csv_content.length).to be > 0
+        # Check that our test data is included
+        enrollment_row = csv_content.find { |row| row['EnrollmentID'] == @enrollment.id.to_s }
+        expect(enrollment_row).to be_present
+        expect(enrollment_row['SexualOrientation']).to eq('1')
+        expect(enrollment_row['SexualOrientationOther']).to eq('')
+      end
+
+      it 'sets correct ExportID on custom sexual orientation records' do
+        custom_sexual_orientation_file = File.join(@exporter.file_path, 'CustomSexualOrientation.csv')
+        csv_content = CSV.read(custom_sexual_orientation_file, headers: true)
+
+        csv_content.each do |row|
+          expect(row['ExportID']).to eq(@export.export_id)
+        end
+      end
+
+      it 'returns correct CSV headers for CustomSexualOrientation' do
+        expected_headers = [
+          'EnrollmentID', 'PersonalID', 'SexualOrientation', 'SexualOrientationOther', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'
+        ]
+        expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation.hmis_csv_headers).to eq(expected_headers)
+      end
     end
 
     describe 'without custom file types selected' do
@@ -102,11 +143,17 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
 
       it 'does not include custom files in exportable_files' do
         expect(@exporter_no_custom.exportable_files.keys.map(&:name)).not_to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender')
+        expect(@exporter_no_custom.exportable_files.keys.map(&:name)).not_to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation')
       end
 
       it 'does not generate CustomGender.csv file' do
         custom_gender_file = File.join(@exporter_no_custom.file_path, 'CustomGender.csv')
         expect(File.exist?(custom_gender_file)).to be_falsy
+      end
+
+      it 'does not generate CustomSexualOrientation.csv file' do
+        custom_sexual_orientation_file = File.join(@exporter_no_custom.file_path, 'CustomSexualOrientation.csv')
+        expect(File.exist?(custom_sexual_orientation_file)).to be_falsy
       end
     end
   end
