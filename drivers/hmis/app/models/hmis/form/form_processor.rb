@@ -527,7 +527,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Validate `values` purely based on FormDefinition validation requirements
   # @return [HmisError::Error] an array errors
   def collect_form_validations
-    definition.validate_form_values(values)
+    definition.validate_form_values(values, client: client_factory)
   end
 
   # Validate related records using custom AR Validators

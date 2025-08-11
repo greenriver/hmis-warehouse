@@ -11,7 +11,7 @@ module HmisExternalApis::AcHmis
     ALT_AHA_NAMESPACE = 'alt_aha'
 
     # owner can be: an enrollment (when AHA score is calculated on an unsaved assessment), or an assessment (when the assessment is being saved)
-    def initialize(values_by_link_id:, client:, user:, owner:, form_definition_identifier:)
+    def initialize(values_by_link_id:, client:, user: nil, owner: nil, form_definition_identifier:)
       @values_by_link_id = values_by_link_id.merge(
         # inject values from client
         'client_demographics_age' => client.age,
@@ -31,18 +31,22 @@ module HmisExternalApis::AcHmis
 
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      AcHmis::Scoring::CalculationLog.create!(
-        namespace: ALT_AHA_NAMESPACE,
-        final_score: alt_aha_score,
-        calculation_details: {
-          alt_aha_1: alt_aha_1_result,
-          alt_aha_2: alt_aha_2_result,
-          alt_aha_3: alt_aha_3_result,
-          total_points: total_points,
-        },
-        owner: @owner,
-        user: @user,
-      )
+      # If owner and user were passed, this calculation should be logged
+      # If not, this is a verification calculation when the assessment was submitted, and doesn't need to be logged
+      if @user && @owner
+        AcHmis::Scoring::CalculationLog.create!(
+          namespace: ALT_AHA_NAMESPACE,
+          final_score: alt_aha_score,
+          calculation_details: {
+            alt_aha_1: alt_aha_1_result,
+            alt_aha_2: alt_aha_2_result,
+            alt_aha_3: alt_aha_3_result,
+            total_points: total_points,
+          },
+          owner: @owner,
+          user: @user,
+        )
+      end
 
       alt_aha_score
     end

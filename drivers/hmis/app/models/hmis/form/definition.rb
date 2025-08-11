@@ -461,7 +461,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # validate form_values provides against the definition
   #   * errors & warnings on missing required fields
   #   * check if the input ids match the definition
-  def validate_form_values(form_values)
+  def validate_form_values(form_values, client: nil)
     errors = HmisErrors::Errors.new
 
     # Iterate over item hash so that errors are sorted according to the definition
@@ -487,16 +487,22 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add field_name || :base, message: error_message, **error_context
       end
 
+      if item.component == 'ALT_AHA'
+        aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
+          values_by_link_id: form_values,
+          client: client,
+          form_definition_identifier: identifier,
+        )
+        score = aha_calculator.calculate_score
+        errors.add field_name || :base, message: 'value has changed, and needs to be recalculated before submission', **error_context unless score == value
+      end
+
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context
       elsif item.warn_if_empty && (is_missing || is_data_not_collected)
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
-
-      # todo @martha - validate alt-AHA here - put put the actual code in external apis driver and invoke it
-      # re-calculate based on the submitted values and return a validation error if the calculated score doesn't match the submitted score
-      # this tiime actually save the assessment id as the owner of the score calculation?
     end
 
     # Ensure all link IDs are in the FormDefinition
