@@ -67,5 +67,13 @@ module Hmis::Ce::Match
       cdeds = Hmis::Ce::Match::Expression::CdeFieldMap.new.cdeds_for(cde_fields)
       cdeds.pluck(:form_definition_identifier).uniq
     end
+
+    # Executes a block with an advisory lock on this specific pool.
+    # The lock can be blocking (with a timeout) or non-blocking (timeout_seconds: 0).
+    #
+    def lock_for_processing(timeout_seconds:, &block)
+      lock_name = "hmis-ce_pool-#{id}"
+      ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds, &block)
+    end
   end
 end

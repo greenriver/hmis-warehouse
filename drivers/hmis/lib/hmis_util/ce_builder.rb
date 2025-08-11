@@ -28,13 +28,14 @@ module HmisUtil
         )
       end
 
-      # Process all dirty pools and clients using the production job
+      # Process all dirty pools and clients using the production jobs
       # This populates the pools by calling the match engine with the same logic used in production
       hit_max_iterations = false
       10.times do
         break unless Hmis::Ce::ChangeMarker.dirty.exists?
 
-        Hmis::Ce::ProcessChangesJob.new.perform(progress: progress)
+        Hmis::Ce::ProcessClientsJob.new.perform(progress: progress)
+        Hmis::Ce::ProcessPoolsJob.new.perform(progress: progress)
         hit_max_iterations = Hmis::Ce::ChangeMarker.dirty.exists?
       end
 
