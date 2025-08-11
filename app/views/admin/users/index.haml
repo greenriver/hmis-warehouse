@@ -24,7 +24,7 @@
 
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'user account'
-  .table-responsive
+  .card.overflow-visible
     %table.table.table-striped
       %thead
         %tr

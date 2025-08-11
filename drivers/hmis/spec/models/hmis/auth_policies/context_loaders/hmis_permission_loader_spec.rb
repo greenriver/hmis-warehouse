@@ -15,7 +15,7 @@ RSpec.describe Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader, type: :
 
     context 'with permission requirements' do
       it 'includes permissions when requirements are met' do
-        access_control = create_access_control(user, project, with_permission: [:can_view_project, :can_view_referrals, :can_start_referrals])
+        access_control = create_access_control(user, project, with_permission: [:can_view_project, :can_view_referrals, :can_start_referrals, :can_view_prioritized_client_lists])
 
         result = loader.for_access_group_ids([access_control.access_group.id])
 

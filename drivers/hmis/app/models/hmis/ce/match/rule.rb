@@ -33,8 +33,10 @@ module Hmis::Ce::Match
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
     PRIORITY_SCHEME = 'priority_scheme'
     validates :rule_type, presence: true, inclusion: { in: [ELIGIBILITY_REQUIREMENT, PRIORITY_SCHEME] }
-
     validate :ensure_rank
+
+    # for revivified records, allow id override for safe client caching
+    attr_accessor :graphql_id
 
     def eligibility_requirement?
       rule_type == ELIGIBILITY_REQUIREMENT

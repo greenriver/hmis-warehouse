@@ -92,6 +92,12 @@ class Hmis::Unit < Hmis::HmisBase
     active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.receiving_referrals)
   end
 
+  scope :not_receiving_referrals, -> do
+    where.not(
+      id: joins(:opportunities).merge(Hmis::Ce::Opportunity.active).select(:id),
+    )
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::UnitFilter.new(input).filter_scope(self)
   end

@@ -88,18 +88,27 @@ module Types
     end
 
     def eligibility_requirements
-      # not to be used in batch
-      Hmis::Ce::Match::Rule.eligibility_requirement.for_opportunity(object)
+      revivified_rules.filter(&:eligibility_requirement?)
     end
 
     def priority_schemes
-      # not to be used in batch
-      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).sort_by { |r| [r.rank, r.id] }
+      revivified_rules.
+        filter(&:priority_scheme?).
+        sort_by { |r| [r.rank, r.id] }
     end
 
     # TODO(#7957) - remove after deprecation period
     def priority_scheme
-      Hmis::Ce::Match::Rule.priority_scheme.for_opportunity(object).min_by { |r| [r.rank, r.id] }
+      priority_schemes.first
+    end
+
+    def revivified_rules
+      @revivified_rules ||= object.assignment_rules.map do |attrs|
+        record = Hmis::Ce::Match::Rule.new(attrs)
+        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
+        record.freeze
+        record
+      end
     end
 
     def categories

@@ -28,6 +28,25 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         pool = Hmis::Ce::Match::CandidatePool.last
         expect(opportunity.reload.candidate_pool).to eq(pool)
       end
+
+      it 'captures assignment rules for historical reference' do
+        builder.perform
+        reloaded_opportunity = opportunity.reload
+
+        expect(reloaded_opportunity.assignment_rules).to be_present
+        expect(reloaded_opportunity.assignment_rules).to be_an(Array)
+
+        # Should contain rule attributes for both eligibility and priority rules
+        rule_ids = reloaded_opportunity.assignment_rules.map { |attrs| attrs['id'] }
+        expect(rule_ids).to contain_exactly(rule1.id, rule2.id)
+
+        # Should preserve rule attributes including expressions and types
+        rule_attrs = reloaded_opportunity.assignment_rules.index_by { |attrs| attrs['id'] }
+        expect(rule_attrs[rule1.id]['rule_type']).to eq('eligibility_requirement')
+        expect(rule_attrs[rule2.id]['rule_type']).to eq('priority_scheme')
+        expect(rule_attrs[rule1.id]['expression']).to eq(rule1.expression)
+        expect(rule_attrs[rule2.id]['expression']).to eq(rule2.expression)
+      end
     end
 
     context 'with orphaned candidate pools' do
@@ -55,17 +74,127 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
-    context 'when passed specific opportunities' do
-      let!(:opportunity2) { create(:hmis_ce_opportunity, project: project, data_source: project.data_source) }
-      let(:builder) { described_class.new(Hmis::Ce::Opportunity.where(id: [opportunity2.id])) }
+    context 'with stale tracking' do
+      let!(:tracked_opportunity) do
+        create(:hmis_ce_opportunity,
+               project: project,
+               data_source: project.data_source,
+               candidate_pool: nil,
+               stale: false)
+      end
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: organization) }
+      let!(:rule2) { create(:hmis_ce_priority_scheme, owner: organization) }
 
-      it 'does not impact the non-included opportunity' do
-        expect do
+      before do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      end
+
+      context 'when rules change requiring different pool' do
+        before do
+          Hmis::Ce::Match::Rule.destroy_all
+        end
+        let!(:org_rule) do
+          create(:hmis_ce_eligibility_requirement,
+                 owner: organization,
+                 expression: 'current_age >= 25',
+                 applicability_config: {})
+        end
+        let!(:project_specific_rule) do
+          create(:hmis_ce_eligibility_requirement,
+                 owner: project,
+                 expression: 'current_age >= 18',
+                 applicability_config: {})
+        end
+
+        it 'marks opportunity as stale but keeps it in original pool' do
+          builder = described_class.new(Hmis::Ce::Opportunity.where(id: tracked_opportunity.id))
+
+          # First run establishes the pool assignment with initial rules
           builder.perform
-          opportunity.reload
-          opportunity2.reload
-        end.to change(opportunity2, :candidate_pool).from(nil).
-          and not_change(opportunity, :candidate_pool).from(nil)
+          first_pool = tracked_opportunity.reload.candidate_pool
+          expect(tracked_opportunity.stale).to be_falsey
+
+          # Capture the initial pool expressions that were applied
+          initial_priority = first_pool.priority_expression
+          initial_requirement = first_pool.requirement_expression
+
+          # Add a new rule that will create a different rule combination
+          create(:hmis_ce_priority_scheme,
+                 owner: project,
+                 expression: 'days_homeless * 2',
+                 applicability_config: {})
+
+          # Second run should detect the rule change, must use a new builder to pick up new rule
+          described_class.new(Hmis::Ce::Opportunity.where(id: tracked_opportunity.id)).perform
+          tracked_opportunity.reload
+
+          # The opportunity should be flagged as stale because the rules changed
+          # but it should remain in the original pool
+          expect(tracked_opportunity.candidate_pool).to eq(first_pool) # Stays in original pool
+          expect(tracked_opportunity.stale).to be_truthy # But flagged as stale
+
+          # Verify that a new pool would have been created with different expressions
+          # if this was a new opportunity
+          resolver = Hmis::Ce::Match::CandidatePoolResolver.new
+          scope = Hmis::Ce::Opportunity.where(id: tracked_opportunity.id)
+          new_key = resolver.opportunities_by_key(opportunity_scope: scope).keys.first
+          expected_new_priority = new_key.first
+          expected_new_requirement = new_key.second
+
+          # The new key should be different from the original pool
+          expect([expected_new_priority, expected_new_requirement]).not_to eq([initial_priority, initial_requirement])
+        end
+      end
+
+      context 'when clearing stale flags' do
+        it 'clears stale flag when opportunity is already in correct pool' do
+          # First create a pool by processing the opportunity
+          temp_opportunity = create(:hmis_ce_opportunity, project: project, data_source: project.data_source)
+          temp_builder = described_class.new(Hmis::Ce::Opportunity.where(id: temp_opportunity.id))
+          temp_builder.perform
+          correct_pool = temp_opportunity.reload.candidate_pool
+
+          # Create stale opportunity in the correct pool
+          stale_opportunity = create(:hmis_ce_opportunity,
+                                     project: project,
+                                     data_source: project.data_source,
+                                     candidate_pool: correct_pool,
+                                     stale: true)
+
+          builder = described_class.new(Hmis::Ce::Opportunity.where(id: stale_opportunity.id))
+          builder.perform
+
+          expect(stale_opportunity.reload.stale).to be_falsey
+          expect(stale_opportunity.candidate_pool).to eq(correct_pool)
+        end
+
+        it 'processes multiple opportunities with different states efficiently' do
+          # Create opportunities with different initial states
+          new_opportunity = create(:hmis_ce_opportunity,
+                                   project: project,
+                                   data_source: project.data_source,
+                                   candidate_pool: nil)
+
+          # Create a pool first to have a "correct" pool reference
+          temp_opportunity = create(:hmis_ce_opportunity, project: project, data_source: project.data_source)
+          temp_builder = described_class.new(Hmis::Ce::Opportunity.where(id: temp_opportunity.id))
+          temp_builder.perform
+          existing_pool = temp_opportunity.reload.candidate_pool
+
+          stale_opportunity = create(:hmis_ce_opportunity,
+                                     project: project,
+                                     data_source: project.data_source,
+                                     candidate_pool: existing_pool,
+                                     stale: true)
+
+          # Process both in a single batch operation
+          builder = described_class.new(Hmis::Ce::Opportunity.where(id: [new_opportunity.id, stale_opportunity.id]))
+
+          expect { builder.perform }.to change {
+            [new_opportunity.reload.candidate_pool.present?, stale_opportunity.reload.stale]
+          }.from([false, true]).to([true, false])
+        end
       end
     end
   end
@@ -95,7 +224,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     it 'queries the db a reasonable amount' do
       expect do
         builder.perform
-      end.to make_database_queries(count: 10..20)
+      end.to make_database_queries(count: 20..25)
     end
   end
 

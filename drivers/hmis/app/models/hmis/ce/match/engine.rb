@@ -37,24 +37,24 @@ module Hmis::Ce::Match
       log_info { "Starting for pool_id=#{@pool.id}, full_refresh=#{is_full_refresh}" }
 
       # optionally track the in-memory evaluations, which is the expensive work
-      progress_bar = nil
-      if progress
-        progress_bar = new_progress_bar
-        progress_bar.max += clients.count
-      end
+      progress_bar = new_progress_bar if progress
 
       started_at = Time.current
       # SQL Prefiltering
       log_info { "Prefiltering #{clients.count} clients for pool_id=#{@pool.id}" }
       prefilter_result = @prefilter.call(clients)
+
+      eligible_clients_count = prefilter_result.eligible_clients.count
+      lost_eligibility_clients_count = prefilter_result.lost_eligibility_clients.count
+      progress_bar&.max = eligible_clients_count + lost_eligibility_clients_count
       log_info do
         "Prefiltering complete for pool_id=#{@pool.id}. " \
-        "Eligible: #{prefilter_result.eligible_clients.count}, " \
-        "Ineligible: #{prefilter_result.lost_eligibility_clients.count}"
+        "Eligible: #{eligible_clients_count}, " \
+        "Ineligible: #{lost_eligibility_clients_count}"
       end
 
       # remove any current clients that the sql filter excluded
-      if prefilter_result.lost_eligibility_clients.exists?
+      if lost_eligibility_clients_count.positive?
         log_info { "Removing #{prefilter_result.lost_eligibility_clients.count} clients for pool_id=#{@pool.id} due to prefilter" }
         Hmis::Ce::Match::Candidate.transaction do
           # capture snapshots at time of removal for the event log.
@@ -170,7 +170,6 @@ module Hmis::Ce::Match
       snapshots = []
 
       evaluator = new_evaluator(clients)
-      progress_bar&.max += clients.count
       clients.find_each do |client|
         snapshot = Snapshot.new(
           client_id: client.id,
