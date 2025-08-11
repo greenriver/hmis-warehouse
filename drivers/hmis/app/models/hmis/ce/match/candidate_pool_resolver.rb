@@ -70,9 +70,9 @@ module Hmis::Ce::Match
       key
     end
 
-    # Transform multiple priority scheme rules into a single expression that returns an array
+    # Transform multiple priority scheme rules into a single expression that returns a Dentaky array {item1, item2, ...}
     def priority_expression_for_rules(rules)
-      expressions = most_specific_rules(rules.filter(&:priority_scheme?)).
+      expressions = priority_rules(rules).
         sort_by { |r| [r.rank, r.id] }.
         map(&:expression)
       "{#{expressions.join(', ')}}"
@@ -96,16 +96,16 @@ module Hmis::Ce::Match
     # This function filters down the list of priority rules that apply to this opportunity:
     # If there are rules defined with different owners, pick the most specific owner,
     # and return all rules applying to that owner
-    def most_specific_rules(rules)
+    def priority_rules(rules)
+      rules = rules.filter(&:priority_scheme?)
       return [] if rules.empty?
 
-      # Owner specificity hierarchy: unit > unit_group > project > organization > data_source
+      # Owner specificity hierarchy: unit_group > project > organization > data_source
       specificity_order = {
-        'Hmis::Unit' => 1,
-        'Hmis::UnitGroup' => 2,
-        'Hmis::Hud::Project' => 3,
-        'Hmis::Hud::Organization' => 4,
-        'GrdaWarehouse::DataSource' => 5,
+        'Hmis::UnitGroup' => 1,
+        'Hmis::Hud::Project' => 2,
+        'Hmis::Hud::Organization' => 3,
+        'GrdaWarehouse::DataSource' => 4,
       }
 
       # Group by specificity and return the most specific group

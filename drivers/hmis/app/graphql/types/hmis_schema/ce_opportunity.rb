@@ -99,7 +99,7 @@ module Types
 
     # TODO(#7957) - remove after deprecation period
     def priority_scheme
-      priority_schemes.first
+      priority_schemes&.first
     end
 
     def revivified_rules

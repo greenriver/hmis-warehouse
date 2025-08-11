@@ -8,8 +8,8 @@ module Hmis::Ce::Match
     belongs_to :client_proxy, class_name: 'Hmis::Ce::ClientProxy'
 
     scope :prioritized, -> {
-      # Order by priority_scores arrays:
-      # Compare element by element (priority_scores[0], then priority_scores[1], etc.)
+      # Order by priority_scores arrays.
+      # Postgres array comparison compares element by element (priority_scores[0], then priority_scores[1], etc.)
       # Higher scores come first, nulls come last, shorter arrays are treated as having trailing nulls
       order(
         arel_table[:priority_scores].desc.nulls_last,
