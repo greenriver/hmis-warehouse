@@ -77,7 +77,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
 
       it 'acquires a shared advisory lock' do
         expect(GrdaWarehouseBase).to receive(:with_advisory_lock).
-          with('CandidatePoolMaintenance', timeout_seconds: 10, shared: true, transaction: true).
+          with('candidate-pool-maintenance', timeout_seconds: 10, shared: true, transaction: true).
           and_call_original
 
         post_graphql(**variables) { mutation }
@@ -115,17 +115,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
           expect_gql_error(
             post_graphql(**variables) { mutation },
             message: 'Unit must be in a Unit Group to be marked available',
-          )
-        end.to not_change(Hmis::Ce::Opportunity, :count)
-      end
-    end
-
-    context 'when unit group has no candidate pool' do
-      it 'raises an error' do
-        expect do
-          expect_gql_error(
-            post_graphql(**variables) { mutation },
-            message: 'Unit Group has no Candidate Pool',
           )
         end.to not_change(Hmis::Ce::Opportunity, :count)
       end

@@ -42,7 +42,6 @@ module Mutations
 
       unit_group = unit.unit_group
       raise 'Unit must be in a Unit Group to be marked available' unless unit_group
-      raise 'Unit Group has no Candidate Pool' unless unit_group.candidate_pool_id
 
       workflow_template = unit_group.workflow_template
       raise 'Unit Group has no Workflow Template' unless workflow_template

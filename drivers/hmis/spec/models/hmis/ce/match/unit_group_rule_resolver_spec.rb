@@ -39,8 +39,11 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
       # UG1 gets a priority and requirement
       create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
       create(:hmis_ce_eligibility_requirement, owner: project, expression: 'current_age >= 18')
-      # UG2 gets only a requirement
+      # UG2
+      create(:hmis_ce_priority_scheme, owner: unit_group_2, expression: '0')
       create(:hmis_ce_eligibility_requirement, owner: unit_group_2, expression: 'veteran = TRUE')
+      # UG3
+      create(:hmis_ce_priority_scheme, owner: unit_group_3_no_rules, expression: '0')
     end
 
     it 'returns a hash of unit_group_id => key for groups with rules' do

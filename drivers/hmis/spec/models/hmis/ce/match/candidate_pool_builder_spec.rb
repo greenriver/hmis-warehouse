@@ -8,6 +8,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
   before do
     allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:rebuild_candidate_pools) # prevent automatic rebuilds
+    allow_any_instance_of(Hmis::UnitGroup).to receive(:rebuild_candidate_pool) # prevent automatic rebuilds
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
   end
@@ -24,6 +25,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
         create(:hmis_ce_priority_scheme, owner: unit_group_1, expression: 'score_1')
 
         create(:hmis_ce_eligibility_requirement, owner: unit_group_2, expression: 'b = 2')
+        create(:hmis_ce_priority_scheme, owner: unit_group_2, expression: 'score_2')
       end
 
       it 'creates pools for unique rule combinations and marks them dirty' do
@@ -60,12 +62,13 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
       it 'updates the unit group association to the new pool' do
         create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
+        create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
         described_class.call
         first_pool_id = unit_group.reload.candidate_pool_id
         expect(first_pool_id).to be_present
 
         # Add a rule, which changes the key and should result in a new pool
-        create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
+        create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'b = 1')
         described_class.call
         second_pool_id = unit_group.reload.candidate_pool_id
 
@@ -76,34 +79,23 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
     context 'with stale tracking' do
       let!(:unit_group) { create(:hmis_unit_group, project: project) }
-      let!(:opportunity) { create(:hmis_ce_opportunity, unit: create(:hmis_unit, unit_group: unit_group), stale: false) }
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: create(:hmis_unit, unit_group: unit_group)) }
 
-      before do
-        # Initial run to assign pool to opportunity and unit group
-        create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
-        described_class.call
-        opportunity.update!(candidate_pool_id: unit_group.reload.candidate_pool_id)
-        # Ensure any stale flags are cleared after alignment
-        described_class.call
-        expect(opportunity.reload.stale).to be_falsey
-      end
-
-      it 'marks opportunity as stale when unit group pool changes' do
-        # Change the rule for the unit group, which will cause it to be assigned a new pool
+      it 'marks opportunity as stale when unit group pool changes and marks as clean when unit group pool reverts' do
+        rule = create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1')
         create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
-        expect { described_class.call }.to change { opportunity.reload.stale }.from(false).to(true)
-      end
 
-      it 'clears stale flag when unit group pool reverts' do
-        # Make the opportunity stale
-        rule = create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a')
         described_class.call
-        expect(opportunity.reload.stale).to be_truthy
-
-        # Remove the rule, reverting the unit group to its original pool
-        rule.destroy
-        described_class.call
+        expect(opportunity.reload.candidate_pool).to be_present
         expect(opportunity.reload.stale).to be_falsey
+
+        # Make the opportunity stale
+        rule.update!(expression: 'a = 2')
+        expect { described_class.call }.to change { opportunity.reload.stale }.from(false).to(true)
+
+        # reverting the unit group to its original pool
+        rule.update!(expression: 'a = 1')
+        expect { described_class.call }.to change { opportunity.reload.stale }.from(true).to(false)
       end
     end
 

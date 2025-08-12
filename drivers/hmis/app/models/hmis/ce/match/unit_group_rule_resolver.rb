@@ -13,12 +13,10 @@ module Hmis::Ce::Match
       priority_expression = select_priority_expression(rules)
       requirement_expression = compose_requirement_expression(rules)
 
-      return nil if priority_expression.nil? && requirement_expression.nil?
+      # a valid pool needs both a priority and a requirement expression
+      return unless priority_expression && requirement_expression
 
-      [
-        priority_expression || '0',
-        requirement_expression || 'TRUE',
-      ]
+      [priority_expression, requirement_expression]
     end
 
     # Compute keys for all unit groups in the system.

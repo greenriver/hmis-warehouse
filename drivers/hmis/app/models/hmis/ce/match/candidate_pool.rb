@@ -101,7 +101,7 @@ module Hmis::Ce::Match
     # When shared: true, multiple readers can proceed unless an exclusive lock is held.
     # The lock is held for the duration of a DB transaction.
     def self.lock_for_maintenance(shared: false, timeout_seconds: 10, &block)
-      lock_name = 'CandidatePoolMaintenance'
+      lock_name = 'candidate-pool-maintenance'
       GrdaWarehouseBase.transaction do
         GrdaWarehouseBase.with_advisory_lock(
           lock_name,

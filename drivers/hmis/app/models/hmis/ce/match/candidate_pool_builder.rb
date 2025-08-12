@@ -40,6 +40,7 @@ module Hmis::Ce::Match
         Hmis::Ce::Match::CandidatePool.where(id: created_pool_ids).mark_all_dirty
       end
 
+      backfill_opportunities_without_pools!
       update_stale_flags!
       cleanup_orphan_pools
 
@@ -51,9 +52,28 @@ module Hmis::Ce::Match
           created_pool_ids.size,
         ),
       )
+
+      # After creating and dirtying pools, enqueue the processing job to ensure they are populated quickly.
+      # Hmis::Ce::ProcessPoolsJob.enqueue_if_not_already_running if Hmis::Ce::ChangeMarker.dirty.pools.exists?
     end
 
     private
+
+    # Normally the pool will be set by the mutation when the opportunity is created.
+    def backfill_opportunities_without_pools!
+      scope = Hmis::Ce::Opportunity.
+        where(candidate_pool_id: nil).
+        joins(unit: :unit_group).
+        where(arel.ug_t[:candidate_pool_id].not_eq(nil))
+      scope.preload(unit: :unit_group).find_each do |opportunity|
+        unit_group = opportunity.unit.unit_group
+        log_info("backfilling pool #{unit_group.candidate_pool_id} for opportunity #{opportunity.id}")
+        opportunity.update!(
+          candidate_pool_id: unit_group.candidate_pool_id,
+          assignment_rules: @rule_resolver.rules_for_unit_group(unit_group).map(&:attributes),
+        )
+      end
+    end
 
     # Build and assign candidate pools for all unit groups.
     # - Compute effective key for each unit group
@@ -97,23 +117,30 @@ module Hmis::Ce::Match
     end
 
     def update_stale_flags!
+      op_scope = Hmis::Ce::Opportunity.where.not(candidate_pool_id: nil).joins(unit: :unit_group)
+
       # Mark opportunities as stale if their pool no longer matches their unit group's pool
-      Hmis::Ce::Opportunity.
-        joins(unit: :unit_group).
-        where('ce_opportunities.candidate_pool_id IS DISTINCT FROM hmis_unit_groups.candidate_pool_id').
+      op_scope.
+        where(arel.opp_t[:candidate_pool_id].not_eq(arel.ug_t[:candidate_pool_id])).
         update_all(stale: true)
 
       # Un-mark opportunities that are currently stale but are now in the correct pool
       # (e.g., if rules were changed and then changed back)
-      Hmis::Ce::Opportunity.
-        where(stale: true).
-        joins(unit: :unit_group).
-        where('ce_opportunities.candidate_pool_id IS NOT DISTINCT FROM hmis_unit_groups.candidate_pool_id').
+      op_scope.
+        where(arel.opp_t[:candidate_pool_id].eq(arel.ug_t[:candidate_pool_id])).
         update_all(stale: false)
     end
 
     def now
       @now ||= Time.current
+    end
+
+    def arel
+      Hmis::ArelHelper.instance
+    end
+
+    def log_info(message)
+      Rails.logger.info { "[CandidatePoolBuilder] #{message}" }
     end
 
     # Delete pools that haven't been used in a while
