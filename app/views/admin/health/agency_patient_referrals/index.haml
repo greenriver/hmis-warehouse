@@ -1,7 +1,7 @@
 - if @no_agency_user_warning.present?
   .alert.alert-danger.error= @no_agency_user_warning
 - else
-  = render 'admin/health/patient_referrals/header'
+  = render 'admin/health/patient_referrals/header', search_path: admin_health_create_agency__patient_referral_searches_path
   = render 'admin/health/patient_referrals/tabs'
   - if @pagy.count.positive?
     = render 'admin/health/patient_referrals/paginate'

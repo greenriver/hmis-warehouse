@@ -12,7 +12,7 @@
   .project-duplicate-warning {
     width: 1rem;
     margin-left: 1rem;
-    color: $brand-warning;
+    color: var(--bs-warning);
   }
 
   .c-card .c-card__content {

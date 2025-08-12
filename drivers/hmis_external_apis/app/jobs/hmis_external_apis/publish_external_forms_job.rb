@@ -4,10 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+# frozen_string_literal: true
 
 require 'nokogiri'
 
@@ -58,7 +55,14 @@ class HmisExternalApis::PublishExternalFormsJob
   # construct custom data element definitions from the nodes in the form definition
   def update_cdeds(definition)
     Hmis::Hud::CustomDataElementDefinition.transaction do
-      definition.introspect_custom_data_element_definitions(set_definition_identifier: true).each(&:save!)
+      generator = Hmis::Form::CustomDataElementGenerator.new(
+        definition: definition,
+        data_source: GrdaWarehouse::DataSource.find(data_source_id),
+        create_missing_mappings: false,
+        set_form_definition_identifier: true,
+      )
+      cdeds = generator.run
+      cdeds.each(&:save!)
     end
   end
 

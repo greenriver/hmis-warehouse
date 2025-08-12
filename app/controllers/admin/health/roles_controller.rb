@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin::Health
   class RolesController < Admin::RolesController
     include HealthAuthorization
@@ -11,6 +13,7 @@ module Admin::Health
     before_action :require_has_administrative_access_to_health!
 
     def index
+      @per_page_js = ['role_table']
       @roles = role_scope.order(name: :asc)
     end
 

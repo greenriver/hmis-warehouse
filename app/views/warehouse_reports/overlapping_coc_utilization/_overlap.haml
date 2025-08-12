@@ -7,6 +7,14 @@
   project_types = report.chart_by_project_type
   total_non_overlapping_clients = report.total_non_overlapping_clients
 
+.d-flex.justify-content-between.mb-4
+  %div
+    %h3.h5 Primary CoC
+    %div= filters.coc1.number_and_name
+  %div
+    %h3.h5 Secondary CoC
+    %div= filters.coc2&.number_and_name || '<span class="text-muted">Not selected</span>'.html_safe
+
 - if project_types.empty? && filters.coc2 && filters.coc1
   .alert.alert-warning
     No shared clients between #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name} found.

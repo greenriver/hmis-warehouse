@@ -1,0 +1,169 @@
+[
+  {
+    "form_identifier": "base-update",
+    "_comment": "NOTE: These items are duplicated in other patches for other HUD data collection stages. If making changes here, you should probably be making the same changes in the other patches as well.",
+    "append_items": [
+      {
+        "link_id": "hopwa_update",
+        "text": "HOPWA Update Questions",
+        "type": "GROUP",
+        "item": [
+          {
+            "text": "County of Residence",
+            "type": "CHOICE",
+            "link_id": "county_of_residence",
+            "required": true,
+            "component": "DROPDOWN",
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_reference": "GEOCODE",
+            "data_collected_about": "HOH",
+            "mapping": {
+              "custom_field_key": "county_of_residence"
+            }
+          },
+          {
+            "text": "Does the client currently have a housing plan?",
+            "type": "CHOICE",
+            "link_id": "housing_plan",
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ],
+            "data_collected_about": "HOH",
+            "mapping": {
+              "custom_field_key": "housing_plan"
+            }
+          },
+          {
+            "text": "Does the client currently have a service plan?",
+            "type": "CHOICE",
+            "link_id": "service_plan",
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ],
+            "data_collected_about": "HOH",
+            "mapping": {
+              "custom_field_key": "service_plan"
+            }
+          },
+          {
+            "text": "Has the client maintained regular contact with their Case Manager in accordance with their individual plan?",
+            "type": "CHOICE",
+            "link_id": "maintained_contact",
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "housing_plan",
+                "answer_code": "Yes"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "service_plan",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ANY",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              },
+              {
+                "code": "Not in Plan"
+              }
+            ],
+            "data_collected_about": "HOH",
+            "mapping": {
+              "custom_field_key": "maintained_contact_with_case_manager"
+            }
+          },
+          {
+            "text": "Has the client seen their primary health care provider in accordance with their individual plan?",
+            "type": "CHOICE",
+            "link_id": "primary_health_contact",
+            "required": true,
+            "read_only": false,
+            "enable_when": [
+              {
+                "operator": "EQUAL",
+                "question": "housing_plan",
+                "answer_code": "Yes"
+              },
+              {
+                "operator": "EQUAL",
+                "question": "service_plan",
+                "answer_code": "Yes"
+              }
+            ],
+            "warn_if_empty": false,
+            "enable_behavior": "ANY",
+            "disabled_display": "HIDDEN",
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              },
+              {
+                "code": "Not in Plan"
+              }
+            ],
+            "data_collected_about": "HOH",
+            "mapping": {
+              "custom_field_key": "primary_health_contact"
+            }
+          },
+          {
+            "text": "Has the client shown improved viral load or achieved viral suppression?",
+            "type": "CHOICE",
+            "link_id": "has_the_client_shown_improved_viral_load",
+            "required": true,
+            "read_only": false,
+            "warn_if_empty": false,
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              },
+              {
+                "code": "Unknown"
+              }
+            ],
+            "data_collected_about": "HOH",
+            "mapping": {
+              "custom_field_key": "improved_viral_load_or_achieved_viral_suppression"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

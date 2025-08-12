@@ -12,11 +12,11 @@
 .card
   .overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed.mb-0
-      %thead.thead-dark
+      %thead.table-dark
         %tr
           - @report.header_for(@key).each do |title|
             %th= title
-      %tbody.thead-dark
+      %tbody
         - rows.each do |row|
           %tr
             - row.each.with_index do |col, index|

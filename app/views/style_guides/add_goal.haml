@@ -1,9 +1,11 @@
 = render 'breadcrumbs'
 - content_for :modal_title, 'Add Goal'
-
-= simple_form_for('') do |f|
-  %p You can add details and change goal order after creating this goal.
-  = f.input :type,  label: 'Goal Type', as: :select_two
-  = f.input :name, label: 'Goal Title'
-  .form-actions
-    = f.button :submit, value: 'Add Goal'
+.row
+  .col-sm-10
+    = simple_form_for('') do |f|
+      %p You can add details and change goal order after creating this goal.
+      = f.input :type,  label: 'Goal Type', as: :select_two
+      = f.input :name, label: 'Goal Title'
+      .form-actions
+        = f.button :submit, value: 'Add Goal'
+  .col-sm-2= render 'pages'

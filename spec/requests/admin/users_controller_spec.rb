@@ -1,20 +1,26 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative './admin_users_search_spec_context'
 
 RSpec.describe Admin::UsersController, type: :request do
   let!(:user) { create(:acl_user) }
-  let!(:admin)       { create(:acl_user) }
-  let!(:admin_role)  { create :admin_role }
+  let!(:admin_user) { create(:acl_user, first_name: 'Admin', last_name: 'User') }
+  let!(:other_admin) { create(:acl_user) }
+  let!(:admin_role) { create :admin_role }
+  let!(:user_to_find) { create(:acl_user, first_name: 'Alice', last_name: 'Smith') }
   let!(:no_data_source_collection) { create :collection }
 
   before(:each) do
-    sign_in admin
-    setup_access_control(admin, admin_role, no_data_source_collection)
+    setup_access_control(admin_user, admin_role, no_data_source_collection)
+    setup_access_control(other_admin, admin_role, no_data_source_collection)
   end
+
+  include_context 'admin users search'
 
   describe 'GET edit' do
     before(:each) do
+      sign_in admin_user
       get edit_admin_user_path(user)
     end
 
@@ -28,6 +34,9 @@ RSpec.describe Admin::UsersController, type: :request do
   end
 
   describe 'DELETE disable' do
+    before do
+      sign_in admin_user
+    end
     context 'when the user is valid' do
       it 'disables the user' do
         expect do
@@ -54,6 +63,9 @@ RSpec.describe Admin::UsersController, type: :request do
   end
 
   describe 'PUT update' do
+    before do
+      sign_in admin_user
+    end
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
@@ -131,12 +143,23 @@ RSpec.describe Admin::UsersController, type: :request do
     end
   end
 
-  describe 'GET index (search)' do
+  describe 'User Search' do
+    before do
+      sign_in admin_user
+    end
+
+    # Required for the 'admin users search' shared context
+    let!(:user_to_find) { create(:acl_user, first_name: 'Alice', last_name: 'Smith') }
     let!(:search_user1) { create(:acl_user, first_name: 'Alice', last_name: 'Smith', email: 'alice.smith@example.com') }
     let!(:search_user2) { create(:acl_user, first_name: 'Bob', last_name: 'Jones', email: 'bob.jones@example.com') }
 
+    def query(text)
+      post admin_user_search_queries_path, params: { q: text }
+      follow_redirect!
+    end
+
     it 'returns users matching first name' do
-      get admin_users_path, params: { q: 'Alice' }
+      query('Alice')
       expect(response.body).to include('Alice')
       expect(response.body).to include('Smith')
       expect(response.body).to include('alice.smith@example.com')
@@ -144,7 +167,7 @@ RSpec.describe Admin::UsersController, type: :request do
     end
 
     it 'returns users matching last name' do
-      get admin_users_path, params: { q: 'Jones' }
+      query('Jones')
       expect(response.body).to include('Bob')
       expect(response.body).to include('Jones')
       expect(response.body).to include('bob.jones@example.com')
@@ -152,7 +175,7 @@ RSpec.describe Admin::UsersController, type: :request do
     end
 
     it 'returns users matching email' do
-      get admin_users_path, params: { q: 'alice.smith@example.com' }
+      query('alice.smith@example.com')
       expect(response.body).to include('Alice')
       expect(response.body).to include('Smith')
       expect(response.body).to include('alice.smith@example.com')
@@ -160,7 +183,7 @@ RSpec.describe Admin::UsersController, type: :request do
     end
 
     it 'returns no users for non-matching query' do
-      get admin_users_path, params: { q: 'Nonexistent' }
+      query('Nonexistent')
       expect(response.body).to include('No users found')
     end
   end

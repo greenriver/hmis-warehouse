@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Admin::Health
   class PatientReferralsController < HealthController
     before_action :require_has_administrative_access_to_health!
@@ -201,7 +203,7 @@ module Admin::Health
     def bulk_assign_agency
       @params = params[:bulk_assignment] || {}
       @agency = Health::Agency.find(@params[:agency_id]) if @params[:agency_id].present?
-      @patient_referrals = Health::PatientReferral.where(id: (@params[:patient_referral_ids] || []))
+      @patient_referrals = Health::PatientReferral.where(id: @params[:patient_referral_ids].presence || [])
       if @patient_referrals.any? && @agency.present?
         @patient_referrals.update_all(agency_id: @agency.id)
         @patient_referrals.each(&:convert_to_patient)
@@ -240,13 +242,43 @@ module Admin::Health
       render js: "window.location = #{review_admin_health_patient_referrals_path.to_json}"
     end
 
+    def create_search_queries
+      safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
+
+      if query.valid?
+
+        redirect_to patient_referral_search_query_admin_health_patient_referrals_path(id: query.id, active_tab: params[:active_tab], filters: params[:filters].to_unsafe_h)
+      else
+        flash[:error] = 'Search query not valid'
+        # NOTE: this always redirects to the review tab, you should never get here anyway
+        redirect_to review_admin_health_patient_referrals_path
+        return
+      end
+    end
+
+    def search
+      @search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
+      return handle_invalid_query('Search query not found') if @search_query.nil?
+
+      @search_query.touch
+      @input_values = @search_query.params[:search]
+      # determine which tab to show
+      @active_tab = load_tabs.detect { |tab| tab[:id] == params[:active_tab] }.try(:[], :id) || 'review'
+      send(@active_tab)
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to health_patients_path
+      return
+    end
+
     private def set_sender
       @sender = Health::Cp.sender.first
     end
 
-    private
-
-    def load_tabs
+    private def load_tabs
       @patient_referral_tabs = [
         { id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params) },
@@ -256,14 +288,14 @@ module Admin::Health
       ]
     end
 
-    def reject_params
+    private def reject_params
       params.require(:health_patient_referral).permit(
         :rejected_reason,
         :disenrollment_date,
       )
     end
 
-    def assign_agency_params
+    private def assign_agency_params
       params.require(:health_patient_referral).permit(
         :agency_id,
         patient: [
@@ -273,7 +305,7 @@ module Admin::Health
       )
     end
 
-    def infer_agency_name(patient)
+    private def infer_agency_name(patient)
       care_staff_id = patient.care_coordinator_id || patient.nurse_care_manager_id
       return unless care_staff_id.present?
 
@@ -281,7 +313,7 @@ module Admin::Health
     end
     helper_method :infer_agency_name
 
-    def care_staff_grouped_by_agency(currently_selected_id)
+    private def care_staff_grouped_by_agency(currently_selected_id)
       user_ids = Health::AgencyUser.where(user_id: User.active.pluck(:id)).pluck(:user_id)
       user_ids << currently_selected_id if currently_selected_id.present?
       User.where(id: user_ids).group_by do |u|
@@ -290,23 +322,23 @@ module Admin::Health
     end
     helper_method :care_staff_grouped_by_agency
 
-    def filters_path
+    private def filters_path
       @filter_paths = load_tabs.map { |tab| [tab[:id], tab[:path]] }.to_h
       @filter_paths[action_name] || review_admin_health_patient_referrals_path
     end
     helper_method :filters_path
 
-    def show_filters?
+    private def show_filters?
       true
     end
     helper_method :show_filters?
 
-    def add_patient_referral_path
+    private def add_patient_referral_path
       admin_health_patient_referrals_path
     end
     helper_method :add_patient_referral_path
 
-    def can_bulk_assign?
+    private def can_bulk_assign?
       action_name == 'review'
     end
     helper_method :can_bulk_assign?

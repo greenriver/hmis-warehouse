@@ -1,6 +1,6 @@
 .d-flex
   %h2.stage-by-cohort-header Total Clients by Stages & Cohorts
-  .stage-by-cohort-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }}
+  .stage-by-cohort-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { 'bs-toggle' => :buttons }}
     %label.btn.btn-secondary.btn-sm.active
       %input#stage{ type: :radio, name: :stage_by_cohort, checked: :checked}
       Stages

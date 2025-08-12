@@ -1,40 +1,36 @@
 @import '../helpers';
 
 .o-color--primary {
-  color: $brand-primary;
+  color: var(--bs-primary);
 }
 
-/* .o-color--secondary {
-  color: $brand-secondary;
-} */
-
 .o-color--white {
-  color: $white;
+  color: var(--white);
 }
 
 .o-color--gray-l {
-  color: $gray-020;
+  color: var(--gray-020);
 }
 
 .o-color--gray-m {
-  color: $gray-034;
+  color: var(--gray-034);
 }
 
 .o-color--gray-d {
-  color: $gray-065;
+  color: var(--gray-065);
 }
 
 .o-color--positive,
 .o-color--success {
-  color: $brand-success-d;
+  color: var(--brand-success-l);
 }
 
 .o-color--danger {
-  color: $brand-danger-d;
+  color: var(--brand-danger-ll);
 }
 
 .o-color--warning {
-  color: $brand-warning-d;
+  color: var(--brand-warning-l);
 }
 
 .o-text--normal {

@@ -14,11 +14,16 @@ module HmisExternalApis::AcHmis
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
 
     def fetch_score(client)
-      mci_uniq_id = client.ac_hmis_mci_unique_id
-      return nil unless mci_uniq_id.present?
+      # Collect MCI unique IDs for this client and all source clients with the same destination client
+      clients = [client, *client.destination_client&.source_clients&.to_a]
+      mci_uniq_ids = clients.compact.uniq.filter_map do |c|
+        c.ac_hmis_mci_unique_id&.value
+      end.uniq
+
+      return nil if mci_uniq_ids.empty?
 
       payload = {
-        'dw_client_id': mci_uniq_id.value.to_s,
+        'dw_client_id': mci_uniq_ids.join(','),
       }
 
       result = conn.post('api/v1/clients/scores/search/', payload).
@@ -36,7 +41,7 @@ module HmisExternalApis::AcHmis
 
           OpenStruct.new(
             score: score_value.to_i,
-            alt_aha_flag: score_obj.dig('metadata', 'alt_aha_flag')&.to_i == 1,
+            mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
             dw_client_id: response_client.dig('dw_client_id'),
             generator: score_obj.dig('generator'),
           )

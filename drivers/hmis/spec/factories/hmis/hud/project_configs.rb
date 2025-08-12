@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 FactoryBot.define do
   factory :hmis_project_auto_enter_config, class: 'Hmis::ProjectAutoEnterConfig' do
@@ -22,5 +22,25 @@ FactoryBot.define do
     association :project, factory: :hmis_hud_project
     created_at { Time.current }
     updated_at { Time.current }
+  end
+
+  factory :hmis_project_ce_config, class: 'Hmis::ProjectCeConfig' do
+    created_at { Time.current }
+    updated_at { Time.current }
+    enabled { true }
+
+    transient do
+      receives_direct_referrals { false }
+      supports_waitlist_referrals { true }
+      receives_direct_referrals_from { nil }
+    end
+
+    after(:build) do |config, evaluator|
+      options = {}
+      options['receives_direct_referrals'] = evaluator.receives_direct_referrals
+      options['supports_waitlist_referrals'] = evaluator.supports_waitlist_referrals
+      options['receives_direct_referrals_from'] = evaluator.receives_direct_referrals_from if evaluator.receives_direct_referrals_from.present?
+      config.config_options = options.to_json
+    end
   end
 end

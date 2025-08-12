@@ -1,17 +1,27 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
+require_relative './admin_users_search_spec_context'
 
 RSpec.describe Admin::UsersController, type: :request do
-  let!(:user) { create(:user) }
-  let!(:admin)       { create(:user) }
-  let!(:admin_role)  { create :admin_role }
+  let(:other_admin) { create(:user) }
+  let!(:user) { create(:user, first_name: 'Regular', last_name: 'User') }
+  let!(:admin_user) { create(:user) }
+  let!(:admin_role) { create :admin_role }
 
   before(:each) do
-    sign_in admin
-    admin.legacy_roles << admin_role
+    admin_user.legacy_roles << admin_role
+    other_admin.legacy_roles << admin_role
   end
+
+  # Required for the 'admin users search' shared context
+  let!(:user_to_find) { create(:user, first_name: 'Alice', last_name: 'Smith') }
+
+  include_context 'admin users search'
 
   describe 'GET edit' do
     before(:each) do
+      sign_in admin_user
       get edit_admin_user_path(user)
     end
 
@@ -28,6 +38,7 @@ RSpec.describe Admin::UsersController, type: :request do
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
+        sign_in admin_user
         patch admin_user_path(updated_user), params: { user: { notify_on_vispdat_completed: '1' } }
       end
       it 'flips to true' do
@@ -39,6 +50,7 @@ RSpec.describe Admin::UsersController, type: :request do
       let(:updated_user) { User.not_system.first }
 
       before(:each) do
+        sign_in admin_user
         patch admin_user_path(updated_user), params: { user: { notify_on_client_added: '1' } }
       end
 

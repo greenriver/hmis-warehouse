@@ -1,13 +1,16 @@
 = render 'breadcrumbs'
 - content_for :modal_title, 'Add a Team Member'
 
-= simple_form_for('') do |f|
-  %p TODO: Should organization really be a required field? If so, remove the hint I added. :)
-  = f.input :type, label: 'Category of Team Member', as: :select_two
-  = f.input :first_name, label: 'First Name'
-  = f.input :last_name, label: 'Last Name'
-  = f.input :title, label: 'Role', hint: 'PCP, RN or Family Member, Specialist etc.'
-  = f.input :email, label: 'Email Address', type: :email
-  = f.input :organization, label: 'Organization', hint: 'if applicable'
-  .form-actions
-    = f.button :submit, value: 'Add Team Member'
+.row
+  .col-sm-10
+    = simple_form_for('') do |f|
+      %p TODO: Should organization really be a required field? If so, remove the hint I added. :)
+      = f.input :type, label: 'Category of Team Member', as: :select_two
+      = f.input :first_name, label: 'First Name'
+      = f.input :last_name, label: 'Last Name'
+      = f.input :title, label: 'Role', hint: 'PCP, RN or Family Member, Specialist etc.'
+      = f.input :email, label: 'Email Address', type: :email
+      = f.input :organization, label: 'Organization', hint: 'if applicable'
+      .form-actions
+        = f.button :submit, value: 'Add Team Member'
+  .col-sm-2= render 'pages'

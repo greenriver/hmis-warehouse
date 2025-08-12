@@ -34,7 +34,12 @@ module Hmis::AuthPolicies::ContextLoaders
           # Filter out deleted access groups. ProjectAccessGroupMember can't do this due to database boundaries
           active_access_group_ids.intersection(clean_values).to_a
         end
+
       @cache.merge!(results)
+
+      # For projects that don't have any access groups, add `nil` to the cache, so that we don't check the db again
+      no_access_project_ids = project_ids - results.keys
+      @cache.merge!(no_access_project_ids.index_with(nil))
     end
 
     private

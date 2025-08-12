@@ -1,0 +1,11 @@
+:root {
+  /* Primary: #1B325D */
+  --bs-primary-hue: 222;
+  --bs-primary-saturation: 55%;
+  --bs-primary-lightness: 24%;
+
+  /* Theme Background: #1B325D */
+  --theme-background-hue: 222;
+  --theme-background-saturation: 55%;
+  --theme-background-lightness: 24%;
+}
