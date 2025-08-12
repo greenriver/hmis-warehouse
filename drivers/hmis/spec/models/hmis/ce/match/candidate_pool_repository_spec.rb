@@ -32,6 +32,23 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolRepository do
       expect(ids_second).to be_empty
     end
 
+    it 'creates only missing pools when some keys already exist' do
+      # Pre-existing pool
+      existing_pool = create(:hmis_ce_match_candidate_pool, priority_expression: 'p1', requirement_expression: 'r1')
+      keys = [['p1', 'r1'], ['p2', 'r2']]
+
+      # Should create one new pool and return only its ID
+      new_ids = repo.create_for_keys(keys)
+      expect(new_ids.size).to eq(1)
+
+      newly_created_pool = Hmis::Ce::Match::CandidatePool.find(new_ids.first)
+      expect(newly_created_pool.priority_expression).to eq('p2')
+      expect(newly_created_pool.requirement_expression).to eq('r2')
+
+      # Ensure original pool was not affected
+      expect(repo.find_by_key(['p1', 'r1']).id).to eq(existing_pool.id)
+    end
+
     it 'ignores nil keys' do
       expect(repo.create_for_keys([nil])).to eq([])
     end

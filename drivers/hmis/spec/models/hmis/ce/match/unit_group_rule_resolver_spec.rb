@@ -17,6 +17,22 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
       end
     end
 
+    context 'when only a priority rule applies' do
+      it 'returns nil because a requirement is also needed' do
+        create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless')
+        key = resolver.key_for_unit_group(unit_group)
+        expect(key).to be_nil
+      end
+    end
+
+    context 'when only a requirement rule applies' do
+      it 'returns nil because a priority is also needed' do
+        create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18')
+        key = resolver.key_for_unit_group(unit_group)
+        expect(key).to be_nil
+      end
+    end
+
     context 'with rules at multiple owner levels' do
       let!(:org_req) { create(:hmis_ce_eligibility_requirement, owner: organization, expression: 'current_age >= 18') }
       let!(:proj_req) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'days_homeless >= 7') }
