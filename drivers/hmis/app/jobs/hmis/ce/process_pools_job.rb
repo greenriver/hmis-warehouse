@@ -13,7 +13,7 @@
 # It may re-enqueue itself if more dirty pools are found after processing a batch or after an
 # early exit. Uses pool-level advisory locks to coordinate with ProcessClientsJob.
 #
-# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
+# See drivers/hmis/app/models/hmis/ce/README_FOR_CE_PROCESSING.md
 #
 module Hmis::Ce
   class ProcessPoolsJob < BaseJob
