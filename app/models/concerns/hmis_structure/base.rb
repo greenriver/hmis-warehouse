@@ -43,7 +43,7 @@ module HmisStructure::Base
       # Move to 2026 in staging after 2025-09-01
       cutoff_date = if Rails.env.production?
         Date.new(2025, 10, 1)
-      elsif Rails.env.staging? || Rails.env.test? # Test remains pinned to 2024 until test kits are out
+      elsif (Rails.env.staging? || Rails.env.test?) && ENV['CLIENT'] != 'qa' # Test remains pinned to 2024 until test kits are out
         Date.new(2025, 9, 1)
       else
         Date.current
