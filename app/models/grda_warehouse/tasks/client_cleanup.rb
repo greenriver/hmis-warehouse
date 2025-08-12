@@ -10,6 +10,36 @@
 # also set the processed_hash on the enrollment to nil
 
 module GrdaWarehouse::Tasks
+  # The ClientCleanup task is a maintenance utility for ensuring the  integrity and
+  # quality of client data within the warehouse. It performs several key functions:
+  #
+  # 1.  **Data Consolidation**: Merges demographic information from multiple source
+  #     client records into a single, unified destination client. It uses a set of
+  #     rules to determine the "best" attribute value (e.g., name, SSN, DOB) from
+  #     available sources.
+  #
+  # 2.  **Record Cleanup**: Identifies and removes orphaned or unused records,
+  #     including:
+  #     - Source clients with no enrollments.
+  #     - Destination clients that are no longer mapped from any source.
+  #     - Associated records in `ServiceHistoryEnrollment`, `WarehouseClientsProcessed`,
+  #       and `HmisClient` tables.
+  #
+  # 3.  **Data Quality Enforcement**: Corrects common data inconsistencies, such as:
+  #     - Fixing incorrect household IDs for heads of household.
+  #     - Invalidating enrollments incorrectly marked as individual or family.
+  #     - Correcting or backfilling client ages in their service history.
+  #
+  # 4.  **Service History Maintenance**: Triggers a rebuild of a client's service
+  #     history if critical data (like Date of Birth) changes during consolidation.
+  #
+  # ## Usage
+  #
+  # The task can be invoked for all clients or targeted to a specific set of
+  # destination client IDs. It includes a `dry_run` mode to preview changes
+  # without modifying the database. It is designed to be run periodically to
+  # maintain data hygiene. The `.run_for_clients` class method provides a
+  # convenient entry point for asynchronous processing.
   class ClientCleanup
     include NotifierConfig
     include ArelHelper
