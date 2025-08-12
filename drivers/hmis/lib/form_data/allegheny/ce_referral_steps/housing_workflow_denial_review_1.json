@@ -78,34 +78,6 @@
           "code": "Enrolled, but declined HMIS data entry"
         }
       ]
-    },
-    {
-      "text": "Referral Result",
-      "type": "CHOICE",
-      "link_id": "referral_result",
-      "mapping": {
-        "custom_field_key": "housing_workflow_denial_review_1_referral_result"
-      },
-      "required": true,
-      "component": "RADIO_BUTTONS",
-      "enable_when": [
-        {
-          "operator": "EQUAL",
-          "question": "denial_review_decision",
-          "answer_code": "1"
-        }
-      ],
-      "enable_behavior": "ALL",
-      "pick_list_options": [
-        {
-          "code": "2",
-          "label": "Unsuccessful referral: client rejected"
-        },
-        {
-          "code": "3",
-          "label": "Unsuccessful referral: provider rejected"
-        }
-      ]
     }
   ]
 }
