@@ -730,6 +730,7 @@ module GrdaWarehouse::Tasks
         end
 
         update_destination_clients(changed_batch)
+        post_process_clients(client_ids: changed_batch.map(&:id))
         update_source_hashes(batch)
         changed_batch.each(&:clear_view_cache)
         processed += batch.count
@@ -987,6 +988,13 @@ module GrdaWarehouse::Tasks
         ).invalidate_processing!
         client.invalidate_service_history
       end
+    end
+
+    # Marks given clients as dirty for future re-processing for CE
+    private def post_process_clients(client_ids:)
+      return if @dry_run
+
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
     private def client_age_at date

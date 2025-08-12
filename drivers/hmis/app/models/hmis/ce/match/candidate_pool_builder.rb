@@ -2,13 +2,16 @@
 
 # Manages the lifecycle of Candidate Pools, which are driven by rules associated with Unit Groups.
 # This class ensures that pools are created for all unique rule sets, associates Unit Groups with
-# the correct pools, and maintains the `stale` flag on opportunities.
+# the correct pools, and maintains data integrity across related records.
 #
 # The builder:
 # 1. Creates Candidate Pools for all unique rule sets derived from Unit Groups.
 # 2. Associates Unit Groups with their corresponding Candidate Pool.
-# 3. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
-# 4. Cleans up orphaned pools that are no longer referenced by Unit Groups or Opportunities.
+# 3. Marks newly created or all pools as "dirty" to trigger reprocessing.
+# 4. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
+# 5. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
+# 6. Cleans up orphaned pools that are no longer referenced by Unit Groups or Opportunities
+#    after a configurable grace period.
 #
 # Semantics and concurrency notes:
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
@@ -53,8 +56,8 @@ module Hmis::Ce::Match
         ),
       )
 
-      # After creating and dirtying pools, enqueue the processing job to ensure they are populated quickly.
-      # Hmis::Ce::ProcessPoolsJob.enqueue_if_not_already_running if Hmis::Ce::ChangeMarker.dirty.pools.exists?
+      # After creating and dirtying pools, enqueue the processing job
+      Hmis::Ce::ProcessPoolsJob.perform_later(wait_time: 10.minutes) if Hmis::Ce::ChangeMarker.dirty.pools.exists?
     end
 
     private

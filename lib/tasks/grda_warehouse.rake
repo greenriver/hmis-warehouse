@@ -344,8 +344,10 @@ namespace :grda_warehouse do
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
       safely_execute do
-        Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
-          Hmis::Ce::Match::CandidatePoolBuilder.call(force_reprocessing: true)
+        Hmis::Ce::Match::CandidatePool.transaction do
+          Hmis::Ce::Match::CandidatePool.lock_for_maintenance!(timeout_seconds: 5.minutes) do
+            Hmis::Ce::Match::CandidatePoolBuilder.call(force_reprocessing: true)
+          end
         end
       end
     end
@@ -411,10 +413,8 @@ namespace :grda_warehouse do
 
     if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       safely_execute do
-        # enqueue CE processors if they're not already running. Once enqueued they should self-sustain
-        # ProcessPoolsJob handles expensive pool processing on a longer interval
-        Hmis::Ce::ProcessPoolsJob.enqueue_if_not_already_running(wait_time: 10.minutes)
-        # ProcessClientsJob handles fast client processing on a shorter interval
+        # enqueue CE client processors if they're not already running. Once enqueued it should self-sustain
+        # ProcessClientsJob handles fast client processing on a short interval
         Hmis::Ce::ProcessClientsJob.enqueue_if_not_already_running(wait_time: 2.minutes)
       end
     end

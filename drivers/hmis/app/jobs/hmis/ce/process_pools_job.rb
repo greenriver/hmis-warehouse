@@ -10,8 +10,8 @@
 # Hmis::Ce::ProcessPoolsJob
 #
 # Processes dirty CE candidate pools by running the match engine against all destination clients.
-# This job runs on a longer interval and handles the computationally expensive pool processing
-# operations while using per-pool advisory locks to coordinate with ProcessClientsJob.
+# It may re-enqueue itself if more dirty pools are found after processing a batch or after an
+# early exit. Uses pool-level advisory locks to coordinate with ProcessClientsJob.
 #
 # See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
 #
@@ -61,10 +61,12 @@ module Hmis::Ce
           log_info('Completed processing dirty pools')
           run.complete!
 
-          schedule_next_batch(
-            next_pool_id: next_pool_id,
-            wait_time: wait_time,
-          )
+          if Hmis::Ce::ChangeMarker.dirty.pools.exists?
+            schedule_next_batch(
+              next_pool_id: next_pool_id,
+              wait_time: wait_time,
+            )
+          end
           log_info('Batch completed successfully')
         end
       end

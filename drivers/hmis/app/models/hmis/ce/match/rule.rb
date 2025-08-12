@@ -105,7 +105,7 @@ module Hmis::Ce::Match
     end
 
     def rebuild_candidate_pools
-      Hmis::Ce::Match::CandidatePool.lock_for_maintenance do
+      Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do
         Hmis::Ce::Match::CandidatePoolBuilder.call
       end
     end

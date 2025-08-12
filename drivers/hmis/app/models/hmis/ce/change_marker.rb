@@ -54,6 +54,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
 
   # Creates new markers or increments current_version for existing ones
   def self.upsert_or_bump_version(trackable_type, trackable_ids:)
+    return unless Hmis::Ce.configuration.enabled?
     raise ArgumentError, "Trackable type not supported \"#{trackable_type}\"" unless trackable_type.in?(KNOWN_TRACKABLE_TYPES)
     return if trackable_ids.empty?
 

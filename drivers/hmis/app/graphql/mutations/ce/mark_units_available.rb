@@ -24,13 +24,8 @@ module Mutations
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
       access_denied! unless policy_for(project, policy_type: :hmis_project).can_manage_units?
 
-      Hmis::Ce::Match::CandidatePool.lock_for_maintenance(shared: true) do
-        opportunities = units.map do |unit|
-          build_opportunity_for_unit(unit)
-        end
-
-        Hmis::Ce::Opportunity.import!(opportunities)
-      end
+      opportunities = units.map { |unit| build_opportunity_for_unit(unit) }
+      Hmis::Ce::Opportunity.import!(opportunities)
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
     end

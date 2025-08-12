@@ -87,7 +87,6 @@ module Hmis::Ce
     end
 
     # Processes dirty clients by running the match engine against active candidate pools.
-    # Uses non-blocking per-pool advisory locks to coordinate with ProcessPoolsJob.
     #
     # @param markers [Array<Hmis::Ce::ChangeMarker>] Dirty client markers to process
     # @return [Integer, nil] Next client ID for pagination
