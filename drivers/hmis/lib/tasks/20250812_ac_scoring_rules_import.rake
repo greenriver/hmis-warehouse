@@ -1,7 +1,7 @@
 # Import AC HMIS scoring rules from two CSVs: a Variable Definitions file and a Variable Weights file.
 #
 # Usage:
-#   rails driver:hmis:import_ac_hmis_scoring_rules[hna_2] \
+#   rails driver:hmis:import_ac_hmis_scoring_rules_20250812[hna_2] \
 #     VARIABLE_DEFINITIONS_CSV="/path/to/scoring_variable_definitions.csv" \
 #     VARIABLE_WEIGHTS_CSV="/path/to/scoring_variable_weights.csv"
 #   rails "driver:hmis:import_ac_hmis_scoring_rules[custom_form_id]" # quotes needed for special chars
@@ -32,7 +32,7 @@
 require 'csv'
 
 desc 'Import AC HMIS scoring rules from variable weights and variables CSVs'
-task :import_ac_hmis_scoring_rules, [:form_definition_identifier] => [:environment] do |_task, args|
+task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:environment] do |_task, args|
   form_definition_identifier = args[:form_definition_identifier]
   if form_definition_identifier.blank?
     puts "ERROR: form_definition_identifier argument is required"
