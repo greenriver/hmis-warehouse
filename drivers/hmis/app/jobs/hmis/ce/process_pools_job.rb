@@ -51,7 +51,7 @@ module Hmis::Ce
           reconcile_untracked_pools
 
           # get a batch of dirty pools
-          dirty_pool_markers = Hmis::Ce::ChangeMarker.dirty.pools.batch(
+          dirty_pool_markers = Hmis::Ce::ChangeMarker.dirty.pools.batch_by_trackable_id(
             start_id: next_pool_id,
             limit: batch_size,
           ).to_a

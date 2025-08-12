@@ -59,7 +59,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
       let!(:pool) { create(:hmis_ce_match_candidate_pool) }
 
       before do
-        # In the new model, the unit group must have an assigned pool before marking available
         unit_group.update!(candidate_pool: pool)
       end
 

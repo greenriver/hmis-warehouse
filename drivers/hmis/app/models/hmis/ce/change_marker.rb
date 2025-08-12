@@ -26,7 +26,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   scope :clients, -> { where(trackable_type: 'GrdaWarehouse::Hud::Client') }
   scope :pools, -> { where(trackable_type: 'Hmis::Ce::Match::CandidatePool') }
 
-  scope :batch, ->(start_id:, limit:) { order(:trackable_id).where(trackable_id: start_id..).limit(limit) }
+  scope :batch_by_trackable_id, ->(start_id:, limit:) { order(:trackable_id).where(trackable_id: start_id..).limit(limit) }
 
   # Updates processed_version to match current_version, marking records as clean
   def self.mark_processed(marks)

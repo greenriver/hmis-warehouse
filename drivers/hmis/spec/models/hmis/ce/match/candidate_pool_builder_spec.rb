@@ -77,6 +77,34 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       end
     end
 
+    context 'with opportunity backfilling' do
+      let!(:unit_group) { create(:hmis_unit_group, project: project) }
+      let!(:opportunity_without_pool) do
+        create(:hmis_ce_opportunity,
+               unit: create(:hmis_unit, unit_group: unit_group),
+               candidate_pool: nil)
+      end
+
+      it 'backfills the pool and rules for opportunities missing them' do
+        [
+          create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'a = 1'),
+          create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'score_a'),
+        ]
+
+        described_class.call
+        opportunity_without_pool.reload
+
+        expect(opportunity_without_pool.candidate_pool_id).to eq(unit_group.reload.candidate_pool_id)
+
+        # The `assignment_rules` attribute stores a serialized snapshot of the rules.
+        # We need to compare the essential parts of these stored rules.
+        actual_rules = opportunity_without_pool.assignment_rules.map { |r| r.slice('rule_type', 'expression') }
+        expected_rules = [{ 'rule_type' => 'eligibility_requirement', 'expression' => 'a = 1' }, { 'rule_type' => 'priority_scheme', 'expression' => 'score_a' }]
+
+        expect(actual_rules).to contain_exactly(*expected_rules)
+      end
+    end
+
     context 'with stale tracking' do
       let!(:unit_group) { create(:hmis_unit_group, project: project) }
       let!(:opportunity) { create(:hmis_ce_opportunity, unit: create(:hmis_unit, unit_group: unit_group)) }
