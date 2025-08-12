@@ -21,7 +21,7 @@
 # - stored as a foreign key on the referral table (custom_referral_status_id)
 # - used for displaying the referral's current status to the user in the frontend, and providing a dropdown to filter referrals by status
 # - all State Machine statuses should be included in the CustomReferralStatus table in order for filtering to work correctly!
-#   See HmisUtil::CeBuilder.create_state_machine_custom_statuses.
+#   See CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses.
 
 module Hmis::Ce
   class CustomReferralStatus < GrdaWarehouseBase
