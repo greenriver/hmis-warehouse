@@ -136,9 +136,9 @@ module CeWorkflows::Shared
       )
     end
 
-    def self.create_accept_event(template, update_ce_event: false)
+    def self.create_accept_event(template, name: 'Referral Accepted', update_ce_event: false)
       Hmis::WorkflowDefinition::EndEvent.create!(
-        name: 'Referral Accepted',
+        name: name,
         template: template,
         trigger_config: [
           {
@@ -168,15 +168,28 @@ module CeWorkflows::Shared
       )
     end
 
-    def self.create_decline_event(template)
+    def self.create_decline_event(template, name: 'Referral Declined', ce_event_result: nil)
+      raise 'set_ce_event_result must be nil or a valid referral result code (2 or 3)' if ce_event_result && !['2', '3'].include?(ce_event_result.to_s)
+
       Hmis::WorkflowDefinition::EndEvent.create!(
-        name: 'Referral Declined',
+        name: name,
         template: template,
         trigger_config: [
           {
             event: 'end_workflow',
             message: Hmis::Ce::ReferralMessageHandler::REJECT_REFERRAL_MESSAGE,
           },
+          *(
+            if ce_event_result
+              [
+                {
+                  event: 'end_workflow',
+                  message: 'set_ce_event_result',
+                  params: { referral_result: ce_event_result.to_s },
+                },
+              ]
+            end
+          ),
         ],
       )
     end
