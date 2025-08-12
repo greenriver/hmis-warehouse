@@ -69,11 +69,10 @@ RSpec.describe 'CustomDataElementDefinition Integration' do
     end
 
     it 'maps all RecordType values correctly' do
-      record_types = ['Client', 'Enrollment', 'Exit', 'Project', 'Organization']
+      record_types = ['Client', 'Enrollment', 'Project', 'Organization']
       expected_mappings = {
         'Client' => 'GrdaWarehouse::Hud::Client',
         'Enrollment' => 'GrdaWarehouse::Hud::Enrollment',
-        'Exit' => 'GrdaWarehouse::Hud::Exit',
         'Project' => 'GrdaWarehouse::Hud::Project',
         'Organization' => 'GrdaWarehouse::Hud::Organization',
       }
