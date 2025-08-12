@@ -747,13 +747,29 @@ type CeCandidatesPaginated {
   pagesCount: Int!
 }
 
+"""
+A client who is a candidate for Coordinated Entry (CE), represented by a
+ClientProxy. Underlying client record is Destination Client.
+"""
 type CeClient {
+  """
+  Aggregated client attributes from all candidate pools
+  """
   aggregatedClientAttributes: JSON!
   clientName: String!
   destinationClientId: ID!
+  externalIds: [ExternalIdentifier!]!
   id: ID!
   sourceClientIds: [ID!]!
+
+  """
+  Unit groups that this client is a candidate for
+  """
   unitGroupsCandidates(limit: Int, offset: Int): CeUnitGroupCandidatesPaginated!
+}
+
+input CeClientFilterOptions {
+  searchTerm: String
 }
 
 type CeClientsPaginated {
@@ -777,7 +793,7 @@ type CeConsolidatedWaitlist {
   """
   Clients who belong to at least one CE candidate pool
   """
-  ceClients(limit: Int, offset: Int): CeClientsPaginated!
+  ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
 
   """
   Columns available in the consolidated waitlist

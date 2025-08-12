@@ -24,6 +24,23 @@ module Hmis::Ce
 
     scope :for_warehouse_clients, -> { where(client_type: GrdaWarehouse::Hud::Client.sti_name) }
 
+    scope :matching_search_term, ->(search_term) do
+      search_term.strip!
+
+      cp_t = Hmis::Ce::ClientProxy.arel_table
+      c_t = GrdaWarehouse::Hud::Client.arel_table
+      query = cp_t.join(c_t).
+        on(cp_t[:client_id].eq(c_t[:id]).
+        and(cp_t[:client_type].eq('GrdaWarehouse::Hud::Client'))).
+        join_sources
+
+      Hmis::Ce::ClientProxy.joins(query).merge(GrdaWarehouse::Hud::Client.text_search(search_term, sorted: true))
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::CeClientFilter.new(input).filter_scope(self)
+    end
+
     def client_is_destination
       errors.add :client, 'must be destination client' unless GrdaWarehouse::DataSource.destination_data_source_ids.include?(client.data_source_id)
     end

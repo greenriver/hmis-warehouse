@@ -11,18 +11,26 @@ module Types
     skip_activity_log
 
     # TODO: implement client search/filtering
-    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool'
+    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool' do
+      filters_argument HmisSchema::CeClient
+    end
     # on each candidate, you can expand it to see details about *which* waitlists they are on. that uses this query
     field :ce_client, HmisSchema::CeClient, null: true do |field|
       field.argument :id, ID, 'Client Proxy ID', required: true
     end
     field :client_attribute_columns, [Types::HmisSchema::KeyValue], null: false, description: 'Columns available in the consolidated waitlist'
 
-    # filters? TODO figure out filtering on Tay (CDED) and Veteran (CDED)
-    # sort? TODO figure out sorting on AHA? nice to have..
+    def self.authorized?(object, context)
+      super && context[:current_user].can_administrate_coordinated_entry?
+    end
 
-    def ce_clients
-      Hmis::Ce::ClientProxy.for_warehouse_clients.joins(:ce_match_candidates).distinct
+    def ce_clients(filters: nil)
+      scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
+        joins(:ce_match_candidates).
+        distinct.order(:id)
+
+      scope = scope.apply_filters(filters) if filters
+      scope # sorting? search filter applies its own sort
     end
 
     def ce_client(id:)

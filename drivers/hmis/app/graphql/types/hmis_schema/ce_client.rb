@@ -9,18 +9,29 @@
 module Types
   # FIXME! name this CeClientProxy and have a separate lookup fn for fetching it, use that when clicking in to see what waitlists the client is on.
   class HmisSchema::CeClient < Types::BaseObject
+    description 'A client who is a candidate for Coordinated Entry (CE), represented by a ClientProxy. Underlying client record is Destination Client.'
+
+    available_filter_options do
+      arg :search_term, String
+    end
+
     # object is a Hmis::Ce::ClientProxy
     field :id, ID, null: false # ce client proxy id
     field :destination_client_id, ID, null: false
     field :source_client_ids, [ID], null: false
     field :client_name, String, null: false
-    # aggregate client_attributes across candidate pools (most recent update per client)
-    field :aggregated_client_attributes, GraphQL::Types::JSON, null: false
-    # .... info about the different candidate pools they belong to...
-    field :unit_groups_candidates, HmisSchema::CeUnitGroupCandidate.page_type, null: false, nodes_count: ->(all_nodes) { all_nodes.count(:id) }
+    field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
+    field :aggregated_client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregated client attributes from all candidate pools'
+    field :unit_groups_candidates, HmisSchema::CeUnitGroupCandidate.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
 
-    # N+1: find all the unit groups that this client is a candidate for
-    def unit_groups_candidates # paginated, with special count thing
+    # CE Admins only, for now. Expand if showing on Client dashboard?
+    def self.authorized?(object, context)
+      super && context[:current_user].can_administrate_coordinated_entry?
+    end
+
+    # All the unit groups that this client is a candidate for.mm
+    # N+1 query; do not use in batch for multiple clients.
+    def unit_groups_candidates
       # could incorporate the latest_event query too if needed
       object.ce_match_candidates.
         joins(candidate_pool: { opportunities: { unit: :unit_group } }).
@@ -55,6 +66,14 @@ module Types
         map { |arr| arr.max_by(&:created_at) }.
         sort_by(&:created_at).
         map(&:snapshot).reduce({}, :merge)
+    end
+
+    def external_ids
+      mci_ids = source_clients.flat_map { |client| load_ar_association(client, :ac_hmis_mci_ids) }.uniq
+      Hmis::Hud::ClientExternalIdentifierCollection.new(
+        client: object, # unused, since we are only returning MCI IDs here
+        ac_hmis_mci_ids: mci_ids,
+      ).mci_identifiers
     end
 
     private
