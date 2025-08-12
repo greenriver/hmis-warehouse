@@ -23,35 +23,30 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_score
-      alt_aha_1_result = calculate_algo_1_score(@values_by_link_id)
-      alt_aha_2_result = calculate_algo_2_score(@values_by_link_id)
-      alt_aha_3_result = calculate_algo_3_score(@values_by_link_id)
-      total_points = [alt_aha_1_result, alt_aha_2_result, alt_aha_3_result].
-        sum { |result| result[:points] + result[:intercept] }
-
+      components = calculate_components(@values_by_link_id)
+      total_points = components.values.sum { |result| result[:points] + result[:intercept] }
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      # If owner and user were passed, this calculation should be logged.
-      # Otherwise, assume this is a verification of a calculation that was already persisted, and skip logging
-      if @user && @owner
-        AcHmis::Scoring::CalculationLog.create!(
-          namespace: ALT_AHA_NAMESPACE,
-          final_score: alt_aha_score,
-          calculation_details: {
-            alt_aha_1: alt_aha_1_result,
-            alt_aha_2: alt_aha_2_result,
-            alt_aha_3: alt_aha_3_result,
-            total_points: total_points,
-          },
-          owner: @owner,
-          user: @user,
-        )
-      end
+      AcHmis::Scoring::CalculationLog.create!(
+        namespace: ALT_AHA_NAMESPACE,
+        final_score: alt_aha_score,
+        calculation_details: { **components, total_points: total_points },
+        owner: @owner,
+        user: @user,
+      )
 
       alt_aha_score
     end
 
     private
+
+    def calculate_components(values_by_link_id)
+      {
+        alt_aha_1: calculate_algo_1_score(values_by_link_id),
+        alt_aha_2: calculate_algo_2_score(values_by_link_id),
+        alt_aha_3: calculate_algo_3_score(values_by_link_id),
+      }
+    end
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
       rules_by_link_id = AcHmis::Scoring::Rule.

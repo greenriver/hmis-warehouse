@@ -461,7 +461,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # validate form_values provides against the definition
   #   * errors & warnings on missing required fields
   #   * check if the input ids match the definition
-  def validate_form_values(form_values, client: nil)
+  def validate_form_values(form_values)
     errors = HmisErrors::Errors.new
 
     # Iterate over item hash so that errors are sorted according to the definition
@@ -485,16 +485,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       numeric_validator.call(item, value)&.each do |error_message|
         errors.add field_name || :base, message: error_message, **error_context
-      end
-
-      if item.component == 'ALT_AHA'
-        aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
-          values_by_link_id: form_values,
-          client: client,
-          form_definition_identifier: identifier,
-        )
-        score = aha_calculator.calculate_score
-        errors.add field_name || :base, message: 'value has changed, and needs to be recalculated before submission', **error_context unless score == value
       end
 
       # Validate required status
