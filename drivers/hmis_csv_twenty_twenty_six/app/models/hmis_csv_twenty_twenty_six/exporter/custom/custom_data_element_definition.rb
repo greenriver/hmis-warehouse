@@ -16,12 +16,10 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
     end
 
     def self.export_scope(**options)
-      warehouse_class = GrdaWarehouse::Hud::CustomDataElementDefinition
-
       # No export limiting column - export all records for the relevant data sources
       data_source_ids = options[:project_scope].distinct.pluck(:data_source_id) if options[:project_scope]
       data_source_ids ||= [0] # if we can't determine any relevant data sources, include no data
-      combined_scope = warehouse_class.where(data_source_id: data_source_ids)
+      combined_scope = warehouse_class_for_export.where(data_source_id: data_source_ids)
 
       combined_scope
     end
@@ -36,7 +34,12 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
       row.UserID = row.user_id || 'op-system'
       row[:CustomDataElementDefinitionID] = row.id
 
-      row
+      # Map warehouse column values to export column values
+      apply_warehouse_to_export_mappings(row)
+    end
+
+    def self.warehouse_class_for_export
+      GrdaWarehouse::Hud::CustomDataElementDefinition
     end
   end
 end

@@ -40,7 +40,12 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       @custom_data_element_definition = ExportHelper2026.custom_data_element_definitions.first
       @custom_data_element_definition.update(data_source_id: @client.data_source_id)
       @custom_data_element = ExportHelper2026.custom_data_elements.first
-      @custom_data_element.update(data_source_id: @client.data_source_id)
+      @custom_data_element.update(
+        data_source_id: @client.data_source_id,
+        owner_id: @client.id,
+        owner_type: @client.class.name,
+        custom_data_element_definition_id: @custom_data_element_definition.id,
+      )
     end
 
     after(:all) do
@@ -144,8 +149,8 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         csv_content = CSV.read(custom_data_element_definition_file, headers: true)
 
         expect(csv_content.length).to be > 0
-        # Check that our test data is included
-        definition_row = csv_content.find { |row| row['CustomDataElementDefinitionID'] == @custom_data_element_definition.CustomDataElementDefinitionID }
+        # Check that our test data is included (use database ID, not HUD key)
+        definition_row = csv_content.find { |row| row['CustomDataElementDefinitionID'] == @custom_data_element_definition.id.to_s }
         expect(definition_row).to be_present
         expect(definition_row['Key']).to eq(@custom_data_element_definition.key)
         expect(definition_row['Label']).to eq(@custom_data_element_definition.label)
@@ -178,12 +183,11 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       it 'includes custom data element data in export' do
         custom_data_element_file = File.join(@exporter.file_path, 'CustomDataElement.csv')
         csv_content = CSV.read(custom_data_element_file, headers: true)
-
         expect(csv_content.length).to be > 0
         # Check that our test data is included
-        element_row = csv_content.find { |row| row['CustomDataElementID'] == @custom_data_element.CustomDataElementID }
+        element_row = csv_content.find { |row| row['CustomDataElementID'] == @custom_data_element.id.to_s }
         expect(element_row).to be_present
-        expect(element_row['CustomDataElementDefinitionID']).to eq(@custom_data_element_definition.CustomDataElementDefinitionID)
+        expect(element_row['CustomDataElementDefinitionID']).to eq(@custom_data_element_definition.id.to_s)
         expect(element_row['RecordType']).to eq('Client')
         expect(element_row['RecordID']).to eq(@custom_data_element.owner_id.to_s)
         expect(element_row['Value']).to eq(@custom_data_element.value_string)

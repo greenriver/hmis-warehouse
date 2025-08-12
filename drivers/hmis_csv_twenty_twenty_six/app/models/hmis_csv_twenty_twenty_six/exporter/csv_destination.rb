@@ -12,9 +12,6 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def initialize(options)
       @output_file = options[:output_file]
-      binding.pry if @output_file.include?('CustomDataElement.csv')
-      # FIXME: need to track down the appropriate hmis_configuration for the custom file and update so we can translate from
-      # columns in the tables to the export columns (aka @keys)
       @keys = options[:hmis_class].hmis_configuration(version: '2026').keys
       @strip_newline_proc = proc do |field|
         field.respond_to?(:gsub) ? field.gsub("\n", '\\n') : field
@@ -30,8 +27,6 @@ module HmisCsvTwentyTwentySix::Exporter
     def write(row)
       @csv ||= CSV.open(@output_file, 'wb', force_quotes: true, write_converters: [@strip_newline_proc])
       @csv << row.values_at(*@keys)
-    rescue NoMethodError => e
-      binding.pry
     end
 
     def close

@@ -32,7 +32,6 @@ custom_files:
           value_mappings:
             "Client": "GrdaWarehouse::Hud::Client"
             "Enrollment": "GrdaWarehouse::Hud::Enrollment"
-            "Exit": "GrdaWarehouse::Hud::Exit"
             "Project": "GrdaWarehouse::Hud::Project"
             "Organization": "GrdaWarehouse::Hud::Organization"
       - name: "FieldType"

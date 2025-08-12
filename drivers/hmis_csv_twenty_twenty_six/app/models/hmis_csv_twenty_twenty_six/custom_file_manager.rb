@@ -130,9 +130,36 @@ module HmisCsvTwentyTwentySix
     private_class_method def self.generate_exporter_model_file(definition)
       file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/custom/#{definition.class_name.underscore}.rb")
       export_scope_code = generate_export_scope_code(definition)
+      puts export_scope_code.inspect
       adjust_keys_code = generate_adjust_keys_code(definition)
+      owner_class_mapping_code = generate_owner_class_mapping_code(definition)
+      warehouse_class_for_export_code = generate_warehouse_class_for_export_code(definition)
 
       content = ::Code.copywright_header
+      # Build optional method blocks with consistent 2-space indentation level inside the class (4 spaces)
+      indent = '    '
+      adjust_keys_block = if adjust_keys_code.present?
+        "\n\n" + adjust_keys_code.lines.map do |l|
+          if l.present?
+            indent + l
+          else
+            l
+          end
+        end.join
+      else
+        ''
+      end
+      owner_class_mapping_block = if owner_class_mapping_code.present?
+        "\n\n" + owner_class_mapping_code.lines.map { |l| indent + l }.join
+      else
+        ''
+      end
+      warehouse_class_for_export_block = if warehouse_class_for_export_code.present?
+        "\n\n" + warehouse_class_for_export_code.lines.map { |l| indent + l }.join
+      else
+        ''
+      end
+
       content += <<~RUBY
         # frozen_string_literal: true
 
@@ -153,7 +180,7 @@ module HmisCsvTwentyTwentySix
               [
                 HmisCsvTwentyTwentySix::Exporter::Custom::#{definition.class_name},
               ]
-            end#{adjust_keys_code.present? ? "\n\n    #{adjust_keys_code}" : ''}
+            end#{adjust_keys_block}#{owner_class_mapping_block}#{warehouse_class_for_export_block}
           end
         end
       RUBY
@@ -410,86 +437,80 @@ module HmisCsvTwentyTwentySix
         # If there's an export_limiting_column_value_mapping, we filter by owner relationships
         # If not, we export all records from the warehouse class for the relevant data sources
         available_owner_types = definition.export_limiting_column_value_mapping
-        lines = ["warehouse_class = #{definition.warehouse_class_name}", '']
-
         # Check if we have export_limiting_column_value_mapping (owner-based filtering)
         # If not, we export all records from the warehouse class for the relevant data sources
-        if available_owner_types.nil?
-          lines += [
+        lines = if available_owner_types.nil?
+          [
             '# No export limiting column - export all records for the relevant data sources',
             'data_source_ids = options[:project_scope].distinct.pluck(:data_source_id) if options[:project_scope]',
             'data_source_ids ||= [0] # if we can\'t determine any relevant data sources, include no data',
-            'combined_scope = warehouse_class.where(data_source_id: data_source_ids)',
+            'combined_scope = warehouse_class_for_export.where(data_source_id: data_source_ids)',
+            '',
+            'combined_scope',
           ]
         else
-          # Add the variables we'll need for owner-based filtering
-          lines += [
-            '# Create a union of scopes for each owner type, delegating to their export_scope',
-            'scopes = []',
-            '',
-            '# Get the scope mapping from the custom base class',
-            'scope_mapping = HmisCsvTwentyTwentySix::Exporter::Custom::Base.exporter_scope_mapping',
-            '',
-          ]
-          # Generate the hash with each key-value pair on its own line for readability
-          lines += [
-            '{',
-          ]
-          available_owner_types.each do |(k, v)|
-            lines << "  '#{k}' => '#{v}',"
-          end
-          lines += [
-            '}.each do |granular_class_name, owner_type|',
-            '  export_class = "HmisCsvTwentyTwentySix::Exporter::#{granular_class_name}".constantize',
-            '  next unless export_class.respond_to?(:export_scope)',
-            '',
-            '  # Get the IDs of records being exported for this owner type',
-            '  # Each exporter requires different scope parameters, so we provide only what it needs',
-            '  required_scope_param = scope_mapping[granular_class_name]',
-            '  if required_scope_param && options.key?(required_scope_param)',
-            '    # Build the arguments hash with only the required scope parameter and export',
-            '    scope_args = { required_scope_param => options[required_scope_param], export: options[:export] }',
-            '    owner_ids_scope = export_class.export_scope(**scope_args).select(:id)',
-            '  else',
-            '    # Fallback: skip this exporter if we don\'t have the required scope',
-            '    Rails.logger.warn "Skipping #{granular_class_name} exporter - missing required scope #{required_scope_param}"',
-            '    next',
-            '  end',
-            '',
-            '  # Find records that reference these exported records',
-            '  scope = warehouse_class.where(',
-            '    owner_type: owner_type,',
-            '    owner_id: owner_ids_scope,',
-            '  )',
-            '',
-            '  scopes << scope',
-            'end',
-            '',
-            '# Union all the scopes together',
-            'return warehouse_class.none if scopes.empty?',
-            '',
-            'combined_scope = scopes.shift',
-            'scopes.each do |scope|',
-            '  combined_scope = combined_scope.or(scope)',
-            'end',
+          # Use the new base class method for owner-based filtering
+          [
+            'export_scope_with_owner_filtering(**options)',
           ]
         end
-
-        lines += [
-          '',
-          'combined_scope',
-        ]
-
         content = ''
-        lines.each_with_index do |line, index|
-          content += '      ' if line.present? && index.positive?
-          content += line
-          content += "\n" if index != lines.length - 1
+        lines.each_with_index do |l, i|
+          if i == 0 || l.blank?
+            content += l
+          else
+            content += ' ' * 6 + l
+          end
+          # Add a new line to all lines except the last one
+          content += "\n" if lines.count != i + 1
         end
         content
+
       else
         return "# No export class specified\n      []"
       end
+    end
+
+    # Generates the owner_class_mapping method code based on the configuration
+    #
+    # @param definition [CustomFileDefinition] Definition object for the custom file
+    # @return [String] Ruby code for the owner_class_mapping method
+    # @private
+    private_class_method def self.generate_owner_class_mapping_code(definition)
+      available_owner_types = definition.export_limiting_column_value_mapping
+      return unless available_owner_types
+
+      # Generate the hash with each key-value pair on its own line for readability
+      lines = ['{']
+      available_owner_types.each do |(k, v)|
+        lines << "    '#{k}' => '#{v}',"
+      end
+      lines << '  }'
+
+      # rubocop:disable Layout/HeredocIndentation
+      <<~RUBY.strip
+    def self.owner_class_mapping
+      #{lines.join("\n")}
+    end
+      RUBY
+      # rubocop:enable Layout/HeredocIndentation
+    end
+
+    # Generates the warehouse_class_for_export method code based on the configuration
+    #
+    # @param definition [CustomFileDefinition] Definition object for the custom file
+    # @return [String] Ruby code for the warehouse_class_for_export method
+    # @private
+    private_class_method def self.generate_warehouse_class_for_export_code(definition)
+      return unless definition.warehouse_class_name
+
+      # rubocop:disable Layout/HeredocIndentation
+      <<~RUBY.strip
+    def self.warehouse_class_for_export
+      #{definition.warehouse_class_name}
+    end
+      RUBY
+      # rubocop:enable Layout/HeredocIndentation
     end
 
     # Generates the adjust_keys method code based on the configuration
@@ -504,20 +525,21 @@ module HmisCsvTwentyTwentySix
         # rubocop:disable Layout/HeredocIndentation
         <<~RUBY.strip
     def self.adjust_keys(row, export)
-          # Delegate to the standard exporter's adjust_keys method
-          #{export_class}.adjust_keys(row, export)
-        end
+      # Delegate to the standard exporter's adjust_keys method
+      #{export_class}.adjust_keys(row, export)
+    end
         RUBY
         # rubocop:enable Layout/HeredocIndentation
       else
         # rubocop:disable Layout/HeredocIndentation
         <<~RUBY.strip
     def self.adjust_keys(row, _export)
-          row.UserID = row.user_id || 'op-system'
-          row[:#{definition.hud_key}] = row.id
+      row.UserID = row.user_id || 'op-system'
+      row[:#{definition.hud_key}] = row.id
 
-          row
-        end
+      # Map warehouse column values to export column values
+      apply_warehouse_to_export_mappings(row)
+    end
         RUBY
         # rubocop:enable Layout/HeredocIndentation
       end

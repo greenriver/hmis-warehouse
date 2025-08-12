@@ -310,7 +310,10 @@ module HmisCsvTwentyTwentySix::Exporter
           export_class,
           {
             hmis_class: details[:hmis_class],
-            details[:scope] => send(details[:scope]),
+            # Pass all available scopes to custom files since they may need multiple scopes
+            project_scope: project_scope,
+            client_scope: client_scope,
+            enrollment_scope: enrollment_scope,
           },
         ]
       end.to_h
