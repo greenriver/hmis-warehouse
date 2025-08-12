@@ -35,7 +35,8 @@ module Hmis::Ce
     # @param wait_time [ActiveSupport::Duration, nil] Time to wait before scheduling next batch.
     #        If nil, job will not reschedule itself.
     # @param progress [Boolean] Whether to display progress bar (development aid)
-    def perform(next_pool_id: nil, wait_time: nil, progress: false)
+    # @param batch_size [Integer] Number of pools to process in each batch
+    def perform(next_pool_id: nil, wait_time: nil, progress: false, batch_size: 10)
       raise 'CE configuration not enabled or HMIS enforcement disabled' unless Hmis::Ce.configuration.enabled? && HmisEnforcement.hmis_enabled?
 
       next_pool_id ||= 0
@@ -52,7 +53,7 @@ module Hmis::Ce
           # get a batch of dirty pools
           dirty_pool_markers = Hmis::Ce::ChangeMarker.dirty.pools.batch(
             start_id: next_pool_id,
-            limit: 10,
+            limit: batch_size,
           ).to_a
           log_info("Found #{dirty_pool_markers.count} dirty pool markers to process")
 
@@ -65,6 +66,7 @@ module Hmis::Ce
             schedule_next_batch(
               next_pool_id: next_pool_id,
               wait_time: wait_time,
+              batch_size: batch_size,
             )
           end
           log_info('Batch completed successfully')
@@ -78,13 +80,15 @@ module Hmis::Ce
     #
     # @param next_pool_id [Integer] Starting pool ID for next batch
     # @param wait_time [ActiveSupport::Duration, nil] Time to wait before next execution
-    def schedule_next_batch(next_pool_id: 0, wait_time: nil)
+    # @param batch_size [Integer] Number of pools to process in next batch
+    def schedule_next_batch(next_pool_id: 0, wait_time: nil, batch_size: 10)
       return unless wait_time
 
       log_info("Scheduling next batch with wait_time: #{wait_time}")
       self.class.set(wait: wait_time).perform_later(
         next_pool_id: next_pool_id,
         wait_time: wait_time,
+        batch_size: batch_size,
       )
     end
 
