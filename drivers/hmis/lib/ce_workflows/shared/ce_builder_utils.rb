@@ -83,22 +83,22 @@ module CeWorkflows::Shared
       steps = Hmis::WorkflowExecution::Step.where(instance: instances)
       referrals = Hmis::Ce::Referral.where(workflow_instance: instances)
 
-      Hmis::Ce::ReferralNote.where(referral: referrals).destroy_all
-      Hmis::Ce::ReferralParticipant.where(referral: referrals).destroy_all
-      referrals.destroy_all
+      Hmis::Ce::ReferralNote.where(referral: referrals).find_each(&:destroy!)
+      Hmis::Ce::ReferralParticipant.where(referral: referrals).find_each(&:destroy!)
+      referrals.find_each(&:destroy!)
 
-      Hmis::Ce::OpportunityCategorization.where(opportunity: opportunities).destroy_all
-      opportunities.destroy_all
+      Hmis::Ce::OpportunityCategorization.where(opportunity: opportunities).find_each(&:destroy!)
+      opportunities.find_each(&:destroy!)
 
-      Hmis::WorkflowExecution::AuditEvent.where(instance: instances).destroy_all
-      instances.destroy_all
-      Hmis::WorkflowExecution::StepAssignment.where(step: steps).destroy_all
-      steps.destroy_all
+      Hmis::WorkflowExecution::AuditEvent.where(instance: instances).find_each(&:destroy!)
+      instances.find_each(&:destroy!)
+      Hmis::WorkflowExecution::StepAssignment.where(step: steps).find_each(&:destroy!)
+      steps.find_each(&:destroy!)
 
-      Hmis::WorkflowDefinition::Flow.where(template: templates).destroy_all
-      Hmis::WorkflowDefinition::Node.where(template: templates).destroy_all
-      Hmis::WorkflowDefinition::Swimlane.where(template: templates).destroy_all
-      templates.destroy_all
+      Hmis::WorkflowDefinition::Flow.where(template: templates).find_each(&:destroy!)
+      Hmis::WorkflowDefinition::Node.where(template: templates).find_each(&:destroy!)
+      Hmis::WorkflowDefinition::Swimlane.where(template: templates).find_each(&:destroy!)
+      templates.find_each(&:destroy!)
     end
 
     def self.delete_form_definitions(form_definition_identifiers)
