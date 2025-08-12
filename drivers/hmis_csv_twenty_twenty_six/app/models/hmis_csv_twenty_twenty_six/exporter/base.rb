@@ -266,29 +266,25 @@ module HmisCsvTwentyTwentySix::Exporter
         exporter_class_name = "HmisCsvTwentyTwentySix::Exporter::Custom::#{definition.class_name}"
         importer_class_name = "HmisCsvTwentyTwentySix::Importer::Custom::#{definition.class_name}"
 
-        begin
-          exporter_class = exporter_class_name.constantize
-          importer_class = importer_class_name.constantize
+        exporter_class = exporter_class_name.constantize
+        importer_class = importer_class_name.constantize
 
-          # Determine scope based on what warehouse table is augmented
-          scope_name = case definition.augments_warehouse_table
-          when 'GrdaWarehouse::Hud::Client'
-            :client_scope
-          when 'GrdaWarehouse::Hud::Enrollment'
-            :enrollment_scope
-          when 'GrdaWarehouse::Hud::Project', 'GrdaWarehouse::Hud::Organization'
-            :project_scope
-          else
-            :project_scope # For custom files that don't augment a warehouse table, we default to project scope, so we can fetch the data source ids.
-          end
-
-          mappings[exporter_class] = {
-            hmis_class: importer_class,
-            scope: scope_name,
-          }
-        rescue NameError
-          Rails.logger.warn "Custom exporter class #{exporter_class_name} not found. Run HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models! to generate it."
+        # Determine scope based on what warehouse table is augmented
+        scope_name = case definition.augments_warehouse_table
+        when 'GrdaWarehouse::Hud::Client'
+          :client_scope
+        when 'GrdaWarehouse::Hud::Enrollment'
+          :enrollment_scope
+        when 'GrdaWarehouse::Hud::Project', 'GrdaWarehouse::Hud::Organization'
+          :project_scope
+        else
+          :project_scope # For custom files that don't augment a warehouse table, we default to project scope, so we can fetch the data source ids.
         end
+
+        mappings[exporter_class] = {
+          hmis_class: importer_class,
+          scope: scope_name,
+        }
       end
       mappings
     end
