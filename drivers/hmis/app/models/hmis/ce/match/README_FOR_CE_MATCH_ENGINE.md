@@ -20,7 +20,7 @@ The classes within this module are organized into several subdirectories to grou
 
 ## Core Workflow
 
-1.  **Initiation**: The process is typically initiated via the `Engine` class, triggered by a `ProcessChangesJob` job. The engine supports both full and incremental client processing.
+1.  **Initiation**: The process is typically initiated via the `Engine` class, triggered by either `ProcessPoolsJob` (for pool processing) or `ProcessClientsJob` (for client processing). The engine supports both full and incremental client processing.
 2.  **SQL Prefiltering**: The `Engine` first uses the `SqlPrefilter` to translate the pool's eligibility requirements into a SQL `WHERE` clause. This efficiently filters out a large number of non-matching clients at the database level.
 3.  **In-Memory Evaluation**: For the remaining clients, the `ClientPoolEvaluator` performs an, in-memory evaluation of priority and eligibility requirements
 4.  **Persistence**: The `Engine` performs the following, via the `CandidateRepository`:
