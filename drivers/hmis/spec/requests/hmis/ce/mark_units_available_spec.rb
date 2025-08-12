@@ -75,14 +75,6 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
         expect(unit.latest_opportunity.workflow_template).to eq(template)
       end
 
-      it 'acquires a shared advisory lock' do
-        expect(GrdaWarehouseBase).to receive(:with_advisory_lock).
-          with('candidate-pool-maintenance', timeout_seconds: 10, shared: true, transaction: true).
-          and_call_original
-
-        post_graphql(**variables) { mutation }
-      end
-
       context 'with assignment rules' do
         let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
 

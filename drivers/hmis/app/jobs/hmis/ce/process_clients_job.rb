@@ -55,6 +55,7 @@ module Hmis::Ce
             limit: 1_000,
           ).to_a
           log_info("Found #{dirty_client_markers.count} dirty client markers to process")
+          reconcile_dangling_markers(dirty_client_markers)
 
           # process dirty clients against all available pools
           next_client_id = process_dirty_clients(dirty_client_markers)
@@ -137,6 +138,33 @@ module Hmis::Ce
     end
 
     private
+
+    # Removes change markers for clients that no longer exist. This prevents buildup of
+    # orphaned records
+    #
+    # @param markers [Array<Hmis::Ce::ChangeMarker>] The batch of markers to check.
+    #        This array is modified in-place to remove dangling markers.
+    def reconcile_dangling_markers(markers)
+      return if markers.empty?
+
+      # Efficiently find which clients in this batch actually exist
+      trackable_ids = markers.map(&:trackable_id)
+      existing_client_ids = GrdaWarehouse::Hud::Client.destination.where(id: trackable_ids).pluck(:id).to_set
+
+      # Partition markers into existing and dangling in a single pass
+      existing_markers, dangling_markers = markers.partition { |marker| existing_client_ids.include?(marker.trackable_id) }
+
+      return if dangling_markers.empty?
+
+      log_info("Reconciling: found and deleting #{dangling_markers.count} dangling client markers.")
+
+      # Use delete_all for better performance since we're cleaning up orphaned records
+      # No need for callbacks or object instantiation
+      Hmis::Ce::ChangeMarker.where(id: dangling_markers.map(&:id)).delete_all
+
+      # Replace the original array with only existing markers
+      markers.replace(existing_markers)
+    end
 
     def log_info(message)
       Rails.logger.info("[ProcessClientsJob] #{message}")
