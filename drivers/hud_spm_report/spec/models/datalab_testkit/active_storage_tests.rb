@@ -13,7 +13,7 @@ RSpec.shared_context 'active storage tests hud spm', shared_context: :metadata d
   describe 'HUD SPM Report ActiveStorage Migration Tests' do
     before(:all) do
       @report = ::HudReports::ReportInstance.last
-      @service = HudReports::S3ArtifactService.new(@report)
+      @service = ::HudReports::FileArtifactService.new(@report)
 
       # Manually run the cleanup job to ensure it works
       expect do

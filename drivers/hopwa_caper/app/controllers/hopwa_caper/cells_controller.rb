@@ -57,7 +57,7 @@ module HopwaCaper
 
       return @report.hopwa_caper_enrollments.none unless report_cell
 
-      service = ::HudReports::S3ArtifactService.new(@report)
+      service = ::HudReports::FileArtifactService.new(@report)
       csv_data = service.retrieve_universe_members(question: table)
       return @report.hopwa_caper_enrollments.none unless csv_data
 
@@ -79,7 +79,7 @@ module HopwaCaper
 
       return @report.hopwa_caper_services.none unless report_cell
 
-      service = ::HudReports::S3ArtifactService.new(@report)
+      service = ::HudReports::FileArtifactService.new(@report)
       csv_data = service.retrieve_universe_members(question: table)
       return @report.hopwa_caper_services.none unless csv_data
 

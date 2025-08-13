@@ -9,7 +9,7 @@
 # Service for managing HUD report artifacts in S3 via ActiveStorage
 # Handles storing report data as CSV files and JSON summaries
 module HudReports
-  class S3ArtifactService
+  class FileArtifactService
     include ActionView::Helpers::DateHelper
 
     def initialize(report_instance)

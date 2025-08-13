@@ -14,7 +14,7 @@ RSpec.shared_context 'active storage tests hud path report', shared_context: :me
       run(@generator, project_ids_filter(project_ids))
 
       @report = ::HudReports::ReportInstance.last
-      @service = HudReports::S3ArtifactService.new(@report)
+      @service = ::HudReports::FileArtifactService.new(@report)
 
       # Manually run the cleanup job to ensure it works
       expect do

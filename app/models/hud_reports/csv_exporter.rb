@@ -57,7 +57,7 @@ module HudReports
         table = answer_table
 
         artifacts_stored = @report.artifacts_stored?
-        service = HudReports::S3ArtifactService.new(@report)
+        service = HudReports::FileArtifactService.new(@report)
         csv_data = service.retrieve_universe_members(question: @table) if artifacts_stored
 
         row_names.each do |row_name|
@@ -129,7 +129,7 @@ module HudReports
     private
 
     def check_any_members_from_s3(answer, csv_data: nil)
-      csv = csv_data || HudReports::S3ArtifactService.new(@report).retrieve_universe_members(question: @table)
+      csv = csv_data || HudReports::FileArtifactService.new(@report).retrieve_universe_members(question: @table)
 
       return false unless csv
 

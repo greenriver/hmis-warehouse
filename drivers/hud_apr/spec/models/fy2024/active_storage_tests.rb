@@ -20,7 +20,7 @@ RSpec.shared_context 'active storage tests apr', shared_context: :metadata do
       # Run the report once for all tests
       run(@generator, @filter)
       @report = ::HudReports::ReportInstance.last
-      @service = HudReports::S3ArtifactService.new(@report)
+      @service = ::HudReports::FileArtifactService.new(@report)
 
       # Manually run the cleanup job to ensure it works
       expect do

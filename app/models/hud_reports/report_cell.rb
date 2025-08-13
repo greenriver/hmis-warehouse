@@ -195,7 +195,7 @@ module HudReports
     end
 
     def load_members_from_s3
-      service = HudReports::S3ArtifactService.new(report_instance)
+      service = HudReports::FileArtifactService.new(report_instance)
       csv_data = service.retrieve_universe_members(question: question)
 
       return self.class.none unless csv_data
@@ -219,7 +219,7 @@ module HudReports
     end
 
     def count_from_s3
-      service = HudReports::S3ArtifactService.new(report_instance)
+      service = HudReports::FileArtifactService.new(report_instance)
       csv_data = service.retrieve_universe_members(question: question)
 
       return 0 unless csv_data

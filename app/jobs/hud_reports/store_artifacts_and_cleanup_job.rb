@@ -36,7 +36,7 @@ module HudReports
     def store_artifacts_to_s3(report)
       Rails.logger.info "Storing artifacts to S3 for report #{report.id}"
 
-      service = HudReports::S3ArtifactService.new(report)
+      service = HudReports::FileArtifactService.new(report)
       service.store_artifacts!
 
       Rails.logger.info "Successfully stored artifacts to S3 for report #{report.id}"
