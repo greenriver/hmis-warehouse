@@ -10,6 +10,8 @@ module HudApr
   class CellsController < HudApr::QuestionsController
     include ApplicationHelper
     include ActionView::Helpers::TagHelper
+    include ::HudReports::ArtifactAwareCells
+
     private def set_question
       @question = generator.valid_question_number(params[:question] || params[:question_id])
     end
@@ -17,10 +19,7 @@ module HudApr
     def show
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      @clients = HudApr::Fy2020::AprClient.
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+      @clients = load_cell_clients(HudApr::Fy2020::AprClient, @cell, @table)
       @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
       respond_to do |format|
         format.html {}

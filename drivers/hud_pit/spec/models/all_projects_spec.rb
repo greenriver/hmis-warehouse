@@ -18,6 +18,7 @@ require_relative 'questions/parenting_youth'
 require_relative 'questions/veteran_adult_and_child'
 require_relative 'questions/veteran_adults'
 require_relative 'questions/projects'
+require_relative 'active_storage_tests'
 
 RSpec.describe 'PIT All-Projects with DataLab TestKit data:', type: :model do
   include_context 'datalab testkit context'
@@ -41,6 +42,7 @@ RSpec.describe 'PIT All-Projects with DataLab TestKit data:', type: :model do
     include_context 'veteran adult and child'
     include_context 'veteran adults'
     include_context 'projects'
+    include_context 'active storage tests hud pit'
 
   else
     it 'Data Lab Testkit based tests are skipped, files are missing' do

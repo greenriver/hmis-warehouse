@@ -24,6 +24,7 @@ require_relative 'datalab_caper/organization_s_es'
 # This is here because it is easier to run an APR with results using the testkit context
 # This set of tests is not particular to the test kit
 require_relative 'gender_filter_tests'
+require_relative 'active_storage_tests'
 
 require_relative 'datalab_ce_apr/systemwide'
 
@@ -54,6 +55,7 @@ RSpec.describe 'Datalab 2024', type: :model do
     include_context 'datalab organization s rrh apr'
     include_context 'datalab organization t psh apr'
     include_context 'gender filter tests apr'
+    include_context 'active storage tests apr'
 
     include_context 'datalab organization a so caper'
     include_context 'datalab organization j hp caper'

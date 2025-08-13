@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # A HUD report cell, identified by a question and cell name (e.g., question: 'Q1', cell_name: 'b2')
 # * the cell value appears to be stored in the "summary" field
 # * sometimes a cell is a question group (q6) with sub-questions (6a, 6b, etc.,)
@@ -53,11 +55,19 @@ module HudReports
     end
 
     def members
-      @members ||= join_universe
+      @members ||= if report_instance.artifacts_stored?
+        load_members_from_s3
+      else
+        join_universe
+      end
     end
 
     def count
-      @count ||= universe_members.count
+      @count ||= if report_instance.artifacts_stored?
+        count_from_s3
+      else
+        universe_members.count
+      end
     end
 
     def add_members(members)
@@ -182,6 +192,42 @@ module HudReports
 
       table_join = members_table.join(universe_table_name).on(members_table[:universe_membership_id].eq(universe_table_name[:id]))
       universe_members.joins(table_join.join_sources)
+    end
+
+    def load_members_from_s3
+      service = HudReports::S3ArtifactService.new(report_instance)
+      csv_data = service.retrieve_universe_members(question: question)
+
+      return self.class.none unless csv_data
+
+      # Filter universe members for this specific cell
+      cell_members = csv_data.select { |row| row['report_cell_id'].to_i == id }
+
+      Rails.logger.info "Loaded #{cell_members.count} members from S3 for cell #{id} (report #{report_instance.id})"
+
+      # Convert to a format that mimics the original universe members
+      cell_members.map do |row|
+        OpenStruct.new(
+          report_cell_id: row['report_cell_id'].to_i,
+          universe_membership_type: row['universe_membership_type'],
+          universe_membership_id: row['universe_membership_id'].to_i,
+          client_id: row['client_id'].to_i,
+          first_name: row['first_name'],
+          last_name: row['last_name'],
+        )
+      end
+    end
+
+    def count_from_s3
+      service = HudReports::S3ArtifactService.new(report_instance)
+      csv_data = service.retrieve_universe_members(question: question)
+
+      return 0 unless csv_data
+
+      # Count universe members for this specific cell
+      count = csv_data.count { |row| row['report_cell_id'].to_i == id }
+      Rails.logger.info "Counted #{count} members from S3 for cell #{id} (report #{report_instance.id})"
+      count
     end
   end
 end

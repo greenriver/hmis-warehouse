@@ -8,6 +8,8 @@
 
 module HudSpmReport
   class CellsController < HudSpmReport::BaseController
+    include ::HudReports::ArtifactAwareCells
+
     private def report_param_name
       :spm_id
     end
@@ -24,11 +26,8 @@ module HudSpmReport
 
       @headers = generator.column_headings(@question)
 
-      @clients = generator.client_scope(@question).
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id)).
-        distinct
+      client_scope = generator.client_scope(@question)
+      @clients = load_cell_clients(client_scope, @cell, @table).distinct
 
       respond_to do |format|
         format.html {}

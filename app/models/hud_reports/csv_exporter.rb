@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'csv'
 
 module HudReports
@@ -54,15 +56,27 @@ module HudReports
       @as_array_of_hashes ||= begin
         table = answer_table
 
+        artifacts_stored = @report.artifacts_stored?
+        service = HudReports::S3ArtifactService.new(@report)
+        csv_data = service.retrieve_universe_members(question: @table) if artifacts_stored
+
         row_names.each do |row_name|
           row = row_with_label(row_name)
           column_names.each do |column_name|
             answer = @report.preload_answers(@table).answer(question: @table, cell: "#{column_name}#{row_name}")
             answer.summary ||= ''
             answer.summary = '0.0000' if answer.summary == 'NaN'
+
+            # Check if we need to determine any_members from S3
+            any_members = if artifacts_stored
+              check_any_members_from_s3(answer, csv_data: csv_data)
+            else
+              answer.any_members
+            end
+
             row << {
               value: answer.summary,
-              any_members: answer.any_members,
+              any_members: any_members,
             }
           end
           table << row
@@ -110,6 +124,17 @@ module HudReports
       return [] unless @metadata
 
       ('A'..@metadata['last_column'])
+    end
+
+    private
+
+    def check_any_members_from_s3(answer, csv_data: nil)
+      csv = csv_data || HudReports::S3ArtifactService.new(@report).retrieve_universe_members(question: @table)
+
+      return false unless csv
+
+      # Check if there are any universe members for this cell
+      csv.any? { |row| row['report_cell_id'].to_i == answer.id }
     end
   end
 end

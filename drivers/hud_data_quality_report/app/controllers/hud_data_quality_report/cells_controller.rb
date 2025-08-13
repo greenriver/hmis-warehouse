@@ -8,16 +8,15 @@
 
 module HudDataQualityReport
   class CellsController < HudDataQualityReport::QuestionsController
+    include ::HudReports::ArtifactAwareCells
+
     before_action :set_report
     before_action :set_question
 
     def show
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      @clients = HudDataQualityReport::Fy2020::DqClient.
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+      @clients = load_cell_clients(HudDataQualityReport::Fy2020::DqClient, @cell, @table)
       @name = "#{report_short_name} #{@question} #{@cell}"
       respond_to do |format|
         format.html {}

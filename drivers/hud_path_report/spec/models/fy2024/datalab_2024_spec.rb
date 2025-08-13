@@ -4,11 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'datalab_path/path_organization_f'
 require_relative 'datalab_path/path_organization_r'
 require_relative 'datalab_path/path_organization_q'
+require_relative 'active_storage_tests'
 
 RSpec.describe 'PATH Datalab 2024', type: :model do
   include_context 'datalab testkit context'
@@ -33,6 +36,7 @@ RSpec.describe 'PATH Datalab 2024', type: :model do
     include_context 'path organization f'
     include_context 'path organization q'
     include_context 'path organization r'
+    include_context 'active storage tests hud path report'
   else
     it 'Data Lab Testkit based tests are skipped, files are missing' do
       expect(true).to be false

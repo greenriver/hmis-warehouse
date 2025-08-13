@@ -23,7 +23,7 @@ module HopwaCaper
     delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, to: :enrollment
 
     def project_id
-      enrollment.project.id
+      enrollment.project_id
     end
 
     def self.as_report_members

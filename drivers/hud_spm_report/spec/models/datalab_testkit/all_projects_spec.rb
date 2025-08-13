@@ -9,6 +9,7 @@
 require 'rails_helper'
 require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'spm_context'
+require_relative 'active_storage_tests'
 
 RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
   include_context 'datalab testkit context'
@@ -24,6 +25,8 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       run(default_spm_filter, HudSpmReport::Generators::Fy2024::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
+
+    include_context 'active storage tests hud spm'
 
     # PersonalID: 665435 showing 30 Homeless days in TK data but we have 17 calculated due to overlapping PH enrollment
     # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recbKFyAs8hUTlNFU

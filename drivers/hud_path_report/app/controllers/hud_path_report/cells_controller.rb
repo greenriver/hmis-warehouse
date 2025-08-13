@@ -8,16 +8,17 @@
 
 module HudPathReport
   class CellsController < HudPathReport::QuestionsController
+    include ::HudReports::ArtifactAwareCells
+
     before_action :set_report
     before_action :set_question
 
     def show
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      @clients = HudPathReport::Fy2020::PathClient.
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
+
+      @clients = load_cell_clients(HudPathReport::Fy2020::PathClient, @cell, @table)
+
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
       respond_to do |format|
         format.html {}
@@ -35,6 +36,9 @@ module HudPathReport
     helper_method :formatted_cell
 
     def count_dates(date_array)
+      # Handle string arrays that need to be converted back to arrays
+      date_array = YAML.load(date_array) if date_array.is_a?(String) && date_array.start_with?('[') && date_array.end_with?(']')
+
       date_array.sort.tally.map { |k, v| "#{k} (#{v})" }.join(', ')
     end
     helper_method :count_dates

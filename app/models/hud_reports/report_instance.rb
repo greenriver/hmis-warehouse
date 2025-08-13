@@ -27,6 +27,16 @@ module HudReports
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'
+
+    # ActiveStorage attachments for S3-based report artifacts
+    has_many_attached :universe_members_csv_shards
+    has_one_attached :report_clients_csv
+    has_one_attached :cell_details_csv
+    has_one_attached :report_summary_json
+
+    # Callbacks for artifact management
+    after_update :schedule_artifact_storage_and_cleanup, if: :saved_change_to_completed_at?
+
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
@@ -262,6 +272,23 @@ module HudReports
       end
 
       io.string
+    end
+
+    # Check if artifacts are stored in S3
+    def artifacts_stored?
+      universe_members_csv_shards.attached? && universe_members_csv_shards.attachments.any? &&
+        report_clients_csv.attached? &&
+        cell_details_csv.attached? &&
+        report_summary_json.attached?
+    end
+
+    private
+
+    def schedule_artifact_storage_and_cleanup
+      return unless completed_at.present?
+
+      # Schedule background job to store artifacts and cleanup RDS data
+      HudReports::StoreArtifactsAndCleanupJob.perform_later(id)
     end
   end
 end

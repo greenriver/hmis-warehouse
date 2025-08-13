@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 namespace :hud_report do
   # desc "Cleanup Bad Head of Households"
   # task :cleanup_bad_head_of_households => [:environment, "log:info_to_stdout"] do
@@ -119,4 +127,61 @@ namespace :hud_report do
   #   ReportGenerators::Ahar::Fy2016::ByProject.new.run!
   # end
 
+  # Process a single HUD report: store artifacts (shards) and cleanup RDS
+  # Usage:
+  #   rake hud_reports:store_hud_report_data[REPORT_ID]
+  #   rake "hud_reports:store_hud_report_data[REPORT_ID,true]"  # dry run
+  desc 'Process a single HUD report (store to S3 and cleanup RDS). Optional dry_run=true to preview only.'
+  task :store_hud_report_data, [:report_id, :dry_run] => :environment do |_t, args|
+    report_id = args[:report_id]
+    dry_run = ['true', '1', 'yes'].include?(args[:dry_run].to_s.downcase)
+
+    if report_id.blank?
+      puts 'Usage: rake hud_reports:store_hud_report_data[REPORT_ID,DRY_RUN]'
+      exit 1
+    end
+
+    report = HudReports::ReportInstance.find(report_id)
+
+    if dry_run
+      puts "DRY RUN: Would process report #{report.id} - #{report.report_name} (completed: #{report.completed_at})"
+      puts 'DRY RUN: Would store artifacts (shards) and cleanup RDS data'
+      next
+    end
+
+    HudReports::StoreArtifactsAndCleanupJob.perform_now(report.id)
+    puts "Processed report #{report.id}"
+  rescue ActiveRecord::RecordNotFound
+    puts "Report #{report_id} not found"
+    exit 1
+  end
+
+  # Process all completed HUD reports not yet processed
+  # Usage:
+  #   rake hud_reports:store_all_hud_report_data
+  #   rake "hud_reports:store_all_hud_report_data[true]"  # dry run
+  desc 'Process all completed HUD reports (store to S3 and cleanup RDS). Optional dry_run=true to preview only.'
+  task :store_all_hud_report_data, [:dry_run] => :environment do |_t, args|
+    dry_run = ['true', '1', 'yes'].include?(args[:dry_run].to_s.downcase)
+
+    scope = HudReports::ReportInstance.
+      where.not(completed_at: nil).
+      where(artifacts_stored_at: nil).
+      order(:completed_at)
+
+    if dry_run
+      puts "DRY RUN: Would process #{scope.count} completed reports"
+      next
+    end
+
+    processed = 0
+
+    scope.find_each do |report|
+      HudReports::StoreArtifactsAndCleanupJob.perform_now(report.id)
+      processed += 1
+      puts "  Processed report #{report.id}"
+    end
+
+    puts "Processing completed: #{processed} processed"
+  end
 end
