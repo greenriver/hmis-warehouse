@@ -139,14 +139,18 @@ module Types
     end
 
     def eligibility_requirements
-      return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.stale
+      # If the current opportunity is active and stale, return the eligibility requirements as they were
+      # when the opportunity was created.
+      return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
       return unless unit_group
 
       Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(unit_group)
     end
 
     def priority_scheme
-      return revivified_rules.filter(&:priority_scheme?).first if latest_opportunity&.stale
+      # If the current opportunity is active and stale, return the priority scheme as it was
+      # when the opportunity was created.
+      return revivified_rules.filter(&:priority_scheme?).first if latest_opportunity&.active? && latest_opportunity.stale
       return unless unit_group
 
       Hmis::Ce::Match::Rule.priority_scheme.for_entity(unit_group).first
