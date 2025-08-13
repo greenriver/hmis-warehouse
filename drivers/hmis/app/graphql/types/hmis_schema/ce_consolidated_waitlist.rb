@@ -19,6 +19,7 @@ module Types
       field.argument :id, ID, 'Client Proxy ID', required: true
     end
     field :client_attribute_columns, [Types::HmisSchema::KeyValue], null: false, description: 'Columns available in the consolidated waitlist'
+    field :available_filters, [Types::DynamicFilterConfig], null: false
 
     def self.authorized?(object, context)
       super && context[:current_user].can_administrate_coordinated_entry?
@@ -44,6 +45,16 @@ module Types
         { key: 'cde.custom_assessment.hna_ce_test_1_household_type', value: 'Household Type' },
         # Assessment Date-- add to eligibility requirements to be like "it must be present" as a workaround?
         # do we need an expression to coalesce veteran status questions?? to avoid this, collect onto same CDED in form?
+      ]
+    end
+
+    def available_filters
+      [
+        {
+          key: 'cde.custom_assessment.hna_ce_test_1_prioritization_score',
+          label: 'AHA Score',
+          values: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+        },
       ]
     end
   end

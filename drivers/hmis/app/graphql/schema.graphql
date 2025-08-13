@@ -769,6 +769,7 @@ type CeClient {
 }
 
 input CeClientFilterOptions {
+  dynamicFilters: [DynamicFilter!]
   searchTerm: String
 }
 
@@ -783,6 +784,7 @@ type CeClientsPaginated {
 }
 
 type CeConsolidatedWaitlist {
+  availableFilters: [DynamicFilterConfig!]!
   ceClient(
     """
     Client Proxy ID
@@ -3778,6 +3780,41 @@ enum DisplayHook {
   Display value as a column when viewing a table of records (e.g. Current Living Situations)
   """
   TABLE_SUMMARY
+}
+
+"""
+Represents a dynamic filter that can be applied to queries.
+"""
+input DynamicFilter {
+  """
+  The key or field name to filter on. Must match key on DynamicFilterConfig.
+  """
+  key: String!
+
+  """
+  The value to filter by. Must match one of the values on DynamicFilterConfig.
+  """
+  values: [String!]
+}
+
+"""
+Represents an available dynamic filter configuration.
+"""
+type DynamicFilterConfig {
+  """
+  The key or field name of the filter.
+  """
+  key: String!
+
+  """
+  The display label for the filter.
+  """
+  label: String!
+
+  """
+  The list of possible values for this filter.
+  """
+  values: [String!]!
 }
 
 """

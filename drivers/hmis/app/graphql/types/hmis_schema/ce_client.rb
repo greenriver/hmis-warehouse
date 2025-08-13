@@ -13,6 +13,7 @@ module Types
 
     available_filter_options do
       arg :search_term, String
+      arg :dynamic_filters, [Types::DynamicFilter], required: false
     end
 
     # object is a Hmis::Ce::ClientProxy
@@ -29,7 +30,7 @@ module Types
       super && context[:current_user].can_administrate_coordinated_entry?
     end
 
-    # All the unit groups that this client is a candidate for.mm
+    # All the unit groups that this client is a candidate for.
     # N+1 query; do not use in batch for multiple clients.
     def unit_groups_candidates
       # could incorporate the latest_event query too if needed
