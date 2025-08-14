@@ -88,5 +88,9 @@ module GrdaWarehouse
         end
       end
     end
+
+    def query_params
+      params.with_indifferent_access
+    end
   end
 end

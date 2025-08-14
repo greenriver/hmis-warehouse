@@ -7,8 +7,8 @@
         = f.input :min_age, collection: @filter.ages, include_blank: false, label: 'Minimum Age', as: :select_two
       .col-sm-4
         %p
-        = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'mb-0', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
-        = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'mb-0', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
+        = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'mb-0', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'Limit to clients who have not presented with a family in the last 3 years.'}}
+        = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'mb-0', data: { 'bs-toggle' => 'tooltip', 'bs-title' => 'Limit to clients enrolled in a DMH Project.'}}
         = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'mb-0'}
     .row
       .col-sm-4

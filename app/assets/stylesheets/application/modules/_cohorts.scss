@@ -28,7 +28,7 @@ ul.draggable-list li {
 }
 
 li.draggable-list__item {
-  background-color: $gray-015;
+  background-color: var(--gray-015);
 }
 
 .draggable-list__item {
@@ -49,7 +49,7 @@ li.draggable-list__item {
 
 
 .table-right-border td {
-  border-right: 1px solid $gray-025;
+  border-right: 1px solid var(--gray-025);
 }
 
 .cohorts .dataTables_wrapper {
@@ -73,14 +73,14 @@ li.draggable-list__item {
 }
 
 .cohorts .homeless_inactive {
-  background-color: lighten($brand-warning, 40);
+  background-color: var(--brand-warning-lll);
 }
 
 .cohorts .cohort_client_ineligible,
 .cohorts .cohort_client_ineligible.htDimmed,
 .cohorts .cohort_client_ineligible a:link,
 .cohorts .cohort_client_ineligible.htDimmed a:link {
-  background-color: lighten($gray-060, 40);
+  background-color: var(--gray-025);
 }
 
 .cohorts tr.cohort_client_ineligible textarea,
@@ -102,7 +102,7 @@ li.draggable-list__item {
 
 .cohorts tr.cohort-client-selected,
 .table-striped>tbody>tr.cohort-client-selected:nth-of-type(odd) {
-  background-color: $cob-sg-blue-004;
+  background-color: var(--bs-primary-desaturated);
   color: white;
 }
 
@@ -113,5 +113,18 @@ li.draggable-list__item {
 }
 
 .cohorts .warning {
-  color: $brand-warning;
+  color: var(--bs-warning);
+}
+
+// ag-grid's filter input inherits a flex: 1 0 0% from bootstrap's .form-control
+// which causes the input to be very short, and the icon to be overlayed over the
+// placeholder text.  This overrides that.
+.ag-text-field-input,
+.ag-text-field-input:placeholder-shown {
+  flex: 1 1 auto;
+}
+
+.ag-text-field-input {
+  padding: 0.5rem 0.25rem;
+  margin-left: 2.5rem;
 }

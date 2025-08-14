@@ -58,7 +58,6 @@ Rails.application.config.content_security_policy do |policy|
     'https://www.google.com/recaptcha/', # Google reCAPTCHA iframe for form protection
     'https://recaptcha.google.com/recaptcha/', # Google reCAPTCHA fallback iframe
   )
-
   policy.font_src(
     :self,
     :data, # Data URIs for inline fonts (base64 encoded)
@@ -95,6 +94,7 @@ Rails.application.config.content_security_policy do |policy|
     # Core Application
     'https://unpkg.com/ag-grid-community@', # Data grid component for large datasets
     'https://cdnjs.cloudflare.com/ajax/libs/chance/', # Random data generation for development
+    'https://unpkg.com/ag-grid-community', # Cohorts
 
     # Data Visualization & Analytics
     'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
@@ -104,6 +104,7 @@ Rails.application.config.content_security_policy do |policy|
     # Public Reports - UI Components
     'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework for responsive UI
     'https://cdn.jsdelivr.net/npm/bootstrap-datepicker@', # Date picker component
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/', # V4 of the datepicker
     'https://code.jquery.com', # jQuery for DOM manipulation and event handling
     'https://kit.fontawesome.com/b8b025dd15.js', # FontAwesome icons for public reports
 
@@ -128,6 +129,7 @@ Rails.application.config.content_security_policy do |policy|
       # Public Reports - UI Components
       'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework styles
       'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap icon font
+      'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/', # Bootstrap date picker
     ].compact_blank,
   )
 

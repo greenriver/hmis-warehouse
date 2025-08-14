@@ -43,7 +43,7 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(input['name']).to eq('search_term')
       expect(input['placeholder']).to eq(prompt)
       expect(input['value']).to eq(initial_value)
-      expect(input['data-toggle']).to eq('tooltip')
+      expect(input['data-bs-toggle']).to eq('tooltip')
       expect(input['data-title']).to eq(tooltip)
       expect(input['aria-label']).to eq(aria_label)
     end

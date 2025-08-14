@@ -2,7 +2,7 @@
 
 class App.Dashboards.Clients.Base
   constructor: (@chart_selector, @sub_population, @support_url, options={}) ->
-    Chart.defaults.global.defaultFontSize = 10
+
     @color_map = {}
     @next_color = 0
     @options = Object.assign({

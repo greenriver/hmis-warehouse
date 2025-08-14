@@ -6,7 +6,7 @@
         = f.input :note, as: :text, label: 'Notes'
         = f.submit "Set #{@ama_restriction.title}"
       - if can_see_health_emergency_medical_restriction?
-        .col-md-4.border-left
+        .col-md-4.border-start
           = render "he/clients/#{health_emergency}/previous_ama_restriction"
     - elsif can_see_health_emergency_medical_restriction?
       .col

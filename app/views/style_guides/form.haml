@@ -24,97 +24,116 @@
     margin-bottom: 100px;
   }
 = render 'breadcrumbs'
-- validate_html = { input_html: {class: 'validate'}}
-- form_defaults = { required: false }
-- collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
-- huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
-.container.py-4
-  %h1 Form
-  %section
-    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
-      .row
-        .col-6
-          %h4 Default input
-          = f.input :first_name, hint: 'This is a hint'
+%h1 Form Elements
+.row
+  .col-sm-10
+    - validate_html = { input_html: {class: 'validate'}}
+    - form_defaults = { required: false }
+    - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
+    - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
+    - grouped_collection = {'Group 1' => {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three'}, 'Group 2' => {'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}}
+    .container.py-4
+      %section
+        = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
+          .row
+            .col-6
+              %h4 Default input
+              = f.input :first_name, hint: 'This is a hint'
 
-          %h4 Required with validation
-          = f.input :last_name, required: true, **validate_html
+              %h4 Required with validation
+              = f.input :last_name, required: true, **validate_html
 
-          %h4 Disabled
-          = f.input :disabled, disabled: true
+              %h4 Disabled
+              = f.input :disabled, disabled: true
 
-          %h4 Number
-          = f.input :random_number, as: :numeric, required: true, **validate_html
+              %h4 Number
+              = f.input :random_number, as: :numeric, required: true, **validate_html
 
-          %h4 Normal Select
-          = f.input :sel,  collection: collection, hint: 'This is a hint', label: 'Example Label'
+              %h4 Checkboxes
+              = f.input :checkboxes, collection: collection, as: :check_boxes
 
-          %h4 "Pretty" boolean
-          = f.input :is_currently_youth, as: :pretty_boolean, disabled: false, label: 'Example Label', hint: 'This is a hint'
+              %h4 Radio Buttons
+              = f.input :radio_buttons, collection: collection, as: :radio_buttons
 
-          %h4 Normal boolean
-          = f.input :is_currently_normal_youth, as: :boolean, disabled: false, hint: 'This is a hint'
+              %h4 Normal Select
+              = f.input :sel,  collection: collection, hint: 'This is a hint', label: 'Example Label'
 
-          %section.my-6.mb-8
-            %h3 Select 2 Inputs
-            %hr
+              %h4 "Pretty" boolean
+              = f.input :is_currently_youth, as: :pretty_boolean, disabled: false, label: 'Example Label', hint: 'This is a hint'
 
-            %h4 Select 2 - simple form input - Default
-            = f.input :select2_simple_form, collection: collection, as: :select_two, hint: 'This is a hint'
+              %h4 "Pretty" Radio Buttons
+              = f.input :radio_buttons, collection: collection, as: :pretty_boolean_group
 
-            %h4 Select 2 - simple form input - Multiselect (with select all/none)
-            = f.input :select2_multi_simple_form, collection: collection, as: :select_two, input_html: { multiple: true }
+              %h4 Normal boolean
+              = f.input :is_currently_normal_youth, as: :boolean, disabled: false, hint: 'This is a hint'
 
-            %h4 Select 2 - simple form input - CoC special behavior
-            %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
-            = f.input :select2_coc_behavior_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
+              %h4 Normal Select
+              = f.input :normal_select_simple_form, collection: collection, as: :select, hint: 'This is a hint'
 
-            %h4 Select 2 - simple form input - Parenthetical
-            %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
-            = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
+              %section.my-6.mb-8
+                %h3 Select 2 Inputs
+                %hr
 
-            %h4 Select 2 - Ajax load of Projects (select2)
-            = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
+                %h4 Select 2 - simple form input - Default
+                = f.input :select2_simple_form, collection: collection, as: :select_two, hint: 'This is a hint'
 
-            %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
-            = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
+                %h4 Select 2 - simple form input - Multiselect (with select all/none)
+                = f.input :select2_multi_simple_form, collection: collection, as: :select_two, input_html: { multiple: true }
 
-            - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
-            %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
-            = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
+                %h4 Select 2 - simple form input - Multiselect (with select all/none) to test multiple on a page
+                = f.input :select2_multi_simple_form_2, collection: grouped_collection, as: :grouped_select_two, group_method: :last, input_html: { multiple: true }
 
-            %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
-            = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+                %h4 Select 2 - simple form input - CoC special behavior
+                %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
+                = f.input :select2_coc_behavior_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
 
-            %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
-            = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
-          %h4 Password
-          = f.input :password, as: :password, required: true, **validate_html
+                %h4 Select 2 - simple form input - Parenthetical
+                %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
+                = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
-          %h4 Textarea Input
-          = f.input :textarea, as: :text, required: true, **validate_html
+                %h4 Select 2 - Ajax load of Projects (select2)
+                = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
 
-          %h4 Date picker Input
-          = f.input :date, as: :date_picker, value: '2010-04-25'
+                %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
+                = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
 
-      .row
-        .col-12
-          %section
-            %h4 Submit
-            = f.submit value: 'Create', class: 'btn btn-primary'
-            = f.submit value: 'Cancel', class: 'btn btn-secondary'
-            = link_to root_path, class: 'btn btn-warning ml-1' do
-              %i.icon-warning
-              Breaking Change
-            = link_to root_path, class: 'btn btn-danger ml-1' do
-              %i.icon-cross
-              Delete (Destructive)
+                - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
+                %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
+                = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
 
-          %section
-- content_for :panel_collapse_content_actives do
-  = simple_form_for :actives, as: :filter, url: '#', method: :get do |f|
-    = f.error_notification
-    .row
-      .col-sm-3
-        = f.input :start, as: :date_picker, input_html: { value: 1.months.ago.to_date }
-= render 'common/panel_collapse', id: 'actives', title: 'Clients active within a date range', content: '_actives'
+                %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
+                = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+
+                %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
+                = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
+              %h4 Password
+              = f.input :password, as: :password, required: true, **validate_html
+
+              %h4 Textarea Input
+              = f.input :textarea, as: :text, required: true, **validate_html
+
+              %h4 Date picker Input
+              = f.input :date, as: :date_picker, value: '2010-04-25'
+
+          .row
+            .col-12
+              %section
+                %h4 Submit
+                = f.submit value: 'Create', class: 'btn btn-primary'
+                = f.submit value: 'Cancel', class: 'btn btn-secondary'
+                = link_to root_path, class: 'btn btn-warning ml-1' do
+                  %i.icon-warning
+                  Breaking Change
+                = link_to root_path, class: 'btn btn-danger ml-1' do
+                  %i.icon-cross
+                  Delete (Destructive)
+
+              %section
+    - content_for :panel_collapse_content_actives do
+      = simple_form_for :actives, as: :filter, url: '#', method: :get do |f|
+        = f.error_notification
+        .row
+          .col-sm-3
+            = f.input :start, as: :date_picker, input_html: { value: 1.months.ago.to_date }
+    = render 'common/panel_collapse', id: 'actives', title: 'Clients active within a date range', content: '_actives'
+  .col-sm-2= render 'pages'

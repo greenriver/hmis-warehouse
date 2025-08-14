@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'webmock/rspec'
 
@@ -23,22 +25,22 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
       accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
 
-      result = HmisExternalApis::OauthClientResult.new(
+      result = HmisExternalApis::ExternalApiResult.new(
         parsed_body: {
           'postingId' => posting.identifier,
           'postingStatusId' => accepted_status_code,
         },
       )
-      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
-        .with(
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch).
+        with(
           'Referral/PostingStatus',
           {
             'postingId' => posting.identifier,
             'postingStatusId' => accepted_status_code,
             'requestedBy' => requested_by,
           },
-        )
-        .and_return(result)
+        ).
+        and_return(result)
 
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
         posting_id: posting.identifier,

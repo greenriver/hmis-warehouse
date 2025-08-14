@@ -4,16 +4,17 @@
   position: relative;
 }
 
-.c-boolean-button input ~ label{
+.c-boolean-button input~label {
   @include button($white);
   align-items: center;
   margin-right: space(2);
-  border: 1px solid $brand-primary;
+  border: 1px solid var(--bs-primary);
   max-height: 40px;
   font-weight: normal;
   cursor: pointer;
+
   &:hover {
-    border: 1px solid $brand-primary;
+    border: 1px solid var(--bs-primary);
   }
 }
 
@@ -23,34 +24,28 @@
 }
 
 .c-boolean-button input:checked,
-.c-boolean-button input:not(:checked) {
-}
+.c-boolean-button input:not(:checked) {}
 
-.c-boolean-button input:checked ~ label,
-.c-boolean-button input:not(:checked) ~ label {
-}
+.c-boolean-button input:checked~label,
+.c-boolean-button input:not(:checked)~label {}
 
-.c-boolean-button input:not(:checked) ~ label {
-}
+.c-boolean-button input:not(:checked)~label {}
 
-.c-boolean-button input:checked ~ label {
-  color: darken($brand-primary, 10%);
-  background: $brand-primary-ll;
-  border-color: $brand-primary-l;
-  box-shadow: 0 4px 15px -5px rgba(0,0,0,.2);
+.c-boolean-button input:checked~label {
+  color: var(--brand-primary-d);
+  background: var(--brand-primary-llll);
+  border-color: var(--brand-primary-lll);
+  box-shadow: 0 4px 15px -5px rgba(0, 0, 0, .2);
   font-weight: bold;
 }
 
-.c-boolean-button input:disabled:checked ~ label,
-.c-boolean-button input.disabled:checked ~ label,
-.c-boolean-button input.disabled:not(:checked) ~ label,
-.c-boolean-button input:disabled:not(:checked) ~ label {
-}
+.c-boolean-button input:disabled:checked~label,
+.c-boolean-button input.disabled:checked~label,
+.c-boolean-button input.disabled:not(:checked)~label,
+.c-boolean-button input:disabled:not(:checked)~label {}
 
-.c-boolean-button input:not(:checked):disabled ~ label,
-.c-boolean-button input:not(:checked).disabled ~ label {
-}
+.c-boolean-button input:not(:checked):disabled~label,
+.c-boolean-button input:not(:checked).disabled~label {}
 
-.c-boolean-button input:disabled:checked ~ label,
-.c-boolean-button input.disabled:checked ~ label {
-}
+.c-boolean-button input:disabled:checked~label,
+.c-boolean-button input.disabled:checked~label {}

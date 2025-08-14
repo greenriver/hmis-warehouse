@@ -13,12 +13,12 @@
           %th Beds
           %th
             Clients
-            %i.icon-info{data: { toggle: :tooltip, title: 'For PH projects, only clients who have moved in are included.' }}
+            %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'For PH projects, only clients who have moved in are included.' }}
           %th % Bed Utilization
           %th Units
           %th
             Households
-            %i.icon-info{data: { toggle: :tooltip, title: 'For PH projects, only clients who have moved in are included.' }}
+            %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'For PH projects, only clients who have moved in are included.' }}
           %th % Unit Utilization
       %tbody
         - @report.report.each do |id, project|

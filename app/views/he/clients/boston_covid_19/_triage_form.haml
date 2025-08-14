@@ -12,7 +12,7 @@
         = f.input :notes, as: :text
         = f.submit "Add #{@triage.title}"
       - if can_see_health_emergency_screening?
-        .col-md-4.border-left
+        .col-md-4.border-start
           = render "he/clients/#{health_emergency}/previous_triage"
     - elsif can_see_health_emergency_screening?
       .col

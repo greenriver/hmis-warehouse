@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PatientReferral
   extend ActiveSupport::Concern
   include ArelHelper
@@ -33,8 +35,9 @@ module PatientReferral
 
   def load_filters
     filter_params = params[:filters] || {}
+    @search_string = @search_query&.query_params&.try(:[], :q) || ''
     @filters = Filters.new(
-      filter_params[:search],
+      @search_string,
       filter_params[:added_before],
       filter_params[:relationship],
       filter_params[:agency_id],
@@ -56,7 +59,7 @@ module PatientReferral
   end
 
   def load_sort
-    order = @filters.sort_by == 'last_name' ? 'last_name' : hpr_t[:created_at].desc.to_sql
+    order = @filters.sort_by == 'last_name' ? hpr_t[:last_name].asc : hpr_t[:created_at].desc.to_sql
     @patient_referrals = @patient_referrals.order(order)
   end
 

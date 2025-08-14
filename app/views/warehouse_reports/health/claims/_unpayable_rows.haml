@@ -10,10 +10,10 @@
       - if qa.naturally_payable?
         = qa.procedure_with_modifiers
       - else
-        %span{data: {toggle: :tooltip, title: "#{qa.procedure_with_modifiers} is not a valid Procedure Code"}}
+        %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "#{qa.procedure_with_modifiers} is not a valid Procedure Code"}}
           = qa.procedure_with_modifiers
     %td.text-center.jForcePayable
-      .btn-group.btn-group-toggle{data: {toggle: :buttons}}
+      .btn-group.btn-group-toggle{data: { 'bs-toggle' => :buttons}}
         - btn_classes = if ! qa.force_payable then 'btn-danger active' else 'btn-secondary' end
         %label.btn.btn-xs.jNo{class: btn_classes}
           = radio_button_tag "force_payable[#{qa.id}]", false, ! qa.force_payable
@@ -23,7 +23,7 @@
           = radio_button_tag "force_payable[#{qa.id}]", true, qa.force_payable
           Yes
     %td.text-center.jForcePayable
-      .btn-group.btn-group-toggle{data: {toggle: :buttons}}
+      .btn-group.btn-group-toggle{data: { 'bs-toggle' => :buttons}}
         - btn_classes = if ! qa.ignored then 'btn-danger active' else 'btn-secondary' end
         %label.btn.btn-xs.jNo{class: btn_classes}
           = radio_button_tag "ignored[#{qa.id}]", false, ! qa.ignored

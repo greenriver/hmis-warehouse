@@ -25,12 +25,12 @@
     font-size: rem(30px);
   }
   &.pass {
-    color: $brand-success;
-    fill: $brand-success;
+    color: var(--bs-success);
+    fill: var(--bs-success);
   }
   &.fail {
-    color: $brand-danger;
-    fill: $brand-danger;
+    color: var(--bs-danger);
+    fill: var(--bs-danger);
   }
 }
 .c-indicator__values {
