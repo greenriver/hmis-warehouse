@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # This script is used to prevent booting of kubernetes pods before the database
 # is ready
