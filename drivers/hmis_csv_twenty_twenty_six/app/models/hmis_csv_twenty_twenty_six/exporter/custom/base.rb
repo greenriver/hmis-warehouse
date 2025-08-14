@@ -55,10 +55,13 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
 
     # Override to provide custom CSV headers, excluding virtual columns
     def self.hmis_csv_headers(_version: '2026')
-      definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition(custom_file_name)
       return [] unless definition
 
       definition.columns.reject { |col| col['type'] == 'virtual' }.map { |col| col['name'] }
+    end
+
+    def self.definition
+      HmisCsvTwentyTwentySix.custom_files_config.find_definition(custom_file_name)
     end
 
     def hmis_csv_headers(version: '2026')
@@ -148,7 +151,7 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
         combined_scope = combined_scope.or(scope)
       end
 
-      combined_scope
+      with_lookup_joins(combined_scope)
     end
 
     # Override this method in subclasses to define which classes to loop over
@@ -164,10 +167,10 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
     # Maps warehouse column values to export column values for custom files
     # This reverses the warehouse_column_mapping defined in the YAML configuration
     def self.apply_warehouse_to_export_mappings(row)
-      definition = HmisCsvTwentyTwentySix.custom_files_config.find_definition(custom_file_name)
       return row unless definition
 
-      row = row.attributes.with_indifferent_access
+      record = row
+      row = record.attributes.with_indifferent_access
 
       definition.columns.each do |column_config|
         export_column = column_config['name']
@@ -187,17 +190,63 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
             export_value = value_mappings.key(warehouse_value) || warehouse_value
             row[export_column] = export_value
           end
+        when 'lookup'
+          # Use the preselected alias from the dynamic lookup join on the AR record
+          alias_name = lookup_alias_for(export_column)
+          row[export_column] = record[alias_name]
         end
       end
 
       row
     end
 
+    # Generic dynamic lookups defined via YAML warehouse_column_mapping:
+    #   type: "lookup"
+    #   join_relation_name: "<association_name>"
+    #   target_column: "<joined_table_column>"
+    # For each such mapping, perform a left outer join on the association and
+    # select the target column, aliased to a synthetic name used during export.
+    def self.with_lookup_joins(scope)
+      return scope unless definition
+
+      lookup_columns = definition.columns.select do |col|
+        mapping = col['warehouse_column_mapping']
+        mapping && mapping['type'] == 'lookup'
+      end
+      return scope if lookup_columns.blank?
+
+      base_table_name = warehouse_class_for_export.table_name
+      quoted_base = ActiveRecord::Base.connection.quote_table_name(base_table_name)
+      augmented_scope = scope.select("#{quoted_base}.*")
+
+      lookup_columns.each do |col|
+        mapping = col['warehouse_column_mapping']
+        relation_name = mapping['join_relation_name']&.to_s
+        target_column = mapping['target_column']&.to_s
+        next if relation_name.blank? || target_column.blank?
+
+        reflection = warehouse_class_for_export.reflect_on_association(relation_name.to_sym)
+        next unless reflection&.klass
+
+        joined_table = reflection.klass.arel_table
+        alias_name = lookup_alias_for(col['name'])
+
+        augmented_scope = augmented_scope.left_outer_joins(relation_name.to_sym).
+          select(joined_table[target_column].as(alias_name))
+      end
+
+      augmented_scope
+    end
+
+    def self.lookup_alias_for(export_column)
+      "__lookup__#{export_column.to_s.underscore}"
+    end
+
     private
 
     # Helper method to get the custom file definition
     def custom_file_definition
-      @custom_file_definition ||= HmisCsvTwentyTwentySix.custom_files_config.find_definition(file_name)
+      @custom_file_definition ||= self.class.definition
     end
   end
 end

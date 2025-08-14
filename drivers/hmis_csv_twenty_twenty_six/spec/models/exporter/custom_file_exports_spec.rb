@@ -44,10 +44,65 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         data_source_id: @client.data_source_id,
         owner_id: @client.id,
         owner_type: @client.class.name,
-        custom_data_element_definition_id: @custom_data_element_definition.id,
+        custom_data_element_definition_id: @custom_data_element_definition.CustomDataElementDefinitionID,
       )
     end
 
+    it 'does not perform N+1 queries for CustomDataElement export' do
+      # Build a dedicated exporter focusing only on CustomDataElement to isolate query counting
+      exporter_cde_only = HmisCsvTwentyTwentySix::Exporter::Base.new(
+        start_date: 3.weeks.ago.to_date,
+        end_date: Date.current,
+        projects: [ExportHelper2026.projects.first.id],
+        period_type: 3,
+        directive: 3,
+        user_id: ExportHelper2026.user.id,
+        custom_file_types: ['CustomDataElement.csv'],
+      )
+
+      count_definition_queries = lambda do |&blk|
+        queries = 0
+        subscriber = lambda do |_name, _start, _finish, _id, payload|
+          sql = payload[:sql]
+          return if payload[:name] == 'SCHEMA' || payload[:cached]
+
+          queries += 1 if sql&.match?(/\b"?CustomDataElementDefinitions"?\b/i)
+        end
+        ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+          blk.call
+        end
+        queries
+      end
+
+      # Baseline: export with the original single CustomDataElement
+      baseline_queries = count_definition_queries.call do
+        exporter_cde_only.export!(cleanup: false, zip: false, upload: false)
+      end
+      baseline_file = File.join(exporter_cde_only.file_path, 'CustomDataElement.csv')
+      baseline_rows = CSV.read(baseline_file, headers: true).length
+
+      # Create additional CustomDataElements for the same owner/definition to simulate volume
+      25.times do |i|
+        new_el = @custom_data_element.dup
+        new_el.value_string = "extra-#{i}"
+        new_el.CustomDataElementID = nil
+        new_el.save!
+      end
+
+      # Re-run export and ensure queries against CustomDataElementDefinitions do not scale with rows
+      with_many_queries = count_definition_queries.call do
+        exporter_cde_only.export!(cleanup: false, zip: false, upload: false)
+      end
+      with_many_file = File.join(exporter_cde_only.file_path, 'CustomDataElement.csv')
+      with_many_rows = CSV.read(with_many_file, headers: true).length
+
+      # We expect at most a small constant number of definition table queries regardless of row count
+      expect(with_many_queries).to be <= (baseline_queries + 2)
+      # Confirm row counts scale as expected
+      puts "Baseline CustomDataElement.csv rows: #{baseline_rows}"
+      puts "With-many CustomDataElement.csv rows: #{with_many_rows}"
+      expect(with_many_rows).to eq(baseline_rows + 25)
+    end
     after(:all) do
       ExportHelper2026.cleanup
     end

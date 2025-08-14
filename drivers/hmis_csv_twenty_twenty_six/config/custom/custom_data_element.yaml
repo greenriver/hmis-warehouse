@@ -16,6 +16,10 @@ custom_files:
         type: "string"
         required: true
         validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "lookup"
+          join_relation_name: "custom_data_element_definition"
+          target_column: "id"
       - name: "RecordType"
         type: "string"
         required: true

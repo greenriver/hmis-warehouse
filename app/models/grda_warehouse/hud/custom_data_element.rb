@@ -18,6 +18,8 @@ module GrdaWarehouse::Hud
     self.table_name = 'CustomDataElements'
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+    belongs_to :custom_data_element_definition, **hud_assoc(:CustomDataElementDefinitionID, 'CustomDataElementDefinition'), optional: true
+
     def self.index_predicate
       arel_table[:CustomDataElementID].not_eq(nil).to_sql
     end
