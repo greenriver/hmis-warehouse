@@ -44,6 +44,12 @@ module HudLsa::Generators::Fy2024
       where('options->>\'lsa_scope\' = \'?\'', HudLsa::Fy2024::Report.available_lsa_scopes['HIC'])
     end
 
+    def self.associated_scope_classes
+      [
+        HudLsa::Fy2024::SummaryResult,
+      ]
+    end
+
     def self.find_report(user)
       where(user_id: user.id).
         lsa.

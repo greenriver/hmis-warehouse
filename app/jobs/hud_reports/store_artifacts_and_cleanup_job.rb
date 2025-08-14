@@ -64,32 +64,18 @@ module HudReports
     end
 
     def cleanup_report_client_tables(report)
-      report_version = report.options&.dig('report_version')&.to_sym
+      # Handle the special cases first in case they have a dependency on other tables
+      special_cleanup_classes = report.associated_scope_classes.
+        reject { |c| c.column_names.include?('report_instance_id') }
 
-      if report_version
-        # Find the generator class from the config using the report name
-        generator_class = generator_class(report.report_name, report_version)
+      special_cleanup_classes.each do |table_class|
+        handle_special_cleanup(table_class, report)
+      end
 
-        if generator_class
-          # Get the client classes for this specific generator
-          client_classes = client_classes_for_generator(generator_class)
-
-          client_classes.each do |table_class|
-            if table_class.column_names.include?('report_instance_id')
-              deleted_count = table_class.where(report_instance_id: report.id).delete_all
-              Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
-            else
-              # Handle special cases like Episode which doesn't have report_instance_id
-              handle_special_cleanup(table_class, report)
-            end
-          end
-        else
-          Rails.logger.info "Could not determine generator class for report #{report.id}, using fallback cleanup"
-          fallback_cleanup(report)
-        end
-      else
-        Rails.logger.info "Could not determine report version for report #{report.id}, using fallback cleanup"
-        fallback_cleanup(report)
+      # Clean up the tables that have a report_instance_id column
+      (report.associated_scope_classes - special_cleanup_classes).each do |table_class|
+        deleted_count = table_class.where(report_instance_id: report.id).delete_all
+        Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
       end
     end
 
@@ -102,36 +88,6 @@ module HudReports
       Rails.logger.info "Updated status for report #{report.id}"
     end
 
-    def generator_class(report_name, report_version)
-      controller_class = case report_name
-      when /Annual Performance Report/
-        HudApr::AprsController
-      when /Consolidated Annual Performance and Evaluation Report/
-        HudApr::CapersController
-      when /Coordinated Entry Annual Performance Report/
-        HudApr::CeAprsController
-      when /System Performance Measures/
-        HudSpmReport::SpmsController
-      when /Point in Time Count/
-        HudPit::PitsController
-      when /Annual PATH Report/
-        HudPathReport::PathsController
-      when /HOPWA CAPER/
-        HopwaCaper::ReportsController
-      when /HMIS Data Quality Report/
-        if [:fy2020, :fy2022].include?(report_version)
-          HudDataQualityReport::DqsController
-        else
-          HudApr::DqsController
-        end
-      end
-      return unless controller_class
-
-      # Create a temporary instance to access the possible_generator_classes method
-      controller = controller_class.new
-      controller.send(:possible_generator_classes)[report_version]
-    end
-
     def handle_special_cleanup(table_class, report)
       case table_class.name
       when /^HudSpmReport::Fy\d{4}::Episode$/
@@ -140,27 +96,32 @@ module HudReports
           where(hud_report_spm_enrollments: { report_instance_id: report.id }).
           delete_all
         Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
+      when /^HudDataQualityReport::Fy\d{4}::DqLivingSituation$/
+        # DqLivingSituation belongs to DqClient, which has report_instance_id
+        deleted_count = table_class.joins(:dq_client).
+          where(hud_report_dq_clients: { report_instance_id: report.id }).
+          delete_all
+        Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
+      when /^HudApr::Fy\d{4}::AprLivingSituation$/
+        # AprLivingSituation belongs to AprClient, which has report_instance_id
+        deleted_count = table_class.joins(:apr_client).
+          where(hud_report_apr_clients: { report_instance_id: report.id }).
+          delete_all
+        Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
+      when /^HudApr::Fy\d{4}::CeAssessment$/
+        # CeAssessment belongs to AprClient, which has report_instance_id
+        deleted_count = table_class.joins(:apr_client).
+          where(hud_report_apr_clients: { report_instance_id: report.id }).
+          delete_all
+        Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
+      when /^HudApr::Fy\d{4}::CeEvent$/
+        # CeEvent belongs to AprClient, which has report_instance_id
+        deleted_count = table_class.joins(:apr_client).
+          where(hud_report_apr_clients: { report_instance_id: report.id }).
+          delete_all
+        Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
       else
         Rails.logger.info "Skipping #{table_class.table_name} - no report_instance_id column and no special handling for report #{report.id}"
-      end
-    end
-
-    def client_classes_for_generator(generator_class)
-      # Get all client classes by calling client_class for each question
-      if generator_class.respond_to?(:questions) && generator_class.respond_to?(:client_class)
-        # Get all unique client classes from all questions
-        generator_class.questions.keys.map do |question|
-          generator_class.client_class(question)
-        end.uniq
-      elsif generator_class.respond_to?(:table_classes)
-        # Fallback to table_classes if client_class is not available
-        generator_class.table_classes
-      else
-        # Look for all descendants of HudReports::ReportClientBase
-        # This will include all classes storing report data, but we are going to be
-        # filtering this to only look for instances with the correct report_instance_id
-        # so only recrods part of this report will be removed.
-        ::HudReports::ReportClientBase.descendants
       end
     end
 

@@ -92,6 +92,12 @@ module  HudPit::Generators::Pit::Fy2025
       end.to_h.freeze
     end
 
+    def self.associated_scope_classes
+      [
+        HudPit::Fy2025::PitClient,
+      ]
+    end
+
     def self.valid_table_name(table)
       valid_question_number(table)
     end

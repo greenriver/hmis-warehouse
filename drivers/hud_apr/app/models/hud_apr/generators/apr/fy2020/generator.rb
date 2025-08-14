@@ -30,6 +30,15 @@ module HudApr::Generators::Apr::Fy2020
       ::Filters::HudFilterBase
     end
 
+    def self.associated_scope_classes
+      [
+        HudApr::Fy2020::AprClient,
+        HudApr::Fy2020::AprLivingSituation,
+        HudApr::Fy2020::CeAssessment,
+        HudApr::Fy2020::CeEvent,
+      ]
+    end
+
     def self.questions
       [
         HudApr::Generators::Apr::Fy2020::QuestionFour, # Project Identifiers in HMIS

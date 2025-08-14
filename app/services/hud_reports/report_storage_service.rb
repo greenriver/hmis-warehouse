@@ -22,11 +22,9 @@ module HudReports
 
     # Process a specific report
     def process_report(report_id)
-      report = HudReports::ReportInstance.find(report_id)
-
       Rails.logger.info "Processing report #{report_id} for S3 storage and RDS cleanup"
 
-      HudReports::StoreArtifactsAndCleanupJob.perform_now(report.id)
+      HudReports::StoreArtifactsAndCleanupJob.perform_now(report_id)
       Rails.logger.info "Successfully processed report #{report_id}"
     end
 

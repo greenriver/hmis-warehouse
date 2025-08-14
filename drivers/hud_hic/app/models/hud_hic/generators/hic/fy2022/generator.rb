@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module  HudHic::Generators::Hic::Fy2022
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
@@ -91,6 +93,16 @@ module  HudHic::Generators::Hic::Fy2022
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
+    end
+
+    def self.associated_scope_classes
+      [
+        HudHic::Fy2022::Organization,
+        HudHic::Fy2022::Project,
+        HudHic::Fy2022::ProjectCoc,
+        HudHic::Fy2022::Inventory,
+        HudHic::Fy2022::Funder,
+      ]
     end
 
     def self.valid_question_number(question_number)

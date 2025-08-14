@@ -19,6 +19,11 @@ module Reporting::Hud
       # Occasionally people delete the report before it actually runs
       return unless report.present?
 
+      if report.artifacts_stored?
+        HudReports::FileArtifactService.new(report).cleanup_artifacts!
+        report.reload # reload to get the latest state
+      end
+
       # advisory lock to check the number of jobs running for this generator so we don't
       # all check at exactly the same time and get the same result
       @generator = class_name.constantize.new(report)
@@ -48,6 +53,7 @@ module Reporting::Hud
         end
       end
 
+      HudReports::StoreArtifactsAndCleanupJob.perform_now(report.id)
       report_completed = report.complete_report
       NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
       report_completed

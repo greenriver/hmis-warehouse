@@ -45,6 +45,12 @@ module HudPathReport::Generators::Fy2024
       end.to_h.freeze
     end
 
+    def self.associated_scope_classes
+      [
+        HudPathReport::Fy2020::PathClient,
+      ]
+    end
+
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Q8-Q16'
     end

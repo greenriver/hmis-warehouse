@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # run manually with
 # Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2024::Generator.name, HudReports::ReportInstance.last, email:false)
 module HopwaCaper::Generators::Fy2024
@@ -56,6 +58,13 @@ module HopwaCaper::Generators::Fy2024
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
+    end
+
+    def self.associated_scope_classes
+      [
+        HopwaCaper::Enrollment,
+        HopwaCaper::Service,
+      ]
     end
 
     def self.valid_question_number(question_number)

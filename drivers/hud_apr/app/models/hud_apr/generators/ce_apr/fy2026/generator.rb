@@ -53,6 +53,15 @@ module HudApr::Generators::CeApr::Fy2026
       end.to_h.freeze
     end
 
+    def self.associated_scope_classes
+      [
+        HudApr::Fy2020::AprClient,
+        HudApr::Fy2020::AprLivingSituation,
+        HudApr::Fy2020::CeAssessment,
+        HudApr::Fy2020::CeEvent,
+      ]
+    end
+
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 4'
     end

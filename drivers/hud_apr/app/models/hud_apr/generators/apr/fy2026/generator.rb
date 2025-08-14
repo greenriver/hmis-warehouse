@@ -37,6 +37,15 @@ module HudApr::Generators::Apr::Fy2026
       ::Filters::HudFilterBase
     end
 
+    def self.associated_scope_classes
+      [
+        HudApr::Fy2020::AprClient,
+        HudApr::Fy2020::AprLivingSituation,
+        HudApr::Fy2020::CeAssessment,
+        HudApr::Fy2020::CeEvent,
+      ]
+    end
+
     def self.questions
       [
         HudApr::Generators::Apr::Fy2026::QuestionFour, # Project Identifiers in HMIS
@@ -65,6 +74,10 @@ module HudApr::Generators::Apr::Fy2026
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
+    end
+
+    def associated_scope_classes
+      [HudApr::Enrollment, HudApr::Service]
     end
 
     def self.valid_question_number(question_number)

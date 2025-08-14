@@ -64,7 +64,7 @@ module HudReports
 
     def count
       @count ||= if report_instance.artifacts_stored?
-        count_from_s3
+        members.count
       else
         universe_members.count
       end
@@ -206,7 +206,7 @@ module HudReports
       Rails.logger.info "Loaded #{cell_members.count} members from S3 for cell #{id} (report #{report_instance.id})"
 
       # Convert to a format that mimics the original universe members
-      cell_members.map do |row|
+      objects = cell_members.map do |row|
         OpenStruct.new(
           report_cell_id: row['report_cell_id'].to_i,
           universe_membership_type: row['universe_membership_type'],
@@ -216,18 +216,8 @@ module HudReports
           last_name: row['last_name'],
         )
       end
-    end
 
-    def count_from_s3
-      service = HudReports::FileArtifactService.new(report_instance)
-      csv_data = service.retrieve_universe_members(question: question)
-
-      return 0 unless csv_data
-
-      # Count universe members for this specific cell
-      count = csv_data.count { |row| row['report_cell_id'].to_i == id }
-      Rails.logger.info "Counted #{count} members from S3 for cell #{id} (report #{report_instance.id})"
-      count
+      TemporaryCellCollection.new(objects)
     end
   end
 end

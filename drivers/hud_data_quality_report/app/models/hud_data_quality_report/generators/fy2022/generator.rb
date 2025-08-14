@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudDataQualityReport::Generators::Fy2022
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
@@ -15,7 +17,7 @@ module HudDataQualityReport::Generators::Fy2022
     end
 
     def self.short_name
-      'DQ'.freeze
+      'DQ'
     end
 
     def self.default_project_type_codes
@@ -38,6 +40,13 @@ module HudDataQualityReport::Generators::Fy2022
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
+    end
+
+    def self.associated_scope_classes
+      [
+        HudDataQualityReport::Fy2020::DqLivingSituation,
+        HudDataQualityReport::Fy2020::DqClient,
+      ]
     end
 
     def self.filter_class

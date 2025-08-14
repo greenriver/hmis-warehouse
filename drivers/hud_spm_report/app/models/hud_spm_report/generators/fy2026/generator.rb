@@ -45,6 +45,14 @@ module HudSpmReport::Generators::Fy2026
       end.to_h.freeze
     end
 
+    def self.associated_scope_classes
+      [
+        HudSpmReport::Fy2026::Episode,
+        HudSpmReport::Fy2026::Return,
+        HudSpmReport::Fy2026::SpmEnrollment,
+      ]
+    end
+
     def self.filter_class
       ::Filters::HudFilterBase
     end

@@ -34,9 +34,6 @@ module HudReports
     has_one_attached :cell_details_csv
     has_one_attached :report_summary_json
 
-    # Callbacks for artifact management
-    after_update :schedule_artifact_storage_and_cleanup, if: :saved_change_to_completed_at?
-
     scope :manual, -> { where(manual: true) }
     scope :automated, -> { where(manual: false) }
     scope :complete, -> { where.not(completed_at: nil) }
@@ -58,6 +55,12 @@ module HudReports
         coc_codes: filter.coc_codes,
         options: filter.to_h,
       )
+    end
+
+    def associated_scope_classes
+      return [] if generator_class_name.blank?
+
+      generator_class_name.constantize.associated_scope_classes
     end
 
     def current_status
@@ -280,15 +283,6 @@ module HudReports
         report_clients_csv.attached? &&
         cell_details_csv.attached? &&
         report_summary_json.attached?
-    end
-
-    private
-
-    def schedule_artifact_storage_and_cleanup
-      return unless completed_at.present?
-
-      # Schedule background job to store artifacts and cleanup RDS data
-      HudReports::StoreArtifactsAndCleanupJob.perform_later(id)
     end
   end
 end

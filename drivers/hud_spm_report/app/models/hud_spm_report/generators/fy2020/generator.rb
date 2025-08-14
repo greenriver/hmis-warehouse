@@ -51,7 +51,13 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.client_class(_question)
-      HudApr::Fy2020::SpmClient
+      HudSpmReport::Fy2020::SpmClient
+    end
+
+    def self.associated_scope_classes
+      [
+        HudSpmReport::Fy2020::SpmClient,
+      ]
     end
 
     def self.client_scope(question)

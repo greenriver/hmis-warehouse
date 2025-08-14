@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/rds.rb'
   load 'lib/rds_sql_server/sql_server_base.rb'
@@ -33,6 +35,12 @@ module HudLsa::Generators::Fy2023
 
     def self.find_report(user)
       where(user_id: user.id).order(created_at: :desc).first
+    end
+
+    def self.associated_scope_classes
+      [
+        HudLsa::Fy2023::SummaryResult,
+      ]
     end
 
     def filter

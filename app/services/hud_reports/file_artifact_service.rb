@@ -33,7 +33,7 @@ module HudReports
       questions = @report.report_cells.distinct.pluck(:question)
       questions.each do |question|
         csv_data = generate_universe_members_csv_for_question(question)
-        filename = "universe_members_#{@report.id}_#{question}_#{Time.current.to_fs(:number)}.csv"
+        filename = "universe_members_#{@report.class.table_name}_#{@report.id}_#{question}_#{Time.current.to_fs(:number)}.csv"
 
         @report.universe_members_csv_shards.attach(
           io: StringIO.new(csv_data),
@@ -156,7 +156,7 @@ module HudReports
     private
 
     def report_storage_cache_key(kind:, blob:, question: nil)
-      [self.class.name, 'report_storage', @report.id, kind, question, blob&.key].compact
+      [self.class.name, 'report_storage', @report.class.name, @report.id, kind, question, blob&.key].compact
     end
 
     def cache_expiry
@@ -183,23 +183,48 @@ module HudReports
     end
 
     def generate_report_clients_csv
-      classes = report_client_classes
+      classes = @report.associated_scope_classes
       return '' if classes.blank?
 
       # Collect headers
       excluded = ['id', 'created_at', 'updated_at', 'deleted_at']
       headers = classes.flat_map(&:column_names).uniq - excluded
       # Ensure common keys present even if they’re methods
-      (headers << 'id' << 'client_id' << 'project_id' << 'data_source_id').uniq!
+      headers += ['id', 'client_id', 'project_id', 'data_source_id']
+      headers.uniq!
 
       CSV.generate(headers: headers, write_headers: true) do |csv|
         classes.each do |klass|
           scope = if klass.column_names.include?('report_instance_id')
             klass.where(report_instance_id: @report.id)
           else
-            # Special path for models like Episodes
-            klass.joins(enrollments: :report_instance).
-              where(hud_report_spm_enrollments: { report_instance_id: @report.id })
+            # Handle different association patterns based on class name
+            case klass.name
+            when /^HudSpmReport::Fy\d{4}::Episode$/
+              # Episode doesn't have report_instance_id, so we need to join through enrollments
+              klass.joins(enrollments: :report_instance).
+                where(hud_report_spm_enrollments: { report_instance_id: @report.id })
+            when /^HudApr::Fy\d{4}::AprLivingSituation$/
+              # AprLivingSituation belongs to AprClient, which has report_instance_id
+              klass.joins(:apr_client).
+                where(hud_report_apr_clients: { report_instance_id: @report.id })
+            when /^HudApr::Fy\d{4}::CeAssessment$/
+              # CeAssessment belongs to AprClient, which has report_instance_id
+              klass.joins(:apr_client).
+                where(hud_report_apr_clients: { report_instance_id: @report.id })
+            when /^HudApr::Fy\d{4}::CeEvent$/
+              # CeEvent belongs to AprClient, which has report_instance_id
+              klass.joins(:apr_client).
+                where(hud_report_apr_clients: { report_instance_id: @report.id })
+            when /^HudDataQualityReport::Fy\d{4}::DqLivingSituation$/
+              # DqLivingSituation belongs to DqClient, which has report_instance_id
+              klass.joins(:dq_client).
+                where(hud_report_dq_clients: { report_instance_id: @report.id })
+            else
+              # Default fallback - skip this class if we don't know how to handle it
+              Rails.logger.warn "Unknown association pattern for #{klass.name} - skipping in report clients CSV"
+              klass.none
+            end
           end
           scope.find_each do |record|
             csv << headers.map { |h| record.respond_to?(h) ? record.public_send(h) : nil }
@@ -239,55 +264,6 @@ module HudReports
         universe_member_count: @report.report_cells.joins(:universe_members).count,
         storage_timestamp: Time.current,
       }
-    end
-
-    def report_client_classes
-      version = @report.options&.dig('report_version')&.to_sym
-      klass = generator_class(@report.report_name, version)
-      return [] unless klass
-
-      get_client_classes_for_generator(klass)
-    end
-
-    def generator_class(report_name, report_version)
-      controller_class = case report_name
-      when /Annual Performance Report/
-        HudApr::AprsController
-      when /Consolidated Annual Performance and Evaluation Report/
-        HudApr::CapersController
-      when /Coordinated Entry Annual Performance Report/
-        HudApr::CeAprsController
-      when /System Performance Measures/
-        HudSpmReport::SpmsController
-      when /Point in Time Count/
-        HudPit::PitsController
-      when /Annual PATH Report/
-        HudPathReport::PathsController
-      when /HOPWA CAPER/
-        HopwaCaper::ReportsController
-      when /HMIS Data Quality Report/
-        if [:fy2020, :fy2022].include?(report_version)
-          HudDataQualityReport::DqsController
-        else
-          HudApr::DqsController
-        end
-      end
-      return unless controller_class
-
-      controller = controller_class.new
-      controller.send(:possible_generator_classes)[report_version]
-    end
-
-    def get_client_classes_for_generator(generator_class)
-      if generator_class.respond_to?(:questions) && generator_class.respond_to?(:client_class)
-        generator_class.questions.keys.map { |q| generator_class.client_class(q) }.uniq
-      elsif generator_class.respond_to?(:table_classes)
-        generator_class.table_classes
-      else
-        # Note: we will be filtering these classes to find instances with the correct report_instance_id
-        # so only records included in this report will be stored in the csv file.
-        ::HudReports::ReportClientBase.descendants
-      end
     end
   end
 end

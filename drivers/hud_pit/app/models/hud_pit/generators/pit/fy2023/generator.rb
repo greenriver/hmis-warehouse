@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module  HudPit::Generators::Pit::Fy2023
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
@@ -86,6 +88,12 @@ module  HudPit::Generators::Pit::Fy2023
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
+    end
+
+    def self.associated_scope_classes
+      [
+        HudPit::Fy2023::PitClient,
+      ]
     end
 
     def self.valid_table_name(table)
