@@ -36,6 +36,7 @@ The classes within this module are organized into several subdirectories to grou
 - **Idempotent Creation**: Pools are uniquely identified by `(priority_expression, requirement_expression)` at the DB level; bulk creation uses upserts that ignore duplicates.
 - **Builder Semantics**: Do not move existing opportunities between pools when rules change; mark as `stale`. No pool is created for the default key.
 - **Caching Scope**: `UnitGroupRuleResolver` may memoize within process for performance. Pool caching is encapsulated in `CandidatePoolRepository`.
+- **Per-Unit Rules**: To implement rules that apply to individual units, place each unit in its own separate unit group.
 
 ## Unit Group–Driven Maintenance
 

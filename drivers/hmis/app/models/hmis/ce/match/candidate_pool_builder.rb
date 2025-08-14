@@ -47,9 +47,9 @@ module Hmis::Ce::Match
       update_stale_flags!
       cleanup_orphan_pools
 
-      Rails.logger.info(
+      log_info(
         format(
-          '[CE CandidatePoolBuilder]: unit_groups_processed=%d, associations_updated=%d, pools_created=%d',
+          'unit_groups_processed=%d, associations_updated=%d, pools_created=%d',
           unit_group_scope.count,
           updated_unit_group_count,
           created_pool_ids.size,
