@@ -1,7 +1,17 @@
 # frozen_string_literal: true
 
-# update candidate pools to reflect the current opportunities, requirements and priority configuration
-
+# Synchronizes candidate pools with the current set of opportunities and their matching rules.
+#
+# Candidate pools group opportunities that share the same eligibility requirements and
+# prioritization schemes. This allows the CE matching engine to efficiently evaluate
+# clients against multiple similar opportunities at once.
+#
+# The builder:
+# 1. Creates new pools for unique rule combinations that don't exist yet
+# 2. Assigns opportunities to their correct pools based on current rules
+# 3. Flags opportunities as "stale" when their rules have changed
+# 4. Cleans up orphaned pools that are no longer needed
+#
 module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize(opportunities)
@@ -38,14 +48,46 @@ module Hmis::Ce::Match
     # Update the opportunity records with their candidate pools
     def update_opportunity_pools!(grouped)
       current_pools = @candidate_pool_resolver.reload_candidate_pools_by_key
-      pool_ids = []
+
+      # Collect all opportunity updates for a single upsert
+      opportunity_updates = []
+
       grouped.each do |key, opportunities|
-        pool = current_pools.fetch(key)
-        @opportunities.where(id: opportunities.map(&:id)).update_all(candidate_pool_id: pool.id)
-        pool_ids << pool.id
+        target_pool = current_pools.fetch(key)
+
+        opportunities.each do |opportunity|
+          attrs = opportunity.attributes.symbolize_keys
+          if opportunity.candidate_pool_id.nil?
+
+            # New opportunity - assign to pool and capture the current rules for historical reporting
+            opportunity_updates << attrs.merge(
+              {
+                candidate_pool_id: target_pool.id,
+                stale: false,
+                assignment_rules: @candidate_pool_resolver.opportunity_rules(opportunity).map(&:attributes),
+              },
+            )
+          elsif opportunity.candidate_pool_id != target_pool.id
+            # Existing opportunity - rules changed, flag as stale but don't change pool
+            opportunity_updates << attrs.merge({ stale: true })
+          elsif opportunity.stale?
+            # Opportunity already in correct pool - ensure it's not flagged
+            opportunity_updates << attrs.merge({ stale: false })
+          end
+        end
       end
-      # bump timestamps on used pools for tracking orphans
-      Hmis::Ce::Match::CandidatePool.where(id: pool_ids).touch_all
+
+      # Perform single bulk upsert if there are updates
+      return unless opportunity_updates.any?
+
+      result = Hmis::Ce::Opportunity.import!(
+        opportunity_updates,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [:candidate_pool_id, :stale, :assignment_rules],
+        },
+      )
+      raise "Failed to update CE Opportunities: #{result.inspect}" if result.failed_instances.present?
     end
 
     def now

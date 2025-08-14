@@ -26,6 +26,7 @@ module Hmis::Ce
     validates :name, presence: true
     validate :unique_opportunity_per_unit
     validate :consistent_data_source
+    validate :validate_candidate_pool_is_stable, on: :update
 
     state_machine_config column: 'status' do
       state :open, initial: true
@@ -49,6 +50,7 @@ module Hmis::Ce
     end
 
     scope :active, -> { where.not(status: 'closed') }
+    scope :stale, -> { where(stale: true) }
 
     # TODO(#7537) - implement "available_on_date". For now, return all
     scope :available_on_date, ->(_date) { all }
@@ -124,6 +126,13 @@ module Hmis::Ce
     end
 
     private
+
+    def validate_candidate_pool_is_stable
+      return unless candidate_pool_id_changed?
+      return if candidate_pool_id_was.nil?
+
+      errors.add(:candidate_pool_id, 'cannot be changed after initial assignment')
+    end
 
     def unique_opportunity_per_unit
       return if status.to_sym == :closed || unit.nil?
