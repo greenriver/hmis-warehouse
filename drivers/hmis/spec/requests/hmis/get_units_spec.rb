@@ -215,7 +215,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'when unit has no rules' do
-        it 'returns nil for both eligibility requirements and priority scheme' do
+        it 'does not return eligibility requirements or priority scheme' do
           _, result = post_graphql(id: project.id) { query }
           unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
 
@@ -301,7 +301,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'when unit has no unit group' do
         let!(:unit_without_group) { create(:hmis_unit, project: project, unit_group: nil) }
 
-        it 'returns nil for both rules' do
+        it 'does not return eligibility requirements or priority scheme' do
           _, result = post_graphql(id: project.id) { query }
 
           # Find the unit without a group
