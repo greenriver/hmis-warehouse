@@ -18,7 +18,10 @@ class GrdaWarehouse::Tasks::SystemMaintenanceTask < GrdaWarehouseBase
 
   def average_run_time
     # average last 5 runs
-    system_maintenance_task_runs.order(id: :desc).completed.limit(5).average_run_time
+    last_five_run_ids = system_maintenance_task_runs.completed.order(id: :desc).limit(5).pluck(:id)
+    return nil if last_five_run_ids.empty?
+
+    GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.calculate_average_run_time(last_five_run_ids)
   end
 
   # Checks if the task has exceeded its completion threshold
