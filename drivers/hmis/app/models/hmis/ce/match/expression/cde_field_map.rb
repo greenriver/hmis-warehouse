@@ -72,7 +72,7 @@ module Hmis::Ce::Match::Expression
       Array.wrap(value).map { |v| _format_for_display(field, v) }
     end
 
-    private
+    protected
 
     def _format_for_display(field, value)
       cded = parse_entity_type(field)
@@ -92,8 +92,6 @@ module Hmis::Ce::Match::Expression
     def arel
       Hmis::ArelHelper.instance
     end
-
-    protected
 
     # parses a key of the format 'custom_assessment.xyz'
     def parse_entity_type(field)

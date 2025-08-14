@@ -55,8 +55,6 @@ module Hmis::Ce::Match::Expression
       }
     end
 
-    private
-
     def days_since_last_exit_field
       calculator = LastEnrolledDaysCalculator.new(@current_date)
       {
