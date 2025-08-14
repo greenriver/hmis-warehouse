@@ -10,7 +10,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
   class Base < GrdaWarehouse::Hud::Base
     include HmisStructure::Base
     include HmisCsvTwentyTwentySix::Importer::ImportConcern
-    include HmisCsvTwentyTwentySix::CustomModelConfig
+    include HmisCsvTwentyTwentySix::Custom::ModelConfig
 
     # Base class for all FY2026 custom importer classes
     # This provides common functionality for custom importer classes only

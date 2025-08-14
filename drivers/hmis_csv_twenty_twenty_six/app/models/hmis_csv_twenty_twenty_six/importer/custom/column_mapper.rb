@@ -23,7 +23,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
   # == Usage Pattern
   #
   # The ColumnMapper is instantiated with the column configurations from a
-  # CustomFileDefinition. The resulting object can then be used to map one or
+  # Custom::FileDefinition. The resulting object can then be used to map one or
   # many records.
   #
   #   # 1. Get the definition for the custom file
@@ -69,7 +69,7 @@ module HmisCsvTwentyTwentySix::Importer::Custom
   # - Invalid data conversions return nil or default values.
   #
   # @see CustomImportConcern For integration with importer classes.
-  # @see CustomFileDefinition For the source of the column configurations.
+  # @see Custom::FileDefinition For the source of the column configurations.
   class ColumnMapper
     def initialize(column_configs)
       @column_configs = column_configs

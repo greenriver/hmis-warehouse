@@ -8,7 +8,7 @@
 
 module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
   extend ActiveSupport::Concern
-  include HmisCsvTwentyTwentySix::CustomModelConfig
+  include HmisCsvTwentyTwentySix::Custom::ModelConfig
 
   included do
     def as_destination_record
