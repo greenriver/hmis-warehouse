@@ -3,6 +3,9 @@
 # This script is used to prevent booting of kubernetes pods before the database
 # is ready
 
+# The script seems to be freezing with no output. This might help debug it.
+$stdout.sync = true
+
 class DbTester
   attr_accessor :model, :start_time
 
