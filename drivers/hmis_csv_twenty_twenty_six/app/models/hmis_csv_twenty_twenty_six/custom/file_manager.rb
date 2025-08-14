@@ -130,7 +130,6 @@ module HmisCsvTwentyTwentySix::Custom
     private_class_method def self.generate_exporter_model_file(definition)
       file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/custom/#{definition.class_name.underscore}.rb")
       export_scope_code = generate_export_scope_code(definition)
-      puts export_scope_code.inspect
       adjust_keys_code = generate_adjust_keys_code(definition)
       owner_class_mapping_code = generate_owner_class_mapping_code(definition)
       warehouse_class_for_export_code = generate_warehouse_class_for_export_code(definition)
@@ -439,21 +438,26 @@ module HmisCsvTwentyTwentySix::Custom
         available_owner_types = definition.export_limiting_column_value_mapping
         # Check if we have export_limiting_column_value_mapping (owner-based filtering)
         # If not, we export all records from the warehouse class for the relevant data sources
-        lines = if available_owner_types.nil?
-          [
+        lines = []
+        if available_owner_types.nil?
+          lines += [
             '# No export limiting column - export all records for the relevant data sources',
             'data_source_ids = options[:project_scope].distinct.pluck(:data_source_id) if options[:project_scope]',
             'data_source_ids ||= [0] # if we can\'t determine any relevant data sources, include no data',
             'combined_scope = warehouse_class_for_export.where(data_source_id: data_source_ids)',
-            '',
-            'combined_scope',
-          ]
-        else
-          # Use the new base class method for owner-based filtering
-          [
-            'export_scope_with_owner_filtering(**options)',
           ]
         end
+        if definition.export_lookup_column_value_mapping?
+          # Use the new base class method for owner-based filtering
+          lines += [
+            'combined_scope = export_scope_with_owner_filtering(**options)',
+            'combined_scope = with_lookup_joins(combined_scope)',
+          ]
+        end
+        lines += [
+          '',
+          'combined_scope',
+        ]
         content = ''
         lines.each_with_index do |l, i|
           if i == 0 || l.blank?

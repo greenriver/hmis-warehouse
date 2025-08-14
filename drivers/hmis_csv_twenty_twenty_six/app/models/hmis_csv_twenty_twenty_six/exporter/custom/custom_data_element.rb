@@ -16,7 +16,10 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
     end
 
     def self.export_scope(**options)
-      export_scope_with_owner_filtering(**options)
+      combined_scope = export_scope_with_owner_filtering(**options)
+      combined_scope = with_lookup_joins(combined_scope)
+
+      combined_scope
     end
 
     def self.transforms

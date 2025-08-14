@@ -142,6 +142,7 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
         )
         scopes << scope
       end
+      scopes.compact_blank!
 
       # Union all the scopes together
       return warehouse_class.none if scopes.empty?
@@ -151,7 +152,7 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
         combined_scope = combined_scope.or(scope)
       end
 
-      with_lookup_joins(combined_scope)
+      combined_scope
     end
 
     # Override this method in subclasses to define which classes to loop over
@@ -177,23 +178,26 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
         mapping = column_config['warehouse_column_mapping']
         next unless mapping
 
-        case mapping['type']
-        when 'direct', 'record_lookup'
-          warehouse_column = mapping['target_column']
-          row[export_column] = row[warehouse_column] if warehouse_column
-        when 'value_mapping'
-          warehouse_column = mapping['target_column']
-          value_mappings = mapping['value_mappings'] || {}
-          if warehouse_column
-            warehouse_value = row[warehouse_column]
-            # Reverse lookup: find export value for warehouse value
-            export_value = value_mappings.key(warehouse_value) || warehouse_value
-            row[export_column] = export_value
-          end
-        when 'lookup'
+        # Export type takes precedence over type for exporting
+        if mapping['export_type'] == 'lookup'
           # Use the preselected alias from the dynamic lookup join on the AR record
           alias_name = lookup_alias_for(export_column)
           row[export_column] = record[alias_name]
+        else
+          case mapping['type']
+          when 'direct', 'record_lookup'
+            warehouse_column = mapping['target_column']
+            row[export_column] = row[warehouse_column] if warehouse_column
+          when 'value_mapping'
+            warehouse_column = mapping['target_column']
+            value_mappings = mapping['value_mappings'] || {}
+            if warehouse_column
+              warehouse_value = row[warehouse_column]
+              # Reverse lookup: find export value for warehouse value
+              export_value = value_mappings.key(warehouse_value) || warehouse_value
+              row[export_column] = export_value
+            end
+          end
         end
       end
 
@@ -201,9 +205,9 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
     end
 
     # Generic dynamic lookups defined via YAML warehouse_column_mapping:
-    #   type: "lookup"
+    #   export_type: "lookup"
     #   join_relation_name: "<association_name>"
-    #   target_column: "<joined_table_column>"
+    #   target_related_column: "<joined_table_column>"
     # For each such mapping, perform a left outer join on the association and
     # select the target column, aliased to a synthetic name used during export.
     def self.with_lookup_joins(scope)
@@ -211,18 +215,19 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
 
       lookup_columns = definition.columns.select do |col|
         mapping = col['warehouse_column_mapping']
-        mapping && mapping['type'] == 'lookup'
+        mapping && mapping['export_type'] == 'lookup'
       end
       return scope if lookup_columns.blank?
 
       base_table_name = warehouse_class_for_export.table_name
       quoted_base = ActiveRecord::Base.connection.quote_table_name(base_table_name)
+
       augmented_scope = scope.select("#{quoted_base}.*")
 
       lookup_columns.each do |col|
         mapping = col['warehouse_column_mapping']
         relation_name = mapping['join_relation_name']&.to_s
-        target_column = mapping['target_column']&.to_s
+        target_column = mapping['target_related_column']&.to_s
         next if relation_name.blank? || target_column.blank?
 
         reflection = warehouse_class_for_export.reflect_on_association(relation_name.to_sym)
@@ -234,7 +239,6 @@ module HmisCsvTwentyTwentySix::Exporter::Custom
         augmented_scope = augmented_scope.left_outer_joins(relation_name.to_sym).
           select(joined_table[target_column].as(alias_name))
       end
-
       augmented_scope
     end
 

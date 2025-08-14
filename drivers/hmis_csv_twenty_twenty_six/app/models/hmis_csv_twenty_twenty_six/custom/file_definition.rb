@@ -120,6 +120,10 @@ module HmisCsvTwentyTwentySix
         column.dig('warehouse_column_mapping', 'value_mappings')
       end
 
+      def export_lookup_column_value_mapping?
+        columns.detect { |col| col.dig('warehouse_column_mapping', 'export_type') == 'lookup' }.present?
+      end
+
       def upsert_column_names
         (warehouse_target_columns - excluded_columns).map(&:to_sym)
       end
