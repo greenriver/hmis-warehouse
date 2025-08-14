@@ -10,6 +10,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Ce::ChangeMarker do
   before do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     described_class.delete_all
   end
   let!(:destination_data_source) { create :destination_data_source }
