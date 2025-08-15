@@ -7,6 +7,7 @@ custom_files:
     augments_warehouse_table: "GrdaWarehouse::Hud::Enrollment"
     augment_key: "EnrollmentID"
     augment_import_class: "HmisCsvTwentyTwentySix::Importer::Enrollment"
+    augments_export_class: "HmisCsvTwentyTwentySix::Exporter::Enrollment"
     columns:
       - name: "EnrollmentID"
         type: "string"

@@ -10,7 +10,7 @@ module HmisCsvTwentyTwentySix::Loader::Custom
   class Base < GrdaWarehouse::Hud::Base
     include HmisStructure::Base
     include HmisCsvTwentyTwentySix::Loader::LoaderConcern
-    include HmisCsvTwentyTwentySix::CustomModelConfig
+    include HmisCsvTwentyTwentySix::Custom::ModelConfig
 
     # Base class for all FY2026 custom loader classes
     # This provides common functionality for custom loader classes only

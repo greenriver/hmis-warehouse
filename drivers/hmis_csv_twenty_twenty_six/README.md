@@ -40,6 +40,33 @@ The importer modules handle the processing of incoming HMIS CSV 2026 files. The 
     *   **Ingestion**: Merges the cleaned and validated records into the final warehouse tables.
 3.  **Validation (`HmisCsvValidation`)**: A configurable rules engine to check for well-formedness of the imported data. Errors can be logged as warnings or can exclude a row from the import.
 
+## Custom File Exports
+
+In addition to imports, the FY2026 driver supports exporting custom CSV files alongside the standard HMIS files. This allows communities to package their extended data with the official HUD CSV export.
+
+### User Guide
+
+When creating an HMIS report for the FY2026 format, you will see a new "Custom Files" option.
+
+1.  **Select Version**: Choose "2026" from the HMIS version dropdown.
+2.  **Choose Custom Files**: A multi-select box will appear, listing all available custom files (e.g., `CustomGender.csv`, `CustomSexualOrientation.csv`).
+3.  **Run Export**: Select the files you wish to include and run the export as usual.
+4.  **Download**: The generated ZIP archive will contain both the standard HMIS CSV files and the custom files you selected.
+
+### Developer Details
+
+The custom export system is built to be extensible and mirrors the custom import functionality.
+
+-   **Configuration-Driven**: New custom export file types are defined via YAML configuration in the `drivers/hmis_csv_twenty_twenty_six/config/custom/` directory.
+-   **Code Generation**: The `HmisCsvTwentyTwentySix::Custom::FileManager.bootstrap_custom_models!` command generates the required `Exporter` models based on the YAML configurations. This includes `HmisCsvTwentyTwentySix::Exporter::Custom::Base` and specific classes like `HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender`.
+-   **UI Integration**:
+    -   `app/controllers/warehouse_reports/hmis_exports_controller.rb` has been updated to accept a `custom_file_types: []` parameter.
+    -   `app/models/filters/hmis_export.rb` handles the validation and storage of the selected custom files.
+    -   `app/views/warehouse_reports/hmis_exports/_shared_filter.haml` contains the UI for selecting the files, visible only when the 2026 version is selected.
+-   **Export Process**:
+    -   The `HmisCsvTwentyTwentySix::Exporter::Base` class now dynamically discovers and includes the generated custom exporter classes when an export is initiated.
+    -   The `augments_export_class` property in the YAML config allows a custom file to reuse the data scope of a standard exporter (e.g., `CustomGender` uses the `Client` exporter's scope), ensuring data consistency and preventing N+1 queries.
+
 ## Custom Files System
 
 The custom files system allows for importing additional CSV files beyond the standard HUD HMIS specification.
@@ -50,7 +77,7 @@ The custom files system allows for importing additional CSV files beyond the sta
 graph TD
     subgraph "A. One-Time Setup (Code Generation)"
         direction LR
-        YAML[".yaml Config File<br/>(Defines file structure, rules, and mappings)"] -- "Is read by" --> CFM("HmisCsvTwentyTwentySix::CustomFileManager<br/>(The code generator)")
+        YAML[".yaml Config File<br/>(Defines file structure, rules, and mappings)"] -- "Is read by" --> CFM("HmisCsvTwentyTwentySix::Custom::FileManager<br/>(The code generator)")
         CFM -- "Generates" --> GenModels["Generated Models<br/>(e.g., HmisCsvTwentyTwentySix::Importer::Custom::CustomGender)"]
         CFM -- "Generates" --> Migrations["Database Migrations"]
     end
@@ -89,7 +116,7 @@ graph TD
 2.  **Define your file structure** with columns, validations, and processing rules.
 3.  **Run the bootstrap task** to generate model and migration files:
     ```bash
-    dcr shell bundle exec rails r "HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!"
+    dcr shell bundle exec rails r "HmisCsvTwentyTwentySix::Custom::FileManager.bootstrap_custom_models!"
     ```
 4.  **Run the generated migrations**:
     ```bash
@@ -184,7 +211,7 @@ This configuration-driven approach allows for complex import logic to be handled
 
 ### Model and Migration Generation
 
-The `HmisCsvTwentyTwentySix::CustomFileManager.bootstrap_custom_models!` task automatically generates the necessary model and migration files for your custom files based on your YAML configurations. The generated files for loaders and importers will be placed in the appropriate directories within the driver. These generated files should be committed to your repository.
+The `HmisCsvTwentyTwentySix::Custom::FileManager.bootstrap_custom_models!` task automatically generates the necessary model and migration files for your custom files based on your YAML configurations. The generated files for loaders and importers will be placed in the appropriate directories within the driver. These generated files should be committed to your repository.
 
 ### Best Practices
 

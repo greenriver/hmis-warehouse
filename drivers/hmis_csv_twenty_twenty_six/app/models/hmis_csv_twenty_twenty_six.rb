@@ -48,7 +48,7 @@ module HmisCsvTwentyTwentySix
   end
 
   def self.custom_files_config
-    @custom_files_config ||= CustomFilesConfig.new
+    @custom_files_config ||= HmisCsvTwentyTwentySix::Custom::FilesConfig.new
   end
 
   def self.custom_importable_files_map

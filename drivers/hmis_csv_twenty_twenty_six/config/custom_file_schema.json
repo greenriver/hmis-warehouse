@@ -175,7 +175,8 @@
             "value_based_multi_column",
             "concatenation",
             "record_lookup",
-            "static_value"
+            "static_value",
+            "lookup"
           ]
         },
         "target_column": {
@@ -259,6 +260,10 @@
             "boolean"
           ],
           "description": "Static value to assign for static_value mapping"
+        },
+        "join_relation_name": {
+          "type": "string",
+          "description": "Name of an existing ActiveRecord association to join for lookup"
         }
       },
       "required": [
@@ -350,6 +355,21 @@
             "required": [
               "target_column",
               "value"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "lookup"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "join_relation_name",
+              "target_column"
             ]
           }
         }

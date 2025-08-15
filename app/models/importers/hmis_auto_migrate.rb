@@ -15,7 +15,7 @@ module Importers::HmisAutoMigrate
   # For now, prevent migrating beyond 2024 version
   def self.current_stop_version
     return nil if Date.current >= '2025-10-01'.to_date
-    return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging?
+    return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging? && ENV['CLIENT'] != 'qa'
 
     # Default to the current version, but allow for override in development
     ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
@@ -51,7 +51,7 @@ module Importers::HmisAutoMigrate
     # Don't allow migrating to 2026 on staging before 9/1/2025
     TodoOrDie('Remove the next lines to enable migration to 2026', by: '2025-11-01')
     return version if version.in?(['2024', '2026']) && Date.current < '2025-10-01'.to_date && Rails.env.production?
-    return version if version.in?(['2024', '2026']) && Date.current < '2025-09-01'.to_date && Rails.env.staging?
+    return version if version.in?(['2024', '2026']) && Date.current < '2025-09-01'.to_date && Rails.env.staging? && ENV['CLIENT'] != 'qa'
 
     return version unless available_migrations.keys.include?(version)
 

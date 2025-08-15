@@ -7,6 +7,7 @@ custom_files:
     augments_warehouse_table: "GrdaWarehouse::Hud::Client"
     augment_key: "PersonalID"
     augment_import_class: "HmisCsvTwentyTwentySix::Importer::Client"
+    augments_export_class: "HmisCsvTwentyTwentySix::Exporter::Client"
     columns:
       - name: "PersonalID"
         type: "string"

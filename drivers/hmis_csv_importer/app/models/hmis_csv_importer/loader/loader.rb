@@ -273,6 +273,13 @@ module HmisCsvImporter::Loader
                   details: "Line number: #{parser.lineno}",
                   source: row.to_csv,
                 }
+              elsif values.first.blank?
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Primary key is blank',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
               else
                 csv_data = values.to_csv
                 pg_conn.put_copy_data csv_data

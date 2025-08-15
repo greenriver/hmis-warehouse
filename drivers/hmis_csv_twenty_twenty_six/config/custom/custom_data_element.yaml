@@ -6,6 +6,7 @@ custom_files:
     description: "Custom data element values"
     warehouse_key: "CustomDataElementID"
     warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
+    export_limiting_column: "RecordType"
     columns:
       - name: "CustomDataElementID"
         type: "string"
@@ -15,6 +16,11 @@ custom_files:
         type: "string"
         required: true
         validations: ["NonBlank"]
+        warehouse_column_mapping:
+          type: "direct"
+          export_type: "lookup"
+          join_relation_name: "custom_data_element_definition"
+          target_related_column: "id"
       - name: "RecordType"
         type: "string"
         required: true
@@ -26,7 +32,6 @@ custom_files:
           value_mappings:
             "Client": "GrdaWarehouse::Hud::Client"
             "Enrollment": "GrdaWarehouse::Hud::Enrollment"
-            "Exit": "GrdaWarehouse::Hud::Exit"
             "Project": "GrdaWarehouse::Hud::Project"
             "Organization": "GrdaWarehouse::Hud::Organization"
       - name: "RecordID"
@@ -40,7 +45,6 @@ custom_files:
           lookup_field_mappings: # note: these can probably be pulled from hud_key
             "GrdaWarehouse::Hud::Client": "PersonalID"
             "GrdaWarehouse::Hud::Enrollment": "EnrollmentID"
-            "GrdaWarehouse::Hud::Exit": "ExitID"
             "GrdaWarehouse::Hud::Project": "ProjectID"
             "GrdaWarehouse::Hud::Organization": "OrganizationID"
       - name: "Value"
