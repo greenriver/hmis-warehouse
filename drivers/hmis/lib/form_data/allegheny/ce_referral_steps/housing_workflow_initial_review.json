@@ -1,0 +1,81 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "date",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "housing_workflow_initial_review_date"
+      }
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "required": false,
+      "mapping": {
+        "custom_field_key": "housing_workflow_initial_review_note"
+      }
+    },
+    {
+      "text": "Continue with Referral?",
+      "type": "CHOICE",
+      "link_id": "move_forward",
+      "required": true,
+      "pick_list_options": [
+        {
+          "code": "1",
+          "label": "Yes, continue"
+        },
+        {
+          "code": "0",
+          "label": "No, decline referral"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "housing_workflow_initial_review_move_forward"
+      }
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "required": true,
+      "pick_list_options": [
+        {
+          "code": "HMIS user error"
+        },
+        {
+          "code": "Client needs to be reassessed"
+        },
+        {
+          "code": "Does not meet eligibility criteria"
+        },
+        {
+          "code": "No longer interested in this program"
+        },
+        {
+          "code": "No longer experiencing homelessness"
+        },
+        {
+          "code": "Vacancy no longer available"
+        },
+        {
+          "code": "Unable to currently engage with client"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "housing_workflow_initial_review_decline_reason"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "move_forward",
+          "operator": "EQUAL",
+          "answer_code": "0"
+        }
+      ]
+    }
+  ]
+}
