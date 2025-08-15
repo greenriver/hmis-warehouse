@@ -7,6 +7,20 @@
 # frozen_string_literal: true
 
 module HmisCsvTwentyTwentySix::Exporter::Custom
+  # This is the base class for all custom file exporters in the FY2026 specification.
+  #
+  # This class provides a common foundation for dynamically generated exporter
+  # models that are created by `HmisCsvTwentyTwentySix::Custom::FileManager`. It
+  # reads the YAML configuration files defined for custom files to provide
+  # shared functionality for importing and exporting.
+  #
+  # Subclasses are generated automatically and are expected to implement key
+  # methods based on their YAML configuration, such as:
+  # - `self.custom_file_name`: The name of the output CSV file.
+  # - `self.export_scope`: The ActiveRecord scope for fetching data.
+  # - `self.owner_class_mapping`: (Optional) A map for owner-based filtering.
+  # - `self.warehouse_class_for_export`: (Optional) The primary warehouse model.
+  #
   class Base
     include ArelHelper
     include TsqlImport

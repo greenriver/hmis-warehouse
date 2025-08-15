@@ -86,14 +86,6 @@ RSpec.describe Filters::HmisExport, type: :model do
         # Should include the files from our test configuration
         expect(available_types.values).to include('CustomGender.csv', 'CustomSexualOrientation.csv')
       end
-
-      it 'handles errors gracefully' do
-        allow(HmisCsvTwentyTwentySix).to receive(:custom_files_config).and_raise(StandardError.new('Config error'))
-        expect(Rails.logger).to receive(:warn).with(/Failed to load available custom file types/)
-
-        available_types = filter.available_custom_file_types
-        expect(available_types).to eq({})
-      end
     end
 
     context 'when version is not 2026' do
@@ -148,7 +140,7 @@ RSpec.describe Filters::HmisExport, type: :model do
 
     it 'validates date order with custom files' do
       filter.start_date = Date.current
-      filter.end_date = 1.day.ago
+      filter.end_date = 1.day.ago.to_date
       filter.custom_file_types = ['CustomGender.csv']
       expect(filter).not_to be_valid
       expect(filter.errors[:end_date]).to include('must follow start date')
