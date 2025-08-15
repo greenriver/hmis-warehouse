@@ -72,7 +72,7 @@ module Hmis::Ce::Match::Expression
       Array.wrap(value).map { |v| _format_for_display(field, v) }
     end
 
-    protected
+    private
 
     def _format_for_display(field, value)
       cded = parse_entity_type(field)

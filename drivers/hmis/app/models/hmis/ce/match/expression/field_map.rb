@@ -20,7 +20,7 @@ module Hmis::Ce::Match::Expression
       CDE = 'cde',
       CLIENT = 'client',
       CUSTOM_ASSESSMENT = 'custom_assessment',
-    ]
+    ].freeze
 
     attr_reader :current_date
 

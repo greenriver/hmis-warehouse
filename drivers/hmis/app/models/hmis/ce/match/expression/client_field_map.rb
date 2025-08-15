@@ -38,7 +38,7 @@ module Hmis::Ce::Match::Expression
       formatted
     end
 
-    protected
+    private
 
     def arel
       Hmis::ArelHelper
