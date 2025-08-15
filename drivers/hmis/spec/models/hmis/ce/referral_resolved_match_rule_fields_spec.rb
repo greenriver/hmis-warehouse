@@ -11,6 +11,15 @@ require 'rails_helper'
 RSpec.describe Hmis::Ce::Referral, type: :model do
   include_context 'ce spec helper'
 
+  let(:unit) { create(:hmis_unit_in_group, project: project) }
+  let(:opportunity) do
+    create(:hmis_ce_opportunity,
+           project: project,
+           unit: unit,
+           workflow_template: workflow_template,
+           assignment_rules: [rule].map(&:attributes))
+  end
+  let(:referral) { create(:hmis_ce_referral, client: client, opportunity: opportunity) }
   let(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, dob: 22.years.ago, veteran_status: 8) }
   let!(:rule) { create(:hmis_ce_eligibility_requirement, expression: requirement_expression, owner: project) }
 
