@@ -195,16 +195,17 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
   end
 
   describe '#joins' do
-    it 'returns nil (not yet implemented)' do
+    it 'returns joins used for SQL prefiltering' do
       result = field_map.joins('housing_assessment.assessment_date')
-      expect(result).to be_nil
+      expect(result).to eq([{ destination_client_latest_assessments: :custom_assessment }])
     end
   end
 
   describe '#arel_field' do
-    it 'returns nil (not yet implemented)' do
+    it 'returns an arel expression for the requested field' do
+      form_definition # ensure the identifier exists
       result = field_map.arel_field('housing_assessment.assessment_date')
-      expect(result).to be_nil
+      expect(result).to be_present
     end
   end
 end

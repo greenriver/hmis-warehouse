@@ -141,28 +141,30 @@ RSpec.describe Hmis::Ce::Match::Expression::FieldMap, type: :model do
   end
 
   describe '#arel_field' do
+    before { form_definition }
     it 'delegates to the appropriate resolver' do
       # This will vary by resolver, but we test that it delegates correctly
       result = field_map.arel_field('veteran_status')
       expect(result).to be_present # ClientFieldMap returns an arel field
     end
 
-    it 'returns nil for custom assessment fields (not yet implemented)' do
+    it 'returns an arel expression for custom assessment fields' do
       result = field_map.arel_field('custom_assessment.housing_assessment.assessment_date')
-      expect(result).to be_nil
+      expect(result).to be_present
     end
   end
 
   describe '#joins' do
+    before { form_definition }
     it 'delegates to the appropriate resolver' do
       # Test a field that requires joins
       result = field_map.joins('days_since_last_exit')
       expect(result).to be_present # ClientFieldMap returns joins for this field
     end
 
-    it 'returns nil for custom assessment fields (not yet implemented)' do
+    it 'returns joins for custom assessment fields' do
       result = field_map.joins('custom_assessment.housing_assessment.assessment_date')
-      expect(result).to be_nil
+      expect(result).to eq([{ destination_client_latest_assessments: :custom_assessment }])
     end
   end
 

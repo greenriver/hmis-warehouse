@@ -30,13 +30,17 @@ module Hmis::Ce::Match::Expression
     end
 
     def joins(_field)
-      # not yet implemented
-      nil
+      # Join latest-assessment view and the associated custom assessment
+      [{ destination_client_latest_assessments: :custom_assessment }]
     end
 
-    def arel_field(_field)
-      # not yet implemented
-      nil
+    def arel_field(field)
+      form_definition_identifier, field_name = parse_entity_type(field)
+      ca_column = column_for_field(field_name)
+      dcla_t = Hmis::DestinationClientLatestAssessment.arel_table
+
+      # Gate the column by matching form identifier to avoid cross-form bleed when joined
+      arel.acase([[dcla_t[:form_identifier].eq(form_definition_identifier), ca_column]], elsewise: nil)
     end
 
     # Label for user-facing display of resolved field
