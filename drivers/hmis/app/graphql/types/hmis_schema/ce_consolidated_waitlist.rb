@@ -10,11 +10,9 @@ module Types
   class HmisSchema::CeConsolidatedWaitlist < Types::BaseObject
     skip_activity_log
 
-    # TODO: implement client search/filtering
-    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool' do
+    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
-    # on each candidate, you can expand it to see details about *which* waitlists they are on. that uses this query
     field :ce_client, HmisSchema::CeClient, null: true do |field|
       field.argument :id, ID, 'Client Proxy ID', required: true
     end
@@ -31,7 +29,7 @@ module Types
         distinct.order(:id)
 
       scope = scope.apply_filters(filters) if filters
-      scope # sorting? search filter applies its own sort
+      scope
     end
 
     def ce_client(id:)
