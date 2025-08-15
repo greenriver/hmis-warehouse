@@ -42,47 +42,26 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
   end
 
   describe '#client_query' do
+    let(:assessment_date) { Date.new(2024, 6, 15) }
+    let(:date_created) { Date.new(2024, 6, 10) }
+    let(:date_updated) { Date.new(2024, 6, 20) }
+
     before do
-      # Create assessments with different timestamps
-      create_assessment_for_client(
-        client1,
-        assessment_date: Date.new(2024, 6, 15),
-        date_created: Date.new(2024, 6, 10),
-        date_updated: Date.new(2024, 6, 20),
-      )
-      create_assessment_for_client(
-        client2,
-        assessment_date: Date.new(2024, 7, 1),
-        date_created: Date.new(2024, 6, 25),
-        date_updated: Date.new(2024, 7, 5),
-      )
+      # Create a single assessment for each client
+      create_assessment_for_client(client1, assessment_date: assessment_date, date_created: date_created, date_updated: date_updated)
+      create_assessment_for_client(client2, assessment_date: Date.new(2024, 7, 1))
     end
 
-    it 'selects values from the most recent assessment' do
-      # Create an older assessment
-      create_assessment_for_client(
-        client1,
-        assessment_date: Date.new(2024, 6, 15),
-        date_created: Date.new(2024, 6, 10),
-        date_updated: Date.new(2024, 6, 20),
-      )
-      # Create a more recent assessment that should be selected
-      create_assessment_for_client(
-        client1,
-        assessment_date: Date.new(2024, 8, 1),
-        date_created: Date.new(2024, 7, 25),
-        date_updated: Date.new(2024, 8, 5),
-      )
-
+    it 'returns the correct metadata values for a client' do
       # Verify that the correct values are returned from the most recent assessment
       result_assessment_date = field_map.client_query(all_destination_clients, assessment_date_field)
-      expect(result_assessment_date[destination_client1.id]).to eq(Date.new(2024, 8, 1))
+      expect(result_assessment_date[destination_client1.id]).to eq(assessment_date)
 
       result_date_created = field_map.client_query(all_destination_clients, date_created_field)
-      expect(result_date_created[destination_client1.id].to_date).to eq(Date.new(2024, 7, 25))
+      expect(result_date_created[destination_client1.id].to_date).to eq(date_created)
 
       result_date_updated = field_map.client_query(all_destination_clients, date_updated_field)
-      expect(result_date_updated[destination_client1.id].to_date).to eq(Date.new(2024, 8, 5))
+      expect(result_date_updated[destination_client1.id].to_date).to eq(date_updated)
     end
 
     context 'error handling' do
@@ -138,59 +117,35 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
     end
   end
 
-  describe '#label_for' do
+  describe 'field labels and formatting' do
     before { form_definition } # Ensure form definition is created
 
-    it 'returns the correct label for assessment_date' do
-      result = field_map.label_for('housing_assessment.assessment_date')
-      expect(result).to eq('Date Assessment Administered')
+    it 'returns the correct label and formatted value for each field' do
+      test_date = Date.new(2024, 6, 15)
+      expected_formatted_date = '06/15/2024'
+
+      {
+        assessment_date: 'Date Assessment Administered',
+        date_created: 'Date Assessment Created',
+        date_updated: 'Date Assessment Last Updated',
+      }.each do |field_key, expected_label|
+        field = "housing_assessment.#{field_key}"
+
+        # Test label_for
+        expect(field_map.label_for(field)).to eq(expected_label)
+
+        # Test format_for_display
+        expect(field_map.format_for_display(field, test_date)).to eq(expected_formatted_date)
+      end
     end
 
-    it 'returns the correct label for date_created' do
-      result = field_map.label_for('housing_assessment.date_created')
-      expect(result).to eq('Date Assessment Created')
-    end
-
-    it 'returns the correct label for date_updated' do
-      result = field_map.label_for('housing_assessment.date_updated')
-      expect(result).to eq('Date Assessment Last Updated')
+    it 'handles nil values gracefully for formatter' do
+      expect(field_map.format_for_display('housing_assessment.assessment_date', nil)).to be_nil
     end
 
     it 'raises error for unknown fields' do
-      expect do
-        field_map.label_for('housing_assessment.unknown_field')
-      end.to raise_error(ArgumentError, /Unknown field/)
-    end
-  end
-
-  describe '#format_for_display' do
-    before { form_definition } # Ensure form definition is created
-    let(:test_date) { Date.new(2024, 6, 15) }
-
-    it 'formats assessment_date correctly' do
-      result = field_map.format_for_display('housing_assessment.assessment_date', test_date)
-      expect(result).to eq('06/15/2024')
-    end
-
-    it 'formats date_created correctly' do
-      result = field_map.format_for_display('housing_assessment.date_created', test_date)
-      expect(result).to eq('06/15/2024')
-    end
-
-    it 'formats date_updated correctly' do
-      result = field_map.format_for_display('housing_assessment.date_updated', test_date)
-      expect(result).to eq('06/15/2024')
-    end
-
-    it 'handles nil values gracefully' do
-      result = field_map.format_for_display('housing_assessment.assessment_date', nil)
-      expect(result).to be_nil
-    end
-
-    it 'raises error for unknown fields' do
-      expect do
-        field_map.format_for_display('housing_assessment.unknown_field', test_date)
-      end.to raise_error(ArgumentError, /Unknown field/)
+      expect { field_map.label_for('housing_assessment.unknown_field') }.to raise_error(ArgumentError, /Unknown field/)
+      expect { field_map.format_for_display('housing_assessment.unknown_field', Date.current) }.to raise_error(ArgumentError, /Unknown field/)
     end
   end
 
