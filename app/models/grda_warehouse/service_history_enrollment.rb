@@ -336,26 +336,21 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(she_t[:move_in_date].gteq(date).or(she_t[:move_in_date].eq(nil)))
   end
 
-  scope :in_age_ranges, ->(age_ranges) do
+  scope :in_age_ranges, ->(age_ranges, on_date: Date.current) do
     age_ranges = age_ranges.reject(&:blank?).map(&:to_sym)
     return current_scope unless age_ranges.present?
 
-    age_exists = she_t[:age].not_eq(nil)
-    age_ors = []
-    age_ors << she_t[:age].lt(18) if age_ranges.include?(:under_eighteen)
-    age_ors << she_t[:age].gteq(18).and(she_t[:age].lteq(24)) if age_ranges.include?(:eighteen_to_twenty_four)
-    age_ors << she_t[:age].gteq(25).and(she_t[:age].lteq(61)) if age_ranges.include?(:twenty_five_to_sixty_one)
-    age_ors << she_t[:age].gt(61) if age_ranges.include?(:over_sixty_one)
+    arel = Hmis::ArelHelper.instance
+    # Age on date calculates age at the later of entry date and on_date (which should be the start of the window)
+    age_cond = arel.age_on_date(on_date)
+    ages = []
+    ages += (0..17).to_a if age_ranges.include?(:under_eighteen)
+    ages += (18..24).to_a if age_ranges.include?(:eighteen_to_twenty_four)
+    ages += (25..61).to_a if age_ranges.include?(:twenty_five_to_sixty_one)
+    ages += (62..110).to_a if age_ranges.include?(:over_sixty_one)
 
-    accumulative = nil
-    age_ors.each do |age|
-      accumulative = if accumulative.present?
-        accumulative.or(age)
-      else
-        age
-      end
-    end
-    current_scope.where(age_exists.and(accumulative))
+    joins(:client).
+      where(age_cond.in(ages))
   end
 
   # NOTE: at the moment this is Postgres only

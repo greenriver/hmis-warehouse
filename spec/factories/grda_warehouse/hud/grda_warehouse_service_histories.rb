@@ -8,10 +8,14 @@
 
 FactoryBot.define do
   factory :grda_warehouse_service_history, class: 'GrdaWarehouse::ServiceHistoryEnrollment' do
+    association :client, factory: :grda_warehouse_hud_client
+    date { Date.current }
+    first_date_in_program { Date.current }
+    record_type { 'entry' }
+    age { client&.DOB ? ((first_date_in_program - client.DOB) / 365).to_i : nil }
     # client_id
     # data_source_id
     association :data_source, factory: :grda_warehouse_data_source
-    # date
     # first_date_in_program
     # last_date_in_program
     # enrollment_group_id
