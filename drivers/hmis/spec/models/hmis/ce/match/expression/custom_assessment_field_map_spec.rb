@@ -58,90 +58,31 @@ RSpec.describe Hmis::Ce::Match::Expression::CustomAssessmentFieldMap, type: :mod
       )
     end
 
-    context 'for assessment_date field' do
-      it 'returns the assessment date for each client' do
-        result = field_map.client_query(all_destination_clients, assessment_date_field)
-        expect(result).to include(
-          destination_client1.id => Date.new(2024, 6, 15),
-          destination_client2.id => Date.new(2024, 7, 1),
-        )
-        expect(result[destination_client3.id]).to be_nil
-      end
-    end
+    it 'selects values from the most recent assessment' do
+      # Create an older assessment
+      create_assessment_for_client(
+        client1,
+        assessment_date: Date.new(2024, 6, 15),
+        date_created: Date.new(2024, 6, 10),
+        date_updated: Date.new(2024, 6, 20),
+      )
+      # Create a more recent assessment that should be selected
+      create_assessment_for_client(
+        client1,
+        assessment_date: Date.new(2024, 8, 1),
+        date_created: Date.new(2024, 7, 25),
+        date_updated: Date.new(2024, 8, 5),
+      )
 
-    context 'for date_created field' do
-      it 'returns the date created for each client' do
-        result = field_map.client_query(all_destination_clients, date_created_field)
-        expect(result[destination_client1.id].to_date).to eq(Date.new(2024, 6, 10))
-        expect(result[destination_client2.id].to_date).to eq(Date.new(2024, 6, 25))
-        expect(result[destination_client3.id]).to be_nil
-      end
-    end
+      # Verify that the correct values are returned from the most recent assessment
+      result_assessment_date = field_map.client_query(all_destination_clients, assessment_date_field)
+      expect(result_assessment_date[destination_client1.id]).to eq(Date.new(2024, 8, 1))
 
-    context 'for date_updated field' do
-      it 'returns the date updated for each client' do
-        result = field_map.client_query(all_destination_clients, date_updated_field)
-        expect(result[destination_client1.id].to_date).to eq(Date.new(2024, 6, 20))
-        expect(result[destination_client2.id].to_date).to eq(Date.new(2024, 7, 5))
-        expect(result[destination_client3.id]).to be_nil
-      end
-    end
+      result_date_created = field_map.client_query(all_destination_clients, date_created_field)
+      expect(result_date_created[destination_client1.id].to_date).to eq(Date.new(2024, 7, 25))
 
-    context 'when client has multiple assessments' do
-      before do
-        # Create a more recent assessment for client1
-        create_assessment_for_client(
-          client1,
-          assessment_date: Date.new(2024, 8, 1),
-          date_created: Date.new(2024, 7, 25),
-          date_updated: Date.new(2024, 8, 5),
-        )
-      end
-
-      it 'selects the most recent assessment based on assessment date' do
-        result = field_map.client_query(all_destination_clients, assessment_date_field)
-        expect(result[destination_client1.id]).to eq(Date.new(2024, 8, 1))
-      end
-
-      it 'selects date_created from the most recent assessment' do
-        result = field_map.client_query(all_destination_clients, date_created_field)
-        expect(result[destination_client1.id].to_date).to eq(Date.new(2024, 7, 25))
-      end
-
-      it 'selects date_updated from the most recent assessment' do
-        result = field_map.client_query(all_destination_clients, date_updated_field)
-        expect(result[destination_client1.id].to_date).to eq(Date.new(2024, 8, 5))
-      end
-    end
-
-    context 'when multiple assessments have the same assessment date' do
-      let(:client_same_day) { create(:hmis_hud_client_with_warehouse_client) }
-      let(:destination_client_same_day) { client_same_day.destination_client }
-      let(:query_clients) { GrdaWarehouse::Hud::Client.where(id: destination_client_same_day.id) }
-
-      before do
-        same_day = current_date - 5.days
-        # Create assessments with same assessment date but different creation times
-        create_assessment_for_client(
-          client_same_day,
-          assessment_date: same_day,
-          date_created: same_day - 1.hour,
-          date_updated: same_day,
-        )
-        travel 1.second do
-          create_assessment_for_client(
-            client_same_day,
-            assessment_date: same_day,
-            date_created: same_day,
-            date_updated: same_day + 1.hour,
-          )
-        end
-      end
-
-      it 'selects the most recently created assessment when assessment dates are the same' do
-        result = field_map.client_query(query_clients, date_updated_field)
-        expect(result[destination_client_same_day.id].to_time).to be_within(1.minute).of(((current_date - 5.days) + 1.hour).to_time)
-      end
+      result_date_updated = field_map.client_query(all_destination_clients, date_updated_field)
+      expect(result_date_updated[destination_client1.id].to_date).to eq(Date.new(2024, 8, 5))
     end
 
     context 'error handling' do

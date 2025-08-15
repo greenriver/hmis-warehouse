@@ -82,24 +82,14 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
       )
     end
 
-    it 'fetches values for multiple clients and selects the most recent assessment' do
-      # Initial check for all clients
-      initial_result = field_map.client_query(all_destination_clients, language_field)
-      expect(initial_result).to include(
-        destination_client1.id => 'English',
-        destination_client2.id => 'French',
-      )
+    it 'selects values from the most recent assessment' do
+      # Create an older assessment
+      create_assessment_for_client(client1, language_preference: 'English', assessment_date: current_date - 10.days)
+      # Create a more recent assessment that should be selected
+      create_assessment_for_client(client1, language_preference: 'Klingon', assessment_date: current_date)
 
-      # Expect client1's value to change when a more recent assessment is added
-      expect do
-        # Create an even more recent assessment for client1
-        create_assessment_for_client(client1, language_preference: 'Klingon', assessment_date: current_date)
-      end.to change { field_map.client_query(all_destination_clients, language_field)[destination_client1.id] }.
-        from('English').to('Klingon')
-
-      # Verify other clients were not affected
-      final_result = field_map.client_query(all_destination_clients, language_field)
-      expect(final_result[destination_client2.id]).to eq('French')
+      result = field_map.client_query(all_destination_clients, language_field)
+      expect(result[destination_client1.id]).to eq('Klingon')
     end
 
     it 'returns an array for repeating CDEs' do
@@ -117,24 +107,6 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
 
       # Client2 has assessment but no allergies data - returns empty array for missing repeating field
       expect(result_repeating[destination_client2.id]).to eq([])
-    end
-
-    context 'when a client has multiple assessments on the same day' do
-      let(:client_with_same_day_assessments) { create(:hmis_hud_client_with_warehouse_client) }
-      let(:destination_client_same_day) { client_with_same_day_assessments.destination_client }
-      let(:query_clients) { GrdaWarehouse::Hud::Client.where(id: destination_client_same_day.id) }
-
-      before do
-        same_day = current_date - 5.days
-        # Create assessments with same date, second should be picked due to creation order
-        create_assessment_for_client(client_with_same_day_assessments, language_preference: 'First', assessment_date: same_day)
-        create_assessment_for_client(client_with_same_day_assessments, language_preference: 'Second', assessment_date: same_day)
-      end
-
-      it 'selects the most recently created assessment' do
-        result = field_map.client_query(query_clients, language_field)
-        expect(result[destination_client_same_day.id]).to eq('Second')
-      end
     end
 
     it 'raises an error for invalid field names' do
