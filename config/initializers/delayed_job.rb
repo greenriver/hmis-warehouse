@@ -1,7 +1,12 @@
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5
-Delayed::Worker.max_attempts = 3
+Delayed::Worker.max_attempts = 6
 Delayed::Worker.max_run_time = 30.hours
+
+# Handle shutdown signals
+# This will cause the worker to catch SIGTERM and raise an error, allowing the job to be requeued
+# Note, this means deployments and auto-scaling will now consume a job's retry attempts
+Delayed::Worker.raise_signal_exceptions = :term
 
 Delayed::Worker.default_queue_name = 'default_priority'
 Delayed::Worker.read_ahead = 2
