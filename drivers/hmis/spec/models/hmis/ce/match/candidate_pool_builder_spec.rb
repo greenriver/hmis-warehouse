@@ -136,9 +136,9 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
           # Verify that a new pool would have been created with different expressions
           # if this was a new opportunity
-          resolver = Hmis::Ce::Match::CandidatePoolResolver.new
+          builder_for_key = described_class.new(Hmis::Ce::Opportunity.where(id: tracked_opportunity.id))
           scope = Hmis::Ce::Opportunity.where(id: tracked_opportunity.id)
-          new_key = resolver.opportunities_by_key(opportunity_scope: scope).keys.first
+          new_key = builder_for_key.opportunities_by_key(opportunity_scope: scope).keys.first
           expected_new_priority = new_key.first
           expected_new_requirement = new_key.second
 

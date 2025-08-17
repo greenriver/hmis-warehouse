@@ -8,7 +8,7 @@ The classes within this module are organized into several subdirectories to grou
 
 - **`/` (ActiveRecord Models & Public API)**
   - Contains the main ActiveRecord models (`CandidatePool`, `Candidate`, `CandidateEvent`, `Rule`).
-  - Contains the public-facing API classes that orchestrate the matching process (`Engine`, `CandidatePoolBuilder`, `CandidatePoolResolver`, `MatchApplicability`). These are the primary entry points for interacting with the match engine.
+  - Contains the public-facing API classes that orchestrate the matching process (`Engine`, `CandidatePoolBuilder`, `MatchApplicability`). These are the primary entry points for interacting with the match engine.
 
 - **`internal/` (Internal Components)**
   - Houses the service objects that are used internally by the `Engine`. These classes are considered implementation details and should not be called directly from outside the `Hmis::Ce::Match` module.

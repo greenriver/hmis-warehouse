@@ -16,7 +16,8 @@ module Hmis::Ce::Match
   class CandidatePoolBuilder
     def initialize(opportunities)
       @opportunities = opportunities
-      @candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
+      @all_rules = nil
+      @opportunity_rules = {}
     end
 
     # Optimization TBD. Assumes a relatively small number of active opportunities (1,000 or less)
@@ -38,7 +39,7 @@ module Hmis::Ce::Match
     end
 
     def _perform
-      grouped = @candidate_pool_resolver.opportunities_by_key(opportunity_scope: @opportunities)
+      grouped = opportunities_by_key(opportunity_scope: @opportunities)
       created_ids = create_new_pools!(grouped.keys)
       update_opportunity_pools!(grouped)
       cleanup_orphan_pools
@@ -47,7 +48,7 @@ module Hmis::Ce::Match
 
     # Update the opportunity records with their candidate pools
     def update_opportunity_pools!(grouped)
-      current_pools = @candidate_pool_resolver.reload_candidate_pools_by_key
+      current_pools = load_candidate_pools_by_key
 
       # Collect all opportunity updates for a single upsert
       opportunity_updates = []
@@ -64,7 +65,7 @@ module Hmis::Ce::Match
               {
                 candidate_pool_id: target_pool.id,
                 stale: false,
-                assignment_rules: @candidate_pool_resolver.opportunity_rules(opportunity).map(&:attributes),
+                assignment_rules: opportunity_rules(opportunity).map(&:attributes),
               },
             )
           elsif opportunity.candidate_pool_id != target_pool.id
@@ -124,6 +125,97 @@ module Hmis::Ce::Match
         orphaned.
         where(updated_at: ...expiration_date).
         find_each(&:destroy!)
+    end
+
+    # Migrated from CandidatePoolResolver
+    def all_rules
+      # Cache all Rules in an instance variable to reduce database hits
+      @all_rules ||= Hmis::Ce::Match::Rule.preload(:owner).order(:owner_type, :id).to_a
+    end
+
+    def opportunities_by_key(opportunity_scope:)
+      # Group the given opportunities by unique priority and eligibility rules.
+      # Key is an array of priority schemes and eligibility requirements;
+      # Value is an array of opportunities matching those rules.
+      # For example,
+      # {
+      #   ["{days_homeless}", "current_age >= 18"] => [opportunity1, opportunity2, ...]
+      # }
+      grouped = {}
+
+      opportunity_scope.preload(project: [:organization, :funders]).find_each do |opportunity|
+        key = key_for_opportunity(opportunity: opportunity)
+
+        grouped[key] ||= []
+        grouped[key] << opportunity
+      end
+
+      grouped
+    end
+
+    # Cache candidate pools indexed by the same key as described above;
+    def load_candidate_pools_by_key
+      Hmis::Ce::Match::CandidatePool.all.index_by do |pool|
+        [pool.priority_expression, pool.requirement_expression]
+      end
+    end
+
+    def opportunity_rules(opportunity)
+      @opportunity_rules[opportunity.id] ||= all_rules.filter { |rule| rule.applies_to_entity?(opportunity) }
+    end
+
+    # Generates a unique key for an opportunity based on its applicable rules
+    # Returns an array of [priority_expression, eligibility_expression]
+    def key_for_opportunity(opportunity:)
+      rules = opportunity_rules(opportunity)
+
+      key = []
+      key << priority_expression_for_rules(rules)
+      key << eligibility_expression_for_rules(rules)
+      key
+    end
+
+    # Transform multiple priority scheme rules into a single expression that returns a Dentaky array {item1, item2, ...}
+    def priority_expression_for_rules(rules)
+      expressions = priority_rules(rules).
+        sort_by { |r| [r.rank, r.id] }.
+        map(&:expression)
+      "{#{expressions.join(', ')}}"
+    end
+
+    # Transform multiple eligibility requirement rules into a single expression
+    # Multiple rules are combined with AND logic
+    def eligibility_expression_for_rules(rules)
+      expressions = rules.filter(&:eligibility_requirement?).
+        sort_by(&:id).
+        map(&:expression)
+
+      return 'TRUE' if expressions.empty?
+
+      expressions.join(' AND ')
+    end
+
+    # An opportunity can respect multiple priority rules, with different `rank` values.
+    # However, an opportunity can't respect multiple different rules with different owners,
+    # because `rank` is unique on owner, not unique globally.
+    # This function filters down the list of priority rules that apply to this opportunity:
+    # If there are rules defined with different owners, pick the most specific owner,
+    # and return all rules applying to that owner
+    def priority_rules(rules)
+      rules = rules.filter(&:priority_scheme?)
+      return [] if rules.empty?
+
+      # Owner specificity hierarchy: unit_group > project > organization > data_source
+      specificity_order = {
+        'Hmis::UnitGroup' => 1,
+        'Hmis::Hud::Project' => 2,
+        'Hmis::Hud::Organization' => 3,
+        'GrdaWarehouse::DataSource' => 4,
+      }
+
+      # Group by specificity and return the most specific group
+      most_specific_level = rules.map { |rule| specificity_order[rule.owner.class.name] || 999 }.min
+      rules.select { |rule| (specificity_order[rule.owner.class.name] || 999) == most_specific_level }
     end
   end
 end

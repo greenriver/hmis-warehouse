@@ -32,16 +32,19 @@ module Mutations
         [unit.id, workflow_template]
       end.to_h
 
-      candidate_pool_resolver = Hmis::Ce::Match::CandidatePoolResolver.new
-
       Hmis::Unit.transaction do
         opportunities = units.map do |unit|
           template = unit_to_template.fetch(unit.id)
-          build_opportunity_for_unit(unit, template, candidate_pool_resolver)
+          build_opportunity_for_unit(unit, template)
         end
 
         result = Hmis::Ce::Opportunity.import!(opportunities)
-        Hmis::Ce::BuildCandidatePoolsJob.perform_later(opportunity_ids: result.ids)
+
+        # Use CandidatePoolBuilder to assign candidate pools
+        if result.ids.any?
+          builder = Hmis::Ce::Match::CandidatePoolBuilder.new(Hmis::Ce::Opportunity.where(id: result.ids))
+          builder.perform
+        end
       end
 
       { units: Hmis::Unit.where(id: unit_ids) } # we don't need the preloads this time, so fresh query instead of reload
@@ -49,21 +52,19 @@ module Mutations
 
     private
 
-    def build_opportunity_for_unit(unit, template, candidate_pool_resolver)
+    def build_opportunity_for_unit(unit, template)
       raise 'Unit already has an active opportunity' if unit.latest_opportunity&.active?
 
       unit_desc = unit.unit_type&.description
       opportunity_name = "Unit #{unit.id}#{unit_desc ? ' - ' : ''}#{unit_desc}"
 
-      opportunity = Hmis::Ce::Opportunity.new(
+      Hmis::Ce::Opportunity.new(
         unit: unit,
         project: unit.project,
         name: opportunity_name,
         workflow_template_identifier: template.identifier,
       )
-
-      opportunity.candidate_pool = candidate_pool_resolver.candidate_pool_for_opportunity(opportunity: opportunity)
-      opportunity
+      # Note: candidate_pool will be assigned by CandidatePoolBuilder after the opportunity is created
     end
   end
 end
