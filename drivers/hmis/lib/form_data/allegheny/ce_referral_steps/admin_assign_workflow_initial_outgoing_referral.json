@@ -1,0 +1,13 @@
+{
+  "item": [
+    {
+      "text": "Resource Coordinator Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "required": false,
+      "mapping": {
+        "custom_field_key": "admin_assign_workflow_initial_outgoing_referral_note"
+      }
+    }
+  ]
+}
