@@ -82,7 +82,67 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
     end
   end
 
-  it_behaves_like 'a self-scheduling job', wait_time: 5.minutes
+  context 'self-scheduling behavior' do
+    context 'when dirty pools remain after processing' do
+      let(:batch_size) { 3 }
+
+      before do
+        # Create initial dirty pool
+        create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
+
+        # Create exactly batch_size additional pools to exceed the batch limit
+        # This ensures some pools remain dirty after the first batch
+        batch_size.times do
+          additional_pool = create(:hmis_ce_match_candidate_pool)
+          create(:hmis_ce_opportunity, candidate_pool: additional_pool)
+          create(:hmis_ce_change_marker, trackable: additional_pool, current_version: 1, processed_version: 0)
+        end
+      end
+
+      it 'schedules next batch when wait_time is provided and dirty pools remain' do
+        travel_to Time.current do
+          described_class.perform_now(wait_time: 5.minutes, batch_size: batch_size)
+
+          enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
+          expect(enqueued_job).to be_present
+          expect(enqueued_job[:at].to_i).to eq((Time.current + 5.minutes).to_i)
+          expect(enqueued_job[:args].first['batch_size']).to eq(batch_size)
+        end
+      end
+
+      it 'does not schedule next batch when wait_time is nil' do
+        described_class.perform_now(wait_time: nil, batch_size: batch_size)
+
+        enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
+        expect(enqueued_job).to be_nil
+      end
+    end
+
+    context 'when no dirty pools remain after processing' do
+      let(:batch_size) { 5 }
+
+      before do
+        # Create fewer pools than batch size so all get processed in one batch
+        create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
+
+        2.times do
+          additional_pool = create(:hmis_ce_match_candidate_pool)
+          create(:hmis_ce_opportunity, candidate_pool: additional_pool)
+          create(:hmis_ce_change_marker, trackable: additional_pool, current_version: 1, processed_version: 0)
+        end
+      end
+
+      it 'does not schedule next batch even when wait_time is provided' do
+        travel_to Time.current do
+          described_class.perform_now(wait_time: 5.minutes, batch_size: batch_size)
+
+          enqueued_job = enqueued_jobs.find { |j| j[:job] == described_class }
+          expect(enqueued_job).to be_nil
+        end
+      end
+    end
+  end
+
   it_behaves_like 'a job that can be enqueued if not already running', wait_time: 5.minutes
 
   describe 'queue configuration' do

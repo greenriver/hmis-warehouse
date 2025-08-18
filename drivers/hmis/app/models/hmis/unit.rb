@@ -126,14 +126,6 @@ class Hmis::Unit < Hmis::HmisBase
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
   end
 
-  def eligibility_requirements
-    Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
-  end
-
-  def priority_schemes
-    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).sort_by { |r| [r.rank, r.id] }
-  end
-
   # Class method so can use with data loader
   def self.display_name(id:, name: nil, unit_type: nil)
     return name if name.present?
