@@ -17,8 +17,8 @@ module Types
     field :project_id, ID, null: false
     field :project_type, HmisSchema::Enums::ProjectType, null: false
     field :organization_name, String, null: false
-    field :capacity, Integer, null: false, description: 'Total number of units in the unit group'
-    field :vacancies, Integer, null: false, description: 'Number of units that are accepting referrals'
+    field :total_units, Integer, null: false, description: 'Total number of units in the unit group'
+    field :units_accepting_referrals, Integer, null: false, description: 'Number of units that are accepting referrals'
     field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
 
@@ -46,12 +46,12 @@ module Types
       load_ar_association(project, :organization)&.organization_name
     end
 
-    def vacancies
-      unit_group.opportunities.receiving_referrals.count # FIXME perf - load UnitGroup type and let it resolve this stuff?
+    def units_accepting_referrals
+      unit_group.opportunities.receiving_referrals.count # FIXME N+1
     end
 
-    def capacity
-      unit_group.units.count # FIXME perf - load UnitGroup type and let it resolve this stuff?
+    def total_units
+      unit_group.units.count # FIXME N+1
     end
 
     private

@@ -67,10 +67,11 @@ module GraphqlApplicationHelper
     end.min_by { |e| [e.entry_date, e.id] }
   end
 
-  # This shared helper takes a conservative approach to loading the name of a destination client. It only resolves the name if the current user has permission to view the client name on any of the destination client's HMIS source clients (for the current HMIS data source).
+  # Resolves the name of a destination client conservatively.
+  # It checks if the current user has permission to view the client name
+  # on any of the destination client's HMIS source clients (for the current HMIS data source).
+  # If no viewable name is found, it returns nil.
   def load_destination_client_name(destination_client:)
-    # For this destination client, are there any source clients whose names you can view? If so, return the first viewable name.
-    # In the future, we want to check permissions more broadly across data sources. (viewable_by scope only accounts for permissions in current data source.)
     source_clients = load_ar_association(destination_client, :hmis_source_clients)
 
     source_clients.sort_by(&:id).find do |client|

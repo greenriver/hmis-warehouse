@@ -30,21 +30,20 @@ module Types
       scope
     end
 
+    # TODO: pull this dynamic column configuration from the database
     def client_attribute_columns
-      # use a flag on CDED to determine this, or have a separate table for configuring consolidated waitlist. column configuration is gonna be a common things
       [
-        { key: 'cde.custom_assessment.hna_ce_test_1_prioritization_score', value: 'AHA score' },
+        { key: 'cde.custom_assessment.hna_ce_test_1_prioritization_score', value: 'Score' },
         { key: 'cde.custom_assessment.hna_ce_test_1_household_type', value: 'Household Type' },
-        # Assessment Date-- add to eligibility requirements to be like "it must be present" as a workaround?
-        # do we need an expression to coalesce veteran status questions?? to avoid this, collect onto same CDED in form?
       ]
     end
 
+    # TODO: pull this dynamic filter configuration from the database
     def available_filters
       [
         {
           key: 'cde.custom_assessment.hna_ce_test_1_prioritization_score',
-          label: 'AHA Score',
+          label: 'Score',
           values: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
         },
       ]
