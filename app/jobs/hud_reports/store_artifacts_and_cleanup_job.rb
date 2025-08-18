@@ -64,8 +64,10 @@ module HudReports
     end
 
     def cleanup_report_client_tables(report)
+      # We need to leave SpmEnrollments in the database. They are used to build other universe members.
+      cleanup_classes = report.associated_scope_classes - [HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment, HudSpmReport::Fy2026::SpmEnrollment]
       # Handle the special cases first in case they have a dependency on other tables
-      special_cleanup_classes = report.associated_scope_classes.
+      special_cleanup_classes = cleanup_classes.
         reject { |c| c.column_names.include?('report_instance_id') }
 
       special_cleanup_classes.each do |table_class|
@@ -73,7 +75,7 @@ module HudReports
       end
 
       # Clean up the tables that have a report_instance_id column
-      (report.associated_scope_classes - special_cleanup_classes).each do |table_class|
+      (cleanup_classes - special_cleanup_classes).each do |table_class|
         deleted_count = table_class.where(report_instance_id: report.id).delete_all
         Rails.logger.info "Deleted #{deleted_count} records from #{table_class.table_name} for report #{report.id}"
       end

@@ -303,12 +303,12 @@ module PerformanceMeasurement
     end
 
     private def spm_enrollments_from_answer_member(member)
-      case member
-      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment, HudSpmReport::Fy2026::SpmEnrollment
+      case member.class.name.demodulize
+      when 'SpmEnrollment'
         [member]
-      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode, HudSpmReport::Fy2026::Episode
+      when 'Episode'
         member.enrollments
-      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return, HudSpmReport::Fy2026::Return
+      when 'Return'
         [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"

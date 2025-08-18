@@ -190,20 +190,25 @@ module HudReports
       excluded = ['id', 'created_at', 'updated_at', 'deleted_at']
       headers = classes.flat_map(&:column_names).uniq - excluded
       # Ensure common keys present even if they’re methods
-      headers += ['id', 'client_id', 'project_id', 'data_source_id']
+      headers += ['id', 'client_id', 'project_id', 'data_source_id', 'enrollment_id', 'enrollment_ids']
       headers.uniq!
 
       CSV.generate(headers: headers, write_headers: true) do |csv|
         classes.each do |klass|
+          Rails.logger.info "Processing class: #{klass.name} for report #{@report.id}"
           scope = if klass.column_names.include?('report_instance_id')
-            klass.where(report_instance_id: @report.id)
+            scope = klass.where(report_instance_id: @report.id)
+            Rails.logger.info "  Found #{scope.count} records for #{klass.name} with report_instance_id"
+            scope
           else
             # Handle different association patterns based on class name
             case klass.name
             when /^HudSpmReport::Fy\d{4}::Episode$/
-              # Episode doesn't have report_instance_id, so we need to join through enrollments
-              klass.joins(enrollments: :report_instance).
+              # Episode doesn't have report_instance_id, so we need to join through enrollment_links to SpmEnrollments
+              scope = klass.joins(enrollment_links: :enrollment).
                 where(hud_report_spm_enrollments: { report_instance_id: @report.id })
+              Rails.logger.info "  Found #{scope.count} Episode records through enrollment_links join"
+              scope
             when /^HudApr::Fy\d{4}::AprLivingSituation$/
               # AprLivingSituation belongs to AprClient, which has report_instance_id
               klass.joins(:apr_client).

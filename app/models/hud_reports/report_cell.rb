@@ -22,6 +22,14 @@ module HudReports
 
     alias_attribute :value, :summary
 
+    def universe_members
+      if report_instance.artifacts_stored?
+        load_members_from_s3
+      else
+        super
+      end
+    end
+
     # summary is a json col for some reason
     def numeric_value
       case summary
@@ -197,6 +205,7 @@ module HudReports
     def load_members_from_s3
       service = HudReports::FileArtifactService.new(report_instance)
       csv_data = service.retrieve_universe_members(question: question)
+      client_csv_data = service.retrieve_report_clients
 
       return self.class.none unless csv_data
 
@@ -207,13 +216,79 @@ module HudReports
 
       # Convert to a format that mimics the original universe members
       objects = cell_members.map do |row|
-        OpenStruct.new(
-          report_cell_id: row['report_cell_id'].to_i,
-          universe_membership_type: row['universe_membership_type'],
-          universe_membership_id: row['universe_membership_id'].to_i,
+        # Try to populate optional fields used by value accessors (e.g., days_homeless)
+        universe_membership_type = row['universe_membership_type']
+        universe_membership_id = row['universe_membership_id'].to_i
+
+        # Look up additional data stored in the report clients CSV data
+        client_record = client_csv_data.find do |client_row|
+          client_row['id'].to_i == universe_membership_id &&
+          client_row['client_id'].present? &&
+          client_row['client_id'].to_i == row['client_id'].to_i
+        end
+
+        universe_membership = OpenStruct.new(
+          id: universe_membership_id,
           client_id: row['client_id'].to_i,
           first_name: row['first_name'],
           last_name: row['last_name'],
+          client: GrdaWarehouse::Hud::Client.find(row['client_id'].to_i),
+        )
+
+        # Add all available data from the client_record to the universe_membership
+        client_record.each do |key, value|
+          # Skip keys that are already set or are nil
+          next if !defined?(universe_membership.key).nil? || value.nil?
+
+          # Convert string values to appropriate types
+          if /_id$/.match?(key) || ['id', 'age'].include?(key)
+            universe_membership[key.to_sym] = value.to_i if value.present?
+          elsif ['entry_date', 'exit_date', 'created_at', 'updated_at'].include?(key)
+            universe_membership[key.to_sym] = Date.parse(value) if value.present?
+          elsif value.is_a?(String) && value.present?
+            # Check if it's a valid integer
+            if value.match?(/\A\d+\z/)
+              universe_membership[key.to_sym] = value.to_i
+            # Try to parse as JSON if it looks like an array or object
+            elsif value.start_with?('[') || value.start_with?('{')
+              begin
+                universe_membership[key.to_sym] = JSON.parse(value)
+              rescue JSON::ParserError
+                universe_membership[key.to_sym] = value
+              end
+            else
+              universe_membership[key.to_sym] = value
+            end
+          else
+            universe_membership[key.to_sym] = value
+          end
+        end
+
+        universe_membership.define_singleton_method(:class) do
+          universe_membership_type.constantize
+        end
+
+        case universe_membership_type
+        when 'HudSpmReport::Fy2023::SpmEnrollment', 'HudSpmReport::Fy2024::SpmEnrollment', 'HudSpmReport::Fy2026::SpmEnrollment'
+          universe_membership.enrollment = GrdaWarehouse::Hud::Enrollment.find(universe_membership.enrollment_id)
+        when 'HudSpmReport::Fy2023::Episode', 'HudSpmReport::Fy2024::Episode', 'HudSpmReport::Fy2026::Episode'
+          spm_enrollment_class = universe_membership_type.gsub('Episode', 'SpmEnrollment').constantize
+          universe_membership.enrollments = spm_enrollment_class.where(id: universe_membership.enrollment_ids)
+        when 'HudSpmReport::Fy2023::Return', 'HudSpmReport::Fy2024::Return', 'HudSpmReport::Fy2026::Return'
+          spm_enrollment_class = universe_membership_type.gsub('Return', 'SpmEnrollment').constantize
+          universe_membership.exit_enrollment = spm_enrollment_class.find(universe_membership.exit_enrollment_id)
+        end
+
+        # Create a mock UniverseMember object
+        OpenStruct.new(
+          report_cell_id: row['report_cell_id'].to_i,
+          universe_membership_type: universe_membership_type,
+          universe_membership_id: universe_membership_id,
+          client_id: row['client_id'].to_i,
+          first_name: row['first_name'],
+          last_name: row['last_name'],
+          universe_membership: universe_membership,
+          client: universe_membership.client,
         )
       end
 
