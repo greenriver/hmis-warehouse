@@ -16,8 +16,11 @@
 #
 module Hmis::Ce::Match::Expression
   class FieldMap
-    CDE = 'cde'
-    CLIENT = 'client'
+    NAMESPACES = [
+      CDE = 'cde',
+      CLIENT = 'client',
+      CUSTOM_ASSESSMENT = 'custom_assessment',
+    ].freeze
 
     attr_reader :current_date
 
@@ -52,7 +55,7 @@ module Hmis::Ce::Match::Expression
       return [CLIENT, field] unless field =~ /\./
 
       field_type, resolved_field = field.split('.', 2)
-      raise ArgumentError, "unknown resolver for \"#{field}\"" unless [CDE, CLIENT].include?(field_type)
+      raise ArgumentError, "unknown resolver for \"#{field}\"" unless NAMESPACES.include?(field_type)
 
       [field_type, resolved_field]
     end
@@ -91,6 +94,7 @@ module Hmis::Ce::Match::Expression
       @registered_resolvers ||= {
         CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new(current_date: @current_date),
         CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new(current_date: @current_date),
+        CUSTOM_ASSESSMENT => Hmis::Ce::Match::Expression::CustomAssessmentFieldMap.new(current_date: @current_date),
       }
     end
   end

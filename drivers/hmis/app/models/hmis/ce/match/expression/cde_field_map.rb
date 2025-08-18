@@ -3,6 +3,8 @@
 module Hmis::Ce::Match::Expression
   # FieldMap implementation for CDE fields
   class CdeFieldMap
+    include Memery
+
     def initialize(current_date: Date.current)
       @current_date = current_date
     end
@@ -93,10 +95,8 @@ module Hmis::Ce::Match::Expression
       Hmis::ArelHelper.instance
     end
 
-    protected
-
     # parses a key of the format 'custom_assessment.xyz'
-    def parse_entity_type(field)
+    memoize def parse_entity_type(field)
       entity_type, cde_key = field.split('.', 2)
 
       klass = case entity_type
