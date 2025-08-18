@@ -38,7 +38,7 @@ module Hmis::Ce::Match::Expression
       formatted
     end
 
-    protected
+    private
 
     def arel
       Hmis::ArelHelper
@@ -54,8 +54,6 @@ module Hmis::Ce::Match::Expression
         open_referral_project_types: open_referral_project_types_field,
       }
     end
-
-    private
 
     def days_since_last_exit_field
       calculator = LastEnrolledDaysCalculator.new(@current_date)

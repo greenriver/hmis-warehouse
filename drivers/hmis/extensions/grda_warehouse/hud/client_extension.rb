@@ -18,6 +18,7 @@ module Hmis::GrdaWarehouse::Hud
       has_many :custom_services, through: :source_enrollments
       has_one :ce_client_proxy, as: :client, class_name: 'Hmis::Ce::ClientProxy', dependent: :destroy
       has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', through: :ce_client_proxy
+      has_many :destination_client_latest_assessments, class_name: 'Hmis::DestinationClientLatestAssessment', foreign_key: :destination_client_id
 
       # WarehouseClient and Source Client(s) represented as Hmis:: models
       # (Associations defined on GrdaWarehouse::Hud::Client are represented as GrdaWarehouse::WarehouseClient and GrdaWarehouse::Hud::Client respectively)
