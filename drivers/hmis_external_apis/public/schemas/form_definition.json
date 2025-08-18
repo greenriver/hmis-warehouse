@@ -543,7 +543,22 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/currencyFormNode"
+            "$ref": "#/$defs/floatFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "DECIMAL"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/floatFormNode"
           }
         },
         {
@@ -922,7 +937,7 @@
         }
       ]
     },
-    "currencyFormNode": {
+    "floatFormNode": {
       "allOf": [
         {
           "$ref": "#/$defs/genericInputFormNode"

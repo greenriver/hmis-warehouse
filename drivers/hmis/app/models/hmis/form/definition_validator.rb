@@ -66,7 +66,7 @@ class Hmis::Form::DefinitionValidator
       raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless cded_type == 'boolean'
     when 'DATE'
       raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['date', 'string', 'text'].include?(cded_type)
-    when 'CURRENCY'
+    when 'CURRENCY', 'DECIMAL'
       raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'string', 'text'].include?(cded_type)
     when 'INTEGER'
       raise_bad_type_match(link_id, item_type, cded_key, cded_type) unless ['float', 'integer', 'string', 'text'].include?(cded_type)

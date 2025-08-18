@@ -120,7 +120,7 @@ module Hmis
           'date'
         when 'INTEGER'
           'integer'
-        when 'CURRENCY'
+        when 'CURRENCY', 'DECIMAL'
           'float'
         when 'FILE', 'IMAGE'
           'file'

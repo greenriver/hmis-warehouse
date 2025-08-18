@@ -284,6 +284,8 @@ class Hmis::Hud::Processors::Base
       case value
       when Float, Integer
         value
+      when String
+        value.to_f # todo @martha - safe parse and raise recognizable error
       else
         raise "unexpected value \"#{value}\""
       end
