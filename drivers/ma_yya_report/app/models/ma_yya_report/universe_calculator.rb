@@ -73,7 +73,7 @@ module MaYyaReport
             voluntary_dcf_service: enrollment.enrollment.ReferralSource == 30,
             voluntary_dys_yes_service: enrollment.enrollment.ReferralSource == 34,
             exchange_for_sex: enrollment.enrollment.exit&.ExchangeForSex == 1,
-            returned_within_2_years: returned_within_2_years?(client_id),
+            days_to_return: days_to_return(client_id),
           )
         end
       end
@@ -111,20 +111,7 @@ module MaYyaReport
         )
     end
 
-    # Determines if a specific client returned to homelessness within 2 years
-    #
-    # This method checks if the given client_id is included in the pre-calculated set
-    # of clients who returned to homelessness within 2 years of being housed.
-    #
-    # @param client_id [Integer] The ID of the client to check
-    # @return [Boolean] true if the client returned to homelessness within 2 years, false otherwise
-    #
-    # @see #returned_within_2_years_by_client_ids for the logic used to determine returns
-    private def returned_within_2_years?(client_id)
-      returned_within_2_years_by_client_ids.include?(client_id)
-    end
-
-    # Calculates and memoizes the set of client IDs who returned to homelessness within 2 years
+    # Calculates and memoizes the number of days it took for a client to become homeless again.
     #
     # This method implements a complex algorithm to identify clients who experienced a "return to homelessness"
     # within a 2-year period. The algorithm follows these steps:
@@ -147,16 +134,16 @@ module MaYyaReport
     # - Uses memoization to cache results across multiple calls
     # - Groups CLS data by client_id for efficient processing
     #
-    # @return [Set<Integer>] A set of client IDs representing clients who returned to homelessness within 2 years
+    # @return [Hash<Integer, Integer>] A hash of client IDs to the number of days it took to return to homelessness.
     #
     # @note This method looks beyond the reporting period enrollments to get a complete picture
     #       of housing stability over the 2-year lookback period
-    private def returned_within_2_years_by_client_ids
-      @returned_within_2_years_by_client_ids ||= begin
+    private def days_to_return_by_client_id
+      @days_to_return_by_client_id ||= begin
         homeless_situations = [116, 101, 302]
         housed_situations = [410, 435, 421, 411]
 
-        returned_within_2_years_client_ids = Set.new
+        days_by_client_id = {}
         situations_by_client_id = {}
         ::GrdaWarehouse::Hud::CurrentLivingSituation.joins(enrollment: { service_history_enrollment: :client }).
           where(c_t[:id].in(client_scope.pluck(:id))).
@@ -170,32 +157,32 @@ module MaYyaReport
               entry_date: entry_date,
             }
           end
-        # Find the earliest homeless CLS within the report range for each client
         situations_by_client_id.each do |client_id, situations|
-          homeless_situations = situations.select { |situation| situation[:current_living_situation].in?(homeless_situations) }
-          homeless_situations_during_reporting_period = homeless_situations.any? do |situation|
-            situation[:information_date].between?(@filter.start_date, @filter.end_date)
+          client_homeless_situations = situations.select { |s| s[:current_living_situation].in?(homeless_situations) }
+
+          first_homeless_situation_in_period = client_homeless_situations.
+            select { |s| s[:information_date].between?(@filter.start_date, @filter.end_date) }.
+            min_by { |s| s[:information_date] }
+
+          next unless first_homeless_situation_in_period
+
+          last_housed_situation = situations.
+            select { |s| s[:information_date] < first_homeless_situation_in_period[:information_date] }.
+            select { |s| s[:current_living_situation].in?(housed_situations) }.
+            max_by { |s| s[:information_date] }
+
+          next unless last_housed_situation
+
+          was_homeless_before_housed = client_homeless_situations.any? do |s|
+            s[:information_date] < last_housed_situation[:information_date]
           end
 
-          next unless homeless_situations_during_reporting_period
+          next unless was_homeless_before_housed
 
-          situation_immediately_prior_to_reporting_period = situations.select do |situation|
-            situation[:information_date] < @filter.start_date && situation[:information_date] >= @filter.end_date - 2.years
-          end.max_by(&:information_date)
-
-          housed_immediately_prior_to_reporting_period = situation_immediately_prior_to_reporting_period.try(:[], :current_living_situation).in?(housed_situations)
-
-          next unless housed_immediately_prior_to_reporting_period
-
-          at_at_entry_prior_to_housed_situation = homeless_situations.any? do |situation|
-            situation[:information_date] < situation_immediately_prior_to_reporting_period[:information_date]
-          end
-
-          next unless at_at_entry_prior_to_housed_situation
-
-          returned_within_2_years_client_ids << client_id
+          days = (first_homeless_situation_in_period[:information_date] - last_housed_situation[:information_date]).to_i
+          days_by_client_id[client_id] = days if days <= 730
         end
-        returned_within_2_years_client_ids
+        days_by_client_id.with_defaults(nil)
       end
     end
 

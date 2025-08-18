@@ -27331,7 +27331,14 @@ CREATE TABLE public.ma_yya_report_clients (
     flex_funds jsonb DEFAULT '[]'::jsonb,
     zip_codes jsonb DEFAULT '[]'::jsonb,
     language character varying,
-    followup_previous_period boolean
+    followup_previous_period boolean,
+    employed boolean DEFAULT false,
+    former_foster_ward boolean DEFAULT false,
+    former_juvenile_justice_ward boolean DEFAULT false,
+    voluntary_dcf_service boolean DEFAULT false,
+    voluntary_dys_yes_service boolean DEFAULT false,
+    exchange_for_sex boolean DEFAULT false,
+    days_to_return integer
 );
 
 
@@ -75197,6 +75204,8 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250818171810'),
+('20250807182745'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
