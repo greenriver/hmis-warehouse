@@ -281,7 +281,7 @@ module Cohorts
       end
 
       enrollment_scope = base_enrollment_scope
-      # Filter for clients who meet the age criteria at the end of the window
+      # Filter for clients who meet the age criteria at the later of the client's most-recent homeless enrollment and thestart of the window
       enrollment_scope = enrollment_scope.in_age_ranges(@actives[:age_ranges], on_date: @actives[:start]) if @actives[:age_ranges].present?
 
       # make sure we have an :actives_population array

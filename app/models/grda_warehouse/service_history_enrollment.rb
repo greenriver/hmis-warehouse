@@ -342,7 +342,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     arel = Hmis::ArelHelper.instance
     # Age on date calculates age at the later of entry date and on_date (which should be the start of the window)
-    age_cond = arel.age_on_date(on_date)
+    age_cond = arel.age_on_date(on_date.to_date)
     ages = []
     ages += (0..17).to_a if age_ranges.include?(:under_eighteen)
     ages += (18..24).to_a if age_ranges.include?(:eighteen_to_twenty_four)

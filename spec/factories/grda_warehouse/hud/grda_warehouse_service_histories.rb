@@ -12,7 +12,14 @@ FactoryBot.define do
     date { Date.current }
     first_date_in_program { Date.current }
     record_type { 'entry' }
-    age { client&.DOB ? ((first_date_in_program - client.DOB) / 365).to_i : nil }
+    age do
+      return nil unless client&.DOB.present? && first_date_in_program.present?
+
+      GrdaWarehouse::Hud::Client.age(
+        date: first_date_in_program.to_date,
+        dob: client.DOB.to_date,
+      )
+    end
     # client_id
     # data_source_id
     association :data_source, factory: :grda_warehouse_data_source
