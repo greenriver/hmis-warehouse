@@ -38,7 +38,6 @@ module Hmis::Ce
     end
 
     def self.apply_filters(input)
-      # Rails.logger.info(">>> applying filters #{input.inspect} #{current_scope.size}")
       Hmis::Filter::CeClientFilter.new(input).filter_scope(current_scope)
     end
 

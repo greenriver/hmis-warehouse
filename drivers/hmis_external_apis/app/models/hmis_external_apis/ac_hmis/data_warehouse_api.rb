@@ -4,14 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# api = HmisExternalApis::AcHmis::DataWarehouseApi.new
-# res = api.client_by_client_id(147563)
-# res["parsed_body"]["data"].map { |h| h.slice('mciUniqId', 'mciUniqIdDate') }
-#
-# spot-checked 2, they returned IDs, so we should be able to populate the missing ones ourselves
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   class DataWarehouseApi
-    SYSTEM_ID = 'ac_hmis_warehouse_api'.freeze
+    SYSTEM_ID = 'ac_hmis_warehouse_api'
 
     def self.enabled?
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).exists?
@@ -19,21 +16,21 @@ module HmisExternalApis::AcHmis
 
     # Returns the DW Client (Golden Record), for the specified mci_unique_id.
     def golden_client_by_mci_unique_id(mci_unique_id)
-      conn.get("client/#{mci_unique_id}")
-        .then { |r| handle_error(r) }
+      conn.get("client/#{mci_unique_id}").
+        then { |r| handle_error(r) }
     end
 
     # Returns the client records, for all DW sources, for the specified
     # mci_unique_id.
     def clients_by_mci_unique_id(mci_unique_id)
-      conn.get("clients/sources/#{mci_unique_id}")
-        .then { |r| handle_error(r) }
+      conn.get("clients/sources/#{mci_unique_id}").
+        then { |r| handle_error(r) }
     end
 
     # Returns the DW Client (Golden Record), for the specified SrcSysKey/ClientId.
     def client_by_client_id(client_id)
-      conn.get("client/#{src_sys_key}/#{client_id}")
-        .then { |r| handle_error(r) }
+      conn.get("client/#{src_sys_key}/#{client_id}").
+        then { |r| handle_error(r) }
     end
 
     # Returns the client records, for the specified source, that have had
@@ -42,8 +39,8 @@ module HmisExternalApis::AcHmis
     # order to retrieve the changes through the desired point in time (up to 6
     # months of changes).
     def first_page_of_changes
-      conn.get("clients/source/#{src_sys_key}/changes?incdemographic=N&inccontactinfo=N&incaddress=N")
-        .then { |r| handle_error(r) }
+      conn.get("clients/source/#{src_sys_key}/changes?incdemographic=N&inccontactinfo=N&incaddress=N").
+        then { |r| handle_error(r) }
     end
 
     def each_change(&block)

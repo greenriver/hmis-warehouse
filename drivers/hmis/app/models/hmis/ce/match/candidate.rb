@@ -25,28 +25,5 @@ module Hmis::Ce::Match
 
       opportunity.candidate_pool.candidates
     end
-
-    # FIXME make this a multi key has_many association
-    # def ce_match_candidate_events
-    #   Hmis::Ce::Match::CandidateEvent.where(candidate_pool_id: candidate_pool_id, client_proxy_id: client_proxy_id)
-    # end
-
-    # used to back CeCandidateConsolidated type
-    def self.all_candidates_by_distinct_unit_group
-      # Hmis::Ce::Match::Candidate.
-      #   joins(candidate_pool: { opportunities: { unit: :unit_group } }).
-      #   select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
-      #   distinct
-
-      latest_event_subquery = Hmis::Ce::Match::CandidateEvent.
-        select('DISTINCT ON (candidate_pool_id, client_proxy_id) id, candidate_pool_id, client_proxy_id').
-        order('candidate_pool_id, client_proxy_id, created_at DESC')
-
-      Hmis::Ce::Match::Candidate.
-        joins(candidate_pool: { opportunities: { unit: :unit_group } }).
-        joins("LEFT JOIN (#{latest_event_subquery.to_sql}) latest_events ON latest_events.candidate_pool_id = ce_match_candidates.candidate_pool_id AND latest_events.client_proxy_id = ce_match_candidates.client_proxy_id").
-        select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id, latest_events.id AS latest_event_id').
-        distinct
-    end
   end
 end
