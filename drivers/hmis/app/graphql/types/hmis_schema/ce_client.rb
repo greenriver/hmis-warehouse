@@ -34,7 +34,7 @@ module Types
     def eligible_unit_groups
       # note: could incorporate the latest_event subquery too if pool-specific attributes need to be resolved
       object.ce_match_candidates.
-        joins(candidate_pool: { opportunities: { unit: :unit_group } }).
+        joins(candidate_pool: :unit_groups).
         select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
         distinct
     end

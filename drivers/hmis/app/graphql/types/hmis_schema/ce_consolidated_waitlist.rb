@@ -14,8 +14,8 @@ module Types
       filters_argument HmisSchema::CeClient
     end
 
-    field :table_column_configs, [Types::TableColumnConfig], null: false, description: 'Columns available in the consolidated waitlist'
-    field :table_filter_configs, [Types::TableFilterConfig], null: false
+    field :table_column_configs, [Types::TableColumnConfig], null: false, description: 'Columns available in the consolidated waitlist', default_value: []
+    field :table_filter_configs, [Types::TableFilterConfig], null: false, default_value: []
 
     def self.authorized?(object, context)
       super && context[:current_user].can_administrate_coordinated_entry?
