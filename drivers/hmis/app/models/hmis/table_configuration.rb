@@ -23,10 +23,6 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     find_by(table_key: CONSOLIDATED_WAITLIST, data_source_id: data_source_id, owner: nil) # consolidated waitlist is global
   end
 
-  # example columns: [{"key": "cde.custom_assessment.hna_ce_test_1_prioritization_score", "label": "AHA Score"}, {"key": "cde.custom_assessment.hna_ce_test_1_household_type", "label": "Household Type"}]
-
-  # example filters: [{"key": "cde.custom_assessment.hna_ce_test_1_prioritization_score", "label": "Score", "values": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}]
-
   private
 
   # [
