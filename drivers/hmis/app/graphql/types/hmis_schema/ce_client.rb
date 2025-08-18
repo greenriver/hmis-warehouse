@@ -7,23 +7,22 @@
 # frozen_string_literal: true
 
 module Types
-  # FIXME! name this CeClientProxy and have a separate lookup fn for fetching it, use that when clicking in to see what waitlists the client is on.
   class HmisSchema::CeClient < Types::BaseObject
     description 'A client who is a candidate for Coordinated Entry (CE), represented by a ClientProxy. Underlying client record is Destination Client.'
 
     available_filter_options do
-      arg :search_term, String
+      arg :search_term, String, required: false
       arg :dynamic_filters, [Types::DynamicFilter], required: false
     end
 
     # object is a Hmis::Ce::ClientProxy
     field :id, ID, null: false # ce client proxy id
     field :destination_client_id, ID, null: false
-    field :source_client_ids, [ID], null: false
+    field :source_client_ids, [ID], null: false, description: 'IDs of the source clients associated with this client that belong to this HMIS data source' # fixme: using this for linking, but really we would need to check which of these clients are viewable
     field :client_name, String, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :aggregated_client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregated client attributes from all candidate pools'
-    field :unit_groups_candidates, HmisSchema::CeUnitGroupCandidate.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
+    field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
 
     # CE Admins only, for now. Expand if showing on Client dashboard?
     def self.authorized?(object, context)
@@ -32,8 +31,8 @@ module Types
 
     # All the unit groups that this client is a candidate for.
     # N+1 query; do not use in batch for multiple clients.
-    def unit_groups_candidates
-      # could incorporate the latest_event query too if needed
+    def eligible_unit_groups
+      # note: could incorporate the latest_event subquery too if pool-specific attributes need to be resolved
       object.ce_match_candidates.
         joins(candidate_pool: { opportunities: { unit: :unit_group } }).
         select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
@@ -51,12 +50,7 @@ module Types
     end
 
     def client_name
-      # todo dedup copied from from CeCandidate
-      first_viewable_name = source_clients.sort_by(&:id).find do |client|
-        current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
-      end&.brief_name
-
-      first_viewable_name || "Candidate #{object.id}"
+      load_destination_client_name(destination_client: destination_client).presence || "CE Client #{object.id}"
     end
 
     # Aggregate the most recent eligibility/prioritization attributes across all candidate pools the client is in.

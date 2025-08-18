@@ -13,9 +13,7 @@ module Types
     field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
-    field :ce_client, HmisSchema::CeClient, null: true do |field|
-      field.argument :id, ID, 'Client Proxy ID', required: true
-    end
+
     field :client_attribute_columns, [Types::HmisSchema::KeyValue], null: false, description: 'Columns available in the consolidated waitlist'
     field :available_filters, [Types::DynamicFilterConfig], null: false
 
@@ -30,10 +28,6 @@ module Types
 
       scope = scope.apply_filters(filters) if filters
       scope
-    end
-
-    def ce_client(id:)
-      Hmis::Ce::ClientProxy.find_by(id: id)
     end
 
     def client_attribute_columns

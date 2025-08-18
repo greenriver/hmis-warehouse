@@ -628,6 +628,15 @@ module Types
       {}
     end
 
+    field :ce_client, HmisSchema::CeClient, null: true do |field|
+      field.argument :id, ID, 'Client Proxy ID', required: true
+    end
+    def ce_client(id:)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      Hmis::Ce::ClientProxy.find_by(id: id)
+    end
+
     field :unit_group, HmisSchema::UnitGroup, null: true do
       argument :id, ID, required: true
     end

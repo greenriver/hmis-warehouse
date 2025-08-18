@@ -7,8 +7,9 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::CeUnitGroupCandidate < Types::BaseObject
-    # object is a Hmis::Ce::Match::Candidate with unit_group_id and latest_event_id
+  class HmisSchema::CeEligibleUnitGroup < Types::BaseObject
+    # This type represents a specific eligibility relationship between a CE Candidate and Unit Group.
+    # object is a Hmis::Ce::Match::Candidate with unit_group_id
 
     field :id, ID, null: false
     field :unit_group_name, String, null: false
@@ -20,7 +21,6 @@ module Types
     field :vacancies, Integer, null: false, description: 'Number of units that are accepting referrals'
     field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
-    # field :priority_score, String, null: false
 
     def id
       "#{object.id}:#{object.unit_group_id}"

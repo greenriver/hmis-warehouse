@@ -758,14 +758,18 @@ type CeClient {
   aggregatedClientAttributes: JSON!
   clientName: String!
   destinationClientId: ID!
-  externalIds: [ExternalIdentifier!]!
-  id: ID!
-  sourceClientIds: [ID!]!
 
   """
   Unit groups that this client is a candidate for
   """
-  unitGroupsCandidates(limit: Int, offset: Int): CeUnitGroupCandidatesPaginated!
+  eligibleUnitGroups(limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
+  externalIds: [ExternalIdentifier!]!
+  id: ID!
+
+  """
+  IDs of the source clients associated with this client that belong to this HMIS data source
+  """
+  sourceClientIds: [ID!]!
 }
 
 input CeClientFilterOptions {
@@ -785,12 +789,6 @@ type CeClientsPaginated {
 
 type CeConsolidatedWaitlist {
   availableFilters: [DynamicFilterConfig!]!
-  ceClient(
-    """
-    Client Proxy ID
-    """
-    id: ID!
-  ): CeClient
 
   """
   Clients who belong to at least one CE candidate pool
@@ -807,6 +805,36 @@ type CeCustomReferralStatus {
   id: ID!
   key: String!
   name: String!
+}
+
+type CeEligibleUnitGroup {
+  """
+  Total number of units in the unit group
+  """
+  capacity: Int!
+  id: ID!
+  organizationName: String!
+  projectId: ID!
+  projectName: String!
+  projectType: ProjectType!
+  unitGroupName: String!
+
+  """
+  Number of units that are accepting referrals
+  """
+  vacancies: Int!
+  whenAddedToCandidatePool: ISO8601DateTime!
+  whenUpdatedInCandidatePool: ISO8601DateTime!
+}
+
+type CeEligibleUnitGroupsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeEligibleUnitGroup!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeMatchRule {
@@ -1275,36 +1303,6 @@ type CeReferralsPaginated {
   hasMoreBefore: Boolean!
   limit: Int!
   nodes: [CeReferral!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
-}
-
-type CeUnitGroupCandidate {
-  """
-  Total number of units in the unit group
-  """
-  capacity: Int!
-  id: ID!
-  organizationName: String!
-  projectId: ID!
-  projectName: String!
-  projectType: ProjectType!
-  unitGroupName: String!
-
-  """
-  Number of units that are accepting referrals
-  """
-  vacancies: Int!
-  whenAddedToCandidatePool: ISO8601DateTime!
-  whenUpdatedInCandidatePool: ISO8601DateTime!
-}
-
-type CeUnitGroupCandidatesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [CeUnitGroupCandidate!]!
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
@@ -9976,6 +9974,12 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  ceClient(
+    """
+    Client Proxy ID
+    """
+    id: ID!
+  ): CeClient
   ceConsolidatedWaitlist: CeConsolidatedWaitlist!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity

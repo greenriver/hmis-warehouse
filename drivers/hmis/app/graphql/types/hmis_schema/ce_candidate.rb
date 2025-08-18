@@ -20,15 +20,7 @@ module Types
     end
 
     def client_name
-      # For this destination client, are there any source clients whose names you can view? If so, return the first viewable name.
-      # In the future, we want to check permissions more broadly across data sources. (viewable_by scope only accounts for permissions in current data source.)
-
-      # Iterate through source clients avoids n+1 issues with viewable_by scope
-      first_viewable_name = source_clients.sort_by(&:id).find do |client|
-        current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
-      end&.brief_name
-
-      first_viewable_name || "Candidate #{object.id}"
+      load_destination_client_name(destination_client: destination_client).presence || "Candidate #{object.id}"
     end
 
     def enrollments # not for batch
