@@ -75,12 +75,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when the opportunity has rules' do
-      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit) }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: nil, unit: unit }
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit.unit_group) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
       let!(:funder) { create(:hmis_hud_funder, project: project, data_source: project.data_source) }
       let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.funder] }) }
+      before do
+        # Ensure the unit group gets a pool and the opportunity captures assignment rules
+        Hmis::Ce::Match::CandidatePoolBuilder.call
+        # Recreate the opportunity with assignment_rules captured from the resolver
+        # so the GraphQL layer can return historical rules regardless of current state.
+        opportunity.update!(assignment_rules: [rule1, rule2, rule3, rule4].map(&:attributes))
+      end
 
       it 'returns rules with their correct ownerTypes' do
         response, result = post_graphql(**variables) { query }
@@ -88,10 +96,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
-          a_hash_including('id' => rule1.id.to_s, 'ownerType' => 'UNIT'),
-          a_hash_including('id' => rule2.id.to_s, 'ownerType' => 'PROJECT'),
-          a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
-          a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
+          a_hash_including('id' => "#{opportunity.id}.#{rule1.id}", 'ownerType' => 'UNIT_GROUP'),
+          a_hash_including('id' => "#{opportunity.id}.#{rule2.id}", 'ownerType' => 'PROJECT'),
+          a_hash_including('id' => "#{opportunity.id}.#{rule3.id}", 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
+          a_hash_including('id' => "#{opportunity.id}.#{rule4.id}", 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
         )
       end
     end
@@ -209,6 +217,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'when the opportunity has several referrals' do
+      let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit, workflow_template: workflow_template }
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
       let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
       let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }

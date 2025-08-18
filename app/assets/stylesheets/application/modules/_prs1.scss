@@ -91,6 +91,10 @@
   min-height: 21px;
   padding: 15px 20px 0;
   background: #fff;
+
+  @include media-breakpoint-only(lg) {
+    padding-left: 200px;
+  }
 }
 
 .text-color-hl-prs1 {

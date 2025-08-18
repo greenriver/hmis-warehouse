@@ -151,8 +151,9 @@ module Hmis::Ce
       seen_field_names = Set.new
 
       # Fetch all match rules applicable to the opportunity
-      # TODO: this should really be the rules _as they were_ when the referral was created, not the current rules
-      match_rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity)
+      # These rules are loaded from the state of the Opportunity when it was assigned to its pool,
+      # ensuring historical accuracy.
+      match_rules = opportunity.assignment_rules.map { |attrs| Hmis::Ce::Match::Rule.new(attrs).freeze }
       match_rules.sort_by(&:id).map do |rule|
         calculator.dependencies(rule.expression).map do |field|
           # Skip if Field has already been processed, for example expression "household_size = 1 OR household_size = 2"
