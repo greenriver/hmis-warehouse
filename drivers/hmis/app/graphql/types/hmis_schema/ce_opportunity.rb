@@ -49,6 +49,11 @@ module Types
       Hmis::Ce::Match::Candidate.for_opportunity(object).find_by(id: id)
     end
 
+    # TODO:
+    # - move out of opportunity onto unit group. should be able to resolve waitlist for unit group regardless of vacancies.
+    # - add support for search
+    # - add support for dynamic column configuration
+    # - add support for dynamic filter configuration (maybe)
     def candidates # not for batch
       return Hmis::Ce::Match::Candidate.none unless policy_for(object, policy_type: :ce_opportunity).can_view_candidates?
 
