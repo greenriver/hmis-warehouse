@@ -33,7 +33,7 @@ module Hmis::Ce::Match
     }.freeze
 
     belongs_to :owner, polymorphic: true
-    validates :owner_type, inclusion: { in: OWNER_PRECEDENCE.keys}
+    validates :owner_type, inclusion: { in: OWNER_PRECEDENCE.keys }
     validate :owner_is_not_changed, on: :update
     validate :rule_type_is_not_changed, on: :update
 
@@ -123,8 +123,6 @@ module Hmis::Ce::Match
         Hmis::Ce::Match::CandidatePoolBuilder.call
       end
     end
-
-    private
 
     def ensure_rank
       errors.add(:rank, 'is required for priority schemes') if priority_scheme? && rank.blank?

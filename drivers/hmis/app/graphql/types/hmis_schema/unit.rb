@@ -48,11 +48,6 @@ module Types
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
-    # TODO(#7957) - remove after deprecation period
-    def priority_scheme
-      priority_schemes&.first
-    end
-
     def user
       user = load_ar_association(object, :user)
       return unless user.present?
@@ -153,13 +148,19 @@ module Types
       Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(unit_group)
     end
 
+    # TODO(#7957) - remove after deprecation period
     def priority_scheme
+      priority_schemes.first
+    end
+
+    # TODO(#7957) - remove after deprecation period
+    def priority_schemes
       # If the current opportunity is active and stale, return the priority scheme as it was
       # when the opportunity was created.
-      return revivified_rules.filter(&:priority_scheme?).first if latest_opportunity&.active? && latest_opportunity.stale
-      return unless unit_group
+      return revivified_rules.filter(&:priority_scheme?) if latest_opportunity&.active? && latest_opportunity.stale
+      return [] unless unit_group
 
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(unit_group).first
+      Hmis::Ce::Match::Rule.priority_scheme.for_entity(unit_group)
     end
 
     private
