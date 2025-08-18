@@ -175,116 +175,116 @@ $$;
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-      BEGIN
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
-      ELSE
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-        END IF;
-        RETURN NULL;
-    END;
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
 
 
@@ -1801,7 +1801,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     "PersonalID" character varying NOT NULL,
     "InformationDate" date NOT NULL,
     "CurrentLivingSituation" integer NOT NULL,
-    "VerifiedBy" character varying(100),
+    "VerifiedBy" character varying,
     "LeaveSituation14Days" integer,
     "SubsequentResidence" integer,
     "ResourcesToObtain" integer,
@@ -1915,9 +1915,7 @@ CREATE VIEW analytics.custom_assessments AS
     "DateUpdated",
     "DateDeleted",
     wip,
-    lock_version,
-    created_by_hud_user_id,
-    updated_by_hud_user_id
+    lock_version
    FROM public."CustomAssessments"
   WHERE ("DateDeleted" IS NULL);
 
@@ -2091,12 +2089,7 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     show_in_summary boolean DEFAULT false NOT NULL,
-    form_definition_identifier character varying,
-    "CustomDataElementDefinitionID" character varying,
-    "ExportID" character varying,
-    pending_date_deleted date,
-    source_hash character varying,
-    synthetic boolean DEFAULT false
+    form_definition_identifier character varying
 );
 
 
@@ -2193,15 +2186,7 @@ CREATE TABLE public."CustomDataElements" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    value_file_id bigint,
-    "CustomDataElementID" character varying,
-    "CustomDataElementDefinitionID" character varying,
-    "DataCollectionStage" integer,
-    "InformationDate" date,
-    "ExportID" character varying,
-    pending_date_deleted date,
-    source_hash character varying,
-    synthetic boolean DEFAULT false
+    value_file_id bigint
 );
 
 
@@ -2239,8 +2224,7 @@ CREATE VIEW analytics.custom_data_elements AS
     "UserID",
     "DateCreated",
     "DateUpdated",
-    "DateDeleted",
-    value_file_id
+    "DateDeleted"
    FROM public."CustomDataElements"
   WHERE ("DateDeleted" IS NULL);
 
@@ -3500,8 +3484,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    deleted_at timestamp without time zone,
     external_form_object_key character varying,
+    deleted_at timestamp without time zone,
     backup_definition jsonb,
     managed_in_version_control boolean DEFAULT false
 );
@@ -3542,8 +3526,8 @@ CREATE VIEW analytics.hmis_form_definitions AS
     created_at,
     updated_at,
     title,
-    deleted_at,
     external_form_object_key,
+    deleted_at,
     backup_definition,
     managed_in_version_control
    FROM public.hmis_form_definitions
@@ -5949,8 +5933,8 @@ ALTER SEQUENCE public.api_client_data_source_ids_id_seq OWNED BY public.api_clie
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -6016,28 +6000,6 @@ CREATE SEQUENCE public.available_file_tags_id_seq
 --
 
 ALTER SEQUENCE public.available_file_tags_id_seq OWNED BY public.available_file_tags.id;
-
-
---
--- Name: lookups_ethnicities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_ethnicities (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_ethnicities; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_ethnicities AS
- SELECT id,
-    value,
-    text
-   FROM public.lookups_ethnicities;
 
 
 --
@@ -8633,8 +8595,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
@@ -8647,7 +8609,7 @@ CREATE TABLE public.configs (
     number_lms_courses_required integer DEFAULT '-1'::integer,
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
-    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL
+    relevant_state_codes character varying DEFAULT 'VT'::character varying NOT NULL
 );
 
 
@@ -9539,7 +9501,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer,
+    enrollment_id integer NOT NULL,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -10024,10 +9986,10 @@ CREATE TABLE public.external_request_logs (
     request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
     request text NOT NULL,
     response text NOT NULL,
-    http_status integer,
     requested_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    http_status integer
 );
 
 
@@ -15689,201 +15651,6 @@ ALTER SEQUENCE public.hmis_2026_current_living_situations_id_seq OWNED BY public
 
 
 --
--- Name: hmis_2026_custom_data_element_definitions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_2026_custom_data_element_definitions (
-    id bigint NOT NULL,
-    "CustomDataElementDefinitionID" character varying,
-    "Key" character varying,
-    "RecordType" character varying,
-    "FieldType" character varying,
-    "Label" character varying,
-    "Repeats" boolean,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
-    "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    importer_log_id bigint NOT NULL,
-    pre_processed_at timestamp(6) without time zone NOT NULL,
-    source_hash character varying,
-    source_id bigint NOT NULL,
-    source_type character varying NOT NULL,
-    dirty_at timestamp without time zone,
-    clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
-);
-
-
---
--- Name: hmis_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_2026_custom_data_element_definitions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_2026_custom_data_element_definitions_id_seq OWNED BY public.hmis_2026_custom_data_element_definitions.id;
-
-
---
--- Name: hmis_2026_custom_data_elements; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_2026_custom_data_elements (
-    id bigint NOT NULL,
-    "CustomDataElementID" character varying,
-    "CustomDataElementDefinitionID" character varying,
-    "RecordType" character varying,
-    "RecordID" character varying,
-    "Value" character varying,
-    "DataCollectionStage" integer,
-    "InformationDate" timestamp(6) without time zone,
-    "UserID" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
-    "DateDeleted" timestamp(6) without time zone,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    importer_log_id bigint NOT NULL,
-    pre_processed_at timestamp(6) without time zone NOT NULL,
-    source_hash character varying,
-    source_id bigint NOT NULL,
-    source_type character varying NOT NULL,
-    dirty_at timestamp without time zone,
-    clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
-);
-
-
---
--- Name: hmis_2026_custom_data_elements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_2026_custom_data_elements_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_2026_custom_data_elements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_2026_custom_data_elements_id_seq OWNED BY public.hmis_2026_custom_data_elements.id;
-
-
---
--- Name: hmis_2026_custom_genders; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_2026_custom_genders (
-    id bigint NOT NULL,
-    "PersonalID" character varying,
-    "Woman" integer,
-    "Man" integer,
-    "NonBinary" integer,
-    "CulturallySpecific" integer,
-    "Transgender" integer,
-    "Questioning" integer,
-    "DifferentIdentity" integer,
-    "GenderNone" integer,
-    "DifferentIdentityText" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
-    "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    importer_log_id bigint NOT NULL,
-    pre_processed_at timestamp(6) without time zone NOT NULL,
-    source_hash character varying,
-    source_id bigint NOT NULL,
-    source_type character varying NOT NULL,
-    dirty_at timestamp without time zone,
-    clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
-);
-
-
---
--- Name: hmis_2026_custom_genders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_2026_custom_genders_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_2026_custom_genders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_2026_custom_genders_id_seq OWNED BY public.hmis_2026_custom_genders.id;
-
-
---
--- Name: hmis_2026_custom_sexual_orientations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_2026_custom_sexual_orientations (
-    id bigint NOT NULL,
-    "EnrollmentID" character varying,
-    "PersonalID" character varying,
-    "SexualOrientation" integer,
-    "SexualOrientationOther" character varying,
-    "DateCreated" timestamp(6) without time zone,
-    "DateUpdated" timestamp(6) without time zone,
-    "UserID" character varying,
-    "DateDeleted" timestamp(6) without time zone,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    importer_log_id bigint NOT NULL,
-    pre_processed_at timestamp(6) without time zone NOT NULL,
-    source_hash character varying,
-    source_id bigint NOT NULL,
-    source_type character varying NOT NULL,
-    dirty_at timestamp without time zone,
-    clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
-);
-
-
---
--- Name: hmis_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_2026_custom_sexual_orientations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_2026_custom_sexual_orientations_id_seq OWNED BY public.hmis_2026_custom_sexual_orientations.id;
-
-
---
 -- Name: hmis_2026_disabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17256,40 +17023,6 @@ CREATE SEQUENCE public.hmis_assessments_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.id;
-
-
---
--- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_auto_exit_configs (
-    id bigint NOT NULL,
-    length_of_absence_days integer NOT NULL,
-    project_type integer,
-    organization_id bigint,
-    project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
 
 
 --
@@ -21546,177 +21279,6 @@ ALTER SEQUENCE public.hmis_csv_2026_current_living_situations_id_seq OWNED BY pu
 
 
 --
--- Name: hmis_csv_2026_custom_data_element_definitions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_csv_2026_custom_data_element_definitions (
-    id bigint NOT NULL,
-    "CustomDataElementDefinitionID" character varying,
-    "Key" character varying,
-    "RecordType" character varying,
-    "FieldType" character varying,
-    "Label" character varying,
-    "Repeats" character varying,
-    "DateCreated" character varying,
-    "DateUpdated" character varying,
-    "UserID" character varying,
-    "DateDeleted" character varying,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id bigint NOT NULL
-);
-
-
---
--- Name: hmis_csv_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_csv_2026_custom_data_element_definitions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_csv_2026_custom_data_element_definitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_csv_2026_custom_data_element_definitions_id_seq OWNED BY public.hmis_csv_2026_custom_data_element_definitions.id;
-
-
---
--- Name: hmis_csv_2026_custom_data_elements; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_csv_2026_custom_data_elements (
-    id bigint NOT NULL,
-    "CustomDataElementID" character varying,
-    "CustomDataElementDefinitionID" character varying,
-    "RecordType" character varying,
-    "RecordID" character varying,
-    "Value" character varying,
-    "DataCollectionStage" character varying,
-    "InformationDate" character varying,
-    "UserID" character varying,
-    "DateCreated" character varying,
-    "DateUpdated" character varying,
-    "DateDeleted" character varying,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id bigint NOT NULL
-);
-
-
---
--- Name: hmis_csv_2026_custom_data_elements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_csv_2026_custom_data_elements_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_csv_2026_custom_data_elements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_csv_2026_custom_data_elements_id_seq OWNED BY public.hmis_csv_2026_custom_data_elements.id;
-
-
---
--- Name: hmis_csv_2026_custom_genders; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_csv_2026_custom_genders (
-    id bigint NOT NULL,
-    "PersonalID" character varying,
-    "Woman" character varying,
-    "Man" character varying,
-    "NonBinary" character varying,
-    "CulturallySpecific" character varying,
-    "Transgender" character varying,
-    "Questioning" character varying,
-    "DifferentIdentity" character varying,
-    "GenderNone" character varying,
-    "DifferentIdentityText" character varying,
-    "DateCreated" character varying,
-    "DateUpdated" character varying,
-    "UserID" character varying,
-    "DateDeleted" character varying,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id bigint NOT NULL
-);
-
-
---
--- Name: hmis_csv_2026_custom_genders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_csv_2026_custom_genders_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_csv_2026_custom_genders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_csv_2026_custom_genders_id_seq OWNED BY public.hmis_csv_2026_custom_genders.id;
-
-
---
--- Name: hmis_csv_2026_custom_sexual_orientations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_csv_2026_custom_sexual_orientations (
-    id bigint NOT NULL,
-    "EnrollmentID" character varying,
-    "PersonalID" character varying,
-    "SexualOrientation" character varying,
-    "SexualOrientationOther" character varying,
-    "DateCreated" character varying,
-    "DateUpdated" character varying,
-    "UserID" character varying,
-    "DateDeleted" character varying,
-    "ExportID" character varying,
-    data_source_id bigint NOT NULL,
-    loaded_at timestamp(6) without time zone NOT NULL,
-    loader_id bigint NOT NULL
-);
-
-
---
--- Name: hmis_csv_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_csv_2026_custom_sexual_orientations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_csv_2026_custom_sexual_orientations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_csv_2026_custom_sexual_orientations_id_seq OWNED BY public.hmis_csv_2026_custom_sexual_orientations.id;
-
-
---
 -- Name: hmis_csv_2026_disabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22922,14 +22484,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
-    ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
     ssn character varying,
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
     reporting_age integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false,
     woman integer,
     man integer,
     culturally_specific integer,
@@ -23061,7 +22623,6 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
-    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
     household_min_age integer,
@@ -23087,19 +22648,20 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry_remove integer,
-    ncb_from_any_source_at_annual_remove integer,
-    ncb_from_any_source_at_exit_remove integer,
+    ncb_from_any_source_at_entry_remove boolean DEFAULT false,
+    ncb_from_any_source_at_annual_remove boolean DEFAULT false,
+    ncb_from_any_source_at_exit_remove boolean DEFAULT false,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry_remove integer,
-    insurance_from_any_source_at_annual_remove integer,
-    insurance_from_any_source_at_exit_remove integer,
+    insurance_from_any_source_at_entry_remove boolean DEFAULT false,
+    insurance_from_any_source_at_annual_remove boolean DEFAULT false,
+    insurance_from_any_source_at_exit_remove boolean DEFAULT false,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
     disability_at_entry_collected boolean DEFAULT false,
+    ch_at_entry boolean DEFAULT false,
     previous_street_es_sh integer,
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
@@ -23796,9 +23358,9 @@ ALTER SEQUENCE public.hmis_group_viewable_entities_id_seq OWNED BY public.hmis_g
 CREATE TABLE public.hmis_project_groups (
     id bigint NOT NULL,
     name character varying NOT NULL,
-    data_source_id bigint NOT NULL,
     inclusion_criteria jsonb NOT NULL,
     exclusion_criteria jsonb,
+    data_source_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -24122,6 +23684,7 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
+    "Services"."InformationDate",
     ("Services"."UserID")::character varying AS "UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
@@ -24139,6 +23702,7 @@ UNION ALL
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
     "CustomServices"."DateProvided",
+    NULL::date AS "InformationDate",
     "CustomServices"."UserID",
     "CustomServices"."DateCreated",
     "CustomServices"."DateUpdated",
@@ -24325,6 +23889,42 @@ CREATE SEQUENCE public.hmis_supplemental_field_values_id_seq
 --
 
 ALTER SEQUENCE public.hmis_supplemental_field_values_id_seq OWNED BY public.hmis_supplemental_field_values.id;
+
+
+--
+-- Name: hmis_table_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_table_configurations (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    table_key character varying NOT NULL,
+    owner_type character varying,
+    owner_id bigint,
+    columns jsonb DEFAULT '[]'::jsonb NOT NULL,
+    filters jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_table_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_table_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_table_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_table_configurations_id_seq OWNED BY public.hmis_table_configurations.id;
 
 
 --
@@ -25250,8 +24850,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    client_created_at timestamp without time zone,
     personal_id character varying,
+    client_created_at timestamp without time zone,
     race_multi character varying,
     exit_destination_subsidy_type integer,
     domestic_violence_occurred integer,
@@ -26980,6 +26580,17 @@ ALTER SEQUENCE public.longitudinal_spms_id_seq OWNED BY public.longitudinal_spms
 
 
 --
+-- Name: lookups_ethnicities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_ethnicities (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_ethnicities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -27535,33 +27146,6 @@ CREATE SEQUENCE public.notification_configurations_id_seq
 --
 
 ALTER SEQUENCE public.notification_configurations_id_seq OWNED BY public.notification_configurations.id;
-
-
---
--- Name: organization_47_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_47_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_48_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_48_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_49_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_49_tes (
-    source_id integer
-);
 
 
 --
@@ -28904,34 +28488,6 @@ CREATE TABLE public.recent_report_enrollments (
     "HOHLeaseholder" integer,
     demographic_id integer,
     client_id integer
-);
-
-
---
--- Name: recent_service_history; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.recent_service_history (
-    id bigint,
-    client_id integer,
-    data_source_id integer,
-    date date,
-    first_date_in_program date,
-    last_date_in_program date,
-    enrollment_group_id character varying(50),
-    age smallint,
-    destination integer,
-    head_of_household_id character varying(50),
-    household_id character varying(50),
-    project_id integer,
-    project_type smallint,
-    project_tracking_method integer,
-    organization_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
-    service_type smallint,
-    computed_project_type smallint,
-    presented_as_individual boolean
 );
 
 
@@ -31542,6 +31098,7 @@ CREATE TABLE public.system_pathways_enrollments (
     final_enrollment boolean DEFAULT false NOT NULL,
     move_in_date date,
     days_to_move_in integer,
+    days_to_exit_after_move_in integer,
     chronic_at_entry boolean,
     disabling_condition integer
 );
@@ -31900,6 +31457,34 @@ CREATE SEQUENCE public.themes_id_seq
 --
 
 ALTER SEQUENCE public.themes_id_seq OWNED BY public.themes.id;
+
+
+--
+-- Name: todd_stats; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.todd_stats AS
+ SELECT relname,
+    round((
+        CASE
+            WHEN ((n_live_tup + n_dead_tup) = 0) THEN (0)::double precision
+            ELSE ((n_dead_tup)::double precision / ((n_dead_tup + n_live_tup))::double precision)
+        END * (100.0)::double precision)) AS "Frag %",
+    n_live_tup AS "Live rows",
+    n_dead_tup AS "Dead rows",
+    n_mod_since_analyze AS "Rows modified since analyze",
+        CASE
+            WHEN (COALESCE(last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_vacuum
+            ELSE COALESCE(last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+        END AS last_vacuum,
+        CASE
+            WHEN (COALESCE(last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN last_analyze
+            ELSE COALESCE(last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+        END AS last_analyze,
+    (vacuum_count + autovacuum_count) AS vacuum_count,
+    (analyze_count + autoanalyze_count) AS analyze_count
+   FROM pg_stat_all_tables
+  WHERE (schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
 
 
 --
@@ -32612,7 +32197,8 @@ CREATE TABLE public.wfd_nodes (
     form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    delegated_handoff boolean DEFAULT false NOT NULL
 );
 
 
@@ -35238,34 +34824,6 @@ ALTER TABLE ONLY public.hmis_2026_current_living_situations ALTER COLUMN id SET 
 
 
 --
--- Name: hmis_2026_custom_data_element_definitions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_data_element_definitions ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_data_element_definitions_id_seq'::regclass);
-
-
---
--- Name: hmis_2026_custom_data_elements id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_data_elements ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_data_elements_id_seq'::regclass);
-
-
---
--- Name: hmis_2026_custom_genders id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_genders ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_genders_id_seq'::regclass);
-
-
---
--- Name: hmis_2026_custom_sexual_orientations id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_sexual_orientations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_sexual_orientations_id_seq'::regclass);
-
-
---
 -- Name: hmis_2026_disabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -35417,13 +34975,6 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessments_id_seq'::regclass);
-
-
---
--- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
 
 
 --
@@ -36008,34 +35559,6 @@ ALTER TABLE ONLY public.hmis_csv_2026_current_living_situations ALTER COLUMN id 
 
 
 --
--- Name: hmis_csv_2026_custom_data_element_definitions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_data_element_definitions ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_data_element_definitions_id_seq'::regclass);
-
-
---
--- Name: hmis_csv_2026_custom_data_elements id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_data_elements ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_data_elements_id_seq'::regclass);
-
-
---
--- Name: hmis_csv_2026_custom_genders id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_genders ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_genders_id_seq'::regclass);
-
-
---
--- Name: hmis_csv_2026_custom_sexual_orientations id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_sexual_orientations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_sexual_orientations_id_seq'::regclass);
-
-
---
 -- Name: hmis_csv_2026_disabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -36411,6 +35934,13 @@ ALTER TABLE ONLY public.hmis_supplemental_data_sets ALTER COLUMN id SET DEFAULT 
 --
 
 ALTER TABLE ONLY public.hmis_supplemental_field_values ALTER COLUMN id SET DEFAULT nextval('public.hmis_supplemental_field_values_id_seq'::regclass);
+
+
+--
+-- Name: hmis_table_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_table_configurations ALTER COLUMN id SET DEFAULT nextval('public.hmis_table_configurations_id_seq'::regclass);
 
 
 --
@@ -39526,38 +39056,6 @@ ALTER TABLE ONLY public.hmis_2026_current_living_situations
 
 
 --
--- Name: hmis_2026_custom_data_element_definitions hmis_2026_custom_data_element_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_data_element_definitions
-    ADD CONSTRAINT hmis_2026_custom_data_element_definitions_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_2026_custom_data_elements hmis_2026_custom_data_elements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_data_elements
-    ADD CONSTRAINT hmis_2026_custom_data_elements_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_2026_custom_genders hmis_2026_custom_genders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_genders
-    ADD CONSTRAINT hmis_2026_custom_genders_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_2026_custom_sexual_orientations hmis_2026_custom_sexual_orientations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_2026_custom_sexual_orientations
-    ADD CONSTRAINT hmis_2026_custom_sexual_orientations_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_2026_disabilities hmis_2026_disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -39731,14 +39229,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs
-    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -40406,38 +39896,6 @@ ALTER TABLE ONLY public.hmis_csv_2026_current_living_situations
 
 
 --
--- Name: hmis_csv_2026_custom_data_element_definitions hmis_csv_2026_custom_data_element_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_data_element_definitions
-    ADD CONSTRAINT hmis_csv_2026_custom_data_element_definitions_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_csv_2026_custom_data_elements hmis_csv_2026_custom_data_elements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_data_elements
-    ADD CONSTRAINT hmis_csv_2026_custom_data_elements_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_csv_2026_custom_genders hmis_csv_2026_custom_genders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_genders
-    ADD CONSTRAINT hmis_csv_2026_custom_genders_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_csv_2026_custom_sexual_orientations hmis_csv_2026_custom_sexual_orientations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_csv_2026_custom_sexual_orientations
-    ADD CONSTRAINT hmis_csv_2026_custom_sexual_orientations_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_csv_2026_disabilities hmis_csv_2026_disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -40867,6 +40325,14 @@ ALTER TABLE ONLY public.hmis_supplemental_data_sets
 
 ALTER TABLE ONLY public.hmis_supplemental_field_values
     ADD CONSTRAINT hmis_supplemental_field_values_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_table_configurations hmis_table_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_table_configurations
+    ADD CONSTRAINT hmis_table_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -41587,14 +41053,6 @@ ALTER TABLE ONLY public.report_definitions
 
 ALTER TABLE ONLY public.report_tokens
     ADD CONSTRAINT report_tokens_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -42616,90 +42074,6 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
--- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
-
-
---
--- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
-
-
---
--- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
-
-
---
--- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
-
-
---
--- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
-
-
---
--- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
-
-
---
--- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
-
-
---
--- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
-
-
---
--- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
-
-
---
--- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
-
-
---
--- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
-
-
---
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42784,20 +42158,6 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
--- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
-
-
---
--- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
-
-
---
 -- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42847,13 +42207,6 @@ CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree
 
 
 --
--- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX client_id_rsh_index ON public.recent_service_history USING btree (client_id);
-
-
---
 -- Name: client_last_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42865,20 +42218,6 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
-
-
---
--- Name: coc_code_test; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX coc_code_test ON public."EnrollmentCoC" USING btree ("CoCCode");
-
-
---
--- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
 
 
 --
@@ -42900,13 +42239,6 @@ CREATE INDEX cur_liv_sit_p_id_en_id_ds_id_cur_id ON public."CurrentLivingSituati
 --
 
 CREATE UNIQUE INDEX cur_liv_sit_sit_id_ds_id ON public."CurrentLivingSituation" USING btree ("CurrentLivingSitID", data_source_id);
-
-
---
--- Name: date_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX date_rsh_index ON public.recent_service_history USING btree (date);
 
 
 --
@@ -43012,13 +42344,6 @@ CREATE INDEX employment_education_export_id ON public."EmploymentEducation" USIN
 --
 
 CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID", data_source_id);
-
-
---
--- Name: en_tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -47887,13 +47212,6 @@ CREATE INDEX "hmis2022youtheducationstatuses_yBQz" ON public.hmis_2022_youth_edu
 
 
 --
--- Name: hmis2024affiliations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024affiliations_634d ON public.hmis_2024_affiliations USING btree ("ExportID");
-
-
---
 -- Name: hmis2024assessmentquestions_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47915,31 +47233,10 @@ CREATE INDEX hmis2024assessmentresults_634d ON public.hmis_2024_assessment_resul
 
 
 --
--- Name: hmis2024assessmentresults_da04; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024assessmentresults_da04 ON public.hmis_2024_assessment_results USING btree ("AssessmentID");
-
-
---
--- Name: hmis2024assessments_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024assessments_4337 ON public.hmis_2024_assessments USING btree ("EnrollmentID");
-
-
---
 -- Name: hmis2024assessments_4fa0; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024assessments_4fa0 ON public.hmis_2024_assessments USING btree ("AssessmentDate");
-
-
---
--- Name: hmis2024assessments_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024assessments_603f ON public.hmis_2024_assessments USING btree ("PersonalID");
 
 
 --
@@ -47978,13 +47275,6 @@ CREATE INDEX hmis2024ceparticipations_634d ON public.hmis_2024_ce_participations
 
 
 --
--- Name: hmis2024clients_202d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024clients_202d ON public.hmis_2024_clients USING btree ("DOB");
-
-
---
 -- Name: hmis2024clients_20a8; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47996,20 +47286,6 @@ CREATE INDEX hmis2024clients_20a8 ON public.hmis_2024_clients USING btree ("Vete
 --
 
 CREATE INDEX hmis2024clients_42d5 ON public.hmis_2024_clients USING btree ("DateUpdated");
-
-
---
--- Name: hmis2024clients_5289; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024clients_5289 ON public.hmis_2024_clients USING btree ("FirstName");
-
-
---
--- Name: hmis2024clients_539c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024clients_539c ON public.hmis_2024_clients USING btree ("LastName");
 
 
 --
@@ -48027,24 +47303,10 @@ CREATE INDEX hmis2024clients_634d ON public.hmis_2024_clients USING btree ("Expo
 
 
 --
--- Name: hmis2024clients_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024clients_d381 ON public.hmis_2024_clients USING btree ("DateCreated");
-
-
---
 -- Name: hmis2024currentlivingsituations_4337; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024currentlivingsituations_4337 ON public.hmis_2024_current_living_situations USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2024currentlivingsituations_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024currentlivingsituations_603f ON public.hmis_2024_current_living_situations USING btree ("PersonalID");
 
 
 --
@@ -48090,13 +47352,6 @@ CREATE INDEX hmis2024disabilities_42d5 ON public.hmis_2024_disabilities USING bt
 
 
 --
--- Name: hmis2024disabilities_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024disabilities_4337 ON public.hmis_2024_disabilities USING btree ("EnrollmentID");
-
-
---
 -- Name: hmis2024disabilities_603f; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48132,31 +47387,10 @@ CREATE INDEX hmis2024employmenteducations_42d5 ON public.hmis_2024_employment_ed
 
 
 --
--- Name: hmis2024employmenteducations_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024employmenteducations_4337 ON public.hmis_2024_employment_educations USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2024employmenteducations_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024employmenteducations_603f ON public.hmis_2024_employment_educations USING btree ("PersonalID");
-
-
---
 -- Name: hmis2024employmenteducations_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024employmenteducations_634d ON public.hmis_2024_employment_educations USING btree ("ExportID");
-
-
---
--- Name: hmis2024employmenteducations_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024employmenteducations_d381 ON public.hmis_2024_employment_educations USING btree ("DateCreated");
 
 
 --
@@ -48307,13 +47541,6 @@ CREATE INDEX hmis2024enrollments_c830 ON public.hmis_2024_enrollments USING btre
 
 
 --
--- Name: hmis2024enrollments_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024enrollments_d381 ON public.hmis_2024_enrollments USING btree ("DateCreated");
-
-
---
 -- Name: hmis2024enrollments_ea7f; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48335,24 +47562,10 @@ CREATE INDEX hmis2024enrollments_fbbd ON public.hmis_2024_enrollments USING btre
 
 
 --
--- Name: hmis2024events_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024events_4337 ON public.hmis_2024_events USING btree ("EnrollmentID");
-
-
---
 -- Name: hmis2024events_5251; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024events_5251 ON public.hmis_2024_events USING btree ("EventID");
-
-
---
--- Name: hmis2024events_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024events_603f ON public.hmis_2024_events USING btree ("PersonalID");
 
 
 --
@@ -48412,13 +47625,6 @@ CREATE INDEX hmis2024exits_6f2b ON public.hmis_2024_exits USING btree ("ExitID")
 
 
 --
--- Name: hmis2024exits_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024exits_d381 ON public.hmis_2024_exits USING btree ("DateCreated");
-
-
---
 -- Name: hmis2024exits_f3a2; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48430,13 +47636,6 @@ CREATE INDEX hmis2024exits_f3a2 ON public.hmis_2024_exits USING btree ("DateDele
 --
 
 CREATE INDEX hmis2024exits_fa9a ON public.hmis_2024_exits USING btree ("ExitDate");
-
-
---
--- Name: hmis2024exports_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024exports_634d ON public.hmis_2024_exports USING btree ("ExportID");
 
 
 --
@@ -48482,31 +47681,10 @@ CREATE INDEX hmis2024healthanddvs_42d5 ON public.hmis_2024_health_and_dvs USING 
 
 
 --
--- Name: hmis2024healthanddvs_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024healthanddvs_4337 ON public.hmis_2024_health_and_dvs USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2024healthanddvs_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024healthanddvs_603f ON public.hmis_2024_health_and_dvs USING btree ("PersonalID");
-
-
---
 -- Name: hmis2024healthanddvs_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024healthanddvs_634d ON public.hmis_2024_health_and_dvs USING btree ("ExportID");
-
-
---
--- Name: hmis2024healthanddvs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024healthanddvs_d381 ON public.hmis_2024_health_and_dvs USING btree ("DateCreated");
 
 
 --
@@ -48545,20 +47723,6 @@ CREATE INDEX hmis2024incomebenefits_42d5 ON public.hmis_2024_income_benefits USI
 
 
 --
--- Name: hmis2024incomebenefits_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024incomebenefits_4337 ON public.hmis_2024_income_benefits USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2024incomebenefits_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024incomebenefits_603f ON public.hmis_2024_income_benefits USING btree ("PersonalID");
-
-
---
 -- Name: hmis2024incomebenefits_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48570,13 +47734,6 @@ CREATE INDEX hmis2024incomebenefits_634d ON public.hmis_2024_income_benefits USI
 --
 
 CREATE INDEX hmis2024incomebenefits_ae8d ON public.hmis_2024_income_benefits USING btree ("IncomeFromAnySource", "DataCollectionStage");
-
-
---
--- Name: hmis2024incomebenefits_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024incomebenefits_d381 ON public.hmis_2024_income_benefits USING btree ("DateCreated");
 
 
 --
@@ -48612,13 +47769,6 @@ CREATE INDEX hmis2024inventories_634d ON public.hmis_2024_inventories USING btre
 --
 
 CREATE INDEX hmis2024inventories_9529 ON public.hmis_2024_inventories USING btree ("InventoryID");
-
-
---
--- Name: hmis2024inventories_b15e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024inventories_b15e ON public.hmis_2024_inventories USING btree ("ProjectID", "CoCCode");
 
 
 --
@@ -48664,20 +47814,6 @@ CREATE INDEX hmis2024projectcocs_787b ON public.hmis_2024_project_cocs USING btr
 
 
 --
--- Name: hmis2024projectcocs_b15e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024projectcocs_b15e ON public.hmis_2024_project_cocs USING btree ("ProjectID", "CoCCode");
-
-
---
--- Name: hmis2024projectcocs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024projectcocs_d381 ON public.hmis_2024_project_cocs USING btree ("DateCreated");
-
-
---
 -- Name: hmis2024projects_42af; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48689,20 +47825,6 @@ CREATE INDEX hmis2024projects_42af ON public.hmis_2024_projects USING btree ("Pr
 --
 
 CREATE INDEX hmis2024projects_42d5 ON public.hmis_2024_projects USING btree ("DateUpdated");
-
-
---
--- Name: hmis2024projects_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024projects_634d ON public.hmis_2024_projects USING btree ("ExportID");
-
-
---
--- Name: hmis2024projects_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024projects_d381 ON public.hmis_2024_projects USING btree ("DateCreated");
 
 
 --
@@ -48741,13 +47863,6 @@ CREATE INDEX hmis2024services_4337 ON public.hmis_2024_services USING btree ("En
 
 
 --
--- Name: hmis2024services_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_603f ON public.hmis_2024_services USING btree ("PersonalID");
-
-
---
 -- Name: hmis2024services_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48759,27 +47874,6 @@ CREATE INDEX hmis2024services_634d ON public.hmis_2024_services USING btree ("Ex
 --
 
 CREATE INDEX hmis2024services_6415 ON public.hmis_2024_services USING btree ("ServicesID");
-
-
---
--- Name: hmis2024services_6c1d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_6c1d ON public.hmis_2024_services USING btree ("RecordType", "DateProvided");
-
-
---
--- Name: hmis2024services_75f1; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_75f1 ON public.hmis_2024_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
-
-
---
--- Name: hmis2024services_8586; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_8586 ON public.hmis_2024_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
 
 
 --
@@ -48797,31 +47891,10 @@ CREATE INDEX hmis2024services_9c1a ON public.hmis_2024_services USING btree ("En
 
 
 --
--- Name: hmis2024services_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_c548 ON public.hmis_2024_services USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: hmis2024services_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_d381 ON public.hmis_2024_services USING btree ("DateCreated");
-
-
---
 -- Name: hmis2024services_f3a2; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2024services_f3a2 ON public.hmis_2024_services USING btree ("DateDeleted");
-
-
---
--- Name: hmis2024services_f749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024services_f749 ON public.hmis_2024_services USING btree ("RecordType", "DateDeleted");
 
 
 --
@@ -48836,20 +47909,6 @@ CREATE INDEX hmis2024users_57c7 ON public.hmis_2024_users USING btree ("UserID")
 --
 
 CREATE INDEX hmis2024users_634d ON public.hmis_2024_users USING btree ("ExportID");
-
-
---
--- Name: hmis2024youtheducationstatuses_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024youtheducationstatuses_4337 ON public.hmis_2024_youth_education_statuses USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2024youtheducationstatuses_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2024youtheducationstatuses_603f ON public.hmis_2024_youth_education_statuses USING btree ("PersonalID");
 
 
 --
@@ -49879,13 +48938,6 @@ CREATE INDEX "hmis_2020_affiliations-lZaj" ON public.hmis_2020_affiliations USIN
 --
 
 CREATE INDEX "hmis_2020_affiliations-qycr" ON public.hmis_2020_affiliations USING btree ("ExportID");
-
-
---
--- Name: hmis_2020_agg_enrollments_p_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis_2020_agg_enrollments_p_id_p_id_ds_id ON public.hmis_2020_aggregated_enrollments USING btree ("PersonalID", "ProjectID", data_source_id);
 
 
 --
@@ -51247,13 +50299,6 @@ CREATE INDEX "hmis_2020_users-ZfY6" ON public.hmis_2020_users USING btree (sourc
 
 
 --
--- Name: hmis_2022_affiliations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_affiliations-48bf" ON public.hmis_2022_affiliations USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_affiliations-6457; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51268,31 +50313,10 @@ CREATE INDEX "hmis_2022_assessment_questions-0cd3" ON public.hmis_2022_assessmen
 
 
 --
--- Name: hmis_2022_assessment_questions-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_assessment_questions-48bf" ON public.hmis_2022_assessment_questions USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_assessment_results-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_assessment_results-48bf" ON public.hmis_2022_assessment_results USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_assessment_results-d6c9; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_assessment_results-d6c9" ON public.hmis_2022_assessment_results USING btree ("AssessmentResultID", data_source_id);
-
-
---
--- Name: hmis_2022_assessments-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_assessments-48bf" ON public.hmis_2022_assessments USING btree (source_type, source_id);
 
 
 --
@@ -51310,38 +50334,10 @@ CREATE INDEX "hmis_2022_clients-230f" ON public.hmis_2022_clients USING btree ("
 
 
 --
--- Name: hmis_2022_clients-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_clients-48bf" ON public.hmis_2022_clients USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_current_living_situations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_current_living_situations-48bf" ON public.hmis_2022_current_living_situations USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_current_living_situations-cf31; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_current_living_situations-cf31" ON public.hmis_2022_current_living_situations USING btree ("CurrentLivingSitID", data_source_id);
-
-
---
--- Name: hmis_2022_disabilities-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_disabilities-48bf" ON public.hmis_2022_disabilities USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_disabilities-7712; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_disabilities-7712" ON public.hmis_2022_disabilities USING btree ("DisabilitiesID", data_source_id);
 
 
 --
@@ -51359,20 +50355,6 @@ CREATE INDEX "hmis_2022_employment_educations-3032" ON public.hmis_2022_employme
 
 
 --
--- Name: hmis_2022_employment_educations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_employment_educations-48bf" ON public.hmis_2022_employment_educations USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_enrollment_cocs-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_enrollment_cocs-48bf" ON public.hmis_2022_enrollment_cocs USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_enrollment_cocs-d4b8; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51384,27 +50366,6 @@ CREATE INDEX "hmis_2022_enrollment_cocs-d4b8" ON public.hmis_2022_enrollment_coc
 --
 
 CREATE INDEX "hmis_2022_enrollments-0a46" ON public.hmis_2022_enrollments USING btree ("EnrollmentID", data_source_id);
-
-
---
--- Name: hmis_2022_enrollments-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_enrollments-48bf" ON public.hmis_2022_enrollments USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_events-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_events-48bf" ON public.hmis_2022_events USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_events-9f9c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_events-9f9c" ON public.hmis_2022_events USING btree ("EventID", data_source_id);
 
 
 --
@@ -51422,24 +50383,10 @@ CREATE INDEX hmis_2022_exit_e_id_compound ON public.hmis_2022_exits USING btree 
 
 
 --
--- Name: hmis_2022_exits-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_exits-48bf" ON public.hmis_2022_exits USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_exits-cfdd; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_exits-cfdd" ON public.hmis_2022_exits USING btree ("ExitID", data_source_id);
-
-
---
--- Name: hmis_2022_exports-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_exports-48bf" ON public.hmis_2022_exports USING btree (source_type, source_id);
 
 
 --
@@ -51450,31 +50397,10 @@ CREATE INDEX "hmis_2022_exports-86be" ON public.hmis_2022_exports USING btree ("
 
 
 --
--- Name: hmis_2022_funders-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_funders-48bf" ON public.hmis_2022_funders USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_funders-4ad5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_funders-4ad5" ON public.hmis_2022_funders USING btree ("FunderID", data_source_id);
-
-
---
--- Name: hmis_2022_health_and_dvs-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_health_and_dvs-48bf" ON public.hmis_2022_health_and_dvs USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_health_and_dvs-e384; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_health_and_dvs-e384" ON public.hmis_2022_health_and_dvs USING btree ("HealthAndDVID", data_source_id);
 
 
 --
@@ -51485,20 +50411,6 @@ CREATE INDEX hmis_2022_health_and_dvs_hk_l_id ON public.hmis_2022_health_and_dvs
 
 
 --
--- Name: hmis_2022_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_income_benefits-200d" ON public.hmis_2022_income_benefits USING btree ("IncomeBenefitsID", data_source_id);
-
-
---
--- Name: hmis_2022_income_benefits-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_income_benefits-48bf" ON public.hmis_2022_income_benefits USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_income_benefits_hk_l_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51506,24 +50418,10 @@ CREATE INDEX hmis_2022_income_benefits_hk_l_id ON public.hmis_2022_income_benefi
 
 
 --
--- Name: hmis_2022_inventories-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_inventories-48bf" ON public.hmis_2022_inventories USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_inventories-86c0; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_inventories-86c0" ON public.hmis_2022_inventories USING btree ("InventoryID", data_source_id);
-
-
---
--- Name: hmis_2022_organizations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_organizations-48bf" ON public.hmis_2022_organizations USING btree (source_type, source_id);
 
 
 --
@@ -51541,38 +50439,10 @@ CREATE INDEX "hmis_2022_project_cocs-3966" ON public.hmis_2022_project_cocs USIN
 
 
 --
--- Name: hmis_2022_project_cocs-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_project_cocs-48bf" ON public.hmis_2022_project_cocs USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_projects-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_projects-48bf" ON public.hmis_2022_projects USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_projects-92c5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_projects-92c5" ON public.hmis_2022_projects USING btree ("ProjectID", data_source_id);
-
-
---
--- Name: hmis_2022_services-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_services-48bf" ON public.hmis_2022_services USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_services-7a57; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_services-7a57" ON public.hmis_2022_services USING btree ("ServicesID", data_source_id);
 
 
 --
@@ -51583,38 +50453,10 @@ CREATE INDEX hmis_2022_services_hk_l_id ON public.hmis_2022_services USING btree
 
 
 --
--- Name: hmis_2022_users-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_users-48bf" ON public.hmis_2022_users USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2022_users-b749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_users-b749" ON public.hmis_2022_users USING btree ("UserID", data_source_id);
-
-
---
--- Name: hmis_2022_youth_education_statuses-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2022_youth_education_statuses-48bf" ON public.hmis_2022_youth_education_statuses USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2022_youth_education_statuses-a32f; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2022_youth_education_statuses-a32f" ON public.hmis_2022_youth_education_statuses USING btree ("YouthEducationStatusID", data_source_id);
-
-
---
--- Name: hmis_2024_affiliations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_affiliations-48bf" ON public.hmis_2024_affiliations USING btree (source_type, source_id);
 
 
 --
@@ -51632,20 +50474,6 @@ CREATE INDEX "hmis_2024_assessment_questions-0cd3" ON public.hmis_2024_assessmen
 
 
 --
--- Name: hmis_2024_assessment_questions-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_assessment_questions-48bf" ON public.hmis_2024_assessment_questions USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2024_assessment_results-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_assessment_results-48bf" ON public.hmis_2024_assessment_results USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_assessment_results-d6c9; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51653,24 +50481,10 @@ CREATE INDEX "hmis_2024_assessment_results-d6c9" ON public.hmis_2024_assessment_
 
 
 --
--- Name: hmis_2024_assessments-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_assessments-48bf" ON public.hmis_2024_assessments USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_assessments-df76; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_assessments-df76" ON public.hmis_2024_assessments USING btree ("AssessmentID", data_source_id);
-
-
---
--- Name: hmis_2024_ce_participations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_ce_participations-48bf" ON public.hmis_2024_ce_participations USING btree (source_type, source_id);
 
 
 --
@@ -51688,31 +50502,10 @@ CREATE INDEX "hmis_2024_clients-230f" ON public.hmis_2024_clients USING btree ("
 
 
 --
--- Name: hmis_2024_clients-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_clients-48bf" ON public.hmis_2024_clients USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2024_current_living_situations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_current_living_situations-48bf" ON public.hmis_2024_current_living_situations USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_current_living_situations-cf31; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_current_living_situations-cf31" ON public.hmis_2024_current_living_situations USING btree ("CurrentLivingSitID", data_source_id);
-
-
---
--- Name: hmis_2024_disabilities-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_disabilities-48bf" ON public.hmis_2024_disabilities USING btree (source_type, source_id);
 
 
 --
@@ -51730,31 +50523,10 @@ CREATE INDEX "hmis_2024_employment_educations-3032" ON public.hmis_2024_employme
 
 
 --
--- Name: hmis_2024_employment_educations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_employment_educations-48bf" ON public.hmis_2024_employment_educations USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_enrollments-0a46; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_enrollments-0a46" ON public.hmis_2024_enrollments USING btree ("EnrollmentID", data_source_id);
-
-
---
--- Name: hmis_2024_enrollments-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_enrollments-48bf" ON public.hmis_2024_enrollments USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2024_events-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_events-48bf" ON public.hmis_2024_events USING btree (source_type, source_id);
 
 
 --
@@ -51765,24 +50537,10 @@ CREATE INDEX "hmis_2024_events-9f9c" ON public.hmis_2024_events USING btree ("Ev
 
 
 --
--- Name: hmis_2024_exits-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_exits-48bf" ON public.hmis_2024_exits USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_exits-cfdd; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_exits-cfdd" ON public.hmis_2024_exits USING btree ("ExitID", data_source_id);
-
-
---
--- Name: hmis_2024_exports-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_exports-48bf" ON public.hmis_2024_exports USING btree (source_type, source_id);
 
 
 --
@@ -51793,24 +50551,10 @@ CREATE INDEX "hmis_2024_exports-86be" ON public.hmis_2024_exports USING btree ("
 
 
 --
--- Name: hmis_2024_funders-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_funders-48bf" ON public.hmis_2024_funders USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_funders-4ad5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_funders-4ad5" ON public.hmis_2024_funders USING btree ("FunderID", data_source_id);
-
-
---
--- Name: hmis_2024_health_and_dvs-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_health_and_dvs-48bf" ON public.hmis_2024_health_and_dvs USING btree (source_type, source_id);
 
 
 --
@@ -51828,13 +50572,6 @@ CREATE INDEX "hmis_2024_hmis_participations-0f0d" ON public.hmis_2024_hmis_parti
 
 
 --
--- Name: hmis_2024_hmis_participations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_hmis_participations-48bf" ON public.hmis_2024_hmis_participations USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51842,31 +50579,10 @@ CREATE INDEX "hmis_2024_income_benefits-200d" ON public.hmis_2024_income_benefit
 
 
 --
--- Name: hmis_2024_income_benefits-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_income_benefits-48bf" ON public.hmis_2024_income_benefits USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2024_inventories-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_inventories-48bf" ON public.hmis_2024_inventories USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_inventories-86c0; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_inventories-86c0" ON public.hmis_2024_inventories USING btree ("InventoryID", data_source_id);
-
-
---
--- Name: hmis_2024_organizations-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_organizations-48bf" ON public.hmis_2024_organizations USING btree (source_type, source_id);
 
 
 --
@@ -51884,31 +50600,10 @@ CREATE INDEX "hmis_2024_project_cocs-3966" ON public.hmis_2024_project_cocs USIN
 
 
 --
--- Name: hmis_2024_project_cocs-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_project_cocs-48bf" ON public.hmis_2024_project_cocs USING btree (source_type, source_id);
-
-
---
--- Name: hmis_2024_projects-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_projects-48bf" ON public.hmis_2024_projects USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_projects-92c5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_projects-92c5" ON public.hmis_2024_projects USING btree ("ProjectID", data_source_id);
-
-
---
--- Name: hmis_2024_services-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_services-48bf" ON public.hmis_2024_services USING btree (source_type, source_id);
 
 
 --
@@ -51919,24 +50614,10 @@ CREATE INDEX "hmis_2024_services-7a57" ON public.hmis_2024_services USING btree 
 
 
 --
--- Name: hmis_2024_users-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_users-48bf" ON public.hmis_2024_users USING btree (source_type, source_id);
-
-
---
 -- Name: hmis_2024_users-b749; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_2024_users-b749" ON public.hmis_2024_users USING btree ("UserID", data_source_id);
-
-
---
--- Name: hmis_2024_youth_education_statuses-48bf; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_2024_youth_education_statuses-48bf" ON public.hmis_2024_youth_education_statuses USING btree (source_type, source_id);
 
 
 --
@@ -53172,27 +51853,6 @@ CREATE INDEX "hmis_csv_2022_affiliations-6457" ON public.hmis_csv_2022_affiliati
 
 
 --
--- Name: hmis_csv_2022_assessment_questions-0cd3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_assessment_questions-0cd3" ON public.hmis_csv_2022_assessment_questions USING btree ("AssessmentQuestionID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_assessment_results-d6c9; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_assessment_results-d6c9" ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentResultID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_assessments-df76; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_assessments-df76" ON public.hmis_csv_2022_assessments USING btree ("AssessmentID", data_source_id);
-
-
---
 -- Name: hmis_csv_2022_clients-230f; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53207,27 +51867,6 @@ CREATE INDEX "hmis_csv_2022_current_living_situations-cf31" ON public.hmis_csv_2
 
 
 --
--- Name: hmis_csv_2022_disabilities-7712; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_disabilities-7712" ON public.hmis_csv_2022_disabilities USING btree ("DisabilitiesID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_employment_educations-3032; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_employment_educations-3032" ON public.hmis_csv_2022_employment_educations USING btree ("EmploymentEducationID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_enrollment_cocs-d4b8; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_enrollment_cocs-d4b8" ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentCoCID", data_source_id);
-
-
---
 -- Name: hmis_csv_2022_enrollments-0a46; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53235,24 +51874,10 @@ CREATE INDEX "hmis_csv_2022_enrollments-0a46" ON public.hmis_csv_2022_enrollment
 
 
 --
--- Name: hmis_csv_2022_events-9f9c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_events-9f9c" ON public.hmis_csv_2022_events USING btree ("EventID", data_source_id);
-
-
---
 -- Name: hmis_csv_2022_exits-cfdd; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_csv_2022_exits-cfdd" ON public.hmis_csv_2022_exits USING btree ("ExitID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_exports-86be; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_exports-86be" ON public.hmis_csv_2022_exports USING btree ("ExportID", data_source_id);
 
 
 --
@@ -53267,13 +51892,6 @@ CREATE INDEX "hmis_csv_2022_funders-4ad5" ON public.hmis_csv_2022_funders USING 
 --
 
 CREATE INDEX "hmis_csv_2022_health_and_dvs-e384" ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_income_benefits-200d" ON public.hmis_csv_2022_income_benefits USING btree ("IncomeBenefitsID", data_source_id);
 
 
 --
@@ -53312,20 +51930,6 @@ CREATE INDEX "hmis_csv_2022_services-7a57" ON public.hmis_csv_2022_services USIN
 
 
 --
--- Name: hmis_csv_2022_users-b749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_users-b749" ON public.hmis_csv_2022_users USING btree ("UserID", data_source_id);
-
-
---
--- Name: hmis_csv_2022_youth_education_statuses-a32f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2022_youth_education_statuses-a32f" ON public.hmis_csv_2022_youth_education_statuses USING btree ("YouthEducationStatusID", data_source_id);
-
-
---
 -- Name: hmis_csv_2024_affiliations-6457; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53337,13 +51941,6 @@ CREATE INDEX "hmis_csv_2024_affiliations-6457" ON public.hmis_csv_2024_affiliati
 --
 
 CREATE INDEX "hmis_csv_2024_assessment_questions-0cd3" ON public.hmis_csv_2024_assessment_questions USING btree ("AssessmentQuestionID", data_source_id);
-
-
---
--- Name: hmis_csv_2024_assessment_results-d6c9; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2024_assessment_results-d6c9" ON public.hmis_csv_2024_assessment_results USING btree ("AssessmentResultID", data_source_id);
 
 
 --
@@ -53396,24 +51993,10 @@ CREATE INDEX "hmis_csv_2024_enrollments-0a46" ON public.hmis_csv_2024_enrollment
 
 
 --
--- Name: hmis_csv_2024_events-9f9c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2024_events-9f9c" ON public.hmis_csv_2024_events USING btree ("EventID", data_source_id);
-
-
---
 -- Name: hmis_csv_2024_exits-cfdd; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmis_csv_2024_exits-cfdd" ON public.hmis_csv_2024_exits USING btree ("ExitID", data_source_id);
-
-
---
--- Name: hmis_csv_2024_exports-86be; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2024_exports-86be" ON public.hmis_csv_2024_exports USING btree ("ExportID", data_source_id);
 
 
 --
@@ -53477,13 +52060,6 @@ CREATE INDEX "hmis_csv_2024_projects-92c5" ON public.hmis_csv_2024_projects USIN
 --
 
 CREATE INDEX "hmis_csv_2024_services-7a57" ON public.hmis_csv_2024_services USING btree ("ServicesID", data_source_id);
-
-
---
--- Name: hmis_csv_2024_users-b749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "hmis_csv_2024_users-b749" ON public.hmis_csv_2024_users USING btree ("UserID", data_source_id);
 
 
 --
@@ -58527,13 +57103,6 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_xGU1" ON public.hmis_csv_2022_yo
 
 
 --
--- Name: hmiscsv2024affiliations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024affiliations_634d ON public.hmis_csv_2024_affiliations USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2024assessmentquestions_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58555,31 +57124,10 @@ CREATE INDEX hmiscsv2024assessmentresults_634d ON public.hmis_csv_2024_assessmen
 
 
 --
--- Name: hmiscsv2024assessmentresults_da04; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024assessmentresults_da04 ON public.hmis_csv_2024_assessment_results USING btree ("AssessmentID");
-
-
---
--- Name: hmiscsv2024assessments_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024assessments_4337 ON public.hmis_csv_2024_assessments USING btree ("EnrollmentID");
-
-
---
 -- Name: hmiscsv2024assessments_4fa0; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024assessments_4fa0 ON public.hmis_csv_2024_assessments USING btree ("AssessmentDate");
-
-
---
--- Name: hmiscsv2024assessments_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024assessments_603f ON public.hmis_csv_2024_assessments USING btree ("PersonalID");
 
 
 --
@@ -58618,38 +57166,10 @@ CREATE INDEX hmiscsv2024ceparticipations_634d ON public.hmis_csv_2024_ce_partici
 
 
 --
--- Name: hmiscsv2024clients_202d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024clients_202d ON public.hmis_csv_2024_clients USING btree ("DOB");
-
-
---
 -- Name: hmiscsv2024clients_20a8; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024clients_20a8 ON public.hmis_csv_2024_clients USING btree ("VeteranStatus");
-
-
---
--- Name: hmiscsv2024clients_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024clients_42d5 ON public.hmis_csv_2024_clients USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2024clients_5289; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024clients_5289 ON public.hmis_csv_2024_clients USING btree ("FirstName");
-
-
---
--- Name: hmiscsv2024clients_539c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024clients_539c ON public.hmis_csv_2024_clients USING btree ("LastName");
 
 
 --
@@ -58664,27 +57184,6 @@ CREATE INDEX hmiscsv2024clients_603f ON public.hmis_csv_2024_clients USING btree
 --
 
 CREATE INDEX hmiscsv2024clients_634d ON public.hmis_csv_2024_clients USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2024clients_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024clients_d381 ON public.hmis_csv_2024_clients USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2024currentlivingsituations_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024currentlivingsituations_4337 ON public.hmis_csv_2024_current_living_situations USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024currentlivingsituations_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024currentlivingsituations_603f ON public.hmis_csv_2024_current_living_situations USING btree ("PersonalID");
 
 
 --
@@ -58709,24 +57208,10 @@ CREATE INDEX hmiscsv2024currentlivingsituations_d718 ON public.hmis_csv_2024_cur
 
 
 --
--- Name: hmiscsv2024currentlivingsituations_fabe; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024currentlivingsituations_fabe ON public.hmis_csv_2024_current_living_situations USING btree ("InformationDate");
-
-
---
 -- Name: hmiscsv2024disabilities_1873; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024disabilities_1873 ON public.hmis_csv_2024_disabilities USING btree ("DisabilitiesID");
-
-
---
--- Name: hmiscsv2024disabilities_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024disabilities_42d5 ON public.hmis_csv_2024_disabilities USING btree ("DateUpdated");
 
 
 --
@@ -58751,13 +57236,6 @@ CREATE INDEX hmiscsv2024disabilities_634d ON public.hmis_csv_2024_disabilities U
 
 
 --
--- Name: hmiscsv2024disabilities_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024disabilities_d381 ON public.hmis_csv_2024_disabilities USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2024employmenteducations_350e; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58765,45 +57243,10 @@ CREATE INDEX hmiscsv2024employmenteducations_350e ON public.hmis_csv_2024_employ
 
 
 --
--- Name: hmiscsv2024employmenteducations_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024employmenteducations_42d5 ON public.hmis_csv_2024_employment_educations USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2024employmenteducations_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024employmenteducations_4337 ON public.hmis_csv_2024_employment_educations USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024employmenteducations_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024employmenteducations_603f ON public.hmis_csv_2024_employment_educations USING btree ("PersonalID");
-
-
---
 -- Name: hmiscsv2024employmenteducations_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024employmenteducations_634d ON public.hmis_csv_2024_employment_educations USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2024employmenteducations_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024employmenteducations_d381 ON public.hmis_csv_2024_employment_educations USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2024enrollments_2735; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024enrollments_2735 ON public.hmis_csv_2024_enrollments USING btree ("ProjectID", "HouseholdID");
 
 
 --
@@ -58828,13 +57271,6 @@ CREATE INDEX hmiscsv2024enrollments_42af ON public.hmis_csv_2024_enrollments USI
 
 
 --
--- Name: hmiscsv2024enrollments_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024enrollments_42d5 ON public.hmis_csv_2024_enrollments USING btree ("DateUpdated");
-
-
---
 -- Name: hmiscsv2024enrollments_4337; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58856,24 +57292,10 @@ CREATE INDEX hmiscsv2024enrollments_4685 ON public.hmis_csv_2024_enrollments USI
 
 
 --
--- Name: hmiscsv2024enrollments_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024enrollments_5328 ON public.hmis_csv_2024_enrollments USING btree ("HouseholdID");
-
-
---
 -- Name: hmiscsv2024enrollments_5d40; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024enrollments_5d40 ON public.hmis_csv_2024_enrollments USING btree ("HouseholdID", "DateDeleted", "EntryDate", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "DisablingCondition");
-
-
---
--- Name: hmiscsv2024enrollments_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024enrollments_603f ON public.hmis_csv_2024_enrollments USING btree ("PersonalID");
 
 
 --
@@ -58933,24 +57355,10 @@ CREATE INDEX hmiscsv2024enrollments_c3b4 ON public.hmis_csv_2024_enrollments USI
 
 
 --
--- Name: hmiscsv2024enrollments_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024enrollments_c548 ON public.hmis_csv_2024_enrollments USING btree ("EnrollmentID", "PersonalID");
-
-
---
 -- Name: hmiscsv2024enrollments_c830; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024enrollments_c830 ON public.hmis_csv_2024_enrollments USING btree ("DateDeleted", "EntryDate") INCLUDE ("EnrollmentID", "HouseholdID", "ProjectID", "RelationshipToHoH");
-
-
---
--- Name: hmiscsv2024enrollments_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024enrollments_d381 ON public.hmis_csv_2024_enrollments USING btree ("DateCreated");
 
 
 --
@@ -58989,13 +57397,6 @@ CREATE INDEX hmiscsv2024events_5251 ON public.hmis_csv_2024_events USING btree (
 
 
 --
--- Name: hmiscsv2024events_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024events_603f ON public.hmis_csv_2024_events USING btree ("PersonalID");
-
-
---
 -- Name: hmiscsv2024events_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59024,20 +57425,6 @@ CREATE INDEX hmiscsv2024exits_42d5 ON public.hmis_csv_2024_exits USING btree ("D
 
 
 --
--- Name: hmiscsv2024exits_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024exits_4337 ON public.hmis_csv_2024_exits USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024exits_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024exits_603f ON public.hmis_csv_2024_exits USING btree ("PersonalID");
-
-
---
 -- Name: hmiscsv2024exits_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59049,13 +57436,6 @@ CREATE INDEX hmiscsv2024exits_634d ON public.hmis_csv_2024_exits USING btree ("E
 --
 
 CREATE INDEX hmiscsv2024exits_6f2b ON public.hmis_csv_2024_exits USING btree ("ExitID");
-
-
---
--- Name: hmiscsv2024exits_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024exits_d381 ON public.hmis_csv_2024_exits USING btree ("DateCreated");
 
 
 --
@@ -59073,20 +57453,6 @@ CREATE INDEX hmiscsv2024exits_fa9a ON public.hmis_csv_2024_exits USING btree ("E
 
 
 --
--- Name: hmiscsv2024exports_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024exports_634d ON public.hmis_csv_2024_exports USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2024funders_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024funders_42d5 ON public.hmis_csv_2024_funders USING btree ("DateUpdated");
-
-
---
 -- Name: hmiscsv2024funders_4657; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59101,13 +57467,6 @@ CREATE INDEX hmiscsv2024funders_634d ON public.hmis_csv_2024_funders USING btree
 
 
 --
--- Name: hmiscsv2024funders_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024funders_d381 ON public.hmis_csv_2024_funders USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2024healthanddvs_1329; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59115,38 +57474,10 @@ CREATE INDEX hmiscsv2024healthanddvs_1329 ON public.hmis_csv_2024_health_and_dvs
 
 
 --
--- Name: hmiscsv2024healthanddvs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024healthanddvs_42d5 ON public.hmis_csv_2024_health_and_dvs USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2024healthanddvs_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024healthanddvs_4337 ON public.hmis_csv_2024_health_and_dvs USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024healthanddvs_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024healthanddvs_603f ON public.hmis_csv_2024_health_and_dvs USING btree ("PersonalID");
-
-
---
 -- Name: hmiscsv2024healthanddvs_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024healthanddvs_634d ON public.hmis_csv_2024_health_and_dvs USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2024healthanddvs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024healthanddvs_d381 ON public.hmis_csv_2024_health_and_dvs USING btree ("DateCreated");
 
 
 --
@@ -59164,38 +57495,10 @@ CREATE INDEX hmiscsv2024hmisparticipations_634d ON public.hmis_csv_2024_hmis_par
 
 
 --
--- Name: hmiscsv2024hmisparticipations_827e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024hmisparticipations_827e ON public.hmis_csv_2024_hmis_participations USING btree ("HMISParticipationID");
-
-
---
 -- Name: hmiscsv2024incomebenefits_16c2; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024incomebenefits_16c2 ON public.hmis_csv_2024_income_benefits USING btree ("Earned", "DataCollectionStage");
-
-
---
--- Name: hmiscsv2024incomebenefits_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024incomebenefits_42d5 ON public.hmis_csv_2024_income_benefits USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2024incomebenefits_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024incomebenefits_4337 ON public.hmis_csv_2024_income_benefits USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024incomebenefits_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024incomebenefits_603f ON public.hmis_csv_2024_income_benefits USING btree ("PersonalID");
 
 
 --
@@ -59213,31 +57516,10 @@ CREATE INDEX hmiscsv2024incomebenefits_ae8d ON public.hmis_csv_2024_income_benef
 
 
 --
--- Name: hmiscsv2024incomebenefits_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024incomebenefits_d381 ON public.hmis_csv_2024_income_benefits USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2024incomebenefits_f5f5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024incomebenefits_f5f5 ON public.hmis_csv_2024_income_benefits USING btree ("IncomeBenefitsID");
-
-
---
--- Name: hmiscsv2024incomebenefits_fabe; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024incomebenefits_fabe ON public.hmis_csv_2024_income_benefits USING btree ("InformationDate");
-
-
---
--- Name: hmiscsv2024inventories_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024inventories_42d5 ON public.hmis_csv_2024_inventories USING btree ("DateUpdated");
 
 
 --
@@ -59255,38 +57537,10 @@ CREATE INDEX hmiscsv2024inventories_9529 ON public.hmis_csv_2024_inventories USI
 
 
 --
--- Name: hmiscsv2024inventories_b15e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024inventories_b15e ON public.hmis_csv_2024_inventories USING btree ("ProjectID", "CoCCode");
-
-
---
--- Name: hmiscsv2024inventories_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024inventories_d381 ON public.hmis_csv_2024_inventories USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2024organizations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024organizations_634d ON public.hmis_csv_2024_organizations USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2024organizations_b19d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024organizations_b19d ON public.hmis_csv_2024_organizations USING btree ("OrganizationID");
-
-
---
--- Name: hmiscsv2024projectcocs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projectcocs_42d5 ON public.hmis_csv_2024_project_cocs USING btree ("DateUpdated");
 
 
 --
@@ -59304,52 +57558,10 @@ CREATE INDEX hmiscsv2024projectcocs_787b ON public.hmis_csv_2024_project_cocs US
 
 
 --
--- Name: hmiscsv2024projectcocs_b15e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projectcocs_b15e ON public.hmis_csv_2024_project_cocs USING btree ("ProjectID", "CoCCode");
-
-
---
--- Name: hmiscsv2024projectcocs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projectcocs_d381 ON public.hmis_csv_2024_project_cocs USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2024projects_42af; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024projects_42af ON public.hmis_csv_2024_projects USING btree ("ProjectID");
-
-
---
--- Name: hmiscsv2024projects_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projects_42d5 ON public.hmis_csv_2024_projects USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2024projects_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projects_634d ON public.hmis_csv_2024_projects USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2024projects_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projects_d381 ON public.hmis_csv_2024_projects USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2024projects_e4bb; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024projects_e4bb ON public.hmis_csv_2024_projects USING btree ("ProjectType");
 
 
 --
@@ -59367,27 +57579,6 @@ CREATE INDEX hmiscsv2024services_3444 ON public.hmis_csv_2024_services USING btr
 
 
 --
--- Name: hmiscsv2024services_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_42d5 ON public.hmis_csv_2024_services USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2024services_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_4337 ON public.hmis_csv_2024_services USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024services_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_603f ON public.hmis_csv_2024_services USING btree ("PersonalID");
-
-
---
 -- Name: hmiscsv2024services_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59399,27 +57590,6 @@ CREATE INDEX hmiscsv2024services_634d ON public.hmis_csv_2024_services USING btr
 --
 
 CREATE INDEX hmiscsv2024services_6415 ON public.hmis_csv_2024_services USING btree ("ServicesID");
-
-
---
--- Name: hmiscsv2024services_6c1d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_6c1d ON public.hmis_csv_2024_services USING btree ("RecordType", "DateProvided");
-
-
---
--- Name: hmiscsv2024services_75f1; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_75f1 ON public.hmis_csv_2024_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
-
-
---
--- Name: hmiscsv2024services_8586; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_8586 ON public.hmis_csv_2024_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
 
 
 --
@@ -59437,31 +57607,10 @@ CREATE INDEX hmiscsv2024services_9c1a ON public.hmis_csv_2024_services USING btr
 
 
 --
--- Name: hmiscsv2024services_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_c548 ON public.hmis_csv_2024_services USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: hmiscsv2024services_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_d381 ON public.hmis_csv_2024_services USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2024services_f3a2; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024services_f3a2 ON public.hmis_csv_2024_services USING btree ("DateDeleted");
-
-
---
--- Name: hmiscsv2024services_f749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024services_f749 ON public.hmis_csv_2024_services USING btree ("RecordType", "DateDeleted");
 
 
 --
@@ -59476,20 +57625,6 @@ CREATE INDEX hmiscsv2024users_57c7 ON public.hmis_csv_2024_users USING btree ("U
 --
 
 CREATE INDEX hmiscsv2024users_634d ON public.hmis_csv_2024_users USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2024youtheducationstatuses_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024youtheducationstatuses_4337 ON public.hmis_csv_2024_youth_education_statuses USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2024youtheducationstatuses_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2024youtheducationstatuses_603f ON public.hmis_csv_2024_youth_education_statuses USING btree ("PersonalID");
 
 
 --
@@ -59941,13 +58076,6 @@ CREATE INDEX hmiscsv2026youtheducationstatuses_fabe ON public.hmis_csv_2026_yout
 
 
 --
--- Name: household_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
-
-
---
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60001,13 +58129,6 @@ CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_
 --
 
 CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
-
-
---
--- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (id);
 
 
 --
@@ -60067,90 +58188,6 @@ CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_
 
 
 --
--- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_data_element_definitions_id_ds ON public.hmis_csv_2026_custom_data_element_definitions USING btree ("CustomDataElementDefinitionID", data_source_id);
-
-
---
--- Name: idx_custom_data_element_definitions_imp_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_data_element_definitions_imp_id_ds ON public.hmis_2026_custom_data_element_definitions USING btree ("CustomDataElementDefinitionID", data_source_id);
-
-
---
--- Name: idx_custom_data_element_definitions_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_data_element_definitions_source ON public.hmis_2026_custom_data_element_definitions USING btree (source_type, source_id);
-
-
---
--- Name: idx_custom_data_elements_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_data_elements_id_ds ON public.hmis_csv_2026_custom_data_elements USING btree ("CustomDataElementID", data_source_id);
-
-
---
--- Name: idx_custom_data_elements_imp_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_data_elements_imp_id_ds ON public.hmis_2026_custom_data_elements USING btree ("CustomDataElementID", data_source_id);
-
-
---
--- Name: idx_custom_data_elements_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_data_elements_source ON public.hmis_2026_custom_data_elements USING btree (source_type, source_id);
-
-
---
--- Name: idx_custom_genders_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_genders_id_ds ON public.hmis_csv_2026_custom_genders USING btree ("PersonalID", data_source_id);
-
-
---
--- Name: idx_custom_genders_imp_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_genders_imp_id_ds ON public.hmis_2026_custom_genders USING btree ("PersonalID", data_source_id);
-
-
---
--- Name: idx_custom_genders_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_genders_source ON public.hmis_2026_custom_genders USING btree (source_type, source_id);
-
-
---
--- Name: idx_custom_sexual_orientations_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_sexual_orientations_id_ds ON public.hmis_csv_2026_custom_sexual_orientations USING btree ("EnrollmentID", data_source_id);
-
-
---
--- Name: idx_custom_sexual_orientations_imp_id_ds; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_sexual_orientations_imp_id_ds ON public.hmis_2026_custom_sexual_orientations USING btree ("EnrollmentID", data_source_id);
-
-
---
--- Name: idx_custom_sexual_orientations_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_sexual_orientations_source ON public.hmis_2026_custom_sexual_orientations USING btree (source_type, source_id);
-
-
---
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60183,13 +58220,6 @@ CREATE INDEX idx_fed_census_acc_on_geo_measure ON public.federal_census_breakdow
 --
 
 CREATE INDEX idx_hmis_2020_affiliations_imid_du ON public.hmis_2020_affiliations USING btree (importer_log_id, "DateUpdated");
-
-
---
--- Name: idx_hmis_2020_assessment_questions_imid_du; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_hmis_2020_assessment_questions_imid_du ON public.hmis_2020_assessment_questions USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -60246,13 +58276,6 @@ CREATE INDEX idx_hmis_2020_enrollment_cocs_imid_du ON public.hmis_2020_enrollmen
 --
 
 CREATE INDEX idx_hmis_2020_enrollments_imid_du ON public.hmis_2020_enrollments USING btree (importer_log_id, "DateUpdated");
-
-
---
--- Name: idx_hmis_2020_events_imid_du; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_hmis_2020_events_imid_du ON public.hmis_2020_events USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -60372,55 +58395,6 @@ CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_co
 --
 
 CREATE INDEX idx_on_data_source_id_641ce0c5a9 ON public.hmis_csv_2026_current_living_situations USING btree (data_source_id);
-
-
---
--- Name: idx_on_data_source_id_752bcf074b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_on_data_source_id_752bcf074b ON public.hmis_csv_2026_custom_sexual_orientations USING btree (data_source_id);
-
-
---
--- Name: idx_on_data_source_id_CustomDataElementDefinitionID_51bbc66933; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "idx_on_data_source_id_CustomDataElementDefinitionID_51bbc66933" ON public."CustomDataElementDefinitions" USING btree (data_source_id, "CustomDataElementDefinitionID") WHERE ("CustomDataElementDefinitionID" IS NOT NULL);
-
-
---
--- Name: idx_on_data_source_id_CustomDataElementID_fb99f542fc; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "idx_on_data_source_id_CustomDataElementID_fb99f542fc" ON public."CustomDataElements" USING btree (data_source_id, "CustomDataElementID") WHERE ("CustomDataElementID" IS NOT NULL);
-
-
---
--- Name: idx_on_data_source_id_be0ab86c77; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_on_data_source_id_be0ab86c77 ON public.hmis_2026_custom_data_element_definitions USING btree (data_source_id);
-
-
---
--- Name: idx_on_data_source_id_c052f938ba; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_on_data_source_id_c052f938ba ON public.hmis_csv_2026_custom_data_element_definitions USING btree (data_source_id);
-
-
---
--- Name: idx_on_importer_log_id_91e82a0553; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_on_importer_log_id_91e82a0553 ON public.hmis_2026_custom_data_element_definitions USING btree (importer_log_id);
-
-
---
--- Name: idx_on_loader_id_083332ec0e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_on_loader_id_083332ec0e ON public.hmis_csv_2026_custom_data_element_definitions USING btree (loader_id);
 
 
 --
@@ -62874,6 +60848,13 @@ CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids U
 
 
 --
+-- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_external_ids_on_source_id_and_source_type_and_value ON public.external_ids USING btree (source_id, source_type, value);
+
+
+--
 -- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63336,157 +61317,10 @@ CREATE INDEX index_helps_on_updated_at ON public.helps USING btree (updated_at);
 
 
 --
--- Name: index_hmis_2020_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_affiliations_on_data_source_id ON public.hmis_2020_affiliations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_assessment_questions_on_data_source_id ON public.hmis_2020_assessment_questions USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_assessment_results_on_data_source_id ON public.hmis_2020_assessment_results USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_assessments_on_data_source_id ON public.hmis_2020_assessments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_clients_on_data_source_id ON public.hmis_2020_clients USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_current_living_situations_on_data_source_id ON public.hmis_2020_current_living_situations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_disabilities_on_data_source_id ON public.hmis_2020_disabilities USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_employment_educations_on_data_source_id ON public.hmis_2020_employment_educations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_enrollment_cocs_on_data_source_id ON public.hmis_2020_enrollment_cocs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_enrollments_on_data_source_id ON public.hmis_2020_enrollments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_events_on_data_source_id ON public.hmis_2020_events USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_exits_on_data_source_id ON public.hmis_2020_exits USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2020_exports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2020_exports_on_importer_log_id ON public.hmis_2020_exports USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2020_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_funders_on_data_source_id ON public.hmis_2020_funders USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_health_and_dvs_on_data_source_id ON public.hmis_2020_health_and_dvs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_income_benefits_on_data_source_id ON public.hmis_2020_income_benefits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_inventories_on_data_source_id ON public.hmis_2020_inventories USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_organizations_on_data_source_id ON public.hmis_2020_organizations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_project_cocs_on_data_source_id ON public.hmis_2020_project_cocs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_services_on_data_source_id ON public.hmis_2020_services USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2020_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2020_users_on_data_source_id ON public.hmis_2020_users USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2022_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_affiliations_on_data_source_id ON public.hmis_2022_affiliations USING btree (data_source_id);
 
 
 --
@@ -63497,24 +61331,10 @@ CREATE INDEX index_hmis_2022_affiliations_on_importer_log_id ON public.hmis_2022
 
 
 --
--- Name: index_hmis_2022_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_assessment_questions_on_data_source_id ON public.hmis_2022_assessment_questions USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_assessment_questions_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_assessment_questions_on_importer_log_id ON public.hmis_2022_assessment_questions USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_assessment_results_on_data_source_id ON public.hmis_2022_assessment_results USING btree (data_source_id);
 
 
 --
@@ -63525,24 +61345,10 @@ CREATE INDEX index_hmis_2022_assessment_results_on_importer_log_id ON public.hmi
 
 
 --
--- Name: index_hmis_2022_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_assessments_on_data_source_id ON public.hmis_2022_assessments USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_assessments_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_assessments_on_importer_log_id ON public.hmis_2022_assessments USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_clients_on_data_source_id ON public.hmis_2022_clients USING btree (data_source_id);
 
 
 --
@@ -63553,24 +61359,10 @@ CREATE INDEX index_hmis_2022_clients_on_importer_log_id ON public.hmis_2022_clie
 
 
 --
--- Name: index_hmis_2022_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_current_living_situations_on_data_source_id ON public.hmis_2022_current_living_situations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_current_living_situations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_current_living_situations_on_importer_log_id ON public.hmis_2022_current_living_situations USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_disabilities_on_data_source_id ON public.hmis_2022_disabilities USING btree (data_source_id);
 
 
 --
@@ -63581,24 +61373,10 @@ CREATE INDEX index_hmis_2022_disabilities_on_importer_log_id ON public.hmis_2022
 
 
 --
--- Name: index_hmis_2022_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_employment_educations_on_data_source_id ON public.hmis_2022_employment_educations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_employment_educations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_employment_educations_on_importer_log_id ON public.hmis_2022_employment_educations USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_enrollment_cocs_on_data_source_id ON public.hmis_2022_enrollment_cocs USING btree (data_source_id);
 
 
 --
@@ -63609,13 +61387,6 @@ CREATE INDEX index_hmis_2022_enrollment_cocs_on_importer_log_id ON public.hmis_2
 
 
 --
--- Name: index_hmis_2022_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_enrollments_on_data_source_id ON public.hmis_2022_enrollments USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_enrollments_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63623,24 +61394,10 @@ CREATE INDEX index_hmis_2022_enrollments_on_importer_log_id ON public.hmis_2022_
 
 
 --
--- Name: index_hmis_2022_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_events_on_data_source_id ON public.hmis_2022_events USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_events_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_events_on_importer_log_id ON public.hmis_2022_events USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_exits_on_data_source_id ON public.hmis_2022_exits USING btree (data_source_id);
 
 
 --
@@ -63658,24 +61415,10 @@ CREATE INDEX index_hmis_2022_exports_on_importer_log_id ON public.hmis_2022_expo
 
 
 --
--- Name: index_hmis_2022_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_funders_on_data_source_id ON public.hmis_2022_funders USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_funders_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_funders_on_importer_log_id ON public.hmis_2022_funders USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_health_and_dvs_on_data_source_id ON public.hmis_2022_health_and_dvs USING btree (data_source_id);
 
 
 --
@@ -63686,24 +61429,10 @@ CREATE INDEX index_hmis_2022_health_and_dvs_on_importer_log_id ON public.hmis_20
 
 
 --
--- Name: index_hmis_2022_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_income_benefits_on_data_source_id ON public.hmis_2022_income_benefits USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_income_benefits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_income_benefits_on_importer_log_id ON public.hmis_2022_income_benefits USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_inventories_on_data_source_id ON public.hmis_2022_inventories USING btree (data_source_id);
 
 
 --
@@ -63714,24 +61443,10 @@ CREATE INDEX index_hmis_2022_inventories_on_importer_log_id ON public.hmis_2022_
 
 
 --
--- Name: index_hmis_2022_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_organizations_on_data_source_id ON public.hmis_2022_organizations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_organizations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_organizations_on_importer_log_id ON public.hmis_2022_organizations USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_project_cocs_on_data_source_id ON public.hmis_2022_project_cocs USING btree (data_source_id);
 
 
 --
@@ -63749,24 +61464,10 @@ CREATE INDEX index_hmis_2022_projects_on_importer_log_id ON public.hmis_2022_pro
 
 
 --
--- Name: index_hmis_2022_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_services_on_data_source_id ON public.hmis_2022_services USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_services_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_services_on_importer_log_id ON public.hmis_2022_services USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2022_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_users_on_data_source_id ON public.hmis_2022_users USING btree (data_source_id);
 
 
 --
@@ -63777,13 +61478,6 @@ CREATE INDEX index_hmis_2022_users_on_importer_log_id ON public.hmis_2022_users 
 
 
 --
--- Name: index_hmis_2022_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2022_youth_education_statuses_on_data_source_id ON public.hmis_2022_youth_education_statuses USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2022_youth_education_statuses_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -63791,178 +61485,10 @@ CREATE INDEX index_hmis_2022_youth_education_statuses_on_importer_log_id ON publ
 
 
 --
--- Name: index_hmis_2024_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_affiliations_on_data_source_id ON public.hmis_2024_affiliations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_assessment_questions_on_data_source_id ON public.hmis_2024_assessment_questions USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_assessment_results_on_data_source_id ON public.hmis_2024_assessment_results USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_assessments_on_data_source_id ON public.hmis_2024_assessments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_ce_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_ce_participations_on_data_source_id ON public.hmis_2024_ce_participations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_clients_on_data_source_id ON public.hmis_2024_clients USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_current_living_situations_on_data_source_id ON public.hmis_2024_current_living_situations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_disabilities_on_data_source_id ON public.hmis_2024_disabilities USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_employment_educations_on_data_source_id ON public.hmis_2024_employment_educations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_enrollments_on_data_source_id ON public.hmis_2024_enrollments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_events_on_data_source_id ON public.hmis_2024_events USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_exits_on_data_source_id ON public.hmis_2024_exits USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_2024_exits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2024_exits_on_importer_log_id ON public.hmis_2024_exits USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2024_exports_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_exports_on_data_source_id ON public.hmis_2024_exports USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_funders_on_data_source_id ON public.hmis_2024_funders USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_health_and_dvs_on_data_source_id ON public.hmis_2024_health_and_dvs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_hmis_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_hmis_participations_on_data_source_id ON public.hmis_2024_hmis_participations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_income_benefits_on_data_source_id ON public.hmis_2024_income_benefits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_inventories_on_data_source_id ON public.hmis_2024_inventories USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_organizations_on_data_source_id ON public.hmis_2024_organizations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_project_cocs_on_data_source_id ON public.hmis_2024_project_cocs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_projects_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_projects_on_data_source_id ON public.hmis_2024_projects USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_services_on_data_source_id ON public.hmis_2024_services USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_users_on_data_source_id ON public.hmis_2024_users USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2024_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2024_youth_education_statuses_on_data_source_id ON public.hmis_2024_youth_education_statuses USING btree (data_source_id);
 
 
 --
@@ -64061,48 +61587,6 @@ CREATE INDEX index_hmis_2026_current_living_situations_on_data_source_id ON publ
 --
 
 CREATE INDEX index_hmis_2026_current_living_situations_on_importer_log_id ON public.hmis_2026_current_living_situations USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2026_custom_data_elements_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_custom_data_elements_on_data_source_id ON public.hmis_2026_custom_data_elements USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_custom_data_elements_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_custom_data_elements_on_importer_log_id ON public.hmis_2026_custom_data_elements USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2026_custom_genders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_custom_genders_on_data_source_id ON public.hmis_2026_custom_genders USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_custom_genders_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_custom_genders_on_importer_log_id ON public.hmis_2026_custom_genders USING btree (importer_log_id);
-
-
---
--- Name: index_hmis_2026_custom_sexual_orientations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_custom_sexual_orientations_on_data_source_id ON public.hmis_2026_custom_sexual_orientations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_custom_sexual_orientations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_custom_sexual_orientations_on_importer_log_id ON public.hmis_2026_custom_sexual_orientations USING btree (importer_log_id);
 
 
 --
@@ -64400,20 +61884,6 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
--- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
-
-
---
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -64519,66 +61989,10 @@ CREATE INDEX index_hmis_clients_on_client_id ON public.hmis_clients USING btree 
 
 
 --
--- Name: index_hmis_csv_2020_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_affiliations_on_data_source_id ON public.hmis_csv_2020_affiliations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2020_affiliations_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_affiliations_on_loader_id ON public.hmis_csv_2020_affiliations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_assessment_questions_on_data_source_id ON public.hmis_csv_2020_assessment_questions USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2020_assessment_questions_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_assessment_questions_on_loader_id ON public.hmis_csv_2020_assessment_questions USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_assessment_results_on_data_source_id ON public.hmis_csv_2020_assessment_results USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_assessment_results_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_assessment_results_on_loader_id ON public.hmis_csv_2020_assessment_results USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_assessments_on_data_source_id ON public.hmis_csv_2020_assessments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2020_assessments_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_assessments_on_loader_id ON public.hmis_csv_2020_assessments USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_clients_on_data_source_id ON public.hmis_csv_2020_clients USING btree (data_source_id);
 
 
 --
@@ -64589,24 +62003,10 @@ CREATE INDEX index_hmis_csv_2020_clients_on_loader_id ON public.hmis_csv_2020_cl
 
 
 --
--- Name: index_hmis_csv_2020_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_current_living_situations_on_data_source_id ON public.hmis_csv_2020_current_living_situations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_current_living_situations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_current_living_situations_on_loader_id ON public.hmis_csv_2020_current_living_situations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_disabilities_on_data_source_id ON public.hmis_csv_2020_disabilities USING btree (data_source_id);
 
 
 --
@@ -64617,24 +62017,10 @@ CREATE INDEX index_hmis_csv_2020_disabilities_on_loader_id ON public.hmis_csv_20
 
 
 --
--- Name: index_hmis_csv_2020_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_employment_educations_on_data_source_id ON public.hmis_csv_2020_employment_educations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_employment_educations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_employment_educations_on_loader_id ON public.hmis_csv_2020_employment_educations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_enrollment_cocs_on_data_source_id ON public.hmis_csv_2020_enrollment_cocs USING btree (data_source_id);
 
 
 --
@@ -64645,45 +62031,10 @@ CREATE INDEX index_hmis_csv_2020_enrollment_cocs_on_loader_id ON public.hmis_csv
 
 
 --
--- Name: index_hmis_csv_2020_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_enrollments_on_data_source_id ON public.hmis_csv_2020_enrollments USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_enrollments_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_enrollments_on_loader_id ON public.hmis_csv_2020_enrollments USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_events_on_data_source_id ON public.hmis_csv_2020_events USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2020_events_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_events_on_loader_id ON public.hmis_csv_2020_events USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_exits_on_data_source_id ON public.hmis_csv_2020_exits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2020_exits_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_exits_on_loader_id ON public.hmis_csv_2020_exits USING btree (loader_id);
 
 
 --
@@ -64694,24 +62045,10 @@ CREATE INDEX index_hmis_csv_2020_exports_on_loader_id ON public.hmis_csv_2020_ex
 
 
 --
--- Name: index_hmis_csv_2020_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_funders_on_data_source_id ON public.hmis_csv_2020_funders USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_funders_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_funders_on_loader_id ON public.hmis_csv_2020_funders USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_health_and_dvs_on_data_source_id ON public.hmis_csv_2020_health_and_dvs USING btree (data_source_id);
 
 
 --
@@ -64722,24 +62059,10 @@ CREATE INDEX index_hmis_csv_2020_health_and_dvs_on_loader_id ON public.hmis_csv_
 
 
 --
--- Name: index_hmis_csv_2020_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_income_benefits_on_data_source_id ON public.hmis_csv_2020_income_benefits USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_income_benefits_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_income_benefits_on_loader_id ON public.hmis_csv_2020_income_benefits USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_inventories_on_data_source_id ON public.hmis_csv_2020_inventories USING btree (data_source_id);
 
 
 --
@@ -64750,24 +62073,10 @@ CREATE INDEX index_hmis_csv_2020_inventories_on_loader_id ON public.hmis_csv_202
 
 
 --
--- Name: index_hmis_csv_2020_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_organizations_on_data_source_id ON public.hmis_csv_2020_organizations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_organizations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_organizations_on_loader_id ON public.hmis_csv_2020_organizations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_project_cocs_on_data_source_id ON public.hmis_csv_2020_project_cocs USING btree (data_source_id);
 
 
 --
@@ -64785,24 +62094,10 @@ CREATE INDEX index_hmis_csv_2020_projects_on_loader_id ON public.hmis_csv_2020_p
 
 
 --
--- Name: index_hmis_csv_2020_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_services_on_data_source_id ON public.hmis_csv_2020_services USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2020_services_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_services_on_loader_id ON public.hmis_csv_2020_services USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2020_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2020_users_on_data_source_id ON public.hmis_csv_2020_users USING btree (data_source_id);
 
 
 --
@@ -64813,24 +62108,10 @@ CREATE INDEX index_hmis_csv_2020_users_on_loader_id ON public.hmis_csv_2020_user
 
 
 --
--- Name: index_hmis_csv_2022_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_affiliations_on_data_source_id ON public.hmis_csv_2022_affiliations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_affiliations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_affiliations_on_loader_id ON public.hmis_csv_2022_affiliations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_assessment_questions_on_data_source_id ON public.hmis_csv_2022_assessment_questions USING btree (data_source_id);
 
 
 --
@@ -64841,24 +62122,10 @@ CREATE INDEX index_hmis_csv_2022_assessment_questions_on_loader_id ON public.hmi
 
 
 --
--- Name: index_hmis_csv_2022_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_assessment_results_on_data_source_id ON public.hmis_csv_2022_assessment_results USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_assessment_results_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_assessment_results_on_loader_id ON public.hmis_csv_2022_assessment_results USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_assessments_on_data_source_id ON public.hmis_csv_2022_assessments USING btree (data_source_id);
 
 
 --
@@ -64869,24 +62136,10 @@ CREATE INDEX index_hmis_csv_2022_assessments_on_loader_id ON public.hmis_csv_202
 
 
 --
--- Name: index_hmis_csv_2022_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_clients_on_data_source_id ON public.hmis_csv_2022_clients USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_clients_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_clients_on_loader_id ON public.hmis_csv_2022_clients USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_current_living_situations_on_data_source_id ON public.hmis_csv_2022_current_living_situations USING btree (data_source_id);
 
 
 --
@@ -64897,24 +62150,10 @@ CREATE INDEX index_hmis_csv_2022_current_living_situations_on_loader_id ON publi
 
 
 --
--- Name: index_hmis_csv_2022_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_disabilities_on_data_source_id ON public.hmis_csv_2022_disabilities USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_disabilities_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_disabilities_on_loader_id ON public.hmis_csv_2022_disabilities USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_employment_educations_on_data_source_id ON public.hmis_csv_2022_employment_educations USING btree (data_source_id);
 
 
 --
@@ -64925,24 +62164,10 @@ CREATE INDEX index_hmis_csv_2022_employment_educations_on_loader_id ON public.hm
 
 
 --
--- Name: index_hmis_csv_2022_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_enrollment_cocs_on_data_source_id ON public.hmis_csv_2022_enrollment_cocs USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_enrollment_cocs_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_enrollment_cocs_on_loader_id ON public.hmis_csv_2022_enrollment_cocs USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_enrollments_on_data_source_id ON public.hmis_csv_2022_enrollments USING btree (data_source_id);
 
 
 --
@@ -64953,24 +62178,10 @@ CREATE INDEX index_hmis_csv_2022_enrollments_on_loader_id ON public.hmis_csv_202
 
 
 --
--- Name: index_hmis_csv_2022_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_events_on_data_source_id ON public.hmis_csv_2022_events USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_events_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_events_on_loader_id ON public.hmis_csv_2022_events USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_exits_on_data_source_id ON public.hmis_csv_2022_exits USING btree (data_source_id);
 
 
 --
@@ -64988,24 +62199,10 @@ CREATE INDEX index_hmis_csv_2022_exports_on_loader_id ON public.hmis_csv_2022_ex
 
 
 --
--- Name: index_hmis_csv_2022_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_funders_on_data_source_id ON public.hmis_csv_2022_funders USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_funders_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_funders_on_loader_id ON public.hmis_csv_2022_funders USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_health_and_dvs_on_data_source_id ON public.hmis_csv_2022_health_and_dvs USING btree (data_source_id);
 
 
 --
@@ -65016,24 +62213,10 @@ CREATE INDEX index_hmis_csv_2022_health_and_dvs_on_loader_id ON public.hmis_csv_
 
 
 --
--- Name: index_hmis_csv_2022_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_income_benefits_on_data_source_id ON public.hmis_csv_2022_income_benefits USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_income_benefits_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_income_benefits_on_loader_id ON public.hmis_csv_2022_income_benefits USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_inventories_on_data_source_id ON public.hmis_csv_2022_inventories USING btree (data_source_id);
 
 
 --
@@ -65044,24 +62227,10 @@ CREATE INDEX index_hmis_csv_2022_inventories_on_loader_id ON public.hmis_csv_202
 
 
 --
--- Name: index_hmis_csv_2022_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_organizations_on_data_source_id ON public.hmis_csv_2022_organizations USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_organizations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_organizations_on_loader_id ON public.hmis_csv_2022_organizations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_project_cocs_on_data_source_id ON public.hmis_csv_2022_project_cocs USING btree (data_source_id);
 
 
 --
@@ -65079,24 +62248,10 @@ CREATE INDEX index_hmis_csv_2022_projects_on_loader_id ON public.hmis_csv_2022_p
 
 
 --
--- Name: index_hmis_csv_2022_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_services_on_data_source_id ON public.hmis_csv_2022_services USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_services_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_services_on_loader_id ON public.hmis_csv_2022_services USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2022_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_users_on_data_source_id ON public.hmis_csv_2022_users USING btree (data_source_id);
 
 
 --
@@ -65107,185 +62262,10 @@ CREATE INDEX index_hmis_csv_2022_users_on_loader_id ON public.hmis_csv_2022_user
 
 
 --
--- Name: index_hmis_csv_2022_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2022_youth_education_statuses_on_data_source_id ON public.hmis_csv_2022_youth_education_statuses USING btree (data_source_id);
-
-
---
 -- Name: index_hmis_csv_2022_youth_education_statuses_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_youth_education_statuses_on_loader_id ON public.hmis_csv_2022_youth_education_statuses USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2024_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_affiliations_on_data_source_id ON public.hmis_csv_2024_affiliations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_assessment_questions_on_data_source_id ON public.hmis_csv_2024_assessment_questions USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_assessment_results_on_data_source_id ON public.hmis_csv_2024_assessment_results USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_assessments_on_data_source_id ON public.hmis_csv_2024_assessments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_ce_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_ce_participations_on_data_source_id ON public.hmis_csv_2024_ce_participations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_clients_on_data_source_id ON public.hmis_csv_2024_clients USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_current_living_situations_on_data_source_id ON public.hmis_csv_2024_current_living_situations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_disabilities_on_data_source_id ON public.hmis_csv_2024_disabilities USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_employment_educations_on_data_source_id ON public.hmis_csv_2024_employment_educations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_enrollments_on_data_source_id ON public.hmis_csv_2024_enrollments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_events_on_data_source_id ON public.hmis_csv_2024_events USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_exits_on_data_source_id ON public.hmis_csv_2024_exits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_exports_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_exports_on_data_source_id ON public.hmis_csv_2024_exports USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_funders_on_data_source_id ON public.hmis_csv_2024_funders USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_health_and_dvs_on_data_source_id ON public.hmis_csv_2024_health_and_dvs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_hmis_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_hmis_participations_on_data_source_id ON public.hmis_csv_2024_hmis_participations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_income_benefits_on_data_source_id ON public.hmis_csv_2024_income_benefits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_inventories_on_data_source_id ON public.hmis_csv_2024_inventories USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_organizations_on_data_source_id ON public.hmis_csv_2024_organizations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_project_cocs_on_data_source_id ON public.hmis_csv_2024_project_cocs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_projects_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_projects_on_data_source_id ON public.hmis_csv_2024_projects USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_services_on_data_source_id ON public.hmis_csv_2024_services USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_users_on_data_source_id ON public.hmis_csv_2024_users USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2024_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2024_youth_education_statuses_on_data_source_id ON public.hmis_csv_2024_youth_education_statuses USING btree (data_source_id);
 
 
 --
@@ -65377,41 +62357,6 @@ CREATE INDEX index_hmis_csv_2026_clients_on_loader_id ON public.hmis_csv_2026_cl
 --
 
 CREATE INDEX index_hmis_csv_2026_current_living_situations_on_loader_id ON public.hmis_csv_2026_current_living_situations USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2026_custom_data_elements_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2026_custom_data_elements_on_data_source_id ON public.hmis_csv_2026_custom_data_elements USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2026_custom_data_elements_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2026_custom_data_elements_on_loader_id ON public.hmis_csv_2026_custom_data_elements USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2026_custom_genders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2026_custom_genders_on_data_source_id ON public.hmis_csv_2026_custom_genders USING btree (data_source_id);
-
-
---
--- Name: index_hmis_csv_2026_custom_genders_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2026_custom_genders_on_loader_id ON public.hmis_csv_2026_custom_genders USING btree (loader_id);
-
-
---
--- Name: index_hmis_csv_2026_custom_sexual_orientations_on_loader_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_csv_2026_custom_sexual_orientations_on_loader_id ON public.hmis_csv_2026_custom_sexual_orientations USING btree (loader_id);
 
 
 --
@@ -66224,6 +63169,20 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public.hmis_supplemental_data_sets USING btree (remote_credential_id);
+
+
+--
+-- Name: index_hmis_table_configurations_on_key_owner_and_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_table_configurations_on_key_owner_and_source ON public.hmis_table_configurations USING btree (table_key, owner_type, owner_id, data_source_id);
+
+
+--
+-- Name: index_hmis_table_configurations_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_table_configurations_on_owner ON public.hmis_table_configurations USING btree (owner_type, owner_id);
 
 
 --
@@ -71106,6 +68065,27 @@ CREATE UNIQUE INDEX index_system_maintenance_tasks_on_name ON public.system_main
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
+
+
+--
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -71117,6 +68097,13 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -71904,20 +68891,6 @@ CREATE INDEX project_export_id ON public."Project" USING btree ("ExportID");
 
 
 --
--- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_tracking_method_rsh_index ON public.recent_service_history USING btree (project_tracking_method);
-
-
---
--- Name: project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_type_rsh_index ON public.recent_service_history USING btree (project_type);
-
-
---
 -- Name: services_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -72020,20 +68993,6 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 --
 
 CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
-
-
---
--- Name: tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
-
-
---
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
 
 
 --
@@ -72195,6 +69154,13 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 --
 
 CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (owner_type, key);
+
+
+--
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -75197,6 +72163,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250818183500'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
@@ -75204,20 +72171,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250803183312'),
 ('20250730004713'),
 ('20250729183312'),
+('20250716154410'),
 ('20250716131246'),
 ('20250716131240'),
 ('20250716123853'),
 ('20250716122931'),
 ('20250716112736'),
 ('20250715220502'),
-('20250715152820'),
 ('20250715150621'),
-('20250715123705'),
-('20250714172716'),
-('20250714145407'),
-('20250711105827'),
 ('20250708132033'),
-('20250707200918'),
 ('20250703125916'),
 ('20250701185134'),
 ('20250627132413'),

@@ -14,8 +14,8 @@ module Types
       filters_argument HmisSchema::CeClient
     end
 
-    field :client_attribute_columns, [Types::HmisSchema::KeyValue], null: false, description: 'Columns available in the consolidated waitlist'
-    field :available_filters, [Types::DynamicFilterConfig], null: false
+    field :table_column_configs, [Types::TableColumnConfig], null: false, description: 'Columns available in the consolidated waitlist'
+    field :table_filter_configs, [Types::TableFilterConfig], null: false
 
     def self.authorized?(object, context)
       super && context[:current_user].can_administrate_coordinated_entry?
@@ -30,23 +30,18 @@ module Types
       scope
     end
 
-    # TODO: pull this dynamic column configuration from the database
-    def client_attribute_columns
-      [
-        { key: 'cde.custom_assessment.hna_ce_test_1_prioritization_score', value: 'Score' },
-        { key: 'cde.custom_assessment.hna_ce_test_1_household_type', value: 'Household Type' },
-      ]
+    def table_column_configs
+      table_configuration&.columns
     end
 
-    # TODO: pull this dynamic filter configuration from the database
-    def available_filters
-      [
-        {
-          key: 'cde.custom_assessment.hna_ce_test_1_prioritization_score',
-          label: 'Score',
-          values: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-        },
-      ]
+    def table_filter_configs
+      table_configuration&.filters
+    end
+
+    private
+
+    def table_configuration
+      Hmis::TableConfiguration.for_consolidated_waitlist(data_source_id: current_user.hmis_data_source_id)
     end
   end
 end

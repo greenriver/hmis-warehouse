@@ -12,7 +12,7 @@ module Types
 
     available_filter_options do
       arg :search_term, String, required: false
-      arg :dynamic_filters, [Types::DynamicFilter], required: false
+      arg :dynamic_filters, [Types::TableFilterValue], required: false
     end
 
     # object is a Hmis::Ce::ClientProxy

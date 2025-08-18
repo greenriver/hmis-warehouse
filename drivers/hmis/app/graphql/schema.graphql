@@ -773,7 +773,7 @@ type CeClient {
 }
 
 input CeClientFilterOptions {
-  dynamicFilters: [DynamicFilter!]
+  dynamicFilters: [TableFilterValue!]
   searchTerm: String
 }
 
@@ -788,8 +788,6 @@ type CeClientsPaginated {
 }
 
 type CeConsolidatedWaitlist {
-  availableFilters: [DynamicFilterConfig!]!
-
   """
   Clients who belong to at least one CE candidate pool
   """
@@ -798,7 +796,8 @@ type CeConsolidatedWaitlist {
   """
   Columns available in the consolidated waitlist
   """
-  clientAttributeColumns: [KeyValue!]!
+  tableColumnConfigs: [TableColumnConfig!]!
+  tableFilterConfigs: [TableFilterConfig!]!
 }
 
 type CeCustomReferralStatus {
@@ -3779,41 +3778,6 @@ enum DisplayHook {
   Display value as a column when viewing a table of records (e.g. Current Living Situations)
   """
   TABLE_SUMMARY
-}
-
-"""
-Represents a dynamic filter that can be applied to queries.
-"""
-input DynamicFilter {
-  """
-  The key or field name to filter on. Must match key on DynamicFilterConfig.
-  """
-  key: String!
-
-  """
-  The value to filter by. Must match one of the values on DynamicFilterConfig.
-  """
-  values: [String!]
-}
-
-"""
-Represents an available dynamic filter configuration.
-"""
-type DynamicFilterConfig {
-  """
-  The key or field name of the filter.
-  """
-  key: String!
-
-  """
-  The display label for the filter.
-  """
-  label: String!
-
-  """
-  The list of possible values for this filter.
-  """
-  values: [String!]!
 }
 
 """
@@ -12560,6 +12524,46 @@ enum TCellSourceViralLoadSource {
   (3) Other
   """
   OTHER
+}
+
+type TableColumnConfig {
+  key: String!
+  label: String!
+}
+
+"""
+Represents a dynamic filter configuration.
+"""
+type TableFilterConfig {
+  """
+  The key or field name of the filter.
+  """
+  key: String!
+
+  """
+  The display label for the filter.
+  """
+  label: String!
+
+  """
+  The list of possible values for this filter.
+  """
+  options: [PickListOption!]!
+}
+
+"""
+Represents a dynamic filter that can be applied to queries.
+"""
+input TableFilterValue {
+  """
+  The key or field name to filter on. Must match key on TableFilterConfiguration.
+  """
+  key: String!
+
+  """
+  The value to filter by. Must match one of the values on TableFilterConfiguration.
+  """
+  values: [String!]
 }
 
 """
