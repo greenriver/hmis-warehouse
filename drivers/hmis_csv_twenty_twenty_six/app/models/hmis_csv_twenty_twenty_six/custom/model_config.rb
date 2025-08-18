@@ -21,7 +21,7 @@ module HmisCsvTwentyTwentySix
           custom_file_definition.real_columns.map { |col| col['name'] }
         end
 
-        def hmis_structure
+        def hmis_structure(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
           custom_file_definition.real_columns.each_with_object({}) do |col, hash|
             hash[col['name'].to_sym] = {
               type: col['type'] || 'string',
