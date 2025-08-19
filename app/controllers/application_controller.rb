@@ -204,8 +204,17 @@ class ApplicationController < ActionController::Base
     user = request.env['last_user']
     if user
       provider = cookies.signed[:active_provider]
-      identity = OauthIdentity.for_user(user).where(provider: provider).first if provider
-      identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
+      if provider
+        # If a provider exists, user is from Okta, due to the complexity of single log-out, we'll
+        # just log you out of okta in this case
+        identity = OauthIdentity.for_user(user).where(provider: provider).first
+        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
+      else
+        # If no provider exists, attempt to log the user out of superset (if they have access)
+        # this will redirect back to the warehouse
+        superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
+        superset_logout || root_url
+      end
     else
       root_url
     end
