@@ -202,6 +202,18 @@ module HudReports
       universe_members.joins(table_join.join_sources)
     end
 
+    private def date?(value)
+      value.match?(/\A\d{4}-\d{1,2}-\d{1,2}/) || value.match?(/\A\d{1,2}\/\d{1,2}\/\d{4}/)
+    end
+
+    private def integer?(value)
+      value.match?(/\A\d+\z/)
+    end
+
+    private def json?(value)
+      value.start_with?('[') || value.start_with?('{')
+    end
+
     def load_members_from_s3
       service = HudReports::FileArtifactService.new(report_instance)
       csv_data = service.retrieve_universe_members(question: question)
@@ -222,9 +234,12 @@ module HudReports
 
         # Look up additional data stored in the report clients CSV data
         client_record = client_csv_data.find do |client_row|
-          client_row['id'].to_i == universe_membership_id &&
-          client_row['client_id'].present? &&
-          client_row['client_id'].to_i == row['client_id'].to_i
+          next unless client_row['id'].to_i == universe_membership_id
+
+          client_id_match = client_row['client_id'].present? && (client_row['client_id'].to_i == row['client_id'].to_i)
+          client_id_match ||= client_row['destination_client_id'].present? && (client_row['destination_client_id'].to_i == row['client_id'].to_i)
+
+          client_id_match
         end
 
         universe_membership = OpenStruct.new(
@@ -243,14 +258,15 @@ module HudReports
           # Convert string values to appropriate types
           if /_id$/.match?(key) || ['id', 'age'].include?(key)
             universe_membership[key.to_sym] = value.to_i if value.present?
-          elsif ['entry_date', 'exit_date', 'created_at', 'updated_at'].include?(key)
-            universe_membership[key.to_sym] = Date.parse(value) if value.present?
           elsif value.is_a?(String) && value.present?
+            # Try to parse as a date if it looks like a date
+            if date?(value)
+              universe_membership[key.to_sym] = Date.parse(value)
             # Check if it's a valid integer
-            if value.match?(/\A\d+\z/)
+            elsif integer?(value)
               universe_membership[key.to_sym] = value.to_i
             # Try to parse as JSON if it looks like an array or object
-            elsif value.start_with?('[') || value.start_with?('{')
+            elsif json?(value)
               begin
                 universe_membership[key.to_sym] = JSON.parse(value)
               rescue JSON::ParserError
