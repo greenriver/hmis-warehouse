@@ -145,7 +145,7 @@ module Types
       return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
       return [] unless unit_group
 
-      Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(unit_group)
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
     end
 
     # TODO(#7957) - remove after deprecation period
@@ -155,12 +155,12 @@ module Types
 
     # TODO(#7957) - remove after deprecation period
     def priority_schemes
-      # If the current opportunity is active and stale, return the priority scheme as it was
-      # when the opportunity was created.
-      return revivified_rules.filter(&:priority_scheme?) if latest_opportunity&.active? && latest_opportunity.stale
+      # If the current opportunity is active and stale, return the priority rules as they were
+      # when the opportunity was created, filtered to the most specific owner level and ordered by [rank, id].
+      return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
       return [] unless unit_group
 
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(unit_group)
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
     end
 
     private

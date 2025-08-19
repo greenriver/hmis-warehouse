@@ -48,17 +48,10 @@ module Hmis::Ce::Match
 
     # Transform multiple priority scheme rules into a single expression that returns a Dentaku array {item1, item2, ...}
     def compose_priority_expression(rules)
-      rules = rules.filter(&:priority_scheme?).sort_by { |r| [r.rank, r.id] }
-      return if rules.empty?
+      priority_rules = Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(rules)
+      return if priority_rules.empty?
 
-      # Multiple ranked priority rules may apply to a unit group.
-      # These priority rules must all share the same owner type because `rank` is only unique
-      # with respect to owner; mixing owner types is ambiguous. Therefore if there are rules
-      # with different owners, pick the filter the rules to only the most specific owner
-      most_specific_level = rules.map(&:owner_precedence).min
-      rules = rules.filter { |rule| rule.owner_precedence == most_specific_level }
-
-      "{#{rules.map(&:expression).join(', ')}}"
+      "{#{priority_rules.map(&:expression).join(', ')}}"
     end
 
     def compose_requirement_expression(rules)

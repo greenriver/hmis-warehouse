@@ -103,6 +103,27 @@ module Hmis::Ce::Match
       all_rules.filter { |rule| rule.applies_to_entity?(entity) }
     end
 
+    # Returns only the most specific owner level priority schemes from a provided rule set,
+    # ordered by [rank, id]. If ranks are nil (e.g., during transitional states), they are
+    # treated as lowest priority for stable ordering.
+    def self.most_specific_priority_schemes_from(rules)
+      priority_rules = rules.select(&:priority_scheme?).sort_by { |r| [r.rank || Float::INFINITY, r.id] }
+      return [] if priority_rules.empty?
+
+      most_specific_level = priority_rules.map(&:owner_precedence).min
+      priority_rules.select { |r| r.owner_precedence == most_specific_level }
+    end
+
+    # Helper for GraphQL resolvers: return eligibility requirements applicable to an entity
+    def self.eligibility_requirements_for_entity(entity)
+      for_entity(entity).select(&:eligibility_requirement?)
+    end
+
+    # Helper for GraphQL resolvers: return most specific, rank-ordered priority schemes
+    def self.priority_schemes_for_entity(entity)
+      most_specific_priority_schemes_from(for_entity(entity))
+    end
+
     private
 
     def owner_is_not_changed
