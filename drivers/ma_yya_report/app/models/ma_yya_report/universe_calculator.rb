@@ -6,10 +6,14 @@
 
 # frozen_string_literal: true
 
+require 'memery'
 module MaYyaReport
   class UniverseCalculator
     include ArelHelper
     include Filter::FilterScopes
+    include Memery
+
+    attr_reader :filter
 
     def initialize(filter)
       @filter = filter
@@ -26,10 +30,12 @@ module MaYyaReport
       {}.tap do |clients|
         batch.each do |client|
           client_id = client.id
+          # For enrollment specific calculations we'll use the most recent enrollment
+          # that overlaps the reporting period and universe
           enrollment = enrollments_by_client_id[client_id].last
           next if enrollment.blank? || enrollment.enrollment.blank?
 
-          age = enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max)
+          age = enrollment.client.age_on([filter.start_date, enrollment.first_date_in_program].max)
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           employment_status = enrollment.enrollment.employment_educations.max_by(&:InformationDate)
@@ -73,6 +79,7 @@ module MaYyaReport
             voluntary_dcf_service: enrollment.enrollment.ReferralSource == 30,
             voluntary_dys_yes_service: enrollment.enrollment.ReferralSource == 34,
             exchange_for_sex: enrollment.enrollment.exit&.ExchangeForSex == 1,
+            permanent_exit_date: permanent_exit_date(client_id),
             days_to_return: days_to_return(client_id),
           )
         end
@@ -93,13 +100,16 @@ module MaYyaReport
         group_by(&:client_id)
     end
 
+    # anyone of appropriate age enrolled in the chosen projects during the reporting period
     private def enrollment_scope
-      scope = ::GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        open_between(start_date: @filter.start_date, end_date: @filter.end_date)
+      enrollment_scope_without_date_range.
+        open_between(start_date: filter.start_date, end_date: filter.end_date)
+    end
 
-      scope = filter_for_projects(scope)
-      filter_for_age(scope)
+    private def enrollment_scope_without_date_range
+      scope = ::GrdaWarehouse::ServiceHistoryEnrollment.
+        entry
+      filter.apply_criteria(scope, tags: [:warehouse], except: [:filter_for_range])
     end
 
     private def enrollment_scope_with_preloads
@@ -111,93 +121,163 @@ module MaYyaReport
         )
     end
 
-    # Calculates and memoizes the number of days it took for a client to become homeless again.
-    #
-    # This method implements a complex algorithm to identify clients who experienced a "return to homelessness"
-    # within a 2-year period. The algorithm follows these steps:
-    #
-    # 1. Identifies clients with homeless Current Living Situations (CLS) during the reporting period
-    #    - Homeless situations: 116 (Place not meant for habitation), 101 (Emergency shelter), 302 (Transitional housing)
-    #
-    # 2. For each client with homeless CLS during reporting period, looks back up to 2 years to find
-    #    the most recent CLS prior to the report start date
-    #
-    # 3. Checks if that prior CLS indicates the client was housed
-    #    - Housed situations: 410 (Rental by client), 435 (Rental by client with RRH/GPD TIP subsidy),
-    #      421 (Owned by client), 411 (Rental by client with VASH subsidy)
-    #
-    # 4. Verifies that the client had a homeless situation before being housed
-    #    (to confirm this represents a return, not initial housing)
-    #
-    # Performance optimizations:
-    # - Pre-fetches all CLS data for clients in scope to prevent N+1 queries
-    # - Uses memoization to cache results across multiple calls
-    # - Groups CLS data by client_id for efficient processing
-    #
-    # @return [Hash<Integer, Integer>] A hash of client IDs to the number of days it took to return to homelessness.
-    #
-    # @note This method looks beyond the reporting period enrollments to get a complete picture
-    #       of housing stability over the 2-year lookback period
-    private def days_to_return_by_client_id
-      @days_to_return_by_client_id ||= begin
-        homeless_situations = [116, 101, 302]
-        housed_situations = [410, 435, 421, 411]
+    private def return_lookback_range
+      @return_lookback_range ||= filter.start_date - 730.days .. filter.end_date
+    end
 
-        days_by_client_id = {}
-        situations_by_client_id = {}
-        ::GrdaWarehouse::Hud::CurrentLivingSituation.joins(enrollment: { service_history_enrollment: :client }).
-          where(c_t[:id].in(client_scope.pluck(:id))).
-          order(InformationDate: :desc).
-          pluck(c_t[:id], :InformationDate, :CurrentLivingSituation, e_t[:EntryDate]).
-          each do |client_id, information_date, current_living_situation, entry_date|
-            situations_by_client_id[client_id] ||= []
-            situations_by_client_id[client_id] << {
-              information_date: information_date,
-              current_living_situation: current_living_situation,
-              entry_date: entry_date,
-            }
+    # Days to return is the number of days between the most-recent entry into homelessness and the most-recent prior exit to permanent housing
+    private def days_to_return(client_id)
+      homeless_date = start_of_most_recent_homelessness(client_id)
+      permanent_exit_date = permanent_exit_date(client_id)
+      return nil unless homeless_date && permanent_exit_date
+
+      (homeless_date - permanent_exit_date).to_i
+    end
+
+    memoize private def start_of_most_recent_homelessness(client_id)
+      [
+        homeless_cls_dates_by_client_id[client_id],
+        enrolled_in_homeless_project_scope_by_client_id[client_id],
+      ].compact.min
+    end
+
+    memoize private def permanent_exit_date(client_id)
+      [
+        permanent_destinations_by_client_id[client_id],
+        permanent_locations_by_client_id[client_id],
+      ].compact.max
+    end
+
+    # Identifies clients enrolled in homeless projects during the reporting period and memoizes their earliest enrollment date.
+    #
+    # This method queries the enrollment scope for homeless projects within the specified date range
+    # and returns a hash mapping client IDs to their earliest first_date_in_program during the period.
+    # If a client has multiple enrollments, only the earliest date is retained.
+    #
+    # @return [Hash<Integer, Date>] A hash mapping client IDs to their earliest enrollment date in a homeless project
+    #         during the reporting period
+    memoize private def enrolled_in_homeless_project_scope_by_client_id
+      {}.tap do |h|
+        enrollment_scope.homeless.
+          open_between(start_date: filter.start_date, end_date: filter.end_date).
+          pluck(:client_id, :first_date_in_program).
+          each do |client_id, first_date_in_program|
+            h[client_id] = first_date_in_program if h[client_id].blank? || first_date_in_program < h[client_id]
           end
-        situations_by_client_id.each do |client_id, situations|
-          client_homeless_situations = situations.select { |s| s[:current_living_situation].in?(homeless_situations) }
-
-          first_homeless_situation_in_period = client_homeless_situations.
-            select { |s| s[:information_date].between?(@filter.start_date, @filter.end_date) }.
-            min_by { |s| s[:information_date] }
-
-          next unless first_homeless_situation_in_period
-
-          last_housed_situation = situations.
-            select { |s| s[:information_date] < first_homeless_situation_in_period[:information_date] }.
-            select { |s| s[:current_living_situation].in?(housed_situations) }.
-            max_by { |s| s[:information_date] }
-
-          next unless last_housed_situation
-
-          was_homeless_before_housed = client_homeless_situations.any? do |s|
-            s[:information_date] < last_housed_situation[:information_date]
-          end
-
-          next unless was_homeless_before_housed
-
-          days = (first_homeless_situation_in_period[:information_date] - last_housed_situation[:information_date]).to_i
-          days_by_client_id[client_id] = days if days <= 730
-        end
-        days_by_client_id.with_defaults(nil)
       end
     end
 
+    # Identifies clients with homeless Current Living Situations (CLS) on the entry date of an enrollment
+    # that overlaps the reporting period.
+    #
+    # It filters for specific homeless situations:
+    # - 116: Place not meant for habitation
+    # - 101: Emergency shelter
+    # - 118: Safe haven
+    # - 302: Transitional housing
+    # - 336: Staying or living in a friend's room, apartment, or house
+    # - 335: Staying or living in a family member's room, apartment, or house
+    #
+    # @return [Hash<Integer, Date>] A hash mapping client IDs to their earliest homeless CLS date
+    memoize private def homeless_cls_dates_by_client_id
+      {}.tap do |h|
+        ::GrdaWarehouse::Hud::CurrentLivingSituation.
+          where(CurrentLivingSituation: [116, 101, 118, 302, 336, 335]).
+          joins(enrollment: :service_history_enrollment).
+          merge(enrollment_scope).
+          select(she_t[:client_id], she_t[:first_date_in_program], :InformationDate).
+          each do |client_id, entry_date, information_date|
+            next if entry_date != information_date
+
+            h[client_id] = information_date if h[client_id].blank? || information_date < h[client_id]
+          end
+      end
+    end
+
+    # Identifies clients who exited to permanent housing destinations within the 2-year lookback period and memoizes their most recent exit date.
+    #
+    # This method queries Exit records to find clients who achieved permanent housing outcomes
+    # during the lookback period (730 days before the report start date through the report end date).
+    # It filters for specific permanent destination codes:
+    # - 422: Staying or living with family, permanent tenure
+    # - 423: Staying or living with friends, permanent tenure
+    # - 410: Rental by client, no ongoing housing subsidy
+    # - 435: Rental by client, with ongoing housing subsidy
+    # - 421: Owned by client, with ongoing housing subsidy
+    # - 411: Owned by client, no ongoing housing subsidy
+    #
+    # For each client with multiple permanent exits during the period, only the most recent
+    # ExitDate is retained to identify when they most recently achieved permanent housing.
+    #
+    # @return [Hash<Integer, Date>] A hash mapping client IDs to their most recent exit date
+    #         to a permanent housing destination within the lookback period
+    memoize private def permanent_destinations_by_client_id
+      {}.tap do |h|
+        ::GrdaWarehouse::Hud::Exit.
+          where(ExitDate: return_lookback_range).
+          where(Destination: [422, 423, 410, 435, 421, 411]).
+          joins(enrollment: :service_history_enrollment).
+          merge(enrollment_scope_without_date_range).
+          pluck(:client_id, :ExitDate).
+          each do |client_id, exit_date|
+            homeless_start_date = start_of_most_recent_homelessness(client_id)
+            # Ignore any permanent exits that occurred after the start of homelessness.
+            # We'll pick those up in next year's report
+            next if homeless_start_date && exit_date > homeless_start_date
+
+            h[client_id] = exit_date if h[client_id].blank? || exit_date > h[client_id]
+          end
+      end
+    end
+
+    # Identifies clients who had Current Living Situations (CLS) indicating permanent housing within the 2-year lookback period and memoizes their most recent occurrence date.
+    #
+    # This method queries Current Living Situation records to find clients who were living in permanent
+    # housing during the lookback period (730 days before the report start date through the report end date).
+    # It filters for specific permanent housing CLS codes:
+    # - 410: Rental by client, no ongoing housing subsidy
+    # - 435: Rental by client, with ongoing housing subsidy
+    # - 421: Owned by client, with ongoing housing subsidy
+    # - 411: Owned by client, no ongoing housing subsidy
+    #
+    # For each client with multiple permanent housing CLS records during the period, only the most recent
+    # InformationDate is retained to identify when they most recently were in permanent housing.
+    #
+    # This method complements permanent_destinations_by_client_id by capturing housing status through
+    # CLS records rather than exit destinations, providing a more comprehensive view of housing stability.
+    #
+    # @return [Hash<Integer, Date>] A hash mapping client IDs to their most recent CLS date
+    #         indicating permanent housing within the lookback period
+    memoize private def permanent_locations_by_client_id
+      {}.tap do |h|
+        ::GrdaWarehouse::Hud::CurrentLivingSituation.
+          where(CurrentLivingSituation: [410, 435, 421, 411]).
+          where(InformationDate: return_lookback_range).
+          joins(enrollment: :service_history_enrollment).
+          merge(enrollment_scope_without_date_range).
+          pluck(:client_id, :InformationDate).
+          each do |client_id, information_date|
+            homeless_start_date = start_of_most_recent_homelessness(client_id)
+            # Ignore any permanent locations that occurred after the start of homelessness.
+            # We'll pick those up in next year's report
+            next if homeless_start_date && information_date > homeless_start_date
+
+            h[client_id] = information_date if h[client_id].blank? || information_date > h[client_id]
+          end
+      end
+    end
     private def currently_homeless?(cls)
-      cls.present? && cls.CurrentLivingSituation.in?([101, 302, 116])
+      cls.present? && cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
     end
 
     private def at_risk_of_homelessness?(cls)
-      ! currently_homeless?(cls)
+      cls.present? && ! cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
     end
 
     private def initial_contact(enrollments)
       enrollment = enrollments.last
       enrollment.enrollment.ReferralSource.in?([1, 2, 11, 18, 28, 30, 34, 45, 37, 38, 39]) &&
-        enrollments[0...-1].detect { |en| en.first_date_in_program >= @filter.start_date - 24.months }.blank?
+        enrollments[0...-1].detect { |en| en.first_date_in_program >= filter.start_date - 24.months }.blank?
     end
 
     # True if client was referred to flex funds OR if they received flex funds
@@ -205,7 +285,7 @@ module MaYyaReport
       # CE Event 16 = Referral to emergency assistance/flex fund/furniture assistance
       referred_to_direct_assistance = enrollments.any? do |enrollment|
         enrollment.enrollment.events.any? do |event|
-          event.EventDate.between?(@filter.start_date, @filter.end_date) && event.Event == 16
+          event.EventDate.between?(filter.start_date, filter.end_date) && event.Event == 16
         end
       end
 
@@ -250,7 +330,7 @@ module MaYyaReport
       # recorded before the end of the reporting period
       disability = enrollment.disabilities.order(InformationDate: :desc).
         detect do |d|
-          d.InformationDate < @filter.end_date &&
+          d.InformationDate < filter.end_date &&
           d.DisabilityType == disability_type &&
           d.DisabilityResponse.in?([0, 1, 2, 3]) # Include 'no' responses in the sort
         end
@@ -259,10 +339,10 @@ module MaYyaReport
 
     private def household_ages(enrollment)
       enrollment.household_enrollments.map do |en|
-        next if en.EntryDate > @filter.end_date
-        next if en.exit.present? && en.exit.ExitDate < @filter.start_date
+        next if en.EntryDate > filter.end_date
+        next if en.exit.present? && en.exit.ExitDate < filter.start_date
 
-        en.client.age_on([@filter.start_date, en.EntryDate].max)
+        en.client.age_on([filter.start_date, en.EntryDate].max)
       end.compact
     end
 
@@ -283,7 +363,7 @@ module MaYyaReport
       enrollment.current_living_situations.
         order(InformationDate: :asc).
         select do |cls|
-        cls.InformationDate.between?(@filter.start_date, @filter.end_date) &&
+        cls.InformationDate.between?(filter.start_date, filter.end_date) &&
           cls.InformationDate >= enrollment.EntryDate + 90.days
       end.
         map(&:CurrentLivingSituation)
@@ -334,7 +414,7 @@ module MaYyaReport
     private def flex_funds_services_in_range(enrollment)
       enrollment.enrollment.custom_services.filter do |service|
         service.custom_service_type_id == flex_funds_service_type.id &&
-          service.within_range?(@filter.start_date..@filter.end_date)
+          service.within_range?(filter.start_date..filter.end_date)
       end
     end
   end

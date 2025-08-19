@@ -4,14 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MaYyaReport::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :set_report, only: [:show, :destroy, :details]
 
     def index
+      if params[:filter].present?
+        @filter = ::Filters::FilterBase.new(user_id: current_user.id)
+        @filter.update(filter_params.merge(user_id: current_user.id))
+      else
+        @filter = ::Filters::FilterBase.new(user_id: current_user.id, **default_filter_params)
+      end
       @pagy, @reports = pagy(report_scope)
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id, **default_filter_params)
     end
 
     def create
@@ -57,27 +64,21 @@ module MaYyaReport::WarehouseReports
     def report_scope
       report_class.viewable_by(current_user).order(id: :desc)
     end
+    helper_method :report_scope
 
     private def filter_params
       return [] unless params[:filter].present?
 
-      params.require(:filter).permit(
-        :start,
-        :end,
-        age_ranges: [],
-        project_ids: [],
-      )
+      params.require(:filter).permit(*::Filters::FilterBase.new(user_id: current_user.id).known_params)
     end
 
     private def default_filter_params
-      prior_project_ids = MaYyaReport::Report.last&.options.try(:[], 'project_ids')
+      last_report = MaYyaReport::Report.last
       day_in_last_quarter = Date.current - 90.days
       {
         start: day_in_last_quarter.beginning_of_quarter,
         end: day_in_last_quarter.end_of_quarter,
-        project_ids: prior_project_ids,
-        age_ranges: MaYyaReport::Report.available_age_ranges.keys,
-      }
+      }.merge(last_report&.options&.symbolize_keys)
     end
 
     def report_options(filter)

@@ -79,115 +79,316 @@ module MaYyaReport
       MaYyaReport::Client.arel_table
     end
 
-    private def calculators # rubocop:disable Metrics/AbcSize
+    private def cell_definitions # rubocop:disable Metrics/AbcSize
       report_start_date = filter.start
       report_end_date = filter.end
 
       # G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)
       g_population = a_t[:currently_homeless].eq(true).
         and(a_t[:rehoused_on].between(report_start_date..report_end_date))
-
       {
-        A1a: a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true)),
-        A1b: a_t[:referral_source].eq(7).and(a_t[:at_risk_of_homelessness].eq(true)),
+        A1a: {
+          calculation: a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true)),
+          label: 'Unduplicated number of outreach contacts with YYA experiencing homelessness',
+        },
+        A1b: {
+          calculation: a_t[:referral_source].eq(7).and(a_t[:at_risk_of_homelessness].eq(true)),
+          label: 'Unduplicated number of outreach contacts with YYA considered "at-risk" of homelessness',
+        },
+        A2a: {
+          calculation: a_t[:initial_contact].eq(true).and(a_t[:currently_homeless].eq(true)),
+          label: 'Unduplicated number of initial contacts with YYA experiencing homelessness',
+        },
+        A2b: {
+          calculation: a_t[:initial_contact].eq(true).and(a_t[:at_risk_of_homelessness].eq(true)),
+          label: 'Unduplicated number of initial contacts with YYA considered "at-risk" of homelessness',
+        },
+        A3a: {
+          calculation: a_t[:entry_date].gteq(filter.start).and(a_t[:at_risk_of_homelessness].eq(true)),
+          label: 'Number of YYA completing new intake: YYA considered "at-risk" of homelessness',
+        },
+        A3b: {
+          calculation: a_t[:entry_date].lt(filter.start).and(a_t[:at_risk_of_homelessness].eq(true)),
+          label: 'Number of YYA continuing in case management',
+        },
+        A4a: {
+          calculation: a_t[:entry_date].gteq(filter.start).and(a_t[:currently_homeless].eq(true)),
+          label: 'Number of YYA completing new intake: YYA experiencing homelessness',
+        },
+        A4b: {
+          calculation: a_t[:entry_date].lt(filter.start).and(a_t[:currently_homeless].eq(true)),
+          label: 'Number of YYA continuing in case management',
+        },
+        D1a: {
+          calculation: a_t[:age].lt(18).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who were Under 18',
+        },
+        D1b: {
+          calculation: a_t[:gender].eq(1).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Man',
+        },
+        D1c: {
+          calculation: a_t[:gender].eq(0).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Woman',
+        },
+        D1d: {
+          calculation: a_t[:gender].eq(5).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Transgender',
+        },
+        D1e: {
+          calculation: a_t[:gender].eq(4).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Non-Binary',
+        },
+        D1f: {
+          calculation: a_t[:gender].in([8, 9]).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who  are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+        },
+        D1g: {
+          calculation: a_t[:gender].eq(99).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served with no Gender Data collected',
+        },
+        D2a: {
+          calculation: a_t[:race].eq(5).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as White (race)',
+        },
+        D2b: {
+          calculation: a_t[:race].eq(3).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as African American (race)',
+        },
+        D2c: {
+          calculation: a_t[:race].eq(2).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Asian (race)',
+        },
+        D2d: {
+          calculation: a_t[:race].eq(1).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
+        },
+        D2e: {
+          calculation: a_t[:race].eq(4).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
+        },
+        D2f: {
+          calculation: a_t[:race].eq(7).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Middle Eastern or North African',
+        },
+        D2g: {
+          calculation: a_t[:ethnicity].eq(1).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Hispanic/Latina/e/o',
+        },
+        D2h: {
+          calculation: a_t[:race].eq(10).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who identified as Other/Multi-racial (race)',
+        },
+        D2i: {
+          calculation: a_t[:language].eq('English').and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served whose primary language was English (language)',
+        },
+        D2j: {
+          calculation: a_t[:language].eq('Spanish').and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served whose primary language was Spanish (language)',
+        },
+        D2k: {
+          calculation: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served whose primary language was Other (language)',
+        },
+        D3a: {
+          calculation: a_t[:mental_health_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who reported having a Mental Health Disorder',
+        },
+        D3b: {
+          calculation: a_t[:substance_use_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who reported having a Substance Use Disorder',
+        },
+        D3c: {
+          calculation: a_t[:physical_disability].eq(true).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who reported having a Medical/Physical Disability (disability)',
+        },
+        D3d: {
+          calculation: a_t[:developmental_disability].eq(true).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who reported having a Developmental Disability (disability)',
+        },
+        D4a: {
+          calculation: a_t[:pregnant].eq(1).and(a_t[:due_date].gt(filter.start)).or(Arel.sql(custodial_parent_query)).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who were Pregnant or Custodial Parenting',
+        },
+        D4b: {
+          calculation: lgbtq_query.and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who were LGBTQ+',
+        },
+        D4c: {
+          calculation: a_t[:education_status_date].lteq(filter.end).and(a_t[:current_school_attendance].eq(0)).and(a_t[:most_recent_education_status].in([0, 1])).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who had Completed high school or GED/HiSET',
+        },
+        D4d: {
+          calculation: a_t[:education_status_date].lteq(filter.end).and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2])).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who were enrolled (full or part time) in a 2 or 4 year college',
+        },
+        D4e: {
+          calculation: a_t[:education_status_date].lteq(filter.end).and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].eq(4)).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program)',
+        },
+        D4f: {
+          calculation: a_t[:health_insurance].eq(true).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who had Health insurance at intake',
+        },
+        D4g: {
+          calculation: a_t[:employed].eq(true).and(a_t[:head_of_household].eq(true)),
+          label: 'Number of YYA served who are working a full or part time time job (Employment Status)',
+        },
+        F2a: {
+          calculation: g_population,
+          label: 'The number of  YYA who transition into stabilized housing',
+        },
+        F2b: {
+          calculation: g_population.and(a_t[:days_to_return].lteq(730)),
+          label: 'Returned to homeless (within 2 years of being housed)',
+        },
+        G1a: {
+          calculation: g_population.and(a_t[:age].lt(18)),
+          label: 'Number of YYA served who were Under 18',
+        },
+        G1b: {
+          calculation: g_population.and(a_t[:gender].eq(1)),
+          label: 'Number of YYA served who identified as Man',
+        },
+        G1c: {
+          calculation: g_population.and(a_t[:gender].eq(0)),
+          label: 'Number of YYA served who identified as Woman',
+        },
+        G1d: {
+          calculation: g_population.and(a_t[:gender].eq(5)),
+          label: 'Number of YYA served who identified as Transgender',
+        },
+        G1e: {
+          calculation: g_population.and(a_t[:gender].eq(4)),
+          label: 'Number of YYA served who identified as Non-Binary',
+        },
+        G1f: {
+          calculation: g_population.and(a_t[:gender].in([8, 9])),
+          label: 'Number of YYA served who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+        },
+        G1g: {
+          calculation: g_population.and(a_t[:gender].eq(99)),
+          label: 'Number of YYA served with no Gender Data collected',
+        },
+        G2a: {
+          calculation: g_population.and(a_t[:race].eq(5)),
+          label: 'Number of YYA served who identified as White (race)',
+        },
+        G2b: {
+          calculation: g_population.and(a_t[:race].eq(3)),
+          label: 'Number of YYA served who identified as African American (race)',
+        },
+        G2c: {
+          calculation: g_population.and(a_t[:race].eq(2)),
+          label: 'Number of YYA served who identified as Asian (race)',
+        },
+        G2d: {
+          calculation: g_population.and(a_t[:race].eq(1)),
+          label: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
+        },
+        G2e: {
+          calculation: g_population.and(a_t[:race].eq(4)),
+          label: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
+        },
+        G2f: {
+          calculation: g_population.and(a_t[:race].eq(7)),
+          label: 'Number of YYA served who identified as Hispanic/Latina/e/o',
+        },
+        G2g: {
+          calculation: g_population.and(a_t[:race].eq(6)),
+          label: 'Number of YYA served who identified as Other/ Multi-racial',
+        },
+        G2h: {
+          calculation: g_population.and(a_t[:race].eq(10)),
+          label: 'Number of YYA served who identified as Other/ Multi-racial',
+        },
+        G3a: {
+          calculation: g_population.and(lgbtq_query),
+          label: 'Number of YYA served who were LGBTQ+',
+        },
+        TotalYYAServedHomeless: {
+          calculation: a_t[:currently_homeless].eq(true),
+          label: 'Number of unduplicated YYA served (update each quarter)',
+        },
+        TotalYYAServedPrevention: {
+          calculation: a_t[:at_risk_of_homelessness].eq(true),
+          label: 'Number of unduplicated YYA served (update each quarter)',
+        },
+      }
+    end
 
-        A2a: a_t[:initial_contact].eq(true).and(a_t[:currently_homeless].eq(true)),
-        A2b: a_t[:initial_contact].eq(true).and(a_t[:at_risk_of_homelessness].eq(true)),
+    private def calculators
+      {
+        A1a: cell_definitions[:A1a][:calculation],
+        A1b: cell_definitions[:A1b][:calculation],
 
-        A3a: a_t[:entry_date].gteq(report_start_date).and(a_t[:at_risk_of_homelessness].eq(true)),
-        A3b: a_t[:entry_date].lt(report_start_date).and(a_t[:at_risk_of_homelessness].eq(true)),
-        # A3c: nil, # Non-HMIS queries should be nil
+        A2a: cell_definitions[:A2a][:calculation],
+        A2b: cell_definitions[:A2b][:calculation],
 
-        A4a: a_t[:entry_date].gteq(report_start_date).and(a_t[:currently_homeless].eq(true)),
-        A4b: a_t[:entry_date].lt(report_start_date).and(a_t[:currently_homeless].eq(true)),
-        # A4c: nil,
+        A3a: cell_definitions[:A3a][:calculation],
+        A3b: cell_definitions[:A3b][:calculation],
 
-        # A5 removed in FY2026
+        A4a: cell_definitions[:A4a][:calculation],
+        A4b: cell_definitions[:A4b][:calculation],
+        TotalYYAServedHomeless: cell_definitions[:TotalYYAServedHomeless][:calculation],
+        TotalYYAServedPrevention: cell_definitions[:TotalYYAServedPrevention][:calculation],
 
-        # NOTE: currently_homeless and at_risk_of_homelessness are mutually exclusive
-        TotalYYAServedHomeless: a_t[:currently_homeless].eq(true),
-        TotalYYAServedPrevention: a_t[:at_risk_of_homelessness].eq(true),
+        D1a: cell_definitions[:D1a][:calculation],
+        D1b: cell_definitions[:D1b][:calculation],
+        D1c: cell_definitions[:D1c][:calculation],
+        D1d: cell_definitions[:D1d][:calculation],
+        D1e: cell_definitions[:D1e][:calculation],
+        D1f: cell_definitions[:D1f][:calculation],
+        D1g: cell_definitions[:D1g][:calculation],
 
-        # No longer included in FY2024 spec, leaving until we confirm it is no longer necessary
-        # C1: nil,
-        # C3: nil,
-        # TotalCollegeStudentsServed: a_t[:education_status_date].lteq(report_end_date).
-        #   and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2, 3, 4])),
+        D2a: cell_definitions[:D2a][:calculation],
+        D2b: cell_definitions[:D2b][:calculation],
+        D2c: cell_definitions[:D2c][:calculation],
+        D2d: cell_definitions[:D2d][:calculation],
+        D2e: cell_definitions[:D2e][:calculation],
+        D2f: cell_definitions[:D2f][:calculation],
+        D2g: cell_definitions[:D2g][:calculation],
+        D2h: cell_definitions[:D2h][:calculation],
+        D2i: cell_definitions[:D2i][:calculation],
+        D2j: cell_definitions[:D2j][:calculation],
+        D2k: cell_definitions[:D2k][:calculation],
 
-        D1a: a_t[:age].lt(18).and(a_t[:head_of_household].eq(true)),
-        D1b: a_t[:gender].eq(1).and(a_t[:head_of_household].eq(true)),
-        D1c: a_t[:gender].eq(0).and(a_t[:head_of_household].eq(true)),
-        D1d: a_t[:gender].eq(5).and(a_t[:head_of_household].eq(true)),
-        D1e: a_t[:gender].eq(4).and(a_t[:head_of_household].eq(true)),
-        D1f: a_t[:gender].in([8, 9]).and(a_t[:head_of_household].eq(true)),
-        D1g: a_t[:gender].eq(99).and(a_t[:head_of_household].eq(true)),
+        D3a: cell_definitions[:D3a][:calculation],
+        D3b: cell_definitions[:D3b][:calculation],
+        D3c: cell_definitions[:D3c][:calculation],
+        D3d: cell_definitions[:D3d][:calculation],
 
-        D2a: a_t[:race].eq(5).and(a_t[:head_of_household].eq(true)),
-        D2b: a_t[:race].eq(3).and(a_t[:head_of_household].eq(true)),
-        D2c: a_t[:race].eq(2).and(a_t[:head_of_household].eq(true)),
-        D2d: a_t[:race].eq(1).and(a_t[:head_of_household].eq(true)),
-        D2e: a_t[:race].eq(4).and(a_t[:head_of_household].eq(true)),
-        D2f: a_t[:race].eq(7).and(a_t[:head_of_household].eq(true)),
-        D2g: a_t[:ethnicity].eq(1).and(a_t[:head_of_household].eq(true)),
-        D2h: a_t[:race].eq(10).and(a_t[:head_of_household].eq(true)), # multi-racial
-        D2i: a_t[:language].eq('English').and(a_t[:head_of_household].eq(true)),
-        D2j: a_t[:language].eq('Spanish').and(a_t[:head_of_household].eq(true)),
-        D2k: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))).and(a_t[:head_of_household].eq(true)),
+        D4a: cell_definitions[:D4a][:calculation],
+        D4b: cell_definitions[:D4b][:calculation],
+        D4c: cell_definitions[:D4c][:calculation],
+        D4d: cell_definitions[:D4d][:calculation],
+        D4e: cell_definitions[:D4e][:calculation],
+        D4f: cell_definitions[:D4f][:calculation],
+        D4g: cell_definitions[:D4g][:calculation],
 
-        D3a: a_t[:mental_health_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
-        D3b: a_t[:substance_use_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
-        D3c: a_t[:physical_disability].eq(true).and(a_t[:head_of_household].eq(true)),
-        D3d: a_t[:developmental_disability].eq(true).and(a_t[:head_of_household].eq(true)),
+        F2a: cell_definitions[:F2a][:calculation],
+        F2b: cell_definitions[:F2b][:calculation],
 
-        D4a: a_t[:pregnant].eq(1).and(a_t[:due_date].gt(report_start_date)).
-          or(Arel.sql(custodial_parent_query)).and(a_t[:head_of_household].eq(true)),
-        D4b: lgbtq_query.and(a_t[:head_of_household].eq(true)),
-        D4c: a_t[:education_status_date].lteq(report_end_date).
-          and(a_t[:current_school_attendance].eq(0)).and(a_t[:most_recent_education_status].in([0, 1])).and(a_t[:head_of_household].eq(true)),
-        D4d: a_t[:education_status_date].lteq(report_end_date).
-          and(a_t[:current_school_attendance].in([1, 2])). # Enrolled
-          and(a_t[:current_educational_status].in([1, 2])).and(a_t[:head_of_household].eq(true)), # AA or BA
-        D4e: a_t[:education_status_date].lteq(report_end_date).
-          and(a_t[:current_school_attendance].in([1, 2])). # Enrolled
-          and(a_t[:current_educational_status].eq(4)).and(a_t[:head_of_household].eq(true)), # other post-secondary
-        D4f: a_t[:health_insurance].eq(true).and(a_t[:head_of_household].eq(true)),
-        D4g: a_t[:employed].eq(true).and(a_t[:head_of_household].eq(true)),
+        G1a: cell_definitions[:G1a][:calculation],
+        G1b: cell_definitions[:G1b][:calculation],
+        G1c: cell_definitions[:G1c][:calculation],
+        G1d: cell_definitions[:G1d][:calculation],
+        G1e: cell_definitions[:G1e][:calculation],
+        G1f: cell_definitions[:G1f][:calculation],
+        G1g: cell_definitions[:G1g][:calculation],
 
-        # Ea: nil,
-        # Eb: nil,
+        G2a: cell_definitions[:G2a][:calculation],
+        G2b: cell_definitions[:G2b][:calculation],
+        G2c: cell_definitions[:G2c][:calculation],
+        G2d: cell_definitions[:G2d][:calculation],
+        G2e: cell_definitions[:G2e][:calculation],
+        G2f: cell_definitions[:G2f][:calculation],
+        G2g: cell_definitions[:G2g][:calculation],
+        G2h: cell_definitions[:G2h][:calculation],
 
-        # F1 removed in FY2026
+        G3a: cell_definitions[:G3a][:calculation],
 
-        F2a: g_population, # "Report Once" should handled because reporting periods don't overlap
-        F2b: g_population.and(a_t[:returned_within_2_years].eq(true)), # b. returned to homeless (within 2 years of being housed)
-        # F2b, F2c, F2d removed in FY2026
-        # F2b: a_t[:currently_homeless].eq(true).
-        #   and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
-        #   and(a_t[:subsequent_current_living_situations].not_eq([])),
-        # F2c: a_t[:currently_homeless].eq(true).
-        #   and(a_t[:rehoused_on].not_eq(nil)).
-        #   and(a_t[:followup_previous_period].eq(false)).
-        #   and(Arel.sql(json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current)))),
-        # F2d: nil, # Handled as a special case in
-
-        G1a: g_population.and(a_t[:age].lt(18)),
-        G1b: g_population.and(a_t[:gender].eq(1)),
-        G1c: g_population.and(a_t[:gender].eq(0)),
-        G1d: g_population.and(a_t[:gender].eq(5)),
-        G1e: g_population.and(a_t[:gender].eq(4)),
-        G1f: g_population.and(a_t[:gender].in([8, 9])),
-        G1g: g_population.and(a_t[:gender].eq(99)),
-
-        G2a: g_population.and(a_t[:race].eq(5)),
-        G2b: g_population.and(a_t[:race].eq(3)),
-        G2c: g_population.and(a_t[:race].eq(2)),
-        G2d: g_population.and(a_t[:race].eq(1)),
-        G2e: g_population.and(a_t[:race].eq(4)),
-        G2f: g_population.and(a_t[:race].eq(7)),
-        G2g: g_population.and(a_t[:race].eq(6)),
-        G2h: g_population.and(a_t[:race].eq(10)), # multi-racial
-
-        G3a: g_population.and(lgbtq_query),
       }.freeze
     end
 
@@ -295,89 +496,89 @@ module MaYyaReport
     end
 
     private def cell_labels
-      @cell_labels ||= {
-        A1a: 'Unduplicated number of outreach contacts with YYA experiencing homelessness',
-        A1b: 'Unduplicated number of outreach contacts with YYA considered "at-risk" of homelessness',
-        A2a: 'Number of initial contacts: YYA experiencing homelessness',
-        A2b: 'Number of initial contacts: YYA considered "at-risk" of homelessness',
-        A3a: 'Number of YYA completing new intake: YYA considered "at-risk" of homelessness',
-        A3b: 'Number of YYA continuing in case management',
-        # A3c: 'Number of YYA turned away',
-        A4a: 'Number of YYA completing new intake: YYA experiencing homelessness',
-        A4b: 'Number of YYA continuing in case management',
-        # A4c: 'Number of YYA turned away',
-        # A5a: 'Total number of YYA who received direct financial assistance/flex funds',
-        # A5b: 'Number of YYA who received assistance with Move-in costs',
-        # A5c: 'Number of YYA who received assistance with Rent',
-        # A5d: 'Number of YYA who received assistance with Rent arrears',
-        # A5e: 'Number of YYA who received assistance with Utilities',
-        # A5f: 'Number of YYA who received assistance with Transportation-related costs',
-        # A5g: 'Number of YYA who received assistance with Education-related costs',
-        # A5h: 'Number of YYA who received assistance with Legal costs',
-        # A5i: 'Number of YYA who received assistance with Child care',
-        # A5j: 'Number of YYA who received assistance with Work-related costs',
-        # A5k: 'Number of YYA who received assistance with Medical costs',
-        # A5l: 'Number of YYA who received assistance with Cell phone costs',
-        # A5m: 'Number of YYA who received assistance with Food/groceries',
-        # A5n: 'Number of YYA who received assistance with Other costs',
-        TotalYYAServedHomeless: 'Number of unduplicated YYA served (update each quarter)',
-        TotalYYAServedPrevention: 'Number of unduplicated YYA served (update each quarter)',
-        # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
-        # C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
-        D1a: 'Number of YYA served who were Under 18',
-        D1b: 'Number of YYA served who identified as Man',
-        D1c: 'Number of YYA served who identified as Woman',
-        D1d: 'Number of YYA served who identified as Transgender',
-        D1e: 'Number of YYA served who identified as Non-Binary',
-        D1f: 'Number of YYA served who  are questioning gender/Client doesn\'t know/Client prefers not to answer.',
-        D1g: 'Number of YYA served with no Gender Data collected',
-        D2a: 'Number of YYA served who identified as White (race)',
-        D2b: 'Number of YYA served who identified as African American (race)',
-        D2c: 'Number of YYA served who identified as Asian (race)',
-        D2d: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
-        D2e: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
-        D2f: 'Number of YYA served who identified as Middle Eastern or North African',
-        D2g: 'Number of YYA served who identified as Hispanic/Latina/e/o',
-        D2h: 'Number of YYA served who identified as Other/Multi-racial (race)',
-        D2i: 'Number of YYA served whose primary language was English (language)',
-        D2j: 'Number of YYA served whose primary language was Spanish (language)',
-        D2k: 'Number of YYA served whose primary language was Other (language)',
-        D3a: 'Number of YYA served who reported having a Mental Health Disorder',
-        D3b: 'Number of YYA served who reported having a Substance Use Disorder',
-        D3c: 'Number of YYA served who reported having a Medical/Physical Disability (disability)',
-        D3d: 'Number of YYA served who reported having a Developmental Disability (disability)',
-        D4a: 'Number of YYA served who were Pregnant or Custodial Parenting',
-        D4b: 'Number of YYA served who were LGBTQ+',
-        D4c: 'Number of YYA served who had Completed high school or GED/HiSET',
-        D4d: 'Number of YYA served who were enrolled (full or part time) in a 2 or 4 year college',
-        D4e: 'Number of YYA served who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program)',
-        D4f: 'Number of YYA served who had Health insurance at intake',
-        D4g: 'Number of YYA served who are working a full or part time time job (Employment Status)',
-        # Ea: 'Number of Meetings',
-        # Eb: 'Number of unduplicated participants',
-        # F1a: 'Number of YYA contacted for follow up 3 mos. after receiving prevention services',
-        # F1b: 'Number of YYA who remain housed 3 mos. after receiving prevention services',
-        F2a: 'The number of  YYA who transition into stabilized housing',
-        F2b: 'Returned to homeless (within 2 years of being housed)',
-        # F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
-        # F2d: 'Zip codes of stabilized housing (please list)',
-        G1a: 'Number of YYA served who were Under 18',
-        G1b: 'Number of YYA served who identified as Man',
-        G1c: 'Number of YYA served who identified as Woman',
-        G1d: 'Number of YYA served who identified as Transgender',
-        G1e: 'Number of YYA served who identified as Non-Binary',
-        G1f: 'Number of YYA served who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
-        G1g: 'Number of YYA served with no Gender Data collected',
-        G2a: 'Number of YYA served who identified as White (race)',
-        G2b: 'Number of YYA served who identified as African American (race)',
-        G2c: 'Number of YYA served who identified as Asian (race)',
-        G2d: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
-        G2e: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
-        G2f: 'Number of YYA served who identified as Middle Eastern or North African',
-        G2g: 'Number of YYA served who identified as Hispanic/Latina/e/o',
-        G2h: 'Number of YYA served who identified as Other/ Multi-racial',
-        G3a: 'Number of YYA served who were LGBTQ+',
-      }
+      @cell_labels ||= cell_definitions.transform_values { |definition| definition[:label] }
+      #   A1a: cell_definitions[:A1a][:label],
+      #   A1b: cell_definitions[:A1b][:label],
+      #   A2a: cell_definitions[:A2a][:label],
+      #   A2b: cell_definitions[:A2b][:label],
+      #   A3a: cell_definitions[:A3a][:label],
+      #   A3b: cell_definitions[:A3b][:label],
+      #   # A3c: 'Number of YYA turned away',
+      #   A4a: cell_definitions[:A4a][:label],
+      #   A4b: cell_definitions[:A4b][:label],
+      #   # A4c: 'Number of YYA turned away',
+      #   # A5a: 'Total number of YYA who received direct financial assistance/flex funds',
+      #   # A5b: 'Number of YYA who received assistance with Move-in costs',
+      #   # A5c: 'Number of YYA who received assistance with Rent',
+      #   # A5d: 'Number of YYA who received assistance with Rent arrears',
+      #   # A5e: 'Number of YYA who received assistance with Utilities',
+      #   # A5f: 'Number of YYA who received assistance with Transportation-related costs',
+      #   # A5g: 'Number of YYA who received assistance with Education-related costs',
+      #   # A5h: 'Number of YYA who received assistance with Legal costs',
+      #   # A5i: 'Number of YYA who received assistance with Child care',
+      #   # A5j: 'Number of YYA who received assistance with Work-related costs',
+      #   # A5k: 'Number of YYA who received assistance with Medical costs',
+      #   # A5l: 'Number of YYA who received assistance with Cell phone costs',
+      #   # A5m: 'Number of YYA who received assistance with Food/groceries',
+      #   # A5n: 'Number of YYA who received assistance with Other costs',
+      #   TotalYYAServedHomeless: cell_definitions[:TotalYYAServedHomeless][:label],
+      #   TotalYYAServedPrevention: cell_definitions[:TotalYYAServedPrevention][:label],
+      #   # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
+      #   # C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
+      #   D1a: cell_definitions[:D1a][:label],
+      #   D1b: cell_definitions[:D1b][:label],
+      #   D1c: cell_definitions[:D1c][:label],
+      #   D1d: cell_definitions[:D1d][:label],
+      #   D1e: cell_definitions[:D1e][:label],
+      #   D1f: cell_definitions[:D1f][:label],
+      #   D1g: cell_definitions[:D1g][:label],
+      #   D2a: cell_definitions[:D2a][:label],
+      #   D2b: cell_definitions[:D2b][:label],
+      #   D2c: cell_definitions[:D2c][:label],
+      #   D2d: cell_definitions[:D2d][:label],
+      #   D2e: cell_definitions[:D2e][:label],
+      #   D2f: cell_definitions[:D2f][:label],
+      #   D2g: cell_definitions[:D2g][:label],
+      #   D2h: cell_definitions[:D2h][:label],
+      #   D2i: cell_definitions[:D2i][:label],
+      #   D2j: cell_definitions[:D2j][:label],
+      #   D2k: cell_definitions[:D2k][:label],
+      #   D3a: cell_definitions[:D3a][:label],
+      #   D3b: cell_definitions[:D3b][:label],
+      #   D3c: cell_definitions[:D3c][:label],
+      #   D3d: cell_definitions[:D3d][:label],
+      #   D4a: cell_definitions[:D4a][:label],
+      #   D4b: cell_definitions[:D4b][:label],
+      #   D4c: cell_definitions[:D4c][:label],
+      #   D4d: cell_definitions[:D4d][:label],
+      #   D4e: cell_definitions[:D4e][:label],
+      #   D4f: cell_definitions[:D4f][:label],
+      #   D4g: cell_definitions[:D4g][:label],
+      #   # Ea: 'Number of Meetings',
+      #   # Eb: 'Number of unduplicated participants',
+      #   # F1a: 'Number of YYA contacted for follow up 3 mos. after receiving prevention services',
+      #   # F1b: 'Number of YYA who remain housed 3 mos. after receiving prevention services',
+      #   F2a: cell_definitions[:F2a][:label],
+      #   F2b: cell_definitions[:F2b][:label],
+      #   # F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
+      #   # F2d: 'Zip codes of stabilized housing (please list)',
+      #   G1a: cell_definitions[:G1a][:label],
+      #   G1b: cell_definitions[:G1b][:label],
+      #   G1c: cell_definitions[:G1c][:label],
+      #   G1d: cell_definitions[:G1d][:label],
+      #   G1e: cell_definitions[:G1e][:label],
+      #   G1f: cell_definitions[:G1f][:label],
+      #   G1g: cell_definitions[:G1g][:label],
+      #   G2a: cell_definitions[:G2a][:label],
+      #   G2b: cell_definitions[:G2b][:label],
+      #   G2c: cell_definitions[:G2c][:label],
+      #   G2d: cell_definitions[:G2d][:label],
+      #   G2e: cell_definitions[:G2e][:label],
+      #   G2f: cell_definitions[:G2f][:label],
+      #   G2g: cell_definitions[:G2g][:label],
+      #   G2h: cell_definitions[:G2h][:label],
+      #   G3a: cell_definitions[:G3a][:label],
+      # }
     end
 
     def cell(cell_name)
@@ -434,7 +635,11 @@ module MaYyaReport
       [
         :start,
         :end,
+        :coc_codes,
         :project_ids,
+        :project_group_ids,
+        :organization_ids,
+        :data_source_ids,
         :age_ranges,
       ].freeze
     end

@@ -27338,6 +27338,7 @@ CREATE TABLE public.ma_yya_report_clients (
     voluntary_dcf_service boolean DEFAULT false,
     voluntary_dys_yes_service boolean DEFAULT false,
     exchange_for_sex boolean DEFAULT false,
+    permanent_exit_date date,
     days_to_return integer
 );
 
