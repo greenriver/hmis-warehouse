@@ -26,7 +26,7 @@ module Hmis::Hud::Processors
     def process_custom_field(field, value)
       alt_aha_link_id = 'alt_aha_score'
       alt_aha_item = @processor.definition.link_id_item_hash[alt_aha_link_id]
-      alt_aha_custom_field_key = alt_aha_item.dig('mapping', 'custom_field_key')
+      alt_aha_custom_field_key = alt_aha_item&.dig('mapping', 'custom_field_key')
 
       if field == alt_aha_custom_field_key
         # Special case: recalculate score to confirm it is unchanged
