@@ -65,8 +65,12 @@ module HudReports
       @objects.present?
     end
 
-    def any?
-      @objects.any?
+    def any?(&block)
+      if block_given?
+        @objects.any?(&block)
+      else
+        @objects.any?
+      end
     end
 
     def find_each(&block)
@@ -144,6 +148,26 @@ module HudReports
         field_name = condition.left.name.to_s
         expected_value = condition.right
         obj.send(field_name) == expected_value
+      when Arel::Nodes::GreaterThan
+        # Handle greater than conditions like a_t[:field].gt(value)
+        field_name = condition.left.name.to_s
+        expected_value = condition.right
+        obj.send(field_name) > expected_value
+      when Arel::Nodes::GreaterThanOrEqual
+        # Handle greater than or equal conditions like a_t[:field].gteq(value)
+        field_name = condition.left.name.to_s
+        expected_value = condition.right
+        obj.send(field_name) >= expected_value
+      when Arel::Nodes::LessThan
+        # Handle less than conditions like a_t[:field].lt(value)
+        field_name = condition.left.name.to_s
+        expected_value = condition.right
+        obj.send(field_name) < expected_value
+      when Arel::Nodes::LessThanOrEqual
+        # Handle less than or equal conditions like a_t[:field].lteq(value)
+        field_name = condition.left.name.to_s
+        expected_value = condition.right
+        obj.send(field_name) <= expected_value
       when Arel::Nodes::In
         # Handle IN conditions like a_t[:field].in([value1, value2])
         field_name = condition.left.name.to_s
