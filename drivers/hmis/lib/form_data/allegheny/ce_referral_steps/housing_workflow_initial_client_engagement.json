@@ -1,0 +1,13 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "date",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "housing_workflow_initial_client_engagement_date"
+      }
+    }
+  ]
+}

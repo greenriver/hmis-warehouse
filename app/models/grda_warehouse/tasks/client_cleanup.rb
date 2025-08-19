@@ -10,6 +10,36 @@
 # also set the processed_hash on the enrollment to nil
 
 module GrdaWarehouse::Tasks
+  # The ClientCleanup task is a maintenance utility for ensuring the  integrity and
+  # quality of client data within the warehouse. It performs several key functions:
+  #
+  # 1.  **Data Consolidation**: Merges demographic information from multiple source
+  #     client records into a single, unified destination client. It uses a set of
+  #     rules to determine the "best" attribute value (e.g., name, SSN, DOB) from
+  #     available sources.
+  #
+  # 2.  **Record Cleanup**: Identifies and removes orphaned or unused records,
+  #     including:
+  #     - Source clients with no enrollments.
+  #     - Destination clients that are no longer mapped from any source.
+  #     - Associated records in `ServiceHistoryEnrollment`, `WarehouseClientsProcessed`,
+  #       and `HmisClient` tables.
+  #
+  # 3.  **Data Quality Enforcement**: Corrects common data inconsistencies, such as:
+  #     - Fixing incorrect household IDs for heads of household.
+  #     - Invalidating enrollments incorrectly marked as individual or family.
+  #     - Correcting or backfilling client ages in their service history.
+  #
+  # 4.  **Service History Maintenance**: Triggers a rebuild of a client's service
+  #     history if critical data (like Date of Birth) changes during consolidation.
+  #
+  # ## Usage
+  #
+  # The task can be invoked for all clients or targeted to a specific set of
+  # destination client IDs. It includes a `dry_run` mode to preview changes
+  # without modifying the database. It is designed to be run periodically to
+  # maintain data hygiene. The `.run_for_clients` class method provides a
+  # convenient entry point for asynchronous processing.
   class ClientCleanup
     include NotifierConfig
     include ArelHelper
@@ -700,6 +730,7 @@ module GrdaWarehouse::Tasks
         end
 
         update_destination_clients(changed_batch)
+        post_process_clients(client_ids: changed_batch.map(&:id))
         update_source_hashes(batch)
         changed_batch.each(&:clear_view_cache)
         processed += batch.count
@@ -957,6 +988,13 @@ module GrdaWarehouse::Tasks
         ).invalidate_processing!
         client.invalidate_service_history
       end
+    end
+
+    # Marks given clients as dirty for future re-processing for CE
+    private def post_process_clients(client_ids:)
+      return if @dry_run
+
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
     private def client_age_at date

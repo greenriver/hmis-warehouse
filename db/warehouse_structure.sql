@@ -24410,7 +24410,8 @@ CREATE TABLE public.hmis_unit_groups (
     workflow_template_identifier character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    candidate_pool_id bigint
 );
 
 
@@ -66335,6 +66336,13 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public
 
 
 --
+-- Name: index_hmis_unit_groups_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_candidate_pool_id ON public.hmis_unit_groups USING btree (candidate_pool_id);
+
+
+--
 -- Name: index_hmis_unit_groups_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75028,6 +75036,14 @@ ALTER TABLE ONLY public.wfe_steps
 
 
 --
+-- Name: hmis_unit_groups fk_rails_c1abcca3e6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_c1abcca3e6 FOREIGN KEY (candidate_pool_id) REFERENCES public.ce_match_candidate_pools(id);
+
+
+--
 -- Name: ce_match_candidates fk_rails_c48d59cacb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75290,6 +75306,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
 ('20250804122929'),

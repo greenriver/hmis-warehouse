@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Users::SessionsController, type: :request do
@@ -142,6 +150,33 @@ RSpec.describe Users::SessionsController, type: :request do
           post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
           expect(response).to render_template('devise/sessions/two_factor')
         end
+      end
+    end
+  end
+
+  describe 'Logout redirect behavior' do
+    before do
+      sign_in user
+    end
+
+    context 'when Superset is available to the user' do
+      it 'redirects to Superset logout with next pointing to the warehouse root' do
+        allow(Superset).to receive(:available_to_user?).with(user).and_return(true)
+        allow(Superset).to receive(:superset_base_url).and_return('https://superset.example.com')
+
+        delete destroy_user_session_path
+
+        expect(response).to redirect_to('https://superset.example.com/logout/?next=http%3A%2F%2Fwww.example.com%2F')
+      end
+    end
+
+    context 'when Superset is not available to the user' do
+      it 'redirects to the warehouse root' do
+        allow(Superset).to receive(:available_to_user?).with(user).and_return(false)
+
+        delete destroy_user_session_path
+
+        expect(response).to redirect_to(root_url)
       end
     end
   end

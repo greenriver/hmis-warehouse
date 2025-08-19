@@ -280,12 +280,42 @@ module Admin::Health
 
     private def load_tabs
       @patient_referral_tabs = [
-        { id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_patient_referrals_path(tab_path_params) },
-        { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params) },
-        { id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params) },
-        { id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params) },
-        { id: 'disenrollment_accepted', tab_text: 'Acknowledged Removals', path: disenrollment_accepted_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'review', tab_text: 'Assignments to Review', path: review_path },
+        { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_path },
+        { id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_path },
+        { id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_path },
+        { id: 'disenrollment_accepted', tab_text: 'Acknowledged Removals', path: disenrollment_accepted_path },
       ]
+    end
+
+    private def review_path
+      return review_admin_health_patient_referrals_path(tab_path_params) if @search_query.blank?
+
+      patient_referral_search_query_admin_health_patient_referrals_path(id: @search_query.id, active_tab: :review, filters: params[:filters]&.to_unsafe_h || {})
+    end
+
+    private def assigned_path
+      return assigned_admin_health_patient_referrals_path(tab_path_params) if @search_query.blank?
+
+      patient_referral_search_query_admin_health_patient_referrals_path(id: @search_query.id, active_tab: :assigned, filters: params[:filters]&.to_unsafe_h || {})
+    end
+
+    private def rejected_path
+      return rejected_admin_health_patient_referrals_path(tab_path_params) if @search_query.blank?
+
+      patient_referral_search_query_admin_health_patient_referrals_path(id: @search_query.id, active_tab: :rejected, filters: params[:filters]&.to_unsafe_h || {})
+    end
+
+    private def disenrolled_path
+      return disenrolled_admin_health_patient_referrals_path(tab_path_params) if @search_query.blank?
+
+      patient_referral_search_query_admin_health_patient_referrals_path(id: @search_query.id, active_tab: :disenrolled, filters: params[:filters]&.to_unsafe_h || {})
+    end
+
+    private def disenrollment_accepted_path
+      return disenrollment_accepted_admin_health_patient_referrals_path(tab_path_params) if @search_query.blank?
+
+      patient_referral_search_query_admin_health_patient_referrals_path(id: @search_query.id, active_tab: :disenrollment_accepted, filters: params[:filters]&.to_unsafe_h || {})
     end
 
     private def reject_params
