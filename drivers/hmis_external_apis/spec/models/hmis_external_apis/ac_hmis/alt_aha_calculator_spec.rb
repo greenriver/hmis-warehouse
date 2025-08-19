@@ -41,7 +41,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score
+        calculator.calculate_score!
 
         details = AcHmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.5')
@@ -73,7 +73,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score
+        calculator.calculate_score!
 
         details = AcHmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.0')
@@ -105,7 +105,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score
+        calculator.calculate_score!
 
         details = AcHmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.0')
@@ -137,7 +137,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score
+        calculator.calculate_score!
 
         details = AcHmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.6')
@@ -155,7 +155,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score
+        calculator.calculate_score!
 
         details = AcHmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.0')

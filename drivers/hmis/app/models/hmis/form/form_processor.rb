@@ -47,6 +47,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   attr_accessor :hud_user, :current_user
 
+  # Validation errors encountered during form processing (as opposed to validation errors caught pre-processing by the validation step)
+  attr_reader :processing_errors
+
+  def add_processing_error(error)
+    @processing_errors ||= HmisErrors::Errors.new
+    @processing_errors.push(error)
+    error
+  end
+
   def custom_assessment?
     owner_type == Hmis::Hud::CustomAssessment.sti_name
   end

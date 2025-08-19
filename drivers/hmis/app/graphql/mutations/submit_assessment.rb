@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ==  Mutations::SubmitAssessment
 #
 # This mutation creates or updates a custom assessment, form processor, and related HUD records.
@@ -96,6 +98,12 @@ module Mutations
 
       # Run processor to create/update related records
       assessment.form_processor.run!(user: current_user)
+
+      # Validation errors encountered during form processing.
+      # These are errors that should be returned to the user because they are fixable,
+      # but were surfaced during the form processor run (as opposed to the validation steps).
+      processing_validation_errors = assessment.form_processor.processing_errors&.errors
+      errors.push(*processing_validation_errors) if processing_validation_errors&.any?
 
       # Run validations
       is_valid = assessment.valid?(:form_submission)

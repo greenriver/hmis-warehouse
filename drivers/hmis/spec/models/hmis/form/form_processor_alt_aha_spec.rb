@@ -77,16 +77,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     context 'when submitted value does not match computed score' do
       let(:submitted_score) { 9 }
 
-      it 'raises an error' do
-        expect do
-          assessment.form_processor.run!(user: hmis_user)
-        end.to raise_error(StandardError)
-
-        # CalculationLog should be created by the calculator
-        expect(AcHmis::Scoring::CalculationLog.count).to eq(1)
-        log = AcHmis::Scoring::CalculationLog.last
-        expect(log.namespace).to eq('alt_aha')
-        expect(log.final_score).to eq(6)
+      it 'returns a validation error' do
+        assessment.form_processor.run!(user: hmis_user)
+        expect(assessment.form_processor.processing_errors.errors.first.full_message).to eq('Alt AHA Score value has changed, and needs to be recalculated before submission')
+        # Doesn't save a CalculationLog since the assessment was not saved
       end
     end
 
@@ -105,6 +99,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         log = AcHmis::Scoring::CalculationLog.last
         expect(log.namespace).to eq('alt_aha')
         expect(log.final_score).to eq(6)
+        expect(log.owner).to eq(assessment) # Verify the calculation log is properly associated with the assessment
       end
     end
   end

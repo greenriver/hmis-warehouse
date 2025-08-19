@@ -27,7 +27,7 @@ module HmisExternalApis::AcHmis
       total_points = components.values.sum { |result| result[:points] + result[:intercept] }
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      AcHmis::Scoring::CalculationLog.create!(
+      calculation_log = AcHmis::Scoring::CalculationLog.new(
         namespace: ALT_AHA_NAMESPACE,
         final_score: alt_aha_score,
         calculation_details: { **components, total_points: total_points },
@@ -35,6 +35,12 @@ module HmisExternalApis::AcHmis
         user: @user,
       )
 
+      [alt_aha_score, calculation_log]
+    end
+
+    def calculate_score!
+      alt_aha_score, calculation_log = calculate_score
+      calculation_log.save!
       alt_aha_score
     end
 

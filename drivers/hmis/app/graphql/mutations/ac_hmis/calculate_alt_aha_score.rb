@@ -32,7 +32,7 @@ module Mutations
         owner: enrollment,
         form_definition_identifier: form_definition_identifier,
       )
-      score = aha_calculator.calculate_score
+      score = aha_calculator.calculate_score!
 
       { score: score }
     end
