@@ -17,9 +17,9 @@ class AddNumericPriorityScoresToCeMatchCandidates < ActiveRecord::Migration[7.1]
       # This migration doesn't port over existing priority scores, since we can just regenerate candidates
       remove_column :ce_match_candidates, :priority_score, :integer
 
-      # Add rank to match rules, so we know the order to apply priority rules
-      add_column :ce_match_rules, :rank, :integer
-      add_index :ce_match_rules, [:owner_type, :owner_id, :rank], unique: true, name: 'index_ce_match_rules_owner_rank_unique', where: "rule_type = 'priority_scheme'"
+      # Add priority_rank to match rules, so we know the order to apply priority rules
+      add_column :ce_match_rules, :priority_rank, :integer
+      add_index :ce_match_rules, [:owner_type, :owner_id, :priority_rank], unique: true, name: 'index_ce_match_rules_owner_priority_rank_unique', where: "rule_type = 'priority_scheme'"
     end
   end
 end

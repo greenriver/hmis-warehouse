@@ -175,9 +175,9 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'when priority schemes exist at different specificity levels' do
-      let!(:data_source_rule) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'data_source_score', rank: 1) }
-      let!(:organization_rule) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_score', rank: 1) }
-      let!(:project_rule) { create(:hmis_ce_priority_scheme, owner: project, expression: 'project_score', rank: 1) }
+      let!(:data_source_rule) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'data_source_score', priority_rank: 1) }
+      let!(:organization_rule) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_score', priority_rank: 1) }
+      let!(:project_rule) { create(:hmis_ce_priority_scheme, owner: project, expression: 'project_score', priority_rank: 1) }
 
       it 'uses only the most specific rule (project level)' do
         described_class.call
@@ -187,9 +187,9 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'when multiple priority schemes exist at the same specificity level' do
-      let!(:project_rule_1) { create(:hmis_ce_priority_scheme, owner: project, expression: 'first_score', rank: 2) }
-      let!(:project_rule_2) { create(:hmis_ce_priority_scheme, owner: project, expression: 'second_score', rank: 1) }
-      let!(:project_rule_3) { create(:hmis_ce_priority_scheme, owner: project, expression: 'third_score', rank: 3) }
+      let!(:project_rule_1) { create(:hmis_ce_priority_scheme, owner: project, expression: 'first_score', priority_rank: 2) }
+      let!(:project_rule_2) { create(:hmis_ce_priority_scheme, owner: project, expression: 'second_score', priority_rank: 1) }
+      let!(:project_rule_3) { create(:hmis_ce_priority_scheme, owner: project, expression: 'third_score', priority_rank: 3) }
 
       it 'uses all rules at that level, ordered by rank' do
         described_class.call
@@ -199,9 +199,9 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'when only organization-level rules exist' do
-      let!(:org_rule_1) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_first', rank: 2) }
-      let!(:org_rule_2) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_second', rank: 1) }
-      let!(:data_source_rule) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'data_source_score', rank: 1) }
+      let!(:org_rule_1) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_first', priority_rank: 2) }
+      let!(:org_rule_2) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_second', priority_rank: 1) }
+      let!(:data_source_rule) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'data_source_score', priority_rank: 1) }
 
       it 'uses organization-level rules in rank order, ignoring data source rules' do
         described_class.call
@@ -214,7 +214,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:data_source_eligibility) { create(:hmis_ce_eligibility_requirement, owner: data_source, expression: 'data_source_eligible = 1') }
       let!(:organization_eligibility) { create(:hmis_ce_eligibility_requirement, owner: organization, expression: 'org_eligible = 1') }
       let!(:project_eligibility) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'project_eligible = 1') }
-      let!(:project_priority) { create(:hmis_ce_priority_scheme, owner: project, expression: 'project_score', rank: 1) }
+      let!(:project_priority) { create(:hmis_ce_priority_scheme, owner: project, expression: 'project_score', priority_rank: 1) }
 
       it 'uses all eligibility requirements regardless of specificity' do
         described_class.call
@@ -226,8 +226,8 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
 
     context 'mixed scenario with priority schemes and eligibility requirements' do
-      let!(:data_source_priority) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'ds_priority', rank: 1) }
-      let!(:project_priority) { create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_priority', rank: 1) }
+      let!(:data_source_priority) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'ds_priority', priority_rank: 1) }
+      let!(:project_priority) { create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_priority', priority_rank: 1) }
       let!(:data_source_eligibility) { create(:hmis_ce_eligibility_requirement, owner: data_source, expression: 'ds_eligible = 1') }
       let!(:project_eligibility) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'proj_eligible = 1') }
 

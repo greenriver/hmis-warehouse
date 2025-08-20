@@ -325,12 +325,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       context 'when unit group has mixed-level priority schemes' do
         let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
-        let!(:org_rule) { create(:hmis_ce_priority_scheme, owner: project.organization, expression: 'org_expr', name: 'Org', rank: 2) }
-        let!(:ds_rule) { create(:hmis_ce_priority_scheme, owner: project.data_source, expression: 'ds_expr', name: 'DS', rank: 1) }
-        let!(:proj_rule_b) { create(:hmis_ce_priority_scheme, owner: project, expression: 'b', name: 'B', rank: 2) }
-        let!(:proj_rule_a) { create(:hmis_ce_priority_scheme, owner: project, expression: 'a', name: 'A', rank: 1) }
+        let!(:org_rule) { create(:hmis_ce_priority_scheme, owner: project.organization, expression: 'org_expr', name: 'Org', priority_rank: 2) }
+        let!(:ds_rule) { create(:hmis_ce_priority_scheme, owner: project.data_source, expression: 'ds_expr', name: 'DS', priority_rank: 1) }
+        let!(:proj_rule_b) { create(:hmis_ce_priority_scheme, owner: project, expression: 'b', name: 'B', priority_rank: 2) }
+        let!(:proj_rule_a) { create(:hmis_ce_priority_scheme, owner: project, expression: 'a', name: 'A', priority_rank: 1) }
 
-        it 'returns only most-specific (project) rules ordered by rank then id' do
+        it 'returns only most-specific (project) rules ordered by priority_rank then id' do
           _, result = post_graphql(id: project.id) { query }
           unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
           expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['a', 'b'])

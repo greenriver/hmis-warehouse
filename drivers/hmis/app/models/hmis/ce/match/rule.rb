@@ -38,7 +38,7 @@ module Hmis::Ce::Match
     validate :rule_type_is_not_changed, on: :update
 
     validates :name, presence: true
-    validates :rank, uniqueness: { scope: [:owner_type, :owner_id], allow_nil: true }
+    validates :priority_rank, uniqueness: { scope: [:owner_type, :owner_id], allow_nil: true }
 
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
     PRIORITY_SCHEME = 'priority_scheme'
@@ -104,10 +104,10 @@ module Hmis::Ce::Match
     end
 
     # Returns only the most specific owner level priority schemes from a provided rule set,
-    # ordered by [rank, id]. If ranks are nil (e.g., during transitional states), they are
+    # ordered by [priority_rank, id]. If ranks are nil (e.g., during transitional states), they are
     # treated as lowest priority for stable ordering.
     def self.most_specific_priority_schemes_from(rules)
-      priority_rules = rules.select(&:priority_scheme?).sort_by { |r| [r.rank || Float::INFINITY, r.id] }
+      priority_rules = rules.select(&:priority_scheme?).sort_by { |r| [r.priority_rank || Float::INFINITY, r.id] }
       return [] if priority_rules.empty?
 
       most_specific_level = priority_rules.map(&:owner_precedence).min
@@ -146,8 +146,8 @@ module Hmis::Ce::Match
     end
 
     def ensure_rank
-      errors.add(:rank, 'is required for priority schemes') if priority_scheme? && rank.blank?
-      errors.add(:rank, 'should only be set for priority schemes') if eligibility_requirement? && rank.present?
+      errors.add(:priority_rank, 'is required for priority schemes') if priority_scheme? && priority_rank.blank?
+      errors.add(:priority_rank, 'should only be set for priority schemes') if eligibility_requirement? && priority_rank.present?
     end
   end
 end

@@ -7023,7 +7023,7 @@ CREATE TABLE public.ce_match_rules (
     expression character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    rank integer
+    priority_rank integer
 );
 
 
@@ -61902,10 +61902,10 @@ CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree 
 
 
 --
--- Name: index_ce_match_rules_owner_rank_unique; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_match_rules_owner_priority_rank_unique; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_match_rules_owner_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
+CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
 
 
 --

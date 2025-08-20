@@ -155,7 +155,7 @@ module Types
 
     def priority_schemes
       # If the current opportunity is active and stale, return the priority rules as they were
-      # when the opportunity was created, filtered to the most specific owner level and ordered by [rank, id].
+      # when the opportunity was created, filtered to the most specific owner level and ordered by [priority_rank, id].
       return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
       return [] unless unit_group
 
