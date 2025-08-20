@@ -24,6 +24,9 @@ module CeWorkflows::Ac
       provider_outcome_1: 'housing_workflow_provider_outcome_1',
       provider_outcome_2: 'housing_workflow_provider_outcome_2',
       provider_outcome_3: 'housing_workflow_provider_outcome_3',
+      # change_provider_outcome is a variant on the provider_outcome forms. It is an optional task
+      # used for moving a referral into the denial workflow even after the provider initially accepted
+      change_provider_outcome: 'change_provider_outcome',
       # First 2 denial review forms are the same. The third one is slightly different because it only allows "approving" the denial,
       # since it can no longer be sent back to the provider. Use 3 different forms for the same reason as above.
       denial_review_1: 'housing_workflow_denial_review_1',
@@ -292,6 +295,14 @@ module CeWorkflows::Ac
         trigger_config: denied_pending_trigger_config,
       )
 
+      # Change Provider Outcome optional user task
+      change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
+        name: 'Change Provider Outcome (Optional)',
+        form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
+        template_id: template.id,
+        swimlane: project_staff_swimlane,
+      )
+
       # Confirm Success User Task
       confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Confirm Success',
@@ -384,6 +395,10 @@ module CeWorkflows::Ac
 
       # Create Enrollment (Script) => Confirm Success Task
       create_enrollment_task.connect_to!(confirm_success_task)
+
+      # Create Enrollment (Script) => Change Provider Outcome *optional* task that re-triggers the Denial Review
+      create_enrollment_task.connect_to!(change_provider_outcome_task)
+      change_provider_outcome_task.connect_to!(denial_review_task)
 
       confirm_success_task.connect_to!(accept_event)
       {
