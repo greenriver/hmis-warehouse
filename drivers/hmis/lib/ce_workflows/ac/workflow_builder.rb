@@ -109,11 +109,7 @@ module CeWorkflows::Ac
         project_staff_swimlane: project_staff_swimlane,
       )
       provider_outcome_task_1 = loop_nodes[:provider_outcome_task_1]
-
-      # Admin Decline Event that does NOT update a CE Event result. This is used for declines that happen before a CE Event is created.
-      admin_decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template, name: 'Administrative Decline', ce_event_result: nil)
-      # Decline event that updates the CE Event with "Client rejected" result. ("Provider rejected" is only recorded if the event is rejected from Provider Outcome=>Denial Review flow).
-      admin_decline_event_with_result = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template, name: 'Referral Declined by Client', ce_event_result: '2')
+      admin_decline_gateway = loop_nodes[:admin_decline_gateway]
 
       # Start Referral => Initial Review
       start_event.connect_to!(initial_review_task)
@@ -121,7 +117,7 @@ module CeWorkflows::Ac
       # Initial Review => Gateway => Initial Client Engagement (or Decline)
       initial_review_task_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'initial_review_task')
       initial_review_task.connect_to!(initial_review_task_gateway)
-      initial_review_task_gateway.connect_to!(admin_decline_event, condition: 'move_forward = 0') # admin decline
+      initial_review_task_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
       initial_review_task_gateway.connect_to!(initial_client_engagement_task) # happy path: move to next task
 
       # Initial Client Engagement => Client Engagement
@@ -130,13 +126,13 @@ module CeWorkflows::Ac
       # Client Engagement => Gateway => Client Offer Outcome (or Decline)
       client_engagement_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'client_engagement_task')
       client_engagement_task.connect_to!(client_engagement_gateway)
-      client_engagement_gateway.connect_to!(admin_decline_event, condition: 'move_forward = 0') # admin decline
+      client_engagement_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
       client_engagement_gateway.connect_to!(client_offer_outcome_task) # happy path: move to next task
 
       # Client Offer Outcome => Gateway => Provider Outcome 1 (or Decline)
       client_offer_outcome_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'client_offer_outcome')
       client_offer_outcome_task.connect_to!(client_offer_outcome_gateway)
-      client_offer_outcome_gateway.connect_to!(admin_decline_event_with_result, condition: 'move_forward = 0')
+      client_offer_outcome_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0')
       client_offer_outcome_gateway.connect_to!(provider_outcome_task_1) # happy path: continue to provider outcome task
 
       # REST IS HANDLED BY THE SHARED "DENIAL REVIEW LOOP" CODE
@@ -305,6 +301,29 @@ module CeWorkflows::Ac
         trigger_config: enrolled_status_trigger_config,
       )
 
+      # Script Tasks
+      provider_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Update CE Event with result "Unsuccessful referral: provider rejected"',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'set_ce_event_result',
+            params: { referral_result: '3' },
+          },
+        ],
+      )
+      client_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Update CE Event with result "Unsuccessful referral: client rejected"',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'set_ce_event_result',
+            params: { referral_result: '2' },
+          },
+        ],
+      )
       create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
         name: 'Create Enrollment',
         template_id: template.id,
@@ -316,12 +335,19 @@ module CeWorkflows::Ac
         ],
       )
 
-      # Accept event that updates the CE Event with successful referral result.
+      # Events
       accept_event = CeWorkflows::Shared::CeBuilderUtils.create_accept_event(template, update_ce_event: true)
-      # Decline event that updates the CE Event with "Provider rejected" result.
-      # ("Client rejected" is only recorded if the event is rejected from Client Offer Outcome)
-      # Note: this requires that the `create_ce_event` trigger ran at some point earlier in the workflow.
-      decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template, name: 'Referral Declined by Provider', ce_event_result: '3')
+      decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template)
+
+      # Set up gateway for declining that closes the CE Event if a ReferralResult outcome has been specified.
+      # If neither condition matches, it declines the referral without updating the CE Event.
+      # NOTE: this depends on forms being set up correctly so they collect referral_result if a CE Event has been created.
+      admin_decline_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'admin_decline_gateway')
+      admin_decline_gateway.connect_to!(client_rejects_ce_event_task, condition: 'referral_result = 2')
+      admin_decline_gateway.connect_to!(provider_rejects_ce_event_task, condition: 'referral_result = 3')
+      admin_decline_gateway.connect_to!(decline_event)
+      client_rejects_ce_event_task.connect_to!(decline_event)
+      provider_rejects_ce_event_task.connect_to!(decline_event)
 
       # Provider Outcome 1 => Gateway => Denial Review 1 OR Create Enrollment (Script)
       provider_outcome_gateway_1 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_1')
@@ -344,26 +370,27 @@ module CeWorkflows::Ac
       # Denial Review 1 => Gateway => Decline OR send back to Provider Outcome
       denial_review_gateway_1 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'denial_review_1')
       denial_review_task.connect_to!(denial_review_gateway_1)
-      denial_review_gateway_1.connect_to!(decline_event, condition: 'denial_review_decision = 1') # Accept Denial
+      denial_review_gateway_1.connect_to!(admin_decline_gateway, condition: 'denial_review_decision = 1') # Accept Denial
       denial_review_gateway_1.connect_to!(provider_outcome_task_2) # "Send back" to next attempt at Provider Outcome
 
       # Denial Review 2 => Gateway => Decline OR send back to Provider Outcome
       denial_review_gateway_2 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'denial_review_2')
       denial_review_task_2.connect_to!(denial_review_gateway_2)
-      denial_review_gateway_2.connect_to!(decline_event, condition: 'denial_review_decision = 1') # Accept Denial
+      denial_review_gateway_2.connect_to!(admin_decline_gateway, condition: 'denial_review_decision = 1') # Accept Denial
       denial_review_gateway_2.connect_to!(provider_outcome_task_3) # "Send back" to next attempt at Provider Outcome
 
       # Denial Review 2 => Gateway => Decline. Cannot be "sent back" to Provider Outcome.
-      denial_review_task_3.connect_to!(decline_event)
+      denial_review_task_3.connect_to!(admin_decline_gateway)
 
       # Create Enrollment (Script) => Confirm Success Task
       create_enrollment_task.connect_to!(confirm_success_task)
 
       # Confirm Success Task => Accept Event
-      confirm_success_task.connect_to!(decline_event, condition: 'move_forward = 0')
+      confirm_success_task.connect_to!(admin_decline_gateway, condition: 'move_forward = 0')
       confirm_success_task.connect_to!(accept_event, condition: 'move_forward = 1')
       {
         provider_outcome_task_1: provider_outcome_task_1,
+        admin_decline_gateway: admin_decline_gateway,
       }
     end
   end
