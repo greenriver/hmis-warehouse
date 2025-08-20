@@ -41,4 +41,11 @@ FactoryBot.define do
     name { 'All Clients' }
     description { 'Clients enrolled in homeless projects (ES, SH, SO, TH).' }
   end
+
+  factory :hmis_export_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Reports' }
+    url { 'warehouse_reports/hmis_exports' }
+    name { 'HUD HMIS CSV Exports' }
+    description { 'Export data in the HUD standard CSV format.' }
+  end
 end

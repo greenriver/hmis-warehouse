@@ -1,5 +1,5 @@
-= simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
-  = render 'shared_filter', f: f, include_hash_status: true
+= simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter', 'data-controller': 'custom-file-exports' } do |f|
+  = render 'shared_filter', f: f, include_hash_status: true, include_custom_files: true
 
   %h3 Recurring Exports
   .well

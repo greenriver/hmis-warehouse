@@ -18,6 +18,7 @@ module WarehouseReports
       @filter = ::Filters::HmisExport.new(user_id: current_user.id)
       @filter.update(report_params.merge(user_id: current_user.id)) if params[:filter].present?
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
+      @per_page_js = ['custom_file_exports']
     end
 
     def running
@@ -158,6 +159,7 @@ module WarehouseReports
           organization_ids: [],
           data_source_ids: [],
           coc_codes: [],
+          custom_file_types: [],
         ),
       )
     end
