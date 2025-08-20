@@ -92,9 +92,7 @@ module Types
     end
 
     def priority_schemes
-      revivified_rules.
-        filter(&:priority_scheme?).
-        sort_by { |r| [r.rank, r.id] }
+      Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules)
     end
 
     # TODO(#7957) - remove after deprecation period

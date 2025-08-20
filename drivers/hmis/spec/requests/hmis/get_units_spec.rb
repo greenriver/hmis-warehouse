@@ -15,7 +15,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
 
   before(:each) do
     hmis_login(user)
@@ -51,6 +50,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               canBeMarkedAvailableToday
               canBeMarkedUnavailable
               workflowTemplateName
+              eligibilityRequirements {
+                id
+                name
+                expression
+              }
+              priorityScheme {
+                id
+                name
+                expression
+              }
+              prioritySchemes {
+                id
+                name
+                expression
+              }
             }
           }
         }
@@ -193,6 +207,134 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral')).to be_present
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'referral', 'active')).to be_truthy
         end.to make_database_queries(count: 25..35)
+      end
+    end
+
+    describe 'CE match rules' do
+      let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: project.data_source }
+      let!(:unit_group) { create(:hmis_unit_group, project: project, workflow_template: template) }
+      let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+
+      before(:each) do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      end
+
+      context 'when unit has no rules' do
+        it 'does not return eligibility requirements or priority scheme' do
+          _, result = post_graphql(id: project.id) { query }
+          unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
+
+          expect(unit_node['eligibilityRequirements']).to be_empty
+          expect(unit_node['priorityScheme']).to be_nil
+          expect(unit_node['prioritySchemes']).to be_empty
+        end
+      end
+
+      context 'when unit group has current rules' do
+        let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18', name: 'Age Requirement') }
+        let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless', name: 'Homeless Priority') }
+
+        it 'returns current unit group rules' do
+          _, result = post_graphql(id: project.id) { query }
+          unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
+
+          eligibility_requirements = unit_node['eligibilityRequirements']
+          expect(eligibility_requirements).to be_an(Array)
+          expect(eligibility_requirements.size).to eq(1)
+          expect(eligibility_requirements[0]).to include(
+            'name' => 'Age Requirement',
+            'expression' => 'current_age >= 18',
+          )
+
+          priority_scheme = unit_node['priorityScheme']
+          expect(priority_scheme).to include(
+            'name' => 'Homeless Priority',
+            'expression' => 'days_homeless',
+          )
+
+          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['days_homeless'])
+        end
+      end
+
+      context 'when unit has a stale opportunity with historical rules' do
+        let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18', name: 'Age Requirement') }
+        let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless', name: 'Homeless Priority') }
+
+        let!(:opportunity) do
+          create(:hmis_ce_opportunity,
+                 unit: unit,
+                 project: project,
+                 data_source: ds1,
+                 status: :open,
+                 stale: true,
+                 assignment_rules: [
+                   {
+                     'id' => 999,
+                     'name' => 'Historical Age Rule',
+                     'rule_type' => 'eligibility_requirement',
+                     'expression' => 'current_age >= 21',
+                   },
+                   {
+                     'id' => 998,
+                     'name' => 'Historical Priority Rule',
+                     'rule_type' => 'priority_scheme',
+                     'expression' => 'chronic_days',
+                   },
+                 ])
+        end
+
+        it 'returns historical rules from the stale opportunity' do
+          _, result = post_graphql(id: project.id) { query }
+          unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
+
+          eligibility_requirements = unit_node['eligibilityRequirements']
+          expect(eligibility_requirements).to be_an(Array)
+          expect(eligibility_requirements.size).to eq(1)
+          expect(eligibility_requirements[0]).to include(
+            'name' => 'Historical Age Rule',
+            'expression' => 'current_age >= 21',
+          )
+          # Ensure the GraphQL ID is modified to prevent cache conflicts
+          expect(eligibility_requirements[0]['id']).to match(/^#{unit.id}\.999$/)
+
+          priority_scheme = unit_node['priorityScheme']
+          expect(priority_scheme).to include(
+            'name' => 'Historical Priority Rule',
+            'expression' => 'chronic_days',
+          )
+          expect(priority_scheme['id']).to match(/^#{unit.id}\.998$/)
+
+          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['chronic_days'])
+        end
+      end
+
+      context 'when unit has no unit group' do
+        let!(:unit_without_group) { create(:hmis_unit, project: project, unit_group: nil) }
+
+        it 'does not return eligibility requirements or priority scheme' do
+          _, result = post_graphql(id: project.id) { query }
+
+          # Find the unit without a group
+          unit_node = result.dig('data', 'project', 'units', 'nodes').find { |node| node['unitGroup'].nil? }
+          expect(unit_node).to be_present
+
+          expect(unit_node['eligibilityRequirements']).to be_empty
+          expect(unit_node['priorityScheme']).to be_nil
+        end
+      end
+
+      context 'when unit group has mixed-level priority schemes' do
+        let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+        let!(:org_rule) { create(:hmis_ce_priority_scheme, owner: project.organization, expression: 'org_expr', name: 'Org', rank: 2) }
+        let!(:ds_rule) { create(:hmis_ce_priority_scheme, owner: project.data_source, expression: 'ds_expr', name: 'DS', rank: 1) }
+        let!(:proj_rule_b) { create(:hmis_ce_priority_scheme, owner: project, expression: 'b', name: 'B', rank: 2) }
+        let!(:proj_rule_a) { create(:hmis_ce_priority_scheme, owner: project, expression: 'a', name: 'A', rank: 1) }
+
+        it 'returns only most-specific (project) rules ordered by rank then id' do
+          _, result = post_graphql(id: project.id) { query }
+          unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
+          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['a', 'b'])
+        end
       end
     end
   end

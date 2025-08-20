@@ -62,13 +62,19 @@ module Hmis::WorkflowDefinition
 
     # Returns a string representation of the workflow template in Mermaid diagram format
     def to_mermaid_diagram
-      lines = ['flowchart TD']
+      header = [
+        '---',
+        "title: #{name}",
+        '---',
+        'flowchart TD',
+      ]
+      lines = []
       graph.walk.each do |node|
         lines << node.to_mermaid_node
         lines << node.inflows.map(&:to_mermaid_link)
         lines << node.outflows.map(&:to_mermaid_link)
       end
-      lines.flatten.uniq.join("\n")
+      (header + lines.flatten.uniq).join("\n")
     end
 
     def validate

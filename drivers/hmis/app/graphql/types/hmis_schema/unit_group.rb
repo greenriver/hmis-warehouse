@@ -31,6 +31,14 @@ module Types
       priority_schemes&.first
     end
 
+    def eligibility_requirements
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(object)
+    end
+
+    def priority_schemes
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(object)
+    end
+
     def workflow_template_name
       object.workflow_template&.name
     end

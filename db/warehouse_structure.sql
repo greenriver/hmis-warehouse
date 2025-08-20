@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -24339,7 +24339,8 @@ CREATE TABLE public.hmis_unit_groups (
     workflow_template_identifier character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    candidate_pool_id bigint
 );
 
 
@@ -61887,10 +61888,10 @@ CREATE INDEX index_ce_match_candidates_on_priority_scores ON public.ce_match_can
 
 
 --
--- Name: index_ce_match_candidates_uniq; Type: INDEX; Schema: public; Owner: -
+-- Name: index_ce_match_candidates_proxy_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_match_candidates_uniq ON public.ce_match_candidates USING btree (candidate_pool_id, client_proxy_id);
+CREATE UNIQUE INDEX index_ce_match_candidates_proxy_uniq ON public.ce_match_candidates USING btree (candidate_pool_id, client_proxy_id);
 
 
 --
@@ -61904,7 +61905,7 @@ CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree 
 -- Name: index_ce_match_rules_owner_rank_unique; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_match_rules_owner_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, rank);
+CREATE UNIQUE INDEX index_ce_match_rules_owner_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
 
 
 --
@@ -66238,6 +66239,13 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public.hmis_supplemental_data_sets USING btree (remote_credential_id);
+
+
+--
+-- Name: index_hmis_unit_groups_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_candidate_pool_id ON public.hmis_unit_groups USING btree (candidate_pool_id);
 
 
 --
@@ -74934,6 +74942,14 @@ ALTER TABLE ONLY public.wfe_steps
 
 
 --
+-- Name: hmis_unit_groups fk_rails_c1abcca3e6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_c1abcca3e6 FOREIGN KEY (candidate_pool_id) REFERENCES public.ce_match_candidate_pools(id);
+
+
+--
 -- Name: ce_match_candidates fk_rails_c48d59cacb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75196,6 +75212,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
 ('20250804122929'),
@@ -75395,3 +75412,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+
