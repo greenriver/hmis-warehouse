@@ -24,7 +24,7 @@ module CeWorkflows::Ac
       provider_outcome_1: 'housing_workflow_provider_outcome_1',
       provider_outcome_2: 'housing_workflow_provider_outcome_2',
       provider_outcome_3: 'housing_workflow_provider_outcome_3',
-      # change_provider_outcome is a variant on the provider_outcome forms. It is an optional task
+      # change_provider_outcome is similar to the provider_outcome forms. It is an optional task
       # used for moving a referral into the denial workflow even after the provider initially accepted
       change_provider_outcome: 'change_provider_outcome',
       # First 2 denial review forms are the same. The third one is slightly different because it only allows "approving" the denial,

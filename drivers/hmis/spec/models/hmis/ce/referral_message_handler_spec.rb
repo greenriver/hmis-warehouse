@@ -47,7 +47,7 @@ RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
 
   describe 'workflow with side effect that disables another step' do
     # Add an optional task that becomes available in parallel with provider_acceptance_task.
-    # When completed, it disables provider_acceptance_task.
+    # When completed, it loops the workflow back to client_acceptance_task, and disables provider_acceptance_task.
     #           client_acceptance_task  <--
     #          /                     \    |
     # provider_acceptance_task     optional_task
