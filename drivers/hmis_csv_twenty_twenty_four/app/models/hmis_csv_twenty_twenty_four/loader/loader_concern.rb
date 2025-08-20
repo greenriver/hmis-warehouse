@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvTwentyTwentyFour::Loader
   module LoaderConcern
     extend ActiveSupport::Concern
@@ -12,7 +14,7 @@ module HmisCsvTwentyTwentyFour::Loader
       belongs_to :loader_log, optional: true, foreign_key: :loader_id, class_name: 'HmisCsvImporter::Loader::LoaderLog'
 
       def hmis_data
-        @hmis_data ||= slice(*self.class.hmis_structure.keys)
+        @hmis_data ||= slice(*self.class.hmis_structure(version: '2024').keys)
       end
     end
   end
