@@ -69,6 +69,7 @@ module Hmis::Ce
     end
 
     def accept_referral
+      disable_outstanding_steps(referral)
       referral.completed_at = Time.current
       referral.accept!
       set_custom_referral_status(status_key: 'accepted')
@@ -77,11 +78,20 @@ module Hmis::Ce
     end
 
     def reject_referral
+      disable_outstanding_steps(referral)
       referral.completed_at = Time.current
       referral.reject!
       set_custom_referral_status(status_key: 'rejected')
       referral.opportunity.release!
       mark_client_dirty(referral.client)
+    end
+
+    def disable_outstanding_steps(referral)
+      # Cancel and disable any outstanding steps
+      referral.workflow_engine.active_steps.each do |step|
+        step.cancel! if step.may_cancel?
+        step.disable! if step.may_disable?
+      end
     end
 
     def create_unit_assignment(message)
