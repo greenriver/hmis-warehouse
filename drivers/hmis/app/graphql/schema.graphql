@@ -12615,6 +12615,7 @@ type UnitGroup {
   Total number of units in the group
   """
   capacity: Int!
+  ceEventType: EventType
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!
@@ -12627,6 +12628,7 @@ type UnitGroup {
 }
 
 input UnitGroupInput {
+  ceEventType: EventType
   name: String!
   projectId: ID!
   workflowTemplateIdentifier: String

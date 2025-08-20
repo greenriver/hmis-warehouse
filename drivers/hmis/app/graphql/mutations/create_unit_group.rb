@@ -32,6 +32,7 @@ module Mutations
         project_id: project.id,
         workflow_template_identifier: input.workflow_template_identifier,
         name: input.name,
+        ce_event_type: input.ce_event_type,
       )
 
       {
