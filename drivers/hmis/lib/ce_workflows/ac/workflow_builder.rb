@@ -241,8 +241,14 @@ module CeWorkflows::Ac
         name: 'Denial Pending',
         data_source: @data_source,
       )
+      enrolled_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: 'enrolled',
+        name: 'Enrolled',
+        data_source: @data_source,
+      )
       denied_pending_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': denied_pending_status.key } }]
       assigned_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': assigned_status.key } }]
+      enrolled_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': enrolled_status.key } }]
 
       # Provider Outcome User Tasks
       provider_outcome_task_1 = Hmis::WorkflowDefinition::UserTask.create!(
@@ -296,6 +302,7 @@ module CeWorkflows::Ac
         form_definition_identifier: CE_STEP_FORMS.fetch(:confirm_success),
         template_id: template.id,
         swimlane: ce_staff_swimlane,
+        trigger_config: enrolled_status_trigger_config,
       )
 
       create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
