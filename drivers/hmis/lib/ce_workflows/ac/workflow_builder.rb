@@ -385,9 +385,7 @@ module CeWorkflows::Ac
       # Create Enrollment (Script) => Confirm Success Task
       create_enrollment_task.connect_to!(confirm_success_task)
 
-      # Confirm Success Task => Accept Event
-      confirm_success_task.connect_to!(admin_decline_gateway, condition: 'move_forward = 0')
-      confirm_success_task.connect_to!(accept_event, condition: 'move_forward = 1')
+      confirm_success_task.connect_to!(accept_event)
       {
         provider_outcome_task_1: provider_outcome_task_1,
         admin_decline_gateway: admin_decline_gateway,
