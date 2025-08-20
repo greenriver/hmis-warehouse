@@ -41,6 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             name
             status
             expiresAt
+            prioritySchemes { id name expression }
             candidates {
               nodesCount
               nodes {
@@ -101,6 +102,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           a_hash_including('id' => "#{opportunity.id}.#{rule3.id}", 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
           a_hash_including('id' => "#{opportunity.id}.#{rule4.id}", 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
         )
+      end
+
+      it 'returns most-specific priority schemes ordered by rank, then id' do
+        # Build assignment rules with mixed owners and ranks
+        org_rule = create(:hmis_ce_priority_scheme, owner: project.organization, expression: 'org_expr', rank: 2)
+        proj_rule_low = create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_low', rank: 2)
+        proj_rule_high = create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_high', rank: 1)
+        ds_rule = create(:hmis_ce_priority_scheme, owner: project.data_source, expression: 'ds_expr', rank: 1)
+
+        # Keep eligibility rules as before and include priority rules in the snapshot
+        snapshot_rules = [rule1, rule2, rule3, rule4, org_rule, proj_rule_low, proj_rule_high, ds_rule]
+        opportunity.update!(assignment_rules: snapshot_rules.map(&:attributes))
+
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        prios = result.dig('data', 'ceOpportunity', 'prioritySchemes')
+        # Should only include project-level rules, ordered by rank then id
+        expect(prios.map { |r| r['expression'] }).to eq(['proj_high', 'proj_low'])
       end
     end
 

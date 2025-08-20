@@ -60,6 +60,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 name
                 expression
               }
+              prioritySchemes {
+                id
+                name
+                expression
+              }
             }
           }
         }
@@ -221,6 +226,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           expect(unit_node['eligibilityRequirements']).to be_empty
           expect(unit_node['priorityScheme']).to be_nil
+          expect(unit_node['prioritySchemes']).to be_empty
         end
       end
 
@@ -245,6 +251,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'name' => 'Homeless Priority',
             'expression' => 'days_homeless',
           )
+
+          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['days_homeless'])
         end
       end
 
@@ -295,6 +303,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'expression' => 'chronic_days',
           )
           expect(priority_scheme['id']).to match(/^#{unit.id}\.998$/)
+
+          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['chronic_days'])
         end
       end
 
@@ -310,6 +320,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           expect(unit_node['eligibilityRequirements']).to be_empty
           expect(unit_node['priorityScheme']).to be_nil
+        end
+      end
+
+      context 'when unit group has mixed-level priority schemes' do
+        let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+        let!(:org_rule) { create(:hmis_ce_priority_scheme, owner: project.organization, expression: 'org_expr', name: 'Org', rank: 2) }
+        let!(:ds_rule) { create(:hmis_ce_priority_scheme, owner: project.data_source, expression: 'ds_expr', name: 'DS', rank: 1) }
+        let!(:proj_rule_b) { create(:hmis_ce_priority_scheme, owner: project, expression: 'b', name: 'B', rank: 2) }
+        let!(:proj_rule_a) { create(:hmis_ce_priority_scheme, owner: project, expression: 'a', name: 'A', rank: 1) }
+
+        it 'returns only most-specific (project) rules ordered by rank then id' do
+          _, result = post_graphql(id: project.id) { query }
+          unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
+          expect(unit_node['prioritySchemes'].map { |r| r['expression'] }).to eq(['a', 'b'])
         end
       end
     end

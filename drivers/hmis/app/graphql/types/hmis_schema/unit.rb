@@ -153,7 +153,6 @@ module Types
       priority_schemes.first
     end
 
-    # TODO(#7957) - remove after deprecation period
     def priority_schemes
       # If the current opportunity is active and stale, return the priority rules as they were
       # when the opportunity was created, filtered to the most specific owner level and ordered by [rank, id].
