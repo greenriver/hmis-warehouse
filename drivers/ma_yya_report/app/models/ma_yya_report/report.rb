@@ -79,13 +79,84 @@ module MaYyaReport
       MaYyaReport::Client.arel_table
     end
 
-    private def cell_definitions # rubocop:disable Metrics/AbcSize
-      report_start_date = filter.start
-      report_end_date = filter.end
+    private def nested_cell_definitions
+      @nested_cell_definitions ||= {
+        'A' => {
+          section_label: 'A. Core Services',
+          subsections: {
+            'A1' => {
+              subsection_label: '1. Street Outreach/Colaboration',
+              cells: section_a1_cells,
+            },
+            'A2' => {
+              subsection_label: '2. Referrals Received',
+              cells: section_a2_cells,
+            },
+            'A3' => {
+              subsection_label: '3. Assessment/Case Management/Case Coordination - Prevention',
+              cells: section_a3_cells,
+            },
+            'A4' => {
+              subsection_label: '4. Assessment/Case Management/Case Coordination - Rehousing',
+              cells: section_a4_cells,
+            },
+            'A_Total' => {
+              subsection_label: 'Totals',
+              cells: section_a_total_cells,
+            },
+          },
+        },
+        'D' => {
+          section_label: 'D. Demographics',
+          subsections: {
+            'D1' => {
+              subsection_label: '1. Age and Gender',
+              cells: section_d1_cells,
+            },
+            'D2' => {
+              subsection_label: '2. Race, Ethnicity, and Language',
+              cells: section_d2_cells,
+            },
+            'D3' => {
+              subsection_label: '3. Disability',
+              cells: section_d3_cells,
+            },
+            'D4' => {
+              subsection_label: '4. Other',
+              cells: section_d4_cells,
+            },
+          },
+        },
+        'F' => {
+          section_label: 'F. Outcomes',
+          subsections: {
+            'F2' => {
+              subsection_label: '2. Rehousing Outcomes',
+              cells: section_f2_cells,
+            },
+          },
+        },
+        'G' => {
+          section_label: 'G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)',
+          subsections: {
+            'G1' => {
+              subsection_label: '1. Age and Gender',
+              cells: section_g1_cells,
+            },
+            'G2' => {
+              subsection_label: '2. Race, Ethnicity, and Language',
+              cells: section_g2_cells,
+            },
+            'G3' => {
+              subsection_label: '3. Other',
+              cells: section_g3_cells,
+            },
+          },
+        },
+      }.freeze
+    end
 
-      # G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)
-      g_population = a_t[:currently_homeless].eq(true).
-        and(a_t[:rehoused_on].between(report_start_date..report_end_date))
+    private def section_a1_cells
       {
         A1a: {
           calculation: a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true)),
@@ -95,6 +166,11 @@ module MaYyaReport
           calculation: a_t[:referral_source].eq(7).and(a_t[:at_risk_of_homelessness].eq(true)),
           label: 'Unduplicated number of outreach contacts with YYA considered "at-risk" of homelessness',
         },
+      }
+    end
+
+    private def section_a2_cells
+      {
         A2a: {
           calculation: a_t[:initial_contact].eq(true).and(a_t[:currently_homeless].eq(true)),
           label: 'Unduplicated number of initial contacts with YYA experiencing homelessness',
@@ -103,6 +179,11 @@ module MaYyaReport
           calculation: a_t[:initial_contact].eq(true).and(a_t[:at_risk_of_homelessness].eq(true)),
           label: 'Unduplicated number of initial contacts with YYA considered "at-risk" of homelessness',
         },
+      }
+    end
+
+    private def section_a3_cells
+      {
         A3a: {
           calculation: a_t[:entry_date].gteq(filter.start).and(a_t[:at_risk_of_homelessness].eq(true)),
           label: 'Number of YYA completing new intake: YYA considered "at-risk" of homelessness',
@@ -111,6 +192,11 @@ module MaYyaReport
           calculation: a_t[:entry_date].lt(filter.start).and(a_t[:at_risk_of_homelessness].eq(true)),
           label: 'Number of YYA continuing in case management',
         },
+      }
+    end
+
+    private def section_a4_cells
+      {
         A4a: {
           calculation: a_t[:entry_date].gteq(filter.start).and(a_t[:currently_homeless].eq(true)),
           label: 'Number of YYA completing new intake: YYA experiencing homelessness',
@@ -119,6 +205,24 @@ module MaYyaReport
           calculation: a_t[:entry_date].lt(filter.start).and(a_t[:currently_homeless].eq(true)),
           label: 'Number of YYA continuing in case management',
         },
+      }
+    end
+
+    private def section_a_total_cells
+      {
+        TotalYYAServedPrevention: {
+          calculation: a_t[:at_risk_of_homelessness].eq(true),
+          label: 'Number of unduplicated YYA served (update each quarter)',
+        },
+        TotalYYAServedHomeless: {
+          calculation: a_t[:currently_homeless].eq(true),
+          label: 'Number of unduplicated YYA served (update each quarter)',
+        },
+      }
+    end
+
+    private def section_d1_cells
+      {
         D1a: {
           calculation: a_t[:age].lt(18).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served who were Under 18',
@@ -147,6 +251,11 @@ module MaYyaReport
           calculation: a_t[:gender].eq(99).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served with no Gender Data collected',
         },
+      }
+    end
+
+    private def section_d2_cells
+      {
         D2a: {
           calculation: a_t[:race].eq(5).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served who identified as White (race)',
@@ -191,6 +300,11 @@ module MaYyaReport
           calculation: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served whose primary language was Other (language)',
         },
+      }
+    end
+
+    private def section_d3_cells
+      {
         D3a: {
           calculation: a_t[:mental_health_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served who reported having a Mental Health Disorder',
@@ -207,6 +321,11 @@ module MaYyaReport
           calculation: a_t[:developmental_disability].eq(true).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served who reported having a Developmental Disability (disability)',
         },
+      }
+    end
+
+    private def section_d4_cells
+      {
         D4a: {
           calculation: a_t[:pregnant].eq(1).and(a_t[:due_date].gt(filter.start)).or(Arel.sql(custodial_parent_query)).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served who were Pregnant or Custodial Parenting',
@@ -235,6 +354,11 @@ module MaYyaReport
           calculation: a_t[:employed].eq(true).and(a_t[:head_of_household].eq(true)),
           label: 'Number of YYA served who are working a full or part time time job (Employment Status)',
         },
+      }
+    end
+
+    private def section_f2_cells
+      {
         F2a: {
           calculation: g_population,
           label: 'The number of  YYA who transition into stabilized housing',
@@ -243,6 +367,11 @@ module MaYyaReport
           calculation: g_population.and(a_t[:days_to_return].lteq(730)),
           label: 'Returned to homeless (within 2 years of being housed)',
         },
+      }
+    end
+
+    private def section_g1_cells
+      {
         G1a: {
           calculation: g_population.and(a_t[:age].lt(18)),
           label: 'Number of YYA served who were Under 18',
@@ -271,6 +400,11 @@ module MaYyaReport
           calculation: g_population.and(a_t[:gender].eq(99)),
           label: 'Number of YYA served with no Gender Data collected',
         },
+      }
+    end
+
+    private def section_g2_cells
+      {
         G2a: {
           calculation: g_population.and(a_t[:race].eq(5)),
           label: 'Number of YYA served who identified as White (race)',
@@ -303,93 +437,36 @@ module MaYyaReport
           calculation: g_population.and(a_t[:race].eq(10)),
           label: 'Number of YYA served who identified as Other/ Multi-racial',
         },
+      }
+    end
+
+    private def section_g3_cells
+      {
         G3a: {
           calculation: g_population.and(lgbtq_query),
           label: 'Number of YYA served who were LGBTQ+',
         },
-        TotalYYAServedHomeless: {
-          calculation: a_t[:currently_homeless].eq(true),
-          label: 'Number of unduplicated YYA served (update each quarter)',
-        },
-        TotalYYAServedPrevention: {
-          calculation: a_t[:at_risk_of_homelessness].eq(true),
-          label: 'Number of unduplicated YYA served (update each quarter)',
-        },
       }
     end
 
+    # G. Demographics of Rehousing Outcomes: youth served in prevention who remained housed during the reporting period (YTD should be unduplicated and match F-1a.)
+    private def g_population
+      @g_population ||= a_t[:currently_homeless].eq(true).
+        and(a_t[:rehoused_on].between(filter.start..filter.end))
+    end
+
+    # H. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)
+    private def h_population
+      @h_population ||= a_t[:currently_homeless].eq(true).
+        and(a_t[:rehoused_on].between(filter.start..filter.end))
+    end
+
     private def calculators
-      {
-        A1a: cell_definitions[:A1a][:calculation],
-        A1b: cell_definitions[:A1b][:calculation],
-
-        A2a: cell_definitions[:A2a][:calculation],
-        A2b: cell_definitions[:A2b][:calculation],
-
-        A3a: cell_definitions[:A3a][:calculation],
-        A3b: cell_definitions[:A3b][:calculation],
-
-        A4a: cell_definitions[:A4a][:calculation],
-        A4b: cell_definitions[:A4b][:calculation],
-        TotalYYAServedHomeless: cell_definitions[:TotalYYAServedHomeless][:calculation],
-        TotalYYAServedPrevention: cell_definitions[:TotalYYAServedPrevention][:calculation],
-
-        D1a: cell_definitions[:D1a][:calculation],
-        D1b: cell_definitions[:D1b][:calculation],
-        D1c: cell_definitions[:D1c][:calculation],
-        D1d: cell_definitions[:D1d][:calculation],
-        D1e: cell_definitions[:D1e][:calculation],
-        D1f: cell_definitions[:D1f][:calculation],
-        D1g: cell_definitions[:D1g][:calculation],
-
-        D2a: cell_definitions[:D2a][:calculation],
-        D2b: cell_definitions[:D2b][:calculation],
-        D2c: cell_definitions[:D2c][:calculation],
-        D2d: cell_definitions[:D2d][:calculation],
-        D2e: cell_definitions[:D2e][:calculation],
-        D2f: cell_definitions[:D2f][:calculation],
-        D2g: cell_definitions[:D2g][:calculation],
-        D2h: cell_definitions[:D2h][:calculation],
-        D2i: cell_definitions[:D2i][:calculation],
-        D2j: cell_definitions[:D2j][:calculation],
-        D2k: cell_definitions[:D2k][:calculation],
-
-        D3a: cell_definitions[:D3a][:calculation],
-        D3b: cell_definitions[:D3b][:calculation],
-        D3c: cell_definitions[:D3c][:calculation],
-        D3d: cell_definitions[:D3d][:calculation],
-
-        D4a: cell_definitions[:D4a][:calculation],
-        D4b: cell_definitions[:D4b][:calculation],
-        D4c: cell_definitions[:D4c][:calculation],
-        D4d: cell_definitions[:D4d][:calculation],
-        D4e: cell_definitions[:D4e][:calculation],
-        D4f: cell_definitions[:D4f][:calculation],
-        D4g: cell_definitions[:D4g][:calculation],
-
-        F2a: cell_definitions[:F2a][:calculation],
-        F2b: cell_definitions[:F2b][:calculation],
-
-        G1a: cell_definitions[:G1a][:calculation],
-        G1b: cell_definitions[:G1b][:calculation],
-        G1c: cell_definitions[:G1c][:calculation],
-        G1d: cell_definitions[:G1d][:calculation],
-        G1e: cell_definitions[:G1e][:calculation],
-        G1f: cell_definitions[:G1f][:calculation],
-        G1g: cell_definitions[:G1g][:calculation],
-
-        G2a: cell_definitions[:G2a][:calculation],
-        G2b: cell_definitions[:G2b][:calculation],
-        G2c: cell_definitions[:G2c][:calculation],
-        G2d: cell_definitions[:G2d][:calculation],
-        G2e: cell_definitions[:G2e][:calculation],
-        G2f: cell_definitions[:G2f][:calculation],
-        G2g: cell_definitions[:G2g][:calculation],
-        G2h: cell_definitions[:G2h][:calculation],
-
-        G3a: cell_definitions[:G3a][:calculation],
-
-      }.freeze
+      @calculators ||= nested_cell_definitions.flat_map do |_, section|
+        section[:subsections].flat_map do |_, subsection|
+          subsection[:cells].map { |cell_key, cell_data| [cell_key, cell_data[:calculation]] }
+        end
+      end.to_h
     end
 
     def label(key)
@@ -448,37 +525,21 @@ module MaYyaReport
     end
 
     def section_label(label)
-      @section_label ||= {
-        'A' => 'A. Core Services',
-        # 'C' => 'C. College Student Services (all regions)',
-        'D' => 'D. Demographics',
-        'E' => 'E. Youth Action Board/Youth Engagement Activity',
-        'F' => 'F. Outcomes',
-        'G' => 'G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)',
-      }
-      @section_label[label]
+      section_labels[label]
     end
 
     def subsection_label(label)
-      @subsection_label ||= {
-        'A1' => { text: '1. Street Outreach/Colaboration' },
-        'A2' => { text: '2. Referrals Received' },
-        'A3' => { text: '3. Assessment/Case Management/Case Coordination - Prevention' },
-        'A4' => { text: '4. Assessment/Case Management/Case Coordination - Rehousing' },
-        'A5' => { text: '5. Direct Financial Assistance (Flex Funds)' },
-        # 'C1' => { text: '1. Transitional Housing & Case Management (enrolled students)' },
-        # 'C3' => { text: '2. Number College students' },
-        'D1' => { text: '1. Age and Gender' },
-        'D2' => { text: '2. Race, Ethnicity, and Language' },
-        'D3' => { text: '3. Disability' },
-        'D4' => { text: '4. Other' },
-        'F1' => { text: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)' },
-        'F2' => { text: '2. Rehousing Outcomes' },
-        'G1' => { text: '1. Age and Gender' },
-        'G2' => { text: '2. Race, Ethnicity, and Language' },
-        'G3' => { text: '3. Other' },
-      }
-      @subsection_label[label] || { text: '' }
+      subsection_labels[label] || { text: '' }
+    end
+
+    private def section_labels
+      @section_labels ||= nested_cell_definitions.transform_values { |section| section[:section_label] }
+    end
+
+    private def subsection_labels
+      @subsection_labels ||= nested_cell_definitions.flat_map do |_, section|
+        section[:subsections].map { |subsection_key, subsection| [subsection_key, { text: subsection[:subsection_label] }] }
+      end.to_h
     end
 
     def cell_label(label)
@@ -496,89 +557,11 @@ module MaYyaReport
     end
 
     private def cell_labels
-      @cell_labels ||= cell_definitions.transform_values { |definition| definition[:label] }
-      #   A1a: cell_definitions[:A1a][:label],
-      #   A1b: cell_definitions[:A1b][:label],
-      #   A2a: cell_definitions[:A2a][:label],
-      #   A2b: cell_definitions[:A2b][:label],
-      #   A3a: cell_definitions[:A3a][:label],
-      #   A3b: cell_definitions[:A3b][:label],
-      #   # A3c: 'Number of YYA turned away',
-      #   A4a: cell_definitions[:A4a][:label],
-      #   A4b: cell_definitions[:A4b][:label],
-      #   # A4c: 'Number of YYA turned away',
-      #   # A5a: 'Total number of YYA who received direct financial assistance/flex funds',
-      #   # A5b: 'Number of YYA who received assistance with Move-in costs',
-      #   # A5c: 'Number of YYA who received assistance with Rent',
-      #   # A5d: 'Number of YYA who received assistance with Rent arrears',
-      #   # A5e: 'Number of YYA who received assistance with Utilities',
-      #   # A5f: 'Number of YYA who received assistance with Transportation-related costs',
-      #   # A5g: 'Number of YYA who received assistance with Education-related costs',
-      #   # A5h: 'Number of YYA who received assistance with Legal costs',
-      #   # A5i: 'Number of YYA who received assistance with Child care',
-      #   # A5j: 'Number of YYA who received assistance with Work-related costs',
-      #   # A5k: 'Number of YYA who received assistance with Medical costs',
-      #   # A5l: 'Number of YYA who received assistance with Cell phone costs',
-      #   # A5m: 'Number of YYA who received assistance with Food/groceries',
-      #   # A5n: 'Number of YYA who received assistance with Other costs',
-      #   TotalYYAServedHomeless: cell_definitions[:TotalYYAServedHomeless][:label],
-      #   TotalYYAServedPrevention: cell_definitions[:TotalYYAServedPrevention][:label],
-      #   # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
-      #   # C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
-      #   D1a: cell_definitions[:D1a][:label],
-      #   D1b: cell_definitions[:D1b][:label],
-      #   D1c: cell_definitions[:D1c][:label],
-      #   D1d: cell_definitions[:D1d][:label],
-      #   D1e: cell_definitions[:D1e][:label],
-      #   D1f: cell_definitions[:D1f][:label],
-      #   D1g: cell_definitions[:D1g][:label],
-      #   D2a: cell_definitions[:D2a][:label],
-      #   D2b: cell_definitions[:D2b][:label],
-      #   D2c: cell_definitions[:D2c][:label],
-      #   D2d: cell_definitions[:D2d][:label],
-      #   D2e: cell_definitions[:D2e][:label],
-      #   D2f: cell_definitions[:D2f][:label],
-      #   D2g: cell_definitions[:D2g][:label],
-      #   D2h: cell_definitions[:D2h][:label],
-      #   D2i: cell_definitions[:D2i][:label],
-      #   D2j: cell_definitions[:D2j][:label],
-      #   D2k: cell_definitions[:D2k][:label],
-      #   D3a: cell_definitions[:D3a][:label],
-      #   D3b: cell_definitions[:D3b][:label],
-      #   D3c: cell_definitions[:D3c][:label],
-      #   D3d: cell_definitions[:D3d][:label],
-      #   D4a: cell_definitions[:D4a][:label],
-      #   D4b: cell_definitions[:D4b][:label],
-      #   D4c: cell_definitions[:D4c][:label],
-      #   D4d: cell_definitions[:D4d][:label],
-      #   D4e: cell_definitions[:D4e][:label],
-      #   D4f: cell_definitions[:D4f][:label],
-      #   D4g: cell_definitions[:D4g][:label],
-      #   # Ea: 'Number of Meetings',
-      #   # Eb: 'Number of unduplicated participants',
-      #   # F1a: 'Number of YYA contacted for follow up 3 mos. after receiving prevention services',
-      #   # F1b: 'Number of YYA who remain housed 3 mos. after receiving prevention services',
-      #   F2a: cell_definitions[:F2a][:label],
-      #   F2b: cell_definitions[:F2b][:label],
-      #   # F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
-      #   # F2d: 'Zip codes of stabilized housing (please list)',
-      #   G1a: cell_definitions[:G1a][:label],
-      #   G1b: cell_definitions[:G1b][:label],
-      #   G1c: cell_definitions[:G1c][:label],
-      #   G1d: cell_definitions[:G1d][:label],
-      #   G1e: cell_definitions[:G1e][:label],
-      #   G1f: cell_definitions[:G1f][:label],
-      #   G1g: cell_definitions[:G1g][:label],
-      #   G2a: cell_definitions[:G2a][:label],
-      #   G2b: cell_definitions[:G2b][:label],
-      #   G2c: cell_definitions[:G2c][:label],
-      #   G2d: cell_definitions[:G2d][:label],
-      #   G2e: cell_definitions[:G2e][:label],
-      #   G2f: cell_definitions[:G2f][:label],
-      #   G2g: cell_definitions[:G2g][:label],
-      #   G2h: cell_definitions[:G2h][:label],
-      #   G3a: cell_definitions[:G3a][:label],
-      # }
+      @cell_labels ||= nested_cell_definitions.flat_map do |_, section|
+        section[:subsections].flat_map do |_, subsection|
+          subsection[:cells].map { |cell_key, cell_data| [cell_key, cell_data[:label]] }
+        end
+      end.to_h
     end
 
     def cell(cell_name)
