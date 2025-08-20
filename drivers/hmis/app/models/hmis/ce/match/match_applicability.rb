@@ -23,7 +23,6 @@
 #   should be used for eligibility/priority.
 # - It supports evaluation against various entities (eg Project, Unit Group, etc) to support viewing applicable
 #   rules for each entity type.
-# - Global and Data Source-level rules are not yet supported (e.g. "all PSH projects in a data source")
 #
 # @attr [Object] owner Entity that determines the applicability scope for this rule
 # @attr [Array<String>] project_types List of project types for which this rule applies
@@ -78,11 +77,11 @@ module Hmis::Ce::Match
     def gather_parents(entity)
       parents = case entity
       when Hmis::UnitGroup
-        [entity, entity.project, entity.project.organization]
+        [entity, entity.project, entity.project.organization, entity.project.data_source]
       when Hmis::Hud::Project
-        [entity, entity.organization]
+        [entity, entity.organization, entity.data_source]
       when Hmis::Hud::Organization
-        [entity]
+        [entity, entity.data_source]
       else
         raise ArgumentError, "Unexpected entity type for CE rule evaluation: #{entity.class.name}"
       end

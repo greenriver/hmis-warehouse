@@ -10,7 +10,7 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
     create(
       :hmis_ce_match_candidate_pool,
       requirement_expression: 'current_age > 65 AND veteran_status = 1',
-      priority_expression: 'current_age',
+      priority_expression: '{current_age}',
     )
   end
 
@@ -33,7 +33,7 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
         result = evaluator.call(destination_client3) # age 68, vet -> should pass
 
         expect(result).not_to be_failed
-        expect(result.priority_score).to eq(68)
+        expect(result.priority_scores).to eq([68])
         expect(result.client_values).to include(
           'current_age' => 68,
           'veteran_status' => 1,
@@ -46,14 +46,14 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
         result = evaluator.call(destination_client1) # age 25 -> fails age check
 
         expect(result).to be_failed
-        expect(result.priority_score).to be_nil
+        expect(result.priority_scores).to be_nil
       end
 
       it 'returns a failed result for a client that is not a veteran' do
         result = evaluator.call(destination_client2) # not vet -> fails vet status check
 
         expect(result).to be_failed
-        expect(result.priority_score).to be_nil
+        expect(result.priority_scores).to be_nil
       end
     end
 

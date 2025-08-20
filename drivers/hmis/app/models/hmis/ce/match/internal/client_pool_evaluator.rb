@@ -11,9 +11,9 @@ module Hmis::Ce::Match::Internal
     attr_reader :expression, :field_map
 
     # simple evaluation result object
-    Result = Struct.new(:client_values, :priority_score) do
-      # A nil priority_score indicates the client is not eligible for the pool
-      def failed? = priority_score.nil?
+    Result = Struct.new(:client_values, :priority_scores) do
+      # no priority_scores indicates the client is not eligible for the pool
+      def failed? = priority_scores.nil? || priority_scores.empty?
     end
     private_constant :Result
 
@@ -42,11 +42,11 @@ module Hmis::Ce::Match::Internal
       client_values = @client_field_values[client.id] || {}
 
       # Client without a score cannot be prioritized
-      #   * To be eligible priority score must be non-null AND the eligibility requirement must pass
-      #   * To include clients with null scores, use a coalescing priority expression such as
-      #     `IF(my_score = NULL, 0, my_score)`
-      priority = eval_priority(client_values) if eval_requirement(client_values)
-      Result.new(client_values, priority)
+      #   * To be eligible priority score must be non-empty AND the eligibility requirement must pass
+      #   * To include clients with empty scores, use a coalescing priority expression such as
+      #     `{IF(my_score = NULL, 0, my_score)}`
+      priority_scores = eval_priority(client_values) if eval_requirement(client_values)
+      Result.new(client_values, priority_scores)
     end
 
     protected
