@@ -24340,7 +24340,8 @@ CREATE TABLE public.hmis_unit_groups (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    candidate_pool_id bigint
+    candidate_pool_id bigint,
+    ce_event_type integer
 );
 
 
@@ -75212,6 +75213,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250820220743'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
