@@ -783,6 +783,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
+    # Any of the following constitute an intentional contact:
+    # 1. most recent service record on any enrollment open in the last 3 years, not limited by project type
+    # 2. CLS of any type on any enrollment open in the last 3 years, not limited by project type
+    # 3. Referral Event of any type on any enrollment open in the last 3 years, not limited by project type
+    # 4. Most-recent custom service (not limited in any way)
     def last_intentional_contacts(client_id)
       open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.enrollments_open_in_last_three_years.
         where(client_id: @client_ids)
