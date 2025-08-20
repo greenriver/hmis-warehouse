@@ -50,6 +50,8 @@ module Hmis::Ce
         referral_enroller.set_move_in_date(message)
       when 'set_custom_referral_status'
         set_custom_referral_status(status_key: message.params['custom_status_key'])
+      when 'disable_step'
+        disable_step(node_id: message.params['node_id'])
       else
         raise "Got unhandled message type #{message.type}"
       end
@@ -112,6 +114,14 @@ module Hmis::Ce
 
       status = Hmis::Ce::CustomReferralStatus.find_by!(key: status_key, data_source: referral.data_source)
       referral.update!(custom_status: status)
+    end
+
+    def disable_step(node_id:)
+      step = referral.steps.find_by(node_id: node_id)
+      return unless step
+
+      step.cancel! if step.may_cancel?
+      step.disable! if step.may_disable?
     end
 
     private

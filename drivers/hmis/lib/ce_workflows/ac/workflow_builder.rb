@@ -295,14 +295,6 @@ module CeWorkflows::Ac
         trigger_config: denied_pending_trigger_config,
       )
 
-      # Change Provider Outcome optional user task
-      change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Change Provider Outcome (Optional)',
-        form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
-        template_id: template.id,
-        swimlane: project_staff_swimlane,
-      )
-
       # Confirm Success User Task
       confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Confirm Success',
@@ -310,6 +302,21 @@ module CeWorkflows::Ac
         template_id: template.id,
         swimlane: ce_staff_swimlane,
         trigger_config: enrolled_status_trigger_config,
+      )
+
+      # Change Provider Outcome optional user task
+      change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
+        name: 'Change Provider Outcome (Optional)',
+        form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
+        template_id: template.id,
+        swimlane: project_staff_swimlane,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'disable_step',
+            params: { 'node_id': confirm_success_task.id },
+          },
+        ],
       )
 
       # Script Tasks
