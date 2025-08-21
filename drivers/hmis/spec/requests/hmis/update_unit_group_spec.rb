@@ -77,7 +77,7 @@ RSpec.describe 'UpdateUnitGroup Mutation', type: :request do
 
         errors = result.dig('data', 'updateUnitGroup', 'errors')
         expect(errors).not_to be_empty
-        expect(errors.first['fullMessage']).to eq('Workflow template identifier cannot be changed once set')
+        expect(errors.sole['fullMessage']).to eq('Workflow template identifier cannot be changed once set')
 
         unit_group.reload
         expect(unit_group.workflow_template_identifier).to eq(existing_template.identifier)
@@ -91,7 +91,7 @@ RSpec.describe 'UpdateUnitGroup Mutation', type: :request do
 
         errors = result.dig('data', 'updateUnitGroup', 'errors')
         expect(errors).not_to be_empty
-        expect(errors.first['fullMessage']).to eq('Workflow template identifier cannot be changed once set')
+        expect(errors.sole['fullMessage']).to eq('Workflow template identifier cannot be changed once set')
 
         unit_group.reload
         expect(unit_group.workflow_template_identifier).to eq(existing_template.identifier)
@@ -109,10 +109,30 @@ RSpec.describe 'UpdateUnitGroup Mutation', type: :request do
 
         errors = result.dig('data', 'updateUnitGroup', 'errors')
         expect(errors).not_to be_empty
-        expect(errors.first['fullMessage']).to eq('Workflow template identifier must belong to the same data source')
+        expect(errors.sole['fullMessage']).to eq('Workflow template identifier must belong to the same data source')
 
         unit_group.reload
         expect(unit_group.workflow_template_identifier).to eq(nil)
+      end
+    end
+  end
+
+  context 'ce event type validation' do
+    context 'when ce event type is already set' do
+      let!(:unit_group) { create(:hmis_unit_group, project: p1, name: 'Original Name', workflow_template: nil, ce_event_type: 14) } # REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING
+
+      it 'prevents changing to different event type' do
+        input = base_input.deep_merge(input: { ceEventType: 'REFERRAL_TO_RRH_PROJECT_RESOURCE_OPENING' }) # Different event type
+
+        response, result = post_graphql(input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'updateUnitGroup', 'errors')
+        expect(errors).not_to be_empty
+        expect(errors.sole['fullMessage']).to eq('Ce event type cannot be changed once set')
+
+        unit_group.reload
+        expect(unit_group.ce_event_type).to eq(14)
       end
     end
   end
@@ -128,7 +148,7 @@ RSpec.describe 'UpdateUnitGroup Mutation', type: :request do
 
       errors = result.dig('data', 'updateUnitGroup', 'errors')
       expect(errors).not_to be_empty
-      expect(errors.first['fullMessage']).to eq('Name must be unique in the project')
+      expect(errors.sole['fullMessage']).to eq('Name must be unique in the project')
 
       unit_group.reload
       expect(unit_group.name).to eq('Original Name')
