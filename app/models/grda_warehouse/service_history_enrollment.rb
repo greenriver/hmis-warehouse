@@ -311,10 +311,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # deduped derived table. This encourages the planner to use the date index
   # first and avoids widening the join unnecessarily.
   scope :with_service_between_prefiltered, ->(start_date:, end_date:, service_scope: :current_scope) do
-    filtered = GrdaWarehouse::ServiceHistoryService
-      .service_between(start_date: start_date, end_date: end_date, service_scope: service_scope)
-      .select(:service_history_enrollment_id, :client_id)
-      .distinct
+    filtered = GrdaWarehouse::ServiceHistoryService.
+      service_between(start_date: start_date, end_date: end_date, service_scope: service_scope).
+      select(:service_history_enrollment_id, :client_id).
+      distinct
 
     joins(<<~SQL.squish)
       INNER JOIN (#{filtered.to_sql}) shs_filtered
