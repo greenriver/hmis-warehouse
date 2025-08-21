@@ -6,6 +6,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# what is active?
+# * if you have an enrollment in EE, the client is active if the enrollment is active_client_report
+# * for nbn, you can have an open enrollment but no service, ignore those enrollments
+# * extrapolated - shs, is added based on a setting for street outreach, adding events for the entire month that the client was (see service history tasks/enrollment where SHS are generated)
+#
+# the intent is to include active clients within a time-range, where active is either based on services on EE. To be active, a client must have an enrollment and
+#
+# note inclusion of SHS is conditional based on a filter-option.
+#
+# it aligns with core-demo query, as long as require services are set
+
+# hud has a concept of active-client for reporting.
+# we use method 5 augmented to support street outreach
+#  for street outreach, we remove invalid data: Street outreach must have CLS, ES-NBN must have service service. dates for those records must occur both within the enrollment and report range
+
 class ActiveClientReport
   include ClientDetailReport
   include Filter::FilterScopes
