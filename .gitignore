@@ -34,6 +34,7 @@ docker-compose.override.yml
 !/.eslintrc.js
 !/.rspec.sample
 !/.trivyignore
+!/.claude_config.json
 
 # Ignore operational files
 package.box
@@ -68,6 +69,7 @@ untracked
 .vscode
 docker-compose.dev.yml
 yarn-error.log
+CLAUDE.local.md
 
 # docker deployment
 docker/deploy/REVISION
@@ -140,6 +142,7 @@ config/claims_reporting/*
 **/fixpoints/*.yml
 **/fixpoints/*.sql
 
+
 # Pre-cache version file
 !.pre-cache-version
 
@@ -179,4 +182,3 @@ lib/data/*.xlsx
 assets.tar
 prometheus-metrics/**
 etc-localtime
-

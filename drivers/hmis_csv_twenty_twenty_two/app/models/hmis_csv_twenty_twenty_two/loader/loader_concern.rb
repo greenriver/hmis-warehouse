@@ -14,7 +14,7 @@ module HmisCsvTwentyTwentyTwo::Loader
       belongs_to :loader_log, optional: true
 
       def hmis_data
-        @hmis_data ||= slice(*self.class.hmis_structure.keys & attributes.keys)
+        @hmis_data ||= slice(*self.class.hmis_structure(version: '2022').keys & attributes.keys)
       end
     end
   end

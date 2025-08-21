@@ -17,7 +17,7 @@
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
 # - A `nil` key represents the default case where no specific rules apply; do not create a pool for this key.
 #   UnitGroups with a `nil` key will have `candidate_pool_id = NULL`.
-# - Bulk creation relies on a DB unique index over (priority_expression, requirement_expression) and is idempotent.
+# - Bulk creation relies on a DB unique index over (priority_expressions, requirement_expression) and is idempotent.
 # - Concurrency/transactions are handled by callers. This class performs pure operations without
 #   acquiring locks or opening transactions.
 # - Triggered automatically by Rule and UnitGroup callbacks. Can be called manually via `CeBuilder`
