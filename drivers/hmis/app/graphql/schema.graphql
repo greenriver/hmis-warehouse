@@ -5385,6 +5385,11 @@ enum FundingSource {
   HHS_RHY_TRANSITIONAL_LIVING_PROGRAM
 
   """
+  (56) HUD: CoC Builds
+  """
+  HUD_COC_BUILDS
+
+  """
   (1) HUD: CoC - Homelessness Prevention (High Performing Communities Only)
   """
   HUD_COC_HOMELESSNESS_PREVENTION
@@ -5435,9 +5440,9 @@ enum FundingSource {
   HUD_COC_YOUTH_HOMELESS_DEMONSTRATION_PROGRAM_YHDP
 
   """
-  (47) HUD: ESG - CV
+  (47) HUD: ESG - CV [Deprecated]
   """
-  HUD_ESG_CV
+  HUD_ESG_CV_DEPRECATED
 
   """
   (8) HUD: ESG - Emergency Shelter (operating and/or essential services)
@@ -5475,9 +5480,9 @@ enum FundingSource {
   HUD_HOME_ARP
 
   """
-  (48) HUD: HOPWA - CV
+  (48) HUD: HOPWA - CV [Deprecated]
   """
-  HUD_HOPWA_CV
+  HUD_HOPWA_CV_DEPRECATED
 
   """
   (13) HUD: HOPWA - Hotel/Motel Vouchers
