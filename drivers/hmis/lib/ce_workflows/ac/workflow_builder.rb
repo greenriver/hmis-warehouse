@@ -405,6 +405,13 @@ module CeWorkflows::Ac
 
       # Create Enrollment (Script) => Change Provider Outcome *optional* task that re-triggers the Denial Review
       create_enrollment_task.connect_to!(change_provider_outcome_task)
+      # Note that this re-introduces the truly circular workflow.
+      # It is theoretically possible for users to re-open a previously closed Denial Review step, like this:
+      # - Complete the Change Provider Outcome step
+      # - In the Denial Review step, select "Send Back"
+      # - In the Provider Outcome (Second Attempt) step, select "Accept/Enroll"
+      # - Complete the Change Provider Outcome step a second time
+      # - The Denial Review (1) step is re-opened, instead of Denial Review (Second Attempt).
       change_provider_outcome_task.connect_to!(denial_review_task)
 
       confirm_success_task.connect_to!(accept_event)
