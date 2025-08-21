@@ -11,20 +11,6 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
   include_context 'ce spec helper'
 
-  let!(:source_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
-
-  let!(:referral) do
-    create(
-      :hmis_ce_referral,
-      opportunity: opportunity,
-      workflow_instance: workflow_instance,
-      client: client,
-      referred_by: hmis_user,
-      source_enrollment: source_enrollment,
-      status: 'initialized',
-    )
-  end
-
   # Build on the workflow template set out in ce_spec_helper to incorporate CE event creation and outcomes:
   let!(:ce_creation_task) do # this wouldn't be its own user-facing task in a real workflow
     create(
@@ -113,6 +99,24 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
           params: { referral_result: '3' },
         },
       ],
+    )
+  end
+
+  let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: nil) }
+  let!(:unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, project: project, unit: unit, workflow_template: workflow_template) }
+
+  let!(:source_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: client }
+
+  let!(:referral) do
+    create(
+      :hmis_ce_referral,
+      opportunity: opportunity,
+      workflow_instance: workflow_instance,
+      client: client,
+      referred_by: hmis_user,
+      source_enrollment: source_enrollment,
+      status: 'initialized',
     )
   end
 
@@ -212,6 +216,12 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
       include_examples 'creates a CE event for project type', 10, 15
     end
 
+    context 'with unit group ce_event_type configuration' do
+      let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: 18) }
+
+      it_behaves_like 'creates a CE event', 18
+    end
+
     context 'if there is no source enrollment' do
       let!(:source_enrollment) { nil }
 
@@ -253,6 +263,16 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
     end
 
     context 'when everybody accepts' do
+      before do
+        submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+      end
+
+      include_examples 'updates the event with referral result', { provider_accepted: 1 }, 1
+    end
+
+    context 'with unit group ce_event_type configuration' do
+      let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: 18) }
+
       before do
         submit_current_step({ client_accepted: 1 }) # Client accepts the referral
       end
