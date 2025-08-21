@@ -63,13 +63,15 @@ class SystemStatusController < ActionController::Base
       enqueued = scope.where(failed_at: nil).count
       failed = scope.where.not(failed_at: nil).count
 
-      if enqueued > 20
-        jobs_message = 'QUEUE TOO BIG'
-        status = 417
-      elsif failed > 20
-        jobs_message = 'TOO MANY FAILED'
-        status = 417
-      end
+      # Removing these messages and errors because they were causing deployments to fail
+      # We are keeping the counts as that is useful when checking the status page
+      # if enqueued > 20
+      #   jobs_message = 'QUEUE TOO BIG'
+      #   status = 417
+      # elsif failed > 20
+      #   jobs_message = 'TOO MANY FAILED'
+      #   status = 417
+      # end
 
       jobs_stats[queue] = {
         enqueued: enqueued,

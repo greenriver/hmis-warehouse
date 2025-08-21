@@ -172,9 +172,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     describe 'policy that always matches' do
       let(:requirement_expression) { '1=1' }
 
-      it 'returns all candidates' do
-        results = generate_candidates(pool)
-        expect(results).to eq(destination_clients.map(&:id).sort)
+      it 'returns all candidates and updates the generation timestamp' do
+        freeze_time do
+          results = generate_candidates(pool)
+          expect(results).to eq(destination_clients.map(&:id).sort)
+          expect(pool.candidates_generated_at).to eq(Time.current)
+        end
       end
     end
 
@@ -193,14 +196,6 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       it 'only includes senior veterans' do
         results = generate_candidates(pool)
         expect(results).to eq([client_senior_veteran.destination_client.id])
-      end
-
-      it 'updates the candidates_generated_at timestamp' do
-        freeze_time do
-          expect do
-            generate_candidates(pool)
-          end.to change(pool, :candidates_generated_at).from(nil).to(Time.current)
-        end
       end
     end
 
@@ -474,6 +469,169 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         # Both clients should still have candidates - the unprocessed client's candidate should NOT be removed
         all_candidates_after = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
         expect(all_candidates_after).to include(adult_client.id, veteran_client.id)
+      end
+    end
+  end
+
+  describe 'candidate event logging' do
+    include_context 'with demographic test clients'
+
+    let(:requirement_expression) { 'current_age > 18' }
+    let(:priority_expression) { 'current_age' }
+    let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
+
+    def find_events_for_client(client_id)
+      proxy = Hmis::Ce::ClientProxy.for_warehouse_clients.find_by!(client_id: client_id)
+
+      Hmis::Ce::Match::CandidateEvent.where(candidate_pool: pool, client_proxy: proxy).order(:created_at)
+    end
+
+    context 'when updating existing candidates' do
+      it 'creates update events with new snapshot when client data changes but they remain eligible' do
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+        generate_candidates(pool) # Initial run
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(adult_client.age)
+
+        # Change data that affects priority score but not eligibility
+        adult_client.update!(DOB: 30.years.ago) # current_age changes from 20 to 30
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
+
+        events = find_events_for_client(adult_client.id)
+        expect(events.last).to have_attributes(
+          event_name: 'update',
+          candidate_pool: pool,
+        )
+        expect(events.last.snapshot).to include('current_age' => 30)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(30)
+      end
+    end
+
+    context 'when removing candidates' do
+      it 'creates remove events for clients who no longer meet requirements' do
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+
+        # First run - client is eligible
+        generate_candidates(pool)
+        initial_events = find_events_for_client(adult_client.id)
+        expect(initial_events.last.event_name).to eq('add')
+
+        # Change client to no longer meet requirements
+        adult_client.update!(DOB: 10.years.ago)
+
+        # Second run - client should be removed
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
+
+        events = find_events_for_client(adult_client.id)
+        expect(events.last).to have_attributes(
+          event_name: 'remove',
+          candidate_pool: pool,
+        )
+        expect(events.last.snapshot).to include('current_age' => 10)
+      end
+    end
+
+    context 'when client fails priority evaluation' do
+      let(:priority_expression) { 'IF(current_age > 18, current_age, NULL)' }
+
+      it 'creates remove events for clients with nil priority scores' do
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
+        adult_client.update!(DOB: 10.years.ago)
+
+        # Process client - should be excluded due to nil priority score
+        generate_candidates(pool, clients: GrdaWarehouse::Hud::Client.where(id: adult_client.id))
+
+        # Should not be in candidates since priority is nil
+        all_candidates = pool.candidates.joins(:client_proxy).pluck('ce_client_proxies.client_id')
+        expect(all_candidates).not_to include(adult_client.id)
+
+        # Should have a remove event logged
+        events = find_events_for_client(adult_client.id)
+        expect(events.size).to eq(2)
+        expect(events.first).to have_attributes(
+          event_name: 'add',
+          candidate_pool: pool,
+        )
+        expect(events.last).to have_attributes(
+          event_name: 'remove',
+          candidate_pool: pool,
+        )
+      end
+    end
+
+    context 'when processing in full refresh mode' do
+      it 'creates "add" events with snapshots for all eligible clients' do
+        expect do
+          generate_candidates(pool)
+        end.to change { Hmis::Ce::Match::CandidateEvent.count }.by(3) # 3 adult clients
+
+        # Verify each adult client has an add event with the correct data
+        adult_clients.each do |client|
+          events = find_events_for_client(client.id)
+          expect(events.size).to eq(1)
+          event = events.first
+          expect(event).to have_attributes(
+            event_name: 'add',
+            candidate_pool: pool,
+          )
+          expect(event.snapshot).to include('current_age' => client.age)
+        end
+      end
+    end
+
+    context 'event snapshot content' do
+      let(:priority_expression) { 'current_age + veteran_status' }
+
+      it 'includes relevant field values in the snapshot' do
+        veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
+
+        generate_candidates(pool)
+
+        events = find_events_for_client(veteran_client.id)
+        snapshot = events.first.snapshot
+
+        expect(snapshot).to include(
+          'current_age' => 20,
+          'veteran_status' => 1,
+        )
+      end
+    end
+
+    context 'when running engine multiple times without data changes' do
+      it 'correctly tracks operation types and only creates events for actual changes' do
+        adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+        veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
+
+        # First run - both clients should get 'add' events
+        generate_candidates(pool)
+
+        initial_adult_events = find_events_for_client(adult_client.id)
+        initial_veteran_events = find_events_for_client(veteran_client.id)
+
+        expect(initial_adult_events.size).to eq(1)
+        expect(initial_adult_events.first.event_name).to eq('add')
+        expect(initial_veteran_events.size).to eq(1)
+        expect(initial_veteran_events.first.event_name).to eq('add')
+
+        # Change only one client's data to affect priority score
+        adult_client.update!(DOB: 25.years.ago) # age changes from 20 to 25, affecting priority
+
+        # Second run - only the changed client should get an 'update' event
+        expect do
+          generate_candidates(pool)
+        end.to change { Hmis::Ce::Match::CandidateEvent.count }.by(1) # Only 1 new event
+
+        adult_events_after_update = find_events_for_client(adult_client.id)
+        veteran_events_after_update = find_events_for_client(veteran_client.id)
+
+        # Adult client should have 2 events: add + update
+        expect(adult_events_after_update.size).to eq(2)
+        expect(adult_events_after_update.map(&:event_name)).to eq(['add', 'update'])
+        expect(adult_events_after_update.last.snapshot).to include('current_age' => 25)
+
+        # Veteran client should still have only 1 event: add (no change, so no new event)
+        expect(veteran_events_after_update.size).to eq(1)
+        expect(veteran_events_after_update.first.event_name).to eq('add')
       end
     end
   end

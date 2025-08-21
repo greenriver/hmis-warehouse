@@ -73,12 +73,15 @@ module Hmis::WorkflowDefinition
 
       display_name = "#{name}#{script_label}#{trigger_descriptions}"
 
+      # Escape quotes for mermaid
+      sanitized_name = display_name.gsub('"', "'")
+
       if entrypoint? || endpoint?
-        "#{to_mermaid_node_id}((\"#{display_name}\"))"
+        "#{to_mermaid_node_id}((\"#{sanitized_name}\"))"
       elsif gateway?
-        "#{to_mermaid_node_id}{\"#{display_name}\"}"
+        "#{to_mermaid_node_id}{\"#{sanitized_name}\"}"
       else
-        "#{to_mermaid_node_id}(\"#{display_name}\")"
+        "#{to_mermaid_node_id}(\"#{sanitized_name}\")"
       end
     end
 

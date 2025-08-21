@@ -37,7 +37,7 @@ module Mutations
         raise 'not available' unless opportunity.open?
 
         instance = opportunity.workflow_template.instances.create!
-        referral = opportunity.referrals.create!(
+        referral = opportunity.referrals.originated_from_waitlist.create!(
           workflow_instance: instance,
           referred_by: current_user,
           client: client,

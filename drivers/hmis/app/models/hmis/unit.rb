@@ -87,6 +87,11 @@ class Hmis::Unit < Hmis::HmisBase
   # Filter scope
   scope :with_unit_type, ->(unit_type_ids) { where(unit_type_id: unit_type_ids) }
 
+  # unit is receiving referrals if it is unoccupied and has any opportunities that are receiving referrals
+  scope :receiving_referrals, -> do
+    active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.receiving_referrals)
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::UnitFilter.new(input).filter_scope(self)
   end

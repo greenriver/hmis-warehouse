@@ -715,7 +715,7 @@ class Role < ApplicationRecord
       },
       # DEPRECATED, superseded by can_view_assigned_reports in combination with access controls
       can_view_all_reports: {
-        description: 'Access to all reports, regardless the user who ran the report (Note: for Access Controls, this is superseded by "Can View Assigned Reports")',
+        description: 'Access to all reports, regardless the user who ran the report (Note: for Access Controls, this is superseded by "Can View Assigned Reports. Additionally, this does not grant access to reports, only allows a user to see reports previously run by other users.)',
         administrative: true,
         category: 'Reporting',
         sub_category: 'Report Access',

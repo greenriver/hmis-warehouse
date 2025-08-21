@@ -502,13 +502,16 @@ module Types
       scope.order(created_at: :desc, id: :asc)
     end
 
+    # Either legacy or coordinated entry referrals can use this query.
+    # Legacy is expected by default (for backwards compatibility); coordinated entry referrals must pass the referral_mode option
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
       argument :destination_project_id, ID, required: true
       argument :source_enrollment_id, ID, required: true
+      argument :referral_mode, type: HmisSchema::Enums::ReferralMode, required: false, default_value: 'legacy'
     end
-    def project_can_accept_referral(destination_project_id:, source_enrollment_id:)
+    def project_can_accept_referral(destination_project_id:, source_enrollment_id:, referral_mode:)
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
-      raise 'access denied' unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+      access_denied! unless policy_for(source_enrollment.project, policy_type: :hmis_project).can_send_out_direct_referral?
 
       # This doesn't check viewable_by! Users are able to ask whether the project receiving referrals can accept
       # this client, even if they don't otherwise have permission to view the project or its enrollments.
@@ -517,7 +520,9 @@ module Types
       # - it is only available to users who can manage outgoing referrals
       # - it doesn't expose any info about the actual enrollment(s), just a yes/no
       project = Hmis::Hud::Project.find_by(id: destination_project_id)
-      raise 'access denied' unless project.receives_referrals?
+
+      access_denied! if referral_mode == 'legacy' && !project.receives_legacy_referrals?
+      access_denied! if referral_mode == 'coordinated_entry' && !project.receives_direct_ce_referrals_from?(source_enrollment.project)
 
       # Can't accept the referral if any client in the household has an existing open enrollment in the project.
       personal_ids = source_enrollment.household_members.pluck(:PersonalID)
@@ -548,6 +553,32 @@ module Types
       raise unless Hmis::Ce.configuration.enabled?
 
       Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :direct_referral_form_definition, Types::Forms::FormDefinition, null: true do
+      argument :target_unit_group_id, ID, required: true
+    end
+    def direct_referral_form_definition(target_unit_group_id:)
+      access_denied! unless Hmis::Ce.configuration.enabled?
+
+      unit_group = Hmis::UnitGroup.find(target_unit_group_id)
+      target_project = unit_group.project # does not need to be viewable by current user
+      access_denied! unless target_project.receives_direct_ce_referrals?
+
+      workflow_template = unit_group.workflow_template
+      raise "Workflow template invalid or not found. unit group id: #{target_unit_group_id}" unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
+
+      entrypoint_ids = workflow_template.nodes.entrypoints.pluck(:id)
+      # Walk the graph, passing the entrypoints as starting points so they aren't included in the results
+      walk = workflow_template.graph.walk(entrypoint_ids: entrypoint_ids, stop_when: lambda(&:user_task?))
+      # Expect that exactly one user task is returned
+      raise "Direct referral workflow template not valid. unit group id: #{target_unit_group_id}" unless walk.count == 1
+
+      # Expect that user task to have a form definition
+      definition = walk.sole.form_definition
+      raise "Direct referral initiation node has no form definition. unit group id: #{target_unit_group_id}" unless definition.present?
+
+      definition
     end
 
     field :ce_opportunity, HmisSchema::CeOpportunity, null: true do

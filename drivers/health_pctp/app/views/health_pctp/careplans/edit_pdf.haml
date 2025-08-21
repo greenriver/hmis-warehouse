@@ -7,7 +7,7 @@
   %table
     %thead
       %tr
-        %th.pctc-print__table-title.pt-8 Enrollee Overview
+        %th.pctc-print__table-title.pt-4 Enrollee Overview
     %tbody
       %tr
         %th
@@ -22,7 +22,7 @@
   %table
     %thead
       %tr
-        %th.pctc-print__table-title.pt-8{colspan: 2}
+        %th.pctc-print__table-title.pt-4{colspan: 2}
           Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
     %tbody
       - self_ident_rows.each do |row|
@@ -37,7 +37,7 @@
   %table
     %thead
       %tr
-        %th.pctc-print__table-title.pt-8{colspan: 2}
+        %th.pctc-print__table-title.pt-4{colspan: 2}
           Accessibility Requirements and Equipment Needs
     %tbody
       %tr
@@ -66,10 +66,10 @@
 
 - need_cols = ['Domain', 'Identified Need or Condition', 'Start Date', 'End Date', 'Status']
 .pctc-print__table
-  %table.pt-8
+  %table.pt-4
     %thead
       %tr
-        %th.pctc-print__table-title.pt-8{colspan: need_cols.size}
+        %th.pctc-print__table-title.pt-4{colspan: need_cols.size}
           Identified Needs and Conditions
       %tr.pctc-print__table-header
         - need_cols.each do |col|
@@ -88,7 +88,7 @@
   %table
     %thead
       %tr
-        %th.pctc-print__table-title.pt-8{colspan: 2} Care Goals, Plans, and Barriers
+        %th.pctc-print__table-title.pt-4{colspan: 2} Care Goals, Plans, and Barriers
     %tbody
       %tr
         %th{colspan: 2}
@@ -121,7 +121,7 @@
   .pctc-print__table
     = render 'goal_card_pdf', goal: goal
 
-.pt-8.pctc-print__table
+.pt-4.pctc-print__table
   %table
     %thead
       %tr
@@ -139,7 +139,7 @@
         %td
           %div
             = @careplan.contingency_plan
-.pt-8.pctc-print__table
+.pt-4.pctc-print__table
   %table
     %thead
       %tr
@@ -160,7 +160,7 @@
         %td
           %div
             = @careplan.crisis_plan
-.pt-8.pctc-print__table
+.pt-4.pctc-print__table
   %table
     %thead
       %tr
@@ -175,7 +175,7 @@
           %div
             = @careplan.additional_concerns
 
-.pt-8.pctc-print__table
+.pt-4.pctc-print__table
   %table
     %thead
       %tr
@@ -190,7 +190,7 @@
             %i.icon-checkbox-unchecked
         %td
           The Assigned or Engaged Enrollee has been provided choice in CP services/programs during the care planning process
-        
+
       %tr
         %th
           - if @careplan.offered_provider_choice_care_planning
@@ -199,7 +199,7 @@
             %i.icon-checkbox-unchecked
         %td
           The Assigned or Engaged Enrollee has been provided choice in available CP providers during the care planning process
-        
+
       %tr
         %th
           - if @careplan.received_recommendations
@@ -208,7 +208,7 @@
             %i.icon-checkbox-unchecked
         %td
           The Engaged Enrollee was informed of recommended services for which they may be clinically eligible, subject to prior authorization where applicable
-        
+
       %tr
         %th
           - if @careplan.offered_services_choice_treatment_planning
@@ -217,9 +217,9 @@
             %i.icon-checkbox-unchecked
         %td
           The Engaged Enrollee has been provided choice in services and providers during the treatment planning process
-          
 
-.pt-8.pctc-print__table
+
+.pt-4.pctc-print__table
   %table
     %thead
       %tr
@@ -235,9 +235,9 @@
             %i.icon-checkbox-checked
           - else
             %i.icon-checkbox-unchecked
-        %td 
+        %td
           The right to approve the BH Person-Centered Treatment Plan
-        
+
       %tr
         %th
           - if @careplan.right_to_appeal
@@ -246,7 +246,7 @@
             %i.icon-checkbox-unchecked
         %td
           The right to appeal any denial, termination, suspension, or reduction in services through MassHealth or the ACO or MCO
-        
+
       %tr
         %th
           - if @careplan.right_to_change_cc
@@ -255,7 +255,7 @@
             %i.icon-checkbox-unchecked
         %td
           The right to request a different CP Care Coordinator from the Contractor
-        
+
       %tr
         %th
           - if @careplan.right_to_change_bhcp
@@ -263,7 +263,7 @@
           - else
             %i.icon-checkbox-unchecked
         %td The right to request a different BH CP
-        
+
       %tr
         %th
           - if @careplan.right_to_complain
@@ -272,7 +272,7 @@
             %i.icon-checkbox-unchecked
         %td
           The right to submit an internal Grievance to the Contractor and the Contractor's internal Grievances procedure
-        
+
       %tr
         %th
           - if @careplan.right_to_ombudsman

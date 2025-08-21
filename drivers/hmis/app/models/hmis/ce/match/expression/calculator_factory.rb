@@ -2,7 +2,7 @@
 
 require 'dentaku'
 
-module Hmis::Ce::Match
+module Hmis::Ce::Match::Expression
   module CalculatorFactory
     # calculator with custom functions
     def self.build

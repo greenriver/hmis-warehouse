@@ -17,6 +17,7 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_workflow_template_identifiers)).
       yield_self(&method(:on_current_task_since)).
+      yield_self(&method(:with_origin)).
       yield_self(&method(:clean_scope))
   end
 
@@ -53,6 +54,12 @@ class Hmis::Filter::CeReferralFilter < Hmis::Filter::BaseFilter
       filter_time = Time.zone.parse(input.on_current_task_since.to_s)
       scope.joins(:current_steps).
         where(wfe_step_t[:available_at].lt(filter_time))
+    end
+  end
+
+  def with_origin(scope)
+    with_filter(scope, :origin) do
+      scope.where(referral_origin: input.origin)
     end
   end
 end

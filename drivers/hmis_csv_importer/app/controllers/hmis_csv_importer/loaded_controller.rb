@@ -13,8 +13,11 @@ class HmisCsvImporter::LoadedController < ApplicationController
   def show
     log = HmisCsvImporter::Loader::LoaderLog.find(params[:id].to_i)
     @filename = log.summary.keys.detect { |v| v == params[:file] }
+
     @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
       find_by(loader_log_id: log.id)
+    redirect_to import_path(@import) and return unless @filename.present?
+
     @klass = HmisCsvImporter::Loader::LoaderLog.loadable_files(version(log, @import))[@filename]
 
     @data = @klass.where(loader_id: log.id).
