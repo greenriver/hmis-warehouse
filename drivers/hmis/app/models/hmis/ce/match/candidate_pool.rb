@@ -27,6 +27,7 @@
 #
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
+    # Bulk-managed, does not log to paper_trail
     self.table_name = 'ce_match_candidate_pools'
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy

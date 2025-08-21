@@ -6887,7 +6887,8 @@ CREATE TABLE public.ce_custom_referral_statuses (
     treatment character varying,
     data_source_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7023,7 +7024,8 @@ CREATE TABLE public.ce_match_rules (
     expression character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    priority_rank integer
+    priority_rank integer,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7062,7 +7064,8 @@ CREATE TABLE public.ce_opportunities (
     updated_at timestamp(6) without time zone NOT NULL,
     unit_id bigint NOT NULL,
     stale boolean DEFAULT false NOT NULL,
-    assignment_rules json DEFAULT '[]'::json NOT NULL
+    assignment_rules json DEFAULT '[]'::json NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7358,7 +7361,8 @@ CREATE TABLE public.ce_referral_notes (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     note text,
-    wfe_step_id bigint
+    wfe_step_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7431,7 +7435,8 @@ CREATE TABLE public.ce_referrals (
     updated_at timestamp(6) without time zone NOT NULL,
     source_enrollment_id bigint,
     custom_referral_status_id bigint,
-    referral_origin character varying NOT NULL
+    referral_origin character varying NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -24371,7 +24376,8 @@ CREATE TABLE public.hmis_unit_occupancy (
     id bigint NOT NULL,
     unit_id bigint NOT NULL,
     enrollment_id bigint NOT NULL,
-    hmis_service_id bigint
+    hmis_service_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -24404,7 +24410,8 @@ CREATE TABLE public.hmis_unit_types (
     updated_at timestamp(6) without time zone NOT NULL,
     description character varying,
     bed_type integer,
-    unit_size integer
+    unit_size integer,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32576,7 +32583,8 @@ CREATE TABLE public.wfd_flows (
     condition character varying,
     "position" integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32613,7 +32621,8 @@ CREATE TABLE public.wfd_nodes (
     form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32684,7 +32693,8 @@ CREATE TABLE public.wfd_templates (
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint NOT NULL
+    data_source_id bigint NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32750,7 +32760,8 @@ CREATE TABLE public.wfe_instances (
     id bigint NOT NULL,
     template_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32782,7 +32793,8 @@ CREATE TABLE public.wfe_step_assignments (
     step_id bigint NOT NULL,
     user_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32822,7 +32834,8 @@ CREATE TABLE public.wfe_steps (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     available_at timestamp(6) without time zone NOT NULL,
-    updated_by_id bigint
+    updated_by_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -75212,6 +75225,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250821182429'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),

@@ -6,6 +6,7 @@
 
 module Hmis
   class UnitType < HmisBase
+    acts_as_paranoid
     has_paper_trail
 
     has_many :units, class_name: 'Hmis::Unit'

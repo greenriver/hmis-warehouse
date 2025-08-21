@@ -6,6 +6,8 @@
 module Hmis::WorkflowDefinition
   class Template < GrdaWarehouseBase
     include SimpleStateMachine
+    has_paper_trail
+    acts_as_paranoid
 
     has_many :nodes, class_name: 'Hmis::WorkflowDefinition::Node', dependent: :destroy
     has_many :flows, class_name: 'Hmis::WorkflowDefinition::Flow', dependent: :destroy

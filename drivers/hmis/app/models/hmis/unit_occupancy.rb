@@ -6,6 +6,7 @@
 
 class Hmis::UnitOccupancy < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
+  acts_as_paranoid
   self.table_name = :hmis_unit_occupancy
   has_paper_trail(
     meta: {
