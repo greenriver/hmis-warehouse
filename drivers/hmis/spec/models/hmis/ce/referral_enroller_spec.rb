@@ -76,6 +76,24 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       end
     end
 
+    context 'when the referral already has a target enrollment' do
+      let!(:existing_target_enrollment) { create :hmis_hud_enrollment, project: project, client: client }
+
+      before do
+        referral.update!(target_enrollment: existing_target_enrollment)
+      end
+
+      it 'returns early without creating a new enrollment or raising an error' do
+        expect do
+          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+          referral.reload
+        end.to not_change(Hmis::Hud::Enrollment, :count).
+          and not_change(referral, :target_enrollment)
+
+        expect(referral.target_enrollment).to eq(existing_target_enrollment)
+      end
+    end
+
     context 'when the client already has a conflicting enrollment in the project' do
       let!(:existing_enrollment) { create :hmis_hud_enrollment, project: project, client: client }
 
