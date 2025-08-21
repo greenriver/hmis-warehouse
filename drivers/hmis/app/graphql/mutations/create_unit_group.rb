@@ -13,6 +13,11 @@ module Mutations
     field :unit_group, Types::HmisSchema::UnitGroup, null: true
 
     def resolve(input:)
+      errors = HmisErrors::Errors.new
+      errors.add :project_id, :required unless input.project_id.present?
+      errors.add :name, :required unless input.name.present?
+      return { errors: errors.errors } if errors.any?
+
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
 
       access_denied! unless project.present?
