@@ -35,11 +35,37 @@ class ActiveClientReport
   end
 
   def enrollment_scope
-    residential_service_history_source.joins(:client, :enrollment, :project).
-      with_service_between(start_date: @filter.start, end_date: @filter.end).
-      open_between(start_date: @filter.start, end_date: @filter.end).
+    base_enrollment_scope.
       distinct.
       order(first_date_in_program: :asc, last_date_in_program: :asc)
+  end
+
+  # Base scope used by both listing and counting, without DISTINCT/ORDER
+  def base_enrollment_scope
+    residential_service_history_source.
+      joins(:client, :enrollment, :project).
+      with_service_between_prefiltered(start_date: @filter.start, end_date: @filter.end, service_scope: :bed_night).
+      open_between(start_date: @filter.start, end_date: @filter.end)
+  end
+
+  # Efficient total enrollment count: COUNT(DISTINCT id) without ORDER BY
+  def enrollment_count
+    she_t = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+    base_enrollment_scope.
+      reselect(she_t[:id]).
+      distinct.
+      reorder(nil).
+      count
+  end
+
+  # Efficient unique client count over the same filters
+  def unique_client_count
+    she_t = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+    base_enrollment_scope.
+      reselect(she_t[:client_id]).
+      distinct.
+      reorder(nil).
+      count
   end
 
   def residential_service_history_source
