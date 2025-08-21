@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
-import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { TempusDominus, DateTime } from '@eonasdan/tempus-dominus';
+import moment from 'moment';
 
 // Connects to data-controller="datepicker"
 export default class extends Controller {
@@ -57,6 +58,12 @@ export default class extends Controller {
 
     const datepicker = new TempusDominus(this.element, finalOptions);
 
+    // Override the parseInput function to handle multiple date formats using moment.js
+    const originalParseInput = datepicker.dates.parseInput.bind(datepicker.dates);
+    datepicker.dates.parseInput = (value) => {
+      return this.parseFlexibleDateInput(value, originalParseInput);
+    };
+
     // Listen for when the picker is shown to add text labels
     this.element.addEventListener('show.td', (_event) => {
       // Use a small delay to ensure the DOM is fully rendered
@@ -64,6 +71,50 @@ export default class extends Controller {
         this.addButtonLabels();
       }, 100);
     });
+  }
+
+  parseFlexibleDateInput(value, originalParseInput) {
+    // If value is null, undefined, or empty, use original parsing
+    if (!value || value.toString().trim() === '') {
+      return originalParseInput(value);
+    }
+
+    const stringValue = value.toString().trim();
+
+    // Try the original parsing first (handles the expected format)
+    try {
+      const originalResult = originalParseInput(value);
+      if (originalResult && originalResult.isValid) {
+        return originalResult;
+      }
+    } catch (error) {
+      // Continue to moment.js parsing if original fails
+    }
+
+    // Use moment.js to parse common date formats
+    const commonFormats = [
+      'MM/DD/YYYY',
+      'M/D/YYYY',
+      'MM-DD-YYYY',
+      'M-D-YYYY',
+      'YYYY-MM-DD',
+      'YYYY/MM/DD',
+      'MM/DD/YY',
+      'M/D/YY',
+      'MM-DD-YY',
+      'M-D-YY'
+    ];
+
+    const momentDate = moment(stringValue, commonFormats, true); // strict parsing
+
+    if (momentDate.isValid()) {
+      // Convert moment date to TempusDominus DateTime using the imported DateTime class
+      return new DateTime(momentDate.toDate());
+    }
+
+    // If moment parsing fails, return the original parsing result
+    // This will let TempusDominus handle the error appropriately
+    return originalParseInput(value);
   }
 
   addButtonLabels() {
