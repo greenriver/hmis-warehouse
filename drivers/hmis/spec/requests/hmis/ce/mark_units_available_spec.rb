@@ -39,7 +39,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
                   id
                   expression
                 }
-                priorityScheme {
+                prioritySchemes {
                   id
                   expression
                 }

@@ -52,7 +52,7 @@ module HmisCsvTwentyTwentySix::Exporter
       tmp_export_table = temp_class.arel_table
       export_scope = hmis_class.joins(hmis_class.arel_table.join(tmp_export_table).on(hmis_class.arel_table[:id].eq(tmp_export_table[:source_id])).join_sources)
       note_involved_user_ids(scope: export_scope, export: export)
-      export_scope.preload([join_tables] + [:user]).distinct
+      export_scope.preload(*enrollment_related_preloads(export)).distinct
     end
 
     def self.transforms

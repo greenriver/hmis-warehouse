@@ -273,6 +273,13 @@ module HmisCsvImporter::Loader
                   details: "Line number: #{parser.lineno}",
                   source: row.to_csv,
                 }
+              elsif values.first.blank?
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Primary key is blank',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
               else
                 csv_data = values.to_csv
                 pg_conn.put_copy_data csv_data
@@ -306,7 +313,7 @@ module HmisCsvImporter::Loader
           stat['rps'] = (lines_loaded / bm.real).round
         end
         Rails.logger.debug do
-          # line_loaded comes from pg directly, if we dont trust it we can go back for a count
+          # line_loaded comes from pg directly, if we don't trust it we can go back for a count
           # if lines_loaded > 1
           #   scope = klass.where(data_source_id: data_source.id, loader_id: @loader_log.id)
           #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
@@ -373,6 +380,7 @@ module HmisCsvImporter::Loader
         data_source_id: data_source.id,
         started_at: Time.current,
         status: :started,
+        summary: {}, # Initialize empty summary hash
       )
     end
 
