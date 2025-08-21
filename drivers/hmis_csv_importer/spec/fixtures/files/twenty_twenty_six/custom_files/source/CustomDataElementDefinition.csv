@@ -1,0 +1,2 @@
+CustomDataElementDefinitionID,Key,RecordType,FieldType,Label,Repeats,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+ABC123,reason_for_exit,Enrollment,string,Reason for Exit,false,2015-09-10 13:37:31,2015-11-11 00:17:33,catalina,"",31a77b417911747e41ef9936f9a4b657

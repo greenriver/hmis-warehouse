@@ -20,10 +20,24 @@ module Types
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :workflow_template_identifier, String, null: true
     field :workflow_template_name, String, null: true
     # TODO(#7538) resolve default contacts for workflow template
+
+    def priority_schemes
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(object)
+    end
+
+    # TODO(#7957) - remove after deprecation period
+    def priority_scheme
+      priority_schemes&.first
+    end
+
+    def eligibility_requirements
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(object)
+    end
 
     def workflow_template_name
       object.workflow_template&.name

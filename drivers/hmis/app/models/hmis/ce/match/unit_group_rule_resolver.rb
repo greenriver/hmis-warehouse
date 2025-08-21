@@ -10,7 +10,7 @@ module Hmis::Ce::Match
     def key_for_unit_group(unit_group)
       rules = rules_for_unit_group(unit_group)
 
-      priority_expression = select_priority_expression(rules)
+      priority_expression = compose_priority_expression(rules)
       requirement_expression = compose_requirement_expression(rules)
 
       # a valid pool needs both a priority and a requirement expression
@@ -46,9 +46,12 @@ module Hmis::Ce::Match
       @all_rules ||= Hmis::Ce::Match::Rule.by_owner_precedence.preload(:owner).to_a
     end
 
-    def select_priority_expression(rules)
-      # The first priority scheme found is used, respecting owner precedence.
-      rules.detect(&:priority_scheme?)&.expression
+    # Transform multiple priority scheme rules into a single expression that returns a Dentaku array {item1, item2, ...}
+    def compose_priority_expression(rules)
+      priority_rules = Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(rules)
+      return if priority_rules.empty?
+
+      "{#{priority_rules.map(&:expression).join(', ')}}"
     end
 
     def compose_requirement_expression(rules)
