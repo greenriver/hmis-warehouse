@@ -30,9 +30,9 @@ RSpec.describe 'UpdateUnitGroup Mutation', type: :request do
   end
 
   let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_units, :can_view_units]) }
-  let!(:unit_group) { create(:hmis_unit_group, project: p1, name: 'Original Name', workflow_template: nil) }
-
   before(:each) { hmis_login(user) }
+
+  let!(:unit_group) { create(:hmis_unit_group, project: p1, name: 'Original Name', workflow_template: nil) }
 
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
   let(:base_input) do
@@ -95,6 +95,24 @@ RSpec.describe 'UpdateUnitGroup Mutation', type: :request do
 
         unit_group.reload
         expect(unit_group.workflow_template_identifier).to eq(existing_template.identifier)
+      end
+    end
+
+    context 'when workflow template is invalid' do
+      let(:other_ds_template) { create(:hmis_workflow_definition_template, identifier: 'other_ds') }
+
+      it 'prevents changing to invalid template' do
+        input = base_input.deep_merge(input: { workflowTemplateIdentifier: other_ds_template.identifier })
+
+        response, result = post_graphql(input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+
+        errors = result.dig('data', 'updateUnitGroup', 'errors')
+        expect(errors).not_to be_empty
+        expect(errors.first['fullMessage']).to eq('Workflow template identifier must belong to the same data source')
+
+        unit_group.reload
+        expect(unit_group.workflow_template_identifier).to eq(nil)
       end
     end
   end

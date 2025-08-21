@@ -21,7 +21,8 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
-      # Check if name is unique within the project (excluding current unit group)
+      # If name is being changed, check that it's still unique in the project.
+      # (This is also validated on the model, but we want to return a more user-friendly error message)
       if input.name.present? && input.name != unit_group.name
         # rubocop:disable Style/IfUnlessModifier
         if Hmis::UnitGroup.where(project_id: unit_group.project_id, name: input.name).exists?

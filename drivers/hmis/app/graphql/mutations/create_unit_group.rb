@@ -14,6 +14,8 @@ module Mutations
 
     def resolve(input:)
       errors = HmisErrors::Errors.new
+
+      # Explicitly add errors if required fields are missing. (They are not required on the UnitGroupInput type, which is also used for update)
       errors.add :project_id, :required unless input.project_id.present?
       errors.add :name, :required unless input.name.present?
       return { errors: errors.errors } if errors.any?
@@ -26,7 +28,6 @@ module Mutations
       # unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
       # raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
 
-      errors = HmisErrors::Errors.new
       # errors.add :count, :required unless input.count.present?
       # errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
       # errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
