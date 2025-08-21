@@ -1,5 +1,5 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_hashed_only_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
-  = render 'warehouse_reports/hmis_exports/shared_filter', f: f, include_hash_status: false
+  = render 'warehouse_reports/hmis_exports/shared_filter', f: f, include_hash_status: false, include_custom_files: false
 
 
   .well

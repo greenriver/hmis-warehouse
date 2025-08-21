@@ -7,7 +7,6 @@
 ###
 
 module HmisExternalApis
-  # todo @martha - need to filter out the authorization token from being logged
   ExternalApiResult = Struct.new(
     :body,
     :content_type,
