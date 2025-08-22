@@ -288,36 +288,26 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # Filter to rows that have at least one associated service whose date falls within [start_date, end_date] (inclusive).
-  #
-  # Why this shape?
-  # - By pushing the date window (and optional `service_scope`) into a derived
-  #   subquery and projecting only the join keys, the planner can first use the
-  #   index on `service_history_services.date` to build a small, deduplicated
-  #   set of matching `(service_history_enrollment_id, client_id)` pairs, and
-  #   then perform a narrow INNER JOIN back to enrollments.
-  #
-  # Performance characteristics
-  # - Typically reduces total work for large date ranges/high-volume services by
-  #   shrinking the join input and improving cardinality estimates.
-  # - DISTINCT on the subquery prevents row explosion and ensures each SHE row
-  #   matches at most once (same semantics as EXISTS: existence-only test).
-  #
-  # Semantics
-  # - No service columns are selected; if the caller needs service attributes,
-  #   prefer an explicit join to `ServiceHistoryService` instead of this scope.
+  # "service" means CLS for SO projects
   #
   scope :with_service_between, ->(start_date:, end_date:, service_scope: :current_scope) do
-    filtered = GrdaWarehouse::ServiceHistoryService.
+    where(
+      GrdaWarehouse::ServiceHistoryService.
       service_between(start_date: start_date, end_date: end_date, service_scope: service_scope).
-      select(:service_history_enrollment_id, :client_id).
-      distinct
-
-    join_sql = Arel.sql(<<~SQL.squish)
-      INNER JOIN (#{filtered.to_sql}) shs_filtered
-        ON shs_filtered.service_history_enrollment_id = #{table_name}.id
-       AND shs_filtered.client_id = #{table_name}.client_id
-    SQL
-    joins(join_sql)
+      where(
+        shs_t[:service_history_enrollment_id].eq(she_t[:id]).
+        and(shs_t[:client_id].eq(she_t[:client_id])),
+      ).
+      arel.exists,
+    )
+    # joins(:service_history_services).
+    #   merge(GrdaWarehouse::ServiceHistoryService.service_between(start_date: start_date, end_date: end_date, service_scope: service_scope))
+    # where(GrdaWarehouse::ServiceHistoryService.where(
+    #     shs_t[:service_history_enrollment_id].eq(arel_table[:id])
+    #   ).
+    #   where(date: start_date..end_date)).
+    #   send(service_scope).
+    #   exists)
   end
 
   scope :with_service, -> do
