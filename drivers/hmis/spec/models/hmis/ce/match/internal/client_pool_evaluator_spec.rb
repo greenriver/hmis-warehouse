@@ -57,6 +57,25 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
       end
     end
 
+    context 'when a client does not have values for prioritization' do
+      # simplified pool, prioritized by age. client should be excluded if age is missing.
+      let(:pool) do
+        create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: 'veteran_status = 1',
+          priority_expression: '{current_age}',
+        )
+      end
+      let!(:client_vet_missing_dob) { create(:hmis_hud_client_with_warehouse_client, dob: nil, veteran_status: 1) }
+      let!(:destination_client1) { client_vet_missing_dob.destination_client }
+
+      it 'returns a failed result' do
+        result = evaluator.call(destination_client1)
+
+        expect(result).to be_failed
+      end
+    end
+
     describe 'batch loading behavior' do
       # This test inspects the internal state of the evaluator to confirm that
       # it correctly pre-fetches and caches the required data for all clients in the batch.
