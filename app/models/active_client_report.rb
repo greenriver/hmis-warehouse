@@ -23,7 +23,10 @@
 # - ES-NBN enrollments with no services in-range are excluded.
 #
 # This logic is kept aligned with the "core-demographics" query behavior when "require services" is enabled.
-
+#
+# See also
+# * GrdaWarehouse::Tasks::ServiceHistory::Enrollment
+#
 class ActiveClientReport
   include ClientDetailReport
   include Filter::FilterScopes
@@ -62,7 +65,7 @@ class ActiveClientReport
   def base_enrollment_scope
     residential_service_history_source.
       joins(:client, :enrollment, :project).
-      with_service_between_prefiltered(start_date: @filter.start, end_date: @filter.end).
+      with_service_between(start_date: @filter.start, end_date: @filter.end).
       open_between(start_date: @filter.start, end_date: @filter.end)
   end
 
