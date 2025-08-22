@@ -49,7 +49,7 @@ module Hmis
           when 'gte' then numeric_value >= threshold
           when 'lt' then numeric_value < threshold
           when 'lte' then numeric_value <= threshold
-          else true # ignore unknown operators
+          else raise "Unknown operator #{operator} in scoring rule #{id}" # should not happen due to validations
           end
         end
       end
