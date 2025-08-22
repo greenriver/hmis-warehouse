@@ -12630,8 +12630,8 @@ type UnitGroup {
 
 input UnitGroupInput {
   ceEventType: EventType
-  name: String!
-  projectId: ID!
+  name: String
+  projectId: ID
   workflowTemplateIdentifier: String
 }
 
