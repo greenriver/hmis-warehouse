@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 import { TempusDominus, DateTime } from '@eonasdan/tempus-dominus';
-import moment from 'moment';
 
 // Connects to data-controller="datepicker"
 export default class extends Controller {
@@ -56,11 +55,11 @@ export default class extends Controller {
     // Merge the default options with the options from the HTML
     const finalOptions = { ...defaultOptions, ...elementOptions };
 
-    const datepicker = new TempusDominus(this.element, finalOptions);
+    this.datepicker = new TempusDominus(this.element, finalOptions);
 
-    // Override the parseInput function to handle multiple date formats using moment.js
-    const originalParseInput = datepicker.dates.parseInput.bind(datepicker.dates);
-    datepicker.dates.parseInput = (value) => {
+    // Override the parseInput function to handle multiple date formats using DateTime.fromString
+    const originalParseInput = this.datepicker.dates.parseInput.bind(this.datepicker.dates);
+    this.datepicker.dates.parseInput = (value) => {
       return this.parseFlexibleDateInput(value, originalParseInput);
     };
 
@@ -71,6 +70,13 @@ export default class extends Controller {
         this.addButtonLabels();
       }, 100);
     });
+  }
+
+  disconnect() {
+    if (this.datepicker && typeof this.datepicker.dispose === 'function') {
+      this.datepicker.dispose();
+      this.datepicker = null;
+    }
   }
 
   parseFlexibleDateInput(value, originalParseInput) {
@@ -88,31 +94,41 @@ export default class extends Controller {
         return originalResult;
       }
     } catch (error) {
-      // Continue to moment.js parsing if original fails
+      // Continue to flexible parsing if original fails
     }
 
-    // Use moment.js to parse common date formats
-    const commonFormats = [
-      'MM/DD/YYYY',
-      'M/D/YYYY',
-      'MM-DD-YYYY',
-      'M-D-YYYY',
-      'YYYY-MM-DD',
-      'YYYY/MM/DD',
-      'MM/DD/YY',
-      'M/D/YY',
-      'MM-DD-YY',
-      'M-D-YY'
+    // Use Tempus Dominus DateTime to parse common date formats
+    const formats = [
+      'MM/dd/yyyy',
+      'M/d/yyyy',
+      'MM-dd-yyyy',
+      'M-d-yyyy',
+      'yyyy-MM-dd',
+      'yyyy/MM/dd',
+      'MM/dd/yy',
+      'M/d/yy',
+      'MM-dd-yy',
+      'M-d-yy',
     ];
 
-    const momentDate = moment(stringValue, commonFormats, true); // strict parsing
+    let locale = 'en-US';
+    try {
+      const optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
+      if (optionsData.localization && optionsData.localization.locale) {
+        locale = optionsData.localization.locale;
+      }
+    } catch (_) { }
 
-    if (momentDate.isValid()) {
-      // Convert moment date to TempusDominus DateTime using the imported DateTime class
-      return new DateTime(momentDate.toDate());
+    for (const fmt of formats) {
+      try {
+        const dt = DateTime.fromString(stringValue, { locale, format: fmt });
+        if (dt && DateTime.isValid(dt)) {
+          return dt;
+        }
+      } catch (_) { }
     }
 
-    // If moment parsing fails, return the original parsing result
+    // If flexible parsing fails, return the original parsing result
     // This will let TempusDominus handle the error appropriately
     return originalParseInput(value);
   }
