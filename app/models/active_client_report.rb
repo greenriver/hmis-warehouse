@@ -6,20 +6,23 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# what is active?
-# * if you have an enrollment in EE, the client is active if the enrollment is active_client_report
-# * for nbn, you can have an open enrollment but no service, ignore those enrollments
-# * extrapolated - shs, is added based on a setting for street outreach, adding events for the entire month that the client was (see service history tasks/enrollment where SHS are generated)
 #
-# the intent is to include active clients within a time-range, where active is either based on services on EE. To be active, a client must have an enrollment and
+# ActiveClientReport
+# Determines which clients are "active" within a user-supplied date range for the
+# Client Details → Actives report.
 #
-# note inclusion of SHS is conditional based on a filter-option.
+# Definition of "active" (HUD Active Client Method 5, augmented for SO):
+# - The client has an enrollment that is open at any time between filter.start and filter.end; and
+# - The client has qualifying activity within the same window:
+#   - Emergency Shelter — Non-Bed-Night (ES-NBN): requires at least one service during the window.     Enrollments without services are excluded.
+#   - Street Outreach (SO): requires CLS present and valid
+#   - For other entry/exit projects types, only require entry/exit in the reporting window
 #
-# it aligns with core-demo query, as long as require services are set
-
-# hud has a concept of active-client for reporting.
-# we use method 5 augmented to support street outreach
-#  for street outreach, we remove invalid data: Street outreach must have CLS, ES-NBN must have service service. dates for those records must occur both within the enrollment and report range
+# Inclusion and exclusion rules:
+# - Qualifying events/CLS must fall within BOTH the enrollment dates and the report window.
+# - ES-NBN enrollments with no services in-range are excluded.
+#
+# This logic is kept aligned with the "core-demographics" query behavior when "require services" is enabled.
 
 class ActiveClientReport
   include ClientDetailReport
@@ -59,7 +62,7 @@ class ActiveClientReport
   def base_enrollment_scope
     residential_service_history_source.
       joins(:client, :enrollment, :project).
-      with_service_between_prefiltered(start_date: @filter.start, end_date: @filter.end, service_scope: :bed_night).
+      with_service_between_prefiltered(start_date: @filter.start, end_date: @filter.end).
       open_between(start_date: @filter.start, end_date: @filter.end)
   end
 

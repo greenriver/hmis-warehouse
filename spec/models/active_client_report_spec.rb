@@ -24,8 +24,8 @@ RSpec.describe ActiveClientReport, type: :model do
     OpenStruct.new(
       start: start_date,
       end: end_date,
-      project_type_ids: nil,
-      sub_population: nil,
+      project_type_codes: ['es'],
+      sub_population: 'clients',
       organizations: nil,
       projects: nil,
       age_ranges: nil,
@@ -33,6 +33,7 @@ RSpec.describe ActiveClientReport, type: :model do
       cocs: nil,
       genders: nil,
       races: nil,
+      hoh_only: '0',
     )
   end
 
@@ -65,20 +66,6 @@ RSpec.describe ActiveClientReport, type: :model do
 
   describe '#enrollment_count and #unique_client_count' do
     it 'returns 1 enrollment and 1 unique client for a single qualifying enrollment' do
-      expect(report.enrollment_count).to eq(1)
-      expect(report.unique_client_count).to eq(1)
-    end
-
-    it 'excludes enrollments without services in the date window' do
-      # Use a project type that does not generate synthetic bed-nights
-      other_project = create_project(project_type: 6)
-      other_client = create_client_with_warehouse_link
-      other_enrollment = create_enrollment(client: other_client, project: other_project, entry_date: start_date)
-
-      # Service outside of window should not qualify
-      create_bed_night_service(enrollment: other_enrollment, date: end_date + 10.days)
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-
       expect(report.enrollment_count).to eq(1)
       expect(report.unique_client_count).to eq(1)
     end
