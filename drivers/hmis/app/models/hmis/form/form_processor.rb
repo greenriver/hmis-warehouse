@@ -568,7 +568,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     # Validation errors encountered during form processing.
-    processing_errors = assessment.form_processor.processing_errors&.errors
+    processing_errors = @processing_errors&.errors
     errors.push(*processing_errors) if processing_errors&.any?
 
     errors.errors
