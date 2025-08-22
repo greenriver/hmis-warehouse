@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Users::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
   # Start the time log before other methods are called in the authentication stack so we can get the server begin time for the login attempt
@@ -85,12 +87,16 @@ class Users::SessionsController < Devise::SessionsController
     user_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
   end
 
-  # override devise to add 'allow_other_host: true' so we can redirect to okta
-  if ENV['OKTA_DOMAIN']
-    def respond_to_on_destroy
-      respond_to do |format|
-        format.all { head :no_content }
-        format.any(*navigational_formats) { redirect_to after_sign_out_path_for(resource_name), status: Devise.responder.redirect_status, allow_other_host: true }
+  # override devise to add 'allow_other_host: true' so we can redirect to okta or superset
+  def respond_to_on_destroy
+    respond_to do |format|
+      format.all { head :no_content }
+      format.any(*navigational_formats) do
+        redirect_to(
+          after_sign_out_path_for(resource_name),
+          status: Devise.responder.redirect_status,
+          allow_other_host: true,
+        )
       end
     end
   end

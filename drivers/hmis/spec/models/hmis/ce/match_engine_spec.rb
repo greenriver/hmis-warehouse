@@ -21,7 +21,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
   # Override in specific tests
   let(:requirement_expression) { 'TRUE' }
-  let(:priority_expression) { '0' }
+  let(:priority_expression) { '{0}' }
 
   def generate_candidates(pool, clients: nil)
     described_class.call(pool, clients: clients)
@@ -477,7 +477,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     include_context 'with demographic test clients'
 
     let(:requirement_expression) { 'current_age > 18' }
-    let(:priority_expression) { 'current_age' }
+    let(:priority_expression) { '{current_age}' }
     let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
 
     def find_events_for_client(client_id)
@@ -490,7 +490,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       it 'creates update events with new snapshot when client data changes but they remain eligible' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
         generate_candidates(pool) # Initial run
-        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(adult_client.age)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([adult_client.age])
 
         # Change data that affects priority score but not eligibility
         adult_client.update!(DOB: 30.years.ago) # current_age changes from 20 to 30
@@ -502,7 +502,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           candidate_pool: pool,
         )
         expect(events.last.snapshot).to include('current_age' => 30)
-        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(30)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([30])
       end
     end
 
@@ -531,7 +531,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'when client fails priority evaluation' do
-      let(:priority_expression) { 'IF(current_age > 18, current_age, NULL)' }
+      let(:priority_expression) { '{IF(current_age > 18, current_age, NULL)}' }
 
       it 'creates remove events for clients with nil priority scores' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
@@ -580,7 +580,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'event snapshot content' do
-      let(:priority_expression) { 'current_age + veteran_status' }
+      let(:priority_expression) { '{current_age, veteran_status}' }
 
       it 'includes relevant field values in the snapshot' do
         veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
@@ -633,6 +633,50 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         expect(veteran_events_after_update.size).to eq(1)
         expect(veteran_events_after_update.first.event_name).to eq('add')
       end
+    end
+  end
+
+  describe 'multiple priority expressions' do
+    include_context 'with demographic test clients'
+
+    let(:requirement_expression) { 'current_age > 18' }
+    let(:priority_expression) { '{current_age, veteran_status}' }
+    let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
+
+    it 'evaluates multiple priority expressions and stores them as an array' do
+      generate_candidates(pool)
+
+      # Get destination clients for easier access
+      senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
+      adult_veteran_dest_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
+      adult_non_veteran_dest_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+
+      # Check senior veteran client (68 years old, veteran)
+      senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(senior_veteran_candidate.priority_scores).to eq([68, 1])
+
+      # Check adult veteran client (20 years old, veteran)
+      adult_veteran_candidate = adult_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(adult_veteran_candidate.priority_scores).to eq([20, 1])
+
+      # Check adult non-veteran client (20 years old, non-veteran)
+      adult_non_veteran_candidate = adult_non_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(adult_non_veteran_candidate.priority_scores).to eq([20, 0])
+    end
+
+    it 'handles expressions with commas correctly' do
+      # Test that expressions containing commas don't break the parsing
+      pool_with_comma_expr = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: 'current_age > 18',
+        priority_expression: '{IF(current_age > 50, 100, 0), current_age, veteran_status}',
+      )
+
+      generate_candidates(pool_with_comma_expr)
+
+      senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
+      senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_with_comma_expr)
+      expect(senior_veteran_candidate.priority_scores).to eq([100, 68, 1])
     end
   end
 end

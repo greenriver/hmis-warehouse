@@ -3,7 +3,6 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   SuggestExtensions: false
   Exclude:
-    - "db/**/*"
     - "config/*"
     - "config/environments/**/*.rb"
     - "config/initializers/**/*.rb"
@@ -12,7 +11,14 @@ AllCops:
     - "bin/{rails,rake,bundle}"
     - "app/assets/**/*"
     - "bin/db_prep"
-
+    - "db/schema.rb"
+    - "db/**/schema.rb"
+    - "db/structure.rb"
+    - "db/**/structure.rb"
+    - "db/seeds.rb"
+    - "db/**/seeds.rb"
+    # Add other specific db files you want to exclude
+    # But DON'T exclude "db/**/*"
   Include:
     - "**/Rakefile"
     - "app/**/*.rb"

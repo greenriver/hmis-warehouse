@@ -15,6 +15,7 @@ module ExportHelper2026
                 :income_benefits, :services, :exits, :assessments,
                 :assessment_questions, :assessment_results, :events,
                 :current_living_situations, :ce_participations, :hmis_participations,
+                :custom_data_element_definitions, :custom_data_elements,
                 :project_class, :project_coc_class, :enrollment_class,
                 :client_class, :exit_class, :income_benefit_class
 
@@ -70,6 +71,25 @@ module ExportHelper2026
       @current_living_situations = FactoryBot.create_list :hud_current_living_situation, 5, data_source_id: @data_source.id
       @ce_participations = FactoryBot.create_list :hud_ce_participation, 5, data_source_id: @data_source.id
       @hmis_participations = FactoryBot.create_list :hud_hmis_participation, 5, data_source_id: @data_source.id
+
+      # Create custom data element definitions and elements
+      @custom_data_element_definitions = []
+      @custom_data_element_definitions << FactoryBot.create(
+        :hud_custom_data_element_definition,
+        :for_client,
+        data_source_id: @data_source.id,
+        UserID: @user.id.to_s,
+      )
+
+      @custom_data_elements = []
+      @custom_data_elements << FactoryBot.create(
+        :hud_custom_data_element,
+        :for_client,
+        custom_data_element_definition_id: @custom_data_element_definitions.first.id,
+        owner_id: @destination_clients.first.id,
+        data_source_id: @data_source.id,
+        UserID: @user.id.to_s,
+      )
 
       @project_class = HmisCsvTwentyTwentySix::Exporter::Project
       @project_coc_class = HmisCsvTwentyTwentySix::Exporter::ProjectCoc

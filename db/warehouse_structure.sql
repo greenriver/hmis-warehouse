@@ -6983,10 +6983,10 @@ ALTER SEQUENCE public.ce_match_candidate_pools_id_seq OWNED BY public.ce_match_c
 CREATE TABLE public.ce_match_candidates (
     id bigint NOT NULL,
     candidate_pool_id bigint NOT NULL,
-    priority_score integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    client_proxy_id bigint NOT NULL
+    client_proxy_id bigint NOT NULL,
+    priority_scores integer[]
 );
 
 
@@ -7022,7 +7022,8 @@ CREATE TABLE public.ce_match_rules (
     owner_id bigint NOT NULL,
     expression character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    priority_rank integer
 );
 
 
@@ -61931,6 +61932,13 @@ CREATE INDEX index_ce_match_candidates_on_client_proxy_id ON public.ce_match_can
 
 
 --
+-- Name: index_ce_match_candidates_on_priority_scores; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_match_candidates_on_priority_scores ON public.ce_match_candidates USING btree (priority_scores);
+
+
+--
 -- Name: index_ce_match_candidates_proxy_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61942,6 +61950,13 @@ CREATE UNIQUE INDEX index_ce_match_candidates_proxy_uniq ON public.ce_match_cand
 --
 
 CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_ce_match_rules_owner_priority_rank_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
 
 
 --
@@ -75268,6 +75283,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250804124243'),
 ('20250804122929'),
 ('20250803183312'),
+('20250731134651'),
 ('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),

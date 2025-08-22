@@ -127,7 +127,6 @@ module BostonHmis
     config.census = {}
     config.monthly_reports = {}
     config.hud_reports = {}
-    config.hmis_importers = []
     config.hmis_exporters = []
     config.synthetic_event_types = []
     config.synthetic_assessment_types = []
@@ -135,6 +134,7 @@ module BostonHmis
     config.patient_dashboards = []
     config.hmis_migrations = {}
     config.hmis_data_lakes = {}
+
     config.custom_imports = []
     config.supplemental_enrollment_importers = {}
     config.help_links = []
