@@ -14,17 +14,17 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
   let(:client) { create(:hmis_hud_client, dob: Date.current - 42.years, Woman: 1) }
 
   describe '#calculate_score' do
-    let!(:baseline_rule_1) { create(:ac_hmis_scoring_rule, algorithm: 'alt_aha_1') }
-    let!(:baseline_rule_2) { create(:ac_hmis_scoring_rule, algorithm: 'alt_aha_2') }
-    let!(:baseline_rule_3) { create(:ac_hmis_scoring_rule, algorithm: 'alt_aha_3') }
+    let!(:baseline_rule_1) { create(:hmis_scoring_rule, algorithm: 'alt_aha_1') }
+    let!(:baseline_rule_2) { create(:hmis_scoring_rule, algorithm: 'alt_aha_2') }
+    let!(:baseline_rule_3) { create(:hmis_scoring_rule, algorithm: 'alt_aha_3') }
 
     describe 'exact match rule' do
       let!(:exact_match_rule) do
         create(
-          :ac_hmis_scoring_rule,
+          :hmis_scoring_rule,
           link_id: 'question_exact',
           form_definition_identifier: 'test_form',
-          criteria_type: AcHmis::Scoring::Rule::EXACT_MATCH,
+          criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
           criteria_config: { 'match_value' => 'Yes' },
           weight: 0.5,
           algorithm: 'alt_aha_1',
@@ -43,7 +43,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
         calculator.calculate_score!
 
-        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        details = Hmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.5')
         expect(details['alt_aha_2']['raw_score']).to eq('0.0')
         expect(details['alt_aha_3']['raw_score']).to eq('0.0')
@@ -53,10 +53,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
     describe 'range rule' do
       let!(:range_rule) do
         create(
-          :ac_hmis_scoring_rule,
+          :hmis_scoring_rule,
           link_id: 'question_range',
           form_definition_identifier: 'test_form',
-          criteria_type: AcHmis::Scoring::Rule::RANGE,
+          criteria_type: Hmis::Scoring::Rule::RANGE,
           criteria_config: { 'gte' => 3 },
           weight: 0.3,
           algorithm: 'alt_aha_2',
@@ -75,7 +75,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
         calculator.calculate_score!
 
-        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        details = Hmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.0')
         expect(details['alt_aha_2']['raw_score']).to eq('0.3')
         expect(details['alt_aha_3']['raw_score']).to eq('0.0')
@@ -85,10 +85,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
     describe 'value rule' do
       let!(:value_rule) do
         create(
-          :ac_hmis_scoring_rule,
+          :hmis_scoring_rule,
           link_id: 'question_value',
           form_definition_identifier: 'test_form',
-          criteria_type: AcHmis::Scoring::Rule::VALUE,
+          criteria_type: Hmis::Scoring::Rule::VALUE,
           criteria_config: {},
           weight: 0.1,
           algorithm: 'alt_aha_3',
@@ -107,7 +107,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
         calculator.calculate_score!
 
-        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        details = Hmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.0')
         expect(details['alt_aha_2']['raw_score']).to eq('0.0')
         expect(details['alt_aha_3']['raw_score']).to eq('0.4')
@@ -117,10 +117,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
     describe 'include rule' do
       let!(:include_rule) do
         create(
-          :ac_hmis_scoring_rule,
+          :hmis_scoring_rule,
           link_id: 'question_include',
           form_definition_identifier: 'test_form',
-          criteria_type: AcHmis::Scoring::Rule::INCLUDE,
+          criteria_type: Hmis::Scoring::Rule::INCLUDE,
           criteria_config: { 'include' => 'option_b' },
           weight: 0.6,
           algorithm: 'alt_aha_1',
@@ -139,7 +139,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
         calculator.calculate_score!
 
-        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        details = Hmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.6')
         expect(details['alt_aha_2']['raw_score']).to eq('0.0')
         expect(details['alt_aha_3']['raw_score']).to eq('0.0')
@@ -157,7 +157,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
 
         calculator.calculate_score!
 
-        details = AcHmis::Scoring::CalculationLog.last.calculation_details
+        details = Hmis::Scoring::CalculationLog.last.calculation_details
         expect(details['alt_aha_1']['raw_score']).to eq('0.0')
         expect(details['alt_aha_2']['raw_score']).to eq('0.0')
         expect(details['alt_aha_3']['raw_score']).to eq('0.0')

@@ -27,7 +27,7 @@ module HmisExternalApis::AcHmis
       total_points = components.values.sum { |result| result[:points] + result[:intercept] }
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      calculation_log = AcHmis::Scoring::CalculationLog.new(
+      calculation_log = Hmis::Scoring::CalculationLog.new(
         namespace: ALT_AHA_NAMESPACE,
         final_score: alt_aha_score,
         calculation_details: { **components, total_points: total_points },
@@ -55,7 +55,7 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
-      rules_by_link_id = AcHmis::Scoring::Rule.
+      rules_by_link_id = Hmis::Scoring::Rule.
         for_form(@form_definition_identifier).
         for_algorithm(algorithm).
         group_by(&:link_id)

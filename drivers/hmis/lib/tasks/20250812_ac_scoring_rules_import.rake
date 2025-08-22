@@ -134,7 +134,7 @@ task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:
 
     link_ids.each do |link_id|
       begin
-        AcHmis::Scoring::Rule.create!(
+        Hmis::Scoring::Rule.create!(
           link_id: link_id,
           form_definition_identifier: form_definition_identifier,
           algorithm: algorithm,

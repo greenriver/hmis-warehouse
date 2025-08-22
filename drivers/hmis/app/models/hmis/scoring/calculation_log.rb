@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-module AcHmis
+module Hmis
   module Scoring
     class CalculationLog < ::GrdaWarehouseBase
       self.table_name = 'hmis_scoring_calculation_logs'

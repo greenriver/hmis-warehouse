@@ -24,7 +24,6 @@ module Types
     value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as vertical radio buttons', deprecation_reason: 'All radio buttons are now vertical'
     value 'SSN', 'SSN input component'
     value 'MINUTES_DURATION', 'Duration component with hours and minutes, value stored as minutes'
-    value 'ALT_AHA', 'Alt AHA component'
 
     # Display components
     value 'ALERT_INFO', 'Display text as an info alert'
@@ -35,6 +34,7 @@ module Types
     # Specialized input components
     value 'MCI', 'MCI linking component'
     value 'AHA', 'AHA component'
+    value 'ALT_AHA', 'Alt AHA component'
     value 'NAME', 'Client Name input'
     value 'ADDRESS', 'Client Address input'
     value 'PHONE', 'Phone number input for ContactPoint'

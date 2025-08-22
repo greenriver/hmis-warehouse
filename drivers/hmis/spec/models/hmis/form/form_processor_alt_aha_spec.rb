@@ -92,11 +92,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           assessment.form_processor.run!(user: hmis_user)
           assessment.save_not_in_progress
         end.to change(Hmis::Hud::CustomDataElement, :count).by(1).
-          and change(AcHmis::Scoring::CalculationLog, :count).by(1)
+          and change(Hmis::Scoring::CalculationLog, :count).by(1)
 
         cde = Hmis::Hud::CustomDataElement.of_type(cded).sole
         expect(cde.value_integer).to eq(6)
-        log = AcHmis::Scoring::CalculationLog.last
+        log = Hmis::Scoring::CalculationLog.last
         expect(log.namespace).to eq('alt_aha')
         expect(log.final_score).to eq(6)
         expect(log.owner).to eq(assessment) # Verify the calculation log is properly associated with the assessment
