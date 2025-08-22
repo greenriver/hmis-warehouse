@@ -20,20 +20,14 @@ RSpec.describe ActiveClientReport, type: :model do
   end
 
   let(:filter) do
-    # Minimal filter object with fields referenced by the report
-    OpenStruct.new(
+    # Minimal real filter instance aligned with application expectations
+    Filters::FilterBase.new(
       start: start_date,
       end: end_date,
-      project_type_codes: ['es'],
-      sub_population: 'clients',
-      organizations: nil,
-      projects: nil,
-      age_ranges: nil,
-      head_of_household: nil,
-      cocs: nil,
-      genders: nil,
-      races: nil,
-      hoh_only: '0',
+      project_type_codes: HudUtility2024.homeless_project_type_codes,
+      sub_population: :clients,
+      enforce_one_year_range: false,
+      require_service_during_range: true,
     )
   end
 
@@ -66,6 +60,25 @@ RSpec.describe ActiveClientReport, type: :model do
 
   describe '#enrollment_count and #unique_client_count' do
     it 'returns 1 enrollment and 1 unique client for a single qualifying enrollment' do
+      expect(report.enrollment_count).to eq(1)
+      expect(report.unique_client_count).to eq(1)
+    end
+
+    it 'excludes enrollments without services in the date window' do
+      # Use a project type that does not generate synthetic bed-nights
+      other_project = create_project(project_type: 4) # street outreach
+      other_client = create_client_with_warehouse_link
+      other_enrollment = create_enrollment(client: other_client, project: other_project, entry_date: start_date)
+      # note, a SO project must have at least one CLS record on any enrollment. Otherwise
+      # the SHS builder assumes the SO is actually EE and includes the client based on enrollment start date
+      create(
+        :hud_current_living_situation,
+        InformationDate: end_date + 1.day, # CLS is outside of report range
+        CurrentLivingSituation: HudUtility2026.homeless_situations(as: :current).first,
+        enrollment: other_enrollment,
+      )
+
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
       expect(report.enrollment_count).to eq(1)
       expect(report.unique_client_count).to eq(1)
     end

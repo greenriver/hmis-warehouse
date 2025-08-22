@@ -11,10 +11,11 @@
 # Determines which clients are "active" within a user-supplied date range for the
 # Client Details → Actives report.
 #
-# Definition of "active" (HUD Active Client Method 5, augmented for SO):
+# Definition of "active" (HUD Active Client Method 5, augmented for street outreach):
 # - The client has an enrollment that is open at any time between filter.start and filter.end; and
 # - The client has qualifying activity within the same window:
-#   - Emergency Shelter — Non-Bed-Night (ES-NBN): requires at least one service during the window.     Enrollments without services are excluded.
+#   - Emergency Shelter — Non-Bed-Night (ES-NBN): requires at least one service during the window.
+#     Enrollments without services are excluded.
 #   - Street Outreach (SO): requires CLS present and valid
 #   - For other entry/exit projects types, only require entry/exit in the reporting window
 #
