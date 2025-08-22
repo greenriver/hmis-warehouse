@@ -71,8 +71,14 @@ module Hmis::Ce
       # Uses the ?| operator to check if the array contains any of the filter values.
       array_condition = <<-SQL
         jsonb_typeof(latest_events.snapshot -> :key) = 'array' AND
-        (latest_events.snapshot -> :key)::jsonb ?| array[:values]
+        EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements_text((latest_events.snapshot -> :key)::jsonb) AS elem
+          WHERE elem::text IN (:values)
+        )
       SQL
+      # non-stringifying version:
+      # (latest_events.snapshot -> :key)::jsonb ?| array[:values]
 
       # Condition for single JSON values.
       # Uses the IN operator to check if the single value matches any of the filter values.

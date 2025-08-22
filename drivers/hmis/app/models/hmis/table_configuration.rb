@@ -1,5 +1,15 @@
 # frozen_string_literal: true
 
+###
+# This model represents a generic configuration for a specific table or set of tables in the application.
+#
+# Key Features:
+# - The `key` attribute identifies the table(s) this configuration applies to.
+# - The `owner` attribute optionally specifies a context for the configuration, such as a specific project or entity.
+#
+# Example:
+# - A record with `key: "waitlist", owner: project_1` provides the configuration for the waitlist table(s) within `project_1`.
+###
 class Hmis::TableConfiguration < Hmis::HmisBase
   CONSOLIDATED_WAITLIST = 'consolidated_waitlist'
   TABLE_KEYS = [
