@@ -539,9 +539,13 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     definition.validate_form_values(values)
   end
 
-  # Validate related records using custom AR Validators
+  # Collect errors that were generated during the form processor run:
+  # - validation errors from custom AR Validators on the related records
+  # - other validation errors surfaced during form processing
+  # (As opposed to the structural "form validation" errors that we collect prior to running the processors.)
+  # These errors are returned as validation errors because they could be fixable by the user.
   # @return [HmisError::Error] an array errors
-  def collect_record_validations(user: nil, household_members: nil)
+  def collect_processing_validations(user: nil, household_members: nil)
     # Collect ActiveRecord validations (as HmisErrors)
     errors = collect_active_record_errors
     # Collect validations on the Assessment Date (if this is an assessment form)
@@ -562,6 +566,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
       errors.push(*validator.hmis_validate(record, user: user, role: role)) if validator.present?
     end
+
+    # Validation errors encountered during form processing.
+    processing_errors = assessment.form_processor.processing_errors&.errors
+    errors.push(*processing_errors) if processing_errors&.any?
 
     errors.errors
   end

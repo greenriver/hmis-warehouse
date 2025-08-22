@@ -41,12 +41,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score!
-
-        details = Hmis::Scoring::CalculationLog.last.calculation_details
-        expect(details['alt_aha_1']['raw_score']).to eq('0.5')
-        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+        _score, log = calculator.calculate_score
+        expect(log.calculation_details['alt_aha_1']['raw_score']).to eq('0.5')
+        expect(log.calculation_details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_3']['raw_score']).to eq('0.0')
       end
     end
 
@@ -73,12 +71,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score!
-
-        details = Hmis::Scoring::CalculationLog.last.calculation_details
-        expect(details['alt_aha_1']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_2']['raw_score']).to eq('0.3')
-        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+        _score, log = calculator.calculate_score
+        expect(log.calculation_details['alt_aha_1']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_2']['raw_score']).to eq('0.3')
+        expect(log.calculation_details['alt_aha_3']['raw_score']).to eq('0.0')
       end
     end
 
@@ -105,12 +101,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score!
-
-        details = Hmis::Scoring::CalculationLog.last.calculation_details
-        expect(details['alt_aha_1']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_3']['raw_score']).to eq('0.4')
+        _score, log = calculator.calculate_score
+        expect(log.calculation_details['alt_aha_1']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_3']['raw_score']).to eq('0.4')
       end
     end
 
@@ -137,12 +131,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score!
-
-        details = Hmis::Scoring::CalculationLog.last.calculation_details
-        expect(details['alt_aha_1']['raw_score']).to eq('0.6')
-        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+        _score, log = calculator.calculate_score
+        expect(log.calculation_details['alt_aha_1']['raw_score']).to eq('0.6')
+        expect(log.calculation_details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_3']['raw_score']).to eq('0.0')
       end
 
       it 'does not score when array does not include target value' do
@@ -155,12 +147,10 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
           form_definition_identifier: 'test_form',
         )
 
-        calculator.calculate_score!
-
-        details = Hmis::Scoring::CalculationLog.last.calculation_details
-        expect(details['alt_aha_1']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_2']['raw_score']).to eq('0.0')
-        expect(details['alt_aha_3']['raw_score']).to eq('0.0')
+        _score, log = calculator.calculate_score
+        expect(log.calculation_details['alt_aha_1']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_2']['raw_score']).to eq('0.0')
+        expect(log.calculation_details['alt_aha_3']['raw_score']).to eq('0.0')
       end
     end
   end

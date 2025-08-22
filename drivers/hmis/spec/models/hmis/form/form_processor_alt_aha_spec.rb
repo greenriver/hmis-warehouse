@@ -20,7 +20,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     {
       item: [
         {
-          type: 'STRING',
+          type: 'INTEGER',
+          component: 'ALT_AHA',
           link_id: 'alt_aha_score',
           text: 'Alt AHA Score',
           mapping: {
@@ -99,7 +100,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         log = Hmis::Scoring::CalculationLog.last
         expect(log.namespace).to eq('alt_aha')
         expect(log.final_score).to eq(6)
-        expect(log.owner).to eq(assessment) # Verify the calculation log is properly associated with the assessment
+        expect(log.owner).to eq(enrollment)
       end
     end
   end
