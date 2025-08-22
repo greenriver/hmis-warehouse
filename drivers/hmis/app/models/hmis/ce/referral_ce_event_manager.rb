@@ -28,7 +28,7 @@ module Hmis::Ce
         event: determine_event_type,
         location_crisis_or_ph_housing: target_project.id, # TODO(#7954) add target project ID reference column to Event
         user: Hmis::Hud::User.from_user(message.user),
-        ce_referral_id: referral.id,
+        ce_referral: referral,
       )
     end
 

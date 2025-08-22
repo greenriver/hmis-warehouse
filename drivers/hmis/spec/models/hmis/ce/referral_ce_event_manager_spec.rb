@@ -141,6 +141,7 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
     current_step = engine.active_steps.sole
     engine.start_step!(current_step, user: hmis_user)
     engine.complete_step!(current_step, user: hmis_user, submitted_values: submitted_values)
+    referral.reload
   end
 
   describe 'side effect that creates an event' do
@@ -152,6 +153,7 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
         submit_current_step
         event = referral.source_enrollment.events.first
         expect(event.event).to eq(expected_event)
+        expect(referral.ce_event).to eq(event)
       end
     end
 
