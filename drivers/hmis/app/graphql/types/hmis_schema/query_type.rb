@@ -621,11 +621,24 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
-    field :ce_consolidated_waitlist, HmisSchema::CeConsolidatedWaitlist, null: false
-    def ce_consolidated_waitlist
+    field :table_config_lookup, Types::TableConfigLookup, null: false
+    def table_config_lookup
+      {}
+    end
+
+    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+      filters_argument HmisSchema::CeClient
+    end
+    def ce_clients(filters: nil)
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
-      {}
+      # TODO: add any visibility filtering beyond can_administrate_coordinated_entry?
+      scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
+        joins(:ce_match_candidates).
+        distinct.order(:id)
+
+      scope = scope.apply_filters(filters) if filters
+      scope
     end
 
     field :ce_client, HmisSchema::CeClient, null: true do |field|

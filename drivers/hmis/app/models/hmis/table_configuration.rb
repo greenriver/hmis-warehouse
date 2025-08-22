@@ -12,8 +12,10 @@
 ###
 class Hmis::TableConfiguration < Hmis::HmisBase
   CONSOLIDATED_WAITLIST = 'consolidated_waitlist'
+  OPPORTUNITY_WAITLIST = 'opportunity_waitlist'
   TABLE_KEYS = [
     CONSOLIDATED_WAITLIST,
+    OPPORTUNITY_WAITLIST,
   ].freeze
 
   belongs_to :owner, polymorphic: true, optional: true
@@ -34,8 +36,14 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     find_by(table_key: CONSOLIDATED_WAITLIST, data_source_id: data_source_id, owner: nil) # consolidated waitlist is global
   end
 
+  def self.for_unit_group_waitlist(unit_group:)
+    # TODO implement filtering to find "best" configuration based on owner specificity
+    find_by(table_key: OPPORTUNITY_WAITLIST, data_source_id: unit_group.data_source_id, owner: unit_group)
+  end
+
   private
 
+  # Example:
   # [
   #   {
   #     "key": "cde.custom_assessment.hna_ce_test_1_prioritization_score",
@@ -52,6 +60,7 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     errors.add(:columns, 'must be an array of hashes with keys "key" (string) and "label" (string)')
   end
 
+  # Example:
   # [
   #   {
   #     "key": "cde.custom_assessment.hna_ce_test_1_prioritization_score",

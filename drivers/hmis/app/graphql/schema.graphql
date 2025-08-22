@@ -788,19 +788,6 @@ type CeClientsPaginated {
   pagesCount: Int!
 }
 
-type CeConsolidatedWaitlist {
-  """
-  Clients who belong to at least one CE candidate pool
-  """
-  ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
-
-  """
-  Columns available in the consolidated waitlist
-  """
-  tableColumnConfigs: [TableColumnConfig!]!
-  tableFilterConfigs: [TableFilterConfig!]!
-}
-
 type CeCustomReferralStatus {
   id: ID!
   key: String!
@@ -9947,7 +9934,11 @@ type Query {
     """
     id: ID!
   ): CeClient
-  ceConsolidatedWaitlist: CeConsolidatedWaitlist!
+
+  """
+  Clients who belong to at least one CE candidate pool
+  """
+  ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
@@ -10095,6 +10086,7 @@ type Query {
   serviceType(id: ID!): ServiceType
   serviceTypes(filters: ServiceTypeFilterOptions, limit: Int, offset: Int): ServiceTypesPaginated!
   staticFormDefinition(role: StaticFormRole!): FormDefinition!
+  tableConfigLookup: TableConfigLookup!
   unit(id: ID!): Unit
   unitGroup(id: ID!): UnitGroup
 
@@ -12531,6 +12523,16 @@ enum TCellSourceViralLoadSource {
 type TableColumnConfig {
   key: String!
   label: String!
+}
+
+type TableConfig {
+  columns: [TableColumnConfig!]!
+  filters: [TableFilterConfig!]!
+}
+
+type TableConfigLookup {
+  consolidatedWaitlist: TableConfig
+  unitGroupWaitlist(unitGroupId: ID!): TableConfig
 }
 
 """

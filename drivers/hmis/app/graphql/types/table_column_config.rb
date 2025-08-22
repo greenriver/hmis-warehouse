@@ -9,6 +9,7 @@
 module Types
   class TableColumnConfig < Types::BaseObject
     skip_activity_log
+    # backed by Hmis::TableConfiguration#columns object
 
     field :key, String, null: false
     field :label, String, null: false
