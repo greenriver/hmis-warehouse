@@ -15,7 +15,7 @@ module Mutations
     def resolve(input:)
       errors = HmisErrors::Errors.new
 
-      # Explicitly add errors if required fields are missing. (They are not required on the UnitGroupInput type, which is also used for update)
+      # Explicitly add errors if required fields are missing. (They are not required on the UnitGroupInput type, since that is also used for update)
       errors.add :project_id, :required unless input.project_id.present?
       errors.add :name, :required unless input.name.present?
       return { errors: errors.errors } if errors.any?

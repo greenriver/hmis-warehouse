@@ -49,10 +49,10 @@ module Hmis::Ce
 
     def determine_event_type
       # Check if there's a configured ce_event_type on the unit group
-      unit_group = referral.opportunity&.unit&.unit_group # todo @martha - lot of questions here
+      unit_group = referral.opportunity.unit&.unit_group
       return unit_group.ce_event_type if unit_group&.ce_event_type.present?
 
-      # Fall back determining the event type based on the referral target project
+      # Fall back to determining the event type based on the referral target project
       project = referral.target_project
       event_type = HudUtility2026.project_to_ce_event_type(project)
       raise "Unable to determine CE Event Type for project type #{project.project_type} on project #{project.id} for referral #{referral.id}" unless event_type

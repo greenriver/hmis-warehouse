@@ -38,13 +38,6 @@ module Mutations
       end
       # rubocop:enable Style/IfUnlessModifier
 
-      # Prevent changing or clearing CE event type if one is already set
-      # rubocop:disable Style/IfUnlessModifier
-      if unit_group.ce_event_type.present? && input.ce_event_type != unit_group.ce_event_type
-        errors.add :ce_event_type, :invalid, message: 'cannot be changed once set'
-      end
-      # rubocop:enable Style/IfUnlessModifier
-
       return { errors: errors.errors } if errors.any?
 
       unit_group.assign_attributes(
