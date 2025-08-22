@@ -47,7 +47,7 @@ RSpec.describe Hmis::Ce::ClientProxy, type: :model do
 
   describe 'join_latest_event_per_candidate_pool scope' do
     let!(:client_proxy_1) { create(:hmis_ce_client_proxy) }
-    let!(:client_proxy_2) { create(:hmis_ce_client_proxy) } # needs candidates
+    let!(:client_proxy_2) { create(:hmis_ce_client_proxy) }
 
     let!(:candidate_pool_1) { create(:hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_1]) }
     let!(:candidate_pool_2) { create(:hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_1, client_proxy_2]) }
