@@ -17,6 +17,7 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   ].freeze
 
   belongs_to :owner, polymorphic: true, optional: true
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates :table_key, inclusion: { in: TABLE_KEYS }
   validates :table_key, presence: true, uniqueness: { scope: [:owner_type, :owner_id], message: 'must be unique per owner' }
