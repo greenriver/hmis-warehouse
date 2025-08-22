@@ -18,6 +18,9 @@ module Hmis::Ce
       enrollment = referral.source_enrollment
       raise 'Referral does not have a source enrollment' unless enrollment.present?
 
+      # If the referral already has a CE event, return early and don't raise
+      return if referral.ce_event.present?
+
       target_project = referral.target_project
 
       enrollment.events.create!(
@@ -25,14 +28,13 @@ module Hmis::Ce
         event: determine_event_type,
         location_crisis_or_ph_housing: target_project.id, # TODO(#7954) add target project ID reference column to Event
         user: Hmis::Hud::User.from_user(message.user),
+        ce_referral_id: referral.id,
       )
     end
 
     def set_ce_event_result(message) # rubocop:disable Naming/AccessorMethodName
-      enrollment = referral.source_enrollment
-      event_type = determine_event_type
-      event = enrollment.events.where(event: event_type).order(:date_created).last # TODO(#7954) add referral reference and use it to find the correct CE Event
-      raise "Expected to find CE event of type #{event_type} for enrollment #{enrollment.id}" unless event
+      event = referral.ce_event
+      raise "Expected to find CE event for referral #{referral.id}" unless event
 
       referral_result = message.params['referral_result']&.to_i
       raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtility2024.referral_results.keys.include?(referral_result)

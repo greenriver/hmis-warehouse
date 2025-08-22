@@ -2965,7 +2965,8 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ce_referral_id integer
 );
 
 
@@ -61035,6 +61036,13 @@ CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."
 
 
 --
+-- Name: index_Event_on_ce_referral_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
+
+
+--
 -- Name: index_Event_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75213,6 +75221,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250821194338'),
 ('20250820220743'),
 ('20250807112429'),
 ('20250804124300'),
