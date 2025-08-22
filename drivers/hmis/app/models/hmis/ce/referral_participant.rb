@@ -13,6 +13,8 @@
 module Hmis::Ce
   class ReferralParticipant < GrdaWarehouseBase
     has_paper_trail
+    acts_as_paranoid
+
     belongs_to :referral, class_name: 'Hmis::Ce::Referral'
     belongs_to :user, class_name: 'Hmis::User'
     belongs_to :swimlane, class_name: 'Hmis::WorkflowDefinition::Swimlane'

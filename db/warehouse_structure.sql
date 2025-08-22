@@ -7395,7 +7395,8 @@ CREATE TABLE public.ce_referral_participants (
     user_id bigint NOT NULL,
     swimlane_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32654,7 +32655,8 @@ CREATE TABLE public.wfd_swimlanes (
     template_id bigint NOT NULL,
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -61862,7 +61864,7 @@ CREATE INDEX index_ce_custom_referral_statuses_on_data_source_id ON public.ce_cu
 -- Name: index_ce_custom_referral_statuses_on_key_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id);
+CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -61918,7 +61920,7 @@ CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree 
 -- Name: index_ce_match_rules_owner_priority_rank_unique; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
+CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE (((rule_type)::text = 'priority_scheme'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -71249,7 +71251,7 @@ CREATE INDEX index_talentlms_logins_on_user_id ON public.talentlms_logins USING 
 -- Name: index_templates_on_identifier_published; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE ((status)::text = 'published'::text);
+CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -71578,7 +71580,7 @@ CREATE INDEX index_weather_on_url ON public.weather USING btree (url);
 -- Name: index_wfd_flows_on_source_node_id_and_target_node_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id);
+CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -71662,7 +71664,7 @@ CREATE INDEX index_wfe_step_assignments_on_step_id ON public.wfe_step_assignment
 -- Name: index_wfe_step_assignments_on_user_id_and_step_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id);
+CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -71683,7 +71685,7 @@ CREATE INDEX index_wfe_steps_on_instance_id ON public.wfe_steps USING btree (ins
 -- Name: index_wfe_steps_on_instance_id_and_node_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id);
+CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id) WHERE (deleted_at IS NULL);
 
 
 --
