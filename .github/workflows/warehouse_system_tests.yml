@@ -159,7 +159,7 @@ jobs:
           CHROME_URL: http://chrome:3333
           TODO_OR_DIE_LOG_ONLY: true
         run:
-          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/system/**/ --tag type:rails_system
+          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/system/**/" --tag type:rails_system
 
       - name: Archive artifacts
         if: always()
