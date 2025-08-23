@@ -1167,16 +1167,6 @@ module HmisStructure::Enrollment
           MentalHealthConsultation: {
             type: :integer,
           },
-          TranslationNeeded: {
-            type: :integer,
-          },
-          PreferredLanguage: {
-            type: :integer,
-          },
-          PreferredLanguageDifferent: {
-            type: :string,
-            limit: 100,
-          },
           DateCreated: {
             type: :datetime,
             null: false,

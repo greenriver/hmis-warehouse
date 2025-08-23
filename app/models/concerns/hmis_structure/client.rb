@@ -18,6 +18,9 @@ module HmisStructure::Client
     self.additional_upsert_columns = [:demographic_dirty]
     acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
 
+    # HUD removed an e in FY2026, rather than change the column name, we'll alias it
+    alias_attribute :HispanicLatinao, :HispanicLatinaeo
+
     pii_attr :SSN
     pii_attr :FirstName
     pii_attr :MiddleName
@@ -548,7 +551,7 @@ module HmisStructure::Client
             type: :integer,
             null: false,
           },
-          HispanicLatinaeo: {
+          HispanicLatinao: {
             type: :integer,
             null: false,
           },

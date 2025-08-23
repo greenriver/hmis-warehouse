@@ -11,6 +11,7 @@ module HudTwentyTwentyFourToTwentyTwentySix::Client
     def self.transforms(csv: false, db: false, references:) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
       [
         HudTwentyTwentyFourToTwentyTwentySix::Client::AddNewColumns,
+        HudTwentyTwentyFourToTwentyTwentySix::Client::RenameColumns,
       ]
     end
 
