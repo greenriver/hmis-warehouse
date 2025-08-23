@@ -88,4 +88,9 @@ Rails.application.configure do
   routes.default_url_options = { host: ENV['FQDN'] }
 
   config.force_ssl = false
+
+  # Enable asset compilation for system tests
+  config.assets.compile = true
+  config.assets.check_precompiled_asset = false
+  config.assets.digest = false
 end
