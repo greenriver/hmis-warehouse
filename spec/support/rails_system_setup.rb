@@ -14,7 +14,7 @@ if rails_system_enabled
 
   # Configure Capybara for standard Rails testing
   Capybara.configure do |config|
-    config.default_max_wait_time = 15 # Increased to match driver timeout
+    config.default_max_wait_time = ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 15).to_i # Configurable to match driver timeout
     config.default_normalize_ws = true
     config.ignore_hidden_elements = true
     config.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
@@ -27,8 +27,8 @@ if rails_system_enabled
       window_size: [1200, 800],
       headless: ENV.fetch('CI', 'true') == 'true',
       js_errors: false, # More lenient for standard Rails apps
-      timeout: 15,           # Increased timeout for slow asset loading
-      process_timeout: 30,   # Increased process timeout
+      timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 15).to_i,           # Configurable timeout for slow asset loading
+      process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 30).to_i,   # Configurable process timeout
       pending_connection_errors: false, # Ignore pending connection errors
       browser_options: {
         'no-sandbox' => nil,
