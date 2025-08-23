@@ -17,7 +17,7 @@ if rails_system_enabled
     config.default_max_wait_time = 15 # Increased to match driver timeout
     config.default_normalize_ws = true
     config.ignore_hidden_elements = true
-    config.save_path = './tmp/capybara'
+    config.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
   end
 
   # Register drivers for Rails tests - fallback to rack_test if Chrome not available
@@ -142,6 +142,6 @@ RSpec.configure do |config|
 
   # Create screenshots directory
   config.before(:suite) do
-    FileUtils.mkdir_p('tmp/screenshots') if rails_system_enabled
+    FileUtils.mkdir_p('tmp/capybara/screenshots/') if rails_system_enabled
   end
 end
