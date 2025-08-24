@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 ###
@@ -18,6 +24,15 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     OPPORTUNITY_WAITLIST,
   ].freeze
 
+  COLUMN_TYPES = [
+    'string',
+    # add other types here, like 'date'
+  ].freeze
+  FILTER_TYPES = [
+    'select',
+    # add other types here, like 'date'
+  ].freeze
+
   belongs_to :owner, polymorphic: true, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -26,11 +41,6 @@ class Hmis::TableConfiguration < Hmis::HmisBase
 
   validate :validate_columns_shape
   validate :validate_filters_shape
-
-  FILTER_TYPES = [
-    'dropdown',
-    'date',
-  ].freeze
 
   def self.for_consolidated_waitlist(data_source_id:)
     find_by(table_key: CONSOLIDATED_WAITLIST, data_source_id: data_source_id, owner: nil) # consolidated waitlist is global
@@ -47,17 +57,24 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   # [
   #   {
   #     "key": "cde.custom_assessment.hna_ce_test_1_prioritization_score",
+  #     "type": "string",
   #     "label": "My Score"
   #   },
   #   {
   #     "key": "cde.custom_assessment.hna_ce_test_1_household_type",
+  #     "type": "string",
   #     "label": "Household Type"
   #   }
   # ]
   def validate_columns_shape
-    return if columns.is_a?(Array) && columns.all? { |col| col.is_a?(Hash) && col.key?('key') && col.key?('label') && col['key'].is_a?(String) && col['label'].is_a?(String) }
+    return if columns.is_a?(Array) && columns.all? do |col|
+      col.is_a?(Hash) &&
+        col.key?('key') && col['key'].is_a?(String) &&
+        col.key?('label') && col['label'].is_a?(String) &&
+        col.key?('type') && col['type'].is_a?(String) && COLUMN_TYPES.include?(col['type'])
+    end
 
-    errors.add(:columns, 'must be an array of hashes with keys "key" (string) and "label" (string)')
+    errors.add(:columns, 'must be an array of hashes with keys "key" (string), "label" (string), and "type" (valid column type)')
   end
 
   # Example:
@@ -65,6 +82,7 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   #   {
   #     "key": "cde.custom_assessment.hna_ce_test_1_prioritization_score",
   #     "label": "My Score",
+  #     "type": "select",
   #     "options": [
   #       { "code": "1"},
   #       { "code": "2"},
@@ -103,10 +121,10 @@ class Hmis::TableConfiguration < Hmis::HmisBase
         next
       end
 
-      next unless filter['type'] == 'dropdown'
+      next unless filter['type'] == 'select'
 
       unless filter.key?('options') && filter['options'].is_a?(Array)
-        errors.add(:filters, 'dropdown filters must have an "options" array')
+        errors.add(:filters, 'select filters must have an "options" array')
         next
       end
 
