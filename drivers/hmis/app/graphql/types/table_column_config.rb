@@ -13,5 +13,6 @@ module Types
 
     field :key, String, null: false
     field :label, String, null: false
+    field :type, Types::TableColumnConfigType, null: false
   end
 end

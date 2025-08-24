@@ -17,11 +17,9 @@
 # - A record with `key: "waitlist", owner: project_1` provides the configuration for the waitlist table(s) within `project_1`.
 ###
 class Hmis::TableConfiguration < Hmis::HmisBase
-  CONSOLIDATED_WAITLIST = 'consolidated_waitlist'
-  OPPORTUNITY_WAITLIST = 'opportunity_waitlist'
+  CE_WAITLIST = 'ce_waitlist'
   TABLE_KEYS = [
-    CONSOLIDATED_WAITLIST,
-    OPPORTUNITY_WAITLIST,
+    CE_WAITLIST,
   ].freeze
 
   COLUMN_TYPES = [
@@ -42,14 +40,7 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   validate :validate_columns_shape
   validate :validate_filters_shape
 
-  def self.for_consolidated_waitlist(data_source_id:)
-    find_by(table_key: CONSOLIDATED_WAITLIST, data_source_id: data_source_id, owner: nil) # consolidated waitlist is global
-  end
-
-  def self.for_unit_group_waitlist(unit_group:)
-    # TODO implement filtering to find "best" configuration based on owner specificity
-    find_by(table_key: OPPORTUNITY_WAITLIST, data_source_id: unit_group.data_source_id, owner: unit_group)
-  end
+  scope :for_ce_waitlist, -> { where(table_key: CE_WAITLIST) }
 
   private
 

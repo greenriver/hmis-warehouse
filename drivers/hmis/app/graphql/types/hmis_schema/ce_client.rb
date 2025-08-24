@@ -21,7 +21,7 @@ module Types
     field :source_client_ids, [ID], null: false, description: 'IDs of the source clients associated with this client that belong to this HMIS data source' # fixme: using this for linking, but really we would need to check which of these clients are viewable
     field :client_name, String, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
-    field :aggregated_client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregated client attributes from all candidate pools'
+    field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregation of most recent snapshots from all candidate pools this client belongs to'
     field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
 
     # CE Admins only, for now. Expand if showing on Client dashboard?
@@ -55,7 +55,7 @@ module Types
 
     # Aggregate the most recent eligibility/prioritization attributes across all candidate pools the client is in.
     # Sort by event date before merging, so that the most recently calculated attributes are favored
-    def aggregated_client_attributes
+    def client_attributes
       events = load_ar_association(object, :ce_match_candidate_events)
       events.group_by(&:candidate_pool_id).values.
         map { |arr| arr.max_by(&:created_at) }.

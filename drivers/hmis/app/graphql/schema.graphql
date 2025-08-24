@@ -728,13 +728,17 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   """
+  Most recent snapshot of client attributes
+  """
+  clientAttributes: JSON!
+
+  """
   Masked as "Candidate 123" unless the user has permission to view
   """
   clientName: String!
   destinationClientId: ID!
   enrollments(limit: Int, offset: Int): CeReferralSourceEnrollmentsPaginated!
   id: ID!
-  priorityScore: Int! @deprecated(reason: "Replaced by priorityScores")
   priorityScores: [Int!]!
 }
 
@@ -754,9 +758,9 @@ ClientProxy. Underlying client record is Destination Client.
 """
 type CeClient {
   """
-  Aggregated client attributes from all candidate pools
+  Aggregation of most recent snapshots from all candidate pools this client belongs to
   """
-  aggregatedClientAttributes: JSON!
+  clientAttributes: JSON!
   clientName: String!
   destinationClientId: ID!
 
@@ -12523,6 +12527,12 @@ enum TCellSourceViralLoadSource {
 type TableColumnConfig {
   key: String!
   label: String!
+  type: TableColumnConfigType!
+}
+
+enum TableColumnConfigType {
+  DATE
+  STRING
 }
 
 type TableConfig {
