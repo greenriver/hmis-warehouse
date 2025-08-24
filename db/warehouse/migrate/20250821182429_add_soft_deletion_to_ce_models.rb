@@ -20,7 +20,7 @@ class AddSoftDeletionToCeModels < ActiveRecord::Migration[7.1]
       # Adjust unique indexes to respect soft deletion by scoping to non-deleted rows
       unique_indexes.each do |spec|
         remove_index spec[:table], name: spec[:name]
-        where_clause = [spec[:original_where], "deleted_at IS NULL"].compact.join(" AND ")
+        where_clause = [spec[:original_where], 'deleted_at IS NULL'].compact.join(' AND ')
         add_index spec[:table], spec[:columns], unique: true, where: where_clause, name: spec[:name]
       end
     end

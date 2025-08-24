@@ -22,11 +22,14 @@ RSpec.shared_examples 'versioned model' do
   include_context 'with paper trail'
 
   it 'creates versions on update and destroy' do
-    record = defined?(build_record) ? instance_exec(&build_record) : raise('define let(:build_record) to use versioned model shared examples')
-    updater = defined?(update_attributes_for_versioning) ? update_attributes_for_versioning : nil
+    raise('define let(:build_record) to use versioned model shared examples') unless defined?(build_record)
+
+    record = instance_exec(&build_record)
+    updater = update_attributes_for_versioning if defined?(update_attributes_for_versioning)
     raise('define let(:update_attributes_for_versioning) to specify an attribute change for versioning') unless updater.respond_to?(:call)
 
     expect { updater.call(record) }.to change { record.versions.size }.by(1)
-    expect { record.destroy }.to change { GrdaWarehouse::Version.where(item_type: record.class.name, item_id: record.id).count }.by(1)
+    # Use the association to avoid STI/base-class item_type mismatches
+    expect { record.destroy }.to change { record.versions.size }.by(1)
   end
 end

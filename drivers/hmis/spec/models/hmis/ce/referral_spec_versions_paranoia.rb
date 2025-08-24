@@ -1,18 +1,17 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../support/shared_examples/versioning_and_paranoia'
+require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
-RSpec.describe Hmis::UnitOccupancy, type: :model do
+RSpec.describe Hmis::Ce::Referral, type: :model do
   include_context 'hmis base setup'
-  let(:unit2) { create :hmis_unit }
 
   let(:build_record) do
-    -> { create(:hmis_unit_occupancy) }
+    -> { create(:hmis_ce_referral, data_source: ds1) }
   end
 
   let(:update_attributes_for_versioning) do
-    ->(record) { record.update!(unit_id: unit2.id) }
+    ->(record) { record.update!(referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN) }
   end
 
   describe 'paranoia' do

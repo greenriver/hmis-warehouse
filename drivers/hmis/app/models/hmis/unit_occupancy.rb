@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -43,6 +45,6 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
   end
 
   class << self
-    alias active_on active
+    alias_method :active_on, :active
   end
 end

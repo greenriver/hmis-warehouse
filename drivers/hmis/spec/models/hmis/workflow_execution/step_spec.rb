@@ -1,18 +1,17 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../support/shared_examples/versioning_and_paranoia'
+require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
-RSpec.describe Hmis::UnitOccupancy, type: :model do
+RSpec.describe Hmis::WorkflowExecution::Step, type: :model do
   include_context 'hmis base setup'
-  let(:unit2) { create :hmis_unit }
 
   let(:build_record) do
-    -> { create(:hmis_unit_occupancy) }
+    -> { create(:hmis_wfe_step) }
   end
 
   let(:update_attributes_for_versioning) do
-    ->(record) { record.update!(unit_id: unit2.id) }
+    ->(record) { record.update!(available_at: Time.current + 5.minutes) }
   end
 
   describe 'paranoia' do
