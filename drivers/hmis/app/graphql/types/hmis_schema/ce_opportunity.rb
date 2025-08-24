@@ -13,6 +13,7 @@ module Types
     field :status, HmisSchema::Enums::CeOpportunityStatus, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
+    # TODO: add support for filters (just text search for now?)
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project
@@ -50,11 +51,6 @@ module Types
       Hmis::Ce::Match::Candidate.for_opportunity(object).find_by(id: id)
     end
 
-    # TODO:
-    # - move out of opportunity onto unit group. should be able to resolve waitlist for unit group regardless of vacancies.
-    # - add support for search
-    # - add support for dynamic column configuration
-    # - add support for dynamic filter configuration (maybe)
     def candidates # not for batch
       return Hmis::Ce::Match::Candidate.none unless policy_for(object, policy_type: :ce_opportunity).can_view_candidates?
 
