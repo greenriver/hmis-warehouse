@@ -66293,6 +66293,13 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public
 
 
 --
+-- Name: index_hmis_table_configurations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_table_configurations_on_data_source_id ON public.hmis_table_configurations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_table_configurations_on_key_owner_and_source; Type: INDEX; Schema: public; Owner: -
 --
 

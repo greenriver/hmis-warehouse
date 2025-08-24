@@ -25,7 +25,7 @@ module Hmis::Ce
     scope :for_warehouse_clients, -> { where(client_type: GrdaWarehouse::Hud::Client.sti_name) }
 
     scope :matching_search_term, ->(search_term) do
-      search_term.strip!
+      search_term = search_term.strip
 
       cp_t = Hmis::Ce::ClientProxy.arel_table
       c_t = GrdaWarehouse::Hud::Client.arel_table
