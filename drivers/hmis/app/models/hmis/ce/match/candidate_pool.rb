@@ -37,6 +37,10 @@ module Hmis::Ce::Match
 
     attr_readonly :requirement_expression, :priority_expression
 
+    # Clean up the link from soft-deleted associations before deleting the pool. This avoids
+    # foreign key constraint violations
+    before_destroy :nullify_deleted_associations
+
     # pools for active opportunities
     scope :active, -> {
       active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
@@ -116,6 +120,17 @@ module Hmis::Ce::Match
     def lock_for_processing(timeout_seconds:, &block)
       lock_name = "hmis-ce_pool-#{id}"
       ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds, &block)
+    end
+
+    protected
+
+    def nullify_deleted_associations
+      [
+        Hmis::Ce::Opportunity,
+        Hmis::UnitGroup,
+      ].each do |model|
+        model.only_deleted.where(candidate_pool_id: id).update_all(candidate_pool_id: nil)
+      end
     end
   end
 end
