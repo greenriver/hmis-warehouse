@@ -17,6 +17,7 @@
 #
 # See ./README_FOR_CE_PROCESSING.md
 class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
+  # Bulk-managed, does not log to paper_trail
   self.table_name = 'hmis_ce_change_markers'
 
   # trackable may be a destination client or pool
