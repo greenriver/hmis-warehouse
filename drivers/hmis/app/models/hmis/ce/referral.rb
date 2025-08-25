@@ -17,6 +17,7 @@ module Hmis::Ce
     include SimpleStateMachine
 
     has_paper_trail
+    acts_as_paranoid
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'

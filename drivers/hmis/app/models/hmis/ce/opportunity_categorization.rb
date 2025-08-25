@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+#
+# DEPRECATED
+#
 # join table between opportunities and categories
 module Hmis::Ce
   class OpportunityCategorization < GrdaWarehouseBase

@@ -4,6 +4,9 @@
 # Nodes are the building blocks of a workflow template and represent points where work is performed, decisions are made, or events occur.
 module Hmis::WorkflowDefinition
   class Node < GrdaWarehouseBase
+    has_paper_trail
+    acts_as_paranoid
+
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
     has_many :outflows, class_name: 'Hmis::WorkflowDefinition::Flow', foreign_key: 'source_node_id', dependent: :destroy
     has_many :inflows, class_name: 'Hmis::WorkflowDefinition::Flow', foreign_key: 'target_node_id', dependent: :destroy

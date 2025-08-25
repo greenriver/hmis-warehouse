@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -6888,7 +6888,8 @@ CREATE TABLE public.ce_custom_referral_statuses (
     treatment character varying,
     data_source_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7024,7 +7025,8 @@ CREATE TABLE public.ce_match_rules (
     expression character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    priority_rank integer
+    priority_rank integer,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7063,7 +7065,8 @@ CREATE TABLE public.ce_opportunities (
     updated_at timestamp(6) without time zone NOT NULL,
     unit_id bigint NOT NULL,
     stale boolean DEFAULT false NOT NULL,
-    assignment_rules json DEFAULT '[]'::json NOT NULL
+    assignment_rules json DEFAULT '[]'::json NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7359,7 +7362,8 @@ CREATE TABLE public.ce_referral_notes (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     note text,
-    wfe_step_id bigint
+    wfe_step_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7392,7 +7396,8 @@ CREATE TABLE public.ce_referral_participants (
     user_id bigint NOT NULL,
     swimlane_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7432,7 +7437,8 @@ CREATE TABLE public.ce_referrals (
     updated_at timestamp(6) without time zone NOT NULL,
     source_enrollment_id bigint,
     custom_referral_status_id bigint,
-    referral_origin character varying NOT NULL
+    referral_origin character varying NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -24373,7 +24379,8 @@ CREATE TABLE public.hmis_unit_occupancy (
     id bigint NOT NULL,
     unit_id bigint NOT NULL,
     enrollment_id bigint NOT NULL,
-    hmis_service_id bigint
+    hmis_service_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -24406,7 +24413,8 @@ CREATE TABLE public.hmis_unit_types (
     updated_at timestamp(6) without time zone NOT NULL,
     description character varying,
     bed_type integer,
-    unit_size integer
+    unit_size integer,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32578,7 +32586,8 @@ CREATE TABLE public.wfd_flows (
     condition character varying,
     "position" integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32615,7 +32624,8 @@ CREATE TABLE public.wfd_nodes (
     form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32647,7 +32657,8 @@ CREATE TABLE public.wfd_swimlanes (
     template_id bigint NOT NULL,
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32686,7 +32697,8 @@ CREATE TABLE public.wfd_templates (
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint NOT NULL
+    data_source_id bigint NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32752,7 +32764,8 @@ CREATE TABLE public.wfe_instances (
     id bigint NOT NULL,
     template_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32784,7 +32797,8 @@ CREATE TABLE public.wfe_step_assignments (
     step_id bigint NOT NULL,
     user_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32824,7 +32838,8 @@ CREATE TABLE public.wfe_steps (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     available_at timestamp(6) without time zone NOT NULL,
-    updated_by_id bigint
+    updated_by_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -61858,7 +61873,7 @@ CREATE INDEX index_ce_custom_referral_statuses_on_data_source_id ON public.ce_cu
 -- Name: index_ce_custom_referral_statuses_on_key_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id);
+CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -61914,7 +61929,7 @@ CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree 
 -- Name: index_ce_match_rules_owner_priority_rank_unique; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
+CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE (((rule_type)::text = 'priority_scheme'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -71245,7 +71260,7 @@ CREATE INDEX index_talentlms_logins_on_user_id ON public.talentlms_logins USING 
 -- Name: index_templates_on_identifier_published; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE ((status)::text = 'published'::text);
+CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -71574,7 +71589,7 @@ CREATE INDEX index_weather_on_url ON public.weather USING btree (url);
 -- Name: index_wfd_flows_on_source_node_id_and_target_node_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id);
+CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -71658,7 +71673,7 @@ CREATE INDEX index_wfe_step_assignments_on_step_id ON public.wfe_step_assignment
 -- Name: index_wfe_step_assignments_on_user_id_and_step_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id);
+CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -71679,7 +71694,7 @@ CREATE INDEX index_wfe_steps_on_instance_id ON public.wfe_steps USING btree (ins
 -- Name: index_wfe_steps_on_instance_id_and_node_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id);
+CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -75222,6 +75237,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250821194338'),
+('20250821182429'),
 ('20250820220743'),
 ('20250807112429'),
 ('20250804124300'),
@@ -75423,4 +75439,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-
