@@ -61039,7 +61039,7 @@ CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."
 -- Name: index_Event_on_ce_referral_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
+CREATE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
 
 
 --
