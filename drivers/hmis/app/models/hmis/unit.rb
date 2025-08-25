@@ -16,6 +16,7 @@
 # Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
+  acts_as_paranoid
   self.table_name = :hmis_units
 
   has_paper_trail(meta: { project_id: :project_id })

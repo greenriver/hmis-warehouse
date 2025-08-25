@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+#
+# DEPRECATED
+#
 # Categories are used to group similar opportunities and enforce mutual exclusivity.
 # When a client has an active referral to an opportunity, they are not eligible for other
 # opportunities in any of the same categories. This prevents clients from being referred

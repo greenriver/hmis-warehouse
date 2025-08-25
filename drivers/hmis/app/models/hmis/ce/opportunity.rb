@@ -4,6 +4,8 @@
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase
+    acts_as_paranoid
+    has_paper_trail
     include SimpleStateMachine
 
     belongs_to :project, class_name: 'Hmis::Hud::Project', inverse_of: :ce_opportunities
