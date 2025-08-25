@@ -13,6 +13,8 @@
 # - Destination client also allows use of full client data to determine eligibility (e.g., open enrollments across deduplicated records).
 module Hmis::Ce
   class ClientProxy < GrdaWarehouseBase
+    # Bulk-managed, does not log to paper_trail
+
     # For now, this is the GrdaWarehouse::Hud::Client representing the *destination* client.
     # In the future, we will add more client types (e.g. VSP)
     belongs_to :client, polymorphic: true, optional: false

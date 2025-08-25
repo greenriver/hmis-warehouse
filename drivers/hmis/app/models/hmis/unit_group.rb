@@ -15,6 +15,7 @@
 #     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
 module Hmis
   class UnitGroup < HmisBase
+    acts_as_paranoid
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
