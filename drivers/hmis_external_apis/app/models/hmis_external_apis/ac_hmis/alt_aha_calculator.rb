@@ -145,18 +145,19 @@ module HmisExternalApis::AcHmis
     end
 
     def convert_total_points_to_score(total_points)
-      return 10 if total_points >= 11 && total_points < 16
-      return 9 if total_points >= 9 && total_points < 11
-      return 8 if total_points >= 8 && total_points < 9
-      return 7 if total_points >= 7 && total_points < 8
-      return 6 if total_points >= 6 && total_points < 7
-      return 5 if total_points >= 5 && total_points < 6
-      return 4 if total_points >= 4 && total_points < 5
-      return 3 if total_points >= 3 && total_points < 4
-      return 2 if total_points >= 1 && total_points < 3
-      return 1 if total_points >= 0 && total_points < 1
-
-      0
+      case total_points
+      when 11...16 then 10
+      when 9...11  then 9
+      when 8...9   then 8
+      when 7...8   then 7
+      when 6...7   then 6
+      when 5...6   then 5
+      when 4...5   then 4
+      when 3...4   then 3
+      when 1...3   then 2
+      when 0...1   then 1
+      else 0
+      end
     end
   end
 end
