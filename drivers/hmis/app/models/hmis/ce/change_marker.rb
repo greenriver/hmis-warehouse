@@ -15,7 +15,7 @@
 #
 # Records are considered "dirty" when current_version > processed_version.
 #
-# See ./README_FOR_CHANGE_MARKER.md
+# See ./README_FOR_CE_PROCESSING.md
 class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   self.table_name = 'hmis_ce_change_markers'
 
@@ -26,7 +26,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   scope :clients, -> { where(trackable_type: 'GrdaWarehouse::Hud::Client') }
   scope :pools, -> { where(trackable_type: 'Hmis::Ce::Match::CandidatePool') }
 
-  scope :batch, ->(start_id:, limit:) { order(:trackable_id).where(trackable_id: start_id..).limit(limit) }
+  scope :batch_by_trackable_id, ->(start_id:, limit:) { order(:trackable_id).where(trackable_id: start_id..).limit(limit) }
 
   # Updates processed_version to match current_version, marking records as clean
   def self.mark_processed(marks)
@@ -54,6 +54,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
 
   # Creates new markers or increments current_version for existing ones
   def self.upsert_or_bump_version(trackable_type, trackable_ids:)
+    return unless Hmis::Ce.configuration.enabled?
     raise ArgumentError, "Trackable type not supported \"#{trackable_type}\"" unless trackable_type.in?(KNOWN_TRACKABLE_TYPES)
     return unless Hmis::Ce.configuration.enabled?
     return if trackable_ids.empty?

@@ -18,6 +18,7 @@ module Hmis
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
+    belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
 
@@ -31,17 +32,20 @@ module Hmis
 
     validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false }
     validate :workflow_template_is_valid
+    validate :project_is_not_changed, on: :update
+
+    after_create :rebuild_candidate_pool
 
     scope :viewable_by, ->(user) do
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
     end
 
     def eligibility_requirements
-      Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(self)
     end
 
-    def priority_scheme
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
+    def priority_schemes
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(self)
     end
 
     def available_unit_count
@@ -49,6 +53,16 @@ module Hmis
     end
 
     private
+
+    def project_is_not_changed
+      errors.add(:project, 'cannot be changed') if will_save_change_to_project_id?
+    end
+
+    def rebuild_candidate_pool
+      Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do
+        Hmis::Ce::Match::CandidatePoolBuilder.call(unit_group_ids: [id])
+      end
+    end
 
     def workflow_template_is_valid
       return unless workflow_template

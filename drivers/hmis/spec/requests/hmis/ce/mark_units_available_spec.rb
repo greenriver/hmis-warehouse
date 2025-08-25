@@ -35,6 +35,14 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
               latestOpportunity {
                 id
                 name
+                eligibilityRequirements {
+                  id
+                  expression
+                }
+                prioritySchemes {
+                  id
+                  expression
+                }
               }
             }
             #{error_fields}
@@ -48,68 +56,65 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'with valid input' do
+      let!(:pool) { create(:hmis_ce_match_candidate_pool) }
+
+      before do
+        unit_group.update!(candidate_pool: pool)
+      end
+
       it 'creates a new opportunity' do
         expect do
-          perform_enqueued_jobs do
-            response, result = post_graphql(**variables) { mutation }
-            expect(response.status).to eq(200), result.inspect
-            expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to eq("Unit #{unit.id} - #{unit_type.description}")
-          end
-          unit.reload
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'name')).to include(unit.id.to_s)
         end.to change(Hmis::Ce::Opportunity, :count).by(1)
 
-        expect(unit.latest_opportunity).to be_present
-        expect(unit.latest_opportunity.candidate_pool).to be_present
+        unit.reload
+        expect(unit.latest_opportunity.candidate_pool).to eq(pool)
         expect(unit.latest_opportunity.workflow_template).to eq(template)
       end
 
-      context 'when the candidate pool already exists' do
-        let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless', candidates_generated_at: 2.hours.ago) }
-        let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: project) }
-        let!(:rule2) { create(:hmis_ce_priority_scheme, owner: project) }
+      context 'with assignment rules' do
+        let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18') }
 
-        it 'does not mark the existing pool as dirty' do
-          response = nil
-          result = nil
-          # The job is now always enqueued.
-          expect { response, result = post_graphql(**variables) { mutation } }.
-            to have_enqueued_job(Hmis::Ce::BuildCandidatePoolsJob)
+        it 'captures assignment rules for historical reference' do
+          # Run the builder to ensure the unit group gets a pool based on the rule
+          Hmis::Ce::Match::CandidatePoolBuilder.call
+          unit_group.reload
 
-          expect(response.status).to eq(200), result.inspect
-          unit.reload
-          expect(unit.latest_opportunity.candidate_pool).to be_present
-          expect(unit.latest_opportunity.workflow_template).to eq(template)
+          _response, result = post_graphql(**variables) { mutation }
 
-          # perform the job and check that the pool is not marked dirty
-          expect { perform_enqueued_jobs }.
-            to_not(change { Hmis::Ce::ChangeMarker.dirty.where(trackable: pool).count })
-        end
+          opportunity = unit.reload.latest_opportunity
+          requirements = result.dig('data', 'markUnitsAvailable', 'units', 0, 'latestOpportunity', 'eligibilityRequirements')
+          expect(requirements).to be_present
+          expect(requirements.first['id']).to include(rule.id.to_s) # GraphQL ID is a composite
+          expect(requirements.first['expression']).to eq(rule.expression)
 
-        context 'when the candidate pool is stale' do
-          let!(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: 'current_age >= 18', priority_expression: 'days_homeless', candidates_generated_at: 3.days.ago) }
-
-          it 'enqueues a job but does not mark the pool as dirty' do
-            response = nil
-            result = nil
-            # The job is now always enqueued, regardless of staleness
-            expect { response, result = post_graphql(**variables) { mutation } }.
-              to have_enqueued_job(Hmis::Ce::BuildCandidatePoolsJob)
-
-            expect(response.status).to eq(200), result.inspect
-            unit.reload
-            expect(unit.latest_opportunity.candidate_pool).to be_present
-            expect(unit.latest_opportunity.workflow_template).to eq(template)
-
-            # perform the job and check that the pool is not marked dirty
-            expect { perform_enqueued_jobs }.
-              to_not(change { Hmis::Ce::ChangeMarker.dirty.where(trackable: pool).count })
-          end
+          # Verify the data was persisted correctly on the model
+          expect(opportunity.assignment_rules.first['id']).to eq(rule.id)
         end
       end
     end
 
+    context 'when unit is not in a unit group' do
+      before do
+        unit.update!(unit_group: nil)
+      end
+
+      it 'raises an error' do
+        expect do
+          expect_gql_error(
+            post_graphql(**variables) { mutation },
+            message: 'Unit must be in a Unit Group to be marked available',
+          )
+        end.to not_change(Hmis::Ce::Opportunity, :count)
+      end
+    end
+
     context 'when unit has already been marked available' do
+      let!(:pool) { create(:hmis_ce_match_candidate_pool) }
       let!(:opportunity) do
+        unit_group.update!(candidate_pool: pool)
         post_graphql(**variables) { mutation }
         unit.reload.latest_opportunity
       end
@@ -143,8 +148,13 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'when unit was marked available in the past, and opportunity was filled' do
+      let!(:pool) { create(:hmis_ce_match_candidate_pool) }
       let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
+
+      before do
+        unit_group.update!(candidate_pool: pool)
+      end
 
       it 'creates a new opportunity' do
         expect(unit.opportunities).to include(past_opportunity)
@@ -160,7 +170,9 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
     end
 
     context 'with many units' do
+      let!(:pool) { create(:hmis_ce_match_candidate_pool) }
       let!(:unit_ids) do
+        unit_group.update!(candidate_pool: pool)
         50.times.map do
           create(:hmis_unit, project: project, unit_type: unit_type, unit_group: unit_group).id
         end

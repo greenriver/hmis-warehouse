@@ -38,6 +38,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       confidential: false,
       options: {},
       file_path: 'var/hmis_export',
+      custom_file_types: [], # rubocop:disable Lint/UnusedMethodArgument # This is ignored prior to FY2026
       debug: true
     )
       setup_notifier('HMIS Exporter 2024')

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class RunEnrolledDisabledJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -40,7 +42,7 @@ module WarehouseReports
 
         enrollment_scope = enrollment_scope.heads_of_households if filter_params[:heads_of_household]
 
-        enrollment_scope = enrollment_scope.in_age_ranges(filter_params[:age_ranges])
+        enrollment_scope = enrollment_scope.in_age_ranges(filter_params[:age_ranges], on_date: start_date)
 
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: filter_params[:disabilities].reject(&:blank?), DisabilityResponse: [1, 2, 3])).

@@ -13,7 +13,7 @@
 # This job runs frequently to provide low-latency updates for client eligibility changes.
 # Uses non-blocking per-pool advisory locks to coordinate with ProcessPoolsJob.
 #
-# See drivers/hmis/app/models/hmis/ce/README_FOR_CHANGE_MARKER.md
+# See drivers/hmis/app/models/hmis/ce/README_FOR_CE_PROCESSING.md
 #
 module Hmis::Ce
   class ProcessClientsJob < BaseJob
@@ -50,11 +50,12 @@ module Hmis::Ce
           reconcile_untracked_clients
 
           # get a batch of dirty clients
-          dirty_client_markers = Hmis::Ce::ChangeMarker.dirty.clients.batch(
+          dirty_client_markers = Hmis::Ce::ChangeMarker.dirty.clients.batch_by_trackable_id(
             start_id: next_client_id,
             limit: 1_000,
           ).to_a
           log_info("Found #{dirty_client_markers.count} dirty client markers to process")
+          dirty_client_markers = reconcile_dangling_markers(dirty_client_markers)
 
           # process dirty clients against all available pools
           next_client_id = process_dirty_clients(dirty_client_markers)
@@ -87,7 +88,6 @@ module Hmis::Ce
     end
 
     # Processes dirty clients by running the match engine against active candidate pools.
-    # Uses non-blocking per-pool advisory locks to coordinate with ProcessPoolsJob.
     #
     # @param markers [Array<Hmis::Ce::ChangeMarker>] Dirty client markers to process
     # @return [Integer, nil] Next client ID for pagination
@@ -138,6 +138,33 @@ module Hmis::Ce
     end
 
     private
+
+    # Removes change markers for clients that no longer exist. This prevents buildup of
+    # orphaned records
+    #
+    # @param markers [Array<Hmis::Ce::ChangeMarker>] The batch of markers to check.
+    # @return [Array<Hmis::Ce::ChangeMarker>] The filtered list of markers for existing clients.
+    def reconcile_dangling_markers(markers)
+      return [] if markers.empty?
+
+      # Efficiently find which clients in this batch actually exist
+      trackable_ids = markers.map(&:trackable_id)
+      existing_client_ids = GrdaWarehouse::Hud::Client.destination.where(id: trackable_ids).pluck(:id).to_set
+
+      # Partition markers into existing and dangling in a single pass
+      existing_markers, dangling_markers = markers.partition { |marker| existing_client_ids.include?(marker.trackable_id) }
+
+      if dangling_markers.any?
+        log_info("Reconciling: found and deleting #{dangling_markers.count} dangling client markers.")
+
+        # Use delete_all for better performance since we're cleaning up orphaned records
+        # No need for callbacks or object instantiation
+        Hmis::Ce::ChangeMarker.where(id: dangling_markers.map(&:id)).delete_all
+      end
+
+      # Return only markers for existing clients
+      existing_markers
+    end
 
     def log_info(message)
       Rails.logger.info("[ProcessClientsJob] #{message}")

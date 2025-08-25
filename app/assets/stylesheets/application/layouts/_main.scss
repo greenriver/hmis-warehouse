@@ -12,6 +12,7 @@
   transition: .35s max-width ease-in-out;
   max-width: 100%;
   flex: 0 0 100%;
+  overflow-x: auto;
 }
 
 .l-content-width-md .l-main__content {
