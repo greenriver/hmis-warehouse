@@ -35,8 +35,8 @@ desc 'Import AC HMIS scoring rules from variable weights and variables CSVs'
 task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:environment] do |_task, args|
   form_definition_identifier = args[:form_definition_identifier]
   if form_definition_identifier.blank?
-    puts "ERROR: form_definition_identifier argument is required"
-    puts "Usage: rails driver:hmis:import_ac_hmis_scoring_rules[form_id]"
+    puts 'ERROR: form_definition_identifier argument is required'
+    puts 'Usage: rails driver:hmis:import_ac_hmis_scoring_rules[form_id]'
     abort
   end
 
@@ -62,6 +62,7 @@ task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:
   CSV.foreach(variable_definitions_path, headers: true) do |row|
     variable_name = (row['variable_name'] || '').strip
     next if variable_name.empty?
+
     definitions_by_variable_name[variable_name] = row.to_h
   end
 
@@ -70,9 +71,6 @@ task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:
     '12' => 'alt_aha_1',
     '14' => 'alt_aha_2',
     '13' => 'alt_aha_3',
-    12 => 'alt_aha_1',
-    14 => 'alt_aha_2',
-    13 => 'alt_aha_3',
   }
 
   created_count = 0
@@ -96,7 +94,7 @@ task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:
       next
     end
 
-    algorithm = algorithm_map[algorithm_id]
+    algorithm = algorithm_map[algorithm_id.to_s]
     if algorithm.nil?
       puts "SKIP: Unknown ALGORITHM_ID=#{algorithm_id.inspect} for VARIABLE_NAME=#{variable_name}"
       skipped_count += 1
@@ -133,20 +131,18 @@ task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:
     end
 
     link_ids.each do |link_id|
-      begin
-        Hmis::Scoring::Rule.create!(
-          link_id: link_id,
-          form_definition_identifier: form_definition_identifier,
-          algorithm: algorithm,
-          criteria_type: criteria_type,
-          criteria_config: criteria_config,
-          weight: weight_value,
-        )
-        created_count += 1
-      rescue StandardError => e
-        puts "SKIP: Failed to create rule for VARIABLE_NAME=#{variable_name}, link_id=#{link_id}: #{e.class}: #{e.message}"
-        skipped_count += 1
-      end
+      Hmis::Scoring::Rule.create!(
+        link_id: link_id,
+        form_definition_identifier: form_definition_identifier,
+        algorithm: algorithm,
+        criteria_type: criteria_type,
+        criteria_config: criteria_config,
+        weight: weight_value,
+      )
+      created_count += 1
+    rescue StandardError => e
+      puts "SKIP: Failed to create rule for VARIABLE_NAME=#{variable_name}, link_id=#{link_id}: #{e.class}: #{e.message}"
+      skipped_count += 1
     end
   end
 
@@ -156,16 +152,20 @@ end
 # Helpers
 def normalize_nilish(value)
   return nil if value.nil?
+
   str = value.to_s.strip
   return nil if str.empty?
-  return nil if %w[null NULL <null> <NULL>].include?(str)
+  return nil if ['null', 'NULL', '<null>', '<NULL>'].include?(str)
+
   str
 end
 
 def parse_numeric(value)
   return nil if value.nil?
+
   str = value.to_s.strip
   return nil if str.empty?
+
   # Try integer then float
   if str.match?(/\A-?\d+\z/)
     Integer(str)
@@ -192,19 +192,15 @@ def determine_criteria(definition_row)
     return ['exact_match', { 'match_value' => match_value }]
   end
 
-  if include_value
-    return ['include', { 'include' => include_value }]
-  end
+  return ['include', { 'include' => include_value }] if include_value
 
   range_config = {}
   { 'gt' => gt_raw, 'gte' => gte_raw, 'lt' => lt_raw, 'lte' => lte_raw }.each do |key, raw|
     num = parse_numeric(raw)
-    range_config[key] = num if !num.nil?
+    range_config[key] = num unless num.nil?
   end
 
-  unless range_config.empty?
-    return ['range', range_config]
-  end
+  return ['range', range_config] unless range_config.empty?
 
   # Fallback to value type with empty config
   ['value', {}]
