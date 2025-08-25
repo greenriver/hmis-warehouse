@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -2965,7 +2965,8 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ce_referral_id integer
 );
 
 
@@ -24346,7 +24347,8 @@ CREATE TABLE public.hmis_unit_groups (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    candidate_pool_id bigint
+    candidate_pool_id bigint,
+    ce_event_type integer
 );
 
 
@@ -61049,6 +61051,13 @@ CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."
 
 
 --
+-- Name: index_Event_on_ce_referral_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
+
+
+--
 -- Name: index_Event_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75227,7 +75236,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250821194338'),
 ('20250821182429'),
+('20250820220743'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
@@ -75428,4 +75439,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-
