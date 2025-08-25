@@ -17,7 +17,6 @@ module Hmis
       INCLUDE = 'include'
       CRITERIA_TYPES = [RANGE, EXACT_MATCH, VALUE, INCLUDE].freeze
 
-      validates :link_id, :form_definition_identifier, :algorithm, :criteria_type, :weight, presence: true
       validates :criteria_type, inclusion: { in: CRITERIA_TYPES }
       validate :valid_criteria_config
 
