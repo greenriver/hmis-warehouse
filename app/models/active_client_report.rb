@@ -15,15 +15,15 @@
 # - The client has an enrollment that is open at any time between filter.start and filter.end; and
 # - The client has qualifying activity within the same window:
 #   - Emergency Shelter — Non-Bed-Night (ES-NBN): requires at least one service during the window.
-#     Enrollments without services are excluded.
+#     Enrollments in ES-NBN without services are excluded.
 #   - Street Outreach (SO): requires CLS present and valid
-#   - For other entry/exit projects types, only require entry/exit in the reporting window
+#   - For other entry/exit projects types, only require an enrollment overlapping the reporting window
 #
 # Inclusion and exclusion rules:
 # - Qualifying events/CLS must fall within BOTH the enrollment dates and the report window.
 # - ES-NBN enrollments with no services in-range are excluded.
 #
-# This logic is kept aligned with the "core-demographics" query behavior when "require services" is enabled.
+# This logic is kept aligned with behavior in other reports when "require services" is enabled.
 #
 # See also
 # * GrdaWarehouse::Tasks::ServiceHistory::Enrollment
