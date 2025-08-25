@@ -87,6 +87,17 @@ class Hmis::Unit < Hmis::HmisBase
   # Filter scope
   scope :with_unit_type, ->(unit_type_ids) { where(unit_type_id: unit_type_ids) }
 
+  # unit is receiving referrals if it is unoccupied and has any opportunities that are receiving referrals
+  scope :receiving_referrals, -> do
+    active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.receiving_referrals)
+  end
+
+  scope :not_receiving_referrals, -> do
+    where.not(
+      id: joins(:opportunities).merge(Hmis::Ce::Opportunity.active).select(:id),
+    )
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::UnitFilter.new(input).filter_scope(self)
   end
@@ -113,14 +124,6 @@ class Hmis::Unit < Hmis::HmisBase
 
   def end_date
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
-  end
-
-  def eligibility_requirements
-    Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
-  end
-
-  def priority_scheme
-    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
   end
 
   # Class method so can use with data loader

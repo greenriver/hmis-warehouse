@@ -25,7 +25,7 @@
       %section.mb-6
         .d-flex.mb-5.ml-4
           .header.d-flex.align-items-center.justify-content-center
-            %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+            %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, 'bs-toggle' => 'tooltip', 'scope': "##{select_scope}", 'bs-title' => 'Select/Deselect all organizations & projects'}, type: 'button'}
             %h2.mb-0.mt-0 Organizations and Projects
           .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
         - @projects.each do |(data_source, organization), projects|

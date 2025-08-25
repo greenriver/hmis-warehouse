@@ -60,6 +60,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
   has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
 
+  # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
+  has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
+
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
@@ -141,7 +144,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     )
   end
 
-  scope :receiving_referrals, -> do
+  scope :receiving_legacy_referrals, -> do
     # Find all active instances that enable the Referral functionality
     instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL).published
     # Find open projects that have an instance that match the criteria, which indicates that the
@@ -188,8 +191,22 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
   end
 
-  def receives_referrals?
+  def receives_legacy_referrals?
     Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
+  end
+
+  def receives_direct_ce_referrals?
+    config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
+
+    config&.receives_direct_referrals?
+  end
+
+  def receives_direct_ce_referrals_from?(source_project)
+    config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
+    return false unless config&.receives_direct_referrals?
+    return true unless config.receives_direct_referrals_from.present? # no projects specified, so accept from all
+
+    config.receives_direct_referrals_from.include?(source_project.id)
   end
 
   def services_only_rrh?

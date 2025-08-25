@@ -1,9 +1,14 @@
-@import '../_settings/colors';
-@import '../_settings/variables';
-@import '../_settings/custom_bootstrap_variables';
 @import '../helpers';
 
-@media print {
+// setting media all, even though this is only used for print, as some of our printing methods don't always think they are printing
+@media all {
+
+  /* Fix Bootstrap 5 border printing issues */
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
   body {
     font-family: $font-family-sans-serif;
   }
@@ -11,6 +16,7 @@
   .page-break-after {
     page-break-after: always !important;
   }
+
   .metric {
     background-color: red;
   }
@@ -52,6 +58,7 @@
       margin-bottom: 10px;
       font-family: sans-serif;
     }
+
     h2 {
       font-size: 18px;
       font-weight: bold;
@@ -61,9 +68,11 @@
       margin-bottom: 10px;
       font-family: sans-serif;
     }
+
     h2.nb {
       border-bottom: none;
     }
+
     h3 {
       font-size: 14px;
       font-weight: bold;
@@ -72,16 +81,19 @@
       font-family: sans-serif;
       margin-bottom: 10px;
     }
+
     p {
       font-size: 14px;
       color: #000;
       font-family: sans-serif;
     }
-    ul{
+
+    ul {
       margin-left: 0px;
       padding-left: 0px;
       padding: 10px 0px
     }
+
     li {
       list-style-type: none;
       padding-left: 10px;
@@ -95,6 +107,7 @@
       border-bottom: none;
       text-align: center;
     }
+
     p {
       font-size: 17px;
     }
@@ -119,16 +132,21 @@
   .pctc-print__table {
     font-size: 17px;
     page-break-inside: avoid;
+
     table {
       width: 100%;
     }
-    th, td {
+
+    th,
+    td {
       padding: 8px;
       border-bottom: 1px solid rgba(0, 0, 0, 0.15);
       font-size: 17px;
     }
+
     th {
       font-weight: bold;
+
       span.hint {
         font-size: 17px;
         font-weight: normal;
@@ -138,6 +156,7 @@
     &.breakable {
       page-break-inside: auto;
     }
+
     &.top th,
     &.top td {
       vertical-align: top;
@@ -145,12 +164,13 @@
 
     &.pctc-print__table-no-end {
       page-break-after: always;
+
       table tbody td,
       table tbody th {
         border-bottom: none;
       }
     }
-    
+
     .pctc-print__table-title {
       font-weight: bold;
       font-size: 20px;
@@ -163,12 +183,17 @@
     }
 
     tr.pctc-print__table-header {
-      th, td {
+
+      th,
+      td {
         background-color: #EEE;
       }
     }
+
     tr.pctc-print__table-subheader {
-      th, td {
+
+      th,
+      td {
         background-color: rgba(238, 238, 238, 0.50);
       }
     }

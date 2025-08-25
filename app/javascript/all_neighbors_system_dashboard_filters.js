@@ -15,7 +15,7 @@ class AllNeighborsSystemDashboardFilters {
   }
 
   initTabChange() {
-    $('.all-neighbors__all__tabs a[data-toggle="tab"]').on('shown.bs.tab', () => {
+    $('.all-neighbors__all__tabs a[data-bs-toggle="tab"]').on('shown.bs.tab', () => {
       this.redrawCharts()
     })
   }
@@ -42,10 +42,12 @@ class AllNeighborsSystemDashboardFilters {
   initState(filters) {
     this.state = {}
     filters.forEach((filter) => {
-      if(filter.type === 'select' || filter.type === 'year') {
+      if (filter.type === 'select' || filter.type === 'year') {
         this.state[filter.name] = this.filters[filter.name].val()
       }
-      if(filter.type === 'dateRange') {
+
+      if (filter.type === 'dateRange') {
+        // NOTE: this brings in the datepicker library via CDN
         let startDp = this.filters[filter.name].start.datepicker('getDate')
         startDp = new Date(startDp.getFullYear(), startDp.getMonth(), 1);
         let endDp = this.filters[filter.name].end.datepicker('getDate')
@@ -55,7 +57,7 @@ class AllNeighborsSystemDashboardFilters {
           Date.parse(endDp)
         ]
       }
-      if(filter.type === 'quarterRange') {
+      if (filter.type === 'quarterRange') {
         const s = this.filters[filter.name].start.find('option:selected').val()
         const e = this.filters[filter.name].end.find('option:selected').val()
         this.state[filter.name] = [s, e]
@@ -66,13 +68,13 @@ class AllNeighborsSystemDashboardFilters {
   }
 
   setQuarterDateRange() {
-    if(this.state.quarterRange) {
+    if (this.state.quarterRange) {
       const [s, e] = this.state.quarterRange
       const startQ = this.state.quarterData.find((d) => d.name === s).range[0]
       const endQ = this.state.quarterData.find((d) => d.name === e).range[1]
       this.state.dateRange = [startQ, endQ].map((d) => {
         const [year, month, date] = d.split('-')
-        return Date.parse(new Date(year, month-1, date))
+        return Date.parse(new Date(year, month - 1, date))
       })
     }
   }
@@ -80,14 +82,14 @@ class AllNeighborsSystemDashboardFilters {
   initFilters(filters) {
     this.filters = {}
     filters.forEach((filter) => {
-      if(filter.type === 'select' || filter.type === 'year') {
+      if (filter.type === 'select' || filter.type === 'year') {
         this.filters[filter.name] = $(filter.selector)
         this.filters[filter.name].on('change', (e) => {
           this.state[filter.name] = $(e.target).val()
           this.redrawCharts()
         })
       }
-      if(filter.type === 'quarterRange') {
+      if (filter.type === 'quarterRange') {
         this.filters[filter.name] = {
           range: $(filter.selector),
           start: this.getDateElement($(filter.selector), 'start-date'),
@@ -102,7 +104,7 @@ class AllNeighborsSystemDashboardFilters {
           const value = $(e.target).find('option:selected').val()
           const newValueIndex = dataNames.indexOf(value)
           const newOptions = dataNames.filter((d, i) => i >= newValueIndex).map((d) => {
-            if(this.state[filter.name][1] === d) {
+            if (this.state[filter.name][1] === d) {
               return `<option value="${d}" selected="selected">${d}</option>`
             }
             return `<option value="${d}">${d}</option>`
@@ -117,7 +119,7 @@ class AllNeighborsSystemDashboardFilters {
           const value = $(e.target).find('option:selected').val()
           const newValueIndex = dataNames.indexOf(value)
           const newOptions = dataNames.filter((d, i) => i <= newValueIndex).map((d) => {
-            if(this.state[filter.name][0] === d) {
+            if (this.state[filter.name][0] === d) {
               return `<option value="${d}" selected="selected">${d}</option>`
             }
             return `<option value="${d}">${d}</option>`
@@ -128,7 +130,7 @@ class AllNeighborsSystemDashboardFilters {
         })
 
       }
-      if(filter.type === 'dateRange') {
+      if (filter.type === 'dateRange') {
         this.filters[filter.name] = {
           range: $(filter.selector),
           start: this.getDateElement($(filter.selector), 'start-date'),
@@ -144,7 +146,7 @@ class AllNeighborsSystemDashboardFilters {
           minViewMode: 'months'
         }
 
-        this.filters[filter.name].range.each(function() {
+        this.filters[filter.name].range.each(function () {
           $(this).datepicker(config)
         })
 
@@ -165,11 +167,11 @@ class AllNeighborsSystemDashboardFilters {
 
   dateFromString(string) {
     const [year, month, date] = string.split('-')
-    return new Date(year, month-1, date)
+    return new Date(year, month - 1, date)
   }
 
   getDateElement(selector, dateClass) {
-    const node = selector.filter(function() {
+    const node = selector.filter(function () {
       return $(this).hasClass(dateClass)
     })[0]
     return $(node)
@@ -177,10 +179,10 @@ class AllNeighborsSystemDashboardFilters {
 
   updateLabels() {
     this.filterLabels.forEach((label) => {
-      if(label.name === 'dateRange') {
-        const dateStrings = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'}))
+      if (label.name === 'dateRange') {
+        const dateStrings = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', { year: 'numeric', month: 'short' }))
         $(label.selector).text(`${dateStrings[0]} - ${dateStrings[1]}`)
-      } else if(label.name === 'cohortYears') {
+      } else if (label.name === 'cohortYears') {
         const text = this.state['cohort'].replace('after housing', '').replace('of housing', '')
         $(label.selector).text(text)
       } else if (label.name === 'quarterRange') {

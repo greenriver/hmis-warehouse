@@ -19,7 +19,7 @@
             %i.icon-checkmark
         %td
           - if aco_changed
-            %i.icon-warning{data: {toggle: :tooltip, title: "Previously: #{patient.previous_aco_name}"}}
+            %i.icon-warning{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Previously: #{patient.previous_aco_name}"}}
           = patient.aco_name
         %td= patient.health_agency&.name
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"

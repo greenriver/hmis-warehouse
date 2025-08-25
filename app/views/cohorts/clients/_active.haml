@@ -17,7 +17,7 @@
         = f.input :actives_population, collection: available_sub_populations, selected: @actives.try(:[], :actives_population), input_html: { placeholder: 'All Clients', multiple: true }, hint: 'Multiple selections combine scopes. For example: "Adult only Households" who are also "Veterans"', label: 'Sub-Population', as: :select_two
       .col-sm-3
         Limit by Age
-        = f.input :age_ranges, collection: GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges, selected: @actives.try(:[], :age_ranges), input_html: { placeholder: 'Any age', multiple: true }, as: :select_two
+        = f.input :age_ranges, collection: GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges, selected: @actives.try(:[], :age_ranges), input_html: { placeholder: 'Any age', multiple: true }, as: :select_two, hint: 'Age is determined at the later of entry date into the latest homeless enrollment, and the chosen start date.'
     .row.mt-4
       .col-sm-8
         %p

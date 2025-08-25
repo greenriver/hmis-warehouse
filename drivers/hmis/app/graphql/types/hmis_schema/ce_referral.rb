@@ -10,42 +10,74 @@ module Types
   class HmisSchema::CeReferral < Types::BaseObject
     # object is a Hmis::Ce::Referral
 
-    field :id, ID, null: false
-    field :opportunity, HmisSchema::CeOpportunity, null: false
-    field :steps, [HmisSchema::CeReferralStep], null: false
-    field :status, HmisSchema::Enums::CeReferralStatus, null: false
-    field :custom_status, HmisSchema::CeCustomReferralStatus, null: true
-    field :client_id, ID, null: false
-    field :client_name, String, null: false, description: 'The name of the referred client. Always available, even without full client record access.'
-    field :client_age, Integer, null: true, description: 'The age of the referred client. Always available, even without full client record access.'
-    field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
-    field :created_at, GraphQL::Types::ISO8601DateTime, null: false
+    # Similar to Enrollment, this schema class overrides the `field` method
+    # and adds a `summary_field` method, to distinguish between fields that can be resolved
+    # by those who can_view? vs. just can_view_summary?
+    # If user lacks sufficient access, the field will be resolved as null.
+    def self.field(name, type = nil, **kwargs)
+      # See Types::BaseField `authorized?` function.
+      unless kwargs.key?(:authorize_with)
+        kwargs[:authorize_with] = lambda do |current_user, object|
+          current_user.policy_for(object, policy_type: :ce_referral).can_view?
+        end
+      end
 
+      super(name, type, **kwargs)
+    end
+
+    # No field-level authorization is needed here; we know the user can view the referral summary if it's being resolved at all
+    def self.summary_field(name, type = nil, **kwargs)
+      field(name, type, **kwargs, authorize_with: nil)
+    end
+
+    # Check for most minimal permission needed to resolve this object: either can_view? OR can_view_summary?
+    def self.authorized?(object, ctx)
+      user = ctx[:current_user]
+      policy = user.policy_for(object, policy_type: :ce_referral)
+      super && (policy.can_view? || policy.can_view_summary?)
+    end
+
+    # Summary fields that anyone who can view the summary of this referral has access to
+    summary_field :id, ID, null: false
+    summary_field :status, HmisSchema::Enums::CeReferralStatus, null: false
+    summary_field :custom_status, HmisSchema::CeCustomReferralStatus, null: true
+    summary_field :client_id, ID, null: false
+    summary_field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the full referral, even without full client record access.'
+    # Special case: Client is a "summary field" because it doesn't require referral visibility, but resolving it does require permission to view the client record.
+    summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
+    summary_field :source_enrollment_id, ID, null: false
+    # Resolve project fields separately, instead of on the project schema object, in case user can't view the project
+    summary_field :target_project_id, ID, null: false
+    summary_field :target_project_name, String, null: false
+    summary_field :target_project_type, HmisSchema::Enums::ProjectType, null: false
+    summary_field :target_organization_name, String, null: false
+
+    summary_field :referred_by, Application::User, null: true
+    summary_field :active, Boolean, null: false, method: :active?
+    summary_field :origin, HmisSchema::Enums::CeReferralOrigin, null: false, method: :referral_origin
+
+    access_field authorize_with: nil do
+      field :can_view_referral_details, Boolean, null: false
+      field :can_view_target_project, Boolean, null: false
+      field :can_view_source_enrollment_details, Boolean, null: false
+    end
+
+    # Detailed fields that only those with full view access should see. Must be nullable
+    field :client, Types::HmisSchema::Client, null: true, description: 'The full client record, if the user has permission to view it.'
+    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
+    field :opportunity, HmisSchema::CeOpportunity, null: true
+    field :steps, [HmisSchema::CeReferralStep], null: true
+    field :client_age, Integer, null: true, description: 'The age of the referred client. Always available to those who can view the referral, even without full client record access.'
     field :current_steps, [HmisSchema::CeReferralStep], null: true
     field :days_on_current_steps, Integer, null: true
     field :updated_by, Application::User, null: true
     field :target_enrollment, Types::HmisSchema::Enrollment, null: true, description: 'Target enrollment, if the user has permission to view it.'
-    field :source_enrollment, Types::HmisSchema::CeReferralSourceEnrollment, null: true, description: 'Limited details about the source enrollment. Available even without full access to the source record.'
-    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: false
+    field :swimlanes, [HmisSchema::CeReferralSwimlane], null: true
     field :workflow_template_name, String, null: true
-    field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: false
-    field :notes, HmisSchema::CeReferralNote.page_type, null: false
-
+    field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: true
+    field :notes, HmisSchema::CeReferralNote.page_type, null: true
     # generically resolve current values for any fields referenced by Match Rule expressions
     field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.', method: :resolve_match_rule_fields
-
-    # Resolve project fields separately, instead of the whole project object, in case user can't view the project
-    field :target_project_id, ID, null: false
-    field :target_project_name, String, null: false
-    field :target_project_type, HmisSchema::Enums::ProjectType, null: false
-    field :target_organization_name, String, null: false
-
-    field :referred_by, Application::User, null: true
-    field :active, Boolean, null: false, method: :active?
-
-    access_field do
-      field :can_view_target_project, Boolean, null: false
-    end
 
     available_filter_options do
       arg :referral_status, [String]
@@ -54,11 +86,7 @@ module Types
       arg :workflow_template, [String]
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
-    end
-
-    def self.authorized?(object, ctx)
-      user = ctx[:current_user]
-      super && user.policy_for(object, policy_type: :ce_referral).can_view?
+      arg :origin, [HmisSchema::Enums::CeReferralOrigin]
     end
 
     def custom_status
@@ -96,10 +124,19 @@ module Types
       load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
     end
 
-    # NOTE: This field intentionally does not check can_view_clients
     def client_name
       c = load_ar_association(object, :client)
-      c.brief_name.presence || c.masked_name
+
+      # This is a summary field. If the current user can view the referral, always return the client name
+      # (even if the current user can't otherwise view that client)
+      return c.brief_name.presence || c.masked_name if current_user.policy_for(object, policy_type: :ce_referral).can_view?
+
+      # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
+      viewable_client = load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
+      return c.masked_name unless viewable_client
+      return c.masked_name unless current_permission?(permission: :can_view_client_name, entity: viewable_client)
+
+      viewable_client.brief_name.presence || viewable_client.masked_name
     end
 
     # NOTE: This field intentionally does not check can_view_clients
@@ -199,9 +236,12 @@ module Types
     def access
       project_id = load_ar_association(object, :opportunity).project_id
       project = load_ar_scope(scope: Hmis::Hud::Project.viewable_by(current_user), id: project_id)
+      source_enrollment = load_ar_scope(scope: Hmis::Hud::Enrollment.viewable_by(current_user), id: object.source_enrollment_id)
 
       {
+        can_view_referral_details: policy_for(object, policy_type: :ce_referral).can_view?,
         can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
+        can_view_source_enrollment_details: source_enrollment.present?,
       }
     end
 

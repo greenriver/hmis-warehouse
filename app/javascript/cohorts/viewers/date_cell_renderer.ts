@@ -27,7 +27,8 @@ export class DateCellRenderer {
     const value = document.createElement('div');
     value.className = 'date';
     if (params.value) {
-      const valueText = document.createTextNode(params.value);
+      const formattedDate = new Date(params.value).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      const valueText = document.createTextNode(formattedDate);
       value.appendChild(valueText);
     }
 

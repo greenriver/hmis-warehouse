@@ -13,6 +13,7 @@ module Types
     value 'AUTO_EXIT', description: 'Auto Exit'
     value 'AUTO_ENTER', description: 'Auto Enter'
     value 'STAFF_ASSIGNMENT', description: 'Staff Assignment'
-    value 'COORDINATED_ENTRY', description: 'Coordinated Entry'
+    value 'COORDINATED_ENTRY', description: 'Coordinated Entry Referrals'
+    value 'SENDS_DIRECT_CE_REFERRALS', description: 'Outgoing Referrals'
   end
 end

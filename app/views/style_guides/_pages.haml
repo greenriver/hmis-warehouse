@@ -1,0 +1,5 @@
+.well
+  %ul.nav.flex-column
+    - guide_routes.each do |key, value|
+      %li.nav-item= link_to(value, polymorphic_path([key, :style_guide]), class: 'nav-link')
+    %li.nav-item= link_to('Stimulus Select in a Modal', stimulus_select_style_guide_path, data: { loads_in_ajax_modal: true }, class: 'nav-link')

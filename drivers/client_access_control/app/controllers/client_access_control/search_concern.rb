@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientAccessControl::SearchConcern
   extend ActiveSupport::Concern
   include ActionView::Helpers::TagHelper
@@ -15,6 +17,7 @@ module ClientAccessControl::SearchConcern
     def sort_filter_index
       # Filter by date
       if params[:start_date].present? && params[:end_date].present? && params[:start_date].to_date < params[:end_date].to_date
+        @search_performed = true
         @start_date = params[:start_date].to_date
         @end_date = params[:end_date].to_date
         @clients = @clients.where(
@@ -26,18 +29,20 @@ module ClientAccessControl::SearchConcern
       end
 
       # Filter by population for known populations
-      if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(params[:population].to_sym)
-        population = params[:population].to_sym
-        @clients = @clients.public_send(population) if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(population)
+      if selected_population.present?
+        @search_performed = true unless selected_population == :clients
+        @clients = @clients.public_send(selected_population)
       end
 
       if params[:data_source_id].present?
+        @search_performed = true
         @data_source_id = params[:data_source_id].to_i
         @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: { data_source_id: @data_source_id })
       end
 
       vulnerability = params[:vulnerability]
       if vulnerability.present?
+        @search_performed = true
         vispdats = case vulnerability
         when 'low'
           GrdaWarehouse::Vispdat::Base.low_vulnerability
@@ -53,11 +58,13 @@ module ClientAccessControl::SearchConcern
 
       age_group = params[:age_group]
       if age_group.present?
+        @search_performed = true
         group = GrdaWarehouse::Hud::Client.ahar_age_groups[age_group.to_sym]
         @clients = @clients.age_group(**group.slice(:start_age, :end_age))
       end
 
       if params[:data_sharing].present? && params[:data_sharing] == '1'
+        @search_performed = true
         @clients = @clients.full_housing_release_on_file
         @data_sharing = 1
       end
@@ -73,10 +80,19 @@ module ClientAccessControl::SearchConcern
     private def sort_title
       @sort_title ||= GrdaWarehouse::Hud::Client::SORT_OPTIONS[selected_sort]
     end
+    helper_method :sort_title
 
     private def sorted
       selected_sort == :best_match
     end
+
+    private def selected_population
+      @selected_population ||= begin
+        available_populations = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values
+        available_populations.detect { |p| p == params[:population]&.to_sym } || :clients
+      end
+    end
+    helper_method :selected_population
 
     private def set_search_client
       id = params[:id].to_i

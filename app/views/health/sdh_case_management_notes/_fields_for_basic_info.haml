@@ -1,5 +1,7 @@
 - note = Health::SdhCaseManagementNote
-= f.input :topics, collection: note.topics_collection, as: :check_boxes
+.row
+  .col-sm-6
+    = f.input :topics, collection: note.topics_collection, as: :check_boxes
 .row
   .col-sm-6
     = f.input :title

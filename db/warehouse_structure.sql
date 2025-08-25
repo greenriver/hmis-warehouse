@@ -341,7 +341,8 @@ CREATE TABLE analytics.app_users (
     id bigint NOT NULL,
     first_name character varying,
     last_name character varying,
-    email character varying
+    email character varying,
+    agency_name character varying
 );
 
 
@@ -639,7 +640,8 @@ CREATE TABLE public.cas_analytics_referral_contacts (
     contact_id bigint,
     contact_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    cas_user_id bigint
 );
 
 
@@ -654,7 +656,8 @@ CREATE VIEW analytics.cas_referral_contacts AS
     contact_id,
     contact_type,
     created_at,
-    updated_at
+    updated_at,
+    cas_user_id
    FROM public.cas_analytics_referral_contacts;
 
 
@@ -665,7 +668,8 @@ CREATE VIEW analytics.cas_referral_contacts AS
 CREATE TABLE public.cas_analytics_referral_users (
     id bigint NOT NULL,
     email character varying,
-    referral_id bigint
+    referral_id bigint,
+    cas_user_id bigint
 );
 
 
@@ -676,7 +680,8 @@ CREATE TABLE public.cas_analytics_referral_users (
 CREATE VIEW analytics.cas_referral_users AS
  SELECT id,
     email,
-    referral_id
+    referral_id,
+    cas_user_id
    FROM public.cas_analytics_referral_users;
 
 
@@ -6978,10 +6983,10 @@ ALTER SEQUENCE public.ce_match_candidate_pools_id_seq OWNED BY public.ce_match_c
 CREATE TABLE public.ce_match_candidates (
     id bigint NOT NULL,
     candidate_pool_id bigint NOT NULL,
-    priority_score integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    client_proxy_id bigint NOT NULL
+    client_proxy_id bigint NOT NULL,
+    priority_scores integer[]
 );
 
 
@@ -7017,7 +7022,8 @@ CREATE TABLE public.ce_match_rules (
     owner_id bigint NOT NULL,
     expression character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    priority_rank integer
 );
 
 
@@ -7054,7 +7060,9 @@ CREATE TABLE public.ce_opportunities (
     expires_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    unit_id bigint NOT NULL
+    unit_id bigint NOT NULL,
+    stale boolean DEFAULT false NOT NULL,
+    assignment_rules json DEFAULT '[]'::json NOT NULL
 );
 
 
@@ -7422,7 +7430,8 @@ CREATE TABLE public.ce_referrals (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     source_enrollment_id bigint,
-    custom_referral_status_id bigint
+    custom_referral_status_id bigint,
+    referral_origin character varying NOT NULL
 );
 
 
@@ -22819,6 +22828,23 @@ ALTER SEQUENCE public.hmis_csv_loader_logs_id_seq OWNED BY public.hmis_csv_loade
 
 
 --
+-- Name: hmis_destination_client_latest_assessments; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_destination_client_latest_assessments AS
+ SELECT DISTINCT ON (wc.destination_id, def.identifier) wc.destination_id AS destination_client_id,
+    ca.id AS custom_assessment_id,
+    def.identifier AS form_identifier
+   FROM ((((public.warehouse_clients wc
+     JOIN public."Client" c ON (((c."DateDeleted" IS NULL) AND (c.id = wc.source_id))))
+     JOIN public."CustomAssessments" ca ON (((ca."DateDeleted" IS NULL) AND (ca.data_source_id = c.data_source_id) AND ((ca."PersonalID")::text = (c."PersonalID")::text))))
+     JOIN public.hmis_form_processors fp ON ((((fp.owner_type)::text = 'Hmis::Hud::CustomAssessment'::text) AND (fp.owner_id = ca.id))))
+     JOIN public.hmis_form_definitions def ON (((def.deleted_at IS NULL) AND (def.id = fp.definition_id))))
+  WHERE (wc.destination_id IS NOT NULL)
+  ORDER BY wc.destination_id, def.identifier, ca."AssessmentDate" DESC, ca.id DESC;
+
+
+--
 -- Name: hmis_dqt_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24313,7 +24339,8 @@ CREATE TABLE public.hmis_unit_groups (
     workflow_template_identifier character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    candidate_pool_id bigint
 );
 
 
@@ -61854,6 +61881,13 @@ CREATE INDEX index_ce_match_candidates_on_client_proxy_id ON public.ce_match_can
 
 
 --
+-- Name: index_ce_match_candidates_on_priority_scores; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_match_candidates_on_priority_scores ON public.ce_match_candidates USING btree (priority_scores);
+
+
+--
 -- Name: index_ce_match_candidates_proxy_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61865,6 +61899,13 @@ CREATE UNIQUE INDEX index_ce_match_candidates_proxy_uniq ON public.ce_match_cand
 --
 
 CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_ce_match_rules_owner_priority_rank_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE ((rule_type)::text = 'priority_scheme'::text);
 
 
 --
@@ -66198,6 +66239,13 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_data_source_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public.hmis_supplemental_data_sets USING btree (remote_credential_id);
+
+
+--
+-- Name: index_hmis_unit_groups_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_candidate_pool_id ON public.hmis_unit_groups USING btree (candidate_pool_id);
 
 
 --
@@ -74894,6 +74942,14 @@ ALTER TABLE ONLY public.wfe_steps
 
 
 --
+-- Name: hmis_unit_groups fk_rails_c1abcca3e6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_c1abcca3e6 FOREIGN KEY (candidate_pool_id) REFERENCES public.ce_match_candidate_pools(id);
+
+
+--
 -- Name: ce_match_candidates fk_rails_c48d59cacb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75156,10 +75212,19 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250807112429'),
+('20250804124300'),
+('20250804124243'),
+('20250804122929'),
+('20250803183312'),
+('20250731134651'),
+('20250730004713'),
+('20250729183312'),
 ('20250716131246'),
 ('20250716131240'),
 ('20250716123853'),
 ('20250716122931'),
+('20250716112736'),
 ('20250715220502'),
 ('20250715152820'),
 ('20250715150621'),

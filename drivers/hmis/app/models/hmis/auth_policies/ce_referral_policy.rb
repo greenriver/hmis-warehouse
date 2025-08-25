@@ -34,6 +34,12 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_view_own_referrals) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
   end
 
+  def can_view_summary?
+    return false unless Hmis::Ce.configuration.enabled?
+
+    source_project_permissions.include?(:can_manage_outgoing_referrals)
+  end
+
   def can_assign_referral_tasks?
     return false unless Hmis::Ce.configuration.enabled?
 
@@ -50,15 +56,30 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
     false
   end
 
-  def can_create_note?(...) = can_perform?(...)
+  def can_create_note?(step: nil)
+    return can_perform?(step: step) if step
+
+    # If step is not provided, this check is for creating a global referral note. Allowed if user can perform _any_ available steps.
+    return false unless Hmis::Ce.configuration.enabled?
+    return true if project_permissions.include?(:can_perform_any_referral_tasks)
+    return true if project_permissions.include?(:can_perform_own_referral_tasks) && context.assigned_referral_instance_ids.include?(referral.workflow_instance_id)
+
+    false
+  end
 
   protected
 
   # convenience
   def referral = resource
 
+  # *target* project
   def project_permissions
     project_id = context.referral_project_id(referral.id)
+    context.project_permissions(project_id)
+  end
+
+  def source_project_permissions
+    project_id = context.referral_source_project_id(referral.id)
     context.project_permissions(project_id)
   end
 

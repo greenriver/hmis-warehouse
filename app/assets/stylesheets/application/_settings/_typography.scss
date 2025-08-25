@@ -1,22 +1,54 @@
 // copied from https://engageinteractive.co.uk/blog/top-10-scss-mixins
-@mixin font-open-sans($size: false, $color: false, $weight: false,  $lh: false, $tracking: false) {
+@mixin font-open-sans($size: false, $color: false, $weight: false, $lh: false, $tracking: false) {
   font-family: $font-body;
-  @if $size { font-size: rem($size); }
-  @if $color { color: $color; }
-  @if $weight { font-weight: $weight; }
-  @if $lh { line-height: $lh; }
-  @if $tracking { letter-spacing: tracking($tracking); }
+
+  @if $size {
+    font-size: rem($size);
+  }
+
+  @if $color {
+    color: $color;
+  }
+
+  @if $weight {
+    font-weight: $weight;
+  }
+
+  @if $lh {
+    line-height: $lh;
+  }
+
+  @if $tracking {
+    letter-spacing: tracking($tracking);
+  }
+
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizelegibility;
 }
 
-@mixin font-open-sans-condensed($size: false, $color: false, $weight: false,  $lh: false, $tracking: false) {
+@mixin font-open-sans-condensed($size: false, $color: false, $weight: false, $lh: false, $tracking: false) {
   font-family: $font-header;
-  @if $size { font-size: rem($size); }
-  @if $color { color: $color; }
-  @if $weight { font-weight: $weight; }
-  @if $lh { line-height: $lh; }
-  @if $tracking { letter-spacing: tracking($tracking); }
+
+  @if $size {
+    font-size: rem($size);
+  }
+
+  @if $color {
+    color: $color;
+  }
+
+  @if $weight {
+    font-weight: $weight;
+  }
+
+  @if $lh {
+    line-height: $lh;
+  }
+
+  @if $tracking {
+    letter-spacing: tracking($tracking);
+  }
+
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizelegibility;
 }
@@ -43,7 +75,7 @@
   }
 }
 
-@mixin font-heading($size: false, $color: false, $weight: false,  $lh: false, $tracking: false) {
+@mixin font-heading($size: false, $color: false, $weight: false, $lh: false, $tracking: false) {
   @include font-open-sans-condensed($size: $size, $weight: font-weight(normal), $color: $color, $lh: $lh, $tracking: $tracking);
 }
 

@@ -6,6 +6,27 @@
 
 # frozen_string_literal: true
 
+###
+# This class interacts with the external AHA API to fetch client scores for Coordinated Entry.
+# Scores are fetched by MCI Unique ID.
+#
+# For more details, see internal documentation:
+#  https://docs.google.com/document/d/1Gcz9-t_utRcqGV9xCzQvTehjQOCqqPv_5-JY_IhhL4Q/
+#
+# Example Credential Setup:
+# aha_cred = GrdaWarehouse::RemoteCredentials::ApiKey.where(slug: 'ac_hmis_aha').first_or_initialize
+# aha_cred.attributes = {
+#   username: '',
+#   active: true,
+#   base_url: 'https://<base url>',
+#   authorization_header: 'Bearer <bearer token>',
+#   additional_headers: {
+#     'token': '<app token>',
+#     'role': '<role public id>',
+#   }
+# }
+# aha_cred.save!
+###
 module HmisExternalApis::AcHmis
   class Aha
     SYSTEM_ID = 'ac_hmis_aha'
@@ -14,11 +35,16 @@ module HmisExternalApis::AcHmis
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
 
     def fetch_score(client)
-      mci_uniq_id = client.ac_hmis_mci_unique_id
-      return nil unless mci_uniq_id.present?
+      # Collect MCI unique IDs for this client and all source clients with the same destination client
+      clients = [client, *client.destination_client&.source_clients&.to_a]
+      mci_uniq_ids = clients.compact.uniq.filter_map do |c|
+        c.ac_hmis_mci_unique_id&.value
+      end.uniq
+
+      return nil if mci_uniq_ids.empty?
 
       payload = {
-        'dw_client_id': mci_uniq_id.value.to_s,
+        'dw_client_id': mci_uniq_ids.join(','),
       }
 
       result = conn.post('api/v1/clients/scores/search/', payload).
@@ -36,7 +62,7 @@ module HmisExternalApis::AcHmis
 
           OpenStruct.new(
             score: score_value.to_i,
-            alt_aha_flag: score_obj.dig('metadata', 'alt_aha_flag')&.to_i == 1,
+            mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
             dw_client_id: response_client.dig('dw_client_id'),
             generator: score_obj.dig('generator'),
           )

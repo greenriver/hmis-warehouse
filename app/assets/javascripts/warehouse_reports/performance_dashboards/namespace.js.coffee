@@ -1,6 +1,7 @@
 #= require ../namespace
+#= require ../../chart_defaults
 App.WarehouseReports.PerformanceDashboards ||= {}
-window.Chart.defaults.colors = [
+window.App.chartDefaults.colors = [
   '#00918C',
   '#FFA600',
   '#0054A6',

@@ -3,17 +3,28 @@
 require 'dentaku'
 
 module Hmis::Ce::Match::Internal
+  # This class evaluates a batch of clients against a candidate pool's criteria.
+  # To prevent N+1 queries, it pre-fetches all required field dependencies for the entire
+  # client collection upon initialization. The `call` method then uses this in-memory
+  # cache for fast, individual client evaluation.
   class ClientPoolEvaluator
     attr_reader :expression, :field_map
 
     # simple evaluation result object
-    Result = Struct.new(:client_values, :priority_score) do
-      # A nil priority_score indicates the client is not eligible for the pool
-      def failed? = priority_score.nil?
+    Result = Struct.new(:client_values, :priority_scores) do
+      # Determines if the client evaluation failed based on priority scores.
+      #
+      # Client is ineligible for Pool if:
+      # - Priority scores are nil or empty. This indicates that prioritization never ran, because client was ineligible. Or,
+      # - Any value in the priority scores array is nil. NOTE: To include clients with missing prioritization values,
+      #   use a coalescing priority expression such as `IF(my_score = NULL, 0, my_score)`
+      def failed?
+        priority_scores.nil? || priority_scores.empty? || priority_scores.any?(&:nil?)
+      end
     end
     private_constant :Result
 
-    def initialize(pool, field_map)
+    def initialize(clients, pool, field_map)
       @pool = pool
 
       @field_map = field_map
@@ -24,20 +35,23 @@ module Hmis::Ce::Match::Internal
       ].compact_blank.flat_map do |expression|
         @calculator.dependencies(expression)
       end.sort.uniq
+
+      @client_field_values = {}
+      @dependencies.each do |field|
+        field_map.client_query(clients, field).each do |client_id, value|
+          @client_field_values[client_id] ||= {}
+          @client_field_values[client_id][field] = value
+        end
+      end
     end
 
     def call(client)
-      # construct client values for the expression.
-      client_values = @dependencies.to_h do |field|
-        [field, field_map.instance_value(client, field)]
-      end
+      client_values = @client_field_values[client.id] || {}
 
-      # Client without a score cannot be prioritized
-      #   * To be eligible priority score must be non-null AND the eligibility requirement must pass
-      #   * To include clients with null scores, use a coalescing priority expression such as
-      #     `IF(my_score = NULL, 0, my_score)`
-      priority = eval_priority(client_values) if eval_requirement(client_values)
-      Result.new(client_values, priority)
+      # Only run priority evaluation if eligibility evaluation passed.
+      # To be eligible, client's priority scores must all be non-null AND the eligibility requirement must pass.
+      priority_scores = eval_priority(client_values) if eval_requirement(client_values)
+      Result.new(client_values, priority_scores)
     end
 
     protected

@@ -1,18 +1,18 @@
 %ul.nav.nav-tabs
   %li.nav-item
-    %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link.active{href: '#unpayable', role: "presentation", data: { 'bs-toggle' => :tab}}
       Invalid QA
   %li.nav-item
-    %a.nav-link{href: '#duplicate', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#duplicate', role: "presentation", data: { 'bs-toggle' => :tab}}
       Duplicate
   %li.nav-item.payable
-    %a.nav-link{href: '#valid-unpayable', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#valid-unpayable', role: "presentation", data: { 'bs-toggle' => :tab}}
       Valid QA, Unpayable
   %li.nav-item.payable
-    %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#payable', role: "presentation", data: { 'bs-toggle' => :tab}}
       Valid QA, Payable
   %li.nav-item.payable
-    %a.nav-link{href: '#missing-components', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#missing-components', role: "presentation", data: { 'bs-toggle' => :tab}}
       Missing Components
 
 .tab-content

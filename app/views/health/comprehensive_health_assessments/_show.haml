@@ -23,7 +23,7 @@
     - if @cha.editable_by?(current_user)
       .ml-auto
         - if ! @cha_locked
-          = link_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-secondary btn-sm', data: { disable_with: 'Loading...', toggle: 'tooltip' } do
+          = link_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-secondary btn-sm', data: { disable_with: 'Loading...', 'bs-toggle' => 'tooltip' } do
             %i.icon-pencil
             Edit CHA
           %br

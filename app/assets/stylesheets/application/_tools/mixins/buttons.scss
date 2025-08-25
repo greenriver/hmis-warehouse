@@ -1,21 +1,13 @@
-@mixin button($color: $brand-primary) {
-  display: inline-block;
+@mixin button($color: var(--bs-primary)) {
   color: $body-color;
-  text-align: center;
-  vertical-align: middle;
-  user-select: none;
-  background-color: transparent;
-  border: $btn-border-width solid transparent;
-  min-height: 50px;
-
   // Custom styles
   @include custom-button-styles;
   // ~~~~~~~~~~~~~~~~~~~~~~~~
 
-  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
+  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-border-radius);
   @include transition($btn-transition);
 
-  @include hover {
+  &:hover {
     color: $body-color;
     text-decoration: none;
   }
@@ -51,6 +43,7 @@
   min-height: rem(40px);
   display: inline-flex;
   align-items: baseline;
+
   [class^='icon'],
   span {
     margin-right: space(2);

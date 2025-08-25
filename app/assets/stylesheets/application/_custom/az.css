@@ -1,0 +1,26 @@
+:root {
+  /* Primary: #002664 */
+  --bs-primary-hue: 217;
+  --bs-primary-saturation: 100%;
+  --bs-primary-lightness: 20%;
+
+  /* Success: #00A3E0 */
+  --bs-success-hue: 197;
+  --bs-success-saturation: 100%;
+  --bs-success-lightness: 44%;
+
+  /* Warning: #fed700 */
+  --bs-warning-hue: 51;
+  --bs-warning-saturation: 100%;
+  --bs-warning-lightness: 50%;
+
+  /* Danger: #c82a52 */
+  --bs-danger-hue: 337;
+  --bs-danger-saturation: 65%;
+  --bs-danger-lightness: 47%;
+
+  /* Theme Background: #002664 */
+  --theme-background-hue: 217;
+  --theme-background-saturation: 100%;
+  --theme-background-lightness: 20%;
+}

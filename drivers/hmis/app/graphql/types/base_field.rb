@@ -7,11 +7,22 @@
 ###
 
 module Types
+  # Custom base field class that provides common functionality for all fields in the schema.
+  # This includes:
+  # - A consistent authorization layer (`permissions` or `authorize_with`)
+  # - Automatic pagination for fields that return a paginated type
+  # - Support for default values
   class BaseField < GraphQL::Schema::Field
     argument_class Types::BaseArgument
 
-    def initialize(*args, default_value: nil, permissions: nil, **kwargs, &block)
+    # @param default_value [Object] A default value for the field if it resolves to nil.
+    # @param permissions [Symbol, Array<Symbol>] (Deprecated) The required permission(s) to view the field. Mutually exclusive with `authorize_with`.
+    # @param authorize_with [Proc] A lambda for custom authorization logic. It receives `user` and `object` and should return a boolean. Mutually exclusive with `permissions`.
+    def initialize(*args, default_value: nil, permissions: nil, authorize_with: nil, **kwargs, &block)
+      raise ArgumentError "don't use permissions and authorize_with" if permissions && authorize_with
+
       @permissions = Array.wrap(permissions)
+      @authorize_with = authorize_with
 
       after_paginate = kwargs.delete(:after_paginate)
       super(*args, **kwargs, &block)
@@ -32,14 +43,17 @@ module Types
     # Field-level authorization
     # https://graphql-ruby.org/authorization/authorization.html#field-authorization
     def authorized?(object, args, ctx)
-      # if `permissions:` was given, then require the current user to have the specified permissions on the object
-      base_authorized = super(object, args, ctx)
+      return false unless super(object, args, ctx)
+
       if @permissions.any?
-        base_authorized && @permissions.all? do |perm|
+        # if `permissions:` was given, then require the current user to have the specified permissions on the object
+        @permissions.all? do |perm|
           GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: perm, entity: object)
         end
+      elsif @authorize_with
+        @authorize_with.call(ctx[:current_user], object)
       else
-        base_authorized
+        true
       end
     end
 

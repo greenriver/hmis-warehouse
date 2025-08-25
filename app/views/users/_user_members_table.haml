@@ -38,10 +38,11 @@
           %tr
             %td= link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
             %td= user.email
-            %td.d-flex
-              - if delete_user_lambda
-                = link_to delete_user_lambda.call(user), class: 'btn btn-sm btn-danger ml-auto', method: :delete, data: { confirm: "Are you sure you want to remove #{user.name} from #{item.name}?" } do
-                  %i.icon-cross
-                  Remove User
+            %td
+              .d-flex
+                - if delete_user_lambda
+                  = link_to delete_user_lambda.call(user), class: 'btn btn-sm btn-danger ml-auto', method: :delete, data: { confirm: "Are you sure you want to remove #{user.name} from #{item.name}?" } do
+                    %i.icon-cross
+                    Remove User
 - else
   .none-found No users

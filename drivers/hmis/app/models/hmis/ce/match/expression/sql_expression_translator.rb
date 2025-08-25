@@ -9,6 +9,7 @@ module Hmis::Ce::Match::Expression
   class SqlExpressionTranslator
     include Dentaku::Visitor::Infix
 
+    # Class method for convenience, returns the translator instance with access to both condition and joins
     def self.call(expression, field_map)
       calculator = Hmis::Ce::Match::Expression::CalculatorFactory.build
       begin
@@ -19,12 +20,13 @@ module Hmis::Ce::Match::Expression
       end
       visitor = new(field_map)
       visitor.visit(ast)
-      visitor.to_arel
+      visitor
     end
 
     def initialize(field_map)
       @field_map = field_map
       @node_results = {}
+      @joins = []
     end
 
     def visit_operation(node)
@@ -43,6 +45,10 @@ module Hmis::Ce::Match::Expression
 
     def visit_function(_node)
       ALWAYS_TRUE
+    end
+
+    def joins
+      @joins.uniq
     end
 
     def to_arel
@@ -65,6 +71,8 @@ module Hmis::Ce::Match::Expression
     ALWAYS_TRUE = Arel::Nodes::Equality.new(1, 1).freeze
 
     def handle_identifier(node)
+      join = @field_map.joins(node.identifier)
+      @joins << join if join.present?
       @field_map.arel_field(node.identifier) || ALWAYS_TRUE
     end
 

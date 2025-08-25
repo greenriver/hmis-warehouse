@@ -26,24 +26,10 @@
 Rails.application.config.content_security_policy do |policy|
   public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
 
-  # Get Superset base URL for CSP if available
-  superset_base_url = begin
-    Superset.superset_base_url if defined?(Superset)
-  rescue StandardError
-    nil
-  end
-
   policy.default_src(:self)
   policy.object_src(:none) # Prevents potentially dangerous browser plugins
   policy.base_uri(:self) # Only allows base URLs from your own domain, prevents cross-origin base URL injection
-  policy.form_action( # Protects against form-action hijacking
-    *[
-      :self,
-      ("https://#{ENV['FQDN']}" if ENV['FQDN'].present?), # explicit app domain for Okta auth
-      ("https://#{ENV['OKTA_DOMAIN']}" if ENV['OKTA_DOMAIN'].present?), # okta auth form redirect location
-      superset_base_url, # Superset dashboard integration
-    ].compact_blank,
-  )
+
   policy.frame_ancestors(
     *[
       :self, # Self-embedding for public reports
@@ -58,7 +44,6 @@ Rails.application.config.content_security_policy do |policy|
     'https://www.google.com/recaptcha/', # Google reCAPTCHA iframe for form protection
     'https://recaptcha.google.com/recaptcha/', # Google reCAPTCHA fallback iframe
   )
-
   policy.font_src(
     :self,
     :data, # Data URIs for inline fonts (base64 encoded)
@@ -67,7 +52,8 @@ Rails.application.config.content_security_policy do |policy|
     'https://fonts.gstatic.com', # Google Fonts font files
 
     # Public Reports - UI Components
-    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons', # Bootstrap Icons font files
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap Icons font files
+    'https://ka-f.fontawesome.com/releases/v5.15.4/webfonts/', # FontAwesome webfonts
   )
   policy.img_src(
     *[
@@ -93,17 +79,21 @@ Rails.application.config.content_security_policy do |policy|
     'https://www.gstatic.com/recaptcha/', # Google reCAPTCHA static assets
 
     # Core Application
-    'https://unpkg.com/ag-grid-community@', # Data grid component for large datasets
+    'https://unpkg.com/ag-grid-community@27.3.0/', # Data grid component for large datasets
     'https://cdnjs.cloudflare.com/ajax/libs/chance/', # Random data generation for development
 
     # Data Visualization & Analytics
     'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
     'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js library for system dashboards, health analytics, public reports, and HMIS data quality visualization
-    'https://unpkg.com/leaflet@', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
+    'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
+    'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library - newer version used in external forms
 
     # Public Reports - UI Components
-    'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework for responsive UI
-    'https://cdn.jsdelivr.net/npm/bootstrap-datepicker@', # Date picker component
+    'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/', # Bootstrap framework for responsive UI
+    'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/', # Bootstrap framework - version used in external forms
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/', # Bootstrap framework - version used in performance measurement
+    'https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/', # Date picker component
+    'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/', # Date picker component (cdnjs)
     'https://code.jquery.com', # jQuery for DOM manipulation and event handling
     'https://kit.fontawesome.com/b8b025dd15.js', # FontAwesome icons for public reports
 
@@ -117,17 +107,21 @@ Rails.application.config.content_security_policy do |policy|
 
       # Core Application
       'https://fonts.googleapis.com', # Google Fonts for typography
-      'https://unpkg.com/ag-grid-community@', # AG Grid component styles
+      'https://unpkg.com/ag-grid-community@27.3.0/styles/', # AG Grid component styles
       :unsafe_inline, # Required for inline styles in HAML templates
       public_s3_url, # S3 bucket for uploaded assets (if configured)
 
       # Data Visualization & Analytics
       'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # Billboard.js chart styling
-      'https://unpkg.com/leaflet@', # Leaflet mapping library styles
+      'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library styles
+      'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library styles - newer version
 
       # Public Reports - UI Components
-      'https://cdn.jsdelivr.net/npm/bootstrap@', # Bootstrap framework styles
+      'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/', # Bootstrap framework styles
+      'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/', # Bootstrap framework styles - version used in external forms
+      'https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/', # Bootstrap framework styles - version used in performance measurement
       'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/', # Bootstrap icon font
+      'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/', # Bootstrap date picker
     ].compact_blank,
   )
 
@@ -168,9 +162,10 @@ end
 # Set the nonce only to specific directives
 # Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
 
-if Rails.env.production? || Rails.env.staging?
+if ENV['CSP_REPORT_ONLY'] == '1'
   Rails.application.config.content_security_policy_report_only = true
 else
+  # the default is to enforce the CSP
   Rails.application.config.content_security_policy_report_only = false
 end
 # rubocop:enable Layout/EmptyLinesAroundArguments

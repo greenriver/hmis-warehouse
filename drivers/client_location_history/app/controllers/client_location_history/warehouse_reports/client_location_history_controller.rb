@@ -16,6 +16,7 @@ module ClientLocationHistory::WarehouseReports
     before_action :filter
 
     def index
+      @per_page_js = ['map_with_markers']
       ids = ClientLocationHistory::Location.joins(:client).
         merge(GrdaWarehouse::Hud::Client.destination_or_source_visible_to(current_user)).
         where(located_on: filter.range).

@@ -100,6 +100,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
   has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
 
+  # All referrals where this enrollment is the source enrollment. NOT only 'direct' referrals
+  has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment', primary_key: [:data_source_id, :HouseholdID], query_constraints: [:data_source_id, :household_id]
 
   # Cached chronically homeless at entry
@@ -473,6 +475,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     # error: the unit is occupied by someone who is NOT in this household
     occupants = unit.occupants_on(start_date)
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
+
+    opportunity = unit.latest_opportunity
+    if opportunity&.locked? || opportunity&.open?
+      raise 'Cannot assign directly to a unit receiving referrals' unless opportunity.active_referral&.client == client
+    end
 
     # include project id here since it may not be available during after_save hooks due to WIP
     self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type

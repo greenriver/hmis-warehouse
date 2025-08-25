@@ -24,12 +24,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'
   STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'
   CE_CONFIG = 'Hmis::ProjectCeConfig'
+  SENDS_DIRECT_CE_REFERRALS_CONFIG = 'Hmis::ProjectSendsDirectCeReferralsConfig'
 
   CONFIG_TYPE_FACTORIES = {
     'AUTO_EXIT' => AUTO_EXIT_CONFIG,
     'AUTO_ENTER' => AUTO_ENTER_CONFIG,
     'STAFF_ASSIGNMENT' => STAFF_ASSIGNMENT_CONFIG,
     'COORDINATED_ENTRY' => CE_CONFIG,
+    'SENDS_DIRECT_CE_REFERRALS' => SENDS_DIRECT_CE_REFERRALS_CONFIG,
   }.freeze
 
   validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
@@ -57,6 +59,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     end
   end
 
+  # TODO(#7960) - update to store json blob instead of jsonified string; will require migrating existing data
   def options= hash
     self.config_options = hash.to_json
   end
@@ -117,5 +120,13 @@ class Hmis::ProjectConfig < Hmis::HmisBase
       scope = configs.where.not(field => nil)
       return scope.first if scope.exists?
     end
+  end
+
+  private
+
+  def set_config_option(key, value)
+    new_options = { key => value }.stringify_keys
+    merged_options = options ? options.merge(new_options) : new_options
+    self.config_options = merged_options.to_json
   end
 end
