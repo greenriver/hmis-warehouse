@@ -127,21 +127,23 @@ RSpec.shared_context 'RailsSystemHelper' do
   end
 end
 
-RSpec.configure do |config|
-  # Include Capybara DSL and helpers for rails_system type
-  config.include Capybara::DSL, type: :rails_system
-  config.include_context 'RailsSystemHelper', type: :rails_system
+if rails_system_enabled
+  RSpec.configure do |config|
+    # Include Capybara DSL and helpers for rails_system type
+    config.include Capybara::DSL, type: :rails_system
+    config.include_context 'RailsSystemHelper', type: :rails_system
 
-  config.before(:each, type: :rails_system) do
-    Capybara.current_driver = :rails_cuprite
-  end
+    config.before(:each, type: :rails_system) do
+      Capybara.current_driver = :rails_cuprite
+    end
 
-  config.after(:each, type: :rails_system) do
-    Capybara.use_default_driver
-  end
+    config.after(:each, type: :rails_system) do
+      Capybara.use_default_driver
+    end
 
-  # Create screenshots directory
-  config.before(:suite) do
-    FileUtils.mkdir_p('tmp/capybara/screenshots/') if rails_system_enabled
+    # Create screenshots directory
+    config.before(:suite) do
+      FileUtils.mkdir_p('tmp/capybara/screenshots/') if rails_system_enabled
+    end
   end
 end

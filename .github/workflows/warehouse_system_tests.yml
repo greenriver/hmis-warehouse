@@ -118,6 +118,7 @@ jobs:
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       FERRUM_PROCESS_TIMEOUT: 90
       FERRUM_DEFAULT_TIMEOUT: 60
+      RUN_RAILS_SYSTEM_TESTS: true
 
     steps:
       - name: Checkout
@@ -155,7 +156,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: local_secret_key
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
-          RUN_RAILS_SYSTEM_TESTS: true
           CHROME_URL: http://chrome:3333
           TODO_OR_DIE_LOG_ONLY: true
         run:
@@ -166,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           if-no-files-found: ignore
-          name: artifacts-${{ matrix.test_group.id}}
+          name: artifacts-warehouse-system-tests
           path: |
             tmp/rspec_profiles/
             tmp/capybara/screenshots/
