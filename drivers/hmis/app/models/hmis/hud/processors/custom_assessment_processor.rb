@@ -42,6 +42,7 @@ module Hmis::Hud::Processors
 
       value = @hud_values.fetch(alt_aha_custom_field_key)
       return unless value # Skip if there's no score to validate
+return if value == HIDDEN_FIELD_VALUE
 
       # Recalculate score to confirm that it is unchanged
       aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
