@@ -58,7 +58,10 @@ module Types
     # Sort by event date before merging, so that the most recently calculated attributes are favored
     def client_attributes
       events = load_ar_association(object, :ce_match_candidate_events)
-      events.group_by(&:candidate_pool_id).values.
+      current_candidate_pool_ids = load_ar_association(object, :ce_match_candidates).map(&:candidate_pool_id).uniq
+      events.group_by(&:candidate_pool_id).
+        select { |id, _| current_candidate_pool_ids.include?(id) }.
+        values.
         map { |arr| arr.max_by(&:created_at) }.
         sort_by(&:created_at).
         map(&:snapshot).reduce({}, :merge)
