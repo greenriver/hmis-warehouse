@@ -18,6 +18,7 @@ module Types
 
     available_filter_options do
       arg :search_term, String, required: false
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType], required: false, description: 'Filter to Clients that are eligible for the specified Project Types'
       arg :dynamic_filters, [Types::TableFilterValue], required: false
     end
 
@@ -33,7 +34,6 @@ module Types
     # All the unit groups that this client is a candidate for.
     # N+1 query; do not use in batch for multiple clients.
     def eligible_unit_groups
-      # note: could incorporate the latest_event subquery too if pool-specific attributes need to be resolved
       object.ce_match_candidates.
         joins(candidate_pool: :unit_groups).
         select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').

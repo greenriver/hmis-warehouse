@@ -39,6 +39,12 @@ module Hmis::Ce
       joins(query).merge(GrdaWarehouse::Hud::Client.text_search(search_term, sorted: false))
     end
 
+    scope :eligible_for_project_type, ->(project_types) do
+      Rails.logger.info(">>> eligible for #{project_types}")
+      joins(ce_match_candidates: { candidate_pool: { unit_groups: :project, opportunities: :project } }).
+        where(Hmis::Hud::Project.arel_table[:project_type].in(Array.wrap(project_types)))
+    end
+
     def self.apply_filters(input)
       Hmis::Filter::CeClientFilter.new(input).filter_scope(current_scope)
     end

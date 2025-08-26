@@ -13,7 +13,6 @@ module Types
     field :status, HmisSchema::Enums::CeOpportunityStatus, null: false
     field :expires_at, GraphQL::Types::ISO8601DateTime, null: true
     field :referral, Types::HmisSchema::CeReferral, null: true, description: 'Active or accepted referral'
-    # TODO: add support for filters (just text search for now?)
     field :candidates, Types::HmisSchema::CeCandidate.page_type, null: false
 
     # Resolve project fields separately, instead of the whole project object, in case user can't view the project

@@ -632,7 +632,6 @@ module Types
     def ce_clients(filters: nil)
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
-      # TODO: add any visibility filtering beyond can_administrate_coordinated_entry?
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(:ce_match_candidates).
         distinct.order(:id)

@@ -792,6 +792,11 @@ type CeClient {
 
 input CeClientFilterOptions {
   dynamicFilters: [TableFilterValue!]
+
+  """
+  Filter to Clients that are eligible for the specified Project Types
+  """
+  projectType: [ProjectType!]
   searchTerm: String
 }
 
