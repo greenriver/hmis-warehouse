@@ -161,7 +161,7 @@ class StyleGuidesController < ApplicationController
       stimulus_select: 'Stimulus Select',
       reports: 'Reports',
       public_reports: 'Reports (Public)',
-      tags: 'Tags',
+      tags: 'Tags & Badges',
       js_example: 'JS Example',
       system_colors: 'System Colors',
     }
