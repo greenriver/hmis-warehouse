@@ -142,8 +142,6 @@ module CeWorkflows::Ac
 
       template.validate!
 
-      puts(template.to_mermaid_diagram)
-
       template
     end
 
@@ -212,8 +210,6 @@ module CeWorkflows::Ac
 
       template.validate!
 
-      puts(template.to_mermaid_diagram)
-
       template
     end
 
@@ -228,7 +224,7 @@ module CeWorkflows::Ac
     # - Updating custom referral status to 'Assigned' or 'Denial Pending' as appropriate
     # - Setting the CE Event result (both for decline and accept)
     # - Generating the target Enrollment when the referral is accepted by the provider
-    def build_provider_outcome_denial_review_loop(template:, ce_staff_swimlane:, project_staff_swimlane:)
+    def build_provider_outcome_denial_review_loop(template:, ce_staff_swimlane:, project_staff_swimlane:, can_provider_change_outcome: true)
       # Statuses
       assigned_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
         key: 'assigned',
@@ -302,21 +298,6 @@ module CeWorkflows::Ac
         template_id: template.id,
         swimlane: ce_staff_swimlane,
         trigger_config: enrolled_status_trigger_config,
-      )
-
-      # Change Provider Outcome optional user task
-      change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Change Provider Outcome (Optional)',
-        form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
-        template_id: template.id,
-        swimlane: project_staff_swimlane,
-        trigger_config: [
-          {
-            event: 'complete_step',
-            message: 'disable_step',
-            params: { 'node_id': confirm_success_task.id },
-          },
-        ],
       )
 
       # Script Tasks
@@ -403,20 +384,40 @@ module CeWorkflows::Ac
       # Create Enrollment (Script) => Confirm Success Task
       create_enrollment_task.connect_to!(confirm_success_task)
 
-      # Create Enrollment (Script) => Change Provider Outcome *optional* task that re-triggers the Denial Review
-      create_enrollment_task.connect_to!(change_provider_outcome_task)
-      # Note that this re-introduces the truly circular workflow.
-      # It is theoretically possible for users to re-open a previously closed Denial Review step, like this:
-      # - Complete the Change Provider Outcome step
-      # - In the Denial Review step, select "Send Back"
-      # - In the Provider Outcome (Second Attempt) step, select "Accept/Enroll"
-      # - Complete the Change Provider Outcome step a second time
-      # - The Denial Review (1) step is re-opened, instead of Denial Review (Second Attempt).
-      change_provider_outcome_task.connect_to!(denial_review_task)
+      if can_provider_change_outcome
+        # Change Provider Outcome optional user task
+        change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
+          name: 'Change Provider Outcome (Optional)',
+          form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
+          template_id: template.id,
+          swimlane: project_staff_swimlane,
+          trigger_config: [
+            {
+              event: 'complete_step',
+              message: 'disable_step',
+              params: { 'node_id': confirm_success_task.id },
+            },
+          ],
+        )
+
+        # Create Enrollment (Script) => Change Provider Outcome *optional* task that triggers a separate Denial Review loop
+        create_enrollment_task.connect_to!(change_provider_outcome_task)
+
+        # self referential, calls itself
+        sub_loop_nodes = build_provider_outcome_denial_review_loop(
+          template: template,
+          ce_staff_swimlane: ce_staff_swimlane,
+          project_staff_swimlane: project_staff_swimlane,
+          can_provider_change_outcome: false, # breaks infinite loop
+        )
+        sub_loop_entrypoint = sub_loop_nodes[:denial_review_task]
+        change_provider_outcome_task.connect_to!(sub_loop_entrypoint)
+      end
 
       confirm_success_task.connect_to!(accept_event)
       {
         provider_outcome_task_1: provider_outcome_task_1,
+        denial_review_task: denial_review_task,
         admin_decline_gateway: admin_decline_gateway,
       }
     end
