@@ -11,10 +11,17 @@ module Types
     # This type represents a specific eligibility relationship between a CE Candidate and Unit Group.
     # object is a Hmis::Ce::Match::Candidate with unit_group_id
 
+    # For now, this type is only made available to CE Admins (on the Consolidated Waitlist).
+    # When implementing issue #8005 to display list of eligible_unit_groups on the client dash, this may need to be expanded.
+    def self.authorized?(object, context)
+      super && context[:current_user].can_administrate_coordinated_entry?
+    end
+
     field :id, ID, null: false
     field :unit_group_name, String, null: false
     field :project_name, String, null: false
     field :project_id, ID, null: false
+    field :unit_group_id, ID, null: false
     field :project_type, HmisSchema::Enums::ProjectType, null: false
     field :organization_name, String, null: false
     field :units_accepting_referrals, Integer, null: false, description: 'Number of units in the unit group that are currently accepting referrals'
@@ -23,10 +30,6 @@ module Types
 
     def id
       "#{object.id}:#{object.unit_group_id}"
-    end
-
-    def unit_group_name
-      unit_group.name
     end
 
     def project_name
@@ -43,6 +46,14 @@ module Types
 
     def organization_name
       load_ar_association(project, :organization)&.organization_name
+    end
+
+    def unit_group_id
+      unit_group.id
+    end
+
+    def unit_group_name
+      unit_group.name
     end
 
     def units_accepting_referrals

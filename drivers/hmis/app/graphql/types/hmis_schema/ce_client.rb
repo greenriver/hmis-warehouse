@@ -10,6 +10,12 @@ module Types
   class HmisSchema::CeClient < Types::BaseObject
     description 'A client who is a candidate for Coordinated Entry (CE), represented by a ClientProxy. Underlying client record is Destination Client.'
 
+    # For now, this type is only made available to CE Admins (on the Consolidated Waitlist).
+    # When implementing issue #8005 to display list of eligible_unit_groups on the client dash, this may need to be expanded.
+    def self.authorized?(object, context)
+      super && context[:current_user].can_administrate_coordinated_entry?
+    end
+
     available_filter_options do
       arg :search_term, String, required: false
       arg :dynamic_filters, [Types::TableFilterValue], required: false
@@ -23,12 +29,6 @@ module Types
     field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregation of most recent snapshots from all candidate pools this client belongs to'
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
-
-    # For now, this type is only made available to CE Admins (on the Consolidated Waitlist).
-    # When implementing issue #8005 to display list of eligible_unit_groups on the client dash, this may need to be expanded.
-    def self.authorized?(object, context)
-      super && context[:current_user].can_administrate_coordinated_entry?
-    end
 
     # All the unit groups that this client is a candidate for.
     # N+1 query; do not use in batch for multiple clients.
