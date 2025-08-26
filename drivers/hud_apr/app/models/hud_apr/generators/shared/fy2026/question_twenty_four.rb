@@ -81,7 +81,7 @@ module HudApr::Generators::Shared::Fy2026
 
     def q24e_sex
       # Active clients in the report date range
-      relevant_members = universe.members.where(hoh_clause).where(a_t[:project_type].eq(3))
+      relevant_members = universe.members
       question_sheet(question: 'Q24e') do  |sheet|
         sub_populations.keys.each do |label|
           sheet.add_header(label: label)
