@@ -17,10 +17,9 @@ module Mutations
     field :score, Integer, null: true
 
     def resolve(enrollment_id:, form_definition_identifier:, values_by_link_id:)
-      errors = HmisErrors::Errors.new
       # Use AHA configuration as proxy to determine whether alt-AHA should be enabled
-      errors.add :base, :server_error, full_message: 'AHA connection is not configured' unless HmisExternalApis::AcHmis::Aha.enabled?
-      return { errors: errors } if errors.any?
+      # Raise instead of returning an error. (Not fixable by the user filling out the form)
+      raise 'AHA connection is not configured' unless HmisExternalApis::AcHmis::Aha.enabled?
 
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
       access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
@@ -33,12 +32,19 @@ module Mutations
         form_definition_identifier: form_definition_identifier,
       )
 
-      # Check for missing required responses before calculating
+      # Check for missing required responses
       required_link_ids = aha_calculator.required_link_ids
-      missing_link_ids = required_link_ids.select { |link_id| values_by_link_id[link_id].nil? }
 
-      unless missing_link_ids.empty?
-        errors.add :base, :server_error, full_message: 'Unable to calculate score. Please finish entering responses.'
+      # Use form validation to validate that the required link IDs were provided in the form submission.
+      # This lets us reuse the form validator's logic for skipping questions that weren't shown to the user
+      # (such as dependent questions whose conditions were not met).
+      definition = Hmis::Form::Definition.published.find_by(identifier: form_definition_identifier)
+      validations = definition.validate_form_values(values_by_link_id, link_ids: required_link_ids)
+
+      if validations.any?
+        # Just return a generic message, not the specific validations that failed
+        errors = HmisErrors::Errors.new
+        errors.add :base, :required, full_message: 'Unable to calculate score. Please finish entering responses.'
         return { errors: errors }
       end
 

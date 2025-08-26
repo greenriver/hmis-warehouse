@@ -9,13 +9,15 @@
 module HmisExternalApis::AcHmis
   class AltAhaCalculator
     ALT_AHA_NAMESPACE = 'alt_aha'
+    CLIENT_AGE_LINK_ID = 'client_demographics_age'
+    CLIENT_GENDER_LINK_ID = 'client_demographics_gender'
 
     # owner can be: an enrollment (when AHA score is calculated on an unsaved assessment), or an assessment (when the assessment is being saved)
     def initialize(values_by_link_id:, client:, user: nil, owner: nil, form_definition_identifier:)
       @values_by_link_id = values_by_link_id.merge(
         # inject values from client
-        'client_demographics_age' => client.age,
-        'client_demographics_gender' => client.gender_fields,
+        CLIENT_AGE_LINK_ID => client.age,
+        CLIENT_GENDER_LINK_ID => client.gender_fields,
       )
       @user = user
       @owner = owner
@@ -44,18 +46,17 @@ module HmisExternalApis::AcHmis
     end
 
     def required_link_ids
-      # Group rules by link_id
       rules_by_link_id = @all_rules.group_by(&:link_id)
-
-      # Return a list of required link IDs that correspond to scoring rules
       rules_by_link_id.filter_map do |link_id, rules|
-        # Skip link_ids that only have rules matching a missing value (exact_match rules with match_value: null)
-        only_missing_rules = rules.all? do |rule|
+        next nil if [CLIENT_AGE_LINK_ID, CLIENT_GENDER_LINK_ID].include?(link_id)
+
+        # Skip link_ids that have rules matching a missing value (exact_match rules with match_value: null)
+        next nil if rules.any? do |rule|
           rule.criteria_type == Hmis::Scoring::Rule::EXACT_MATCH &&
           rule.criteria_config['match_value'].nil?
         end
 
-        link_id unless only_missing_rules
+        link_id
       end
     end
 

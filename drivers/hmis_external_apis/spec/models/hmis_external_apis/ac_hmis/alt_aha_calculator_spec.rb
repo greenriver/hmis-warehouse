@@ -193,7 +193,30 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
         )
       end
 
-      it 'includes weighted rules but excludes rules that only match missing values' do
+      let!(:client_age_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'client_demographics_age',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::VALUE,
+          weight: 0.1,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      let!(:client_gender_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'client_demographics_gender',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
+          criteria_config: { 'match_value' => 'Female' },
+          weight: 0.2,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      it 'includes scoring rules but excludes missing rules and client demographics' do
         calculator = described_class.new(
           values_by_link_id: {},
           client: client,
@@ -207,6 +230,8 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
         expect(required_link_ids).to include('weighted_exact')
         expect(required_link_ids).to include('range_question')
         expect(required_link_ids).not_to include('null_exact')
+        expect(required_link_ids).not_to include('client_demographics_age')
+        expect(required_link_ids).not_to include('client_demographics_gender')
       end
     end
   end
