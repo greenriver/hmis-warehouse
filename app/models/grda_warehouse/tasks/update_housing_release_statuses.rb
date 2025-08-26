@@ -14,7 +14,7 @@ module GrdaWarehouse
       def run!
         # Use optimized batch processing with preloaded associations
         GrdaWarehouse::Hud::Client.destination.
-          includes(:client_files).
+          preload(:client_files).
           find_in_batches(batch_size: 1000) do |clients|
             process_client_batch(clients)
           end
@@ -42,6 +42,9 @@ module GrdaWarehouse
 
           GrdaWarehouse::Hud::Client.where(id: client_ids).
             update_all(housing_release_status: new_status)
+
+          # Regenerate ROI authorizations for affected clients
+          GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new.perform(client_ids: client_ids)
         end
       end
 

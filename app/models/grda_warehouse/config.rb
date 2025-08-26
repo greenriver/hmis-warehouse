@@ -12,7 +12,6 @@ module GrdaWarehouse
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
     after_save :invalidate_cache
-    after_save :update_housing_release_statuses_if_roi_model_changed
 
     def self.cas_enabled?
       CasBase.db_exists?
@@ -203,15 +202,6 @@ module GrdaWarehouse
 
     def invalidate_cache
       self.class.invalidate_cache
-    end
-
-    def update_housing_release_statuses_if_roi_model_changed
-      return unless saved_change_to_roi_model?
-
-      Rails.logger.info "ROI model changed from #{roi_model_previous_change.first} to #{roi_model_previous_change.last}. Triggering housing release status updates."
-
-      # Run the update process asynchronously to avoid blocking the config save
-      GrdaWarehouse::Tasks::UpdateHousingReleaseStatusesJob.perform_later
     end
 
     def self.invalidate_cache

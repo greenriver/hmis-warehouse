@@ -90,7 +90,7 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
-    housing_release_status { 'Some Old Status' }
+    housing_release_status { Consent::Default.revoked_consent_string }
   end
 
   factory :client_with_expanded_consent, class: 'GrdaWarehouse::Hud::Client' do
@@ -99,7 +99,7 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
-    housing_release_status { 'Some Old Status' }
+    housing_release_status { Consent::Default.full_release_string }
   end
 
   factory :client_with_partial_consent, class: 'GrdaWarehouse::Hud::Client' do
@@ -108,6 +108,6 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
-    housing_release_status { 'Some Old Status' }
+    housing_release_status { Consent::Default.partial_release_string }
   end
 end
