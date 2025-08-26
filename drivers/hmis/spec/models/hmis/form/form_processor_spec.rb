@@ -2039,6 +2039,15 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'faAmount' => 200,
       }
     end
+    let(:initialized_hud_service) do
+      Hmis::Hud::Service.new(
+        data_source: ds1,
+        enrollment_id: e1.enrollment_id,
+        personal_id: e1.personal_id,
+        record_type: hud_service.record_type,
+        type_provided: hud_service.type_provided,
+      )
+    end
 
     let(:custom_service_values) do
       {
@@ -2048,19 +2057,40 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'creates and updates all fields on a HUD Service' do
-      new_record = Hmis::Hud::Service.new(
-        data_source: ds1,
-        enrollment_id: e1.enrollment_id,
-        personal_id: e1.personal_id,
-        record_type: hud_service.record_type,
-        type_provided: hud_service.type_provided,
-      )
-
-      [hud_service, new_record].each do |record|
+      [hud_service, initialized_hud_service].each do |record|
         process_record(record: record, hud_values: hud_service_values, user: hmis_user, definition: definition)
 
         expect(record.fa_amount).to eq(200)
         expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+      end
+    end
+
+    # Test FY2024 behavior, where only FAStartDate is collected for SSVF (and processed onto DateProvided)
+    it 'processes FA Start Date onto Date Provided if missing' do
+      hud_values = {
+        'faStartDate' => '2024-01-01',
+        'faAmount' => 200,
+      }
+      [hud_service, initialized_hud_service].each do |record|
+        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+        expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2024-01-01')
+        expect(record.fa_start_date.strftime('%Y-%m-%d')).to eq('2024-01-01')
+      end
+    end
+
+    # Test FY2026 behavior, where both FAStartDate and DateProvided are collected for SSVF
+    it 'processes FA Start Date and Date Provided if both present' do
+      hud_values = {
+        'dateProvided' => '2024-01-01',
+        'faStartDate' => '2024-02-01',
+        'faAmount' => 200,
+      }
+      [hud_service, initialized_hud_service].each do |record|
+        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+        expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2024-01-01')
+        expect(record.fa_start_date.strftime('%Y-%m-%d')).to eq('2024-02-01')
       end
     end
 

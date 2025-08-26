@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class AdHocDataSources::UploadsController < ApplicationController
   before_action :require_can_manage_some_ad_hoc_ds!
   before_action :set_data_source
@@ -42,7 +44,7 @@ class AdHocDataSources::UploadsController < ApplicationController
       @clients = @upload.ad_hoc_clients
     else
       # If we didn't ask to download the results, send the original file back
-      send_data(@upload.content, filename: @upload.name, type: @upload.content_type)
+      send_data(@upload.file.read, filename: @upload.name, type: @upload.file.content_type)
       return
     end
     # Use the default render

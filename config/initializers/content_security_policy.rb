@@ -162,9 +162,10 @@ end
 # Set the nonce only to specific directives
 # Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
 
-if Rails.env.production? || Rails.env.staging?
+if ENV['CSP_REPORT_ONLY'] == '1'
   Rails.application.config.content_security_policy_report_only = true
 else
+  # the default is to enforce the CSP
   Rails.application.config.content_security_policy_report_only = false
 end
 # rubocop:enable Layout/EmptyLinesAroundArguments

@@ -934,6 +934,7 @@ Rails.application.routes.draw do
       get :careplan
       get :client_dashboard
       get :colors
+      get :datepicker
       get :form
       get :health_dashboard
       get :icon_font
