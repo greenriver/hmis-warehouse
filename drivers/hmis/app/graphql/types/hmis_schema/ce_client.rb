@@ -16,12 +16,12 @@ module Types
     end
 
     # object is a Hmis::Ce::ClientProxy
-    field :id, ID, null: false # ce client proxy id
-    field :destination_client_id, ID, null: false
-    field :source_client_ids, [ID], null: false, description: 'IDs of the source clients associated with this client that belong to this HMIS data source' # fixme: using this for linking, but really we would need to check which of these clients are viewable
+    field :id, ID, null: false, description: 'Client Proxy ID'
+    field :destination_client_id, ID, null: false # may need to make this nullable in the future for other CE Client types (Eg VSP)
+    field :viewable_source_client_ids, [ID], null: false, description: 'IDs of the source clients associated with this client that belong to this HMIS data source and are viewable by the current user'
     field :client_name, String, null: false
-    field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregation of most recent snapshots from all candidate pools this client belongs to'
+    field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
 
     # CE Admins only, for now. Expand if showing on Client dashboard?
@@ -43,10 +43,14 @@ module Types
       destination_client.id
     end
 
-    def source_client_ids
-      load_ar_association(destination_client, :warehouse_client_destination).
+    def viewable_source_client_ids
+      source_ids = load_ar_association(destination_client, :warehouse_client_destination).
         select { |wcd| wcd.data_source_id == current_user.hmis_data_source_id }.
         map(&:source_id)
+      # filter out non-viewable source client IDs
+      source_ids.sort.select do |source_id|
+        load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: source_id).present?
+      end
     end
 
     def client_name

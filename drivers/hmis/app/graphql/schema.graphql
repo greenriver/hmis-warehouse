@@ -777,12 +777,17 @@ type CeClient {
   """
   eligibleUnitGroups(limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
   externalIds: [ExternalIdentifier!]!
+
+  """
+  Client Proxy ID
+  """
   id: ID!
 
   """
-  IDs of the source clients associated with this client that belong to this HMIS data source
+  IDs of the source clients associated with this client that belong to this HMIS
+  data source and are viewable by the current user
   """
-  sourceClientIds: [ID!]!
+  viewableSourceClientIds: [ID!]!
 }
 
 input CeClientFilterOptions {
