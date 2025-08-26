@@ -17,10 +17,9 @@ module Types
     field :project_id, ID, null: false
     field :project_type, HmisSchema::Enums::ProjectType, null: false
     field :organization_name, String, null: false
-    field :total_units, Integer, null: false, description: 'Total number of units in the unit group'
-    field :units_accepting_referrals, Integer, null: false, description: 'Number of units that are accepting referrals'
-    field :when_added_to_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
-    field :when_updated_in_candidate_pool, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
+    field :units_accepting_referrals, Integer, null: false, description: 'Number of units in the unit group that are currently accepting referrals'
+    field :candidate_created_at, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at, description: 'Timestamp when the candidate was added to the pool'
+    field :candidate_updated_at, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at, description: 'Timestamp when the candidate was last updated'
 
     def id
       "#{object.id}:#{object.unit_group_id}"
@@ -47,11 +46,7 @@ module Types
     end
 
     def units_accepting_referrals
-      unit_group.opportunities.receiving_referrals.count # FIXME N+1
-    end
-
-    def total_units
-      unit_group.units.count # FIXME N+1
+      load_ar_association(unit_group, :opportunities).filter(&:receiving_referrals?).count
     end
 
     private

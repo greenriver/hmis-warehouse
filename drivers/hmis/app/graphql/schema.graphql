@@ -812,24 +812,26 @@ type CeCustomReferralStatus {
 }
 
 type CeEligibleUnitGroup {
+  """
+  Timestamp when the candidate was added to the pool
+  """
+  candidateCreatedAt: ISO8601DateTime!
+
+  """
+  Timestamp when the candidate was last updated
+  """
+  candidateUpdatedAt: ISO8601DateTime!
   id: ID!
   organizationName: String!
   projectId: ID!
   projectName: String!
   projectType: ProjectType!
-
-  """
-  Total number of units in the unit group
-  """
-  totalUnits: Int!
   unitGroupName: String!
 
   """
-  Number of units that are accepting referrals
+  Number of units in the unit group that are currently accepting referrals
   """
   unitsAcceptingReferrals: Int!
-  whenAddedToCandidatePool: ISO8601DateTime!
-  whenUpdatedInCandidatePool: ISO8601DateTime!
 }
 
 type CeEligibleUnitGroupsPaginated {
