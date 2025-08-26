@@ -1,7 +1,14 @@
 = simple_form_for @upload, url: ad_hoc_data_source_uploads_path do |f|
   = f.error_notification
   .form-inputs
+
     = f.input :description
-    = f.input :file
+    %p
+      This file must be a CSV or Excel file that matches the shape and format of the
+      = link_to 'template file.', download_ad_hoc_data_sources_path(format: :xlsx)
+    = f.input :batch_file, required: true, error: @upload.errors[:batch_file].any?, hint: 'Accepted formats: CSV (.csv) and Excel (.xlsx, .xls)'
+    - if @upload.errors[:batch_file].any?
+      .text-danger
+        = @upload.errors[:batch_file].join(', ')
   .form-actions
     = f.button :submit, value: 'Upload', class: 'btn btn-primary'
