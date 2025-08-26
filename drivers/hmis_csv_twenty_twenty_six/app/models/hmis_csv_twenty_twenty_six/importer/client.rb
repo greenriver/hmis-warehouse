@@ -94,7 +94,7 @@ module HmisCsvTwentyTwentySix::Importer
             arguments: { valid_options: HudUtility2026.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
-        HispanicLatinaeo: [
+        HispanicLatinao: [
           {
             class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
           },

@@ -19,5 +19,9 @@ module HmisCsvTwentyTwentySix::Loader::LoaderConcern
     def self.hud_csv_version
       '2026'
     end
+
+    def self.column_name_for_import(column_name)
+      column_name
+    end
   end
 end
