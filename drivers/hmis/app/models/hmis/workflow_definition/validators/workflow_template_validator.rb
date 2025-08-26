@@ -45,18 +45,16 @@ class Hmis::WorkflowDefinition::Validators::WorkflowTemplateValidator
   end
 
   def validate_tasks_and_gateways(record)
-    # TODO @MARTHA
-    # invalid_nodes = (record.nodes.gateways + record.nodes.user_tasks + record.nodes.script_tasks).filter { |node| node.inflows.none? || node.outflows.none? }
-    # record.errors.add(:base, "The following nodes must have at least one inflow and one outflow: #{invalid_nodes.map(&:name).join(', ')}") if invalid_nodes.any?
+    invalid_nodes = (record.nodes.gateways + record.nodes.user_tasks + record.nodes.script_tasks).filter { |node| node.inflows.none? || node.outflows.none? }
+    record.errors.add(:base, "The following nodes must have at least one inflow and one outflow: #{invalid_nodes.map(&:name).join(', ')}") if invalid_nodes.any?
 
     record.nodes.gateways.filter { |gateway| gateway.outflows.map(&:condition).all? }.each do |gateway|
       record.errors.add(:base, "Gateway '#{gateway.name}' must have at least one non-conditional (default) outflow.")
     end
   end
 
-  def validate_nodes_reachable(_record)
-    # TODO @MARTHA
-    # unreachable = record.graph.unreachable_nodes
-    # record.errors.add(:base, "The following nodes are unreachable: #{unreachable.map(&:name).join(', ')}") if unreachable.any?
+  def validate_nodes_reachable(record)
+    unreachable = record.graph.unreachable_nodes
+    record.errors.add(:base, "The following nodes are unreachable: #{unreachable.map(&:name).join(', ')}") if unreachable.any?
   end
 end
