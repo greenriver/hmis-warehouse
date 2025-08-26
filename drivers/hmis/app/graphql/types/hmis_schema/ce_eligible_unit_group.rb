@@ -56,6 +56,9 @@ module Types
       unit_group.name
     end
 
+    # Number of units in the eligible Unit Group that currently have an open opportunity.
+    # Note: this many include opportunities that are "stale", meaning they have different Eligibility Requirements from the Unit Group.
+    # This could be expanded to support communicating that to the user (e.g. "Unit Group has 3 vacancies, but Client is only eligible for 1 of them")
     def units_accepting_referrals
       load_ar_association(unit_group, :opportunities).filter(&:receiving_referrals?).count
     end
