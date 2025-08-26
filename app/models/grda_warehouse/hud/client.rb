@@ -430,8 +430,15 @@ module GrdaWarehouse::Hud
         )
       when 'Use Expiration Date'
         where(
+          # Make sure to account for indefinite releases. These do not have an expiration date, but are still valid consent forms.
           release_string_query.
-            and(arel_table[:consent_expires_on].gteq(Date.current)),
+            and(
+              if release_duration == 'Indefinite'
+                arel_table[:consent_expires_on].gteq(Date.current).or(arel_table[:consent_expires_on].eq(nil))
+              else
+                arel_table[:consent_expires_on].gteq(Date.current)
+              end,
+            ),
         )
       else
         where(release_string_query)
@@ -1080,7 +1087,8 @@ module GrdaWarehouse::Hud
     def apply_housing_release_status
       return unless GrdaWarehouse::Config.implied_consent?
 
-      self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
+      consent_class = GrdaWarehouse::Config.active_consent_class.new(client: self)
+      self.housing_release_status = consent_class.current_consent_type
     end
 
     # End Release information

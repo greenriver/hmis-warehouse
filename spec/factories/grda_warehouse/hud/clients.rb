@@ -83,4 +83,31 @@ FactoryBot.define do
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
   end
+
+  factory :client_with_revoked_consent, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    LastName { 'Ross' }
+    DOB { '1999-12-01' }
+    housing_release_status { 'Some Old Status' }
+  end
+
+  factory :client_with_expanded_consent, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    LastName { 'Ross' }
+    DOB { '1999-12-01' }
+    housing_release_status { 'Some Old Status' }
+  end
+
+  factory :client_with_partial_consent, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    LastName { 'Ross' }
+    DOB { '1999-12-01' }
+    housing_release_status { 'Some Old Status' }
+  end
 end
