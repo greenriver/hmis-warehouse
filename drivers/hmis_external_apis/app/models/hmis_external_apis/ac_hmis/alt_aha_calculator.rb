@@ -38,6 +38,26 @@ module HmisExternalApis::AcHmis
       [alt_aha_score, calculation_log]
     end
 
+    def required_link_ids
+      all_rules = Hmis::Scoring::Rule.
+        for_form(@form_definition_identifier).
+        where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
+
+      # Group rules by link_id
+      rules_by_link_id = all_rules.group_by(&:link_id)
+
+      # Return a list of required link IDs that correspond to scoring rules
+      rules_by_link_id.filter_map do |link_id, rules|
+        # Skip link_ids that only have rules matching a missing value (exact_match rules with match_value: null)
+        only_missing_rules = rules.all? do |rule|
+          rule.criteria_type == Hmis::Scoring::Rule::EXACT_MATCH &&
+          rule.criteria_config['match_value'].nil?
+        end
+
+        link_id unless only_missing_rules
+      end
+    end
+
     private
 
     def calculate_components(values_by_link_id)

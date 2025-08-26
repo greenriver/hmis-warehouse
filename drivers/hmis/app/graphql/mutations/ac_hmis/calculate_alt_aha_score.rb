@@ -32,6 +32,16 @@ module Mutations
         owner: enrollment,
         form_definition_identifier: form_definition_identifier,
       )
+
+      # Check for missing required responses before calculating
+      required_link_ids = aha_calculator.required_link_ids
+      missing_link_ids = required_link_ids.select { |link_id| values_by_link_id[link_id].nil? }
+
+      unless missing_link_ids.empty?
+        errors.add :base, :server_error, full_message: 'Unable to calculate score. Please finish entering responses.'
+        return { errors: errors }
+      end
+
       score, = aha_calculator.calculate_score
 
       { score: score }
