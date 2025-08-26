@@ -44,6 +44,7 @@ module Hmis::Ce
         set_ce_event_result(message)
       when 'create_enrollment'
         referral_enroller.create_enrollment(message)
+        reversible = false
       when 'set_move_in_date'
         # Can be triggered on the same step as create_enrollment, or a later step
         referral_enroller.set_move_in_date(message)

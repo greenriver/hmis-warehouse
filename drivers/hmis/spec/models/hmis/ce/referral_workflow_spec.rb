@@ -314,6 +314,38 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       end.to change(client_step, :status).from('available').to('completed').
         and change(admin_step, :status).from('completed').to('available')
     end
+
+    context 'when the step getting restarted had irreversible side effects' do
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_enroll_clients]) }
+      let!(:coc1) { create(:hmis_hud_project_coc, data_source: project.data_source, project: project, coc_code: 'CO-500') }
+
+      let(:client_acceptance_task) do
+        create(
+          :hmis_workflow_definition_user_task,
+          template: template,
+          name: 'client acceptance task',
+          trigger_config: [
+            {
+              event: 'complete_step',
+              message: 'create_enrollment',
+            },
+          ],
+        )
+      end
+
+      it 'throws an error, indicating misconfigured workflow' do
+        expect do
+          engine.start_step!(client_step, user: user)
+          engine.complete_step!(client_step, user: user, submitted_values: {})
+        end.to change(Hmis::Hud::Enrollment, :count).by(1).
+          and change(referral, :target_enrollment).from(nil)
+
+        expect do
+          engine.start_step!(admin_step, user: user)
+          engine.complete_step!(admin_step, user: user, submitted_values: { 'review_denial_decision': 0 })
+        end.to raise_error(RuntimeError, /Failed to reopen step/)
+      end
+    end
   end
 
   describe 'Workflow with script task' do

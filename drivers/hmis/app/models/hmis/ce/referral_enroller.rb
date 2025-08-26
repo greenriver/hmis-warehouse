@@ -18,10 +18,6 @@ module Hmis::Ce
     end
 
     def create_enrollment(message)
-      # If the referral already has a target enrollment, return early and don't raise.
-      # This supports workflows where the enrollment creation task needs to be revisitable; see #8105 for details
-      return if referral.target_enrollment.present?
-
       project = referral.target_project
 
       # Step form may specify CoC code. This is required if the Project serves multiple CoCs.
