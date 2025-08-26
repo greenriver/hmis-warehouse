@@ -41,7 +41,7 @@ module Mutations
       definition = Hmis::Form::Definition.published.find_by(identifier: form_definition_identifier)
       validations = definition.validate_form_values(values_by_link_id, link_ids: required_link_ids)
 
-      if validations.any?
+      if validations.reject(&:warning?).any?
         # Return a generic message, not the specific questions that are required
         errors = HmisErrors::Errors.new
         errors.add :base, :required, full_message: 'Unable to calculate score. Please finish entering responses.'
