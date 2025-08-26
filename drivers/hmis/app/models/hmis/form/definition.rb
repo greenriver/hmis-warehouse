@@ -461,11 +461,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # validate form_values provides against the definition
   #   * errors & warnings on missing required fields
   #   * check if the input ids match the definition
-  def validate_form_values(form_values)
+  # if link_ids is provided, validate only the provided link IDs. Otherwise, validate the whole form
+  def validate_form_values(form_values, link_ids: nil)
     errors = HmisErrors::Errors.new
 
     # Iterate over item hash so that errors are sorted according to the definition
     link_id_item_hash.each do |link_id, item|
+      next if link_ids&.exclude?(link_id)
+
       # Skip assessment date, it is validated separately
       next if item.assessment_date
       # Skip if not present in value hash

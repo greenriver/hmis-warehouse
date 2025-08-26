@@ -9,17 +9,24 @@
 module HmisExternalApis::AcHmis
   class AltAhaCalculator
     ALT_AHA_NAMESPACE = 'alt_aha'
+    CLIENT_AGE_LINK_ID = 'client_demographics_age'
+    CLIENT_GENDER_LINK_ID = 'client_demographics_gender'
 
     # owner can be: an enrollment (when AHA score is calculated on an unsaved assessment), or an assessment (when the assessment is being saved)
     def initialize(values_by_link_id:, client:, user: nil, owner: nil, form_definition_identifier:)
       @values_by_link_id = values_by_link_id.merge(
         # inject values from client
-        'client_demographics_age' => client.age,
-        'client_demographics_gender' => client.gender_fields,
+        CLIENT_AGE_LINK_ID => client.age,
+        CLIENT_GENDER_LINK_ID => client.gender_fields,
       )
       @user = user
       @owner = owner
       @form_definition_identifier = form_definition_identifier
+
+      # Cache all scoring rules
+      @all_rules = Hmis::Scoring::Rule.
+        for_form(@form_definition_identifier).
+        where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
     end
 
     def calculate_score
@@ -38,6 +45,21 @@ module HmisExternalApis::AcHmis
       [alt_aha_score, calculation_log]
     end
 
+    def required_link_ids
+      rules_by_link_id = @all_rules.group_by(&:link_id)
+      rules_by_link_id.filter_map do |link_id, rules|
+        next nil if [CLIENT_AGE_LINK_ID, CLIENT_GENDER_LINK_ID].include?(link_id)
+
+        # Skip link_ids that have rules matching a missing value (exact_match rules with match_value: null)
+        next nil if rules.any? do |rule|
+          rule.criteria_type == Hmis::Scoring::Rule::EXACT_MATCH &&
+          rule.criteria_config['match_value'].nil?
+        end
+
+        link_id
+      end
+    end
+
     private
 
     def calculate_components(values_by_link_id)
@@ -49,10 +71,9 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
-      rules_by_link_id = Hmis::Scoring::Rule.
-        for_form(@form_definition_identifier).
-        for_algorithm(algorithm).
-        group_by(&:link_id)
+      # Filter cached rules for the specific algorithm, then group by link_id
+      algorithm_rules = @all_rules.select { |rule| rule.algorithm == algorithm }
+      rules_by_link_id = algorithm_rules.group_by(&:link_id)
       raise "No rules found for #{algorithm} #{@form_definition_identifier}" if rules_by_link_id.empty?
 
       # Evaluate all rules, treating missing values as nil
