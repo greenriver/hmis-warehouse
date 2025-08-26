@@ -99,6 +99,7 @@ export default class extends Controller {
 
     // Use Tempus Dominus DateTime to parse common date formats
     const formats = [
+      'MMM d, yyyy',
       'MM/dd/yyyy',
       'M/d/yyyy',
       'MM-dd-yyyy',
@@ -113,6 +114,7 @@ export default class extends Controller {
 
     let locale = 'en-US';
     try {
+      console.log('this.element.dataset.dateOptions', this.element.dataset.dateOptions);
       const optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
       if (optionsData.localization && optionsData.localization.locale) {
         locale = optionsData.localization.locale;
