@@ -23,7 +23,7 @@ module HmisExternalApis::AcHmis
       @owner = owner
       @form_definition_identifier = form_definition_identifier
 
-      # Cache all Alt-AHA scoring rules
+      # Cache all scoring rules
       @all_rules = Hmis::Scoring::Rule.
         for_form(@form_definition_identifier).
         where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
