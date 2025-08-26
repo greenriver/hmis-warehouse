@@ -69,7 +69,7 @@ module Hmis::Ce
     end
 
     def accept_referral
-      disable_outstanding_steps(referral)
+      disable_outstanding_steps
       referral.completed_at = Time.current
       referral.accept!
       set_custom_referral_status(status_key: 'accepted')
@@ -78,7 +78,7 @@ module Hmis::Ce
     end
 
     def reject_referral
-      disable_outstanding_steps(referral)
+      disable_outstanding_steps
       referral.completed_at = Time.current
       referral.reject!
       set_custom_referral_status(status_key: 'rejected')
