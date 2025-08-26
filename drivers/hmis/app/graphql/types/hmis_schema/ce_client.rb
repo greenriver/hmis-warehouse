@@ -45,13 +45,9 @@ module Types
     end
 
     def viewable_source_client_ids
-      source_ids = load_ar_association(destination_client, :warehouse_client_destination).
-        select { |wcd| wcd.data_source_id == current_user.hmis_data_source_id }.
-        map(&:source_id)
-      # filter out non-viewable source client IDs
-      source_ids.sort.select do |source_id|
-        load_ar_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: source_id).present?
-      end
+      source_clients.select do |source_client|
+        current_permission?(permission: :can_view_clients, entity: source_client)
+      end.map(&:id).sort
     end
 
     def client_name
