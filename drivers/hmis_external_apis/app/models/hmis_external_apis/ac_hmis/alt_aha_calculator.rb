@@ -20,6 +20,11 @@ module HmisExternalApis::AcHmis
       @user = user
       @owner = owner
       @form_definition_identifier = form_definition_identifier
+
+      # Cache all Alt-AHA scoring rules
+      @all_rules = Hmis::Scoring::Rule.
+        for_form(@form_definition_identifier).
+        where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
     end
 
     def calculate_score
@@ -39,12 +44,8 @@ module HmisExternalApis::AcHmis
     end
 
     def required_link_ids
-      all_rules = Hmis::Scoring::Rule.
-        for_form(@form_definition_identifier).
-        where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
-
       # Group rules by link_id
-      rules_by_link_id = all_rules.group_by(&:link_id)
+      rules_by_link_id = @all_rules.group_by(&:link_id)
 
       # Return a list of required link IDs that correspond to scoring rules
       rules_by_link_id.filter_map do |link_id, rules|
@@ -69,10 +70,9 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_algorithm_score(algorithm, values_by_link_id)
-      rules_by_link_id = Hmis::Scoring::Rule.
-        for_form(@form_definition_identifier).
-        for_algorithm(algorithm).
-        group_by(&:link_id)
+      # Filter cached rules for the specific algorithm, then group by link_id
+      algorithm_rules = @all_rules.select { |rule| rule.algorithm == algorithm }
+      rules_by_link_id = algorithm_rules.group_by(&:link_id)
       raise "No rules found for #{algorithm} #{@form_definition_identifier}" if rules_by_link_id.empty?
 
       # Evaluate all rules, treating missing values as nil
