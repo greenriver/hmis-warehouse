@@ -86,7 +86,7 @@ module Hmis::Ce
       mark_client_dirty(referral.client)
     end
 
-    def disable_outstanding_steps(referral)
+    def disable_outstanding_steps
       # Cancel and disable any outstanding steps
       referral.workflow_engine.active_steps.each do |step|
         step.cancel! if step.may_cancel?
