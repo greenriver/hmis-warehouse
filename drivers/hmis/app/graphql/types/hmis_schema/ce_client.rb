@@ -24,7 +24,8 @@ module Types
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
 
-    # CE Admins only, for now. Expand if showing on Client dashboard?
+    # For now, this type is only made available to CE Admins (on the Consolidated Waitlist).
+    # When implementing issue #8005 to display list of eligible_unit_groups on the client dash, this may need to be expanded.
     def self.authorized?(object, context)
       super && context[:current_user].can_administrate_coordinated_entry?
     end
