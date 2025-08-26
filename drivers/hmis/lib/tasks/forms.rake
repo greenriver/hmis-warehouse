@@ -28,7 +28,10 @@ namespace :forms do
       end.uniq
 
       # no form items
-      return if key_owner_pairs.empty?
+      if key_owner_pairs.empty?
+        puts "forms:backfill_custom_data_element_form_definitions: no custom_field_key mappings found for form '#{fd.identifier}'"
+        next
+      end
 
       # Build an OR scope for key+owner_type pairs
       scope = key_owner_pairs.
@@ -39,10 +42,19 @@ namespace :forms do
       ds_ids = GrdaWarehouse::DataSource.hmis.pluck(:id)
       scope = scope.where(data_source_id: ds_ids)
 
+      updated_keys = []
+
       scope.find_each do |cded|
         raise "Hmis::Hud::CustomDataElementDefinition##{cded.id} belongs to an unexpected form: \"#{cded.form_definition_identifier}\"" if cded.form_definition_identifier.present? && cded.form_definition_identifier != fd.identifier
 
         cded.update!(form_definition_identifier: fd.identifier) # creates PaperTrail version
+        updated_keys << cded.key unless updated_keys.include?(cded.key)
+      end
+
+      if updated_keys.any?
+        puts "forms:backfill_custom_data_element_form_definitions: updated #{updated_keys.size} CDED key(s) for form '#{fd.identifier}': #{updated_keys.sort.join(', ')}"
+      else
+        puts "forms:backfill_custom_data_element_form_definitions: no matching CDEDs to update for form '#{fd.identifier}'"
       end
     end
   end
