@@ -493,9 +493,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       elsif item.warn_if_empty && (is_missing || is_data_not_collected)
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
-
-      # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
-      # TODO(##184402463): Add support for RequiredWhen
     end
 
     # Ensure all link IDs are in the FormDefinition

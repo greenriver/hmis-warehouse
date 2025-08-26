@@ -915,7 +915,8 @@
           "properties": {
             "component": {
               "enum": [
-                "MINUTES_DURATION"
+                "MINUTES_DURATION",
+                "ALT_AHA"
               ]
             }
           }

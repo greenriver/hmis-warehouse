@@ -24117,6 +24117,78 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 
 
 --
+-- Name: hmis_scoring_calculation_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_calculation_logs (
+    id bigint NOT NULL,
+    namespace character varying NOT NULL,
+    final_score numeric(14,12) NOT NULL,
+    calculation_details json NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_calculation_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_calculation_logs_id_seq OWNED BY public.hmis_scoring_calculation_logs.id;
+
+
+--
+-- Name: hmis_scoring_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_rules (
+    id bigint NOT NULL,
+    link_id character varying NOT NULL,
+    form_definition_identifier character varying NOT NULL,
+    algorithm character varying NOT NULL,
+    criteria_type character varying NOT NULL,
+    criteria_config json DEFAULT '{}'::json NOT NULL,
+    weight numeric(14,12) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_rules_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rules.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -36390,6 +36462,20 @@ ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_scoring_calculation_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_calculation_logs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_scoring_rules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_rules_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -40837,6 +40923,22 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 ALTER TABLE ONLY public.hmis_scan_card_codes
     ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_calculation_logs hmis_scoring_calculation_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs
+    ADD CONSTRAINT hmis_scoring_calculation_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_rules hmis_scoring_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules
+    ADD CONSTRAINT hmis_scoring_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -66231,6 +66333,13 @@ CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card
 
 
 --
+-- Name: index_hmis_scoring_calculation_logs_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scoring_calculation_logs_on_owner ON public.hmis_scoring_calculation_logs USING btree (owner_type, owner_id);
+
+
+--
 -- Name: index_hmis_staff_assignment_relationships_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75245,6 +75354,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250804122929'),
 ('20250803183312'),
 ('20250731134651'),
+('20250730173200'),
 ('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),
