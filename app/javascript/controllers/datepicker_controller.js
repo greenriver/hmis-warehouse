@@ -114,7 +114,6 @@ export default class extends Controller {
 
     let locale = 'en-US';
     try {
-      console.log('this.element.dataset.dateOptions', this.element.dataset.dateOptions);
       const optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
       if (optionsData.localization && optionsData.localization.locale) {
         locale = optionsData.localization.locale;
