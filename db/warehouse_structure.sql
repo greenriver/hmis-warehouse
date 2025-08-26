@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -2965,7 +2965,8 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ce_referral_id integer
 );
 
 
@@ -24116,6 +24117,78 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 
 
 --
+-- Name: hmis_scoring_calculation_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_calculation_logs (
+    id bigint NOT NULL,
+    namespace character varying NOT NULL,
+    final_score numeric(14,12) NOT NULL,
+    calculation_details json NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_calculation_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_calculation_logs_id_seq OWNED BY public.hmis_scoring_calculation_logs.id;
+
+
+--
+-- Name: hmis_scoring_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_rules (
+    id bigint NOT NULL,
+    link_id character varying NOT NULL,
+    form_definition_identifier character varying NOT NULL,
+    algorithm character varying NOT NULL,
+    criteria_type character varying NOT NULL,
+    criteria_config json DEFAULT '{}'::json NOT NULL,
+    weight numeric(14,12) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_rules_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rules.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24382,7 +24455,8 @@ CREATE TABLE public.hmis_unit_groups (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    candidate_pool_id bigint
+    candidate_pool_id bigint,
+    ce_event_type integer
 );
 
 
@@ -36424,6 +36498,20 @@ ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_scoring_calculation_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_calculation_logs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_scoring_rules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_rules_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -40878,6 +40966,22 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 ALTER TABLE ONLY public.hmis_scan_card_codes
     ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_calculation_logs hmis_scoring_calculation_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs
+    ADD CONSTRAINT hmis_scoring_calculation_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_rules hmis_scoring_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules
+    ADD CONSTRAINT hmis_scoring_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -61100,6 +61204,13 @@ CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."
 
 
 --
+-- Name: index_Event_on_ce_referral_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
+
+
+--
 -- Name: index_Event_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66270,6 +66381,13 @@ CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_car
 --
 
 CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
+
+
+--
+-- Name: index_hmis_scoring_calculation_logs_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scoring_calculation_logs_on_owner ON public.hmis_scoring_calculation_logs USING btree (owner_type, owner_id);
 
 
 --
@@ -75300,13 +75418,16 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250818183500'),
+('20250821194338'),
 ('20250821182429'),
+('20250820220743'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
 ('20250804122929'),
 ('20250803183312'),
 ('20250731134651'),
+('20250730173200'),
 ('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),
@@ -75501,4 +75622,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
-

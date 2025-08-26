@@ -120,9 +120,9 @@ class AccessControl < ApplicationRecord
 
   def name_as_html
     name_parts = [
-      content_tag(:span, role&.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, collection&.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, user_group&.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, role&.name, class: 'badge badge-info text-bg-info font-weight-normal'),
+      content_tag(:span, collection&.name, class: 'badge badge-info text-bg-info font-weight-normal'),
+      content_tag(:span, user_group&.name, class: 'badge badge-info text-bg-info font-weight-normal'),
     ]
 
     content_tag(
