@@ -68,7 +68,8 @@ module Types
 
     def deletable
       return false if occupants.any? # cannot delete unit with occupants
-      return false if load_ar_association(object, :referrals).any? # cannot delete unit with any referrals (past or present)
+      return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
+      return false if load_ar_association(object, :latest_opportunity).active? # cannot delete unit with active opportunity - need to mark unavailable first
 
       true
     end
@@ -93,7 +94,7 @@ module Types
     def can_be_marked_unavailable
       return false unless Hmis::Ce.configuration.enabled?
       return false unless latest_opportunity&.active? # Must have an active opportunity
-      return false if load_ar_association(latest_opportunity, :active_referral).present? # If there is already a referral, trying to mark unavailable will fail
+      return false if load_ar_association(latest_opportunity, :active_referral).present? # Must not already have a referral in progress
 
       true
     end

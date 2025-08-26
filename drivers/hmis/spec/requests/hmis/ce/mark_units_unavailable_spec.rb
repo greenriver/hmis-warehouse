@@ -15,9 +15,8 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
-  let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
-  let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
+  let!(:unit_group) { create(:hmis_unit_group, project: project) }
+  let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
   let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
 
   before(:each) do
@@ -59,14 +58,16 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
     end
 
     context 'with valid input' do
-      it 'destroys the opportunity' do
+      it 'soft-deletes the opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity')).to be_nil
           unit.reload
-        end.to change(Hmis::Ce::Opportunity, :count).from(1).to(0)
+        end.to change(Hmis::Ce::Opportunity, :count).from(1).to(0).
+          and not_change(Hmis::Ce::Opportunity.with_deleted, :count)
         expect(unit.latest_opportunity).to be_nil
+        expect(opportunity.reload.deleted_at).not_to be_nil
       end
     end
 
@@ -98,21 +99,41 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
-      it 'destroys the active opportunity and not the past opportunity' do
+      it 'soft-deletes the active opportunity and not the past opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity', 'id')).to eq(past_opportunity.id.to_s)
           unit.reload
-        end.to change(Hmis::Ce::Opportunity, :count).from(2).to(1)
+        end.to change(Hmis::Ce::Opportunity, :count).from(2).to(1).
+          and not_change(Hmis::Ce::Opportunity.with_deleted, :count)
         expect(unit.opportunities).to contain_exactly(past_opportunity)
+        expect(opportunity.reload.deleted_at).not_to be_nil
+      end
+    end
+
+    context 'when opportunity is active with a past rejected referral referral' do
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, created_at: 2.years.ago, status: :rejected) }
+
+      it 'soft-deletes the opportunity' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity')).to be_nil
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'canBeMarkedAvailable')).to eq(true)
+          unit.reload
+        end.to change(Hmis::Ce::Opportunity, :count).from(1).to(0).
+          and not_change(Hmis::Ce::Opportunity.with_deleted, :count)
+        expect(unit.opportunities).to be_empty
+        expect(unit.opportunities.with_deleted).to contain_exactly(opportunity)
+        expect(referral.reload.opportunity.deleted_at).not_to be_nil
       end
     end
 
     context 'when multiple units are being marked unavailable, and one of them fails' do
       let!(:units) do
         10.times.map do
-          unit = create(:hmis_unit, project: project, unit_type: unit_type)
+          unit = create(:hmis_unit, project: project, unit_group: unit_group)
           create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open)
           unit
         end

@@ -31,8 +31,11 @@ RSpec.describe 'Delete units mutation', type: :request do
     hmis_login(user)
   end
 
+  let(:input) do
+    { input: { unitIds: [unit.id.to_s] } }
+  end
+
   it 'deletes units' do
-    input = { input: { unitIds: [unit.id.to_s] } }
     versions = unit.versions.where(project_id: p1.id)
     units = Hmis::Unit.where(id: unit.id)
     expect do
@@ -42,16 +45,35 @@ RSpec.describe 'Delete units mutation', type: :request do
       and change(units, :count).by(-1)
   end
 
-  context 'when unit has an opportunity' do
-    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
+  context 'when unit has past opportunities and referrals' do
+    let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :closed) }
+    let!(:accepted_referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, status: :accepted) }
+    let!(:rejected_referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, status: :rejected) }
 
-    it 'deletes the unit and the opportunity' do
-      input = { input: { unitIds: [unit.id.to_s] } }
+    it 'deletes the unit, but not historical opportunities and referrals' do
       expect do
         response, = post_graphql(input) { mutation }
         expect(response.status).to eq 200
       end.to change(Hmis::Unit, :count).by(-1).
-        and change(Hmis::Ce::Opportunity, :count).by(-1)
+        and not_change(Hmis::Ce::Opportunity, :count).
+        and not_change(Hmis::Ce::Referral, :count)
+
+      expect(past_opportunity.reload.unit.deleted_at).not_to be_nil
+    end
+
+    context 'when the unit has a current active opportunity' do
+      let!(:active_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
+
+      it 'deletes the active opportunity' do
+        expect do
+          response, = post_graphql(input) { mutation }
+          expect(response.status).to eq 200
+        end.to change(Hmis::Unit, :count).by(-1).
+          and change(Hmis::Ce::Opportunity, :count).by(-1).
+          and not_change(Hmis::Ce::Referral, :count)
+
+        expect(active_opportunity.reload.deleted_at).not_to be_nil
+      end
     end
   end
 end

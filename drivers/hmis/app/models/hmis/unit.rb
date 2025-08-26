@@ -36,13 +36,16 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 
-  # A unit may have many historical opportunities (which represent past times when this unit was available and then filled)...
-  has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit, dependent: :destroy
+  # A unit may have many historical opportunities, which represent past times when this unit was available and then filled...
+  has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
   # ...but it only has one "latest" opportunity, which could be either:
   # - active and accepting referrals (open),
   # - active with a referral in-progress (locked), or
   # - closed with an accepted referral. This would be prioritized last, after any active opportunity.
   has_one :latest_opportunity, -> { actives_first }, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
+
+  # `dependent: :destroy` directive applies to the active opportunity *only* -- don't destroy past opportunities if this unit is deleted
+  has_one :active_opportunity, -> { active }, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit, dependent: :destroy
 
   # Similarly, a unit may have many historical referrals,
   has_many :referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral'
