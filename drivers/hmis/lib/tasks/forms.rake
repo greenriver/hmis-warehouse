@@ -2,10 +2,10 @@
 
 namespace :forms do
   desc 'backfill the direct association between CDEDs and form definitions'
-  # rails driver:hmis:forms:backfill_custom_data_element_form_definitions[form_identifier]
+  # rails driver:hmis:forms:backfill_custom_data_element_form_definitions[form_definition_identifier]
   task :backfill_custom_data_element_form_definitions, [:form_definition_identifier] => :environment do |_task, args|
     raise ArgumentError, 'form_definition_identifier requires' unless args.form_definition_identifier.present?
-    break unless HmisEnforcement.hmis_enabled?
+    next unless HmisEnforcement.hmis_enabled?
 
     fd = Hmis::Form::Definition.find_by!(identifier: args.form_definition_identifier)
 
