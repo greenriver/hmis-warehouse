@@ -39,8 +39,8 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
           'C5', # expected '0.0000' (0), got '7.0000' (7)
           'E5', # expected '0.0000' (0), got '7.0000' (7)
           'F5', # expected '0.0000' (0.0000), got '0.1500' (0.1458)
-          'E6', # expected '3.0000' (3), got '0.0000' ()
-          'F6', # expected '0.0600' (0.0625), got '0.0000' ()
+          'E6', # expected '3.0000' (3), got '9.0000' (9)
+          'F6', # expected '0.0600' (0.0625), got '0.1900' (0.1875)
         ],
       )
     end

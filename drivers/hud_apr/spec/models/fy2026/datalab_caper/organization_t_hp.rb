@@ -35,13 +35,17 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       )
     end
 
-    # Removed in 2026
-    # it 'Q6a' do
-    #   compare_results(
-    #     file_path: result_file_prefix + results_dir,
-    #     question: 'Q6a',
-    #   )
-    # end
+    it 'Q6a' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q6a',
+        skip: [
+          'C5', # expected '0.0000' (0), got '2.0000' (2)
+          'E5', # expected '0.0000' (0), got '2.0000' (2)
+          'F5', # expected '0.0000' (0.0000), got '0.0100' (0.0148)
+        ],
+      )
+    end
 
     it 'Q6b' do
       compare_results(

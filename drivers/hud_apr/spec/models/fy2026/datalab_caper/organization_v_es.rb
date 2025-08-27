@@ -35,12 +35,12 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    # it 'Q6a' do
-    #   compare_results(
-    #     file_path: result_file_prefix + results_dir,
-    #     question: 'Q6a',
-    #   )
-    # end
+    it 'Q6a' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q6a',
+      )
+    end
 
     it 'Q6b' do
       compare_results(
