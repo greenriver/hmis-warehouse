@@ -29,9 +29,9 @@ namespace :storage do
       {
         GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
         GrdaWarehouse::SecureFile => :with_attached_secure_file,
+        GrdaWarehouse::AdHocBatch => :with_attached_batch_file,
 
         # The following are classes that remain to be moved
-        # GrdaWarehouse::AdHocBatch
         # GrdaWarehouse::DashboardExportFile
         # GrdaWarehouse::NonHmisUpload
         # GrdaWarehouse::PublicFile

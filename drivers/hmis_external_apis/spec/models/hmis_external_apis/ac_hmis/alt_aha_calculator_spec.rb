@@ -154,4 +154,85 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       end
     end
   end
+
+  describe '#required_link_ids' do
+    context 'with various rule types' do
+      let!(:weighted_exact_match_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'weighted_exact',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
+          criteria_config: { 'match_value' => 'Yes' },
+          weight: 0.5,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      let!(:null_exact_match_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'null_exact',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
+          criteria_config: { 'match_value' => nil },
+          weight: 0.3,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      let!(:range_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'range_question',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::RANGE,
+          criteria_config: { 'gte' => 3 },
+          weight: 0.4,
+          algorithm: 'alt_aha_2',
+        )
+      end
+
+      let!(:client_age_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'client_demographics_age',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::VALUE,
+          weight: 0.1,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      let!(:client_gender_rule) do
+        create(
+          :hmis_scoring_rule,
+          link_id: 'client_demographics_gender',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
+          criteria_config: { 'match_value' => 'Female' },
+          weight: 0.2,
+          algorithm: 'alt_aha_1',
+        )
+      end
+
+      it 'includes scoring rules but excludes missing rules and client demographics' do
+        calculator = described_class.new(
+          values_by_link_id: {},
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
+
+        required_link_ids = calculator.required_link_ids
+
+        expect(required_link_ids).to include('weighted_exact')
+        expect(required_link_ids).to include('range_question')
+        expect(required_link_ids).not_to include('null_exact')
+        expect(required_link_ids).not_to include('client_demographics_age')
+        expect(required_link_ids).not_to include('client_demographics_gender')
+      end
+    end
+  end
 end

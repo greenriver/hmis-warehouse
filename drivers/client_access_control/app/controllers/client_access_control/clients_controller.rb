@@ -27,6 +27,8 @@ class ClientAccessControl::ClientsController < ApplicationController
   after_action :log_client, only: [:show]
 
   def index
+    @start_date = params[:start_date]
+    @end_date = params[:end_date]
     safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
     if safe_params
       # handle legacy get requests for search
@@ -41,6 +43,9 @@ class ClientAccessControl::ClientsController < ApplicationController
   end
 
   def search
+    @start_date = params[:start_date]
+    @end_date = params[:end_date]
+
     search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:id])
     return handle_invalid_query('Search query not found') if search_query.nil?
 

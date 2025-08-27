@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { TempusDominus, DateTime } from '@eonasdan/tempus-dominus';
 
 // Connects to data-controller="datepicker"
 export default class extends Controller {
@@ -55,7 +55,13 @@ export default class extends Controller {
     // Merge the default options with the options from the HTML
     const finalOptions = { ...defaultOptions, ...elementOptions };
 
-    const datepicker = new TempusDominus(this.element, finalOptions);
+    this.datepicker = new TempusDominus(this.element, finalOptions);
+
+    // Override the parseInput function to handle multiple date formats using DateTime.fromString
+    const originalParseInput = this.datepicker.dates.parseInput.bind(this.datepicker.dates);
+    this.datepicker.dates.parseInput = (value) => {
+      return this.parseFlexibleDateInput(value, originalParseInput);
+    };
 
     // Listen for when the picker is shown to add text labels
     this.element.addEventListener('show.td', (_event) => {
@@ -64,6 +70,68 @@ export default class extends Controller {
         this.addButtonLabels();
       }, 100);
     });
+  }
+
+  disconnect() {
+    if (this.datepicker && typeof this.datepicker.dispose === 'function') {
+      this.datepicker.dispose();
+      this.datepicker = null;
+    }
+  }
+
+  parseFlexibleDateInput(value, originalParseInput) {
+    // If value is null, undefined, or empty, use original parsing
+    if (!value || value.toString().trim() === '') {
+      return originalParseInput(value);
+    }
+
+    const stringValue = value.toString().trim();
+
+    // Try the original parsing first (handles the expected format)
+    try {
+      const originalResult = originalParseInput(value);
+      if (originalResult && originalResult.isValid) {
+        return originalResult;
+      }
+    } catch (error) {
+      // Continue to flexible parsing if original fails
+    }
+
+    // Use Tempus Dominus DateTime to parse common date formats
+    const formats = [
+      'MMM d, yyyy',
+      'MM/dd/yyyy',
+      'M/d/yyyy',
+      'MM-dd-yyyy',
+      'M-d-yyyy',
+      'yyyy-MM-dd',
+      'yyyy/MM/dd',
+      'MM/dd/yy',
+      'M/d/yy',
+      'MM-dd-yy',
+      'M-d-yy',
+    ];
+
+    let locale = 'en-US';
+    try {
+      const optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
+      if (optionsData.localization && optionsData.localization.locale) {
+        locale = optionsData.localization.locale;
+      }
+    } catch (_) { }
+
+    for (const fmt of formats) {
+      try {
+        const dt = DateTime.fromString(stringValue, { locale, format: fmt });
+        if (dt && DateTime.isValid(dt)) {
+          return dt;
+        }
+      } catch (_) { }
+    }
+
+    // If flexible parsing fails, return the original parsing result
+    // This will let TempusDominus handle the error appropriately
+    return originalParseInput(value);
   }
 
   addButtonLabels() {
