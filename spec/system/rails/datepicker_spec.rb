@@ -34,6 +34,7 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
       picker = find('input.datepicker')
       expected_date = 'May 7, 2024'
       [
+        'May 7, 2024',
         '05/07/2024',
         '5/7/2024',
         '05-07-2024',
