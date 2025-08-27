@@ -19,7 +19,7 @@ namespace :forms do
         rt = item.dig('mapping', 'record_type')
         owner_type = rt ? Hmis::Form::RecordType.find(rt).owner_type : fd.owner_class.sti_name
 
-        # Mirror generator special-case
+        # Mirror special-case in Hmis::Form::CustomDataElementGenerator#determine_owner_type
         if owner_type == 'Hmis::Hud::HmisService'
           owner_type = fd.identifier == 'service' ? 'Hmis::Hud::Service' : 'Hmis::Hud::CustomService'
         end
@@ -42,13 +42,13 @@ namespace :forms do
       ds_ids = GrdaWarehouse::DataSource.hmis.pluck(:id)
       scope = scope.where(data_source_id: ds_ids)
 
-      updated_keys = []
+      updated_keys = Set.new
 
       scope.find_each do |cded|
         raise "Hmis::Hud::CustomDataElementDefinition##{cded.id} belongs to an unexpected form: \"#{cded.form_definition_identifier}\"" if cded.form_definition_identifier.present? && cded.form_definition_identifier != fd.identifier
 
         cded.update!(form_definition_identifier: fd.identifier) # creates PaperTrail version
-        updated_keys << cded.key unless updated_keys.include?(cded.key)
+        updated_keys.add(cded.key)
       end
 
       if updated_keys.any?
