@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # To connect to the API, you need a remote credential for this endpoint. Replace
 # the empty strings below with values from the documentation.
 #
@@ -27,9 +29,9 @@
 #   "password"=>nil
 # }
 
-module AcHmis
+module HmisExternalApis::AcHmis
   class ReportApi
-    SYSTEM_ID = 'ac_reports'.freeze
+    SYSTEM_ID = 'ac_reports'
     CONNECTION_TIMEOUT_SECONDS = 120
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 

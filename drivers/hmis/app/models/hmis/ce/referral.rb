@@ -17,6 +17,7 @@ module Hmis::Ce
     include SimpleStateMachine
 
     has_paper_trail
+    acts_as_paranoid
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
@@ -33,6 +34,7 @@ module Hmis::Ce
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
     belongs_to :custom_status, class_name: 'Hmis::Ce::CustomReferralStatus', foreign_key: :custom_referral_status_id, optional: true
+    has_one :ce_event, class_name: 'Hmis::Hud::Event', foreign_key: :ce_referral_id, dependent: :nullify
 
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
 
@@ -151,8 +153,9 @@ module Hmis::Ce
       seen_field_names = Set.new
 
       # Fetch all match rules applicable to the opportunity
-      # TODO: this should really be the rules _as they were_ when the referral was created, not the current rules
-      match_rules = Hmis::Ce::Match::Rule.for_opportunity(opportunity)
+      # These rules are loaded from the state of the Opportunity when it was assigned to its pool,
+      # ensuring historical accuracy.
+      match_rules = opportunity.assignment_rules.map { |attrs| Hmis::Ce::Match::Rule.new(attrs).freeze }
       match_rules.sort_by(&:id).map do |rule|
         calculator.dependencies(rule.expression).map do |field|
           # Skip if Field has already been processed, for example expression "household_size = 1 OR household_size = 2"

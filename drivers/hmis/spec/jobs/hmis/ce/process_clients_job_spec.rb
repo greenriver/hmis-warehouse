@@ -84,6 +84,42 @@ RSpec.describe Hmis::Ce::ProcessClientsJob, type: :job do
   it_behaves_like 'a self-scheduling job', wait_time: 1.minute
   it_behaves_like 'a job that can be enqueued if not already running', wait_time: 1.minute
 
+  context 'with dangling markers' do
+    it 'removes markers for deleted clients' do
+      #
+      # Setup:
+      # - client1: Dirty marker, client exists
+      # - client2: Dirty marker, client DELETED
+      #
+      dirty_marker = create(:hmis_ce_change_marker, trackable: client1, current_version: 2, processed_version: 1)
+
+      # Create a client that will be deleted to simulate a dangling marker
+      client_to_delete = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+      dangling_marker = create(:hmis_ce_change_marker, trackable: client_to_delete, current_version: 1, processed_version: 0)
+
+      # Pre-delete client to create a dangling marker scenario
+      client_to_delete.delete
+
+      #
+      # Expectation:
+      # - It should delete the dangling marker
+      # - It should not touch the clean marker
+      #
+      markers = [dirty_marker, dangling_marker]
+
+      reconciled_markers = []
+      expect do
+        reconciled_markers = described_class.new.send(:reconcile_dangling_markers, markers)
+      end.to change(Hmis::Ce::ChangeMarker, :count).by(-1)
+
+      # Verify dangling marker is gone from the database
+      expect(Hmis::Ce::ChangeMarker.find_by(id: dangling_marker.id)).to be_nil
+
+      # Verify the method returns the correct markers
+      expect(reconciled_markers).to eq([dirty_marker])
+    end
+  end
+
   describe 'queue configuration' do
     it 'runs on the short_running queue' do
       expect(described_class.queue_name).to eq('short_running')

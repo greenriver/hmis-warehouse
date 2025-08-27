@@ -42,7 +42,8 @@ module Types
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :workflow_template_name, String, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
@@ -136,6 +137,46 @@ module Types
       # Otherwise, the unit is only accepting referrals if the opportunity doesn't already have an active referral.
       # (The opportunity is open, so it shouldn't have an accepted referral. Possible referral statuses are either active or rejected.)
       load_ar_association(object, :active_referral).nil?
+    end
+
+    def eligibility_requirements
+      # If the current opportunity is active and stale, return the eligibility requirements as they were
+      # when the opportunity was created.
+      return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
+      return [] unless unit_group
+
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
+    end
+
+    # TODO(#7957) - remove after deprecation period
+    def priority_scheme
+      priority_schemes.first
+    end
+
+    def priority_schemes
+      # If the current opportunity is active and stale, return the priority rules as they were
+      # when the opportunity was created, filtered to the most specific owner level and ordered by [priority_rank, id].
+      return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
+      return [] unless unit_group
+
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
+    end
+
+    private
+
+    # These rules are loaded from the state of the current Opportunity when it was assigned to its pool,
+    # ensuring historical accuracy. For "stale" Opportunities, these are the rules that are currently in effect
+    # for matching, so we display them on the Unit page (rather than displaying the current Unit Group rules.)
+    #
+    # Future UI improvement would be to resolve a flag indicating the the Unit's current Opportunity is stale,
+    # with an action to "refresh" it (destroy and recreate opportunity) if it doesn't have an open referral.
+    def revivified_rules
+      @revivified_rules ||= latest_opportunity.assignment_rules.map do |attrs|
+        record = Hmis::Ce::Match::Rule.new(attrs)
+        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
+        record.freeze
+        record
+      end
     end
   end
 end

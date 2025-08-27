@@ -268,7 +268,7 @@ class Hmis::Hud::Processors::Base
       case value
       when String
         value&.presence&.strip
-      when Integer
+      when Integer, Float
         value.to_s
       else
         raise "unexpected value \"#{value}\""

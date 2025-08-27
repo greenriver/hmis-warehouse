@@ -34,6 +34,7 @@ module Types
     # Specialized input components
     value 'MCI', 'MCI linking component'
     value 'AHA', 'AHA component'
+    value 'ALT_AHA', 'Alt AHA component'
     value 'NAME', 'Client Name input'
     value 'ADDRESS', 'Client Address input'
     value 'PHONE', 'Phone number input for ContactPoint'

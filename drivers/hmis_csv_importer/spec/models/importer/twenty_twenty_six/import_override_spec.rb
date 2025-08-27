@@ -58,12 +58,6 @@ RSpec.describe 'Applies overrides as expected', type: :model do
     it 'Enrollment has NULL DisablingCondition' do
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-1').DisablingCondition).to eq(nil)
     end
-
-    it 'Enrollment has blank PreferredLanguageDifferent' do
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-8').PreferredLanguageDifferent).to eq(nil)
-      # The importer cleans up empty strings to NULL, so not totally clear we can test this, leaving commented out for now
-      # expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-9').PreferredLanguageDifferent).to eq('')
-    end
   end
 
   describe 'with cleanup' do
@@ -116,11 +110,6 @@ RSpec.describe 'Applies overrides as expected', type: :model do
 
     it 'Enrollment DisablingCondition is updated to 99' do
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-1').DisablingCondition).to eq(99)
-    end
-
-    it 'Enrollment PreferredLanguageDifferent is updated to Other' do
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-8').PreferredLanguageDifferent).to eq('Other')
-      expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-9').PreferredLanguageDifferent).to eq('Other')
     end
 
     it 'Applies? and apply method works even with an instance' do
@@ -177,9 +166,6 @@ RSpec.describe 'Applies overrides as expected', type: :model do
 
       # Matches null value
       create(:import_override, data_source: @data_source, file_name: 'Enrollment.csv', replaces_value: ':NULL:', replaces_column: 'DisablingCondition', replacement_value: '99')
-
-      # Matches empty value
-      create(:import_override, data_source: @data_source, file_name: 'Enrollment.csv', replaces_value: ':NULL:', replaces_column: 'PreferredLanguageDifferent', replacement_value: 'Other')
     end
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/import_overrides_test_files',

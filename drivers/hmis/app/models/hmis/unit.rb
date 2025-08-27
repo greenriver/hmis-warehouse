@@ -16,6 +16,7 @@
 # Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
+  acts_as_paranoid
   self.table_name = :hmis_units
 
   has_paper_trail(meta: { project_id: :project_id })
@@ -124,14 +125,6 @@ class Hmis::Unit < Hmis::HmisBase
 
   def end_date
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
-  end
-
-  def eligibility_requirements
-    Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
-  end
-
-  def priority_scheme
-    Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
   end
 
   # Class method so can use with data loader

@@ -16,6 +16,10 @@ module HmisCsvTwentyTwentyFour::Loader
       def hmis_data
         @hmis_data ||= slice(*self.class.hmis_structure(version: '2024').keys)
       end
+
+      def self.column_name_for_import(column_name)
+        column_name
+      end
     end
   end
 end

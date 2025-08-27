@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
+require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::Unit, type: :model do
   before(:all) do
@@ -163,5 +164,18 @@ RSpec.describe Hmis::Unit, type: :model do
         expect(unit.active_referral).to eq(referral)
       end
     end
+  end
+
+  describe 'paranoia' do
+    let(:build_record) { -> { create(:hmis_unit, project: p1) } }
+
+    it_behaves_like 'paranoid model'
+  end
+
+  describe 'paper trail' do
+    let(:build_record) { -> { create(:hmis_unit, project: p1) } }
+    let(:update_attributes_for_versioning) { ->(record) { record.update!(name: "Updated #{record.name || 'Unit'}") } }
+
+    it_behaves_like 'versioned model'
   end
 end
