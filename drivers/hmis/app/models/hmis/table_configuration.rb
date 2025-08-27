@@ -7,15 +7,24 @@
 # frozen_string_literal: true
 
 ###
-# This model represents a generic configuration for a specific table or set of tables in the application.
+# HMIS Table Configuration
 #
-# Key Features:
-# - The `key` attribute identifies the table(s) this configuration applies to.
-# - The `owner` attribute optionally specifies a context for the configuration, such as a specific project or entity.
+# The HMIS table configuration functionality allows for dynamic customization of table views in the HMIS application.
+# This feature supports both global and owner-specific configurations, enabling flexibility for different use cases.
 #
-# Example:
-# - A record with `key: "waitlist", owner: project_1` provides the configuration for the waitlist table(s) within `project_1`.
-###
+# ## Key Features
+# - **Dynamic Column Configuration**: Define additional columns to be displayed in the table. Must be coupled
+#      with dynamic column implementation on the frontend.
+# - **Dynamic Filter Configuration**: Define custom filters to be available on the table. Must be coupled with
+#      dynamic filter implementation the frontend and on the relevant Model, see `CeClientFilter` class for an example.
+#
+# ## Database Schema
+# The `hmis_table_configurations` table stores the configurations:
+# - `data_source_id`: Identifies the HMIS data source the configuration belongs to.
+# - `table_key`: A unique key identifying the table (or set of tables) being configured.
+# - `owner`: A polymorphic reference to the owner of the configuration (e.g., `Project`).
+# - `columns`: A JSONB field storing column configurations.
+# - `filters`: A JSONB field storing filter configurations.
 class Hmis::TableConfiguration < Hmis::HmisBase
   CE_WAITLIST = 'ce_waitlist'
   TABLE_KEYS = [
@@ -44,15 +53,15 @@ class Hmis::TableConfiguration < Hmis::HmisBase
 
   private
 
-  # Example:
+  # Column Config Example:
   # [
   #   {
-  #     "key": "cde.custom_assessment.hna_ce_test_1_prioritization_score",
+  #     "key": "cde.custom_assessment.my_prioritization_score",
   #     "type": "string",
   #     "label": "My Score"
   #   },
   #   {
-  #     "key": "cde.custom_assessment.hna_ce_test_1_household_type",
+  #     "key": "cde.custom_assessment.my_household_type",
   #     "type": "string",
   #     "label": "Household Type"
   #   }
@@ -71,7 +80,7 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   # Example:
   # [
   #   {
-  #     "key": "cde.custom_assessment.hna_ce_test_1_prioritization_score",
+  #     "key": "cde.custom_assessment.my_prioritization_score",
   #     "label": "My Score",
   #     "type": "select",
   #     "options": [
