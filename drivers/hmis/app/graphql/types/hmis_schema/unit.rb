@@ -69,7 +69,6 @@ module Types
     def deletable
       return false if occupants.any? # cannot delete unit with occupants
       return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
-      return false if load_ar_association(object, :latest_opportunity).active? # cannot delete unit with active opportunity - need to mark unavailable first
 
       true
     end
