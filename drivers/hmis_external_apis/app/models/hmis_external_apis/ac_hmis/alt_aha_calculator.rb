@@ -11,15 +11,13 @@ module HmisExternalApis::AcHmis
     ALT_AHA_NAMESPACE = 'alt_aha'
     CLIENT_AGE_LINK_ID = 'client_demographics_age'
     CLIENT_GENDER_LINK_ID = 'client_demographics_gender'
-    CLIENT_SEX_LINK_ID = 'client_demographics_sex'
 
     # owner can be: an enrollment (when AHA score is calculated on an unsaved assessment), or an assessment (when the assessment is being saved)
     def initialize(values_by_link_id:, client:, user: nil, owner: nil, form_definition_identifier:)
       @values_by_link_id = values_by_link_id.merge(
         # inject values from client
         CLIENT_AGE_LINK_ID => client.age,
-        CLIENT_GENDER_LINK_ID => client.gender_fields,
-        CLIENT_SEX_LINK_ID => client.sex,
+        CLIENT_GENDER_LINK_ID => determine_gender(client),
       )
       @user = user
       @owner = owner
@@ -63,6 +61,15 @@ module HmisExternalApis::AcHmis
     end
 
     private
+
+    # Merged gender value accommodates both FY24 and FY26 values
+    def determine_gender(client)
+      if client.sex == 0 || client.woman == 1
+        0
+      elsif client.sex == 1 && client.man == 1
+        1
+      end
+    end
 
     def calculate_components(values_by_link_id)
       {
