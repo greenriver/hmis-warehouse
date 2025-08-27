@@ -44,8 +44,8 @@ module HmisCsvFixtures
       if version == '2026'
         version = 'AutoMigrate'
       elsif version == 'AutoMigrate'
-        # Until we remove the 2024 tests, prevent them from auto migrating to 2026
-        stop_version = '2024'
+        # Prevent migrating once future tests are released
+        stop_version = '2026'
       end
       importer = if version == '2020'
         HmisCsvTwentyTwenty::Loader::Loader.new(
