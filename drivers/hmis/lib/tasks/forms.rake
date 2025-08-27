@@ -7,7 +7,7 @@ namespace :forms do
     raise ArgumentError, 'form_definition_identifier requires' unless args.form_definition_identifier.present?
     next unless HmisEnforcement.hmis_enabled?
 
-    fd = Hmis::Form::Definition.find_by!(identifier: args.form_definition_identifier)
+    fd = Hmis::Form::Definition.published.find_by!(identifier: args.form_definition_identifier)
 
     Hmis::Hud::CustomDataElementDefinition.transaction do
       items = fd.link_id_item_hash.values
