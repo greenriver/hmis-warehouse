@@ -4,6 +4,9 @@
 # Tracks the current state of the process and maintains the context data for the workflow execution.
 module Hmis::WorkflowExecution
   class Instance < GrdaWarehouseBase
+    has_paper_trail
+    acts_as_paranoid
+
     belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', dependent: :destroy
 
