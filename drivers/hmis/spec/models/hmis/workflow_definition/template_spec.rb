@@ -21,4 +21,35 @@ RSpec.describe Hmis::WorkflowDefinition::Template, type: :model do
   describe 'paper trail' do
     it_behaves_like 'versioned model'
   end
+
+  describe 'latest_versions with acts_as_paranoid' do
+    it 'resolves latest non-deleted template in associations (UnitGroup -> workflow_template)' do
+      identifier = 'ce-template-for-assoc-test'
+      project = create(:hmis_hud_project, data_source: ds1)
+
+      v1 = create(:hmis_workflow_definition_template,
+                  data_source: ds1,
+                  identifier: identifier,
+                  version: 1,
+                  status: Hmis::Form::Definition::RETIRED)
+
+      v2 = create(:hmis_workflow_definition_template,
+                  data_source: ds1,
+                  identifier: identifier,
+                  version: 2,
+                  status: Hmis::Form::Definition::PUBLISHED)
+      v2.destroy!
+      v1.update!(status: Hmis::Form::Definition::PUBLISHED)
+
+      # Soft-delete the highest version
+
+      # Associate a UnitGroup by identifier; it should resolve to the latest non-deleted (v1)
+      unit_group = create(:hmis_unit_group,
+                          project: project,
+                          workflow_template_identifier: identifier)
+
+      # Expected: association finds v1, not nil, even though v2 is soft-deleted
+      expect(unit_group.workflow_template.id).to eq(v1.id)
+    end
+  end
 end
