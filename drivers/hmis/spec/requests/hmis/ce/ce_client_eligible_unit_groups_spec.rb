@@ -74,6 +74,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ),
         )
       end
+
+      it 'raises if the user does not have permission' do
+        remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
+        expect_access_denied post_graphql(**variables) { query }
+      end
     end
 
     context 'when client belongs to one candidate pool tied to multiple unit group' do

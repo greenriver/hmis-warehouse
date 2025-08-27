@@ -30,33 +30,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             limit
             nodesCount
             nodes {
-              ...CeClientFields
-              __typename
+              id
+              destinationClientId
+              viewableSourceClientIds
+              clientName
+              clientAttributes
+              externalIds {
+                id
+                identifier
+                url
+                label
+                type
+              }
             }
-            __typename
           }
-        }
-
-        fragment CeClientFields on CeClient {
-          id
-          destinationClientId
-          viewableSourceClientIds
-          clientName
-          clientAttributes
-          externalIds {
-            ...ClientIdentifierFields
-            __typename
-          }
-          __typename
-        }
-
-        fragment ClientIdentifierFields on ExternalIdentifier {
-          id
-          identifier
-          url
-          label
-          type
-          __typename
         }
       GRAPHQL
     end
@@ -82,6 +69,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       let!(:pool_1) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1, client_proxy_in_pool_1_and_2] }
       let!(:pool_2) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1_and_2] }
+
+      it 'raises if the user does not have permission' do
+        remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
+        expect_access_denied post_graphql(**variables) { query }
+      end
 
       it 'excludes clients not belonging to candidate pools' do
         response, result = post_graphql(**variables) { query }
@@ -134,6 +126,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                              'clientAttributes' => { 'current_age' => 19 }), # attributes from being added to pool1, does not include irrelevant attribute from being removed from pool2
             a_hash_including('id' => client_proxy_in_pool_1_and_2.id.to_s,
                              'clientAttributes' => { 'current_age' => 23, 'pool_1_attr' => '1', 'pool_2_attr' => '2' }), # latest attributes for both pool1 and pool2 merged
+          )
+        end
+      end
+
+      context 'with mci ID' do
+        let!(:mci_cred) { create(:ac_hmis_mci_credential) }
+        let(:source_client) { client_proxy_in_pool_1.client.source_clients.sole.as_hmis }
+        let!(:mci_id) { create :mci_external_id, source: source_client, remote_credential: mci_cred }
+
+        it 'resolves MCI ID' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+          expect(ce_clients).to contain_exactly(
+            a_hash_including('id' => client_proxy_in_pool_1.id.to_s,
+                             'externalIds' => [a_hash_including('type' => 'MCI_ID', 'identifier' => mci_id.value)]),
+            a_hash_including('id' => client_proxy_in_pool_1_and_2.id.to_s,
+                             'externalIds' => [a_hash_including('type' => 'MCI_ID', 'identifier' => nil)]),
           )
         end
       end
