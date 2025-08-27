@@ -38,10 +38,11 @@ RSpec.describe Hmis::WorkflowDefinition::Template, type: :model do
                   identifier: identifier,
                   version: 2,
                   status: Hmis::Form::Definition::PUBLISHED)
-      v2.destroy!
-      v1.update!(status: Hmis::Form::Definition::PUBLISHED)
-
       # Soft-delete the highest version
+      v2.destroy!
+
+      # re-publish the old version
+      v1.update!(status: Hmis::Form::Definition::PUBLISHED)
 
       # Associate a UnitGroup by identifier; it should resolve to the latest non-deleted (v1)
       unit_group = create(:hmis_unit_group,
@@ -49,7 +50,7 @@ RSpec.describe Hmis::WorkflowDefinition::Template, type: :model do
                           workflow_template_identifier: identifier)
 
       # Expected: association finds v1, not nil, even though v2 is soft-deleted
-      expect(unit_group.workflow_template.id).to eq(v1.id)
+      expect(unit_group.workflow_template).to eq(v1)
     end
   end
 end
