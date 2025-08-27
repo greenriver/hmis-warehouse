@@ -11,6 +11,7 @@ module HmisExternalApis::AcHmis
     ALT_AHA_NAMESPACE = 'alt_aha'
     CLIENT_AGE_LINK_ID = 'client_demographics_age'
     CLIENT_GENDER_LINK_ID = 'client_demographics_gender'
+    CLIENT_SEX_LINK_ID = 'client_demographics_sex'
 
     # owner can be: an enrollment (when AHA score is calculated on an unsaved assessment), or an assessment (when the assessment is being saved)
     def initialize(values_by_link_id:, client:, user: nil, owner: nil, form_definition_identifier:)
@@ -18,6 +19,7 @@ module HmisExternalApis::AcHmis
         # inject values from client
         CLIENT_AGE_LINK_ID => client.age,
         CLIENT_GENDER_LINK_ID => client.gender_fields,
+        CLIENT_SEX_LINK_ID => client.sex,
       )
       @user = user
       @owner = owner
