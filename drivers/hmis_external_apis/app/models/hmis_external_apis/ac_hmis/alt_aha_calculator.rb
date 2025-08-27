@@ -31,16 +31,20 @@ module HmisExternalApis::AcHmis
 
     def calculate_score
       components = calculate_components(@values_by_link_id)
-      total_points = components.values.sum { |result| result[:points] + result[:intercept] }
+      total_points = components.values.sum { |result| result[:points] }
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      calculation_log = Hmis::Scoring::CalculationLog.create!(
+      calculation_log = Hmis::Scoring::CalculationLog.new(
         namespace: ALT_AHA_NAMESPACE,
         final_score: alt_aha_score,
         calculation_details: { **components, total_points: total_points },
         owner: @owner,
         user: @user,
       )
+      if @owner && @user
+        # if owner and user were not provided, return the calculation log object without persisting it
+        calculation_log.save!
+      end
 
       [alt_aha_score, calculation_log]
     end
@@ -88,7 +92,7 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_algo_1_score(values_by_link_id)
-      raw_score = calculate_algorithm_score('alt_aha_1', values_by_link_id)
+      raw_score = calculate_algorithm_score('alt_aha_1', values_by_link_id) + -0.412537657
       probability = calculate_probability(raw_score)
 
       if probability > 0.770969964
@@ -109,12 +113,11 @@ module HmisExternalApis::AcHmis
         raw_score: raw_score,
         probability: probability,
         points: points,
-        intercept: -0.412537657,
       }
     end
 
     def calculate_algo_2_score(values_by_link_id)
-      raw_score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
+      raw_score = calculate_algorithm_score('alt_aha_2', values_by_link_id) + -0.6995659699
       probability = calculate_probability(raw_score)
 
       if probability > 0.790901794
@@ -135,12 +138,11 @@ module HmisExternalApis::AcHmis
         raw_score: raw_score,
         probability: probability,
         points: points,
-        intercept: -0.6995659699,
       }
     end
 
     def calculate_algo_3_score(values_by_link_id)
-      raw_score = calculate_algorithm_score('alt_aha_3', values_by_link_id)
+      raw_score = calculate_algorithm_score('alt_aha_3', values_by_link_id) + 1.065580188
       probability = calculate_probability(raw_score)
 
       if probability > 0.833850594
@@ -161,7 +163,6 @@ module HmisExternalApis::AcHmis
         raw_score: raw_score,
         probability: probability,
         points: points,
-        intercept: 1.065580188,
       }
     end
 
