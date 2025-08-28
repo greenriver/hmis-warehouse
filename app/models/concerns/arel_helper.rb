@@ -198,7 +198,14 @@ module ArelHelper
         source = scope.arel
         group_table = scope.arel_table
       else
-        source = table_model(source_arel_table).select(source_arel_table[:id]).arel # Referencing class to bring in Paranoia
+        # Respect soft-delete (acts_as_paranoid) automatically by excluding deleted rows
+        model_class = table_model(source_arel_table)
+        base_scope = model_class.all
+        if model_class.respond_to?(:paranoid?) && model_class.paranoid?
+          paranoia_col = model_class.paranoia_column&.to_sym
+          base_scope = base_scope.where(source_arel_table[paranoia_col].eq(nil)) if paranoia_col.present?
+        end
+        source = base_scope.select(source_arel_table[:id]).arel
         group_table = source_arel_table
       end
 
