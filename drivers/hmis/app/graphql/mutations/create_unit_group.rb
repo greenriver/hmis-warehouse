@@ -19,20 +19,20 @@ module Mutations
       access_denied! unless current_user.permissions_for?(project, :can_manage_units)
 
       errors = HmisErrors::Errors.new
+      errors.add :unit_type_id, :required unless input.unit_type_id.present?
+      return { errors: errors.errors } if errors.any?
 
-      # unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
-      # raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
-
-      # errors.add :count, :required unless input.count.present?
-      # errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
-      # errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
-      # return { errors: errors.errors } if errors.any?
+      # Validate unit_type exists
+      unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
+      errors.add :unit_type_id, :invalid unless unit_type.present?
+      return { errors: errors.errors } if errors.any?
 
       unit_group = Hmis::UnitGroup.new(
         project_id: project.id,
         workflow_template_identifier: input.workflow_template_identifier,
         name: input.name,
         ce_event_type: input.ce_event_type,
+        unit_type: unit_type,
       )
 
       if unit_group.valid?

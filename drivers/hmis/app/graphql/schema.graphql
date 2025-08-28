@@ -12640,6 +12640,11 @@ type UnitGroup {
   name: String!
   priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
+
+  """
+  Unit type for this group
+  """
+  unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
@@ -12650,6 +12655,7 @@ input UnitGroupInput {
   ceEventType: EventType
   name: String
   projectId: ID
+  unitTypeId: ID
   workflowTemplateIdentifier: String
 }
 

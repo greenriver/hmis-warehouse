@@ -20,6 +20,7 @@ module Hmis
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
+    belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true # todo @martha - make required after migration
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
     has_many :unit_types, through: :units
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
@@ -36,6 +37,7 @@ module Hmis
     validate :workflow_template_is_valid
     validate :workflow_template_is_stable
     validate :project_is_not_changed, on: :update
+    validate :unit_type_is_stable
 
     after_create :rebuild_candidate_pool
 
@@ -80,6 +82,13 @@ module Hmis
       return if workflow_template_identifier_was.nil?
 
       errors.add(:workflow_template_identifier, 'cannot be changed once set')
+    end
+
+    def unit_type_is_stable
+      return unless unit_type_id_changed?
+      return if unit_type_id_was.nil?
+
+      errors.add(:unit_type_id, 'cannot be changed once set')
     end
   end
 end
