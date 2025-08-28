@@ -19,7 +19,7 @@ module Hmis::Ce
     has_paper_trail
     acts_as_paranoid
 
-    belongs_to :opportunity, -> { with_deleted }, class_name: 'Hmis::Ce::Opportunity'
+    belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :workflow_instance, class_name: 'Hmis::WorkflowExecution::Instance'
     has_one :workflow_template, class_name: 'Hmis::WorkflowDefinition::Template', through: :workflow_instance, source: :template
