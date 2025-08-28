@@ -36,7 +36,8 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 
-  # A unit may have many historical opportunities, which represent past times when this unit was available and then filled...
+  # A unit may have many opportunities, representing current and historical instances of this unit being available.
+  # Deleting a unit does not delete associated opportunities; they remain to preserve the relationship to referrals.
   has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
   # ...but it only has one "latest" opportunity, which could be either:
   # - active and accepting referrals (open),
