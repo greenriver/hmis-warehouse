@@ -27,7 +27,7 @@ module HudReports::Destinations
         ['Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)', field.eq(116)],
         ['Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter', field.eq(101)],
         ['Safe Haven', field.eq(118)],
-        ['Subtotal', field.in(100..199.to_a)],
+        ['Subtotal', field.in((100..199).to_a)],
 
         ['Institutional Situations', nil],
         ['Foster care home or foster care group home', field.eq(215)],
@@ -36,7 +36,7 @@ module HudReports::Destinations
         ['Long-term care facility or nursing home', field.eq(225)],
         ['Psychiatric hospital or other psychiatric facility', field.eq(204)],
         ['Substance abuse treatment facility or detox center', field.eq(205)],
-        ['Subtotal', field.in(200..299.to_a)],
+        ['Subtotal', field.in((200..299).to_a)],
 
         ['Temporary Situations', nil],
         ['Transitional housing for homeless persons (including homeless youth)', field.eq(302)],
@@ -46,7 +46,7 @@ module HudReports::Destinations
         ['Staying or living with family, temporary tenure (e.g., room, apartment, or house)', field.eq(312)],
         ['Staying or living with friends, temporary tenure (e.g., room, apartment, or house)', field.eq(313)],
         ['Moved from one HOPWA funded project to HOPWA TH ', field.eq(327)],
-        ['Subtotal', field.in(300..399.to_a)],
+        ['Subtotal', field.in((300..399).to_a)],
 
         ['Permanent Situations', nil],
         ['Staying or living with family, permanent tenure', field.eq(422)],
@@ -56,7 +56,7 @@ module HudReports::Destinations
         ['Rental by client, with ongoing housing subsidy', field.eq(435)],
         ['Owned by client, with ongoing housing subsidy', field.eq(421)],
         ['Owned by client, no ongoing housing subsidy', field.eq(411)],
-        ['Subtotal', field.in(400..499.to_a)],
+        ['Subtotal', field.in((400..499).to_a)],
 
         ['Other Situations', nil],
         ['No Exit Interview completed', field.eq(30)],
