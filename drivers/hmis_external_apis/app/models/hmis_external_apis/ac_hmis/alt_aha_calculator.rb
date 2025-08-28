@@ -17,7 +17,7 @@ module HmisExternalApis::AcHmis
       @values_by_link_id = values_by_link_id.merge(
         # inject values from client
         CLIENT_AGE_LINK_ID => client.age,
-        CLIENT_GENDER_LINK_ID => client.gender_fields,
+        CLIENT_GENDER_LINK_ID => determine_gender(client),
       )
       @user = user
       @owner = owner
@@ -31,7 +31,7 @@ module HmisExternalApis::AcHmis
 
     def calculate_score
       components = calculate_components(@values_by_link_id)
-      total_points = components.values.sum { |result| result[:points] + result[:intercept] }
+      total_points = components.values.sum { |result| result[:points] }
       alt_aha_score = convert_total_points_to_score(total_points)
 
       calculation_log = Hmis::Scoring::CalculationLog.create!(
@@ -62,6 +62,15 @@ module HmisExternalApis::AcHmis
 
     private
 
+    # Merged gender value accommodates both FY24 and FY26 values
+    def determine_gender(client)
+      if client.sex == 0 || client.woman == 1
+        0
+      elsif client.sex == 1 && client.man == 1
+        1
+      end
+    end
+
     def calculate_components(values_by_link_id)
       {
         alt_aha_1: calculate_algo_1_score(values_by_link_id),
@@ -89,7 +98,8 @@ module HmisExternalApis::AcHmis
 
     def calculate_algo_1_score(values_by_link_id)
       raw_score = calculate_algorithm_score('alt_aha_1', values_by_link_id)
-      probability = calculate_probability(raw_score)
+      score = raw_score + -0.412537657
+      probability = calculate_probability(score)
 
       if probability > 0.770969964
         points = 5
@@ -107,15 +117,16 @@ module HmisExternalApis::AcHmis
 
       {
         raw_score: raw_score,
+        score: score,
         probability: probability,
         points: points,
-        intercept: -0.412537657,
       }
     end
 
     def calculate_algo_2_score(values_by_link_id)
       raw_score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
-      probability = calculate_probability(raw_score)
+      score = raw_score + -0.6995659699
+      probability = calculate_probability(score)
 
       if probability > 0.790901794
         points = 5
@@ -133,15 +144,16 @@ module HmisExternalApis::AcHmis
 
       {
         raw_score: raw_score,
+        score: score,
         probability: probability,
         points: points,
-        intercept: -0.6995659699,
       }
     end
 
     def calculate_algo_3_score(values_by_link_id)
       raw_score = calculate_algorithm_score('alt_aha_3', values_by_link_id)
-      probability = calculate_probability(raw_score)
+      score = raw_score + 1.065580188
+      probability = calculate_probability(score)
 
       if probability > 0.833850594
         points = 5
@@ -159,9 +171,9 @@ module HmisExternalApis::AcHmis
 
       {
         raw_score: raw_score,
+        score: score,
         probability: probability,
         points: points,
-        intercept: 1.065580188,
       }
     end
 

@@ -4,10 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'roo'
 class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   acts_as_paranoid
-  mount_uploader :file, AdHocDataSourceUploader
   include ArelHelper
   include ::Import::ClientMatching
 
@@ -15,8 +16,33 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   has_many :ad_hoc_clients, foreign_key: :batch_id, dependent: :destroy
   belongs_to :user, optional: true
 
-  validates_presence_of :file
+  has_one_attached :batch_file
+
   validates_presence_of :description
+  validate :batch_file_attached, on: :create
+  validate :batch_file_format, on: :create
+
+  private def batch_file_attached
+    return if batch_file.attached?
+
+    errors.add(:batch_file, 'must be attached')
+  end
+
+  private def batch_file_format
+    return unless batch_file.attached?
+
+    allowed_types = [
+      'text/plain',
+      'text/csv',
+      'application/csv',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', # .xlsx
+      'application/vnd.ms-excel', # .xls
+    ]
+
+    return if batch_file.content_type.in?(allowed_types)
+
+    errors.add(:batch_file, 'must be a CSV or Excel file')
+  end
 
   scope :un_started, -> do
     where(started_at: nil)
@@ -58,19 +84,23 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   end
 
   def process!
-    start
-    if check_header!
-      match_clients!
-    else
-      self.import_errors = "Headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
+    transaction do
+      start
+      if check_header!
+        match_clients!
+      else
+        self.import_errors = "Headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
+      end
+      self.completed_at = Time.current
+      save(validate: false)
     end
-    self.completed_at = Time.current
-    save(validate: false)
   end
 
   private def csv
-    return nil unless content.length > 10
+    return nil unless batch_file.attached?
 
+    content = batch_file.download
+    content_type = batch_file.content_type
     @csv ||= if content_type.in?(['text/plain', 'text/csv', 'application/csv'])
       sheet = ::Roo::CSV.new(StringIO.new(content))
       @csv_headers = sheet.first
@@ -129,4 +159,33 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       client.save
     end
   end
+
+  # for file migration
+  scope :unprocessed_s3_migration, -> do
+    migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::AdHocBatch').pluck(:record_id)
+    all = pluck(:id)
+    unmigrated = all - migrated
+    return none if unmigrated.blank?
+
+    where(id: unmigrated)
+  end
+
+  def copy_to_s3!
+    return unless content.present?
+    return unless valid? # Ignore uploads that are already invalid (data source deleted?)
+    return if batch_file.attached? # don't re-process
+
+    puts "Migrating #{file} to S3"
+
+    Tempfile.create(binmode: true) do |tmp_file|
+      tmp_file.write(content)
+      tmp_file.rewind
+      batch_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+    end
+
+    # Save no-matter validity state
+    self.content = nil
+    save!(validate: false)
+  end
+  # END for file migration
 end

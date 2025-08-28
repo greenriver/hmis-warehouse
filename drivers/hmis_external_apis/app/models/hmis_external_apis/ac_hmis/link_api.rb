@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # To connect to the API, you need a remote credential for this endpoint. Replace
 # the empty strings below with values from the documentation.
 #
@@ -20,8 +22,8 @@
 
 module HmisExternalApis::AcHmis
   class LinkApi
-    SYSTEM_ID = 'ac_hmis_link'.freeze
-    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
+    SYSTEM_ID = 'ac_hmis_link'
+    CONNECTION_TIMEOUT_SECONDS = 10
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 
     def self.enabled?
