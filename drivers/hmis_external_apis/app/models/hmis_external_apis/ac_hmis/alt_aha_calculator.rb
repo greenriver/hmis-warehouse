@@ -34,17 +34,13 @@ module HmisExternalApis::AcHmis
       total_points = components.values.sum { |result| result[:points] }
       alt_aha_score = convert_total_points_to_score(total_points)
 
-      calculation_log = Hmis::Scoring::CalculationLog.new(
+      calculation_log = Hmis::Scoring::CalculationLog.create!(
         namespace: ALT_AHA_NAMESPACE,
         final_score: alt_aha_score,
         calculation_details: { **components, total_points: total_points },
         owner: @owner,
         user: @user,
       )
-      if @owner && @user
-        # if owner and user were not provided, return the calculation log object without persisting it
-        calculation_log.save!
-      end
 
       [alt_aha_score, calculation_log]
     end
