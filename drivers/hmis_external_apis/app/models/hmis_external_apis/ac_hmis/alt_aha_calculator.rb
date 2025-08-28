@@ -92,8 +92,9 @@ module HmisExternalApis::AcHmis
     end
 
     def calculate_algo_1_score(values_by_link_id)
-      raw_score = calculate_algorithm_score('alt_aha_1', values_by_link_id) + -0.412537657
-      probability = calculate_probability(raw_score)
+      raw_score = calculate_algorithm_score('alt_aha_1', values_by_link_id)
+      score = raw_score + -0.412537657
+      probability = calculate_probability(score)
 
       if probability > 0.770969964
         points = 5
@@ -111,14 +112,16 @@ module HmisExternalApis::AcHmis
 
       {
         raw_score: raw_score,
+        score: score,
         probability: probability,
         points: points,
       }
     end
 
     def calculate_algo_2_score(values_by_link_id)
-      raw_score = calculate_algorithm_score('alt_aha_2', values_by_link_id) + -0.6995659699
-      probability = calculate_probability(raw_score)
+      raw_score = calculate_algorithm_score('alt_aha_2', values_by_link_id)
+      score = raw_score + -0.6995659699
+      probability = calculate_probability(score)
 
       if probability > 0.790901794
         points = 5
@@ -136,14 +139,16 @@ module HmisExternalApis::AcHmis
 
       {
         raw_score: raw_score,
+        score: score,
         probability: probability,
         points: points,
       }
     end
 
     def calculate_algo_3_score(values_by_link_id)
-      raw_score = calculate_algorithm_score('alt_aha_3', values_by_link_id) + 1.065580188
-      probability = calculate_probability(raw_score)
+      raw_score = calculate_algorithm_score('alt_aha_3', values_by_link_id)
+      score = raw_score + 1.065580188
+      probability = calculate_probability(score)
 
       if probability > 0.833850594
         points = 5
@@ -161,6 +166,7 @@ module HmisExternalApis::AcHmis
 
       {
         raw_score: raw_score,
+        score: score,
         probability: probability,
         points: points,
       }
