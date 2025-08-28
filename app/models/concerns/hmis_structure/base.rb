@@ -53,6 +53,15 @@ module HmisStructure::Base
       '2026'
     end
 
+    def current_hud_utility
+      case hud_csv_version
+      when '2024'
+        HudUtility2024
+      else
+        HudUtility2026
+      end
+    end
+
     # default name for a CSV file
     def hud_csv_file_name(version: hud_csv_version) # rubocop:disable Lint/UnusedMethodArgument
       "#{name.demodulize}.csv"
