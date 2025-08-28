@@ -17,7 +17,7 @@ module HmisExternalApis::AcHmis
       @values_by_link_id = values_by_link_id.merge(
         # inject values from client
         CLIENT_AGE_LINK_ID => client.age,
-        CLIENT_GENDER_LINK_ID => client.gender_fields,
+        CLIENT_GENDER_LINK_ID => determine_gender(client),
       )
       @user = user
       @owner = owner
@@ -65,6 +65,15 @@ module HmisExternalApis::AcHmis
     end
 
     private
+
+    # Merged gender value accommodates both FY24 and FY26 values
+    def determine_gender(client)
+      if client.sex == 0 || client.woman == 1
+        0
+      elsif client.sex == 1 && client.man == 1
+        1
+      end
+    end
 
     def calculate_components(values_by_link_id)
       {
