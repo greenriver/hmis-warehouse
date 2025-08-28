@@ -39,21 +39,33 @@ class Hmis::Unit < Hmis::HmisBase
   # A unit may have many opportunities, representing current and historical instances of this unit being available.
   # Deleting a unit does not delete associated opportunities; they remain to preserve the relationship to referrals.
   has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
-  # ...but it only has one "latest" opportunity, which could be either:
+  # But, a unit only has one "latest" opportunity, which could be either:
   # - active and accepting referrals (open),
   # - active with a referral in-progress (locked), or
-  # - closed with an accepted referral. This would be prioritized last, after any active opportunity.
+  # - closed. This would be prioritized last, after any active opportunity.
   has_one :latest_opportunity, -> { actives_first }, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
-
-  # `dependent: :destroy` directive applies to the active opportunity *only* -- don't destroy past opportunities if this unit is deleted
-  has_one :active_opportunity, -> { active }, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit, dependent: :destroy
 
   # Similarly, a unit may have many historical referrals,
   has_many :referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral'
-  # ... but only ONE active referral, which is enforced by the combination of
+  # But only ONE active referral, which is enforced by the combination of
   # - Hmis::Ce::Opportunity's `unique_opportunity_per_unit` validator, and
   # - Hmis::Ce::Referral's `unique_referral_per_opportunity` validator.
   has_one :active_referral, through: :latest_opportunity, class_name: 'Hmis::Ce::Referral', source: :active_referral
+
+  before_destroy :close_open_opportunities
+  before_destroy :ensure_no_locked_opportunities
+
+  # close open opportunities before deleting unit
+  def close_open_opportunities
+    opportunities.open.each(&:close!)
+  end
+
+  def ensure_no_locked_opportunities
+    return unless opportunities.where(status: 'locked').exists?
+
+    errors.add(:base, 'Cannot delete Unit with locked Opportunities.')
+    throw(:abort) # Prevents the destruction of the Unit
+  end
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at

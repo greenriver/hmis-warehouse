@@ -64,15 +64,30 @@ RSpec.describe 'Delete units mutation', type: :request do
     context 'when the unit has a current active opportunity' do
       let!(:active_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
 
-      it 'deletes the active opportunity' do
+      it 'closes the active opportunity' do
         expect do
           response, = post_graphql(input) { mutation }
           expect(response.status).to eq 200
+          active_opportunity.reload
         end.to change(Hmis::Unit, :count).by(-1).
-          and change(Hmis::Ce::Opportunity, :count).by(-1).
+          and change(active_opportunity, :status).from('open').to('closed').
           and not_change(Hmis::Ce::Referral, :count)
+      end
+    end
 
-        expect(active_opportunity.reload.deleted_at).not_to be_nil
+    context 'when the unit has an active referral' do
+      let!(:locked_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked) }
+      let!(:active_referral) { create(:hmis_ce_referral, opportunity: locked_opportunity, data_source: ds1, status: :in_progress) }
+
+      it 'raises' do
+        expect do
+          expect_gql_error post_graphql(input) { mutation }
+          unit.reload
+          locked_opportunity.reload
+          active_referral.reload
+        end.to not_change(Hmis::Unit, :count).
+          and not_change(locked_opportunity, :status).
+          and not_change(active_referral, :status)
       end
     end
   end
