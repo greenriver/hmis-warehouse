@@ -21,11 +21,7 @@ module Mutations
       errors = HmisErrors::Errors.new
       errors.add :unit_type_id, :required unless input.unit_type_id.present?
 
-      unit_type_scope = Hmis::UnitType.all
-      # If the project has any unit type mappings, require that this unit type is among them
-      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
-      unit_type_scope = unit_type_scope.where(id: unit_type_ids) if unit_type_ids.any?
-      unit_type = unit_type_scope.find_by(id: input.unit_type_id)
+      unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
       errors.add :unit_type_id, :invalid unless unit_type.present?
       return { errors: errors.errors } if errors.any?
 

@@ -372,5 +372,19 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     coc_code_arg
   end
 
+  def possible_unit_types
+    unit_type_scope = Hmis::UnitType.all
+
+    # Only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    unit_type_ids = unit_type_mappings.active.pluck(:unit_type_id)
+    if unit_type_ids.any?
+      unit_type_ids += units.distinct.pluck(:unit_type_id) # include unit types for existing units
+      unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+    end
+
+    unit_type_scope
+  end
+
   include RailsDrivers::Extensions
 end
