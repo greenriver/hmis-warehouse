@@ -19,7 +19,7 @@ module Hmis::AuthPolicies::ContextLoaders
       (assigned_referral_steps.pluck(:instance_id) + workflow_instance_ids_with_completed_swimlane_steps).to_set
     end
 
-    memoize def assigned_referral_step_ids # this should probably exclude the completed ones?
+    memoize def assigned_referral_step_ids
       assigned_referral_steps.pluck(:id).to_set
     end
 
@@ -72,7 +72,7 @@ module Hmis::AuthPolicies::ContextLoaders
         completed_swimlane_steps = all_steps[instance_id]&.select { |step| step.user_task&.swimlane_id == participant.swimlane_id }
         assigned_instance_ids << instance_id if completed_swimlane_steps&.any?
       end
-      # binding.pry
+
       assigned_instance_ids
     end
 

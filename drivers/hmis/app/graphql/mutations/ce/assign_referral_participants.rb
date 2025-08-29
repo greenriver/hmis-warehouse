@@ -40,7 +40,7 @@ module Mutations
         referral.participants.where.not(id: seen_participants.map(&:id)).each(&:destroy!)
 
         # If the referral has any active steps, the engine should assign them out to their correct participants.
-        # # TODO delete existing assignments
+        # (Existing assignments won't be deleted)
         referral.workflow_engine.active_steps.each do |step|
           referral.workflow_engine.assign_task!(step)
         end
