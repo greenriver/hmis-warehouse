@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ProjectPassFail
   class Project < GrdaWarehouseBase
     self.table_name = :project_pass_fails_projects
@@ -64,24 +66,29 @@ module ProjectPassFail
         'Location' => location_error_rate,
         'Disabling Condition' => disabling_condition_error_rate,
       }
+      ude.delete('Gender') unless project_pass_fail.include_gender_data?
       ude['Income at Entry'] = income_at_entry_error_rate if GrdaWarehouse::Config.get(:pf_show_income)
       ude
     end
 
     def universal_data_element_table_cell(label)
-      @universal_data_element_table_cell ||= {
-        'Name' => ['Q6a', 'F2'],
-        'SSN' => ['Q6a', 'F3'],
-        'DOB' => ['Q6a', 'F4'],
-        'Race' => ['Q6a', 'F5'],
-        'Gender' => ['Q6a', 'F7'],
-        'Veteran' => ['Q6b', 'C2'],
-        'Entry Date' => ['Q6b', 'C3'],
-        'Relationship to HoH' => ['Q6b', 'C4'],
-        'Location' => ['Q6b', 'C5'],
-        'Disabling Condition' => ['Q6b', 'C6'],
-        'Income at Entry' => ['Q6c', 'C3'],
-      }
+      @universal_data_element_table_cell ||= begin
+        cells = {
+          'Name' => ['Q6a', 'F2'],
+          'SSN' => ['Q6a', 'F3'],
+          'DOB' => ['Q6a', 'F4'],
+          'Race' => ['Q6a', 'F5'],
+          'Gender' => ['Q6a', 'F7'],
+          'Veteran' => ['Q6b', 'C2'],
+          'Entry Date' => ['Q6b', 'C3'],
+          'Relationship to HoH' => ['Q6b', 'C4'],
+          'Location' => ['Q6b', 'C5'],
+          'Disabling Condition' => ['Q6b', 'C6'],
+          'Income at Entry' => ['Q6c', 'C3'],
+        }
+        cells.delete('Gender') unless project_pass_fail.include_gender_data?
+        cells
+      end
       @universal_data_element_table_cell[label]
     end
 
@@ -125,7 +132,7 @@ module ProjectPassFail
       self.ssn_error_rate = apr.answer(question: 'Q6a', cell: 'F3').summary.to_f
       self.dob_error_rate = apr.answer(question: 'Q6a', cell: 'F4').summary.to_f
       self.race_error_rate = apr.answer(question: 'Q6a', cell: 'F5').summary.to_f
-      self.gender_error_rate = apr.answer(question: 'Q6a', cell: 'F7').summary.to_f
+      self.gender_error_rate = apr.answer(question: 'Q6a', cell: 'F7').summary.to_f if project_pass_fail.include_gender_data?
       self.veteran_status_error_rate = apr.answer(question: 'Q6b', cell: 'C2').summary.to_f
       self.start_date_error_rate = apr.answer(question: 'Q6b', cell: 'C3').summary.to_f
       self.relationship_to_hoh_error_rate = apr.answer(question: 'Q6b', cell: 'C4').summary.to_f
@@ -137,7 +144,7 @@ module ProjectPassFail
       self.ssn_error_count = apr.answer(question: 'Q6a', cell: 'E3').summary.to_f
       self.dob_error_count = apr.answer(question: 'Q6a', cell: 'E4').summary.to_f
       self.race_error_count = apr.answer(question: 'Q6a', cell: 'E5').summary.to_f
-      self.gender_error_count = apr.answer(question: 'Q6a', cell: 'E7').summary.to_f
+      self.gender_error_count = apr.answer(question: 'Q6a', cell: 'E7').summary.to_f if project_pass_fail.include_gender_data?
       self.veteran_status_error_count = apr.answer(question: 'Q6b', cell: 'B2').summary.to_f
       self.start_date_error_count = apr.answer(question: 'Q6b', cell: 'B3').summary.to_f
       self.relationship_to_hoh_error_count = apr.answer(question: 'Q6b', cell: 'B4').summary.to_f
