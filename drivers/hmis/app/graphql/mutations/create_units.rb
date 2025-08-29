@@ -13,13 +13,10 @@ module Mutations
     field :units, [Types::HmisSchema::Unit], null: true
 
     def resolve(input:)
-      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
-
-      raise 'Not found' unless project.present?
-      raise 'Access denied' if project.present? && !current_user.permissions_for?(project, :can_manage_units)
-
-      unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
-      raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
+      unit_group = Hmis::UnitGroup.find(input.unit_group_id)
+      unit_type = unit_group.unit_type
+      project = unit_group.project
+      raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_units)
 
       errors = HmisErrors::Errors.new
       errors.add :count, :required unless input.count.present?
@@ -28,19 +25,14 @@ module Mutations
       errors.add :count, :out_of_range, message: 'must not be greater than 200' if input.count && input.count > 200
       return { errors: errors.errors } if errors.any?
 
-      unit_group = project.unit_groups.find(input.unit_group_id) if input.unit_group_id.present?
-      # If no unit type specified, use the first unit type from the group (if specified)
-      # TODO(#7814) make this mutation more strict to always expect unit group, and expect constraint of max 1 unit type per group
-      unit_type ||= unit_group&.unit_types&.order(:id)&.first
-
       # Create Units
-      common = { user_id: current_user.id, created_at: Time.now, updated_at: Time.now }
       units = (1..input.count).map do
         Hmis::Unit.new(
-          project_id: project.id,
-          unit_type_id: unit_type&.id,
-          hmis_unit_group_id: unit_group&.id,
-          **common,
+          hmis_unit_group_id: unit_group.id,
+          user_id: current_user.id,
+          # TODO(#7814) - remove
+          project: project,
+          unit_type: unit_type,
         )
       end
 

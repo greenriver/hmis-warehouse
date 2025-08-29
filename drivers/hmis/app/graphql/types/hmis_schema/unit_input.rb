@@ -8,10 +8,10 @@
 
 module Types
   class HmisSchema::UnitInput < BaseInputObject
-    argument :project_id, ID, required: true
+    argument :project_id, ID, required: false, deprecation_reason: 'Specify project through unit group'
     argument :count, Integer, 'Number of units to create', required: false
     argument :prefix, String, 'Prefix for unit names', required: false
-    argument :unit_type_id, ID, required: false
-    argument :unit_group_id, ID, required: false
+    argument :unit_type_id, ID, required: false, deprecation_reason: 'Specify unit type through unit group'
+    argument :unit_group_id, ID, required: true
   end
 end

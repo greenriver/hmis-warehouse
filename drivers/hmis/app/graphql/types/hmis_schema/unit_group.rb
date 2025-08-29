@@ -15,8 +15,9 @@ module Types
     field :name, String, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
-    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: true, deprecation_reason: 'All units in group should have the same type'
     units_field
+    field :unit_type, HmisSchema::UnitTypeObject, null: true
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true

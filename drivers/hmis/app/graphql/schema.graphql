@@ -12640,7 +12640,8 @@ type UnitGroup {
   name: String!
   priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
-  unitTypes: [UnitTypeCapacity!]!
+  unitType: UnitTypeObject
+  unitTypes: [UnitTypeCapacity!] @deprecated(reason: "All units in group should have the same type")
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
   workflowTemplateName: String
@@ -12649,7 +12650,8 @@ type UnitGroup {
 input UnitGroupInput {
   ceEventType: EventType
   name: String
-  projectId: ID
+  projectId: ID!
+  unitTypeId: ID
   workflowTemplateIdentifier: String
 }
 
@@ -12673,9 +12675,9 @@ input UnitInput {
   Prefix for unit names
   """
   prefix: String
-  projectId: ID!
-  unitGroupId: ID
-  unitTypeId: ID
+  projectId: ID @deprecated(reason: "Specify project through unit group")
+  unitGroupId: ID!
+  unitTypeId: ID @deprecated(reason: "Specify unit type through unit group")
 }
 
 enum UnitOccupancyStatus {

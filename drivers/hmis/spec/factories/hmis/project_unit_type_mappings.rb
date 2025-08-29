@@ -7,10 +7,9 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :hmis_unit_group, class: 'Hmis::UnitGroup' do
-    sequence(:name) { |n| "Unit Group #{n}" }
+  factory :project_unit_type_mapping, class: 'Hmis::ProjectUnitTypeMapping' do
     project { association :hmis_hud_project }
     unit_type { association :hmis_unit_type }
-    workflow_template { association :hmis_workflow_definition_template, data_source: project.data_source }
+    active { true }
   end
 end
