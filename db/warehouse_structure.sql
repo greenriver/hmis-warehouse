@@ -24521,9 +24521,7 @@ CREATE TABLE public.hmis_units (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     user_id character varying NOT NULL,
-    unit_type_id integer,
     unit_size integer,
-    project_id integer NOT NULL,
     hmis_unit_group_id integer NOT NULL
 );
 
@@ -75361,6 +75359,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250829182019'),
 ('20250829135409'),
 ('20250828205652'),
 ('20250821194338'),
@@ -75567,3 +75566,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

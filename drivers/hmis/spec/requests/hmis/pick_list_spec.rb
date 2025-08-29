@@ -367,10 +367,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result).to contain_exactly(un1.id, un2.id)
       end
 
-      it 'if household unit doesn\'t have a type, includes all available units' do
-        un1.update!(unit_type: nil)
-        expect(picklist_option_codes(p1, household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
-      end
+      # No longer valid? unit group always has unit type?
+      # it 'if household unit doesn\'t have a type, includes all available units' do
+      #   un1.update!(unit_type: nil)
+      #   expect(picklist_option_codes(p1, household_id: e1.household_id)).to contain_exactly(un1.id, un2.id, un3.id)
+      # end
 
       context 'units with CE opportunities and referrals' do
         let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }

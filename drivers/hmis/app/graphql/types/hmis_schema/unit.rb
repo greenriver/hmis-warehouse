@@ -59,7 +59,7 @@ module Types
     def unit_size
       return object.unit_size if object.unit_size.present?
 
-      object.unit_type&.unit_size
+      object.unit_group.unit_type&.unit_size
     end
 
     def occupancy_status
@@ -103,7 +103,8 @@ module Types
     end
 
     def unit_type
-      load_ar_association(object, :unit_type)
+      unit_group = load_ar_association(object, :unit_group)
+      load_ar_association(unit_group, :unit_type)
     end
 
     def name
