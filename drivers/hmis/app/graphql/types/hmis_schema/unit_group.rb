@@ -15,7 +15,7 @@ module Types
     field :name, String, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
-    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false # todo @martha - Deprecated, to remove
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false # TODO(#7814) - remove
     units_field
     field :unit_type, Types::HmisSchema::UnitTypeObject, null: true, description: 'Unit type for this group'
 

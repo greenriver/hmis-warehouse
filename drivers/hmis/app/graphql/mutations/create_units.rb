@@ -30,7 +30,6 @@ module Mutations
 
       unit_group = project.unit_groups.find(input.unit_group_id) if input.unit_group_id.present?
       # If no unit type specified, use the first unit type from the group (if specified)
-      # todo @martha
       # TODO(#7814) make this mutation more strict to always expect unit group, and expect constraint of max 1 unit type per group
       unit_type ||= unit_group&.unit_types&.order(:id)&.first
 
