@@ -26,6 +26,10 @@
 #   }
 # }
 # aha_cred.save!
+#
+#
+# Investigating logs:
+#  HmisExternalApis::ExternalRequestLog.outgoing.url_like("scores").failed.where(requested_at: 3.days.ago..).count
 ###
 module HmisExternalApis::AcHmis
   class Aha
