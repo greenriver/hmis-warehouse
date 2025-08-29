@@ -13,7 +13,7 @@ module HmisExternalApis
         initiator: creds,
         url: url,
         http_method: method,
-        request: payload || {},
+        request: payload&.to_json || {},
         request_headers: headers,
         requested_at: Time.current,
         response: 'pending', # can't be null
