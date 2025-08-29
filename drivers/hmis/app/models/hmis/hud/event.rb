@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Event < Hmis::Hud::Base
   self.table_name = :Event
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -16,6 +18,7 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :events
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  belongs_to :ce_referral, class_name: 'Hmis::Ce::Referral', optional: true
 
   SORT_OPTIONS = [:event_date].freeze
 

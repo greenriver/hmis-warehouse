@@ -46,6 +46,10 @@ class StyleGuidesController < ApplicationController
     @form = OpenStruct.new
   end
 
+  def datepicker
+    @form = OpenStruct.new
+  end
+
   def stimulus_select
     @form = OpenStruct.new
   end
@@ -152,6 +156,7 @@ class StyleGuidesController < ApplicationController
       careplan: 'Careplan',
       client_dashboard: 'Client Dashboard',
       colors: 'Colors',
+      datepicker: 'Date Picker',
       form: 'Form Elements',
       health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',
@@ -161,7 +166,7 @@ class StyleGuidesController < ApplicationController
       stimulus_select: 'Stimulus Select',
       reports: 'Reports',
       public_reports: 'Reports (Public)',
-      tags: 'Tags',
+      tags: 'Tags & Badges',
       js_example: 'JS Example',
       system_colors: 'System Colors',
     }

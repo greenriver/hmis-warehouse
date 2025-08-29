@@ -227,7 +227,7 @@ module HmisCsvImporter::Loader
         return # cannot continue clean_header_row logged its reason
       end
 
-      col_list = pg_cols.map { |c| klass.connection.quote_column_name c }.join(',')
+      col_list = pg_cols.map { |c| klass.connection.quote_column_name(klass.column_name_for_import(c)) }.join(',')
       expect_col_count = pg_cols.size
       copy_sql = <<~SQL.strip
         COPY #{klass.quoted_table_name} (#{col_list})

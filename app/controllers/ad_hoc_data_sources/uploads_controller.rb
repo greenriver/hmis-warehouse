@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class AdHocDataSources::UploadsController < ApplicationController
   before_action :require_can_manage_some_ad_hoc_ds!
   before_action :set_data_source
@@ -41,12 +43,17 @@ class AdHocDataSources::UploadsController < ApplicationController
     elsif params[:all]
       @clients = @upload.ad_hoc_clients
     else
-      # If we didn't ask to download the results, send the original file back
-      send_data(@upload.content, filename: @upload.name, type: @upload.content_type)
+      if @upload.batch_file.attached?
+        filename = @upload.batch_file.filename.to_s
+        send_data(@upload.batch_file.download, filename: filename, type: @upload.batch_file.content_type)
+      else
+        filename = @upload.sanitized_name
+        send_data(@upload.file.read, filename: filename, type: @upload.file.content_type)
+      end
       return
     end
     # Use the default render
-    headers['Content-Disposition'] = "attachment; filename=#{@upload.sanitized_name}.xlsx"
+    headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
   end
 
   def destroy
@@ -55,11 +62,27 @@ class AdHocDataSources::UploadsController < ApplicationController
   end
 
   def create
-    # NOTE: sometimes Excel likes to add BOMs.  We don't need those, and anything else that's in upper ASCII can go too
-    clean_file = upload_params[:file]&.read
-    clean_file = clean_file&.gsub(/[^[:ascii:]]/, '') if ::MimeMagic.by_magic(clean_file).blank?
-    @upload = upload_source.create(upload_params.merge(ad_hoc_data_source_id: @data_source.id, content: clean_file, user_id: current_user&.id))
-    respond_with(@upload, location: ad_hoc_data_source_path(@data_source))
+    @upload = upload_source.new(
+      ad_hoc_data_source_id: @data_source.id,
+      user_id: current_user.id,
+      description: file_params[:description],
+    )
+
+    @upload.batch_file.attach(file_params[:batch_file]) if file_params[:batch_file].present?
+
+    if @upload.save
+      respond_with(@upload, location: ad_hoc_data_source_path(@data_source))
+    else
+      render :new
+    end
+  end
+
+  private def file_params
+    params.require(:grda_warehouse_ad_hoc_batch).
+      permit(
+        :batch_file,
+        :description,
+      )
   end
 
   private def update_health_prioritization
@@ -74,11 +97,6 @@ class AdHocDataSources::UploadsController < ApplicationController
     to_update.each do |id, opts|
       GrdaWarehouse::AdHocClient.where(id: id, ad_hoc_data_source_id: @data_source.id, batch_id: @upload.id).update_all(client_id: opts[:client_id])
     end
-  end
-
-  private def upload_params
-    params.require(:grda_warehouse_ad_hoc_batch).
-      permit(:file, :description)
   end
 
   private def update_params

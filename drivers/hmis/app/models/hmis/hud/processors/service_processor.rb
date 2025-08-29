@@ -36,5 +36,18 @@ module Hmis::Hud::Processors
 
     def information_date(_)
     end
+
+    # This post-processing step provides functionality needed for the FY2024 service form. It can be removed after FY2026 changes
+    # have been deployed.
+    #
+    # FY2024 service form collects FA Start Date for SSVF Financial Assistance, and does NOT collect Date Provided. (Needs processor to store FA Start Date in Date Provided field)
+    # FY2026 service form collects both Date Provided and FA Start Date independently for SSVF Financial Assistance
+    def post_process
+      service = @processor.send(factory_name)
+
+      # Overwrite the DateProvided field if FA Start Date was submitted and Date Provided was not
+      date_provided_submitted = @hud_values.key?('dateProvided') && @hud_values['dateProvided'] != HIDDEN_FIELD_VALUE
+      service.date_provided = service.fa_start_date if service.fa_start_date.present? && !date_provided_submitted
+    end
   end
 end

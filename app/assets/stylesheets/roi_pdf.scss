@@ -27,6 +27,6 @@
 @import 'application/modules/**/*';
 @import 'application/overrides/**/*';
 @import 'application/utilities/**/*';
-//= require ./application/print/base
-//= require ./application/print/dashboard
-//= require ./application/print/roi
+@import 'application/print/base';
+@import 'application/print/dashboard';
+@import 'application/print/roi';

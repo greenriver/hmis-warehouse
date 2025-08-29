@@ -24,6 +24,7 @@ module Types
     field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :workflow_template_identifier, String, null: true
     field :workflow_template_name, String, null: true
+    field :ce_event_type, HmisSchema::Enums::Hud::EventType, null: true
     # TODO(#7538) resolve default contacts for workflow template
 
     def priority_schemes

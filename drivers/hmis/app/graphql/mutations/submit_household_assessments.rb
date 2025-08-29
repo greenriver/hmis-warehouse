@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class SubmitHouseholdAssessments < BaseMutation
     description 'Submit multiple assessments in a household'
@@ -96,7 +98,7 @@ module Mutations
       household_members = assessments.map(&:enrollment) # Enrollments with unsaved changes to Entry dates
       assessments.each do |assessment|
         all_valid = false unless assessment.valid?(:form_submission)
-        record_validations = assessment.form_processor.collect_record_validations(
+        record_validations = assessment.form_processor.collect_processing_validations(
           user: current_user,
           household_members: household_members,
         )

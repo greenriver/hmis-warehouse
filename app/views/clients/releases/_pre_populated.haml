@@ -45,7 +45,7 @@
 
       = simple_format(Translation.translate('Open Path ROI content'))
 
-      %table.table.table-borderless
+      %table.table.table-borderless.w-100
         %tbody
           %tr
             %th.text-right Participant Signature
@@ -55,12 +55,18 @@
           %tr
             %th.text-right Print Name
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %td
+            %td
           %tr
             %th.text-right= Translation.translate('Homeless Service Provider Organization Name')
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %td
+            %td
           %tr
             %th.text-right= Translation.translate('Name of Staff Assisting with Form Completion')
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %td
+            %td
     .landscape
       .d-flex
         .ml-auto.mb-4
@@ -87,5 +93,5 @@
                       .excluded Excluded
                   %td{style: 'width: 3em;'}
                     .color-box{style: "border-left: 2em solid #{coc.color};"}
-                      O
+                      &nbsp;
                   %td= coc.description_and_coc_code

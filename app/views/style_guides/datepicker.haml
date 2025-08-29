@@ -1,0 +1,77 @@
+:scss
+  section,
+  h1 {
+    margin-bottom: 15px;
+  }
+  .intro {
+    border: 1px solid #CCC;
+    padding: 15px;
+    background: #f9f9f9;
+    margin-bottom: 30px;
+  }
+  h2 {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #CCC;
+  }
+  h3 {
+    margin-bottom: 15px;
+    ~ pre {
+      margin-top: -10px;
+    }
+  }
+  section section {
+    margin-bottom: 100px;
+  }
+= render 'breadcrumbs'
+%h1 Date Picker
+.row
+  .col-sm-10
+    .container.py-4
+      %section
+        - form_defaults = { required: false }
+        = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
+          .row
+            .col-6
+              %h4 Date picker Input
+              %p
+                The following formats are supported.  Dates entered as shown should all be parsed to show
+                %strong May 7, 2024.
+              .d-flex
+                .well
+                  %ul
+                    %li MMM d, yyyy
+                    %li MM/dd/yyyy
+                    %li M/d/yyyy
+                    %li MM-dd-yyyy
+                    %li M-d-yyyy
+                    %li yyyy-MM-dd
+                    %li yyyy/MM/dd
+                    %li MM/dd/yy
+                    %li M/d/yy
+                    %li MM-dd-yy
+                    %li M-d-yy
+                .well.ml-4
+                  %ul
+                    %li May 7, 2024
+                    %li 05/07/2024
+                    %li 5/7/2024
+                    %li 05-07-2024
+                    %li 5-7-2024
+                    %li 2024-05-07
+                    %li 2024/05/07
+                    %li 05/07/24
+                    %li 5/7/24
+                    %li 05-07-24
+                    %li 5-7-24
+              = f.input :date, as: :date_picker
+
+          .row
+            .col-12
+              %section
+                %h4 Submit
+                = f.submit value: 'Create', class: 'btn btn-primary'
+                = f.submit value: 'Cancel', class: 'btn btn-secondary'
+
+
+  .col-sm-2= render 'pages'

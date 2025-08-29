@@ -3,6 +3,7 @@
 # an eligible, prioritized client for a given candidate pool
 module Hmis::Ce::Match
   class Candidate < GrdaWarehouseBase
+    # Bulk-managed, does not log to paper_trail
     self.table_name = 'ce_match_candidates'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool'
     belongs_to :client_proxy, class_name: 'Hmis::Ce::ClientProxy'
