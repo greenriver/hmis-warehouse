@@ -19,13 +19,12 @@ class Hmis::Unit < Hmis::HmisBase
   acts_as_paranoid
   self.table_name = :hmis_units
 
-  has_paper_trail(meta: { project_id: :project_id })
+  has_paper_trail(meta: { project_id: -> { unit_group&.project_id } })
 
-  belongs_to :project, class_name: 'Hmis::Hud::Project'
-  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true, inverse_of: :units, foreign_key: :hmis_unit_group_id
+  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', inverse_of: :units, foreign_key: :hmis_unit_group_id
 
-  # Descriptive "type" of this unit (e.g. "3 Bed Room", "Case Management", "Mass Shelter Single")
-  belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
+  # Access project and unit_type through unit_group
+  delegate :project, :unit_type, to: :unit_group, allow_nil: false
   # Periods when this unit has been active
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   # User that last updated this unit

@@ -15,7 +15,7 @@ module Types
     field :name, String, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
-    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: true, deprecation_reason: 'All units in group should have the same type' # TODO(#7814) - remove
+    # field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: true, deprecation_reason: 'All units in group should have the same type' # TODO(#7814) - remove
     units_field
     field :unit_type, Types::HmisSchema::UnitTypeObject, null: true, description: 'Unit type for this group'
 
@@ -51,19 +51,19 @@ module Types
     end
 
     # Similar to `Project.unit_types`, this supports displaying availability by unit types. Don't resolve in batch.
-    def unit_types
-      capacity = object.units.group(:unit_type_id).count
-      unoccupied = object.units.unoccupied_on.group(:unit_type_id).count
-
-      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
-        OpenStruct.new(
-          id: "#{object.id}:#{unit_type.id}",
-          unit_type: unit_type.description,
-          capacity: capacity[unit_type.id] || 0,
-          availability: unoccupied[unit_type.id] || 0,
-        )
-      end
-    end
+    # def unit_types
+    #   capacity = object.units.group(:unit_type_id).count
+    #   unoccupied = object.units.unoccupied_on.group(:unit_type_id).count
+    #
+    #   object.units.map(&:unit_type).uniq.compact.map do |unit_type|
+    #     OpenStruct.new(
+    #       id: "#{object.id}:#{unit_type.id}",
+    #       unit_type: unit_type.description,
+    #       capacity: capacity[unit_type.id] || 0,
+    #       availability: unoccupied[unit_type.id] || 0,
+    #     )
+    #   end
+    # end
 
     def capacity
       object.units.count
