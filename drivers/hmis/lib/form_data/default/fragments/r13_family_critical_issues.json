@@ -12,7 +12,6 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "component": "CHECKBOX",
           "link_id": "R13_9",
           "required": false,
           "warn_if_empty": false,
@@ -26,7 +25,6 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "component": "CHECKBOX",
           "link_id": "R13_11",
           "required": false,
           "warn_if_empty": false,
@@ -40,7 +38,6 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "component": "CHECKBOX",
           "link_id": "R13_15",
           "required": false,
           "warn_if_empty": false,
@@ -54,7 +51,6 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "component": "CHECKBOX",
           "link_id": "R13_21",
           "required": false,
           "warn_if_empty": false,
@@ -68,7 +64,6 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "component": "CHECKBOX",
           "link_id": "R13_22",
           "required": false,
           "warn_if_empty": false,
@@ -82,7 +77,6 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "component": "CHECKBOX",
           "link_id": "R13_24",
           "required": false,
           "warn_if_empty": false,
