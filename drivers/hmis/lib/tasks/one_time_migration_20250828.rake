@@ -5,7 +5,7 @@ desc 'One time data migration to generate Unit Groups for existing units and fix
 task migrate_unit_groups_20250828: [:environment] do
   Hmis::UnitGroup.transaction do
     OneTimeMigration20250828.new.perform
-    raise ActiveRecord::Rollback # uncomment to test rollback
+    # raise ActiveRecord::Rollback # uncomment to test rollback
   end
 end
 
