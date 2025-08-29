@@ -33,6 +33,24 @@ module Hmis::WorkflowExecution
       [:available, :in_progress].include?(status.to_sym)
     end
 
+    # Override the complete! method to provide better error messages
+    def complete!
+      raise ArgumentError, "Cannot complete step #{id} from '#{status}' state. Step must be 'in_progress' to complete. Current state: #{status}" unless may_complete?
+
+      super
+    end
+
+    # Validate that steps can only be completed when in the correct state
+    validate :validate_completion_state, on: :update
+
+    private
+
+    def validate_completion_state
+      return unless status_changed? && status == 'completed' && status_was != 'in_progress'
+
+      errors.add(:status, :invalid, message: "Step can only be completed from 'in_progress' state, not from '#{status_was}'")
+    end
+
     # note, step status is not intended to be manipulated outside of the workflow engine
     state_machine_config column: 'status' do
       state :unavailable, initial: true

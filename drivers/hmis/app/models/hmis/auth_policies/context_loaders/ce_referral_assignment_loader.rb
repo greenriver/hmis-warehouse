@@ -69,9 +69,10 @@ module Hmis::AuthPolicies::ContextLoaders
       participants.each do |participant|
         instance_id = participant.workflow_instance_id
         # Check if this instance has completed steps for this swimlane
-        completed_swimlane_steps = all_steps[instance_id].select { |step| step.user_task&.swimlane_id == participant.swimlane_id }
-        assigned_instance_ids << instance_id if completed_swimlane_steps.any?
+        completed_swimlane_steps = all_steps[instance_id]&.select { |step| step.user_task&.swimlane_id == participant.swimlane_id }
+        assigned_instance_ids << instance_id if completed_swimlane_steps&.any?
       end
+      # binding.pry
       assigned_instance_ids
     end
 

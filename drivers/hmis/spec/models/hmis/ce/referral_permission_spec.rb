@@ -124,6 +124,56 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
           expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty
         end
       end
+
+      context 'and step has been completed by another user' do
+        let(:other_user) { create(:hmis_user, data_source: ds1) }
+        before(:each) do
+          engine.start_workflow!(user: other_user)
+          step = referral.steps.first
+          step.assignments.create!(user: other_user)
+          step.start!
+          step.complete!
+        end
+
+        it 'does not include referral' do
+          expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty
+        end
+
+        context 'and user is a participant on the swimlane assigned to the completed task' do
+          let!(:participant) { create(:hmis_ce_referral_participant, user: hmis_user, referral: referral, swimlane: case_manager_swimlane) }
+          it 'includes referral' do
+            expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
+          end
+        end
+
+        context 'and user is not a participant, but participates on this swimlane on a different referral' do
+          # Set up referral to another opportunity, and assign `hmis_user` as a participant to the same swimlane that is shared for the template
+          let(:opportunity2) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+          let(:workflow_instance2) { workflow_template.instances.create! }
+          let!(:referral2) do
+            create(
+              :hmis_ce_referral,
+              opportunity: opportunity2,
+              workflow_instance: workflow_instance2,
+              client: client,
+              referred_by: hmis_user,
+              status: 'initialized',
+            )
+          end
+          let!(:participant) { create(:hmis_ce_referral_participant, user: hmis_user, referral: referral2, swimlane: case_manager_swimlane) }
+
+          before(:each) do
+            referral2.workflow_engine.start_workflow!(user: other_user)
+            step = referral2.steps.first
+            step.assignments.create!(user: other_user)
+            step.start!
+            step.complete!
+          end
+          it 'only includes referral in other project' do
+            expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral2)
+          end
+        end
+      end
     end
   end
 end

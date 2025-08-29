@@ -104,7 +104,7 @@ module Hmis::Ce
 
         key = [instance_id, participant.swimlane_id]
         completed_steps = completed_steps_by_instance_and_swimlane[key]
-        instance_ids_with_completed_steps << instance_id if completed_steps.any?
+        instance_ids_with_completed_steps << instance_id if completed_steps&.any?
       end
 
       where(workflow_instance_id: instance_ids_with_completed_steps)
