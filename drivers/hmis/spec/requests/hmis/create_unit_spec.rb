@@ -28,15 +28,16 @@ RSpec.describe 'Create Units Mutation', type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_manage_units, :can_view_units]) }
   let(:unit_type) { create(:hmis_unit_type) }
+  let(:unit_group) { create(:hmis_unit_group, project: p1, unit_type: unit_type) }
 
   before(:each) do
     hmis_login(user)
   end
 
   it 'creates units' do
-    input = { input: { input: { projectId: p1.id.to_s, count: 1, unitTypeId: unit_type.id } } }
+    input = { input: { input: { count: 1, unitGroupId: unit_group.id } } }
     versions = GrdaWarehouse.paper_trail_versions.where(project_id: p1.id, item_type: 'Hmis::Unit')
-    units = Hmis::Unit.where(unit_type: unit_type, project: p1)
+    units = Hmis::Unit.where(project: p1, hmis_unit_group_id: unit_group.id)
     expect do
       response, result = post_graphql(input) { mutation }
       expect(response.status).to eq(200), result.inspect
