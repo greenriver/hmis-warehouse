@@ -12645,7 +12645,7 @@ type UnitGroup {
   Unit type for this group
   """
   unitType: UnitTypeObject
-  unitTypes: [UnitTypeCapacity!]!
+  unitTypes: [UnitTypeCapacity!] @deprecated(reason: "All units in group should have the same type")
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
   workflowTemplateName: String
