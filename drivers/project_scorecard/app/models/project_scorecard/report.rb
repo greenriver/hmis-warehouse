@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ProjectScorecard
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
@@ -234,6 +236,17 @@ module ProjectScorecard
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
         generator.new(apr).run!(email: false, manual: false)
 
+        generators_using_gender_data = [
+          HudApr::Generators::Apr::Fy2020::Generator,
+          HudApr::Generators::Apr::Fy2021::Generator,
+          HudApr::Generators::Apr::Fy2023::Generator,
+          HudApr::Generators::Apr::Fy2024::Generator,
+        ]
+        include_gender_data = generators_using_gender_data.include?(generator)
+
+        # Gender data was removed from the APR in FY 2026, causing the total pii error percentage cell to shift in the APR.
+        percent_pii_errors_cell = include_gender_data ? 'F7' : 'F6'
+
         assessment_answers.merge!(
           {
             apr_id: apr.id,
@@ -253,7 +266,7 @@ module ProjectScorecard
 
             average_los_leavers: answer(apr, 'Q22b', 'B2'),
 
-            percent_pii_errors: answer(apr, 'Q6a', 'F7').to_f * 100,
+            percent_pii_errors: answer(apr, 'Q6a', percent_pii_errors_cell).to_f * 100,
 
             days_to_lease_up: answer(apr, 'Q22c', 'B12'),
           },
