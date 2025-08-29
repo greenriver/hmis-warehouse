@@ -72,47 +72,69 @@ RSpec.describe 'CreateUnitGroup Mutation', type: :request do
     expect(unit_group.unit_type_id).to eq(unit_type.id)
   end
 
-  context 'validation errors' do
-    context 'when name is missing' do
-      let(:input_without_name) { base_input.deep_merge(input: { name: nil }) }
+  context 'when name is missing' do
+    let(:input_without_name) { base_input.deep_merge(input: { name: nil }) }
 
-      it 'returns validation error' do
-        response, result = post_graphql(input_without_name) { mutation }
-        expect(response.status).to eq(200), result.inspect
+    it 'returns validation error' do
+      response, result = post_graphql(input_without_name) { mutation }
+      expect(response.status).to eq(200), result.inspect
 
-        errors = result.dig('data', 'createUnitGroup', 'errors')
-        expect(errors).not_to be_empty
-        expect(errors.first['attribute']).to eq('name')
-        expect(errors.first['type']).to eq('required')
-      end
+      errors = result.dig('data', 'createUnitGroup', 'errors')
+      expect(errors).not_to be_empty
+      expect(errors.first['attribute']).to eq('name')
+      expect(errors.first['type']).to eq('required')
+    end
+  end
+
+  context 'when name is not unique within project' do
+    let!(:existing_unit_group) { create(:hmis_unit_group, project: p1, name: 'Existing Group Name') }
+    let(:input_with_duplicate_name) { base_input.deep_merge(input: { name: 'Existing Group Name' }) }
+
+    it 'returns validation error' do
+      response, result = post_graphql(input_with_duplicate_name) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      errors = result.dig('data', 'createUnitGroup', 'errors')
+      expect(errors).not_to be_empty
+      expect(errors.first['fullMessage']).to eq('Name must be unique in the project')
+    end
+  end
+
+  context 'when unit type is missing' do
+    let(:input_without_unit_type) { base_input.deep_merge(input: { unitTypeId: nil }) }
+
+    it 'returns validation error' do
+      response, result = post_graphql(input_without_unit_type) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      errors = result.dig('data', 'createUnitGroup', 'errors')
+      expect(errors).not_to be_empty
+      expect(errors.first['attribute']).to eq('unitTypeId')
+      expect(errors.first['type']).to eq('required')
+    end
+  end
+
+  context 'when project has restricted unit types' do
+    let!(:restricted_unit_type) { create(:hmis_unit_type, description: 'Restricted Type') }
+    let!(:project_mapping) { create(:project_unit_type_mapping, project: p1, unit_type: unit_type) }
+
+    it 'succeeds with allowed unit type' do
+      response, result = post_graphql(base_input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'createUnitGroup', 'errors')).to be_empty
+      created_group = result.dig('data', 'createUnitGroup', 'unitGroup')
+      expect(created_group['unitType']['id']).to eq(unit_type.id.to_s)
     end
 
-    context 'when name is not unique within project' do
-      let!(:existing_unit_group) { create(:hmis_unit_group, project: p1, name: 'Existing Group Name') }
-      let(:input_with_duplicate_name) { base_input.deep_merge(input: { name: 'Existing Group Name' }) }
+    it 'returns validation error with incorrect unit type' do
+      input = base_input.deep_merge(input: { unitTypeId: restricted_unit_type.id })
+      response, result = post_graphql(input) { mutation }
+      expect(response.status).to eq(200), result.inspect
 
-      it 'returns validation error' do
-        response, result = post_graphql(input_with_duplicate_name) { mutation }
-        expect(response.status).to eq(200), result.inspect
-
-        errors = result.dig('data', 'createUnitGroup', 'errors')
-        expect(errors).not_to be_empty
-        expect(errors.first['fullMessage']).to eq('Name must be unique in the project')
-      end
-    end
-
-    context 'when unit type is missing' do
-      let(:input_without_unit_type) { base_input.deep_merge(input: { unitTypeId: nil }) }
-
-      it 'returns validation error' do
-        response, result = post_graphql(input_without_unit_type) { mutation }
-        expect(response.status).to eq(200), result.inspect
-
-        errors = result.dig('data', 'createUnitGroup', 'errors')
-        expect(errors).not_to be_empty
-        expect(errors.first['attribute']).to eq('unitTypeId')
-        expect(errors.first['type']).to eq('required')
-      end
+      errors = result.dig('data', 'createUnitGroup', 'errors')
+      expect(errors).not_to be_empty
+      expect(errors.first['attribute']).to eq('unitTypeId')
+      expect(errors.first['type']).to eq('invalid')
     end
   end
 

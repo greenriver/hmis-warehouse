@@ -20,17 +20,21 @@ module Mutations
 
       errors = HmisErrors::Errors.new
       errors.add :unit_type_id, :required unless input.unit_type_id.present?
-      return { errors: errors.errors } if errors.any?
 
-      # Validate unit_type exists
-      unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
+      unit_type_scope = Hmis::UnitType.all
+      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
+      unit_type_scope = unit_type_scope.where(id: unit_type_ids) if unit_type_ids.any? # only restrict if any mappings exist
+      unit_type = unit_type_scope.find_by(id: input.unit_type_id)
       errors.add :unit_type_id, :invalid unless unit_type.present?
       return { errors: errors.errors } if errors.any?
 
+      workflow_template = Hmis::WorkflowDefinition::Template.published.find_by(identifier: input.workflow_template_identifier)
+      errors.add :workflow_template_identifier, :invalid unless workflow_template.present?
+
       unit_group = Hmis::UnitGroup.new(
-        project_id: project.id,
-        workflow_template_identifier: input.workflow_template_identifier,
         name: input.name,
+        project: project,
+        workflow_template_identifier: input.workflow_template_identifier,
         ce_event_type: input.ce_event_type,
         unit_type: unit_type,
       )
