@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ProjectPassFail
   class Client < GrdaWarehouseBase
     self.table_name = :project_pass_fails_clients
@@ -23,7 +25,7 @@ module ProjectPassFail
     end
 
     def calculate_universal_data_elements(apr_client)
-      assign_attributes(
+      attributes = {
         client_id: apr_client.client_id,
         first_name: apr_client.first_name,
         last_name: apr_client.last_name,
@@ -43,7 +45,9 @@ module ProjectPassFail
         enrollment_created: apr_client.enrollment_created,
         enrollment_coc: apr_client.enrollment_coc,
         income_at_entry: apr_client.income_from_any_source_at_start,
-      )
+      }
+      attributes.delete('Gender') unless project_pass_fail.include_gender_data?
+      assign_attributes(attributes)
     end
 
     def calculate_time_to_enter
@@ -53,7 +57,7 @@ module ProjectPassFail
     end
 
     def self.detail_headers
-      {
+      headers = {
         first_name: 'First Name',
         last_name: 'Last Name',
         name_quality: 'Name Quality',
@@ -75,6 +79,8 @@ module ProjectPassFail
         days_served: 'Days Served',
         income_at_entry: 'Income at Entry',
       }
+      headers.delete('Gender') unless project_pass_fail.include_gender_data?
+      headers
     end
 
     def self.detail_headers_for_export
