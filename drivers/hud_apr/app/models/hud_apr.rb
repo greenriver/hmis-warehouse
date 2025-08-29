@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 module HudApr
+  TodoOrDie('Set APR Default Generator on Staging to FY 2026 version', by: '2025-09-01')
+  TodoOrDie('Set APR Default Generator to the FY 2026 version', by: '2025-10-01')
   def self.current_generator(report:)
     case report
     when :caper
