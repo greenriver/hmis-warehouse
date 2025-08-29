@@ -232,20 +232,9 @@ module ProjectScorecard
           'Question 23',
           'Question 26',
         ]
-        generator = HudApr.current_generator(report: :apr)
+        generator = apr_generator
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
         generator.new(apr).run!(email: false, manual: false)
-
-        generators_using_gender_data = [
-          HudApr::Generators::Apr::Fy2020::Generator,
-          HudApr::Generators::Apr::Fy2021::Generator,
-          HudApr::Generators::Apr::Fy2023::Generator,
-          HudApr::Generators::Apr::Fy2024::Generator,
-        ]
-        include_gender_data = generators_using_gender_data.include?(generator)
-
-        # Gender data was removed from the APR in FY 2026, causing the total pii error percentage cell to shift in the APR.
-        percent_pii_errors_cell = include_gender_data ? 'F7' : 'F6'
 
         assessment_answers.merge!(
           {
@@ -266,7 +255,7 @@ module ProjectScorecard
 
             average_los_leavers: answer(apr, 'Q22b', 'B2'),
 
-            percent_pii_errors: answer(apr, 'Q6a', percent_pii_errors_cell).to_f * 100,
+            percent_pii_errors: answer(apr, 'Q6a', pii_error_cell).to_f * 100,
 
             days_to_lease_up: answer(apr, 'Q22c', 'B12'),
           },
@@ -337,6 +326,24 @@ module ProjectScorecard
 
     def send_email_to_owner
       ProjectScorecard::ScorecardMailer.scorecard_complete(self).deliver_later
+    end
+
+    def include_gender_data?
+      [
+        HudApr::Generators::Apr::Fy2020::Generator,
+        HudApr::Generators::Apr::Fy2021::Generator,
+        HudApr::Generators::Apr::Fy2023::Generator,
+        HudApr::Generators::Apr::Fy2024::Generator,
+      ].include?(apr_generator)
+    end
+
+    def pii_error_cell
+      # Gender data was removed from the APR in FY 2026, causing the total pii error percentage cell to shift in the APR.
+      include_gender_data? ? 'F7' : 'F6'
+    end
+
+    private def apr_generator
+      HudApr.current_generator(report: :apr)
     end
 
     private def spm_report(project_ids)
