@@ -16,7 +16,7 @@ module Hmis::AuthPolicies::ContextLoaders
     end
 
     memoize def assigned_referral_instance_ids
-      (assigned_referral_steps.pluck(:instance_id) + assigned_to_completed_tasks_by_swimlane_instance_ids).to_set
+      (assigned_referral_steps.pluck(:instance_id) + workflow_instance_ids_with_completed_swimlane_steps).to_set
     end
 
     memoize def assigned_referral_step_ids # this should probably exclude the completed ones?
@@ -25,12 +25,21 @@ module Hmis::AuthPolicies::ContextLoaders
 
     private
 
-    # Instance IDs for Referrals that have a completed step assigned to this user's swimlane. These referrals are included
-    # in visibility for users that can view "own" referrals. For example, if a workflow has a task assigned to "Project Staff",
-    # and that task is completed, and then another user is added as a "Project Staff" participant to that referral, that user is
-    # granted access to view the referral, despite their "assigned" tasks being already completed.
+    # Returns workflow instance IDs where there are completed steps assigned to
+    # swimlanes that the current user participates in.
+    #
+    # This allows users to see referrals they're involved with through swimlane
+    # participation, even if no steps are currently directly assigned to them.
+    #
     # Note: this logic is mirrored by `Referral#with_completed_steps_assigned_to_swimlane`
-    def instance_ids_with_completed_steps_assigned_to_swimlane
+    #
+    # @return [Array<Integer>] Array of workflow instance IDs
+    # @example
+    #   # Referral has a task assigned to "Project Staff" swimlane
+    #   # User X completes the project staff task
+    #   # Later, User Y is added as a participant to the "Project Staff" swimlane for the referral
+    #   # Because of this method, User Y is now granted access to view this referral as their "own" referral
+    def workflow_instance_ids_with_completed_swimlane_steps
       # Get all referral participants for the user with their referral and swimlane info
       participants = @user.ce_referral_participants.
         joins(:referral, :swimlane).

@@ -71,11 +71,13 @@ module Hmis::Ce
       joins(:steps).merge(Hmis::WorkflowExecution::Step.where(id: assigned_step_ids).excluding_unavailable)
     end
 
-    # Referrals that have a completed step assigned to this user's swimlane. These referrals are included
-    # in visibility for users that can view "own" referrals. For example, if a workflow has a task assigned to "Project Staff",
-    # and that task is completed, and then another user is added as a "Project Staff" participant to that referral, that user is
-    # granted access to view the referral, despite their "assigned" tasks being already completed.
-    # Note: this logic is mirrored by `CeReferralAssignmentLoader#instance_ids_with_completed_steps_assigned_to_swimlane`
+    # Referrals where there are completed steps assigned to swimlanes that the provided user participates in.
+    # These referrals are included in visibility for users that can view "own" referrals.
+    #
+    # This allows users to see referrals they're involved with through swimlane
+    # participation, even if no steps are currently directly assigned to them.
+    #
+    # Note: this logic is mirrored by `CeReferralAssignmentLoader#workflow_instance_ids_with_completed_swimlane_steps`
     scope :with_completed_steps_assigned_to_swimlane, ->(user) do
       # Get all referral participants for this user, with their workflow instance IDs
       participants = user.ce_referral_participants.
