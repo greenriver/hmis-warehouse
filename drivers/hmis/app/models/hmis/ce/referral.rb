@@ -41,7 +41,8 @@ module Hmis::Ce
     scope :viewable_by, ->(user) do
       # What makes a referral viewable by a user?
       # - If they have can_view_referrals at the target project, OR
-      # - If they have can_view_own_referrals, AND are assigned a step in the referral.
+      # - If they have can_view_own_referrals, AND are assigned a step in the referral, OR
+      # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral
 
       base_scope = joins(:target_project)
 
@@ -49,20 +50,62 @@ module Hmis::Ce
       access_through_project = base_scope.
         merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_referrals))
 
-      # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
-      # Referral only becomes viewable once the assigned step becomes available.
-      # Note that the user does *not* need can_view_project in this case
+      # Referrals that have an available or completed step assigned to this user
       own_referral_ids = base_scope.with_available_step_assigned_to(user).
-        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
         pluck(:id) # pluck to avoid duplicates in resulting scope (from the step join)
 
-      access_through_project.or(base_scope.where(id: own_referral_ids))
+      # Referrals that the user has access to because of swimlane membership (ReferralParticipant) even if they are not directly assigned to any task
+      own_referrals_via_swimlane = base_scope.with_completed_steps_assigned_to_swimlane(user)
+
+      # For "own" referrals, filter down to referrals with target projects where the user has can_view_own_referrals.
+      # Note that the user does *not* need to have can_view_project in this case.
+      own_referrals = base_scope.where(id: own_referral_ids).or(own_referrals_via_swimlane).
+        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals))
+
+      access_through_project.or(own_referrals)
     end
 
     # Referrals that have a step assigned to the specified user. Excludes referrals if the assigned step(s) are unavailable.
     scope :with_available_step_assigned_to, ->(user) do
       assigned_step_ids = user.workflow_step_assignments.pluck(:step_id)
       joins(:steps).merge(Hmis::WorkflowExecution::Step.where(id: assigned_step_ids).excluding_unavailable)
+    end
+
+    # Referrals that have a completed step assigned to this user's swimlane. These referrals are included
+    # in visibility for users that can view "own" referrals. For example, if a workflow has a task assigned to "Project Staff",
+    # and that task is completed, and then another user is added as a "Project Staff" participant to that referral, that user is
+    # granted access to view the referral, despite their "assigned" tasks being already completed.
+    # Note: this logic is mirrored by `CeReferralAssignmentLoader#instance_ids_with_completed_steps_assigned_to_swimlane`
+    scope :with_completed_steps_assigned_to_swimlane, ->(user) do
+      # Get all referral participants for this user, with their workflow instance IDs
+      participants = user.ce_referral_participants.
+        joins(:referral).
+        select(:referral_id, :swimlane_id, 'ce_referrals.workflow_instance_id').
+        distinct
+
+      # Get all unique workflow instance IDs
+      instance_ids = participants.pluck(:workflow_instance_id).compact.uniq
+
+      # Preload all completed steps for these instances in one query, grouped by instance and swimlane
+      completed_steps_by_instance_and_swimlane = Hmis::WorkflowExecution::Step.
+        where(instance_id: instance_ids).
+        completed.
+        joins(:user_task).
+        preload(:user_task).
+        group_by { |step| [step.instance_id, step.user_task.swimlane_id] }
+
+      # Select Instance IDs where the user is "assigned" to the same swimlane as any completed step
+      instance_ids_with_completed_steps = []
+      participants.each do |participant|
+        instance_id = participant.workflow_instance_id
+        next unless instance_id
+
+        key = [instance_id, participant.swimlane_id]
+        completed_steps = completed_steps_by_instance_and_swimlane[key]
+        instance_ids_with_completed_steps << instance_id if completed_steps.any?
+      end
+
+      where(workflow_instance_id: instance_ids_with_completed_steps)
     end
 
     scope :active, -> { where.not(status: ['accepted', 'rejected']) }
