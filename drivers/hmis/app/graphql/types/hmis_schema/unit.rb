@@ -34,7 +34,7 @@ module Types
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
-    field :unit_group, HmisSchema::UnitGroup, null: true
+    field :unit_group, HmisSchema::UnitGroup, null: false
     field :deletable, Boolean, null: false
     field :can_be_marked_available_today, Boolean, null: false, description: 'Whether the unit can be marked available for referrals now'
     field :can_be_marked_available, Boolean, null: false, description: 'Whether the unit can be marked available for a future date'
@@ -115,8 +115,6 @@ module Types
     end
 
     def workflow_template_name
-      return unless unit_group
-
       load_ar_association(unit_group, :workflow_template)&.name
     end
 
@@ -143,7 +141,6 @@ module Types
       # If the current opportunity is active and stale, return the eligibility requirements as they were
       # when the opportunity was created.
       return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
-      return [] unless unit_group
 
       Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
     end
@@ -157,7 +154,6 @@ module Types
       # If the current opportunity is active and stale, return the priority rules as they were
       # when the opportunity was created, filtered to the most specific owner level and ordered by [priority_rank, id].
       return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
-      return [] unless unit_group
 
       Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
     end
