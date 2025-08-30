@@ -93,9 +93,16 @@ module Hmis::WorkflowExecution
     # TODO(#7080) When we add notifications, we may need to add notification from within this method,
     # even though it's called outside of process_triggers, so that users are notified of assignment.
     def assign_task!(step)
-      assignment_handler.call(step.node).each do |user|
+      # Get the new assignments from the handler
+      assigned_users = assignment_handler.call(step.node)
+
+      # Create or find assignments for new users
+      assigned_users.each do |user|
         step.assignments.find_or_create_by!(user: user)
       end
+
+      # Remove assignments for users that are no longer assigned
+      step.assignments.where.not(user: assigned_users).each(&:destroy!)
     end
 
     protected
@@ -163,7 +170,7 @@ module Hmis::WorkflowExecution
       case node
       when Hmis::WorkflowDefinition::UserTask
         step = enable_step!(node)
-        assign_task!(step)
+        assign_task!(step) # xx
         process_triggers(node: node, event_type: 'enable_step', user: user)
       when Hmis::WorkflowDefinition::ScriptTask
         step = enable_step!(node)
