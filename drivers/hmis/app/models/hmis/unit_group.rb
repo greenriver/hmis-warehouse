@@ -22,7 +22,6 @@ module Hmis
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: false
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
-    has_many :unit_types, through: :units
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group

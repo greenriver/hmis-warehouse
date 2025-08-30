@@ -15,17 +15,19 @@
 # Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
 # Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
+  self.ignored_columns += ['unit_type_id']
+  self.ignored_columns += ['project_id']
+
   include ::Hmis::Concerns::HmisArelHelper
   acts_as_paranoid
   self.table_name = :hmis_units
 
-  has_paper_trail(meta: { project_id: :project_id })
+  has_paper_trail(meta: { project_id: ->(unit) { unit.unit_group&.project_id } })
 
-  belongs_to :project, class_name: 'Hmis::Hud::Project'
-  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true, inverse_of: :units, foreign_key: :hmis_unit_group_id
+  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', inverse_of: :units, foreign_key: :hmis_unit_group_id
 
-  # Descriptive "type" of this unit (e.g. "3 Bed Room", "Case Management", "Mass Shelter Single")
-  belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
+  # Access project and unit_type through unit_group
+  delegate :project, :unit_type, to: :unit_group
   # Periods when this unit has been active
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   # User that last updated this unit
@@ -55,10 +57,10 @@ class Hmis::Unit < Hmis::HmisBase
   alias_attribute :date_created, :created_at
 
   scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
+    joins(unit_group: :project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
   end
 
-  scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
+  scope :of_type, ->(unit_type) { joins(:unit_group).where(hmis_unit_groups: { unit_type: unit_type }) }
 
   scope :occupied_on, ->(date = Date.current) do
     unit_ids = joins(:unit_occupancies).merge(Hmis::UnitOccupancy.active_on(date)).pluck(:id)
@@ -86,7 +88,7 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   # Filter scope
-  scope :with_unit_type, ->(unit_type_ids) { where(unit_type_id: unit_type_ids) }
+  scope :with_unit_type, ->(unit_type_ids) { joins(:unit_group).where(hmis_unit_groups: { unit_type_id: unit_type_ids }) }
 
   # unit is receiving referrals if it is unoccupied and has any opportunities that are receiving referrals
   scope :receiving_referrals, -> do
@@ -136,7 +138,7 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   def display_name
-    self.class.display_name(id: id, name: name, unit_type: unit_type)
+    self.class.display_name(id: id, name: name, unit_type: unit_group.unit_type)
   end
 
   def to_pick_list_option

@@ -98,7 +98,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
-  has_one :current_unit_type, through: :current_unit, class_name: 'Hmis::UnitType', source: :unit_type
+  has_one :current_unit_group, through: :current_unit, class_name: 'Hmis::UnitGroup', source: :unit_group
+  has_one :current_unit_type, through: :current_unit_group, class_name: 'Hmis::UnitType', source: :unit_type
 
   # All referrals where this enrollment is the source enrollment. NOT only 'direct' referrals
   has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :source_enrollment_id
@@ -482,7 +483,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
 
     # include project id here since it may not be available during after_save hooks due to WIP
-    self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
+    self.unit_occupancy_changes = { project_id: unit.unit_group.project.id, unit_type: unit.unit_group.unit_type, user_id: user.id }
     unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {

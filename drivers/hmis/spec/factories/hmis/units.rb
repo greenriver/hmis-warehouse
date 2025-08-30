@@ -20,15 +20,13 @@ FactoryBot.define do
   end
 
   factory :hmis_unit, class: 'Hmis::Unit' do
-    sequence(:name) { |n| "Unit #{n}" }
-    user { association :hmis_user }
-    project { association :hmis_hud_project }
-
-    trait :in_unit_group do
-      unit_group { association :hmis_unit_group, project: project }
+    transient do
+      project { create(:hmis_hud_project) }
+      unit_type { create(:hmis_unit_type) }
     end
-
-    factory :hmis_unit_in_group, traits: [:in_unit_group]
+    sequence(:name) { |n| "Unit #{n}" }
+    user { association :hmis_user, :randomly_named }
+    unit_group { association :hmis_unit_group, project: project, unit_type: unit_type }
   end
 
   factory :hmis_unit_occupancy, class: 'Hmis::UnitOccupancy' do

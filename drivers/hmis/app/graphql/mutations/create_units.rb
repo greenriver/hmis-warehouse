@@ -30,9 +30,6 @@ module Mutations
         Hmis::Unit.new(
           hmis_unit_group_id: unit_group.id,
           user_id: current_user.id,
-          # TODO(#7814) - remove
-          project: project,
-          unit_type: unit_type,
         )
       end
 

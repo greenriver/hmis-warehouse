@@ -543,8 +543,8 @@ module Types
 
       eligible_units = Hmis::Unit.where(id: available + hh_units)
 
-      eligible_units.preload(:unit_type).
-        order(:unit_type_id, :id).
+      eligible_units.preload(unit_group: :unit_type).
+        order(:hmis_unit_group_id, :id).
         map do |unit|
           {
             **unit.to_pick_list_option,
@@ -568,7 +568,7 @@ module Types
       return picklist if hh_unit_type_ids.empty? # household doesn't have a unit type, so no need for further filtering
 
       # if the household has a unit type, exclude units that don't match
-      allowed_unit_type_unit_ids = project.units.where(unit_type_id: hh_unit_type_ids).pluck(:id).to_set
+      allowed_unit_type_unit_ids = project.units.joins(:unit_group).where(hmis_unit_groups: { unit_type_id: hh_unit_type_ids }).pluck(:id).to_set
       picklist.filter do |option|
         option[:code].in?(allowed_unit_type_unit_ids)
       end
