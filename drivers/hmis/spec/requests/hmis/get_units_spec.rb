@@ -183,7 +183,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'acceptingCeReferrals')).to be_falsy
-          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'deletable')).to be_falsy
+          expect(result.dig('data', 'project', 'units', 'nodes', 0, 'deletable')).to be_truthy
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedAvailable')).to be_truthy
           expect(result.dig('data', 'project', 'units', 'nodes', 0, 'canBeMarkedUnavailable')).to be_falsy
         end

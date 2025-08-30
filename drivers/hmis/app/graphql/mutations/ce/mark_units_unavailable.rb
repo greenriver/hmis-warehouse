@@ -30,7 +30,7 @@ module Mutations
       raise 'Cannot mark opportunity unavailable if it has an active referral' if opportunities.any?(&:active_referral)
 
       Hmis::Ce::Opportunity.transaction do
-        opportunities.each(&:destroy!)
+        opportunities.each(&:close!)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) }
