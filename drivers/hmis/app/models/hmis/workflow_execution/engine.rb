@@ -169,7 +169,7 @@ module Hmis::WorkflowExecution
       case node
       when Hmis::WorkflowDefinition::UserTask
         step = enable_step!(node)
-        assign_task!(step) # xx
+        assign_task!(step)
         process_triggers(node: node, event_type: 'enable_step', user: user)
       when Hmis::WorkflowDefinition::ScriptTask
         step = enable_step!(node)
