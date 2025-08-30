@@ -46,7 +46,6 @@ module Hmis::WorkflowExecution
     end
 
     def start_step!(step, user:)
-      step.assignments.find_or_create_by!(user: user)
       step.started_at = Time.current
       step.start!
       # We don't populate the step's updated_by id here, because from the user's perspective, starting the step is just clicking a button, but not updating anything
