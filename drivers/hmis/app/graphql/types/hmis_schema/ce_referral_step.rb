@@ -61,7 +61,7 @@ module Types
     end
 
     def updated_by
-      load_last_user_from_versions(object)
+      load_ar_association(object, :updated_by)
     end
 
     def referral
