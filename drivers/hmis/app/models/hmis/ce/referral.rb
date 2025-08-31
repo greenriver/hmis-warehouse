@@ -161,7 +161,7 @@ module Hmis::Ce
 
       # Get all workflow instance IDs that this user is participating in
       instance_ids = participants.map(&:workflow_instance_id)
-      return unless instance_ids.any?
+      return unless instance_ids.any? # user is not participating in any referrals
 
       # Preload all completed steps for these instances in one query, grouped by instance and swimlane
       completed_steps = Hmis::WorkflowExecution::Step.

@@ -143,6 +143,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
           let!(:participant) { create(:hmis_ce_referral_participant, user: hmis_user, referral: referral, swimlane: case_manager_swimlane) }
           it 'includes referral' do
             expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
+            expect(Hmis::Ce::Referral.referral_ids_for_user_with_completed_swimlane_steps(hmis_user)).to contain_exactly(referral.id)
           end
         end
 
@@ -171,6 +172,7 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
           end
           it 'only includes referral in other project' do
             expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral2)
+            expect(Hmis::Ce::Referral.referral_ids_for_user_with_completed_swimlane_steps(hmis_user)).to contain_exactly(referral2.id)
           end
         end
       end
