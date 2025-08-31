@@ -145,7 +145,7 @@ module Hmis::Ce
       Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
     end
 
-    # Returns Workflow Instance IDs for Referrals where there are completed steps assigned to
+    # Returns IDs of Referrals where there are completed steps assigned to
     # a swimlane that the provided user participates in on that specific referral.
     #
     # These referrals are included in visibility for users with "can view own referrals" permission.
