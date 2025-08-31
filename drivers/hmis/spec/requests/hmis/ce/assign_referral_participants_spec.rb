@@ -110,7 +110,6 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
     end
 
-    # describe 'referral with available task' do
     it 'creates step assignments on active steps' do
       expect do
         response, result = post_graphql(**variables) { mutation }
