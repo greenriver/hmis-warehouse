@@ -49,15 +49,21 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       client_acceptance = engine.active_steps.sole
       engine.start_step!(client_acceptance, user: hmis_user)
       engine.complete_step!(client_acceptance, user: hmis_user, submitted_values: {})
+      # Start the next step, which will be referenced as 'current_step' in tests
+      next_step = engine.active_steps.sole
+      engine.start_step!(next_step, user: hmis_user)
     end
+
+    # step that creates an enrollment
+    let(:current_step) { engine.active_steps.sole }
 
     it 'creates an enrollment and associates it with the referral' do
       expect do
-        current_step = engine.active_steps.sole
         engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
         referral.reload
       end.to change(Hmis::Hud::Enrollment, :count).by(1).
-        and change(referral, :target_enrollment).from(nil)
+        and change(referral, :target_enrollment).from(nil).
+        and change(current_step, :status).to('completed')
 
       enrollment = referral.target_enrollment
       expect(enrollment.project).to eq(project)
@@ -70,7 +76,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       let!(:auto_enter_config) { create :hmis_project_auto_enter_config, project: project }
 
       it 'creates an enrollment that is not WIP' do
-        engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+        engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
         referral.reload
         expect(referral.target_enrollment.in_progress?).to be_falsey
       end
@@ -81,7 +87,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
 
       it 'raises an error and does not save the enrollment' do
         expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
         end.to raise_error(HmisErrors::ApiError, /Client has another enrollment in this project/).
           and not_change(Hmis::Hud::Enrollment, :count)
       end
@@ -94,7 +100,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
 
       it 'fails to create enrollment' do
         expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
         end.to raise_error(RuntimeError, /CoC Code required/).
           and not_change(Hmis::Hud::Enrollment, :count)
       end
@@ -105,14 +111,14 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
 
       it 'requires CoC input' do
         expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
         end.to raise_error(RuntimeError, /CoC Code required/).
           and not_change(Hmis::Hud::Enrollment, :count)
       end
 
       it 'succeeds when CoC input is provided' do
         expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: { Hmis::Ce::ReferralEnroller::COC_CODE_LINK_ID => 'CO-600' })
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: { Hmis::Ce::ReferralEnroller::COC_CODE_LINK_ID => 'CO-600' })
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1)
 
@@ -129,7 +135,7 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
 
       it 'marks the unit as occupied' do
         expect do
-          engine.complete_step!(engine.active_steps.sole, user: hmis_user, submitted_values: {})
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: {})
           referral.reload
           unit.reload
         end.to change(referral, :target_enrollment).from(nil).
@@ -189,12 +195,12 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
       it 'assigns the move-in date attribute on the enrollment' do
         move_in_date = 2.weeks.ago.to_date
         expect do
-          current_step = engine.active_steps.sole
           current_step.form_definition = move_in_date_form_def # this is set in the mutation, not the engine complete_step!
           engine.complete_step!(current_step, user: hmis_user, submitted_values: { move_in_date_link_id => move_in_date })
           referral.reload
         end.to change(Hmis::Hud::Enrollment, :count).by(1).
-          and change(referral, :target_enrollment).from(nil)
+          and change(referral, :target_enrollment).from(nil).
+          and change(current_step, :status).to('completed')
 
         expect(referral.target_enrollment.move_in_date).to eq(move_in_date)
       end
@@ -219,7 +225,6 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         context 'if enrollment does not exist' do
           it 'raises an exception, indicating a workflow configuration issue' do
             expect do
-              current_step = engine.active_steps.sole
               current_step.form_definition = move_in_date_form_def
               engine.complete_step!(current_step, user: hmis_user, submitted_values: { move_in_date_link_id => 2.weeks.ago.to_date })
               referral.reload
@@ -231,7 +236,6 @@ RSpec.describe Hmis::Ce::ReferralEnroller, type: :model do
         context 'the move-in date value is not parseable' do
           it 'raises an exception' do
             expect do
-              current_step = engine.active_steps.sole
               current_step.form_definition = move_in_date_form_def
               engine.complete_step!(current_step, user: hmis_user, submitted_values: { move_in_date_link_id => 'bad string' })
             end.to raise_error(RuntimeError, /Failed to parse/).
