@@ -77,6 +77,10 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
         expect(policy.can_view?).to be true
       end
 
+      it 'returns false if user is not assigned to the referral' do
+        expect(policy.can_view?).to be false
+      end
+
       context 'when referral step has been completed by another user' do
         let(:other_user) { create(:hmis_user, data_source: data_source) }
         before(:each) do
@@ -127,11 +131,6 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
             expect(policy2.can_view?).to be true
           end
         end
-      end
-
-      # make sure its false if the user has a participant for this swimlane for a different referral
-      it 'returns false if user is not assigned to the referral' do
-        expect(policy.can_view?).to be false
       end
     end
 
