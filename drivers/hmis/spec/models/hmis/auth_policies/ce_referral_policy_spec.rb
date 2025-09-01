@@ -12,6 +12,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
   let(:client) { create :hmis_hud_client_complete, data_source: data_source }
   let(:project) { create :hmis_hud_project, data_source: data_source }
   let(:workflow_template) { create(:hmis_workflow_definition_template, data_source: data_source) }
+  let(:swimlane) { create :hmis_workflow_definition_swimlane, template: workflow_template }
   let(:opportunity) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
   let(:workflow_instance) { workflow_template.instances.create! }
   let(:referral) do
@@ -62,7 +63,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
 
     context 'with can_view_own_referrals permission' do
       let(:task) do
-        create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task')
+        create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task', swimlane: swimlane)
       end
       let(:step) do
         create(:hmis_wfe_step, instance: referral.workflow_instance, node: task)
@@ -78,6 +79,58 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
 
       it 'returns false if user is not assigned to the referral' do
         expect(policy.can_view?).to be false
+      end
+
+      context 'when referral step has been completed by another user' do
+        let(:other_user) { create(:hmis_user, data_source: data_source) }
+        before(:each) do
+          step.assignments.create!(user: other_user)
+          step.start!
+          step.complete!
+        end
+
+        it 'returns false' do
+          expect(policy.can_view?).to be false
+        end
+
+        context 'and user is a participant on the swimlane assigned to the completed task' do
+          let!(:participant) { create(:hmis_ce_referral_participant, user: user, referral: referral, swimlane: swimlane) }
+          it 'returns true' do
+            expect(policy.can_view?).to be true
+          end
+        end
+
+        context 'and user is not a participant, but participates on this swimlane on a different referral' do
+          # Set up referral to another opportunity, and assign `user` as a participant to the same swimlane that is shared for the template
+          let(:opportunity2) { create :hmis_ce_opportunity, project: project, workflow_template: workflow_template }
+          let(:workflow_instance2) { workflow_template.instances.create! }
+          let!(:referral2) do
+            create(
+              :hmis_ce_referral,
+              opportunity: opportunity2,
+              workflow_instance: workflow_instance2,
+              client: client,
+              referred_by: user,
+              status: 'initialized',
+            )
+          end
+          let!(:participant) { create(:hmis_ce_referral_participant, user: user, referral: referral2, swimlane: swimlane) }
+          let(:step2) { create(:hmis_wfe_step, instance: workflow_instance2, node: task) }
+
+          before(:each) do
+            step2.assignments.create!(user: other_user)
+            step2.start!
+            step2.complete!
+          end
+          it 'returns false' do
+            expect(policy.can_view?).to be false
+          end
+
+          it 'returns true for the other referral' do
+            policy2 = user.policy_for(referral2, policy_type: :ce_referral)
+            expect(policy2.can_view?).to be true
+          end
+        end
       end
     end
 
