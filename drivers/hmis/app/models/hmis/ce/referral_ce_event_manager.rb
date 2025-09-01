@@ -37,7 +37,7 @@ module Hmis::Ce
       raise "Expected to find CE event for referral #{referral.id}" unless event
 
       referral_result = message.params['referral_result']&.to_i
-      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtility2024.referral_results.keys.include?(referral_result)
+      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtility2026.referral_results.keys.include?(referral_result)
 
       event.update!(
         result_date: Date.current,

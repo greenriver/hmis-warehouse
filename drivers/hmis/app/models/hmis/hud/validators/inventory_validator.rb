@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Validators::InventoryValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
@@ -18,7 +20,7 @@ class Hmis::Hud::Validators::InventoryValidator < Hmis::Hud::Validators::BaseVal
   def validate(record)
     super(record) do
       # CoC code must be valid for project
-      record.errors.add :coc_code, :invalid, message: 'is invalid' if record.coc_code.present? && (!HudUtility2024.valid_coc?(record.coc_code) || !Hmis::Hud::ProjectCoc.where(coc_code: record.coc_code, project_id: record.project_id).exists?)
+      record.errors.add :coc_code, :invalid, message: 'is invalid' if record.coc_code.present? && (!HudUtility2026.valid_coc?(record.coc_code) || !Hmis::Hud::ProjectCoc.where(coc_code: record.coc_code, project_id: record.project_id).exists?)
 
       # Unit and bed counts must be non-negative
       [

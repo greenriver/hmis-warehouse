@@ -110,7 +110,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       options = result.dig('data', 'pickList')
       expect(options[0]['code']).to eq(Types::HmisSchema::Enums::Hud::PriorLivingSituation.all_enum_value_definitions.find { |v| v.value == 101 }.graphql_name)
-      expect(options[0]['label']).to eq(::HudUtility2024.living_situation(101))
+      expect(options[0]['label']).to eq(::HudUtility2026.living_situation(101))
       expect(options[0]['groupCode']).to eq('HOMELESS')
       expect(options[0]['groupLabel']).to eq('Homeless Situations')
     end
@@ -129,7 +129,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(1)
     expect(options[0]['code']).to eq(pc1.coc_code)
-    expect(options[0]['label']).to include(::HudUtility2024.cocs[pc1.coc_code])
+    expect(options[0]['label']).to include(::HudUtility2026.cocs[pc1.coc_code])
     expect(options[0]['initialSelected']).to eq(true)
   end
 

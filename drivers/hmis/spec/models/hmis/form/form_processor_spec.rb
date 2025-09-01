@@ -980,13 +980,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.race_fields).to contain_exactly('White', 'Asian')
         expect(client.RaceNone).to be nil
         # All other races set to No
-        HudUtility2024.races.keys.excluding('White', 'Asian', 'RaceNone').each do |f|
+        HudUtility2026.races.keys.excluding('White', 'Asian', 'RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to contain_exactly(:Woman, :Transgender)
         expect(client.GenderNone).to be nil
         # All other genders set to No
-        HudUtility2024.gender_fields.excluding(:Woman, :Transgender, :GenderNone).each do |f|
+        HudUtility2026.gender_fields.excluding(:Woman, :Transgender, :GenderNone).each do |f|
           expect(client.send(f)).to eq(0)
         end
       end
@@ -1013,12 +1013,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.veteran_status).to eq(99)
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(99)
-        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+        HudUtility2026.races.keys.excluding('RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(99)
-        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+        HudUtility2026.gender_fields.excluding(:GenderNone).each do |f|
           expect(client.send(f)).to eq(0)
         end
       end
@@ -1048,12 +1048,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(99)
-        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+        HudUtility2026.races.keys.excluding('RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(99)
-        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+        HudUtility2026.gender_fields.excluding(:GenderNone).each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.pronouns).to be nil
@@ -1076,12 +1076,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.dob_data_quality).to eq(9)
         expect(client.race_fields).to eq([])
         expect(client.RaceNone).to eq(9)
-        HudUtility2024.races.keys.excluding('RaceNone').each do |f|
+        HudUtility2026.races.keys.excluding('RaceNone').each do |f|
           expect(client.send(f)).to eq(0)
         end
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(8)
-        HudUtility2024.gender_fields.excluding(:GenderNone).each do |f|
+        HudUtility2026.gender_fields.excluding(:GenderNone).each do |f|
           expect(client.send(f)).to eq(0)
         end
       end

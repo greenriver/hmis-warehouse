@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::Hud::Processors
   class ExitProcessor < Base
     def process(field, value)
@@ -12,9 +14,9 @@ module Hmis::Hud::Processors
 
       attributes = case attribute_name
       when 'aftercare_methods'
-        multi_select_attributes(value, attribute_value, enum_map: HudUtility2024.aftercare_method_fields)
+        multi_select_attributes(value, attribute_value, enum_map: HudUtility2026.aftercare_method_fields)
       when 'counseling_methods'
-        multi_select_attributes(value, attribute_value, enum_map: HudUtility2024.counseling_method_fields)
+        multi_select_attributes(value, attribute_value, enum_map: HudUtility2026.counseling_method_fields)
       else
         { attribute_name => attribute_value }
       end

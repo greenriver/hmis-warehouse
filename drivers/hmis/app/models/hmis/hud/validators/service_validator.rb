@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
@@ -13,9 +15,9 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     :RecordType,
   ].freeze
 
-  TYPE_PROVIDED_MAP = ::HudUtility2024.service_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
+  TYPE_PROVIDED_MAP = ::HudUtility2026.service_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
 
-  SUB_TYPE_PROVIDED_MAP = ::HudUtility2024.service_sub_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
+  SUB_TYPE_PROVIDED_MAP = ::HudUtility2026.service_sub_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
 
   def configuration
     Hmis::Hud::Service.hmis_configuration(version: '2024').except(*IGNORED)
@@ -35,7 +37,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     record.errors.add type_provided_field, :required unless record_type.present? && type_provided.present?
     return unless record_type.present? && type_provided.present?
 
-    unless HudUtility2024.record_types.any? { |k, _v| record_type == k }
+    unless HudUtility2026.record_types.any? { |k, _v| record_type == k }
       record.errors.add type_provided_field, :invalid, full_message: "Service type category '#{record_type}' is not a valid category"
       return
     end

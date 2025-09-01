@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Dynamic filter form definition items based on item.rule.
 class Hmis::Form::DefinitionItemFilter
   def self.perform(...)
@@ -118,7 +120,7 @@ class Hmis::Form::DefinitionItemFilter
     when 'projectFunders'
       project_funders.map { |f| f.funder&.to_i }.compact_blank
     when 'projectFunderComponents'
-      project_funders.map { |f| HudUtility2024.funder_component(f.funder&.to_i) }.compact_blank
+      project_funders.map { |f| HudUtility2026.funder_component(f.funder&.to_i) }.compact_blank
     when 'projectOtherFunders'
       # ignore case for Funder.OtherFunder value which is a free text field
       project_funders.map(&:other_funder).compact.map(&:strip).map(&:downcase).compact_blank

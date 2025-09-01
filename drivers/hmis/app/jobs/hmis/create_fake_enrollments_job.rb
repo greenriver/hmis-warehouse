@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'csv' # needed by FakeData
 
 # == Hmis::CreateFakeEnrollmentsJob
@@ -195,13 +197,13 @@ module Hmis
         DisablingCondition: rand_boolean ? 1 : 0,
         DateCreated: to_datetime(entry_date),
         DateUpdated: to_datetime(entry_date),
-        LivingSituation: HudUtility2024.prior_living_situations.keys.sample,
+        LivingSituation: HudUtility2026.prior_living_situations.keys.sample,
       )
       # rubocop:disable Style/IfUnlessModifier
-      if is_hoh && HudUtility2024.doe_project_types.include?(project.ProjectType) && rand_boolean(10)
+      if is_hoh && HudUtility2026.doe_project_types.include?(project.ProjectType) && rand_boolean(10)
         enrollment.DateOfEngagement = [enrollment.EntryDate + rand(30), today].min
       end
-      if is_hoh && HudUtility2024.permanent_housing_project_types.include?(project.ProjectType) && rand_boolean(10)
+      if is_hoh && HudUtility2026.permanent_housing_project_types.include?(project.ProjectType) && rand_boolean(10)
         enrollment.MoveInDate = [enrollment.EntryDate + rand(30), today].min
       end
       # rubocop:enable Style/IfUnlessModifier
@@ -234,7 +236,7 @@ module Hmis
       Hmis::Hud::Exit.new(
         enrollment: enrollment,
         exit_date: exit_date,
-        destination: HudUtility2024.destinations.keys.excluding(17).sample,
+        destination: HudUtility2026.destinations.keys.excluding(17).sample,
         DateCreated: to_datetime(exit_date),
         DateUpdated: to_datetime(exit_date),
         **hud_attributes,
@@ -242,7 +244,7 @@ module Hmis
     end
 
     def build_fake_disabilities(enrollment)
-      HudUtility2024.disability_types.keys.map.each do |type|
+      HudUtility2026.disability_types.keys.map.each do |type|
         # if enrollment's overall DisablingCondition is No, then none of the disabilities should be indefinite and impairing
         indefinite_and_impairs = enrollment.DisablingCondition == 0 ? 0 : [0, 1, 1].sample
         Hmis::Hud::Disability.new(
@@ -286,14 +288,14 @@ module Hmis
 
     # rubocop:disable Lint/EachWithObjectArgument
     def random_race_attributes
-      race_attributes = HudUtility2024.races.keys.excluding('RaceNone').each_with_object(0).to_h
+      race_attributes = HudUtility2026.races.keys.excluding('RaceNone').each_with_object(0).to_h
       race_attributes[race_attributes.keys.sample] = 1
       race_attributes[race_attributes.keys.sample] = 1 if rand_boolean # set another race
       race_attributes
     end
 
     def random_gender_attributes
-      gender_attributes = HudUtility2024.gender_fields.map(&:to_s).excluding('GenderNone').each_with_object(0).to_h
+      gender_attributes = HudUtility2026.gender_fields.map(&:to_s).excluding('GenderNone').each_with_object(0).to_h
       gender_attributes[gender_attributes.keys.sample] = 1
       gender_attributes[gender_attributes.keys.sample] = 1 if rand_boolean # set another gender
       gender_attributes

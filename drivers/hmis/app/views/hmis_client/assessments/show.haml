@@ -16,11 +16,11 @@
         %dd= @assessment.AssessmentDate
         - if related_ce_assessment.present?
           %dt Assessment Level
-          %dd= HudUtility2024.assessment_level related_ce_assessment.AssessmentLevel
+          %dd= HudUtility2026.assessment_level related_ce_assessment.AssessmentLevel
           %dt Assessment Type
-          %dd= HudUtility2024.assessment_type related_ce_assessment.AssessmentType
+          %dd= HudUtility2026.assessment_type related_ce_assessment.AssessmentType
           %dt Prioritization Status
-          %dd= HudUtility2024.prioritization_status related_ce_assessment.PrioritizationStatus
+          %dd= HudUtility2026.prioritization_status related_ce_assessment.PrioritizationStatus
         %dt Created
         %dd= @assessment.DateCreated
         %dt Updated

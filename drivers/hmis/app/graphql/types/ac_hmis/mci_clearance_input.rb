@@ -22,7 +22,8 @@ module Types
       Hmis::Hud::Client.new(
         **attributes,
         **Hmis::Hud::Processors::ClientProcessor.gender_attributes(genders),
-        **HudUtility2024.races.keys.map { |k| [k, 99] }.to_h,
+        # *confirm keys not changing
+        **HudUtility2026.races.keys.map { |k| [k, 99] }.to_h,
         name_data_quality: 1,
         dob_data_quality: 1,
         ssn_data_quality: attributes[:ssn].present? ? 1 : 99,

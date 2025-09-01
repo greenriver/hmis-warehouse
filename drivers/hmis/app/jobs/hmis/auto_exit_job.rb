@@ -105,7 +105,7 @@ module Hmis
         data_source_id: enrollment.data_source_id,
         user_id: user.user_id,
         exit_date: exit_date,
-        destination: HudUtility2024.destination_no_exit_interview_completed,
+        destination: HudUtility2026.destination_no_exit_interview_completed,
         auto_exited: DateTime.current,
       )
 
