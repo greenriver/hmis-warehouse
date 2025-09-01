@@ -375,9 +375,19 @@ module HudUtility2026
     ].freeze
   end
 
-  # Funders that require Move-in Date collection (new in FY26)
+  # Funders that require Move-in Date collection
   def move_in_date_funders
     [45]
+  end
+
+  # Funders that require collecting R20 Aftercare Plans, which is the only data element collected Post-Exit
+  def post_exit_aftercare_plans_funders
+    [
+      22, # HHS: RHY - Basic Center Program (prevention and shelter)
+      23, # HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth
+      24, # HHS: RHY - Transitional Living Program
+      26, # HHS: RHY - Demonstration Project
+    ]
   end
 
   def ce_events_by_code

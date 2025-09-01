@@ -324,27 +324,22 @@ module HmisUtil
     public def ensure_system_instances_exist!
       # Ensure form rules exist to enable all System Forms globally
       Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
-        identifier = role.to_s.downcase
-        raise "No definition found for role: #{role}" unless Hmis::Form::Definition.where(identifier: identifier).exists?
-
-        instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
-        instance.assign_attributes(active: true, system: true)
-        instance.save! if instance.changed?
+        create_default_system_instance!(identifier: role.to_s.downcase)
       end
 
       # Find or create required rules for HUD Occurrence Point forms (Move-in Date, Date of Engagement, and Path Status)
-      find_or_create_system_instances!(
+      create_system_instances!(
         identifier: 'move_in_date',
         data_collected_about: :HOH,
         project_types: HudUtility2024.permanent_housing_project_types,
         funders: HudUtility2026.move_in_date_funders,
       )
-      find_or_create_system_instances!(
+      create_system_instances!(
         identifier: 'date_of_engagement',
         data_collected_about: :HOH_AND_ADULTS,
         project_types: HudUtility2024.doe_project_types,
       )
-      find_or_create_system_instances!(
+      create_system_instances!(
         identifier: 'path_status',
         data_collected_about: :HOH_AND_ADULTS,
         funders: HudUtility2024.path_funders,
@@ -377,9 +372,16 @@ module HmisUtil
       end
     end
 
+    #  Find or create default system instance, which applies to all projects
+    private def create_default_system_instance!(identifier:)
+      instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
+      instance.assign_attributes(active: true, system: true)
+      instance.save! if instance.changed?
+    end
+
     # Find or create system instances as specified. This method is used to ensure HUD required forms are properly
     # enabled to meet minimum HUD requirements.
-    private def find_or_create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
+    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
       raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
       raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.where(identifier: identifier).exists?
 
@@ -464,13 +466,17 @@ module HmisUtil
           title: FORM_TITLES[identifier],
         )
 
-        # Don't create default instance for post-exit. Those are going to be configured per installation
-        next if role == :POST_EXIT
-
-        # Make this form the default instance for this role
-        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
-        default_instance.update!(system: true, active: true)
-        default_instance.touch
+        if role == :POST_EXIT
+          # Ensure minimum rule exists for Post-exit which is required for RHY
+          create_system_instances!(
+            identifier: identifier,
+            data_collected_about: :HOH_AND_ADULTS,
+            funders: HudUtility2026.post_exit_aftercare_plans_funders,
+          )
+        else
+          # Ensure default rule exists for other HUD assessments (enabled in all projects)
+          create_default_system_instance!(identifier: identifier)
+        end
       end
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
