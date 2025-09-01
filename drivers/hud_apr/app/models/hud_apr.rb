@@ -8,13 +8,14 @@
 
 module HudApr
   def self.current_generator(report:)
+    version = ::HudReports::BaseController.new.default_report_version
     case report
     when :caper
-      HudApr::Generators::Caper::Fy2024::Generator
+      "HudApr::Generators::Caper::#{version.to_s.capitalize}::Generator".constantize
     when :apr
-      HudApr::Generators::Apr::Fy2024::Generator
+      "HudApr::Generators::Apr::#{version.to_s.capitalize}::Generator".constantize
     when :ce_apr
-      HudApr::Generators::CeApr::Fy2024::Generator
+      "HudApr::Generators::CeApr::#{version.to_s.capitalize}::Generator".constantize
     else
       raise
     end
