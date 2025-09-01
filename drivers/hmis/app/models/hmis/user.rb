@@ -30,6 +30,7 @@ class Hmis::User < ApplicationRecord
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
   has_many :workflow_step_assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment'
+  has_many :ce_referral_participants, class_name: 'Hmis::Ce::ReferralParticipant'
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'
