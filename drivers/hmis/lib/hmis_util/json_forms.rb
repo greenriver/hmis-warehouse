@@ -22,14 +22,16 @@ module HmisUtil
     end
 
     def seed_all
-      # Load ALL the latest record definitions from JSON files.
-      # This also ensures that any system-level instances exist.
-      seed_record_form_definitions
-      # Load ALL the latest assessment definition from JSON files.
-      seed_assessment_form_definitions
-      seed_custom_assessment_form_definitions
-      # Load admin forms (not configurable)
-      seed_static_forms
+      Hmis::Hud::Base.transaction do
+        # Load ALL the latest record definitions from JSON files.
+        # This also ensures that any system-level instances exist.
+        seed_record_form_definitions
+        # Load ALL the latest assessment definition from JSON files.
+        seed_assessment_form_definitions
+        seed_custom_assessment_form_definitions
+        # Load admin forms (not configurable)
+        seed_static_forms
+      end
     end
 
     protected

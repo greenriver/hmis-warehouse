@@ -408,7 +408,6 @@ class SeedMaker
 
     builder = ::HmisUtil::JsonForms.new
     builder.seed_all
-    builder.create_default_occurrence_point_instances! if Rails.env.development?
   end
 
   def populate_internal_system_choices
