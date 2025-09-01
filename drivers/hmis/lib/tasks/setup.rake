@@ -2,8 +2,6 @@ desc 'Seed form definitions'
 task seed_definitions: [:environment, 'log:info_to_stdout'] do
   builder = ::HmisUtil::JsonForms.new
   builder.seed_all
-  # In development, create the initial instances for occurrence-point collection.
-  builder.create_default_occurrence_point_instances! if Rails.env.development?
 end
 
 desc 'Seed service types'

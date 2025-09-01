@@ -365,6 +365,21 @@ module HudUtility2026
     ].freeze
   end
 
+  # Project types that are required to collect Current Living Situation (if required by funder)
+  def cls_project_types
+    [
+      1, # Emergency Shelter – Night-by-Night
+      4, # Street Outreach
+      6, # Services Only
+      14, # Coordinated Entry
+    ].freeze
+  end
+
+  # Funders that require Move-in Date collection (new in FY26)
+  def move_in_date_funders
+    [45]
+  end
+
   def ce_events_by_code
     {
       es: 10,
