@@ -74,6 +74,11 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       }
     end
 
+    before do
+      referral.workflow_engine.start_workflow!(user: hmis_user)
+    end
+    let(:step) { referral.workflow_engine.active_steps.sole }
+
     it 'creates referral participants' do
       expect do
         response, result = post_graphql(**variables) { mutation }
@@ -105,32 +110,54 @@ RSpec.describe Mutations::Ce::AssignReferralParticipants, type: :request do
       end.to change(Hmis::Ce::ReferralParticipant, :count).by(2)
     end
 
-    describe 'referral with available task' do
-      before do
-        referral.workflow_engine.start_workflow!(user: hmis_user)
-      end
+    it 'creates step assignments on active steps' do
+      expect do
+        response, result = post_graphql(**variables) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        step.reload
+      end.to change(step.assignments, :count).from(0).to(1).
+        and change(Hmis::WorkflowExecution::StepAssignment, :count).by(1)
+      expect(step.assignments.sole.user).to eq(hmis_user)
+    end
 
-      it 'creates assignees as well as participants' do
-        step = referral.workflow_engine.active_steps.sole
+    context 'when active step is already assigned' do
+      let!(:assignment) { step.assignments.create(user: hmis_user) }
+
+      it 'does not try to create duplicate assignees' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
           step.reload
-        end.to change(step.assignments, :count).from(0).to(1)
+        end.to not_change(step.assignments, :count).from(1)
         expect(step.assignments.sole.user).to eq(hmis_user)
       end
+    end
 
-      context 'with existing assignee' do
-        let!(:assignment) { referral.workflow_engine.active_steps.sole.assignments.create(user: hmis_user) }
+    context 'when active step is already assigned to a different user' do
+      let!(:other_user_assignment) { step.assignments.create(user: hmis_user2) }
 
-        it 'does not try to create duplicate assignees' do
-          step = referral.workflow_engine.active_steps.sole
+      it 'removes old assignee and assigns new user' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          step.reload
+        end.to change { step.assignments.map(&:user) }.from([hmis_user2]).to([hmis_user])
+
+        expect(other_user_assignment.reload).to be_deleted
+      end
+      context 'when step is completed' do
+        before(:each) do
+          step.start!
+          step.complete!
+        end
+        it 'does not remove old assignee' do
           expect do
             response, result = post_graphql(**variables) { mutation }
             expect(response.status).to eq(200), result.inspect
             step.reload
-          end.to not_change(step.assignments, :count).from(1)
-          expect(step.assignments.sole.user).to eq(hmis_user)
+          end.to not_change { step.assignments.map(&:user) }.from([hmis_user2])
+
+          expect(other_user_assignment.reload).not_to be_deleted
         end
       end
     end
