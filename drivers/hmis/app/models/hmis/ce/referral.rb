@@ -154,30 +154,16 @@ module Hmis::Ce
     #
     # @return [Array<Integer>] Array of referral IDs
     def self.referral_ids_for_user_with_completed_swimlane_steps(user)
-      # Get all referral participants for this user, with their workflow instance IDs
-      participants = user.ce_referral_participants.joins(:referral).
-        select(:referral_id, :swimlane_id, 'ce_referrals.workflow_instance_id').
-        distinct
+      rp_t = Hmis::Ce::ReferralParticipant.arel_table
+      ut_t = Hmis::WorkflowDefinition::UserTask.arel_table
 
-      # Get all workflow instance IDs that this user is participating in
-      instance_ids = participants.map(&:workflow_instance_id)
-      return unless instance_ids.any? # user is not participating in any referrals
-
-      # Preload all completed steps for these instances in one query, grouped by instance and swimlane
-      completed_steps = Hmis::WorkflowExecution::Step.
-        where(instance_id: instance_ids).
-        completed.
-        joins(:user_task).
-        preload(:user_task).
-        group_by { |step| [step.instance_id, step.user_task.swimlane_id] }
-
-      # Iterate through all ReferralParticipants for this user, and find those where there are completed steps in the same swimlane
-      participants.filter_map do |participant|
-        key = [participant.workflow_instance_id, participant.swimlane_id]
-        next unless completed_steps[key]&.any? # There are no completed steps in this swimlane for this instance, skip
-
-        participant.referral_id
-      end.uniq
+      Hmis::Ce::ReferralParticipant.
+        joins(referral: { steps: :user_task }).
+        merge(Hmis::WorkflowExecution::Step.completed).
+        where(rp_t[:user_id].eq(user.id)).
+        where(ut_t[:swimlane_id].eq(rp_t[:swimlane_id])).
+        distinct.
+        pluck(:referral_id)
     end
 
     # Returns an array of fields referenced by Match Rules for this referral's opportunity,
