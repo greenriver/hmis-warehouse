@@ -12,7 +12,7 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
       # Then, create unit groups for projects that don't have any yet
       create_unit_groups_for_projects
 
-      puts "Migration complete!"
+      puts 'Migration complete!'
 
       # raise ActiveRecord::Rollback # uncomment to test rollback
     end
@@ -21,7 +21,7 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
   private
 
   def add_unit_type_to_unit_groups
-    puts "Fixing existing unit groups without unit_type"
+    puts 'Fixing existing unit groups without unit_type'
 
     # Find all unit groups that don't have a unit_type set
     unit_groups_without_type = Hmis::UnitGroup.where(unit_type: nil).includes(:units)
@@ -32,9 +32,7 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
 
     unit_groups_without_type.find_each do |unit_group|
       units = unit_group.units.where.not(unit_type: nil)
-
-      # todo @martha - what happens if an error is raised in a one-time task?
-      raise "Unit group migration - unexpected error! Unit group #{unit_group.id} (#{unit_group.name}) has no units with unit_type" if units.empty?
+      next if units.empty?
 
       # Get all distinct unit types for units in this unit group
       unit_type_ids = units.distinct.pluck(:unit_type_id)
@@ -50,9 +48,8 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
     puts "Updated #{unit_groups_updated} unit groups"
   end
 
-  # todo @martha - needs discussion/reconciliation with gig's existing closed PR https://github.com/greenriver/hmis-warehouse/pull/5458/files
   def create_unit_groups_for_projects
-    puts "Creating unit groups for projects that have units without groups"
+    puts 'Creating unit groups for projects that have units without groups'
 
     # Find all project/unit_type combinations that have units but no unit groups
     projects_without_unit_groups = Hmis::Hud::Project.
@@ -78,14 +75,14 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
         unit_group = Hmis::UnitGroup.create!(
           project: project,
           unit_type: unit_type,
-          name: "#{unit_type.description}",
+          name: unit_type.description.to_s,
         )
         unit_groups_created += 1
 
         # Update all units of this type in this project to belong to the new unit group
         units_to_update = project.units.where(unit_type: unit_type)
         updated_count = units_to_update.update_all(
-          hmis_unit_group_id: unit_group.id
+          hmis_unit_group_id: unit_group.id,
         )
         units_updated += updated_count
       end
@@ -93,9 +90,7 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
       projects_processed += 1
 
       # Progress reporting every 10 projects
-      if projects_processed % 10 == 0
-        puts "Processed #{projects_processed} of #{projects_without_unit_groups.count} projects so far"
-      end
+      puts "Processed #{projects_processed} of #{projects_without_unit_groups.count} projects so far" if projects_processed % 10 == 0
     end
 
     puts "Processed #{projects_processed} projects"
