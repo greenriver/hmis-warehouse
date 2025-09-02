@@ -1,30 +1,45 @@
 #!/bin/bash
 
-# Check if both arguments are provided
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <dev-domain> <traefik-path>"
-    echo "Example: $0 example.local /path/to/traefik"
+# Function to display usage
+usage() {
+    echo "Usage: $0 <domain> [output-directory]"
+    echo ""
+    echo "Arguments:"
+    echo "  domain              Domain for the certificate (e.g., dev.test, example.local)"
+    echo "  output-directory    Directory to save certificates (default: current directory)"
+    echo ""
+    echo "Examples:"
+    echo "  $0 dev.test                           # Creates certificates in current directory"
+    echo "  $0 example.local /path/to/certs       # Creates certificates in specified directory"
+    echo ""
+    echo "This script generates:"
+    echo "  - A wildcard SSL certificate for *.<domain>"
+    echo "  - Private key file: <domain>.key"
+    echo "  - Certificate file: <domain>.crt"
+    echo "  - Adds certificate to macOS System Keychain"
     exit 1
+}
+
+# Check if domain argument is provided
+if [ $# -eq 0 ]; then
+    echo "Error: Please provide a domain"
+    usage
+fi
+
+# Handle help flag
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    usage
 fi
 
 DOMAIN="$1"
-TRAEFIK="$2"
+OUTPUT_DIR="${2:-.}"  # Default to current directory if not specified
 
 echo "Generating SSL certificates for domain: $DOMAIN"
-echo "Using traefik path: $TRAEFIK"
+echo "Output directory: $OUTPUT_DIR"
 
-# Navigate to traefik directory and create necessary directories
-cd "$TRAEFIK"
-mkdir -p traefik/tools/certs
-mkdir -p traefik/tools/traefik
-cd traefik
-
-# Copy configuration files
-cp ../../hmis-warehouse/docs/traefik/docker-compose.sample.yml docker-compose.yml
-cp ../../hmis-warehouse/docs/traefik/tools/traefik/config.sample.yml tools/traefik/config.yml
-
-# Navigate to certs directory
-cd tools/certs
+# Create output directory if it doesn't exist
+mkdir -p "$OUTPUT_DIR"
+cd "$OUTPUT_DIR"
 
 # Create OpenSSL configuration file
 cat > openssl.cnf <<-EOF
@@ -65,6 +80,12 @@ echo "Adding certificate to system keychain..."
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$DOMAIN.crt"
 
 echo "Done! SSL certificate for $DOMAIN has been generated and added to the system keychain."
-echo "Certificate files:"
+echo ""
+echo "Certificate files created:"
 echo "  - Private key: $PWD/$DOMAIN.key"
 echo "  - Certificate: $PWD/$DOMAIN.crt"
+echo ""
+echo "The certificate covers:"
+echo "  - *.$DOMAIN (wildcard)"
+echo "  - $DOMAIN (base domain)"
+echo "  - *.hmis-warehouse.$DOMAIN (warehouse subdomains)"

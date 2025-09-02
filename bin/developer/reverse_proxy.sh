@@ -51,9 +51,9 @@ if [ "$DOMAIN" != "dev.test" ]; then
     sed -i '' "s/dev\.test/$DOMAIN/g" traefik/tools/traefik/config.yml
 fi
 
-# Generate certificates using the existing certificates.sh script
+# Generate certificates using the certificates.sh script
 echo "Generating SSL certificates..."
-"$SCRIPT_DIR/certificates.sh" "$DOMAIN" "$TRAEFIK_PATH"
+"$SCRIPT_DIR/certificates.sh" "$DOMAIN" "$TRAEFIK_PATH/traefik/tools/certs"
 
 # Navigate back to traefik directory
 cd "$TRAEFIK_PATH/traefik"

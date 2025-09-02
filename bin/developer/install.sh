@@ -191,7 +191,6 @@ echo -e "${GREEN}Step 4/5: Setting up mail service...${NC}"
 
 echo ""
 echo -e "${GREEN}Step 5/5: Setting up HMIS Warehouse...${NC}"
-cd "$(dirname "$SCRIPT_DIR")"  # Go to project root
 "$SCRIPT_DIR/warehouse.sh" "$DOMAIN"
 
 echo ""

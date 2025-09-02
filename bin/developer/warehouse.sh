@@ -12,7 +12,15 @@ fi
 DOMAIN="$1"
 DEFAULT_DOMAIN="dev.test"
 
+# Get the project root directory (two levels up from this script)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 echo "Setting up HMIS Warehouse for domain: $DOMAIN"
+echo "Project root: $PROJECT_ROOT"
+
+# Change to project root directory
+cd "$PROJECT_ROOT"
 
 # Copy sample environment file
 echo "Copying sample.env to .env.development.local..."
