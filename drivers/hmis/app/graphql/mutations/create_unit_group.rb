@@ -20,8 +20,8 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
-      # TODO(#8157) - accept Unit Type
-      # unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
+      # TODO(#8157) - accept Unit Type. Constrain to project.possible_unit_types
+      # unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
       # raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
 
       # errors.add :count, :required unless input.count.present?
