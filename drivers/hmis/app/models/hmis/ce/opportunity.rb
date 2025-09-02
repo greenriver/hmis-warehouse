@@ -20,7 +20,7 @@ module Hmis::Ce
     has_many :referrals, class_name: 'Hmis::Ce::Referral', dependent: :restrict_with_exception
     has_many :categorizations, class_name: 'Hmis::Ce::OpportunityCategorization', foreign_key: :opportunity_id, dependent: :destroy
     has_many :categories, through: :categorizations
-    belongs_to :unit, class_name: 'Hmis::Unit', foreign_key: :unit_id
+    belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_many :swimlanes, through: :workflow_template, class_name: 'Hmis::WorkflowDefinition::Swimlane'
