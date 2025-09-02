@@ -12650,8 +12650,7 @@ type UnitGroup {
 input UnitGroupInput {
   ceEventType: EventType
   name: String
-  projectId: ID!
-  unitTypeId: ID
+  projectId: ID
   workflowTemplateIdentifier: String
 }
 
@@ -12675,9 +12674,9 @@ input UnitInput {
   Prefix for unit names
   """
   prefix: String
-  projectId: ID @deprecated(reason: "Specify project through unit group")
-  unitGroupId: ID!
-  unitTypeId: ID @deprecated(reason: "Specify unit type through unit group")
+  projectId: ID!
+  unitGroupId: ID
+  unitTypeId: ID
 }
 
 enum UnitOccupancyStatus {

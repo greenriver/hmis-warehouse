@@ -20,24 +20,20 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
-      # todo @martha - discuss proposal: introduce this error which is *NOT BACKWARDS COMPATIBLE*,
-      # in order to do this migration in 2 phases rather than 3.
-      # (See google doc justification/notes under Phase 1 API/Schema)
-      errors.add :unit_type_id, :required unless input.unit_type_id.present?
+      # TODO(#8157) - accept Unit Type
+      # unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
+      # raise 'Invalid unit type' if input.unit_type_id.present? && !unit_type.present?
 
-      unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
-      errors.add :unit_type_id, :invalid unless unit_type.present?
-      return { errors: errors.errors } if errors.any?
-
-      workflow_template = Hmis::WorkflowDefinition::Template.published.find_by(identifier: input.workflow_template_identifier)
-      errors.add :workflow_template_identifier, :invalid if input.workflow_template_identifier && workflow_template.nil?
+      # errors.add :count, :required unless input.count.present?
+      # errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
+      # errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
+      # return { errors: errors.errors } if errors.any?
 
       unit_group = Hmis::UnitGroup.new(
+        project_id: project.id,
+        workflow_template_identifier: input.workflow_template_identifier,
         name: input.name,
-        project: project,
-        workflow_template: workflow_template,
         ce_event_type: input.ce_event_type,
-        unit_type: unit_type,
       )
 
       if unit_group.valid?
