@@ -34,7 +34,9 @@ module Types
         unit_group.project&.organization,
         nil,
       ].each do |owner|
-        config = Hmis::TableConfiguration.for_ce_waitlist.find_by(owner: owner)
+        config = Hmis::TableConfiguration.for_ce_waitlist.
+          where(data_source_id: current_user.hmis_data_source_id).
+          find_by(owner: owner)
         return config if config
       end
     end
