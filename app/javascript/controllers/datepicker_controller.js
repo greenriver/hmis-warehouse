@@ -99,6 +99,7 @@ export default class extends Controller {
 
     // Use Tempus Dominus DateTime to parse common date formats
     const formats = [
+      'MMM d, yyyy',
       'MM/dd/yyyy',
       'M/d/yyyy',
       'MM-dd-yyyy',

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module BostonProjectScorecard
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
@@ -229,9 +231,10 @@ module BostonProjectScorecard
         denominator = [3, 6, 15, 17].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
         total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
         percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
+
         assessment_answers.merge!(
           {
-            pii_error_rate: percentage(answer(apr, 'Q6a', 'F7')),
+            pii_error_rate: percentage(answer(apr, 'Q6a', pii_error_cell)),
             ude_error_rate: percent_ude_errors,
             income_and_housing_error_rate: percent_income_and_housing_errors,
           },
@@ -264,6 +267,24 @@ module BostonProjectScorecard
       BostonProjectScorecard::ScorecardMailer.scorecard_complete(self).deliver_later
     end
 
+    def include_gender_data?
+      [
+        HudApr::Generators::Apr::Fy2020::Generator,
+        HudApr::Generators::Apr::Fy2021::Generator,
+        HudApr::Generators::Apr::Fy2023::Generator,
+        HudApr::Generators::Apr::Fy2024::Generator,
+      ].include?(apr_generator)
+    end
+
+    def pii_error_cell
+      # Gender data was removed from the APR in FY 2026, causing the total pii error percentage cell to shift in the APR.
+      include_gender_data? ? 'F7' : 'F6'
+    end
+
+    private def apr_generator
+      HudApr.current_generator(report: :apr)
+    end
+
     private def apr_report
       filter = ::Filters::HudFilterBase.new(user_id: user_id)
       if project_id.present?
@@ -291,7 +312,7 @@ module BostonProjectScorecard
         'Question 22',
         'Question 23',
       ]
-      generator = HudApr.current_generator(report: :apr)
+      generator = apr_generator
       apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
 
@@ -323,7 +344,7 @@ module BostonProjectScorecard
       questions = [
         'Question 22',
       ]
-      generator = HudApr.current_generator(report: :apr)
+      generator = apr_generator
       apr = HudReports::ReportInstance.from_filter(comparison_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
 

@@ -30,7 +30,7 @@
       "pick_list_options": [
         {
           "code": "1",
-          "label": "Accept - Enroll in Project"
+          "label": "Accept - Add to Project"
         },
         {
           "code": "0",
@@ -80,7 +80,7 @@
       ]
     },
     {
-      "text": "The client will be enrolled in the project when this form is submitted.",
+      "text": "The client will be added to the project as Incomplete. Please complete and submit the Intake Assessment to finalize enrollment.",
       "type": "DISPLAY",
       "link_id": "enroll_message",
       "component": "ALERT_INFO",
