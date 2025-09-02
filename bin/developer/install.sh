@@ -145,6 +145,18 @@ echo ""
 echo -e "${GREEN}Step 1/5: Installing prerequisites...${NC}"
 "$SCRIPT_DIR/prerequisites.sh"
 
+# Reload shell environment to pick up Homebrew PATH changes
+echo "Reloading shell environment..."
+if [[ $(uname -m) == "arm64" ]]; then
+    # Apple Silicon Mac - add Homebrew to PATH
+    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+else
+    # Intel Mac - add Homebrew to PATH
+    export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+fi
+
 echo ""
 echo -e "${GREEN}Step 2/5: Setting up DNS resolution...${NC}"
 "$SCRIPT_DIR/dns.sh" "$DOMAIN"
