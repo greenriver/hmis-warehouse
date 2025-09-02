@@ -13,8 +13,8 @@ FactoryBot.define do
     filters { [] }
   end
 
-  factory :hmis_table_configuration_ce_waitlist, class: 'Hmis::TableConfiguration', parent: :hmis_table_configuration do
-    table_key { 'ce_waitlist' }
+  factory :hmis_table_configuration_ce_clients, class: 'Hmis::TableConfiguration', parent: :hmis_table_configuration do
+    table_key { 'ce_clients' }
     trait :with_columns do
       columns do
         [
