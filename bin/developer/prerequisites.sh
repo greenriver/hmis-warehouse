@@ -26,7 +26,7 @@ if ! command_exists brew; then
 
     # Add Homebrew to PATH for Apple Silicon Macs
     if [[ $(uname -m) == "arm64" ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
         eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
 else
@@ -47,9 +47,9 @@ if docker_desktop_installed; then
         SHELL_NAME=$(basename "$SHELL")
         case "$SHELL_NAME" in
             zsh)
-                if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zshrc 2>/dev/null; then
-                    echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
-                    echo "Added direnv hook to ~/.zshrc ✓"
+                if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zprofile 2>/dev/null; then
+                    echo 'eval "$(direnv hook zsh)"' >> ~/.zprofile
+                    echo "Added direnv hook to ~/.zprofile ✓"
                 fi
                 ;;
             bash)
@@ -115,9 +115,9 @@ else
             SHELL_NAME=$(basename "$SHELL")
             case "$SHELL_NAME" in
                 zsh)
-                    if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zshrc 2>/dev/null; then
-                        echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
-                        echo "Added direnv hook to ~/.zshrc ✓"
+                    if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zprofile 2>/dev/null; then
+                        echo 'eval "$(direnv hook zsh)"' >> ~/.zprofile
+                        echo "Added direnv hook to ~/.zprofile ✓"
                     fi
                     ;;
                 bash)
