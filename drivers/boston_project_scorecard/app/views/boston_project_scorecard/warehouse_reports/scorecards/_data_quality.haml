@@ -18,7 +18,7 @@
         = link_to_apr('Q6a:', 'Question 6')
         Data Quality: Personally Identifiable Information
         %hr
-        %small Q6a F7 * 100
+        %small= "Q6a #{@report.pii_error_cell} * 100"
       %td
         5 pts: 20%-0
         %br
