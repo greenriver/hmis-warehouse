@@ -141,8 +141,17 @@ echo ""
 echo -e "${GREEN}Step 1/5: Installing prerequisites...${NC}"
 "$SCRIPT_DIR/prerequisites.sh"
 
-# Reload shell environment to pick up Homebrew PATH changes
+# Reload shell environment to pick up all new tools
 echo "Reloading shell environment..."
+
+# Source common shell profile files to pick up any changes
+for profile in ~/.zprofile ~/.zshrc ~/.bash_profile ~/.bashrc; do
+    if [[ -f "$profile" ]]; then
+        source "$profile" 2>/dev/null || true
+    fi
+done
+
+# Ensure Homebrew is in PATH based on architecture
 if [[ $(uname -m) == "arm64" ]]; then
     # Apple Silicon Mac - add Homebrew to PATH
     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
@@ -151,6 +160,26 @@ else
     # Intel Mac - add Homebrew to PATH
     export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
     eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+fi
+
+# Verify key tools are now available
+echo "Verifying tool availability..."
+if command -v brew >/dev/null 2>&1; then
+    echo "  ✓ brew available"
+else
+    echo "  ⚠️  brew not found in PATH"
+fi
+
+if command -v docker >/dev/null 2>&1; then
+    echo "  ✓ docker available"
+else
+    echo "  ⚠️  docker not found in PATH"
+fi
+
+if command -v colima >/dev/null 2>&1; then
+    echo "  ✓ colima available"
+else
+    echo "  ⚠️  colima not found in PATH"
 fi
 
 # Start colima if it was installed and isn't running
@@ -210,6 +239,8 @@ echo "  • Restart traefik: cd $TRAEFIK_PATH/traefik && docker compose restart"
 echo "  • Restart mailhog: cd $MAILHOG_PATH && docker compose restart"
 echo ""
 echo -e "${YELLOW}💡 Next steps:${NC}"
-echo "  1. Start the application with the command above"
-echo "  2. Visit https://hmis-warehouse.$DOMAIN to access the application"
-echo "  3. Check https://mailhog.$DOMAIN to see development emails"
+echo "  1. Reload your shell environment:"
+echo "     source ~/.zprofile  # (or restart your terminal)"
+echo "  2. Start the application with the command above"
+echo "  3. Visit https://hmis-warehouse.$DOMAIN to access the application"
+echo "  4. Check https://mailhog.$DOMAIN to see development emails"
