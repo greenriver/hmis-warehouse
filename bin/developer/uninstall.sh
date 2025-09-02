@@ -236,12 +236,11 @@ if confirm_step "Step 2/5: Clean up DNS configuration" "This will stop dnsmasq, 
     if command_exists brew; then
         DNSMASQ_CONF="$(brew --prefix)/etc/dnsmasq.conf"
         DNSMASQ_ADDRESS_LINE="address=/.$DOMAIN/127.0.0.1"
-        # Escape dots in the domain for sed regex
-        ESCAPED_ADDRESS_LINE=$(echo "$DNSMASQ_ADDRESS_LINE" | sed 's/\./\\./g')
 
         if [ -f "$DNSMASQ_CONF" ] && grep -q "^$DNSMASQ_ADDRESS_LINE" "$DNSMASQ_CONF"; then
             echo "Removing dnsmasq configuration for $DOMAIN..."
-            sudo sed -i '' "/^$ESCAPED_ADDRESS_LINE$/d" "$DNSMASQ_CONF"
+            # Use grep -v to remove the line instead of sed with regex
+            sudo grep -v "^$DNSMASQ_ADDRESS_LINE$" "$DNSMASQ_CONF" > "/tmp/dnsmasq.conf.tmp" && sudo mv "/tmp/dnsmasq.conf.tmp" "$DNSMASQ_CONF"
         fi
     fi
 
