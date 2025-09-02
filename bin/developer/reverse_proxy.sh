@@ -42,8 +42,8 @@ mkdir -p traefik/tools/traefik
 echo "Copying and configuring traefik files..."
 
 # Copy sample files to destination
-cp "$HMIS_WAREHOUSE_ROOT/docs/traefik/docker-compose.sample.yml" traefik/docker-compose.yml
-cp "$HMIS_WAREHOUSE_ROOT/docs/traefik/tools/traefik/config.sample.yml" traefik/tools/traefik/config.yml
+cp "$HMIS_WAREHOUSE_ROOT/docs/sample_files/traefik/docker-compose.sample.yml" traefik/docker-compose.yml
+cp "$HMIS_WAREHOUSE_ROOT/docs/sample_files/traefik/tools/traefik/config.sample.yml" traefik/tools/traefik/config.yml
 
 # Adjust config.yml if domain is not the default
 if [ "$DOMAIN" != "dev.test" ]; then

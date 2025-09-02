@@ -37,7 +37,7 @@ cd "$MAILHOG_PATH"
 
 # Copy and configure docker-compose file
 echo "Copying and configuring mailhog docker-compose.yml..."
-cp "$HMIS_WAREHOUSE_ROOT/docs/mailhog/docker-compose.sample.yml" docker-compose.yml
+cp "$HMIS_WAREHOUSE_ROOT/docs/sample_files/mailhog/docker-compose.sample.yml" docker-compose.yml
 
 # Update domain if not default
 if [ "$DOMAIN" != "dev.test" ]; then

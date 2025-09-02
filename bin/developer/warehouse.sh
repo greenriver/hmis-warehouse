@@ -30,13 +30,31 @@ cp sample.env .env.development.local
 echo "Creating .env.local..."
 touch .env.local
 
+# Copy and configure .envrc file
+echo "Setting up .envrc file..."
+cp docs/sample_files/envrc.sample .envrc
+
 # Update domain in .env.development.local if different from default
 if [ "$DOMAIN" != "$DEFAULT_DOMAIN" ]; then
     echo "Updating domain from $DEFAULT_DOMAIN to $DOMAIN in .env.development.local..."
     sed -i '' "s/$DEFAULT_DOMAIN/$DOMAIN/g" .env.development.local
-    echo "Domain updated ✓"
+    echo "Domain updated in .env.development.local ✓"
+
+    echo "Updating domain from $DEFAULT_DOMAIN to $DOMAIN in .envrc..."
+    sed -i '' "s/$DEFAULT_DOMAIN/$DOMAIN/g" .envrc
+    echo "Domain updated in .envrc ✓"
 else
     echo "Using default domain ($DEFAULT_DOMAIN) ✓"
+fi
+
+# Configure direnv
+echo "Configuring direnv..."
+if command -v direnv >/dev/null 2>&1; then
+    direnv allow .
+    echo "direnv configured and allowed ✓"
+else
+    echo "⚠️  direnv not found in PATH. You may need to reload your shell or add direnv to your PATH."
+    echo "   After direnv is available, run: direnv allow"
 fi
 
 # Fix initial permissions (only on directories that exist)
