@@ -47,8 +47,7 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
         '5-7-24',
       ].each do |date|
         fill_in picker[:id], with: date
-        # Trigger blur by pressing Tab
-        picker.native.send_keys(:tab)
+        picker.trigger(:blur)
         # Ensure the date was set correctly
         expect(picker.value).to eq(expected_date)
       end
