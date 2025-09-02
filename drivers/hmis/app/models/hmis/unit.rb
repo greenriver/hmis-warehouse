@@ -55,6 +55,8 @@ class Hmis::Unit < Hmis::HmisBase
   before_destroy :close_open_opportunities
   before_destroy :ensure_no_locked_opportunities
 
+  validate :unit_group_has_one_unit_type # TODO(#8157) - remove
+
   # close open opportunities before deleting unit
   def close_open_opportunities
     opportunities.open.each(&:close!)
@@ -157,5 +159,17 @@ class Hmis::Unit < Hmis::HmisBase
 
   def to_pick_list_option
     { code: id, label: display_name }
+  end
+
+  private
+
+  # TODO(#8157) - remove
+  def unit_group_has_one_unit_type
+    existing_unit_types = [*unit_group&.unit_types, unit_group.unit_type].compact.uniq
+    return if existing_unit_types.nil?
+    return if existing_unit_types.empty?
+    return if existing_unit_types.include?(unit_type)
+
+    errors.add(:unit_type_id, "must be consistent with unit group's existing type")
   end
 end

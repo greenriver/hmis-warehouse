@@ -22,7 +22,7 @@ module Hmis
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
-    has_many :unit_types, through: :units # TODO(#7814) - remove deprecated field
+    has_many :unit_types, through: :units # TODO(#8157) - Unit should have at most 1 unit type. Remove when no longer used
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
@@ -37,7 +37,7 @@ module Hmis
     validate :workflow_template_is_valid
     validate :workflow_template_is_stable
     validate :project_is_not_changed, on: :update
-    validate :unit_type_is_stable
+    validate :unit_type_is_stable, on: :update
 
     after_create :rebuild_candidate_pool
 
