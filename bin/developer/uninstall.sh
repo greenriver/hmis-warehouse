@@ -168,7 +168,7 @@ echo -e "${YELLOW}⚡ Requesting sudo access for system changes...${NC}"
 sudo -v
 
 echo ""
-if confirm_step "Step 1/5: Stop and remove Docker services" "This will stop all running Docker containers (HMIS Warehouse, Traefik, MailHog) and optionally remove the development network."; then
+if confirm_step "Step 1/5: Stop and remove Docker services" "This will stop Colima, all running Docker containers (HMIS Warehouse, Traefik, MailHog) and optionally remove the development network."; then
     echo -e "${GREEN}Stopping and removing Docker services...${NC}"
 
     # Stop warehouse services
@@ -194,10 +194,22 @@ if confirm_step "Step 1/5: Stop and remove Docker services" "This will stop all 
         echo "  MailHog directory not found at $MAILHOG_PATH"
     fi
 
-    # Remove docker network
+    # Stop colima (this will stop the Docker daemon)
+    if command_exists colima; then
+        if colima status >/dev/null 2>&1; then
+            echo "Stopping Colima..."
+            colima stop || echo "  Failed to stop Colima"
+        else
+            echo "  Colima not running"
+        fi
+    else
+        echo "  Colima not installed"
+    fi
+
+    # Remove docker network (only if colima is stopped and we're not keeping it)
     if [ "$KEEP_DOCKER_NETWORK" = false ]; then
         echo "Removing development docker network..."
-        docker network rm development 2>/dev/null || echo "  Development network not found"
+        docker network rm development 2>/dev/null || echo "  Development network not found or Docker daemon not running"
     else
         echo "  Keeping development docker network as requested"
     fi
@@ -208,10 +220,16 @@ echo ""
 if confirm_step "Step 2/5: Clean up DNS configuration" "This will stop dnsmasq, remove DNS configuration for *.$DOMAIN, remove the system resolver, and clean up /etc/hosts entries."; then
     echo -e "${GREEN}Cleaning up DNS configuration...${NC}"
 
-    # Stop dnsmasq
-    if command_exists brew && brew services list | grep dnsmasq | grep -q started; then
-        echo "Stopping dnsmasq service..."
-        sudo brew services stop dnsmasq
+    # Stop dnsmasq service
+    if command_exists brew; then
+        if brew services list | grep dnsmasq | grep -q started; then
+            echo "Stopping dnsmasq service..."
+            sudo brew services stop dnsmasq
+        else
+            echo "  dnsmasq service not running"
+        fi
+    else
+        echo "  Homebrew not available, skipping dnsmasq service stop"
     fi
 
     # Remove dnsmasq configuration
