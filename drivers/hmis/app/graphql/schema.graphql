@@ -5313,7 +5313,7 @@ enum FundingSource {
   """
   (47) HUD: ESG - CV [Deprecated]
   """
-  HUD_ESG_CV_DEPRECATED
+  HUD_ESG_CV
 
   """
   (8) HUD: ESG - Emergency Shelter (operating and/or essential services)
@@ -5353,7 +5353,7 @@ enum FundingSource {
   """
   (48) HUD: HOPWA - CV [Deprecated]
   """
-  HUD_HOPWA_CV_DEPRECATED
+  HUD_HOPWA_CV
 
   """
   (13) HUD: HOPWA - Hotel/Motel Vouchers

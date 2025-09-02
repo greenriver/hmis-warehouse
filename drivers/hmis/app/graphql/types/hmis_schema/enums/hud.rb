@@ -231,8 +231,8 @@ module Types::HmisSchema::Enums::Hud
     value 'HUD_RURAL_SPECIAL_NOFO', '(55) HUD: Rural Special NOFO', value: 55
     value 'HUD_COC_BUILDS', '(56) HUD: CoC Builds', value: 56
     value 'HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_DEPRECATED', '(12) HUD: Rural Housing Stability Assistance Program [Deprecated]', value: 12
-    value 'HUD_ESG_CV_DEPRECATED', '(47) HUD: ESG - CV [Deprecated]', value: 47
-    value 'HUD_HOPWA_CV_DEPRECATED', '(48) HUD: HOPWA - CV [Deprecated]', value: 48
+    value 'HUD_ESG_CV', '(47) HUD: ESG - CV [Deprecated]', value: 47
+    value 'HUD_HOPWA_CV', '(48) HUD: HOPWA - CV [Deprecated]', value: 48
     value 'HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED', '(49) HUD: CoC - Joint Component RRH/PSH [Deprecated]', value: 49
     value 'INVALID', 'Invalid Value', value: -999999
   end
