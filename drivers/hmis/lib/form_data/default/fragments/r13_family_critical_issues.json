@@ -6,7 +6,6 @@
   "item": [
     {
       "type": "GROUP",
-      "component": "INPUT_GROUP",
       "link_id": "R13",
       "item": [
         {
