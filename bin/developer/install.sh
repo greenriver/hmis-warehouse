@@ -157,6 +157,17 @@ else
     eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
 fi
 
+# Start colima if it was installed and isn't running
+if command -v colima >/dev/null 2>&1; then
+    if ! colima status >/dev/null 2>&1; then
+        echo "Starting colima..."
+        colima start
+        echo "Colima started ✓"
+    else
+        echo "Colima already running ✓"
+    fi
+fi
+
 echo ""
 echo -e "${GREEN}Step 2/5: Setting up DNS resolution...${NC}"
 "$SCRIPT_DIR/dns.sh" "$DOMAIN"

@@ -20,8 +20,8 @@ mkdir -p traefik/tools/traefik
 cd traefik
 
 # Copy configuration files
-cp ../../hmis-warehouse/docs/sample-files/traefik/docker-compose.yml .
-cp ../../hmis-warehouse/docs/sample-files/traefik/traefik/config.yml tools/traefik/
+cp ../../hmis-warehouse/docs/traefik/docker-compose.sample.yml docker-compose.yml
+cp ../../hmis-warehouse/docs/traefik/tools/traefik/config.sample.yml tools/traefik/config.yml
 
 # Navigate to certs directory
 cd tools/certs
