@@ -237,10 +237,19 @@ if confirm_step "Step 2/5: Clean up DNS configuration" "This will stop dnsmasq, 
         DNSMASQ_CONF="$(brew --prefix)/etc/dnsmasq.conf"
         DNSMASQ_ADDRESS_LINE="address=/.$DOMAIN/127.0.0.1"
 
-        if [ -f "$DNSMASQ_CONF" ] && grep -q "^$DNSMASQ_ADDRESS_LINE" "$DNSMASQ_CONF"; then
-            echo "Removing dnsmasq configuration for $DOMAIN..."
-            # Use grep -v to remove the line instead of sed with regex
-            sudo grep -v "^$DNSMASQ_ADDRESS_LINE$" "$DNSMASQ_CONF" > "/tmp/dnsmasq.conf.tmp" && sudo mv "/tmp/dnsmasq.conf.tmp" "$DNSMASQ_CONF"
+        if [ -f "$DNSMASQ_CONF" ]; then
+            # Check if our specific domain configuration exists
+            if grep -q "^$DNSMASQ_ADDRESS_LINE" "$DNSMASQ_CONF"; then
+                echo "Removing dnsmasq configuration for $DOMAIN..."
+                # Use grep -v to remove the line instead of sed with regex
+                sudo grep -v "^$DNSMASQ_ADDRESS_LINE$" "$DNSMASQ_CONF" > "/tmp/dnsmasq.conf.tmp" && sudo mv "/tmp/dnsmasq.conf.tmp" "$DNSMASQ_CONF"
+            fi
+
+            # Check if the config file is now empty or only contains comments/whitespace
+            if [ ! -s "$DNSMASQ_CONF" ] || ! grep -q "^[^#]" "$DNSMASQ_CONF" 2>/dev/null; then
+                echo "Removing empty dnsmasq configuration file..."
+                sudo rm "$DNSMASQ_CONF"
+            fi
         fi
     fi
 
@@ -373,6 +382,39 @@ echo -e "${BLUE}HMIS Warehouse development environment uninstall process finishe
 echo ""
 echo -e "${YELLOW}Note: Only the steps you confirmed were executed.${NC}"
 echo "If you skipped any steps, those components remain installed."
+echo ""
+
+# Run system check to verify clean state
+echo -e "${YELLOW}🔍 Verifying system is ready for reinstallation...${NC}"
+echo ""
+
+# Get script directory to find system_check.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SYSTEM_CHECK_SCRIPT="$SCRIPT_DIR/system_check.sh"
+
+if [ -f "$SYSTEM_CHECK_SCRIPT" ]; then
+    if "$SYSTEM_CHECK_SCRIPT" --quiet; then
+        echo -e "${GREEN}✅ System check passed! Ready for clean reinstallation.${NC}"
+        echo ""
+        echo -e "${BLUE}To reinstall, run:${NC}"
+        echo "  $SCRIPT_DIR/install.sh"
+    else
+        system_check_exit_code=$?
+        if [ $system_check_exit_code -eq 2 ]; then
+            echo -e "${YELLOW}⚠️  System check passed with warnings.${NC}"
+            echo -e "${BLUE}Installation can proceed, but review any warnings above.${NC}"
+            echo ""
+            echo -e "${BLUE}To reinstall, run:${NC}"
+            echo "  $SCRIPT_DIR/install.sh"
+        else
+            echo -e "${RED}❌ System check failed. Some cleanup may be incomplete.${NC}"
+            echo -e "${YELLOW}Please resolve the issues above before attempting reinstallation.${NC}"
+        fi
+    fi
+else
+    echo -e "${YELLOW}⚠️  System check script not found. Cannot verify clean state.${NC}"
+fi
+
 echo ""
 echo -e "${YELLOW}Manual cleanup (if needed):${NC}"
 echo "  • Flush DNS cache: sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
