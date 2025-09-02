@@ -51,13 +51,7 @@ expand_path() {
     echo "${1/#\~/$HOME}"
 }
 
-# Function to ensure sudo credentials are available and extend timeout
-ensure_sudo() {
-    # Extend sudo timeout to 60 minutes (3600 seconds) and refresh timestamp
-    sudo -v
-    # Set a longer timeout for this session
-    echo "Defaults:$(whoami) timestamp_timeout=60" | sudo tee /etc/sudoers.d/install_temp >/dev/null
-}
+
 
 
 
@@ -141,14 +135,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
 fi
 
-echo ""
-echo -e "${YELLOW}⚡ Caching sudo credentials...${NC}"
-# Cache sudo credentials and extend timeout for the entire installation
-ensure_sudo
 
-# Keep sudo alive in background for the duration of the installation
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-SUDO_KEEPALIVE_PID=$!
 
 echo ""
 echo -e "${GREEN}Step 1/5: Installing prerequisites...${NC}"
@@ -226,11 +213,3 @@ echo -e "${YELLOW}💡 Next steps:${NC}"
 echo "  1. Start the application with the command above"
 echo "  2. Visit https://hmis-warehouse.$DOMAIN to access the application"
 echo "  3. Check https://mailhog.$DOMAIN to see development emails"
-
-# Clean up background sudo keepalive process and temporary sudoers file
-if [ -n "$SUDO_KEEPALIVE_PID" ]; then
-    kill $SUDO_KEEPALIVE_PID 2>/dev/null || true
-fi
-
-# Remove temporary sudoers configuration
-sudo rm -f /etc/sudoers.d/install_temp 2>/dev/null || true

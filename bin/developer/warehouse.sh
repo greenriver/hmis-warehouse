@@ -39,13 +39,17 @@ else
     echo "Using default domain ($DEFAULT_DOMAIN) ✓"
 fi
 
-# Fix permissions
-echo "Fixing permissions..."
-docker compose run -u 0 shell chown -R app-user:app-user /bundle /app /node_modules
+# Fix initial permissions (only on directories that exist)
+echo "Fixing initial permissions..."
+docker compose run -u 0 shell chown -R app-user:app-user /bundle /app
 
 # Run setup script
 echo "Running application setup..."
 docker-compose run --rm shell bin/setup
+
+# Fix permissions after setup (including node_modules which should now exist)
+echo "Fixing final permissions..."
+docker compose run -u 0 shell chown -R app-user:app-user /bundle /app /node_modules
 
 echo ""
 echo "Warehouse setup complete! 🎉"
