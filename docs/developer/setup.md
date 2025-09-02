@@ -1,5 +1,5 @@
 # Developer Setup
-The following document provides a brief overview of how to setup the Open Path Warehouse for local development.  Once you have the application running, you may find the [developer data guide](developer_data.md) and [developer FAQ](developer_faq.md) useful in gaining more familiarity with the application.
+The following document provides a brief overview of how to setup the Open Path Warehouse for local development.  Once you have the application running, you may find the [developer data guide](developer/data.md) and [developer FAQ](developer/faq.md) useful in gaining more familiarity with the application.
 
 The warehouse application consists of three main parts:
 1. The Rails Application Code
@@ -64,7 +64,7 @@ docker-compose run --rm web
 If everything worked as designed your site should now be available at [https://hmis-warehouse.dev.test](https://hmis-warehouse.dev.test).  Any mail that the site sends will be delivered to [MailHog](https://github.com/mailhog/MailHog) which is availble at [https://mail.hmis-warehouse.dev.test](https://mail.hmis-warehouse.dev.test)
 
 ## Loading Data
-At this point, you'll probably want to [load some sample HMIS data](developer_data.md).
+At this point, you'll probably want to [load some sample HMIS data](developer/data.md).
 
 
 ## Running E2E Tests

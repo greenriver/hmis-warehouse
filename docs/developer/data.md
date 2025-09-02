@@ -1,5 +1,5 @@
 # Developer Data Loading
-This document should give you some very basic developer data to work with.  If you haven't already, [follow the developer setup instructions here](developer_setup.md).  There is an assumption that you are running the warehouse in docker, and that it will be accessible via https://hmis-warehouse.dev.test.  You may need to adjust to your environment.
+This document should give you some very basic developer data to work with.  If you haven't already, [follow the developer setup instructions here](developer/setup.md).  There is an assumption that you are running the warehouse in docker, and that it will be accessible via https://hmis-warehouse.dev.test.  You may need to adjust to your environment.
 
 ## Multiple databases
 The project reads/writes from several different databases. We keep track of these different environments by setting up parallel db configs and structures for each database.  These follow the [standard pattern for multiple databases in rails](https://guides.rubyonrails.org/active_record_multiple_databases.html) and have the following database names:
