@@ -10,6 +10,8 @@
 # Key rules:
 # - A user can view a referral if they have broad `:can_view_referrals` permission on the target project.
 # - A user can also view a referral if they have `:can_view_own_referrals` and are assigned to one of its steps.
+# - A user can also view a referral if they have `:can_view_own_referrals` and are a participant in a swimlane
+#   that has a completed step in the referral.
 # - Indexing (e.g., for a dashboard) requires a combination of view and perform permissions.
 class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::BasePolicy
   def can_index?

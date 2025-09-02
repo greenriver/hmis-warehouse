@@ -95,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+      let!(:referral) { create(:hmis_ce_referral, project: project, data_source: ds1, status: :in_progress) }
       let!(:in_progress_referral) { create(:hmis_ce_referral, status: :in_progress, project: project, data_source: ds1) }
       let!(:accepted_referral) { create(:hmis_ce_referral, status: :accepted, project: project, data_source: ds1) }
       let!(:rejected_referral) { create(:hmis_ce_referral, status: :rejected, project: project, data_source: ds1) }

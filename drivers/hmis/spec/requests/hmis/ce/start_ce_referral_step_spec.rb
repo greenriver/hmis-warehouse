@@ -126,16 +126,14 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
           expect(step_data['status']).to eq('in_progress')
           expect(step_data['name']).to eq('Client Acceptance')
           expect(step_data.dig('swimlane')).to eq(swimlane.name)
-          expect(step_data['assignees']).to contain_exactly(
-            a_hash_including('id' => hmis_user.id.to_s, 'name' => hmis_user.name),
-          )
+          expect(step_data['assignees']).to be_empty
           expect(step_data['formDefinition']['id']).to eq(client_acceptance_task.form_definitions.sole.id.to_s)
 
           step.reload
         end.to change(step, :status).to('in_progress').
           and change(step, :started_at).from(nil).
           and change(Hmis::WorkflowExecution::AuditEvent, :count).by(1).
-          and change(step.assignments, :count).by(1)
+          and change(step.assignments, :count).by(0)
 
         audit_event = Hmis::WorkflowExecution::AuditEvent.last
         expect(audit_event.event_type).to eq('start_step')
