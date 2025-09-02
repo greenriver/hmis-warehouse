@@ -12573,8 +12573,8 @@ type TableConfig {
 }
 
 type TableConfigLookup {
-  consolidatedWaitlist: TableConfig
-  unitGroupWaitlist(unitGroupId: ID!): TableConfig
+  ceClientsGlobalConfig: TableConfig
+  ceClientsUnitGroupConfig(unitGroupId: ID!): TableConfig
 }
 
 """

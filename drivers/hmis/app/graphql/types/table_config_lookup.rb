@@ -10,20 +10,20 @@ module Types
   class TableConfigLookup < Types::BaseObject
     skip_activity_log
 
-    field :consolidated_waitlist, Types::TableConfig, null: true
-    field :unit_group_waitlist, Types::TableConfig, null: true do
+    field :ce_clients_global_config, Types::TableConfig, null: true
+    field :ce_clients_unit_group_config, Types::TableConfig, null: true do
       argument :unit_group_id, ID, required: true
     end
 
     # Consolidated waitlist uses the global configuration for ce_waitlist
-    def consolidated_waitlist
-      Hmis::TableConfiguration.for_ce_waitlist.find_by(
+    def ce_clients_global_config
+      Hmis::TableConfiguration.for_ce_clients_table.find_by(
         data_source_id: current_user.hmis_data_source_id,
         owner: nil,
       )
     end
 
-    def unit_group_waitlist(unit_group_id:)
+    def ce_clients_unit_group_config(unit_group_id:)
       unit_group = Hmis::UnitGroup.find_by(id: unit_group_id)
       return unless unit_group
 
@@ -34,7 +34,7 @@ module Types
         unit_group.project&.organization,
         nil,
       ].each do |owner|
-        config = Hmis::TableConfiguration.for_ce_waitlist.
+        config = Hmis::TableConfiguration.for_ce_clients_table.
           where(data_source_id: current_user.hmis_data_source_id).
           find_by(owner: owner)
         return config if config

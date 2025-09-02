@@ -26,9 +26,9 @@
 # - `columns`: A JSONB field storing column configurations.
 # - `filters`: A JSONB field storing filter configurations.
 class Hmis::TableConfiguration < Hmis::HmisBase
-  CE_WAITLIST = 'ce_waitlist'
+  CE_CLIENTS = 'ce_clients'
   TABLE_KEYS = [
-    CE_WAITLIST,
+    CE_CLIENTS,
   ].freeze
 
   COLUMN_TYPES = [
@@ -50,7 +50,7 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   validate :validate_columns_shape
   validate :validate_filters_shape
 
-  scope :for_ce_waitlist, -> { where(table_key: CE_WAITLIST) }
+  scope :for_ce_clients_table, -> { where(table_key: CE_CLIENTS) }
 
   private
 
