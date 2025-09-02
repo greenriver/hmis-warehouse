@@ -49,7 +49,7 @@ docker-compose run --rm shell bin/setup
 
 # Fix permissions after setup (including node_modules which should now exist)
 echo "Fixing final permissions..."
-docker compose run -u 0 shell chown -R app-user:app-user /bundle /app /node_modules
+docker compose run -u 0 shell bash -c 'chown -R app-user:app-user /bundle /app && if [ -d /node_modules ]; then chown -R app-user:app-user /node_modules; fi'
 
 echo ""
 echo "Warehouse setup complete! 🎉"
