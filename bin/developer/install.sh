@@ -145,11 +145,8 @@ echo -e "${GREEN}Step 1/5: Installing prerequisites...${NC}"
 echo "Reloading shell environment..."
 
 # Source common shell profile files to pick up any changes
-for profile in ~/.zprofile ~/.zshrc ~/.bash_profile ~/.bashrc; do
-    if [[ -f "$profile" ]]; then
-        source "$profile" 2>/dev/null || true
-    fi
-done
+source ~/.zshrc 2>/dev/null || true
+
 
 # Ensure Homebrew is in PATH based on architecture
 if [[ $(uname -m) == "arm64" ]]; then
