@@ -17,6 +17,20 @@ module HmisCsvTwentyTwentySix::Importer
 
     has_one :destination_record, **hud_assoc(:PersonalID, 'Client')
 
+    # Override to return column names to match the loader's column_name_for_import
+    def self.create_columns
+      # Reimplement the base method but with our column name mapping
+      base_columns = (hmis_structure.keys + [:data_source_id]).map(&:to_s)
+
+      # Map HispanicLatinao -> HispanicLatinaeo
+      base_columns.map do |col|
+        case col
+        when 'HispanicLatinao' then 'HispanicLatinaeo'
+        else col
+        end
+      end.freeze
+    end
+
     def self.clean_row_for_import(row, deidentified:)
       row = deidentify_client_name(row) if deidentified
       row['SSN'] = row['SSN'].to_s[0..8] # limit SSNs to 9 characters
