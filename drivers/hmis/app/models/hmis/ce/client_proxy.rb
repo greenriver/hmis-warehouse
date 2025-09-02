@@ -40,7 +40,6 @@ module Hmis::Ce
     end
 
     scope :eligible_for_project_type, ->(project_types) do
-      Rails.logger.info(">>> eligible for #{project_types}")
       joins(ce_match_candidates: { candidate_pool: { unit_groups: :project, opportunities: :project } }).
         where(Hmis::Hud::Project.arel_table[:project_type].in(Array.wrap(project_types)))
     end

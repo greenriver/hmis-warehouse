@@ -27,7 +27,6 @@ class Hmis::Filter::CeClientFilter < Hmis::Filter::BaseFilter
   end
 
   def with_project_type(scope)
-    Rails.logger.info(">>> filtering #{input.inspect}")
     with_filter(scope, :project_type) do
       scope.eligible_for_project_type(input.project_type)
     end

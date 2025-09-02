@@ -33,11 +33,12 @@ class Hmis::TableConfiguration < Hmis::HmisBase
 
   COLUMN_TYPES = [
     'string',
-    # add other types here, like 'date'
+    'date',
+    # add other types here
   ].freeze
   FILTER_TYPES = [
     'select',
-    # add other types here, like 'date'
+    # add other types here
   ].freeze
 
   belongs_to :owner, polymorphic: true, optional: true
