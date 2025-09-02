@@ -388,8 +388,7 @@ echo ""
 echo -e "${YELLOW}🔍 Verifying system is ready for reinstallation...${NC}"
 echo ""
 
-# Get script directory to find system_check.sh
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get script directory to find system_check.sh (reuse the one from the top of the script)
 SYSTEM_CHECK_SCRIPT="$SCRIPT_DIR/system_check.sh"
 
 if [ -f "$SYSTEM_CHECK_SCRIPT" ]; then
