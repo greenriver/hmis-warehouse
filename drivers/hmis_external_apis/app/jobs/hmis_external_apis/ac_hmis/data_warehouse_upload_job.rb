@@ -72,8 +72,9 @@ module HmisExternalApis::AcHmis
         'custom_fields_export',
         'pathways_export',
         'case_note_export',
-        'ce_referrals',
-        'custom_assessments',
+        # 'ce_referrals',
+        # 'ce_referral_tasks',
+        # 'custom_assessments',
       ].freeze
     end
 

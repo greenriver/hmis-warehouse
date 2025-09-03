@@ -11,7 +11,6 @@ module HmisExternalApis::AcHmis::Exporters
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
 
     # Generates the content of the CE Referral export
-    # TODO: add Custom Status field to export
     def run!
       Rails.logger.info 'Generating content of CE Referral export'
 
@@ -30,19 +29,21 @@ module HmisExternalApis::AcHmis::Exporters
         target_project = referral.target_project
         source_project = referral.source_enrollment&.project
 
+        referred_by_hud_user_pk = to_hud_user_pk(referral.referred_by)
+
         values = [
           referral.id,                           # ReferralID
           referral.workflow_template.identifier, # ReferralWorkflowIdentifier
           warehouse_id,                          # PersonalID matching HMIS CSV export
           unit.id,                               # UnitID
           unit_type_name,                        # UnitTypeName
-          target_project.project_id,             # TargetProjectID (maps to Project.csv)
+          target_project.id,                     # TargetProjectID (maps to Project.csv)
           target_project.project_name,           # TargetProjectName
           referral.custom_status.key,            # ReferralStatus
-          referral.referred_by_id,               # FIXME: map to HUD UserID
-          referral.target_enrollment_id,         # TargetEnrollmentID
-          referral.source_enrollment_id,         # SourceEnrollmentID
-          source_project&.project_id,            # SourceProjectID (maps to Project.csv)
+          referred_by_hud_user_pk,               # Matches User.csv in HMIS CSV Export
+          referral.target_enrollment_id,         # TargetEnrollmentID (maps to Enrollment.csv if Enrollment is non-WIP)
+          referral.source_enrollment_id,         # SourceEnrollmentID (maps to Enrollment.csv)
+          source_project&.id,                    # SourceProjectID (maps to Project.csv)
           source_project&.project_name,          # SourceProjectName
           referral.completed_at,                 # CompletedAt
           referral.created_at,                   # CreatedAt
@@ -82,6 +83,7 @@ module HmisExternalApis::AcHmis::Exporters
         preload(
           :target_project, # to get project name/id
           :workflow_template, # to get workflow identifier
+          :referred_by,
           source_enrollment: [:project], # to get source project name/id
           client: [:warehouse_client_source], # to get destination id
           opportunity: { unit: [:unit_type] }, # to get unit type name

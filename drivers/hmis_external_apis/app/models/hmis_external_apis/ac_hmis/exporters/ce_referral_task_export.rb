@@ -21,7 +21,9 @@ module HmisExternalApis::AcHmis::Exporters
       referral_tasks.find_each.with_index do |task, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
         referral_id = instance_id_to_referral_id[task.instance_id]
-        raise 'Missing referral ID' unless referral_id
+        raise "Referral not found for instance id '#{task.instance_id}'" unless referral_id
+
+        completed_by_hud_user_pk = to_hud_user_pk(task.updated_by) if task.updated_by
 
         values = [
           task.id,                # TaskID
@@ -32,7 +34,7 @@ module HmisExternalApis::AcHmis::Exporters
           task.status,            # Status
           task.available_at,      # AvailableAt
           task.completed_at,      # CompletedAt
-          task.updated_by&.id,    # UpdatedByUserID (maps to User.csv) - TODO map to Hmis::Hud::User db id (by email)
+          completed_by_hud_user_pk, # UpdatedByUserID (maps to User.csv)
         ]
         write_row(values)
       end

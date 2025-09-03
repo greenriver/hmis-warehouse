@@ -36,7 +36,6 @@ module HmisExternalApis::AcHmis::Exporters
           form_definition.title,
           custom_assessment.date_created,
           custom_assessment.date_updated,
-          # prefer to use the created/updated columns, otherwise use UserID column
           custom_assessment.created_by_hud_user_id || hud_user_id, # maps to User.csv in HMIS CSV Export
           custom_assessment.updated_by_hud_user_id || hud_user_id, # maps to User.csv in HMIS CSV Export
         ]

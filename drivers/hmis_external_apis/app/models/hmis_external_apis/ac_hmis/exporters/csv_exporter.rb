@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis::Exporters::CsvExporter
   extend ActiveSupport::Concern
 
@@ -13,6 +15,25 @@ module HmisExternalApis::AcHmis::Exporters::CsvExporter
     def initialize(output = StringIO.new)
       require 'csv'
       self.output = output
+    end
+
+    # Input: Hmis::User record
+    # Output: `id` from `User` table, which matches exported User.csv file
+    def to_hud_user_pk(app_user)
+      @application_user_to_hud_user ||= {}
+
+      raise 'expected app user' unless app_user.is_a?(Hmis::User) || app_user.is_a?(User)
+
+      return @application_user_to_hud_user[app_user.id] if @application_user_to_hud_user.key?(app_user.id)
+
+      # Find or Hmis Hud User record if one exists
+      hud_user_id = Hmis::Hud::User.where(
+        user_email: app_user.email.downcase,
+        data_source_id: data_source.id,
+      ).order(:id).first&.id
+
+      @application_user_to_hud_user[app_user.id] = hud_user_id
+      hud_user_id
     end
 
     private
