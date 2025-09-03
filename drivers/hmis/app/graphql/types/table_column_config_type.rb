@@ -10,7 +10,8 @@ module Types
   class TableColumnConfigType < Types::BaseEnum
     graphql_name 'TableColumnConfigType'
 
-    value 'STRING', value: 'string'
-    value 'DATE', value: 'date'
+    Hmis::TableConfiguration::COLUMN_TYPES.each do |type|
+      value type.upcase, value: type
+    end
   end
 end
