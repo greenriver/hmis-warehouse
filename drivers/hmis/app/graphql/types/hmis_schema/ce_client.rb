@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::CeClient < Types::BaseObject
-    description 'A client who is a candidate for Coordinated Entry (CE), represented by a ClientProxy. Underlying client record is Destination Client.'
+    description 'A client who is eligible for Coordinated Entry (CE), represented by a ClientProxy. Underlying client record is Destination Client.'
 
     # For now, this type is only made available to CE Admins (on the Consolidated Waitlist).
     # When implementing issue #8005 to display list of eligible_unit_groups on the client dash, this may need to be expanded.
