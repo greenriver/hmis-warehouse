@@ -22,9 +22,10 @@ RSpec.describe 'Custom Files Integration' do
     # Run import process
     import_hmis_csv_fixture(
       temp_dir,
-      version: '2026',
+      version: 'AutoMigrate',
       data_source: data_source,
       run_jobs: true,
+      stop_version: '2026',
     )
     FileUtils.rm_rf(temp_dir)
   end
