@@ -25,7 +25,7 @@ Rails.application.config.queued_tasks[:hmis_disabling_condition_and_race_cleanup
 end
 
 TodoOrDie('Remove one-time job', by: '2025-10-06')
-if ENV['ENABLE_HMIS_API'] == 'true'
+if Rails.env.staging? && ENV['ENABLE_HMIS_API'] == 'true'
   Rails.application.config.queued_tasks[:hmis_migrate_unit_groups] = -> do
     HmisDataCleanup::MigrateUnitsToUnitGroups20250828.new.perform
   end
