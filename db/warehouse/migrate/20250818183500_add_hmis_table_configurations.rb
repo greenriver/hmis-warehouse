@@ -18,6 +18,7 @@ class AddHmisTableConfigurations < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :hmis_table_configurations, [:table_key, :owner_type, :owner_id, :data_source_id], unique: true, name: 'index_hmis_table_configurations_on_key_owner_and_source'
+    add_index :hmis_table_configurations, [:table_key, :owner_type, :owner_id, :data_source_id], unique: true, where: 'owner_type IS NOT NULL AND owner_id IS NOT NULL', name: 'uniq_hmis_table_configs_owner'
+    add_index :hmis_table_configurations, [:table_key, :data_source_id], unique: true, where: 'owner_type IS NULL AND owner_id IS NULL', name: 'uniq_hmis_table_configs_global'
   end
 end

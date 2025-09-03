@@ -66433,13 +66433,6 @@ CREATE INDEX index_hmis_table_configurations_on_data_source_id ON public.hmis_ta
 
 
 --
--- Name: index_hmis_table_configurations_on_key_owner_and_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_table_configurations_on_key_owner_and_source ON public.hmis_table_configurations USING btree (table_key, owner_type, owner_id, data_source_id);
-
-
---
 -- Name: index_hmis_table_configurations_on_owner; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -72397,6 +72390,20 @@ CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING
 
 
 --
+-- Name: uniq_hmis_table_configs_global; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_hmis_table_configs_global ON public.hmis_table_configurations USING btree (table_key, data_source_id) WHERE ((owner_type IS NULL) AND (owner_id IS NULL));
+
+
+--
+-- Name: uniq_hmis_table_configs_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_hmis_table_configs_owner ON public.hmis_table_configurations USING btree (table_key, owner_type, owner_id, data_source_id) WHERE ((owner_type IS NOT NULL) AND (owner_id IS NOT NULL));
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75417,10 +75424,10 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20250818183500'),
 ('20250821194338'),
 ('20250821182429'),
 ('20250820220743'),
+('20250818183500'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
@@ -75622,3 +75629,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+
