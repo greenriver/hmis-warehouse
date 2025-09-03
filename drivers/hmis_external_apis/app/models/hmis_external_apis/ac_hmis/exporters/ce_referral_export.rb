@@ -38,7 +38,7 @@ module HmisExternalApis::AcHmis::Exporters
           unit_type_name,                        # UnitTypeName
           target_project.project_id,             # TargetProjectID (maps to Project.csv)
           target_project.project_name,           # TargetProjectName
-          referral.status,                       # ReferralStatus
+          referral.custom_status.key,            # ReferralStatus
           referral.referred_by_id,               # FIXME: map to HUD UserID
           referral.target_enrollment_id,         # TargetEnrollmentID
           referral.source_enrollment_id,         # SourceEnrollmentID
