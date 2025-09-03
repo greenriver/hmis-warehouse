@@ -83,10 +83,10 @@ module DatalabTestkit
     def check_sum(question:, source:, total:)
       sum = source.map do |cell_name|
         raw_actual = report_result.answer(question: question, cell: cell_name).summary
-        normalize(raw_actual)
+        normalize(raw_actual).to_f
       end.reduce(:+)
       total_actual = report_result.answer(question: question, cell: total).summary
-      total_actual = normalize(total_actual)
+      total_actual = normalize(total_actual).to_f
       expect(sum).to eq(total_actual)
     end
 

@@ -45,16 +45,16 @@ RSpec.describe 'Datalab 2026', type: :model do
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
     # include_context 'datalab multiple projects apr' # No Test Kit data files for "Organization X - RRH"
     include_context 'datalab organization i psh apr'
-    # include_context 'datalab organization m rrh apr'
-    # include_context 'datalab organization s rrh apr'
-    # include_context 'datalab organization y sso apr'
+    include_context 'datalab organization m rrh apr'
+    include_context 'datalab organization s rrh apr'
+    include_context 'datalab organization y sso apr'
 
-    # # include_context 'datalab organization f so caper' # Looks like data issues with this organization - likely missing clients/enrollments
-    # include_context 'datalab organization g rrh caper'
-    # include_context 'datalab organization s th caper'
-    # # include_context 'datalab organization t es caper' # Looks like data issues with this organization - likely missing clients/enrollments
-    # include_context 'datalab organization t hp caper'
-    # include_context 'datalab organization v es caper'
+    # include_context 'datalab organization f so caper' # Looks like data issues with this organization - likely missing clients/enrollments
+    include_context 'datalab organization g rrh caper'
+    include_context 'datalab organization s th caper'
+    # include_context 'datalab organization t es caper' # Looks like data issues with this organization - likely missing clients/enrollments
+    include_context 'datalab organization t hp caper'
+    include_context 'datalab organization v es caper'
 
     # include_context 'datalab systemwide ce apr' # Looks like data issues - likely missing clients/enrollments
   else
