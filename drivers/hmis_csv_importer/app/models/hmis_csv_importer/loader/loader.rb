@@ -346,7 +346,7 @@ module HmisCsvImporter::Loader
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return [:missing]
       end
-      csv_header_names = klass.hud_csv_headers
+      csv_header_names = klass.hud_csv_headers(version: @stop_version)
       valid_headers = source_headers.map(&HEADER_NORMALIZER) == csv_header_names.map(&HEADER_NORMALIZER)
 
       return [:ok, csv_header_names.map(&:to_s)] if valid_headers
