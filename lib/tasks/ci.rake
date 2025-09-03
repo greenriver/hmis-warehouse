@@ -124,6 +124,8 @@ namespace :ci do
     buckets.each do |bucket|
       bucket[:specs].each do |spec|
         file_path = spec[:file_path]
+        next unless File.exist?(file_path)
+
         content = File.readlines(file_path)
 
         describe_line_index = content.index { |line| line.strip.start_with?('RSpec.describe') }

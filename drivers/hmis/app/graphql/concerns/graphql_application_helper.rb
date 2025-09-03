@@ -67,6 +67,18 @@ module GraphqlApplicationHelper
     end.min_by { |e| [e.entry_date, e.id] }
   end
 
+  # Resolves the name of a destination client conservatively.
+  # It checks if the current user has permission to view the client name
+  # on any of the destination client's HMIS source clients (for the current HMIS data source).
+  # If no viewable name is found, it returns nil.
+  def load_destination_client_name(destination_client:)
+    source_clients = load_ar_association(destination_client, :hmis_source_clients)
+
+    source_clients.sort_by(&:id).find do |client|
+      current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+    end&.brief_name
+  end
+
   def arel
     Hmis::ArelHelper.instance
   end

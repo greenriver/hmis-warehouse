@@ -17,9 +17,10 @@ RSpec.describe HmisCsvImporter, type: :model do
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/allowed_projects',
         data_source: @data_source,
-        version: '2026',
+        version: 'AutoMigrate',
         deidentified: true,
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 
@@ -52,9 +53,10 @@ RSpec.describe HmisCsvImporter, type: :model do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/allowed_projects',
           data_source: @data_source,
-          version: '2026',
+          version: 'AutoMigrate',
           deidentified: true,
           run_jobs: false,
+          stop_version: '2026',
         )
       end
 
