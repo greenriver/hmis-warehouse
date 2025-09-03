@@ -29,7 +29,7 @@ module Types
     field :client_name, String, null: false
     field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregation of most recent snapshots from all candidate pools this client belongs to'
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
-    field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+    field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: lambda(&:size) do
       filters_argument HmisSchema::CeEligibleUnitGroup
     end
 
