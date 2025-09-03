@@ -7,10 +7,11 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::KeyValue < Types::BaseObject
-    skip_activity_log
+  class TableColumnConfigType < Types::BaseEnum
+    graphql_name 'TableColumnConfigType'
 
-    field :key, String, null: false
-    field :value, String, null: true
+    Hmis::TableConfiguration::COLUMN_TYPES.each do |type|
+      value type.upcase, value: type
+    end
   end
 end
