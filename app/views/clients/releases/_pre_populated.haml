@@ -11,7 +11,7 @@
       %h2.mb-4= Translation.translate('Open Path ROI')
 
 
-      .d-flex.align-items-start
+      .d-flex
         .mr-4
           %table.table{style: 'width: 6in;'}
             %tbody
@@ -37,6 +37,8 @@
                     __ / __ / ____
                 %th SSN:
                 %td= masked_ssn(@client.SSN)
+        .ml-auto.mb-4{style: 'max-width: 2in; max-height: 2in;'}
+          = render 'layouts/print_seal'
 
       = simple_format(Translation.translate('Open Path ROI content'))
 
@@ -63,6 +65,9 @@
             %td
             %td
     .landscape
+      .d-flex
+        .ml-auto.mb-4{style: 'max-width: 2.5in; max-height: 2.5in;'}
+          = render 'layouts/print_seal'
       .row
         .col-12
           .coc-map
