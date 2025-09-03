@@ -621,6 +621,34 @@ module Types
       resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
     end
 
+    field :table_config_lookup, Types::TableConfigLookup, null: false
+    def table_config_lookup
+      {}
+    end
+
+    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+      filters_argument HmisSchema::CeClient
+    end
+    def ce_clients(filters: nil)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
+        joins(:ce_match_candidates).
+        distinct.order(:id)
+
+      scope = scope.apply_filters(filters) if filters
+      scope
+    end
+
+    field :ce_client, HmisSchema::CeClient, null: true do |field|
+      field.argument :id, ID, 'Client Proxy ID', required: true
+    end
+    def ce_client(id:)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      Hmis::Ce::ClientProxy.find_by(id: id)
+    end
+
     field :unit_group, HmisSchema::UnitGroup, null: true do
       argument :id, ID, required: true
     end

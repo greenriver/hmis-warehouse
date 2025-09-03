@@ -95,6 +95,10 @@ module Hmis::Ce
       where(status: 'open')
     end
 
+    def receiving_referrals?
+      status.to_s == 'open'
+    end
+
     SORT_OPTIONS = [:date_available_earliest_first, :date_available_latest_first].freeze
 
     SORT_OPTION_DESCRIPTIONS = {

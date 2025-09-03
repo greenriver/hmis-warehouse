@@ -7,10 +7,12 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::KeyValue < Types::BaseObject
+  class TableColumnConfig < Types::BaseObject
     skip_activity_log
+    # backed by Hmis::TableConfiguration#columns object
 
     field :key, String, null: false
-    field :value, String, null: true
+    field :label, String, null: false
+    field :type, Types::TableColumnConfigType, null: false
   end
 end
