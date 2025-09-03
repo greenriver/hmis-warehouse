@@ -230,6 +230,7 @@ module HudApr::Generators::Shared::Fy2026
           # Filter out invalid destinations
           # requires valid rental subsidy type, this is a fix for bad data that the TUP checks
           destination = 99 if destination == 435 && ! destination_subsidy_type.in?(HudUtility2026.rental_subsidy_types.keys)
+          destination = 99 unless HudUtility2026.valid_destinations.key?(destination)
 
           ce_hash = {}
           options = {
@@ -306,9 +307,9 @@ module HudApr::Generators::Shared::Fy2026
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,
             income_date_at_start: income_at_start&.InformationDate,
-            income_from_any_source_at_annual_assessment: income_at_annual_assessment&.IncomeFromAnySource,
-            income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
-            income_from_any_source_at_start: income_at_start&.IncomeFromAnySource,
+            income_from_any_source_at_annual_assessment: income_at_annual_assessment&.hud_income_from_any_source,
+            income_from_any_source_at_exit: income_at_exit&.hud_income_from_any_source,
+            income_from_any_source_at_start: income_at_start&.hud_income_from_any_source,
             income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
             income_sources_at_exit: income_sources(income_at_exit),
             income_sources_at_start: income_sources(income_at_start),

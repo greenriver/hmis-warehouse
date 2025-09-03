@@ -80,6 +80,16 @@ module DatalabTestkit
       end
     end
 
+    def check_sum(question:, source:, total:)
+      sum = source.map do |cell_name|
+        raw_actual = report_result.answer(question: question, cell: cell_name).summary
+        normalize(raw_actual)
+      end.reduce(:+)
+      total_actual = report_result.answer(question: question, cell: total).summary
+      total_actual = normalize(total_actual)
+      expect(sum).to eq(total_actual)
+    end
+
     def normalize(value)
       value = value&.to_s&.strip
       value = value[...-1] if percent?(value) # Remove percent signs
