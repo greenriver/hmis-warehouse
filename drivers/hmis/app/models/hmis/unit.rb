@@ -165,7 +165,7 @@ class Hmis::Unit < Hmis::HmisBase
 
   # TODO(#8157) - remove
   def unit_group_has_one_unit_type
-    existing_unit_types = [*unit_group&.unit_types, unit_group.unit_type].compact.uniq
+    existing_unit_types = [*unit_group&.unit_types, unit_group&.unit_type].compact.uniq
     return if existing_unit_types.nil?
     return if existing_unit_types.empty?
     return if existing_unit_types.include?(unit_type)
