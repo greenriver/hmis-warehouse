@@ -29,15 +29,23 @@ module Types
     field :client_name, String, null: false
     field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Aggregation of most recent snapshots from all candidate pools this client belongs to'
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
-    field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) }
+    field :eligible_unit_groups, HmisSchema::CeEligibleUnitGroup.page_type, null: false, description: 'Unit groups that this client is a candidate for', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+      filters_argument HmisSchema::CeEligibleUnitGroup
+    end
 
     # All the unit groups that this client is a candidate for.
     # N+1 query; do not use in batch for multiple clients.
-    def eligible_unit_groups
-      object.ce_match_candidates.
-        joins(candidate_pool: :unit_groups).
-        select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').
-        distinct
+    def eligible_unit_groups(filters: nil)
+      scope = object.ce_match_candidates.
+        joins(candidate_pool: :unit_groups)
+
+      if filters&.project_type.present?
+        p_t = Hmis::Hud::Project.arel_table
+        scope = scope.joins(candidate_pool: { unit_groups: :project }).
+          where(p_t[:project_type].in(filters.project_type))
+      end
+
+      scope.select('ce_match_candidates.*, hmis_unit_groups.id AS unit_group_id').distinct.order(updated_at: :desc)
     end
 
     def destination_client_id

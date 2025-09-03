@@ -775,7 +775,7 @@ type CeClient {
   """
   Unit groups that this client is a candidate for
   """
-  eligibleUnitGroups(limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
+  eligibleUnitGroups(filters: CeEligibleUnitGroupFilterOptions, limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
   externalIds: [ExternalIdentifier!]!
 
   """
@@ -838,6 +838,10 @@ type CeEligibleUnitGroup {
   Number of units in the unit group that are currently accepting referrals
   """
   unitsAcceptingReferrals: Int!
+}
+
+input CeEligibleUnitGroupFilterOptions {
+  projectType: [ProjectType!]
 }
 
 type CeEligibleUnitGroupsPaginated {

@@ -17,6 +17,10 @@ module Types
       super && context[:current_user].can_administrate_coordinated_entry?
     end
 
+    available_filter_options do
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType], required: false
+    end
+
     field :id, ID, null: false
     field :unit_group_name, String, null: false
     field :project_name, String, null: false
