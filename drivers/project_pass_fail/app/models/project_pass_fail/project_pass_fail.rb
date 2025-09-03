@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ProjectPassFail
   class ProjectPassFail < GrdaWarehouseBase
     self.table_name = :project_pass_fails
@@ -96,7 +98,7 @@ module ProjectPassFail
 
     # Data quality acceptable error rates
     def universal_data_element_threshold
-      value = (thresholds['universal_data_element_threshold'] || GrdaWarehouse::Config.get(:pf_universal_data_element_threshold))
+      value = thresholds['universal_data_element_threshold'] || GrdaWarehouse::Config.get(:pf_universal_data_element_threshold)
       value / 100.0
     end
 
@@ -110,6 +112,20 @@ module ProjectPassFail
     # Days allowed for entering entry assessments
     def timeliness_threshold
       thresholds['timeliness_threshold'] || GrdaWarehouse::Config.get(:pf_timeliness_threshold)
+    end
+
+    def include_gender_data?
+      # Gender data was removed from the APR in FY 2026
+      [
+        HudApr::Generators::Apr::Fy2020::Generator,
+        HudApr::Generators::Apr::Fy2021::Generator,
+        HudApr::Generators::Apr::Fy2023::Generator,
+        HudApr::Generators::Apr::Fy2024::Generator,
+      ].include?(apr_generator)
+    end
+
+    private def apr_generator
+      HudApr.current_generator(report: :apr)
     end
 
     private def calculate_utilization_rates
@@ -226,7 +242,7 @@ module ProjectPassFail
       questions = [
         'Question 6',
       ]
-      generator = HudApr.current_generator(report: :apr)
+      generator = apr_generator
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
       apr

@@ -35,13 +35,6 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
-        skip: [
-          'C5', # expected '0.0000' (0), got '1.0000' (1)
-          'E5', # expected '0.0000' (0), got '1.0000' (1)
-          'F5', # expected '0.0000' (0.0000), got '0.0400' (0.0400)
-          'E6', # expected '4.0000' (4), got '5.0000' (5)
-          'F6', # expected '0.1600' (0.1600), got '0.2000' (0.2000)
-        ],
       )
     end
 
@@ -141,16 +134,6 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
-        skip: [
-          'B5', # expected '1.0000' (1), got '0.0000' (0)
-          'E5', # expected '1.0000' (1), got '0.0000' (0)
-          'B8', # expected '3.0000' (3), got '5.0000' (5)
-          'C8', # expected '3.0000' (3), got '5.0000' (5)
-          'B26', # expected '2.0000' (2), got '0.0000' (0)
-          'C26', # expected '2.0000' (2), got '0.0000' (0)
-          'B33', # expected '0.0000' (0), got '1.0000' (1)
-          'E33', # expected '0.0000' (0), got '1.0000' (1)
-        ],
       )
     end
 
@@ -340,16 +323,6 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
-        skip: [
-          'F4', # expected '1.0000' (1), got '0.0000' (0)
-          'I4', # expected '1.0000' (1), got '3.0000' (3)
-          'J4', # expected '2.0000' (2), got '0.0000' (0)
-          'L4', # expected '0.0000' (0), got '1.0000' (1)
-          'F7', # expected '1.0000' (1), got '0.0000' (0)
-          'I7', # expected '1.0000' (1), got '3.0000' (3)
-          'J7', # expected '2.0000' (2), got '0.0000' (0)
-          'L7', # expected '0.0000' (0), got '1.0000' (1)
-        ],
       )
     end
 
