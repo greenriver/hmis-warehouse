@@ -2595,7 +2595,7 @@ module Concerns::HudLists2026
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
         'BlackAfAmerican' => 'Black, African American, or African',
-        'HispanicLatinaeo' => 'Hispanic/Latina/e/o',
+        'HispanicLatinaeo' => 'Hispanic/Latina/o',
         'MidEastNAfrican' => 'Middle Eastern or North African',
         'NativeHIPacific' => 'Native Hawaiian or Pacific Islander',
         'White' => 'White',

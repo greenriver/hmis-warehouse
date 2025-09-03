@@ -47,9 +47,11 @@ module HmisExternalApis::AcHmis
 
       return nil if mci_uniq_ids.empty?
 
-      payload = {
-        'dw_client_id': mci_uniq_ids.join(','),
-      }
+      payload = if mci_uniq_ids.size > 1
+        { 'dw_client_id__dw_client_id__overlap': mci_uniq_ids.join(',') }
+      else
+        { 'dw_client_id__dw_client_id__includes': mci_uniq_ids.first }
+      end
 
       result = conn.post('api/v1/clients/scores/search/', payload).
         then { |r| handle_error(r) }
@@ -67,7 +69,7 @@ module HmisExternalApis::AcHmis
           OpenStruct.new(
             score: score_value.to_i,
             mci_quality_indicator: score_obj.dig('metadata', 'alt_aha_flag')&.to_i,
-            dw_client_id: response_client.dig('dw_client_id'),
+            dw_client_id: Array.wrap(response_client.dig('dw_client_id') || response_client.dig('dw_client_id_dw_client_id'))&.first,
             generator: score_obj.dig('generator'),
           )
         end
