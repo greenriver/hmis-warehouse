@@ -20,6 +20,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionSeven
         ],
         row_labels: [
           'Contact (Adults and Heads of Household in Street Outreach or PATH-funded SSO)',
+          'Bed Night (All clients in ES - NBN)',
         ],
         first_column: 'B',
         last_column: 'D',

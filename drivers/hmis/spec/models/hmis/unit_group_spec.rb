@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::UnitGroup, type: :model do
   let!(:project) { create(:hmis_hud_project) }
@@ -24,5 +25,18 @@ RSpec.describe Hmis::UnitGroup, type: :model do
       new_unit_group = create(:hmis_unit_group, project: project)
       expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call).with(unit_group_ids: [new_unit_group.id])
     end
+  end
+
+  describe 'paranoia' do
+    let(:build_record) { -> { create(:hmis_unit_group, project: create(:hmis_hud_project)) } }
+
+    it_behaves_like 'paranoid model'
+  end
+
+  describe 'paper trail' do
+    let(:build_record) { -> { create(:hmis_unit_group, project: create(:hmis_hud_project)) } }
+    let(:update_attributes_for_versioning) { ->(record) { record.update!(name: "Updated #{record.name}") } }
+
+    it_behaves_like 'versioned model'
   end
 end

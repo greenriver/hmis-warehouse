@@ -44,7 +44,7 @@
               %td
                 = link_to group.name.presence || 'unnamed', edit_project_group_path(group)
                 - if group.used_for_cas_sync?
-                  %span.badge.badge-success.ml-3{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Used for syncing clients to CAS"}}
+                  %span.badge.badge-success.text-bg-success.ml-3{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Used for syncing clients to CAS"}}
                     CAS
               %th= group.projects.count
               %td.reports.report-parameters-all

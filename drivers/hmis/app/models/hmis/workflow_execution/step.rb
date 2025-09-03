@@ -5,10 +5,11 @@
 # task node.
 module Hmis::WorkflowExecution
   class Step < GrdaWarehouseBase
+    has_paper_trail
+    acts_as_paranoid
+
     include SimpleStateMachine
     include ::Hmis::Hud::Concerns::FormSubmittable # bring in relations to CDE/CDED/FormProcessor
-
-    has_paper_trail
 
     belongs_to :instance, class_name: 'Hmis::WorkflowExecution::Instance'
     belongs_to :node, class_name: 'Hmis::WorkflowDefinition::Node'

@@ -1080,7 +1080,8 @@ module GrdaWarehouse::Hud
     def apply_housing_release_status
       return unless GrdaWarehouse::Config.implied_consent?
 
-      self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
+      consent_class = GrdaWarehouse::Config.active_consent_class.new(client: self)
+      self.housing_release_status = consent_class.current_consent_type
     end
 
     # End Release information

@@ -584,13 +584,13 @@ module ApplicationHelper
   def event_badge_class(event)
     case event.to_s.downcase
     when 'create'
-      'badge-success'
+      'badge-success text-bg-success'
     when 'update'
-      'badge-warning'
+      'badge-warning text-bg-warning'
     when 'destroy'
-      'badge-danger'
+      'badge-danger text-bg-danger'
     else
-      'badge-secondary'
+      'badge-secondary text-bg-secondary'
     end
   end
 end

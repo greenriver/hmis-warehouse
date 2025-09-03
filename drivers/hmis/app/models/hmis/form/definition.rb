@@ -461,11 +461,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # validate form_values provides against the definition
   #   * errors & warnings on missing required fields
   #   * check if the input ids match the definition
-  def validate_form_values(form_values)
+  # if link_ids is provided, validate only the provided link IDs. Otherwise, validate the whole form
+  def validate_form_values(form_values, link_ids: nil)
     errors = HmisErrors::Errors.new
 
     # Iterate over item hash so that errors are sorted according to the definition
     link_id_item_hash.each do |link_id, item|
+      next if link_ids&.exclude?(link_id)
+
       # Skip assessment date, it is validated separately
       next if item.assessment_date
       # Skip if not present in value hash
@@ -493,9 +496,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       elsif item.warn_if_empty && (is_missing || is_data_not_collected)
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
-
-      # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
-      # TODO(##184402463): Add support for RequiredWhen
     end
 
     # Ensure all link IDs are in the FormDefinition

@@ -287,6 +287,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(data_source_id: ids)
   end
 
+  # Filter to rows that have at least one associated service whose date falls within [start_date, end_date] (inclusive).
+  # "service" means CLS for SO projects
+  #
   scope :with_service_between, ->(start_date:, end_date:, service_scope: :current_scope) do
     where(
       GrdaWarehouse::ServiceHistoryService.

@@ -52,7 +52,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         },
       )
 
-      expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', { 'dw_client_id': mci_unique_id.value }).and_return(mock_response)
+      expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', { 'dw_client_id__dw_client_id__includes': mci_unique_id.value }).and_return(mock_response)
     end
 
     it 'calls API with single MCI ID' do
@@ -109,7 +109,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
         },
       )
 
-      expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', { 'dw_client_id': "#{mci_unique_id1.value},#{mci_unique_id2.value}" }).and_return(mock_response)
+      expect(mock_connection).to receive(:post).with('api/v1/clients/scores/search/', { 'dw_client_id__dw_client_id__overlap': "#{mci_unique_id1.value},#{mci_unique_id2.value}" }).and_return(mock_response)
     end
 
     it 'calls API with comma-separated list of all sibling MCI IDs' do
