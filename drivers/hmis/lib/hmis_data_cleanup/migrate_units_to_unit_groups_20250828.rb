@@ -5,6 +5,7 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
   end
 
   def perform
+      return unless Hmis::Unit.exists? || Hmis::UnitGroup.exists? # nothing to migrate
     Hmis::UnitGroup.transaction do
       # First, fix existing unit groups that don't have unit_type set
       add_unit_type_to_unit_groups
