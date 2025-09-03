@@ -28,8 +28,11 @@ module Mutations
       errors.add :count, :out_of_range, message: 'must not be greater than 200' if input.count && input.count > 200
       return { errors: errors.errors } if errors.any?
 
+      unit_group = project.unit_groups.find_by(id: input.unit_group_id)
+      errors.add :unit_group_id, :required unless unit_group.present?
+      return { errors: errors.errors } if errors.any?
+
       # TODO(#8157) - require unit group to have a unit type, and stop accepting unit type as argument to this mutation
-      unit_group = project.unit_groups.find(input.unit_group_id) if input.unit_group_id.present?
       # If no unit type specified, use the first unit type from the group (if specified)
       unit_type ||= unit_group&.unit_types&.order(:id)&.first
       errors.add(:unit_type_id, :required) if unit_type.nil?
