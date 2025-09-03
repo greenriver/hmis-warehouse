@@ -51,13 +51,10 @@ class HmisDataCleanup::MigrateUnitsToUnitGroups20250828
   def create_unit_groups_for_projects
     puts 'Creating unit groups for projects that have units without groups'
 
-    # Find all project/unit_type combinations that have units but no unit groups
-    projects_without_unit_groups = Hmis::Hud::Project.
-      joins(:units).
-      left_joins(:unit_groups).
-      where(hmis_unit_groups: { id: nil }).
-      distinct.
-      includes(:units)
+    projects_without_unit_groups = Hmis::Hud::Project.hmis. # Only HMIS projects (just to be safe)
+      joins(:units). # Has units
+      where.missing(:unit_groups). # No unit groups
+      includes(:units) # Include units in the query
 
     projects_processed = 0
     unit_groups_created = 0
