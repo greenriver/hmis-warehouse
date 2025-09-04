@@ -75,6 +75,16 @@ module Hmis
 
           # Determine the owner type for the CDED
           owner_type = determine_owner_type(item)
+
+          # If this item references a custom_field_key and we already built a CDED for this
+          # owner/key pair in this run (not yet persisted), reuse it instead of building another.
+          if custom_field_key
+            pending_cded = find_pending_cded(owner_type: owner_type, key: custom_field_key)
+            if pending_cded
+              Hmis::Form::DefinitionValidator.validate_cded(item: item, cded: pending_cded)
+              next
+            end
+          end
           # Use referenced key for CDED if present, otherwise generate a new unique key based on link_id
           cded_key = custom_field_key || ensure_unique_key("#{cded_key_prefix}_#{item.link_id}", owner_type: owner_type)
 
@@ -166,16 +176,26 @@ module Hmis
       # If a CDED with the same key already exists, append a number to the key
       # to make it unique, up to a maximum of 50 attempts.
       def ensure_unique_key(key, owner_type:)
-        return key unless Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, key: key)
+        return key unless Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, key: key) || pending_cded_exists?(owner_type: owner_type, key: key)
 
         count = 1
         possible_key = key
-        while Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, key: possible_key)
+        while Hmis::Hud::CustomDataElementDefinition.exists?(owner_type: owner_type, key: possible_key) || pending_cded_exists?(owner_type: owner_type, key: possible_key)
           count += 1
           possible_key = "#{key}_#{count}"
           raise 'Unique key generation failed after 50 attempts' if count > 50
         end
         possible_key
+      end
+
+      # Check if a CDED with the given owner/key has already been created in this run
+      def pending_cded_exists?(owner_type:, key:)
+        @cdeds.any? { |cded| cded.owner_type == owner_type && cded.key == key }
+      end
+
+      # Find an in-memory CDED created earlier in this run for the given owner/key
+      def find_pending_cded(owner_type:, key:)
+        @cdeds.find { |cded| cded.owner_type == owner_type && cded.key == key }
       end
     end
   end
