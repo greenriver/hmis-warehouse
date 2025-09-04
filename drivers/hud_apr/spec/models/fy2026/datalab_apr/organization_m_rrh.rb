@@ -134,12 +134,6 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
-        skip: [
-          'B8', # expected '35.0000' (35), got '36.0000' (36)
-          'C8', # expected '5.0000' (5), got '6.0000' (6)
-          'B26', # expected '1.0000' (1), got '0.0000' (0)
-          'C26', # expected '1.0000' (1), got '0.0000' (0)
-        ],
       )
     end
 
@@ -301,13 +295,6 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
-        skip: [
-          'H2', # expected '35.0000' (35), got '36.0000' (36)
-          'I2', # expected '1.0000' (1), got '0.0000' (0)
-          'H4', # expected '37.4900' (37.4857), got '36.8300' (36.8333)
-          'I4', # expected '14.0000' (14.0000), got '0.0000' ()
-          'I5', # expected '14.0000' (14.0000), got '0.0000' ()
-        ],
       )
     end
 
@@ -316,12 +303,7 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
         skip: [
-          'H2', # expected '34.0000' (34), got '35.0000' (35)
-          'I2', # expected '1.0000' (1), got '0.0000' (0)
           'D3', # expected '0.0000' (0), got '2.0000' (2)
-          'H4', # expected '110.8200' (110.8235), got '108.8600' (108.8571)
-          'I4', # expected '42.0000' (42.0000), got '0.0000' ()
-          'I5', # expected '42.0000' (42.0000), got '0.0000' ()
         ],
       )
     end
@@ -344,12 +326,6 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
-        skip: [
-          'I5', # expected '7.0000' (7), got '8.0000' (8)
-          'J5', # expected '1.0000' (1), got '0.0000' (0)
-          'I7', # expected '7.0000' (7), got '8.0000' (8)
-          'J7', # expected '1.0000' (1), got '0.0000' (0)
-        ],
       )
     end
 

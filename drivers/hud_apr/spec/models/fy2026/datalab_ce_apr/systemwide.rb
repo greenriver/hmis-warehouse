@@ -12,7 +12,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
     before(:all) do
       puts
       puts 'Running CE APR SystemWide'
-      generator = HudApr::Generators::CeApr::Fy2024::Generator
+      generator = HudApr::Generators::CeApr::Fy2026::Generator
       project_ids = GrdaWarehouse::Hud::Project.all.pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end

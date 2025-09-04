@@ -20,6 +20,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         version: 'AutoMigrate',
         deidentified: true,
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -55,6 +56,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           version: 'AutoMigrate',
           deidentified: true,
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 

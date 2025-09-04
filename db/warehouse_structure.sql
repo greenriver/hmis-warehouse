@@ -24408,6 +24408,42 @@ ALTER SEQUENCE public.hmis_supplemental_field_values_id_seq OWNED BY public.hmis
 
 
 --
+-- Name: hmis_table_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_table_configurations (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    table_key character varying NOT NULL,
+    owner_type character varying,
+    owner_id bigint,
+    columns jsonb DEFAULT '[]'::jsonb NOT NULL,
+    filters jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_table_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_table_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_table_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_table_configurations_id_seq OWNED BY public.hmis_table_configurations.id;
+
+
+--
 -- Name: hmis_unit_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24420,7 +24456,8 @@ CREATE TABLE public.hmis_unit_groups (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     candidate_pool_id bigint,
-    ce_event_type integer
+    ce_event_type integer,
+    unit_type_id bigint
 );
 
 
@@ -36518,6 +36555,13 @@ ALTER TABLE ONLY public.hmis_supplemental_field_values ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: hmis_table_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_table_configurations ALTER COLUMN id SET DEFAULT nextval('public.hmis_table_configurations_id_seq'::regclass);
+
+
+--
 -- Name: hmis_unit_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -40987,6 +41031,14 @@ ALTER TABLE ONLY public.hmis_supplemental_data_sets
 
 ALTER TABLE ONLY public.hmis_supplemental_field_values
     ADD CONSTRAINT hmis_supplemental_field_values_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_table_configurations hmis_table_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_table_configurations
+    ADD CONSTRAINT hmis_table_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -66375,6 +66427,20 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public
 
 
 --
+-- Name: index_hmis_table_configurations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_table_configurations_on_data_source_id ON public.hmis_table_configurations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_table_configurations_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_table_configurations_on_owner ON public.hmis_table_configurations USING btree (owner_type, owner_id);
+
+
+--
 -- Name: index_hmis_unit_groups_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66386,6 +66452,13 @@ CREATE INDEX index_hmis_unit_groups_on_candidate_pool_id ON public.hmis_unit_gro
 --
 
 CREATE INDEX index_hmis_unit_groups_on_project_id ON public.hmis_unit_groups USING btree (project_id);
+
+
+--
+-- Name: index_hmis_unit_groups_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_unit_type_id ON public.hmis_unit_groups USING btree (unit_type_id);
 
 
 --
@@ -72325,6 +72398,20 @@ CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING
 
 
 --
+-- Name: uniq_hmis_table_configs_global; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_hmis_table_configs_global ON public.hmis_table_configurations USING btree (table_key, data_source_id) WHERE ((owner_type IS NULL) AND (owner_id IS NULL));
+
+
+--
+-- Name: uniq_hmis_table_configs_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_hmis_table_configs_owner ON public.hmis_table_configurations USING btree (table_key, owner_type, owner_id, data_source_id) WHERE ((owner_type IS NOT NULL) AND (owner_id IS NOT NULL));
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74603,6 +74690,14 @@ ALTER TABLE ONLY public.wfe_step_assignments
 
 
 --
+-- Name: hmis_unit_groups fk_rails_4af3f4cb4a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_4af3f4cb4a FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: wfd_swimlanes fk_rails_4de79171d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75345,9 +75440,11 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250828205652'),
 ('20250821194338'),
 ('20250821182429'),
 ('20250820220743'),
+('20250818183500'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
@@ -75549,3 +75646,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20230127151606');
+

@@ -15,10 +15,9 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
-  let!(:template) { create :hmis_workflow_definition_template, status: 'published' }
-  let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
-  let!(:unit) { create :hmis_unit, project: project, unit_type: unit_type }
-  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open) }
+  let!(:unit_group) { create(:hmis_unit_group, project: project) }
+  let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }
+  let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: 'open') }
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -35,6 +34,7 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
               latestOpportunity {
                 id
                 name
+                status
               }
             }
             #{error_fields}
@@ -54,19 +54,18 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
           message: message,
         )
         unit.reload
-      end.to not_change(Hmis::Ce::Opportunity, :count).from(1).
+      end.to not_change(opportunity, :status).from('open').
         and not_change(unit, :latest_opportunity)
     end
 
     context 'with valid input' do
-      it 'destroys the opportunity' do
+      it 'closes the opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity')).to be_nil
-          unit.reload
-        end.to change(Hmis::Ce::Opportunity, :count).from(1).to(0)
-        expect(unit.latest_opportunity).to be_nil
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity', 'status')).to eq('closed')
+          opportunity.reload
+        end.to change(opportunity, :status).from('open').to('closed')
       end
     end
 
@@ -95,25 +94,38 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
     end
 
     context 'when unit had an opportunity in the past that is now closed' do
-      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: :closed) }
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, created_at: 2.years.ago, status: 'closed') }
       let!(:referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, created_at: 2.years.ago, status: :accepted) }
 
-      it 'destroys the active opportunity and not the past opportunity' do
+      it 'closes the active opportunity' do
         expect do
           response, result = post_graphql(**variables) { mutation }
           expect(response.status).to eq(200), result.inspect
-          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity', 'id')).to eq(past_opportunity.id.to_s)
-          unit.reload
-        end.to change(Hmis::Ce::Opportunity, :count).from(2).to(1)
-        expect(unit.opportunities).to contain_exactly(past_opportunity)
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity', 'id')).to eq(opportunity.id.to_s)
+          opportunity.reload
+        end.to change(opportunity, :status).from('open').to('closed')
+      end
+    end
+
+    context 'when opportunity is active with a past rejected referral referral' do
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, created_at: 2.years.ago, status: :rejected) }
+
+      it 'closes the opportunity' do
+        expect do
+          response, result = post_graphql(**variables) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'latestOpportunity', 'status')).to eq('closed')
+          expect(result.dig('data', 'markUnitsUnavailable', 'units', 0, 'canBeMarkedAvailable')).to eq(true)
+          opportunity.reload
+        end.to change(opportunity, :status).from('open').to('closed')
       end
     end
 
     context 'when multiple units are being marked unavailable, and one of them fails' do
       let!(:units) do
         10.times.map do
-          unit = create(:hmis_unit, project: project, unit_type: unit_type)
-          create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: :open)
+          unit = create(:hmis_unit, project: project, unit_group: unit_group)
+          create(:hmis_ce_opportunity, unit: unit, project: project, data_source: ds1, status: 'open')
           unit
         end
       end
@@ -123,13 +135,13 @@ RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
       end
 
       before(:each) do
-        allow_any_instance_of(Hmis::Ce::Opportunity).to receive(:destroy!) do |opportunity|
+        allow_any_instance_of(Hmis::Ce::Opportunity).to receive(:close!) do |opportunity|
           # Simulate failure for just one specific opportunity (to prove that it rolls back all of the changes).
           # Set this inside a block instead of using `allow(specific_instance)` because the instances are all reloaded within the mutation
           raise RuntimeError if opportunity.id.to_s == units.last.latest_opportunity.id.to_s
 
-          allow(opportunity).to receive(:destroy!).and_call_original
-          opportunity.destroy!
+          allow(opportunity).to receive(:close!).and_call_original
+          opportunity.close!
         end
       end
 

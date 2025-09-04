@@ -278,7 +278,7 @@ module HudApr::Generators::Shared::Fy2026
             developmental_disability_latest: disabilities_latest.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability: disabilities.detect(&:developmental?).present?,
             disabling_condition: enrollment.DisablingCondition,
-            dob_quality: source_client.DOBDataQuality,
+            dob_quality: dob_quality(source_client),
             dob: source_client.DOB,
             client_created_at: source_client.DateCreated || source_client.DateUpdated || DateTime.current,
             domestic_violence: health_and_dv&.DomesticViolenceSurvivor,
@@ -498,6 +498,16 @@ module HudApr::Generators::Shared::Fy2026
           report_ce_event_universe.import(events)
         end
       end
+    end
+
+    private def dob_quality(source_client)
+      # Full or partial
+      return source_client.DOBDataQuality if source_client.DOB.present? && source_client.DOBDataQuality.in?([1, 2])
+      # Doesn't know, prefers not to answer, or not collected
+      return source_client.DOBDataQuality if source_client.DOB.blank? && source_client.DOBDataQuality.in?([8, 9, 99])
+
+      # We're in a weird state
+      99
     end
 
     private def apr_clients_populated?

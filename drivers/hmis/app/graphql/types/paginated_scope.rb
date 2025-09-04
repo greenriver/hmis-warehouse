@@ -4,14 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Types
   class PaginatedScope
     attr_reader :offset, :limit
 
-    def initialize(all_nodes, offset: 0, limit: 50)
+    def initialize(all_nodes, offset: 0, limit: 50, nodes_count_proc: nil)
       @all_nodes = all_nodes
       @offset = offset
       @limit = limit
+      @nodes_count_proc = nodes_count_proc
     end
 
     def nodes
@@ -19,7 +22,11 @@ module Types
     end
 
     def nodes_count
-      @all_nodes.count
+      if @nodes_count_proc
+        @nodes_count_proc.call(@all_nodes)
+      else
+        @all_nodes.count
+      end
     end
 
     def pages_count
