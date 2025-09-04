@@ -45,7 +45,7 @@ module Hmis::Ce::Match
       # Pool is active if there are any active Opportunities that reference it
       active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
       # Pool is active if there are any UnitGroups that reference it
-      active_ids_for_unit_groups = Hmis::UnitGroup.pluck(:candidate_pool_id).compact.uniq
+      active_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.pluck(:candidate_pool_id).compact.uniq
 
       where(id: active_ids_for_opportunities + active_ids_for_unit_groups)
     }
@@ -55,7 +55,7 @@ module Hmis::Ce::Match
     #
     # Note this could be expanded to allow deleting additional pools if needed, including:
     # 1) Pools that are exclusively tied to closed opportunities. (Would require modification to opportunities relation :restrict_with_exception).
-    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_waitlist_ce_referrals_enabled)
+    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_ce_waitlists_enabled)
     scope :orphaned, -> {
       referenced_ids = [
         ::Hmis::Ce::Opportunity,
@@ -75,7 +75,7 @@ module Hmis::Ce::Match
     end
 
     def active?
-      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.exists?(candidate_pool_id: id)
+      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.with_ce_waitlists_enabled.exists?(candidate_pool_id: id)
     end
 
     def warehouse_clients

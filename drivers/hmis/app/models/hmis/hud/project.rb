@@ -160,7 +160,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
-  scope :with_waitlist_ce_referrals_enabled, -> do
+  scope :with_ce_waitlists_enabled, -> do
     configs = Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?)
 
     conditions = [

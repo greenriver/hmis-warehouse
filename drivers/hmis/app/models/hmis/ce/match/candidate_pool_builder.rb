@@ -32,7 +32,7 @@ module Hmis::Ce::Match
     def self.call(...) = new.call(...)
 
     def call(unit_group_ids: nil, force_reprocessing: false)
-      unit_group_scope = Hmis::UnitGroup.joins(:project).merge(Hmis::Hud::Project.with_waitlist_ce_referrals_enabled)
+      unit_group_scope = Hmis::UnitGroup.with_ce_waitlists_enabled
       unit_group_scope = unit_group_scope.where(id: unit_group_ids) if unit_group_ids
 
       created_pool_ids, updated_unit_group_count = upsert_unit_group_pools!(unit_group_scope)
