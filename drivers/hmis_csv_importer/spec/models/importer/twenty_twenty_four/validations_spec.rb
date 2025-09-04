@@ -98,9 +98,9 @@ RSpec.describe 'Validate import files', type: :model do
     expect(GrdaWarehouse::Hud::Client.where(PersonalID: 'FAILURE').count).to eq(1)
   end
 
-  it 'excludes expected client failures' do
+  it 'includes expected client load errors' do
     aggregate_failures 'validating' do
-      expect(HmisCsvValidation::NonBlank.where("source_type LIKE '%Client'").where(validated_column: 'PersonalID').count).to eq(1)
+      expect(HmisCsvImporter::Loader::LoadError.where(file_name: 'Client.csv').where(message: 'Primary key is blank').count).to eq(1)
       expect(GrdaWarehouse::Hud::Client.where(FirstName: 'MISSING_P_ID').count).to eq(0)
     end
   end
@@ -311,13 +311,13 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected organizations failures' do
-    expect(HmisCsvImporter::HmisCsvValidation::NonBlank.where("source_type LIKE '%Organization'").count).to eq(1)
+    expect(HmisCsvImporter::Loader::LoadError.where(file_name: 'Organization.csv').where(message: 'Primary key is blank').count).to eq(1)
   end
 
   it 'includes expected organizations validations' do
     aggregate_failures 'validating' do
       expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%Organization'").count).to eq(1)
-      expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%Organization'").count).to eq(2)
+      expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%Organization'").count).to eq(1)
     end
   end
 
@@ -392,7 +392,7 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected users failures' do
-    expect(HmisCsvImporter::HmisCsvValidation::NonBlank.where("source_type LIKE '%User'").count).to eq(1)
+    expect(HmisCsvImporter::Loader::LoadError.where(file_name: 'User.csv').where(message: 'Primary key is blank').count).to eq(1)
   end
 
   it 'excludes expected users failures' do

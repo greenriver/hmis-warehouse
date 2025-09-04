@@ -30,7 +30,8 @@
 .well
   .row
     .col-sm-3
-      = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
+      - version_custom_files = ::Filters::HmisExport.options_for_version.to_h { |label, value| [value, ::Filters::HmisExport.new(version: value).available_custom_file_types] }
+      = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two, input_html: { data: { 'custom-file-exports-target': 'version', 'custom-files': version_custom_files.to_json, placeholder: 'Choose custom files' }}
     .col-sm-3
       = f.input :source_type, collection: ::Filters::HmisExport.available_source_types, include_blank: false, as: :select_two
     .col-sm-3
@@ -51,6 +52,16 @@
     - if can_export_anonymous_hmis_data?
       .col-sm-4
         .pt-no-label= f.input :faked_pii, as: :pretty_boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
+  - if include_custom_files
+    .row
+      .col-sm-12
+        .custom-files-section{ data: { 'custom-file-exports-target': 'section' }}
+          %h3.custom-files-section Custom Files
+          .well
+            .row
+              .col-sm-12
+                - selected = @filter.custom_file_types
+                = f.input :custom_file_types, collection: [], as: :select_two, input_html: { multiple: true, placeholder: 'Choose custom files to include', data: { 'custom-file-exports-target': 'select', 'selected-custom-files': selected.to_json }}, label: 'Custom File Types', hint: 'Select which custom file types to include in your export alongside the standard HMIS CSV files.'
   .row
     .col-sm-12
       %h4 Notes About Choices
