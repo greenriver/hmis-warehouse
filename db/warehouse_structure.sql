@@ -662,6 +662,38 @@ CREATE VIEW analytics.cas_referral_contacts AS
 
 
 --
+-- Name: cas_analytics_referral_timeline_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_referral_timeline_events (
+    id bigint NOT NULL,
+    referral_id bigint,
+    contact_id bigint,
+    name character varying NOT NULL,
+    event_date date NOT NULL,
+    step character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_referral_timeline_events; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_referral_timeline_events AS
+ SELECT id,
+    name,
+    event_date,
+    step,
+    referral_id,
+    contact_id,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_referral_timeline_events;
+
+
+--
 -- Name: cas_analytics_referral_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6360,6 +6392,25 @@ CREATE SEQUENCE public.cas_analytics_referral_contacts_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_referral_contacts_id_seq OWNED BY public.cas_analytics_referral_contacts.id;
+
+
+--
+-- Name: cas_analytics_referral_timeline_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_referral_timeline_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_referral_timeline_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_referral_timeline_events_id_seq OWNED BY public.cas_analytics_referral_timeline_events.id;
 
 
 --
@@ -34049,6 +34100,13 @@ ALTER TABLE ONLY public.cas_analytics_referral_contacts ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: cas_analytics_referral_timeline_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_timeline_events ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_timeline_events_id_seq'::regclass);
+
+
+--
 -- Name: cas_analytics_referral_users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -38158,6 +38216,14 @@ ALTER TABLE ONLY public.cas_analytics_opportunity_categories
 
 ALTER TABLE ONLY public.cas_analytics_referral_contacts
     ADD CONSTRAINT cas_analytics_referral_contacts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_referral_timeline_events cas_analytics_referral_timeline_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_timeline_events
+    ADD CONSTRAINT cas_analytics_referral_timeline_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -75511,6 +75577,8 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250904184751'),
+('20250904183709'),
 ('20250904181252'),
 ('20250904175920'),
 ('20250904130155'),
