@@ -11,7 +11,7 @@
       %h2.mb-4= Translation.translate('Open Path ROI')
 
 
-      .d-flex.align-items-start
+      .d-flex
         .mr-4
           %table.table{style: 'width: 6in;'}
             %tbody
@@ -37,11 +37,8 @@
                     __ / __ / ____
                 %th SSN:
                 %td= masked_ssn(@client.SSN)
-        .ml-auto
-          - logo = GrdaWarehouse::Theme.print_logo
-          - if logo.attached?
-            - content_type = logo.blob.content_type
-            = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_print_logo}", class: :seal, width: 250)
+        .ml-auto.mb-4{style: 'max-width: 2in; max-height: 2in;'}
+          = render 'layouts/print_seal'
 
       = simple_format(Translation.translate('Open Path ROI content'))
 
@@ -69,7 +66,7 @@
             %td
     .landscape
       .d-flex
-        .ml-auto.mb-4
+        .ml-auto.mb-4{style: 'max-width: 2.5in; max-height: 2.5in;'}
           = render 'layouts/print_seal'
       .row
         .col-12
