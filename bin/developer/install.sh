@@ -145,18 +145,21 @@ echo -e "${GREEN}Step 1/5: Installing prerequisites...${NC}"
 echo "Reloading shell environment..."
 
 # Source common shell profile files to pick up any changes
-source ~/.zshrc 2>/dev/null || true
-
+(source ~/.zshrc 2>/dev/null) || true
 
 # Ensure Homebrew is in PATH based on architecture
 if [[ $(uname -m) == "arm64" ]]; then
     # Apple Silicon Mac - add Homebrew to PATH
     export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+    if [ -x "/opt/homebrew/bin/brew" ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)" || true
+    fi
 else
     # Intel Mac - add Homebrew to PATH
     export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
-    eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null || true
+    if [ -x "/usr/local/bin/brew" ]; then
+        eval "$(/usr/local/bin/brew shellenv 2>/dev/null)" || true
+    fi
 fi
 
 # Verify key tools are now available
