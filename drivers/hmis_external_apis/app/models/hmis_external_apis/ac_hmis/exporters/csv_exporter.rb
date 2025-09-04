@@ -17,8 +17,8 @@ module HmisExternalApis::AcHmis::Exporters::CsvExporter
       self.output = output
     end
 
-    # Input: Hmis::User record
-    # Output: `id` from `User` table, which matches exported User.csv file
+    # Input: `Hmis::User` record (representing an application user in the `users` table)
+    # Output: `id` of `Hmis::Hud::User` record from the `User` table, which matches exported User.csv file
     def to_hud_user_pk(app_user)
       @application_user_to_hud_user ||= {}
 
@@ -26,7 +26,7 @@ module HmisExternalApis::AcHmis::Exporters::CsvExporter
 
       return @application_user_to_hud_user[app_user.id] if @application_user_to_hud_user.key?(app_user.id)
 
-      # Find or Hmis Hud User record if one exists
+      # Find or Hmis Hud User record if one exists. Don't use User.from_user because we don't want to create a new user, just find existing one
       hud_user_id = Hmis::Hud::User.where(
         user_email: app_user.email.downcase,
         data_source_id: data_source.id,

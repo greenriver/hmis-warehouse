@@ -22,6 +22,9 @@ module HmisExternalApis::AcHmis::Exporters
       referrals.find_each.with_index do |referral, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
         warehouse_id = referral.client.warehouse_id
+        # Skip if no destination client, because receiver will be unable to import this without a client id.
+        # This could occur if a new client was created and directly referred and exported _before_ IdentifyDuplicates
+        # had a chance to create the Destination client (unlikely, but possible)
         next unless warehouse_id.present?
 
         unit = referral.opportunity.unit

@@ -23,7 +23,7 @@ module HmisExternalApis::AcHmis::Exporters
         referral_id = instance_id_to_referral_id[task.instance_id]
         raise "Referral not found for instance id '#{task.instance_id}'" unless referral_id
 
-        completed_by_hud_user_pk = to_hud_user_pk(task.updated_by) if task.updated_by
+        updated_by_hud_user_pk = to_hud_user_pk(task.updated_by) if task.updated_by
 
         values = [
           task.id,                # TaskID
@@ -34,7 +34,7 @@ module HmisExternalApis::AcHmis::Exporters
           task.status,            # Status
           task.available_at,      # AvailableAt
           task.completed_at,      # CompletedAt
-          completed_by_hud_user_pk, # UpdatedByUserID (maps to User.csv)
+          updated_by_hud_user_pk, # UpdatedByUserID (maps to User.csv)
         ]
         write_row(values)
       end
