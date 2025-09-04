@@ -145,7 +145,7 @@ echo -e "${GREEN}Step 1/5: Installing prerequisites...${NC}"
 echo "Reloading shell environment..."
 
 # Source common shell profile files to pick up any changes
-source ~/.zprofile 2>/dev/null || true
+source ~/.zshrc 2>/dev/null || true
 
 
 # Ensure Homebrew is in PATH based on architecture
@@ -237,7 +237,7 @@ echo "  • Restart mailhog: cd $MAILHOG_PATH && docker compose restart"
 echo ""
 echo -e "${YELLOW}💡 Next steps:${NC}"
 echo "  1. Reload your shell environment to activate direnv:"
-echo "     source ~/.zprofile  # (or restart your terminal)"
+echo "     source ~/.zshrc  # (or restart your terminal)"
 echo "  2. Start the application with the command above"
 echo "  3. Visit https://hmis-warehouse.$DOMAIN to access the application"
 echo "  4. Check https://mailhog.$DOMAIN to see development emails"
