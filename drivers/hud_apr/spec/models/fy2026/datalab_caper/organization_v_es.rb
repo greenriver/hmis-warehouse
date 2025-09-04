@@ -276,7 +276,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    it 'Q22g' do
+    xit 'Q22g' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
@@ -301,7 +301,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    it 'Q23e' do
+    xit 'Q23e' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
