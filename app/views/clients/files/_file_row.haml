@@ -1,6 +1,6 @@
 - details_visible = file.confidential == false || file.id.in?(@visible_confidential_ids)
 - if details_visible
-  .well{ class: "client-file-#{file.id}"}
+  .well{ class: "client-file-#{file.id}" }
     .row
       .col-8
         %h3.d-flex
@@ -103,7 +103,7 @@
                 %dt Expiration Date
                 %dd= file.expiration_date
 - else
-  .well{ class: "client-file-#{file.id}"}
+  .well{ class: "client-file-#{file.id}" }
     .row
       .col-8
         %h3.d-flex
