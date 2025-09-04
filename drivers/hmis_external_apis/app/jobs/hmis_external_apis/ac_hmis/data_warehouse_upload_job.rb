@@ -46,6 +46,52 @@ module HmisExternalApis::AcHmis
       Rails.logger.fatal e.message
     end
 
+    def one_time_training_env_export_20250904
+      enrollment_ids = Hmis::Hud::Enrollment.where(id: [200819, 200804, 200850, 200802, 200710, 200866, 200867, 200872])
+      enrollments = Hmis::Hud::Enrollment.where(id: enrollment_ids)
+
+      form_identifier = 'housing_needs_assessment_2_0_individuals'
+      fdt = Hmis::Form::Definition.arel_table
+      custom_assessment_ids = Hmis::Hud::CustomAssessment.
+        joins(:form_processor).joins(form_processor: :definition).
+        where(enrollment: enrollments).
+        where(fdt['identifier'].eq(form_identifier)).
+        where(date_created: Date.new(2025, 9, 3).beginning_of_day..Date.new(2025, 9, 3).end_of_day).
+        pluck(:id)
+
+      weighted_link_ids = Hmis::Scoring::Rule.pluck(:link_id).to_set
+      form = Hmis::Form::Definition.published.find_by(identifier: form_identifier)
+      keys_to_include = form.link_id_item_hash.map do |id, item|
+        next unless weighted_link_ids.include?(id)
+
+        item.mapping.custom_field_key
+      end.compact.to_set
+
+      cded_export = HmisExternalApis::AcHmis::Exporters::CdedExport.new(included_keys: keys_to_include)
+      cded_export.run!
+      File.open('CustomFieldDefinitions.csv', 'w') do |file|
+        file.write(cded_export.output.string)
+      end
+
+      cde_export = HmisExternalApis::AcHmis::Exporters::CdeExport.new(included_keys: keys_to_include, included_assessment_ids: custom_assessment_ids)
+      cde_export.run!
+      File.open('CustomFieldValues.csv', 'w') do |file|
+        file.write(cde_export.output.string)
+      end
+
+      custom_assessment_export = HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport.new(included_assessment_ids: custom_assessment_ids)
+      custom_assessment_export.run!
+      File.open('CustomAssessments.csv', 'w') do |file|
+        file.write(custom_assessment_export.output.string)
+      end
+
+      alt_aha_calculation_log_export = HmisExternalApis::AcHmis::Exporters::AltAhaCalculationLogExport.new(included_enrollment_ids: enrollment_ids)
+      alt_aha_calculation_log_export.run!
+      File.open('AltAhaCalculationLogs.csv', 'w') do |file|
+        file.write(alt_aha_calculation_log_export.output.string)
+      end
+    end
+
     private
 
     def log(message, exception: nil)

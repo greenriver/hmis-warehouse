@@ -10,6 +10,12 @@ module HmisExternalApis::AcHmis::Exporters
   class CustomAssessmentExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
 
+    def initialize(output: StringIO.new, included_assessment_ids: nil)
+      require 'csv'
+      self.output = output
+      @included_assessment_ids = included_assessment_ids
+    end
+
     def run!
       Rails.logger.info 'Generating content of custom assessment export'
 
@@ -61,7 +67,7 @@ module HmisExternalApis::AcHmis::Exporters
     private
 
     def custom_assessments
-      Hmis::Hud::CustomAssessment.where(data_source: data_source).not_in_progress.
+      scope = Hmis::Hud::CustomAssessment.where(data_source: data_source).not_in_progress.
         with_role(:CUSTOM_ASSESSMENT).
         joins(:enrollment).
         merge(Hmis::Hud::Enrollment.not_in_progress). # drop WIP Enrollments, which won't be present in Enrollment.csv export
@@ -72,6 +78,10 @@ module HmisExternalApis::AcHmis::Exporters
           client: :warehouse_client_source, # to get destination id
         ).
         distinct
+
+      scope = scope.where(id: @included_assessment_ids) if @included_assessment_ids
+
+      scope
     end
   end
 end

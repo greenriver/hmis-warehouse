@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -9,8 +11,15 @@ module HmisExternalApis::AcHmis::Exporters
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
     include ::Hmis::Concerns::HmisArelHelper
 
-    UNIT_TYPE_KEY = 'unit_type'.freeze
-    AUTO_EXIT_KEY = 'auto_exit'.freeze
+    def initialize(output: StringIO.new, included_keys: nil, included_assessment_ids: nil)
+      require 'csv'
+      self.output = output
+      @included_keys = included_keys
+      @included_assessment_ids = included_assessment_ids
+    end
+
+    UNIT_TYPE_KEY = 'unit_type'
+    AUTO_EXIT_KEY = 'auto_exit'
 
     def run!
       Rails.logger.info 'Generating CDE report'
@@ -39,9 +48,9 @@ module HmisExternalApis::AcHmis::Exporters
       end
 
       # Include Unit Type assignment for all Enrollments at Walk-in projects
-      write_unit_occupancies
+      write_unit_occupancies unless @included_keys
       # Include Auto Exit flag for auto-exited Enrollments
-      write_auto_exits
+      write_auto_exits unless @included_keys
     end
 
     private
@@ -59,13 +68,25 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     def cdes
-      @cdes ||= Hmis::Hud::CustomDataElement.
+      return @cdes if @cdes
+
+      scope = Hmis::Hud::CustomDataElement.
         where(data_source: data_source).
         joins(:data_element_definition).
+        preload(:data_element_definition)
+
+      if @included_keys
+        scope = scope.where(data_element_definition: { key: @included_keys })
+      else
         # Exclude some Custom Data Elements that are exported in other files. It would be simpler to
         # just export them here, but customer prefers to keep dedicated file (which was added first).
-        where.not(data_element_definition: { key: HmisExternalApis::AcHmis::Exporters::CdedExport::EXCLUDED_CUSTOM_DATA_ELEMENT_KEYS }).
-        preload(:data_element_definition)
+        scope = scope.where.not(data_element_definition: { key: HmisExternalApis::AcHmis::Exporters::CdedExport::EXCLUDED_CUSTOM_DATA_ELEMENT_KEYS })
+      end
+
+      scope = scope.where(owner_id: @included_assessment_ids, owner_type: 'Hmis::Hud::CustomAssessment') if @included_assessment_ids
+
+      @cdes = scope
+      @cdes
     end
 
     def walk_in_cded

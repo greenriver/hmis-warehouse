@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,6 +9,12 @@
 module HmisExternalApis::AcHmis::Exporters
   class CdedExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
+
+    def initialize(output: StringIO.new, included_keys: nil)
+      require 'csv'
+      self.output = output
+      @included_keys = included_keys
+    end
 
     EXCLUDED_CUSTOM_DATA_ELEMENT_KEYS = [
       'client_pathway_1',
@@ -48,8 +56,17 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     def cdeds
-      @cdeds ||= Hmis::Hud::CustomDataElementDefinition.where(data_source: data_source).
-        where.not(key: EXCLUDED_CUSTOM_DATA_ELEMENT_KEYS)
+      return @cdeds if @cdeds
+
+      base_scope = Hmis::Hud::CustomDataElementDefinition.where(data_source: data_source)
+
+      if @included_keys
+        @cdeds = base_scope.where(key: @included_keys)
+      else
+        @cdeds = base_scope.where.not(key: EXCLUDED_CUSTOM_DATA_ELEMENT_KEYS)
+      end
+
+      @cdeds
     end
   end
 end
