@@ -50,10 +50,12 @@ module Hmis::Ce::Match
       where(id: active_ids_for_opportunities + active_ids_for_unit_groups)
     }
 
-    # orphan pools can be safely deleted after a period if inactivity
+    # orphan pools can be safely deleted after a period if inactivity.
+    # currently we consider a pool orphaned if it is not tied to any opportunities or unit groups.
     #
-    # Note: this could be expanded to allow deleting pools that are exclusively tied to closed opportunities,
-    # if this table gets too large. (Would require modification to opportunities relation :restrict_with_exception).
+    # Note this could be expanded to allow deleting additional pools if needed, including:
+    # 1) Pools that are exclusively tied to closed opportunities. (Would require modification to opportunities relation :restrict_with_exception).
+    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_waitlist_ce_referrals_enabled)
     scope :orphaned, -> {
       referenced_ids = [
         ::Hmis::Ce::Opportunity,
