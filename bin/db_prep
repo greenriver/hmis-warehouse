@@ -50,7 +50,6 @@ def db(db_section)
   payload
 end
 
-# system("alias psql='psql --single-transaction' && bundle exec rails db:schema:load:primary")
 def run_or_exit(cmd)
   return if system("alias psql='psql --single-transaction' && #{cmd}")
 
