@@ -72,6 +72,9 @@ module HmisExternalApis::AcHmis
         'custom_fields_export',
         'pathways_export',
         'case_note_export',
+        # 'ce_referrals',
+        # 'ce_referral_tasks',
+        # 'custom_assessments',
       ].freeze
     end
 
@@ -229,6 +232,66 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'CaseNotes.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def ce_referrals
+      export = HmisExternalApis::AcHmis::Exporters::CeReferralExport.new
+      export.run!
+      # File.open('CeReferrals.csv', 'w') do |file|
+      #   file.write(export.output.string)
+      # end
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-ce-referrals.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CeReferrals.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def ce_referral_tasks
+      export = HmisExternalApis::AcHmis::Exporters::CeReferralTaskExport.new
+      export.run!
+      # File.open('CeReferralTasks.csv', 'w') do |file|
+      #   file.write(export.output.string)
+      # end
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-ce-referral-tasks.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CeReferralTasks.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def custom_assessments_export
+      export = HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport.new
+      export.run!
+
+      # File.open('CustomAssessments.csv', 'w') do |file|
+      #   file.write(export.output.string)
+      # end
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-custom-assessments.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CustomAssessments.csv',
             io: export.output,
           ),
         ],
