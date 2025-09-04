@@ -307,6 +307,17 @@ module HudApr::Generators::Shared::Fy2026
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,
             income_date_at_start: income_at_start&.InformationDate,
+
+            # Income from any source needs to be present in both a "cleaned" form and a "raw" form
+            # The cleaned form ensures alignment between IncomeFromAnySource and the calculated TotalMonthlyIncome
+            # as noted in the HMIS Glossary under the Determining Total and Earned Income section
+
+            # raw
+            income_from_any_source_at_annual_assessment_raw: income_at_annual_assessment&.IncomeFromAnySource,
+            income_from_any_source_at_exit_raw: income_at_exit&.IncomeFromAnySource,
+            income_from_any_source_at_start_raw: income_at_start&.IncomeFromAnySource,
+
+            # cleaned
             income_from_any_source_at_annual_assessment: income_at_annual_assessment&.hud_income_from_any_source,
             income_from_any_source_at_exit: income_at_exit&.hud_income_from_any_source,
             income_from_any_source_at_start: income_at_start&.hud_income_from_any_source,

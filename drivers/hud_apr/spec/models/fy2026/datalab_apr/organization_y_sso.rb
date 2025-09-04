@@ -45,7 +45,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    xit 'Q6c' do # Skipped until we have a new text kit
+    it 'Q6c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
