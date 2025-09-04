@@ -11,7 +11,7 @@ module Mutations
     description 'Calculate client eligibility based on provided assessment values and return applicable project types'
 
     argument :enrollment_id, ID, required: true
-    argument :form_definition_identifier, String, required: true # todo @martha - use actual form definition ID, not just identifier?
+    argument :form_definition_identifier, String, required: true
     argument :values_by_link_id, Types::JsonObject, required: true
 
     field :project_types, [Types::HmisSchema::Enums::ProjectType], null: false

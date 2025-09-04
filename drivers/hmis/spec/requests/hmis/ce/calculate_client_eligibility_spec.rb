@@ -74,11 +74,11 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
     context 'when client has missing values' do
       let!(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1, dob: nil }
 
-      it 'does not raise' do # todo @martha - fix this test
+      it 'does not raise' do
         response, result = post_graphql(
           enrollmentId: enrollment.id,
           formDefinitionIdentifier: form_definition.identifier,
-          valuesByLinkId: { 'veteran_q' => 0 },
+          valuesByLinkId: { 'veteran_q' => 1 },
         ) { mutation }
 
         expect(response.status).to eq(200), result.inspect
