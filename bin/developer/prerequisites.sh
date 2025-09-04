@@ -19,19 +19,41 @@ docker_desktop_installed() {
     [ -d "/Applications/Docker.app" ] || [ -d "$HOME/Applications/Docker.app" ]
 }
 
+# Function to configure direnv shell integration
+configure_direnv_shell_integration() {
+    echo "Configuring direnv shell integration..."
+    if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zshrc 2>/dev/null; then
+        echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+        echo "Added direnv hook to ~/.zshrc ✓"
+    else
+        echo "direnv hook already configured in ~/.zshrc ✓"
+    fi
+
+}
+
+# Function to configure Homebrew shell environment for Apple Silicon
+configure_homebrew_shell_env() {
+    if [[ $(uname -m) == "arm64" ]]; then
+        if ! grep -q 'eval "$(/opt/homebrew/bin/brew shellenv)"' ~/.zshrc 2>/dev/null; then
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+            echo "Added Homebrew shell environment to ~/.zshrc ✓"
+        else
+            echo "Homebrew shell environment already configured in ~/.zshrc ✓"
+        fi
+        eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+    fi
+}
+
 # 1. Install Homebrew if not installed
 if ! command_exists brew; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-    # Add Homebrew to PATH for Apple Silicon Macs
-    if [[ $(uname -m) == "arm64" ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    fi
 else
     echo "Homebrew already installed ✓"
 fi
+
+# Configure Homebrew shell environment (regardless of whether it was just installed)
+configure_homebrew_shell_env
 
 # 2. Install packages based on Docker Desktop presence
 COLIMA_INSTALLED=false
@@ -41,30 +63,12 @@ if docker_desktop_installed; then
     if ! brew_package_installed direnv; then
         brew install direnv
         echo "direnv installed ✓"
-
-        # Add direnv hook to shell profile
-        echo "Configuring direnv shell integration..."
-        SHELL_NAME=$(basename "$SHELL")
-        case "$SHELL_NAME" in
-            zsh)
-                if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zshrc 2>/dev/null; then
-                    echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
-                    echo "Added direnv hook to ~/.zshrc ✓"
-                fi
-                ;;
-            bash)
-                if ! grep -q 'eval "$(direnv hook bash)"' ~/.bashrc 2>/dev/null; then
-                    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
-                    echo "Added direnv hook to ~/.bashrc ✓"
-                fi
-                ;;
-            *)
-                echo "⚠️  Unknown shell: $SHELL_NAME. Please manually add 'eval \"\$(direnv hook $SHELL_NAME)\"' to your shell profile."
-                ;;
-        esac
     else
         echo "direnv already installed ✓"
     fi
+
+    # Configure direnv shell integration (regardless of whether it was just installed)
+    configure_direnv_shell_integration
 else
     echo "Docker Desktop not detected. Installing lima, colima, docker, docker-compose, and direnv..."
 
@@ -108,29 +112,11 @@ else
         echo "Installing: ${PACKAGES_TO_INSTALL[*]}"
         brew install "${PACKAGES_TO_INSTALL[@]}"
         echo "Packages installed ✓"
+    fi
 
-        # Configure direnv shell integration if it was just installed
-        if [ "$DIRENV_TO_INSTALL" = true ]; then
-            echo "Configuring direnv shell integration..."
-            SHELL_NAME=$(basename "$SHELL")
-            case "$SHELL_NAME" in
-                zsh)
-                    if ! grep -q 'eval "$(direnv hook zsh)"' ~/.zshrc 2>/dev/null; then
-                        echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
-                        echo "Added direnv hook to ~/.zshrc ✓"
-                    fi
-                    ;;
-                bash)
-                    if ! grep -q 'eval "$(direnv hook bash)"' ~/.bashrc 2>/dev/null; then
-                        echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
-                        echo "Added direnv hook to ~/.bashrc ✓"
-                    fi
-                    ;;
-                *)
-                    echo "⚠️  Unknown shell: $SHELL_NAME. Please manually add 'eval \"\$(direnv hook $SHELL_NAME)\"' to your shell profile."
-                    ;;
-            esac
-        fi
+    # Configure direnv shell integration (regardless of whether it was just installed)
+    if [ "$DIRENV_TO_INSTALL" = true ] || brew_package_installed direnv; then
+        configure_direnv_shell_integration
     fi
 fi
 
