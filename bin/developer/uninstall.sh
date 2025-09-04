@@ -238,11 +238,11 @@ if confirm_step "Step 2/5: Clean up DNS configuration" "This will stop dnsmasq, 
         DNSMASQ_ADDRESS_LINE="address=/.$DOMAIN/127.0.0.1"
 
         if [ -f "$DNSMASQ_CONF" ]; then
-            # Check if our specific domain configuration exists
-            if grep -q "^$DNSMASQ_ADDRESS_LINE" "$DNSMASQ_CONF"; then
+            # Check if our specific domain configuration exists (flexible pattern matching)
+            if grep -q "address=/\\.$DOMAIN/" "$DNSMASQ_CONF"; then
                 echo "Removing dnsmasq configuration for $DOMAIN..."
-                # Use grep -v to remove the line instead of sed with regex
-                sudo grep -v "^$DNSMASQ_ADDRESS_LINE$" "$DNSMASQ_CONF" > "/tmp/dnsmasq.conf.tmp" && sudo mv "/tmp/dnsmasq.conf.tmp" "$DNSMASQ_CONF"
+                # Use grep -v to remove the line, escaping the dots in the domain
+                sudo grep -v "address=/\\.$DOMAIN/" "$DNSMASQ_CONF" > "/tmp/dnsmasq.conf.tmp" && sudo mv "/tmp/dnsmasq.conf.tmp" "$DNSMASQ_CONF"
             else
                 echo "  dnsmasq configuration for $DOMAIN not found"
             fi
