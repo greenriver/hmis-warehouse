@@ -67,7 +67,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       adults_and_hohs = universe_members.where(adult_or_hoh_clause)
       # income at start
       answer = @report.answer(question: table_name, cell: 'B3')
-      members = adults_and_hohs.where(a_t[:income_from_any_source_at_start].in([8, 9]))
+      members = adults_and_hohs.where(a_t[:income_from_any_source_at_start_raw].in([8, 9]))
       answer.add_members(members)
       answer.update(summary: members.count)
 
@@ -75,18 +75,18 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       members = adults_and_hohs.where(
         a_t[:income_date_at_start].eq(nil).
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
-          or(a_t[:income_from_any_source_at_start].in([99])).
-          or(a_t[:income_from_any_source_at_start].eq(nil)),
+          or(a_t[:income_from_any_source_at_start_raw].in([99])).
+          or(a_t[:income_from_any_source_at_start_raw].eq(nil)),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'D3')
       members = adults_and_hohs.where(
-        a_t[:income_from_any_source_at_start].eq(0). # any says no, but there is a source
+        a_t[:income_from_any_source_at_start_raw].eq(0). # any says no, but there is a source
           and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql)).
         or(
-          a_t[:income_from_any_source_at_start].eq(1). # any says yes, but no sources
+          a_t[:income_from_any_source_at_start_raw].eq(1). # any says yes, but no sources
             and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true)),
         ),
       )
@@ -97,11 +97,11 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       members = adults_and_hohs.where(
         a_t[:income_date_at_start].eq(nil).
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
-          or(a_t[:income_from_any_source_at_start].in([8, 9, 99])).
-          or(a_t[:income_from_any_source_at_start].eq(nil)).
-          or(a_t[:income_from_any_source_at_start].eq(0). # any says no, but there is a source
+          or(a_t[:income_from_any_source_at_start_raw].in([8, 9, 99])).
+          or(a_t[:income_from_any_source_at_start_raw].eq(nil)).
+          or(a_t[:income_from_any_source_at_start_raw].eq(0). # any says no, but there is a source
             and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
-          or(a_t[:income_from_any_source_at_start].eq(1). # any says yes, but no sources
+          or(a_t[:income_from_any_source_at_start_raw].eq(1). # any says yes, but no sources
             and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true))),
       )
       answer.add_members(members)
@@ -117,7 +117,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       )
 
       answer = @report.answer(question: table_name, cell: 'B4')
-      members = stayers_with_anniversary.where(a_t[:income_from_any_source_at_annual_assessment].in([8, 9]))
+      members = stayers_with_anniversary.where(a_t[:income_from_any_source_at_annual_assessment_raw].in([8, 9]))
       answer.add_members(members)
       answer.update(summary: members.count)
 
@@ -125,18 +125,18 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       members = stayers_with_anniversary.where(
         a_t[:income_date_at_annual_assessment].eq(nil).
           or(a_t[:annual_assessment_in_window].eq(false)).
-          or(a_t[:income_from_any_source_at_annual_assessment].in([99])).
-          or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)),
+          or(a_t[:income_from_any_source_at_annual_assessment_raw].in([99])).
+          or(a_t[:income_from_any_source_at_annual_assessment_raw].eq(nil)),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'D4')
       members = stayers_with_anniversary.where(
-        a_t[:income_from_any_source_at_annual_assessment].eq(0).
+        a_t[:income_from_any_source_at_annual_assessment_raw].eq(0).
           and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql)).
         or(
-          a_t[:income_from_any_source_at_annual_assessment].eq(1).
+          a_t[:income_from_any_source_at_annual_assessment_raw].eq(1).
             and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql, negation: true)),
         ),
       )
@@ -147,11 +147,11 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       members = stayers_with_anniversary.where(
         a_t[:income_date_at_annual_assessment].eq(nil).
           or(a_t[:annual_assessment_in_window].eq(false)).
-          or(a_t[:income_from_any_source_at_annual_assessment].in([8, 9, 99])).
-          or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)).
-          or(a_t[:income_from_any_source_at_annual_assessment].eq(0).
+          or(a_t[:income_from_any_source_at_annual_assessment_raw].in([8, 9, 99])).
+          or(a_t[:income_from_any_source_at_annual_assessment_raw].eq(nil)).
+          or(a_t[:income_from_any_source_at_annual_assessment_raw].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql))).
-          or(a_t[:income_from_any_source_at_annual_assessment].eq(1).
+          or(a_t[:income_from_any_source_at_annual_assessment_raw].eq(1).
             and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql, negation: true))),
       )
       answer.add_members(members)
@@ -170,7 +170,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       leavers = adults_and_hohs.where(a_t[:last_date_in_program].lteq(@report.end_date))
 
       answer = @report.answer(question: table_name, cell: 'B5')
-      members = leavers.where(a_t[:income_from_any_source_at_exit].in([8, 9, 99]))
+      members = leavers.where(a_t[:income_from_any_source_at_exit_raw].in([8, 9, 99]))
       answer.add_members(members)
       answer.update(summary: members.count)
 
@@ -178,18 +178,18 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       members = leavers.where(
         a_t[:income_date_at_exit].eq(nil).
           or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
-          or(a_t[:income_from_any_source_at_exit].in([99])).
-          or(a_t[:income_from_any_source_at_exit].eq(nil)),
+          or(a_t[:income_from_any_source_at_exit_raw].in([99])).
+          or(a_t[:income_from_any_source_at_exit_raw].eq(nil)),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'D5')
       members = leavers.where(
-        a_t[:income_from_any_source_at_exit].eq(0).
+        a_t[:income_from_any_source_at_exit_raw].eq(0).
           and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql)).
         or(
-          a_t[:income_from_any_source_at_exit].eq(1).
+          a_t[:income_from_any_source_at_exit_raw].eq(1).
             and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql, negation: true)),
         ),
       )
@@ -200,11 +200,11 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       members = leavers.where(
         a_t[:income_date_at_exit].eq(nil).
           or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
-          or(a_t[:income_from_any_source_at_exit].in([8, 9, 99])).
-          or(a_t[:income_from_any_source_at_exit].eq(nil)).
-          or(a_t[:income_from_any_source_at_exit].eq(0).
+          or(a_t[:income_from_any_source_at_exit_raw].in([8, 9, 99])).
+          or(a_t[:income_from_any_source_at_exit_raw].eq(nil)).
+          or(a_t[:income_from_any_source_at_exit_raw].eq(0).
             and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql))).
-          or(a_t[:income_from_any_source_at_exit].eq(1).
+          or(a_t[:income_from_any_source_at_exit_raw].eq(1).
             and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql, negation: true))),
       )
       answer.add_members(members)
