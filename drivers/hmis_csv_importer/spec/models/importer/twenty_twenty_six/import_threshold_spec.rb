@@ -26,8 +26,9 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
           @loader = import_hmis_csv_fixture(
             'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/loader_errors',
             data_source: @data_source,
-            version: '2026',
+            version: 'AutoMigrate',
             run_jobs: false,
+            stop_version: '2026',
           )
         end
       end
@@ -56,8 +57,9 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
           @loader = import_hmis_csv_fixture(
             'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/loader_errors',
             data_source: @data_source,
-            version: '2026',
+            version: 'AutoMigrate',
             run_jobs: false,
+            stop_version: '2026',
           )
         end
       end

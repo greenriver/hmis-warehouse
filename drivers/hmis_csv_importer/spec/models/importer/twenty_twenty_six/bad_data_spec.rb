@@ -15,8 +15,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/bad_data',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 
@@ -63,8 +64,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       travel_to Time.local(2021, 1, 1) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/bad_data',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2026',
         )
       end
     end
@@ -104,8 +106,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       travel_to Time.local(2017, 12, 30) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/bad_data',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2026',
         )
       end
     end

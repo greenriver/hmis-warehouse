@@ -82,8 +82,9 @@ RSpec.describe 'Force Assessment Prioritization Status', type: :model do
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/forced_prioritization_placement_status',
       data_source: @data_source,
-      version: '2026',
+      version: 'AutoMigrate',
       run_jobs: false,
+      stop_version: '2026',
     )
   end
 end
