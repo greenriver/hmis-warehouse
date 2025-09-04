@@ -31,7 +31,7 @@ module Hmis::Ce::Match
     self.table_name = 'ce_match_candidate_pools'
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
-    has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception
+    has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', dependent: :restrict_with_exception # fixme should be able to delete and clean up if all opportunities are closed
     has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: :candidate_pool_id, dependent: :restrict_with_exception
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
 
@@ -41,13 +41,19 @@ module Hmis::Ce::Match
     # foreign key constraint violations
     before_destroy :nullify_deleted_associations
 
-    # pools for active opportunities
     scope :active, -> {
-      active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
-      where(id: active_ids)
+      # Pool is active if there are any active Opportunities that reference it
+      active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
+      # Pool is active if there are any UnitGroups that reference it
+      active_ids_for_unit_groups = Hmis::UnitGroup.pluck(:candidate_pool_id).compact.uniq
+
+      where(id: active_ids_for_opportunities + active_ids_for_unit_groups)
     }
 
     # orphan pools can be safely deleted after a period if inactivity
+    #
+    # Note: this could be expanded to allow deleting pools that are exclusively tied to closed opportunities,
+    # if this table gets too large. (Would require modification to opportunities relation :restrict_with_exception).
     scope :orphaned, -> {
       referenced_ids = [
         ::Hmis::Ce::Opportunity,
@@ -67,7 +73,7 @@ module Hmis::Ce::Match
     end
 
     def active?
-      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id)
+      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.exists?(candidate_pool_id: id)
     end
 
     def warehouse_clients

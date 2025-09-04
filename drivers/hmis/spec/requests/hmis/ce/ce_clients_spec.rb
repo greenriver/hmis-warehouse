@@ -54,7 +54,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when there are ce clients' do
       let!(:client_proxy_no_pools) do
-        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'Anderson')
+        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+        create(:hmis_ce_client_proxy, client: source_client.destination_client)
+      end
+      let!(:client_proxy_inactive_pools) do
+        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
         create(:hmis_ce_client_proxy, client: source_client.destination_client)
       end
       let!(:client_proxy_in_pool_1) do
@@ -67,8 +71,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(:hmis_ce_client_proxy, client: source_client.destination_client)
       end
 
+      # Pool 1 is active because it's tied to an open opportunity
       let!(:pool_1) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1, client_proxy_in_pool_1_and_2] }
+      let!(:pool_1_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_1, status: 'open' }
+
+      # Pool 2 is active because it's tied to a unit group
       let!(:pool_2) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1_and_2] }
+      let!(:pool_2_unit_group) { create :hmis_unit_group, project: p1, candidate_pool: pool_2 }
+
+      # cruft: Pool 3 is not active, candidate membership should be disregarded
+      let!(:pool_3) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
+
+      # cruft: Pool 4 is not active, candidate membership should be disregarded
+      let!(:pool_4) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
+      let!(:pool_4_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_4, status: 'closed' }
 
       it 'raises if the user does not have permission' do
         remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
@@ -85,7 +101,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_no_pools.id.to_s))
       end
 
-      it 'includes clients belonging to any candidate pools' do
+      it 'excludes clients belonging to inactive candidate pools' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+        # Client Proxy that belongs to no pools is excluded
+        expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_inactive_pools.id.to_s))
+      end
+
+      it 'includes clients belonging to active candidate pools' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
 
