@@ -736,13 +736,17 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   """
+  Most recent snapshot of client attributes
+  """
+  clientAttributes: JSON!
+
+  """
   Masked as "Candidate 123" unless the user has permission to view
   """
   clientName: String!
   destinationClientId: ID!
   enrollments(limit: Int, offset: Int): CeReferralSourceEnrollmentsPaginated!
   id: ID!
-  priorityScore: Int! @deprecated(reason: "Replaced by priorityScores")
   priorityScores: [Int!]!
 }
 
@@ -756,10 +760,98 @@ type CeCandidatesPaginated {
   pagesCount: Int!
 }
 
+"""
+A client who is eligible for Coordinated Entry (CE), represented by a
+ClientProxy. Underlying client record is Destination Client.
+"""
+type CeClient {
+  """
+  Aggregation of most recent snapshots from all candidate pools this client belongs to
+  """
+  clientAttributes: JSON!
+  clientName: String!
+  destinationClientId: ID!
+
+  """
+  Unit groups that this client is a candidate for
+  """
+  eligibleUnitGroups(filters: CeEligibleUnitGroupFilterOptions, limit: Int, offset: Int): CeEligibleUnitGroupsPaginated!
+  externalIds: [ExternalIdentifier!]!
+
+  """
+  Client Proxy ID
+  """
+  id: ID!
+
+  """
+  IDs of the source clients associated with this client that belong to this HMIS
+  data source and are viewable by the current user
+  """
+  viewableSourceClientIds: [ID!]!
+}
+
+input CeClientFilterOptions {
+  dynamicFilters: [TableFilterValue!]
+
+  """
+  Filter to Clients that are eligible for the specified Project Types
+  """
+  projectType: [ProjectType!]
+  searchTerm: String
+}
+
+type CeClientsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeClient!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type CeCustomReferralStatus {
   id: ID!
   key: String!
   name: String!
+}
+
+type CeEligibleUnitGroup {
+  """
+  Timestamp when the candidate was added to the pool
+  """
+  candidateCreatedAt: ISO8601DateTime!
+
+  """
+  Timestamp when the candidate was last updated
+  """
+  candidateUpdatedAt: ISO8601DateTime!
+  id: ID!
+  organizationName: String!
+  projectId: ID!
+  projectName: String!
+  projectType: ProjectType!
+  unitGroupId: ID!
+  unitGroupName: String!
+
+  """
+  Number of units in the unit group that are currently accepting referrals
+  """
+  unitsAcceptingReferrals: Int!
+}
+
+input CeEligibleUnitGroupFilterOptions {
+  projectType: [ProjectType!]
+}
+
+type CeEligibleUnitGroupsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeEligibleUnitGroup!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeMatchRule {
@@ -9876,6 +9968,17 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+  ceClient(
+    """
+    Client Proxy ID
+    """
+    id: ID!
+  ): CeClient
+
+  """
+  Clients who belong to at least one CE candidate pool
+  """
+  ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
@@ -10023,6 +10126,7 @@ type Query {
   serviceType(id: ID!): ServiceType
   serviceTypes(filters: ServiceTypeFilterOptions, limit: Int, offset: Int): ServiceTypesPaginated!
   staticFormDefinition(role: StaticFormRole!): FormDefinition!
+  tableConfigLookup: TableConfigLookup!
   unit(id: ID!): Unit
   unitGroup(id: ID!): UnitGroup
 
@@ -10181,7 +10285,7 @@ enum Race {
   DATA_NOT_COLLECTED
 
   """
-  (HispanicLatinaeo) Hispanic/Latina/e/o
+  (HispanicLatinaeo) Hispanic/Latina/o
   """
   HISPANIC_LATINAEO
 
@@ -12456,6 +12560,62 @@ enum TCellSourceViralLoadSource {
   OTHER
 }
 
+type TableColumnConfig {
+  key: String!
+  label: String!
+  type: TableColumnConfigType!
+}
+
+enum TableColumnConfigType {
+  DATE
+  STRING
+}
+
+type TableConfig {
+  columns: [TableColumnConfig!]!
+  filters: [TableFilterConfig!]!
+}
+
+type TableConfigLookup {
+  ceClientsGlobalConfig: TableConfig
+  ceClientsUnitGroupConfig(unitGroupId: ID!): TableConfig
+}
+
+"""
+Represents a dynamic filter configuration.
+"""
+type TableFilterConfig {
+  """
+  The key or field name of the filter.
+  """
+  key: String!
+
+  """
+  The display label for the filter.
+  """
+  label: String!
+
+  """
+  The list of possible values for this filter.
+  """
+  options: [PickListOption!]!
+}
+
+"""
+Represents a dynamic filter that can be applied to queries.
+"""
+input TableFilterValue {
+  """
+  The key or field name to filter on. Must match key on TableFilterConfiguration.
+  """
+  key: String!
+
+  """
+  The value to filter by. Must match one of the values on TableFilterConfiguration.
+  """
+  values: [String!]
+}
+
 """
 HUD TargetPopulation (2.02.7)
 """
@@ -12640,6 +12800,7 @@ type UnitGroup {
   name: String!
   priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
+  unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String

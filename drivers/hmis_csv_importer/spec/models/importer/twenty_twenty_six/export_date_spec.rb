@@ -18,9 +18,10 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_initial',
-        version: '2026',
+        version: 'AutoMigrate',
         data_source: @data_source,
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 
@@ -34,9 +35,10 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
       before(:all) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_older',
-          version: '2026',
+          version: 'AutoMigrate',
           data_source: @data_source,
           run_jobs: false,
+          stop_version: '2026',
         )
       end
 
@@ -53,9 +55,10 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
       before(:all) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_same_day',
-          version: '2026',
+          version: 'AutoMigrate',
           data_source: @data_source,
           run_jobs: false,
+          stop_version: '2026',
         )
       end
 
@@ -70,9 +73,10 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
       before(:all) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/export_date_fixtures/date_updated_newer',
-          version: '2026',
+          version: 'AutoMigrate',
           data_source: @data_source,
           run_jobs: false,
+          stop_version: '2026',
         )
       end
 
