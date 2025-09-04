@@ -107,7 +107,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         ce_clients = result.dig('data', 'ceClients', 'nodes')
 
-        # Client Proxy that belongs to no pools is excluded
+        # Client Proxy that belongs to inactive pool is excluded
         expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_inactive_pools.id.to_s))
       end
 
