@@ -243,13 +243,20 @@ if confirm_step "Step 2/5: Clean up DNS configuration" "This will stop dnsmasq, 
                 echo "Removing dnsmasq configuration for $DOMAIN..."
                 # Use grep -v to remove the line instead of sed with regex
                 sudo grep -v "^$DNSMASQ_ADDRESS_LINE$" "$DNSMASQ_CONF" > "/tmp/dnsmasq.conf.tmp" && sudo mv "/tmp/dnsmasq.conf.tmp" "$DNSMASQ_CONF"
+            else
+                echo "  dnsmasq configuration for $DOMAIN not found"
             fi
 
             # Check if the config file is now empty or only contains comments/whitespace
             if [ ! -s "$DNSMASQ_CONF" ] || ! grep -q "^[^#]" "$DNSMASQ_CONF" 2>/dev/null; then
                 echo "Removing empty dnsmasq configuration file..."
                 sudo rm "$DNSMASQ_CONF"
+            elif grep -q "address=/" "$DNSMASQ_CONF"; then
+                echo "  Note: dnsmasq.conf still contains other wildcard DNS rules"
+                echo "  Run 'cat $DNSMASQ_CONF' to review remaining configuration"
             fi
+        else
+            echo "  dnsmasq configuration file not found"
         fi
     fi
 
