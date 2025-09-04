@@ -41,5 +41,6 @@ module Types
     value 'EMAIL', 'Email address input for ContactPoint'
     value 'SIGNATURE_GROUP', 'Signature input component'
     value 'SIGNATURE', 'Signature input component'
+    value 'CLIENT_ELIGIBILITY', 'Button to fetch information about client eligibility, based on current form values'
   end
 end
