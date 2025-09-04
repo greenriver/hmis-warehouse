@@ -1,7 +1,14 @@
+// Ensure App namespace exists
+window.App = window.App || {};
+
 window.App.ViewableEntities = class {
   constructor() {
+    console.log('ViewableEntities constructor called');
+    console.log('Document ready state:', document.readyState);
     this.registerEvents();
     this.initSelect2();
+    // Since we're now called after DOMContentLoaded in the template, we can load immediately
+    this.loadEntityColumns();
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new window.bootstrap.Tooltip(el));
   }
 
@@ -154,5 +161,172 @@ window.App.ViewableEntities = class {
       });
       init($this);
     });
+  }
+
+  loadEntityColumns() {
+    console.log('=== loadEntityColumns called ===');
+    const self = this;
+    const placeholders = document.querySelectorAll('.entity-column-placeholder');
+    console.log('Found placeholders:', placeholders.length);
+
+    // Log details about each placeholder
+    placeholders.forEach((placeholder, index) => {
+      console.log(`Placeholder ${index}:`, {
+        entityType: placeholder.dataset.entityType,
+        userId: placeholder.dataset.userId,
+        base: placeholder.dataset.base,
+        element: placeholder
+      });
+    });
+
+    // If no placeholders found, user might be using ACLs instead of legacy permissions
+    if (placeholders.length === 0) {
+      console.log('No entity column placeholders found - user may be using ACL permissions');
+      return;
+    }
+
+    // Load entity columns when their tab becomes visible
+    const handleTabShown = (event) => {
+      console.log('=== Tab shown event triggered ===');
+      console.log('Event target:', event.target);
+      console.log('Tab href:', event.target.getAttribute('href'));
+      const tabPane = document.querySelector(event.target.getAttribute('href'));
+      if (!tabPane) {
+        console.log('No tab pane found for:', event.target.getAttribute('href'));
+        return;
+      }
+
+      console.log('Tab pane found:', tabPane);
+      const placeholdersInTab = tabPane.querySelectorAll('.entity-column-placeholder:not(.loaded)');
+      console.log('Placeholders in tab:', placeholdersInTab.length);
+
+      if (placeholdersInTab.length > 0) {
+        console.log('Loading placeholders in tab...');
+        placeholdersInTab.forEach(placeholder => {
+          console.log('Loading placeholder in tab:', placeholder.dataset.entityType);
+          self.loadSingleEntityColumn(placeholder);
+        });
+      } else {
+        console.log('No unloaded placeholders found in this tab');
+      }
+    };
+
+    // Add event listeners to tab links
+    const tabLinks = document.querySelectorAll('[data-bs-toggle="tab"]');
+    console.log('Found tab links:', tabLinks.length);
+    tabLinks.forEach((tab, index) => {
+      console.log(`Tab ${index}:`, tab.getAttribute('href'));
+
+      // Try multiple event names for different Bootstrap versions
+      tab.addEventListener('shown.bs.tab', handleTabShown);
+      tab.addEventListener('shown', handleTabShown);  // Bootstrap 3 fallback
+
+      // Also add click handler as fallback
+      tab.addEventListener('click', (event) => {
+        console.log('Tab clicked:', event.target.getAttribute('href'));
+        // Small delay to ensure tab content is visible
+        setTimeout(() => handleTabShown(event), 100);
+      });
+    });
+
+    // Load entities in the active tab immediately
+    const activeTabPane = document.querySelector('.tab-pane.active');
+    console.log('Active tab pane:', activeTabPane);
+    if (activeTabPane) {
+      const activePlaceholders = activeTabPane.querySelectorAll('.entity-column-placeholder:not(.loaded)');
+      console.log('Active placeholders to load:', activePlaceholders.length);
+      activePlaceholders.forEach((placeholder, index) => {
+        console.log(`Loading active placeholder ${index}:`, placeholder.dataset.entityType);
+        self.loadSingleEntityColumn(placeholder);
+      });
+    } else {
+      console.log('No active tab pane found');
+    }
+    console.log('=== loadEntityColumns finished ===');
+  }
+
+  loadSingleEntityColumn(placeholder) {
+    console.log('=== loadSingleEntityColumn called ===');
+    const self = this;
+    const entityType = placeholder.dataset.entityType;
+    const userId = placeholder.dataset.userId;
+    const base = placeholder.dataset.base || 'user';
+
+    console.log('Loading entity column:', {
+      entityType,
+      userId,
+      base,
+      placeholder
+    });
+
+    // Check for CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfToken) {
+      console.error('No CSRF token found in page');
+    } else {
+      console.log('CSRF token found:', csrfToken.getAttribute('content').substring(0, 10) + '...');
+    }
+
+    placeholder.classList.add('loaded');
+    console.log('Added "loaded" class to placeholder');
+
+    const url = `/admin/users/${userId}/load_entity_column?entity_type=${entityType}&base=${base}`;
+    console.log('Fetching URL:', url);
+
+    const startTime = performance.now();
+
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/html',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
+    })
+      .then(response => {
+        const responseTime = performance.now() - startTime;
+        console.log(`Response received in ${responseTime.toFixed(2)}ms`);
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then(html => {
+        const totalTime = performance.now() - startTime;
+        console.log(`HTML received in ${totalTime.toFixed(2)}ms`);
+        console.log('HTML length:', html.length);
+        console.log('HTML preview:', html.substring(0, 200) + '...');
+
+        console.log('Replacing placeholder with loaded content');
+        placeholder.outerHTML = html;
+
+        console.log('Re-initializing Select2 and tooltips');
+        // Re-initialize Select2 for the newly loaded content
+        self.initSelect2();
+        // Re-initialize tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new window.bootstrap.Tooltip(el));
+
+        console.log('Successfully loaded entity column for:', entityType);
+      })
+      .catch(error => {
+        console.error('Error loading entity column:', error);
+        console.error('Error details:', {
+          entityType,
+          userId,
+          url,
+          error: error.message
+        });
+
+        placeholder.innerHTML = `
+        <div class="alert alert-warning text-center p-4">
+          <i class="icon-warning"></i>
+          <p class="mt-2">Failed to load ${entityType.replace('_', ' ')}. Please refresh the page.</p>
+          <small class="text-muted">Error: ${error.message}</small>
+        </div>
+      `;
+      });
   }
 };

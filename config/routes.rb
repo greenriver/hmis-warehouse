@@ -762,6 +762,7 @@ Rails.application.routes.draw do
         post :un_expire
         post :confirm
         post :impersonate
+        get :load_entity_column
         patch :expire_password
       end
       collection do

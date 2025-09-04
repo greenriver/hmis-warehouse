@@ -143,6 +143,47 @@ module Admin
       perform_search(search_query.query_params)
     end
 
+    def load_entity_column
+      @user = User.find(params[:user_id])
+      entity_type = params[:entity_type]
+      base = params[:base] || 'user'
+
+      entity = case entity_type
+      when 'data_sources'
+        data_source_viewability(base)
+      when 'organizations'
+        organization_viewability(base)
+      when 'projects'
+        project_viewability(base)
+      when 'project_access_groups'
+        project_access_group_viewability(base)
+      when 'coc_codes'
+        coc_viewability(base)
+      when 'reports'
+        user_reports_assignability(base)
+      when 'project_groups'
+        project_groups_editability(base)
+      when 'cohorts'
+        cohort_editability(base)
+      else
+        render json: { error: 'Invalid entity type' }, status: :bad_request
+        return
+      end
+
+      associations = case entity_type
+      when 'projects'
+        [:data_source, :organization, :coc_code, :project_access_group]
+      else
+        raise "Invalid entity type: #{entity_type}"
+      end
+
+      render partial: 'users/entity_column_lazy', locals: {
+        entity: entity,
+        entity_type: entity_type.to_sym,
+        associations: associations,
+      }
+    end
+
     private def copy_user_groups
       return unless @user
       return unless user_params[:copy_form_id].present?

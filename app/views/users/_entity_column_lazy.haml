@@ -1,0 +1,47 @@
+- associated_items ||= @user.access_group.associated_by(associations: associations) rescue []
+- name = entity[:label] || entity[:placeholder]
+
+.c-columns__column.j-column{data: {title: name.pluralize}}
+  .c-columns__column
+    .c-columns__column-header
+      %h3.c-columns__column-title=name.pluralize
+      .c-columns__column-buttons
+        = link_to '#', class: 'j-add', data: { 'bs-toggle' => 'tooltip', 'bs-placement' => 'bottom', 'bs-title' => "Add #{name}" } do
+          %i.icon-plus
+        = link_to '#', class: 'j-remove-all-toggle', data: { 'bs-toggle' => 'tooltip', 'bs-placement' => 'bottom', 'bs-title' => "Remove All #{name.pluralize}" } do
+          %i.icon-cross
+
+    .c-columns__column-actions
+      .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add
+        - if entity[:as] == :grouped_select
+          = select_tag name.parameterize(separator: '_'), grouped_options_for_select(entity[:collection], entity[:selected]), entity.except(:collection, :selected, :as, :group_method).merge(class: "#{entity[:input_html][:class]} form-control")
+        - else
+          = select_tag name.parameterize(separator: '_'), options_from_collection_for_select(entity[:collection], :id, entity[:label_method] || :name, entity[:selected]), entity.except(:collection, :selected, :label_method).merge(class: "#{entity[:input_html][:class]} form-control")
+      .c-columns__column-action.c-columns__column-action--remove.hide.j-column-actions-remove
+        .d-flex.align-items-center
+          %p.mr-2.mb-0 Are you sure you want to remove all the <b>#{name.pluralize}</b>?
+          .d-flex
+            .btn.btn-sm.btn-secondary.mr-2.j-remove-all-toggle No
+            .btn.btn-sm.btn-danger.j-remove-all Yes
+
+    .c-columns__column-content.j-column-content
+      %ul.c-columns__column-list.j-list.j-editable
+      %ul.c-columns__column-list.c-columns__column-list--associated
+        - associated_items.each do |associated, items|
+          - items.each do |a|
+            %li.c-columns__column-list-item--read-only
+              %span.d-block{data: { 'bs-toggle' => 'tooltip', 'bs-title' => "Access by association with #{associated}"}}
+                = a
+                %em.d-block.text-small.c-columns__column-list-item-description=associated
+  - if @user
+    .c-columns__column
+      .c-columns__column-header
+        %h3.c-columns__column-title= "#{name.pluralize} Inherited from Groups"
+      .c-columns__column-content
+        %ul.c-columns__column-list.c-columns__column-list--associated
+          - @user.inherited_for_type(entity_type).each do |group_name, items|
+            - items.each do |item|
+              %li.c-columns__column-list-item--read-only
+                %span.d-block{data: { 'bs-toggle' => 'tooltip', 'bs-title' => "Access through #{group_name} group"}}
+                  = item
+                  %em.d-block.text-small.c-columns__column-list-item-description=group_name
