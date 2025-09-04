@@ -18,6 +18,7 @@ module Clients
     after_action :log_client
 
     def index
+      @per_page_js = ['client_file_row']
       @consent_editable = consent_editable?
       @consent_form_url = GrdaWarehouse::PublicFile.url_for_location 'client/hmis_consent'
       @blank_files = GrdaWarehouse::PublicFile.known_hmis_locations.to_a.map do |location, title|
