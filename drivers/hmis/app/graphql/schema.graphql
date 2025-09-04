@@ -10285,7 +10285,7 @@ enum Race {
   DATA_NOT_COLLECTED
 
   """
-  (HispanicLatinaeo) Hispanic/Latina/e/o
+  (HispanicLatinaeo) Hispanic/Latina/o
   """
   HISPANIC_LATINAEO
 

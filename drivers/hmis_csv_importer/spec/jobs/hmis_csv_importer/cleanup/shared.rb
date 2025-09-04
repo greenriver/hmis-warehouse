@@ -23,6 +23,7 @@ RSpec.shared_context 'HmisCsvImporter cleanup context' do
         data_source: data_source,
         run_jobs: false,
         allowed_projects: true,
+        stop_version: '2024',
       )
     end
   end
