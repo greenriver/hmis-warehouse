@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -725,6 +725,32 @@ CREATE VIEW analytics.cas_referrals AS
     created_at,
     updated_at
    FROM public.cas_analytics_referrals;
+
+
+--
+-- Name: cas_analytics_rejection_reasons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_rejection_reasons (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    referral_result character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_rejection_reasons; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_rejection_reasons AS
+ SELECT id,
+    name,
+    referral_result,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_rejection_reasons;
 
 
 --
@@ -6372,6 +6398,25 @@ CREATE SEQUENCE public.cas_analytics_referrals_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_referrals_id_seq OWNED BY public.cas_analytics_referrals.id;
+
+
+--
+-- Name: cas_analytics_rejection_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_rejection_reasons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_rejection_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_rejection_reasons_id_seq OWNED BY public.cas_analytics_rejection_reasons.id;
 
 
 --
@@ -25390,7 +25435,10 @@ CREATE TABLE public.hud_report_apr_clients (
     race_multi_include_race_none jsonb,
     hoh_move_in_date date,
     adjusted_move_in_date date,
-    sex integer
+    sex integer,
+    income_from_any_source_at_annual_assessment_raw integer,
+    income_from_any_source_at_exit_raw integer,
+    income_from_any_source_at_start_raw integer
 );
 
 
@@ -27451,7 +27499,15 @@ CREATE TABLE public.ma_yya_report_clients (
     flex_funds jsonb DEFAULT '[]'::jsonb,
     zip_codes jsonb DEFAULT '[]'::jsonb,
     language character varying,
-    followup_previous_period boolean
+    followup_previous_period boolean,
+    employed boolean DEFAULT false,
+    former_foster_ward boolean DEFAULT false,
+    former_juvenile_justice_ward boolean DEFAULT false,
+    voluntary_dcf_service boolean DEFAULT false,
+    voluntary_dys_yes_service boolean DEFAULT false,
+    exchange_for_sex boolean DEFAULT false,
+    permanent_exit_date date,
+    days_to_return integer
 );
 
 
@@ -34007,6 +34063,13 @@ ALTER TABLE ONLY public.cas_analytics_referrals ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: cas_analytics_rejection_reasons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_rejection_reasons ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_rejection_reasons_id_seq'::regclass);
+
+
+--
 -- Name: cas_analytics_steps id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -38111,6 +38174,14 @@ ALTER TABLE ONLY public.cas_analytics_referral_users
 
 ALTER TABLE ONLY public.cas_analytics_referrals
     ADD CONSTRAINT cas_analytics_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_rejection_reasons cas_analytics_rejection_reasons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_rejection_reasons
+    ADD CONSTRAINT cas_analytics_rejection_reasons_pkey PRIMARY KEY (id);
 
 
 --
@@ -75440,11 +75511,16 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250904181252'),
+('20250904175920'),
+('20250904130155'),
 ('20250828205652'),
 ('20250821194338'),
 ('20250821182429'),
 ('20250820220743'),
 ('20250818183500'),
+('20250818171810'),
+('20250807182745'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
