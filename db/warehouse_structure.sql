@@ -24456,7 +24456,8 @@ CREATE TABLE public.hmis_unit_groups (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     candidate_pool_id bigint,
-    ce_event_type integer
+    ce_event_type integer,
+    unit_type_id bigint
 );
 
 
@@ -66454,6 +66455,13 @@ CREATE INDEX index_hmis_unit_groups_on_project_id ON public.hmis_unit_groups USI
 
 
 --
+-- Name: index_hmis_unit_groups_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_unit_type_id ON public.hmis_unit_groups USING btree (unit_type_id);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74682,6 +74690,14 @@ ALTER TABLE ONLY public.wfe_step_assignments
 
 
 --
+-- Name: hmis_unit_groups fk_rails_4af3f4cb4a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_4af3f4cb4a FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: wfd_swimlanes fk_rails_4de79171d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75424,6 +75440,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250828205652'),
 ('20250821194338'),
 ('20250821182429'),
 ('20250820220743'),

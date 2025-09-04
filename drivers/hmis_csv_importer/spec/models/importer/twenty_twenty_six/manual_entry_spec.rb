@@ -15,8 +15,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/project_test_files',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2026',
       )
     end
 
@@ -46,8 +47,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         project_coc.save
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/project_test_files',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
       it 'does not delete the manual Funder, Inventory or ProjectCoc records' do

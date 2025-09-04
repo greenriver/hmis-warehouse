@@ -17,6 +17,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/project_test_files',
         version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2024',
       )
     end
 
@@ -48,6 +49,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/project_test_files',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
       it 'does not delete the manual Funder, Inventory or ProjectCoc records' do

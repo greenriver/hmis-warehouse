@@ -28,10 +28,15 @@ module Mutations
       errors.add :count, :out_of_range, message: 'must not be greater than 200' if input.count && input.count > 200
       return { errors: errors.errors } if errors.any?
 
-      unit_group = project.unit_groups.find(input.unit_group_id) if input.unit_group_id.present?
+      unit_group = project.unit_groups.find_by(id: input.unit_group_id)
+      errors.add :unit_group_id, :required unless unit_group.present?
+      return { errors: errors.errors } if errors.any?
+
+      # TODO(#8157) - require unit group to have a unit type, and stop accepting unit type as argument to this mutation
       # If no unit type specified, use the first unit type from the group (if specified)
-      # TODO(#7814) make this mutation more strict to always expect unit group, and expect constraint of max 1 unit type per group
       unit_type ||= unit_group&.unit_types&.order(:id)&.first
+      errors.add(:unit_type_id, :required) if unit_type.nil?
+      return { errors: errors.errors } if errors.any?
 
       # Create Units
       common = { user_id: current_user.id, created_at: Time.now, updated_at: Time.now }
@@ -43,6 +48,12 @@ module Mutations
           **common,
         )
       end
+
+      units.filter(&:invalid?).each do |unit|
+        errors.add_ar_errors(unit.errors&.errors)
+      end
+      errors.deduplicate!
+      return { errors: errors.errors } if errors.any?
 
       Hmis::Unit.transaction do
         units.each(&:save!)

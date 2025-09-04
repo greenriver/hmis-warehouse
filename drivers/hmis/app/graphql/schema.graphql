@@ -12805,6 +12805,7 @@ type UnitGroup {
   name: String!
   priorityScheme: CeMatchRule @deprecated(reason: "Replaced by prioritySchemes")
   prioritySchemes: [CeMatchRule!]
+  unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
