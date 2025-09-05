@@ -20,13 +20,14 @@ module Mutations
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
       access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
 
+      # The match engine expects destination clients
       client = enrollment.client.destination_client
       return { project_types: [] } unless client
 
       # Convert form values to field value overrides for CE evaluation
       overrides = build_overrides(values_by_link_id, form_definition_identifier)
 
-      # Get all candidate pools and evaluate client eligibility
+      # Get evaluate client eligibility against all candidate pools
       eligible_project_types = calculate_eligible_project_types(client, overrides)
 
       { project_types: eligible_project_types }
@@ -35,17 +36,17 @@ module Mutations
     private
 
     def build_overrides(values_by_link_id, form_definition_identifier)
-      # Get the form definition to understand the mapping from link_ids to custom field keys
+      # Get the form definition to map from link_id to custom_field_key
       form_definition = Hmis::Form::Definition.published.find_by(identifier: form_definition_identifier)
       return {} unless form_definition
 
-      # Build overrides hash by mapping form values to CE field format
+      # Build overrides hash
       values_by_link_id.filter_map do |link_id, value|
         form_item = form_definition.link_id_item_hash[link_id]
         custom_field_key = form_item&.dig('mapping', 'custom_field_key')
         next unless custom_field_key
 
-        # Map to CDE field format for CE evaluation
+        # Map to CDE field format for CE evaluation - see FieldMap
         ["cde.custom_assessment.#{custom_field_key}", value]
       end.to_h
     end
@@ -54,13 +55,13 @@ module Mutations
       field_map = Hmis::Ce::Match::Expression::FieldMap.new(current_date: Date.current)
       eligible_pools = []
 
-      # Evaluate client against all (not just active) candidate pools
-      Hmis::Ce::Match::CandidatePool.find_each do |pool|
+      # Evaluate client against active candidate pools
+      Hmis::Ce::Match::CandidatePool.active.find_each do |pool|
         clients = GrdaWarehouse::Hud::Client.where(id: client.id)
         evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, pool, field_map)
         result = evaluator.call(client, field_value_overrides: field_value_overrides)
 
-        eligible_pools << pool unless result.failed?
+        eligible_pools << pool unless result.failed? # result fails if client is ineligible
       end
 
       # Find projects that use the eligible pools and collect their project types
