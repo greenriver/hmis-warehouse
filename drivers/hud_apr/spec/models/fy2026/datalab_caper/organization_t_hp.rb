@@ -35,7 +35,7 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       )
     end
 
-    it 'Q6a' do
+    xit 'Q6a' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
@@ -49,7 +49,7 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       )
     end
 
-    it 'Q6c' do
+    xit 'Q6c' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
@@ -156,7 +156,7 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       )
     end
 
-    it 'Q12' do
+    xit 'Q12' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
@@ -310,7 +310,7 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       )
     end
 
-    it 'Q23e' do
+    xit 'Q23e' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
