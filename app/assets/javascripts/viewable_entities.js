@@ -36,20 +36,21 @@ window.App.ViewableEntities = class {
       return $(el).closest('.j-column').find('.jUserViewable');
     };
 
-    $('.j-add').on('click', (event) => {
+    // Use delegated events so they work on AJAX-loaded content
+    $('body').on('click', '.j-add', (event) => {
       // eslint-disable-next-line no-unused-vars
       const elements = showHideEl(event, 'add');
     });
-    $('.j-remove-all-toggle').on('click', (event) => {
+    $('body').on('click', '.j-remove-all-toggle', (event) => {
       // eslint-disable-next-line no-unused-vars
       const elements = showHideEl(event, 'remove');
     });
     // eslint-disable-next-line no-unused-vars
-    $('.j-remove-all').on('click', function (event) {
+    $('body').on('click', '.j-remove-all', function (event) {
       self.removeAll(getSelect2(this), $(this).closest('.j-column'));
     });
     // eslint-disable-next-line no-unused-vars
-    $('.j-list.j-editable').on('click', 'li', function (event) {
+    $('body').on('click', '.j-list.j-editable li', function (event) {
       self.removeItem(this, getSelect2(this));
     });
   }
@@ -119,7 +120,9 @@ window.App.ViewableEntities = class {
 
   initSelect2() {
     const self = this;
-    $('.jClearSelect').on('click', function (event) {
+
+    // Use delegated events for clear select buttons
+    $('body').off('click', '.jClearSelect').on('click', '.jClearSelect', function (event) {
       event.preventDefault();
       var select_class = $(event.currentTarget).data('input-class');
       $('select.' + select_class).find('option:selected').prop('selected', false);
@@ -144,6 +147,11 @@ window.App.ViewableEntities = class {
 
     const init = ($this) => {
       return $(function () {
+        // Skip if already initialized
+        if ($this.hasClass('select2-hidden-accessible')) {
+          return;
+        }
+
         $this.select2({
           minimumResultsForSearch: 10,
           placeholder: 'Search for ' + $this.attr('placeholder'),
@@ -154,11 +162,18 @@ window.App.ViewableEntities = class {
       });
     };
 
+    // Initialize Select2 on all jUserViewable elements (including newly loaded ones)
     $('.jUserViewable').each(function () {
       const $this = $(this);
+
+      // Remove existing event handlers to avoid duplicates
+      $this.off('select2:select select2:unselect');
+
+      // Add event handlers
       $this.on('select2:select select2:unselect', function () {
         self.renderList(values($(this), true), $(this));
       });
+
       init($this);
     });
   }
@@ -248,60 +263,37 @@ window.App.ViewableEntities = class {
   loadSingleEntityColumn(placeholder) {
     console.log('=== loadSingleEntityColumn called ===');
     const self = this;
-    const entityType = placeholder.dataset.entityType;
-    const userId = placeholder.dataset.userId;
-    const base = placeholder.dataset.base || 'user';
+    const $placeholder = $(placeholder);
+    const entityType = $placeholder.data('entity-type');
+    const loadUrl = $placeholder.data('load-url');
 
     console.log('Loading entity column:', {
       entityType,
-      userId,
-      base,
+      loadUrl,
       placeholder
     });
 
-    // Check for CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (!csrfToken) {
-      console.error('No CSRF token found in page');
-    } else {
-      console.log('CSRF token found:', csrfToken.getAttribute('content').substring(0, 10) + '...');
+    if (!loadUrl) {
+      console.error('No load URL found for placeholder:', entityType);
+      return;
     }
 
-    placeholder.classList.add('loaded');
+    $placeholder.addClass('loaded');
     console.log('Added "loaded" class to placeholder');
-
-    const url = `/admin/users/${userId}/load_entity_column?entity_type=${entityType}&base=${base}`;
-    console.log('Fetching URL:', url);
+    console.log('Fetching URL:', loadUrl);
 
     const startTime = performance.now();
 
-    fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'text/html',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-      }
-    })
-      .then(response => {
-        const responseTime = performance.now() - startTime;
-        console.log(`Response received in ${responseTime.toFixed(2)}ms`);
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-      })
-      .then(html => {
+    // Use jQuery GET request like in stimulus_select_controller.js
+    $.get(loadUrl)
+      .done((html) => {
         const totalTime = performance.now() - startTime;
         console.log(`HTML received in ${totalTime.toFixed(2)}ms`);
         console.log('HTML length:', html.length);
         console.log('HTML preview:', html.substring(0, 200) + '...');
 
         console.log('Replacing placeholder with loaded content');
-        placeholder.outerHTML = html;
+        $placeholder.replaceWith(html);
 
         console.log('Re-initializing Select2 and tooltips');
         // Re-initialize Select2 for the newly loaded content
@@ -311,22 +303,23 @@ window.App.ViewableEntities = class {
 
         console.log('Successfully loaded entity column for:', entityType);
       })
-      .catch(error => {
+      .fail((xhr, status, error) => {
         console.error('Error loading entity column:', error);
         console.error('Error details:', {
           entityType,
-          userId,
-          url,
-          error: error.message
+          loadUrl,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          error: error
         });
 
-        placeholder.innerHTML = `
-        <div class="alert alert-warning text-center p-4">
-          <i class="icon-warning"></i>
-          <p class="mt-2">Failed to load ${entityType.replace('_', ' ')}. Please refresh the page.</p>
-          <small class="text-muted">Error: ${error.message}</small>
-        </div>
-      `;
+        $placeholder.html(`
+          <div class="alert alert-warning text-center p-4">
+            <i class="icon-warning"></i>
+            <p class="mt-2">Failed to load ${entityType.replace('_', ' ')}. Please refresh the page.</p>
+            <small class="text-muted">Error: ${xhr.status} ${xhr.statusText}</small>
+          </div>
+        `);
       });
   }
 };

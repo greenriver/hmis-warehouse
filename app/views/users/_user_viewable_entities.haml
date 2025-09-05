@@ -42,38 +42,38 @@
         = render 'users/groups', f: f, user: @user
     .tab-pane.fade#data-access-assignments{role: 'tabpanel', aria: {labelledby: 'data-access-assignments'}}
       .c-columns
-        .entity-column-placeholder{data: {entity_type: 'data_sources', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'data_sources', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'data_sources', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Data Sources...
-        .entity-column-placeholder{data: {entity_type: 'organizations', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'organizations', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'organizations', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Organizations...
-        .entity-column-placeholder{data: {entity_type: 'project_access_groups', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'project_access_groups', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'project_access_groups', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Project Groups...
-        .entity-column-placeholder{data: {entity_type: 'coc_codes', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'coc_codes', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'coc_codes', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading CoC Codes...
-        .entity-column-placeholder{data: {entity_type: 'projects', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'projects', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'projects', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Projects...
 
     .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
       .c-columns
-        .entity-column-placeholder{data: {entity_type: 'reports', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'reports', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'reports', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Reports...
-        .entity-column-placeholder{data: {entity_type: 'project_groups', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'project_groups', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'project_groups', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Project Groups...
-        .entity-column-placeholder{data: {entity_type: 'cohorts', user_id: @user.id, base: base}}
+        .entity-column-placeholder{data: {entity_type: 'cohorts', user_id: @user.id, base: base, load_url: load_entity_column_admin_user_path(@user, entity_type: 'cohorts', base: base)}}
           .loading-spinner.text-center.p-4
             %i.icon-spinner.icon-spin
             %p.mt-2 Loading Cohorts...

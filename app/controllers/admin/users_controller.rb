@@ -12,7 +12,7 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password, :load_entity_column]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
     helper_method :sort_column, :sort_direction
@@ -144,8 +144,7 @@ module Admin
     end
 
     def load_entity_column
-      @user = User.find(params[:user_id])
-      entity_type = params[:entity_type]
+      entity_type = params[:entity_type].to_s
       base = params[:base] || 'user'
 
       entity = case entity_type
@@ -174,13 +173,14 @@ module Admin
       when 'projects'
         [:data_source, :organization, :coc_code, :project_access_group]
       else
-        raise "Invalid entity type: #{entity_type}"
+        []
       end
 
       render partial: 'users/entity_column_lazy', locals: {
         entity: entity,
         entity_type: entity_type.to_sym,
         associations: associations,
+        user: @user,
       }
     end
 
