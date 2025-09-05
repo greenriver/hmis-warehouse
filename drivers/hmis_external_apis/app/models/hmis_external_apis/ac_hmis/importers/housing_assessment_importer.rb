@@ -384,21 +384,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       fpl_pct = to_number(raw_values.income_percentage_fpl)
 
       # If no useful percentages, bail out
-      return nil if ami_pct.nil? && fpl_pct.nil?
-
-      # AMI-only fallback
-      if fpl_pct.nil? || fpl_base.nil?
-        return 0.0 unless ami_pct.to_f.positive?
-
-        return round_currency((ami_pct / 100.0) * ami_base)
-      end
-
-      # FPL-only fallback
-      if ami_pct.nil? || ami_base.nil?
-        return 0.0 unless fpl_pct.to_f.positive?
-
-        return round_currency((fpl_pct / 100.0) * fpl_base)
-      end
+      return 0.0 if ami_pct.zero? && fpl_pct.zero?
 
       # Build income intervals that would round to the given integer percentages
       ami_lower = ((ami_pct - 0.5) / 100.0) * ami_base
@@ -412,10 +398,10 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       if lower <= upper
         candidate = round_currency((lower + upper) / 2.0)
 
-        # Nudge inside if floating point rounding lands slightly out-of-range
-        return candidate unless !matches_pct?(candidate, ami_base, ami_pct) || !matches_pct?(candidate, fpl_base, fpl_pct)
+        # If the midpoint candidate works for both percentages, use it.
+        return candidate if matches_pct?(candidate, ami_base, ami_pct) && matches_pct?(candidate, fpl_base, fpl_pct)
 
-        # Try endpoints before falling back
+        # Otherwise try endpoints before falling back
         [lower, upper].each do |edge|
           cand = round_currency(edge)
           return cand if matches_pct?(cand, ami_base, ami_pct) && matches_pct?(cand, fpl_base, fpl_pct)
