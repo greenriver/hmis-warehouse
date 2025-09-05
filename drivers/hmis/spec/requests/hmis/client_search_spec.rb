@@ -44,6 +44,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  # Small helpers to DRY repetitive request + extraction + matchers in facet specs
+  def client_nodes_for(input)
+    response, result = post_graphql(input: input) { query }
+    expect(response.status).to eq(200), result.inspect
+    result.dig('data', 'clientSearch', 'nodes')
+  end
+
+  def id_matcher(client)
+    include('id' => client.id.to_s)
+  end
+
   context 'User access tests where user has full access to 1 project' do
     let!(:client1) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds1 }
     let!(:client2) { create :hmis_hud_client, first_name: 'Darlene', last_name: 'Ranger', data_source: ds2 }
@@ -266,6 +277,80 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'Facet-only filtering coverage' do
+    context 'last_name only' do
+      let!(:smith1) { create :hmis_hud_client, data_source: ds1, first_name: 'Alice', last_name: 'Smith' }
+      let!(:smith2) { create :hmis_hud_client, data_source: ds1, first_name: 'Bob', last_name: 'Smith' }
+      let!(:jones)  { create :hmis_hud_client, data_source: ds1, first_name: 'Carol', last_name: 'Jones' }
+
+      it 'returns only clients whose last name starts with the prefix' do
+        clients = client_nodes_for({ last_name: 'Smith' })
+        expect(clients).to include(id_matcher(smith1))
+        expect(clients).to include(id_matcher(smith2))
+        expect(clients).not_to include(id_matcher(jones))
+      end
+    end
+
+    context 'first_name only' do
+      let!(:will) { create :hmis_hud_client, data_source: ds1, first_name: 'Will', last_name: 'Adams' }
+      let!(:willa) { create :hmis_hud_client, data_source: ds1, first_name: 'Willa', last_name: 'Brown' }
+      let!(:xavier) { create :hmis_hud_client, data_source: ds1, first_name: 'Xavier', last_name: 'Clark' }
+
+      it 'returns only clients whose first name starts with the prefix' do
+        clients = client_nodes_for({ first_name: 'Will' })
+        expect(clients).to include(id_matcher(will))
+        expect(clients).to include(id_matcher(willa))
+        expect(clients).not_to include(id_matcher(xavier))
+      end
+    end
+
+    context 'ssn_serial only' do
+      let!(:match) { create :hmis_hud_client, data_source: ds1, ssn: '111223333' }
+      let!(:non_match) { create :hmis_hud_client, data_source: ds1, ssn: '444556666' }
+
+      it 'returns only clients whose SSN ends with the last 4' do
+        clients = client_nodes_for({ ssn_serial: '3333' })
+        expect(clients).to include(id_matcher(match))
+        expect(clients).not_to include(id_matcher(non_match))
+      end
+    end
+
+    context 'dob only' do
+      let!(:match) { create :hmis_hud_client, data_source: ds1, dob: '2001-05-23' }
+      let!(:non_match) { create :hmis_hud_client, data_source: ds1, dob: '1990-01-01' }
+
+      it 'returns only clients whose DOB matches' do
+        clients = client_nodes_for({ dob: '2001-05-23' })
+        expect(clients).to include(id_matcher(match))
+        expect(clients).not_to include(id_matcher(non_match))
+      end
+    end
+
+    context 'organizations filter' do
+      let!(:org_a) { o1 }
+      let!(:org_b) { create :hmis_hud_organization, data_source: ds1 }
+      let!(:proj_a) { p1 }
+      let!(:proj_b) { create :hmis_hud_project, data_source: ds1, organization: org_b, user: u1 }
+
+      let!(:in_org_a) { create :hmis_hud_client, data_source: ds1, first_name: 'Nora', last_name: 'Able' }
+      let!(:in_org_b) { create :hmis_hud_client, data_source: ds1, first_name: 'Nolan', last_name: 'Baker' }
+      let!(:unenrolled) { create :hmis_hud_client, data_source: ds1, first_name: 'Nina', last_name: 'Carson' }
+
+      before do
+        create(:hmis_hud_enrollment, data_source: ds1, project: proj_a, client: in_org_a)
+        create(:hmis_hud_enrollment, data_source: ds1, project: proj_b, client: in_org_b)
+      end
+
+      it 'filters clients by organization via project enrollment' do
+        # add a neutral first_name to satisfy the "at least 1 search param" rule
+        clients = client_nodes_for({ first_name: 'N', organizations: [org_a.id] })
+        expect(clients).to include(id_matcher(in_org_a))
+        expect(clients).not_to include(id_matcher(in_org_b))
+        # unenrolled should not be included by organization filter
+        expect(clients).not_to include(id_matcher(unenrolled))
+      end
+    end
+  end
   describe 'Searching against bad data' do
     let!(:client) { create :hmis_hud_client, first_name: 'Genevieve', data_source: ds1 }
     def perform_search
