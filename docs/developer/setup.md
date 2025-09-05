@@ -34,7 +34,7 @@ The installer will:
 
 3. Start the application
 ```bash
-docker-compose run --rm web
+docker compose run --rm web
 ```
 
 Your application will be available at `https://hmis-warehouse.dev.test`
@@ -63,14 +63,14 @@ direnv allow .
 
 # Fix permissions and run setup
 docker compose run -u 0 shell chown -R app-user:app-user /bundle /app
-docker-compose run --rm shell bin/setup
+docker compose run --rm shell bin/setup
 docker compose run -u 0 shell bash -c 'chown -R app-user:app-user /bundle /app && if [ -d /node_modules ]; then chown -R app-user:app-user /node_modules; fi'
 ```
 
 ### Start the Application
 
 ```bash
-docker-compose run --rm web
+docker compose run --rm web
 ```
 
 ## Accessing the Site

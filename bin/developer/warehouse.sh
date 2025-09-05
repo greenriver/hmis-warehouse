@@ -63,7 +63,7 @@ docker compose run -u 0 shell chown -R app-user:app-user /bundle /app
 
 # Run setup script
 echo "Running application setup..."
-docker-compose run --rm shell bin/setup
+docker compose run --rm shell bin/setup
 
 # Fix permissions after setup (including node_modules which should now exist)
 echo "Fixing final permissions..."
@@ -76,4 +76,4 @@ echo "Your application should now be available at:"
 echo "  https://hmis-warehouse.$DOMAIN"
 echo ""
 echo "To start the application, run:"
-echo "  docker-compose run --rm web"
+echo "  docker compose run --rm web"

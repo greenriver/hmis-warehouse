@@ -174,7 +174,7 @@ if confirm_step "Step 1/5: Stop and remove Docker services" "This will stop Coli
     # Stop warehouse services
     echo "Stopping HMIS Warehouse services..."
     cd "$PROJECT_ROOT"
-    docker-compose down 2>/dev/null || echo "  No warehouse services running"
+    docker compose down 2>/dev/null || echo "  No warehouse services running"
 
     # Stop and remove traefik
     if [ -d "$TRAEFIK_PATH/traefik" ]; then
