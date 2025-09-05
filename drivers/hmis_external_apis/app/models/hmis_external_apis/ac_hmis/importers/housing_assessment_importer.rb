@@ -140,7 +140,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def create_housing_assessment(waitlist, enrollment)
-    assessment = enrollment.custom_assessments.first_or_initialize
+    assessment = enrollment.custom_assessments.new
 
     assessment.attributes = {
       user_id: system_hud_user.user_id,
@@ -441,7 +441,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
 
       raise ArgumentError, "Integer too long for SSN (#{value.inspect})" if value.to_s.length > 9
 
-      value.is_a?(String) ? value : '%09d'.format(value)
+      value.is_a?(String) ? value : format('%09d', value)
     end
 
     def client_veteran_status
