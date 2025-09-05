@@ -3,11 +3,8 @@ window.App = window.App || {};
 
 window.App.ViewableEntities = class {
   constructor() {
-    console.log('ViewableEntities constructor called');
-    console.log('Document ready state:', document.readyState);
     this.registerEvents();
     this.initSelect2();
-    // Load select options via AJAX
     this.loadSelectOptions();
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new window.bootstrap.Tooltip(el));
   }
@@ -56,20 +53,11 @@ window.App.ViewableEntities = class {
   }
 
   renderList(items, $list) {
-    console.log('=== renderList called ===');
-    console.log('Items to render:', items);
-    console.log('List element:', $list[0]);
-
     const $container = $list.closest('.j-column');
     const $listContainer = $container.find('.j-list');
     const editable = $listContainer.hasClass('j-editable');
     const ids = Object.keys(items);
     const unlimitableIds = ($list.data('unlimitable') || []);
-
-    console.log('Container:', $container[0]);
-    console.log('List container:', $listContainer[0]);
-    console.log('Is editable:', editable);
-    console.log('Item IDs:', ids);
 
     const itemValues = [];
     for (const i in items) {
@@ -101,16 +89,7 @@ window.App.ViewableEntities = class {
       noDataMessage = '';
     }
 
-    console.log('Items markup:', itemsMarkup);
-    console.log('No data message:', noDataMessage);
-    console.log('Final HTML to set:', itemsMarkup || noDataMessage);
-    console.log('List container before update:', $listContainer.html());
-
     $listContainer.html(itemsMarkup || noDataMessage);
-
-    console.log('List container after update:', $listContainer.html());
-    console.log('=== renderList finished ===');
-
     $listContainer.find('[data-bs-toggle="tooltip"]').each((_, e) => new window.bootstrap.Tooltip(e));
   }
 
@@ -206,80 +185,46 @@ window.App.ViewableEntities = class {
   }
 
   loadSelectOptions() {
-    console.log('=== loadSelectOptions called ===');
     const self = this;
     const selectPlaceholders = document.querySelectorAll('.select-placeholder');
-    console.log('Found select placeholders:', selectPlaceholders.length);
 
-    // Log details about each placeholder
-    selectPlaceholders.forEach((placeholder, index) => {
-      console.log(`Select placeholder ${index}:`, {
-        entityType: placeholder.dataset.entityType,
-        userId: placeholder.dataset.userId,
-        base: placeholder.dataset.base,
-        loadUrl: placeholder.dataset.loadUrl,
-        element: placeholder
-      });
-    });
-
-    // If no placeholders found, user might be using ACLs instead of legacy permissions
     if (selectPlaceholders.length === 0) {
-      console.log('No select placeholders found - user may be using ACL permissions');
       return;
     }
 
     // Load select options when their tab becomes visible or when Add button is clicked
     const handleTabShown = (event) => {
-      console.log('=== Tab shown event triggered ===');
-      console.log('Event target:', event.target);
-      console.log('Tab href:', event.target.getAttribute('href'));
       const tabPane = document.querySelector(event.target.getAttribute('href'));
-      if (!tabPane) {
-        console.log('No tab pane found for:', event.target.getAttribute('href'));
-        return;
-      }
+      if (!tabPane) return;
 
-      console.log('Tab pane found:', tabPane);
       const placeholdersInTab = tabPane.querySelectorAll('.select-placeholder:not(.loaded)');
-      console.log('Select placeholders in tab:', placeholdersInTab.length);
-
       if (placeholdersInTab.length > 0) {
-        console.log('Loading select options in tab...');
         placeholdersInTab.forEach(placeholder => {
-          console.log('Loading select options for:', placeholder.dataset.entityType);
           self.loadSingleSelectOptions(placeholder);
         });
-      } else {
-        console.log('No unloaded select placeholders found in this tab');
       }
     };
 
     // Load select options when Add button is clicked
     const handleAddClick = (event) => {
-      console.log('=== Add button clicked ===');
       const column = event.target.closest('.j-column');
       if (!column) return;
 
       const placeholder = column.querySelector('.select-placeholder:not(.loaded)');
       if (placeholder) {
-        console.log('Loading select options on Add click:', placeholder.dataset.entityType);
         self.loadSingleSelectOptions(placeholder);
       }
     };
 
     // Add event listeners to tab links
     const tabLinks = document.querySelectorAll('[data-bs-toggle="tab"]');
-    console.log('Found tab links:', tabLinks.length);
-    tabLinks.forEach((tab, index) => {
-      console.log(`Tab ${index}:`, tab.getAttribute('href'));
-
+    tabLinks.forEach((tab) => {
       // Try multiple event names for different Bootstrap versions
       tab.addEventListener('shown.bs.tab', handleTabShown);
       tab.addEventListener('shown', handleTabShown);  // Bootstrap 3 fallback
 
       // Also add click handler as fallback
       tab.addEventListener('click', (event) => {
-        console.log('Tab clicked:', event.target.getAttribute('href'));
         // Small delay to ensure tab content is visible
         setTimeout(() => handleTabShown(event), 100);
       });
@@ -290,79 +235,46 @@ window.App.ViewableEntities = class {
 
     // Load select options in the active tab immediately on page load
     const activeTabPane = document.querySelector('.tab-pane.active');
-    console.log('Active tab pane:', activeTabPane);
     if (activeTabPane) {
       const activePlaceholders = activeTabPane.querySelectorAll('.select-placeholder:not(.loaded)');
-      console.log('Active select placeholders to load immediately:', activePlaceholders.length);
-      activePlaceholders.forEach((placeholder, index) => {
-        console.log(`Loading active select placeholder ${index} immediately:`, placeholder.dataset.entityType);
+      activePlaceholders.forEach((placeholder) => {
         self.loadSingleSelectOptions(placeholder);
       });
-    } else {
-      console.log('No active tab pane found');
     }
 
-    // Also load ALL select options immediately for better UX (optional - can remove if too many requests)
-    console.log('Loading ALL select options immediately for best UX');
+    // Also load ALL select options immediately for better UX
     selectPlaceholders.forEach((placeholder, index) => {
       if (!placeholder.classList.contains('loaded')) {
-        console.log(`Pre-loading select placeholder ${index}:`, placeholder.dataset.entityType);
         // Small delay to stagger requests
         setTimeout(() => {
           self.loadSingleSelectOptions(placeholder);
         }, index * 50); // 50ms delay between each request
       }
     });
-    console.log('=== loadSelectOptions finished ===');
   }
 
   loadSingleSelectOptions(placeholder) {
-    console.log('=== loadSingleSelectOptions called ===');
     const self = this;
     const $placeholder = $(placeholder);
     const entityType = $placeholder.data('entity-type');
     const loadUrl = $placeholder.data('load-url');
     const $select = $placeholder.find('select');
 
-    console.log('Loading select options:', {
-      entityType,
-      loadUrl,
-      placeholder,
-      select: $select[0]
-    });
-
-    if (!loadUrl) {
-      console.error('No load URL found for select placeholder:', entityType);
-      return;
-    }
-
-    if (!$select.length) {
-      console.error('No select element found in placeholder:', entityType);
+    if (!loadUrl || !$select.length) {
       return;
     }
 
     $placeholder.addClass('loaded');
-    console.log('Added "loaded" class to select placeholder');
-    console.log('Fetching options from URL:', loadUrl);
-
-    const startTime = performance.now();
 
     // Use jQuery GET request to fetch the options HTML
     $.get(loadUrl)
       .done((optionsHtml) => {
-        const totalTime = performance.now() - startTime;
-        console.log(`Options HTML received in ${totalTime.toFixed(2)}ms`);
-        console.log('Options HTML length:', optionsHtml.length);
-        console.log('Options HTML preview:', optionsHtml.substring(0, 200) + '...');
-
-        console.log('Replacing select options');
         // Clear existing options and add new ones
         $select.empty().html(optionsHtml);
 
         // Enable the select
         $select.prop('disabled', false);
 
-        console.log('Re-initializing Select2 for loaded select');
         // Re-initialize Select2 for this specific select (if not already initialized)
         if (!$select.hasClass('select2-hidden-accessible')) {
           $select.select2({
@@ -389,102 +301,22 @@ window.App.ViewableEntities = class {
         $selectedOptions.each(function (i, el) {
           initialValues[el.value] = el.textContent;
         });
-        console.log('=== Processing selected options after AJAX ===');
-        console.log('Found selected options:', $selectedOptions.length);
-        console.log('Selected options elements:', $selectedOptions.toArray());
-        console.log('Initial selected values:', initialValues);
-        console.log('About to call renderList with:', initialValues);
 
         // Always call renderList to either show selected items or clear "No items selected" message
         self.renderList(initialValues, $select);
 
         // Set the select2 value to match the selected options
         const selectedValues = Object.keys(initialValues);
-        console.log('Setting Select2 values to:', selectedValues);
         $select.val(selectedValues);
 
         // Trigger change event to update Select2 display
         $select.trigger('change');
-
-        console.log('Successfully loaded select options for:', entityType);
       })
       .fail((xhr, status, error) => {
-        console.error('Error loading select options:', error);
-        console.error('Error details:', {
-          entityType,
-          loadUrl,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          error: error
-        });
-
         $select.empty().html(`
           <option disabled>Failed to load ${entityType.replace('_', ' ')}</option>
         `);
       });
   }
 
-  // Keep the old method for backward compatibility (if needed)
-  loadSingleEntityColumn(placeholder) {
-    console.log('=== loadSingleEntityColumn called (deprecated) ===');
-    const self = this;
-    const $placeholder = $(placeholder);
-    const entityType = $placeholder.data('entity-type');
-    const loadUrl = $placeholder.data('load-url');
-
-    console.log('Loading entity column:', {
-      entityType,
-      loadUrl,
-      placeholder
-    });
-
-    if (!loadUrl) {
-      console.error('No load URL found for placeholder:', entityType);
-      return;
-    }
-
-    $placeholder.addClass('loaded');
-    console.log('Added "loaded" class to placeholder');
-    console.log('Fetching URL:', loadUrl);
-
-    const startTime = performance.now();
-
-    // Use jQuery GET request like in stimulus_select_controller.js
-    $.get(loadUrl)
-      .done((html) => {
-        const totalTime = performance.now() - startTime;
-        console.log(`HTML received in ${totalTime.toFixed(2)}ms`);
-        console.log('HTML length:', html.length);
-        console.log('HTML preview:', html.substring(0, 200) + '...');
-
-        console.log('Replacing placeholder with loaded content');
-        $placeholder.replaceWith(html);
-
-        console.log('Re-initializing Select2 and tooltips');
-        // Re-initialize Select2 for the newly loaded content
-        self.initSelect2();
-        // Re-initialize tooltips
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new window.bootstrap.Tooltip(el));
-
-        console.log('Successfully loaded entity column for:', entityType);
-      })
-      .fail((xhr, status, error) => {
-        console.error('Error loading entity column:', error);
-        console.error('Error details:', {
-          entityType,
-          loadUrl,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          error: error
-        });
-
-        $placeholder.html(`
-          <div class="alert alert-warning text-center p-4">
-            <i class="icon-warning"></i>
-            <p class="mt-2">Failed to load ${entityType.replace('_', ' ')}. Please refresh the page.</p>
-            <small class="text-muted">Error: ${xhr.status} ${xhr.statusText}</small>
-          </div>
-        `);
-      });
-  }
 };
