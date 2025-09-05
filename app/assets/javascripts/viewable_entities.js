@@ -59,6 +59,7 @@ window.App.ViewableEntities = class {
     const ids = Object.keys(items);
     const unlimitableIds = ($list.data('unlimitable') || []);
 
+
     const itemValues = [];
     for (const i in items) {
       // eslint-disable-next-line no-prototype-builtins
@@ -258,64 +259,69 @@ window.App.ViewableEntities = class {
     const $placeholder = $(placeholder);
     const entityType = $placeholder.data('entity-type');
     const loadUrl = $placeholder.data('load-url');
-    const $select = $placeholder.find('select');
+    const $loadingState = $placeholder.find('.loading-state');
+    const $oldSelect = $placeholder.find('select');
 
-    if (!loadUrl || !$select.length) {
+    if (!loadUrl || !$oldSelect.length) {
       return;
     }
 
     $placeholder.addClass('loaded');
 
+    // Get the original select attributes
+    const selectName = $oldSelect.attr('name');
+    const selectClass = $oldSelect.attr('class');
+    const isMultiple = $oldSelect.attr('multiple');
+
     // Use jQuery GET request to fetch the options HTML
     $.get(loadUrl)
       .done((optionsHtml) => {
-        // Clear existing options and add new ones
-        $select.empty().html(optionsHtml);
+        // Create a completely new select element
+        const $newSelect = $(`<select name="${selectName}" class="${selectClass}" ${isMultiple ? 'multiple' : ''}></select>`);
 
-        // Enable the select
-        $select.prop('disabled', false);
+        // Add the options HTML
+        $newSelect.html(optionsHtml);
 
-        // Re-initialize Select2 for this specific select (if not already initialized)
-        if (!$select.hasClass('select2-hidden-accessible')) {
-          $select.select2({
-            minimumResultsForSearch: 10,
-            placeholder: 'Search for ' + $select.attr('placeholder'),
-            tags: false,
-            multiple: true
+        // Replace the loading state with the new select
+        $loadingState.replaceWith($newSelect);
+
+        // Initialize Select2 for the new select
+        $newSelect.select2({
+          minimumResultsForSearch: 10,
+          placeholder: 'Search for ' + (entityType.replace('_', ' ')),
+          tags: false,
+          multiple: true
+        });
+
+        // Set up event handlers
+        $newSelect.on('select2:select select2:unselect', function () {
+          const values = {};
+          const $selectedOptions = $(this).find(':selected');
+          $selectedOptions.each(function (i, el) {
+            values[el.value] = el.textContent;
           });
+          self.renderList(values, $(this));
+        });
 
-          // Set up event handlers
-          $select.on('select2:select select2:unselect', function () {
-            const values = {};
-            const $selectedOptions = $(this).find(':selected');
-            $selectedOptions.each(function (i, el) {
-              values[el.value] = el.textContent;
-            });
-            self.renderList(values, $(this));
-          });
-        }
-
-        // ALWAYS populate the initial list of selected items (regardless of Select2 state)
+        // ALWAYS populate the initial list of selected items
         const initialValues = {};
-        const $selectedOptions = $select.find('option[selected]');
+        const $selectedOptions = $newSelect.find('option[selected]');
         $selectedOptions.each(function (i, el) {
           initialValues[el.value] = el.textContent;
         });
+        // Always call renderList to show pre-selected items
+        self.renderList(initialValues, $newSelect);
 
-        // Always call renderList to either show selected items or clear "No items selected" message
-        self.renderList(initialValues, $select);
-
-        // Set the select2 value to match the selected options
+        // Set the select values and trigger change
         const selectedValues = Object.keys(initialValues);
-        $select.val(selectedValues);
-
-        // Trigger change event to update Select2 display
-        $select.trigger('change');
+        $newSelect.val(selectedValues);
+        $newSelect.trigger('change');
       })
-      .fail((xhr, status, error) => {
-        $select.empty().html(`
-          <option disabled>Failed to load ${entityType.replace('_', ' ')}</option>
-        `);
+      .fail(() => {
+        // Handle error case - create a new select with error message
+        const $errorSelect = $(`<select name="${selectName}" class="${selectClass}" disabled></select>`);
+        $errorSelect.html(`<option disabled>Failed to load ${entityType.replace('_', ' ')}</option>`);
+        $loadingState.replaceWith($errorSelect);
       });
   }
 

@@ -15,8 +15,9 @@
       .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add
         - if entity[:lazy_load]
           .select-placeholder{data: {entity_type: entity[:entity_type], user_id: @user.id, base: entity[:base], load_url: entity[:load_options_url]}}
-            %select{name: entity[:input_html][:name], class: "#{entity[:input_html][:class]} form-control", multiple: entity[:multiple], disabled: true}
-              %option Loading #{entity[:label] || entity[:placeholder]}...
+            .loading-state
+              %select{name: entity[:input_html][:name], class: "#{entity[:input_html][:class]} form-control", multiple: entity[:multiple], disabled: true}
+                %option Loading #{entity[:label] || entity[:placeholder]}...
         - else
           = f.input name.parameterize(separator: '_').to_sym,  **entity, label: false
       .c-columns__column-action.c-columns__column-action--remove.hide.j-column-actions-remove

@@ -756,17 +756,15 @@ Rails.application.routes.draw do
         # User search queries
         resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
         get '/searches/:id', to: 'users#search', as: 'user_search_query'
+        get :load_select_options
+        post :stop_impersonating
       end
       member do
         post :unlock
         post :un_expire
         post :confirm
         post :impersonate
-        get :load_select_options
         patch :expire_password
-      end
-      collection do
-        post :stop_impersonating
       end
     end
 

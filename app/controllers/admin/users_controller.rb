@@ -12,7 +12,7 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password, :load_select_options]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
     helper_method :sort_column, :sort_direction
@@ -143,50 +143,20 @@ module Admin
       perform_search(search_query.query_params)
     end
 
-    def load_entity_column
-      entity_type = params[:entity_type].to_s
-      base = params[:base] || 'user'
-
-      entity = case entity_type
-      when 'data_sources'
-        data_source_viewability(base)
-      when 'organizations'
-        organization_viewability(base)
-      when 'projects'
-        project_viewability(base)
-      when 'project_access_groups'
-        project_access_group_viewability(base)
-      when 'coc_codes'
-        coc_viewability(base)
-      when 'reports'
-        user_reports_assignability(base)
-      when 'project_groups'
-        project_groups_editability(base)
-      when 'cohorts'
-        cohort_editability(base)
-      else
-        render json: { error: 'Invalid entity type' }, status: :bad_request
-        return
-      end
-
-      associations = case entity_type
-      when 'projects'
-        [:data_source, :organization, :coc_code, :project_access_group]
-      else
-        []
-      end
-
-      render partial: 'users/entity_column_lazy', locals: {
-        entity: entity,
-        entity_type: entity_type.to_sym,
-        associations: associations,
-        user: @user,
-      }
-    end
-
     def load_select_options
       entity_type = params[:entity_type]
       base = params[:base] || 'user'
+
+      # Handle both cases: existing user (with id) or new user (without id)
+      if params[:id].present?
+        # For existing users, load the actual user and reload associations
+        @user = User.find(params[:id])
+        @user.reload # Ensure we have the latest data
+      else
+        # For new users, create a temporary user object
+        temp_user = User.new
+        @user = temp_user
+      end
 
       entity = case entity_type
       when 'data_sources'
