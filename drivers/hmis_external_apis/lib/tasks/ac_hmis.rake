@@ -11,7 +11,7 @@ namespace :ac_hmis do
     HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(force: force)
   end
 
-  # rails driver:hmis_external_apis:ac_hmis:import_housing_assessments[s3_key,<ce_project_id>]
+  # rails driver:hmis_external_apis:ac_hmis:import_housing_assessments[bucket_name,s3_key,<ce_project_id>]
   task :import_housing_assessments, [:bucket_name, :s3_key, :project_id] => :environment do |_task, args|
     next unless HmisEnforcement.hmis_enabled?
     next unless Rails.env.development? || HmisExternalApis::AcHmis::Mci.enabled?
