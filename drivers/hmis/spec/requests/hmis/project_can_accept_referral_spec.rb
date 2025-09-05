@@ -88,20 +88,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       end
 
-      it 'returns true when the destination project accepts CE referrals and the client does not have an open enrollment' do
+      it 'returns true when the destination project can accept the referral' do
         response, result = post_graphql(**variables) { query }
-
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'projectCanAcceptReferral')).to eq(true)
       end
 
-      it 'returns false when the destination project accepts CE referrals but the client has an open enrollment' do
-        create :hmis_hud_enrollment, client: c1, project: destination_project, data_source: ds1
+      context 'when the client has an open enrollment in the destination project' do
+        let!(:existing_enrollment) { create(:hmis_hud_enrollment, client: c1, project: destination_project, data_source: ds1) }
 
-        response, result = post_graphql(**variables) { query }
+        it 'returns false' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq 200
+          expect(result.dig('data', 'projectCanAcceptReferral')).to eq(false)
+        end
+      end
 
-        expect(response.status).to eq 200
-        expect(result.dig('data', 'projectCanAcceptReferral')).to eq(false)
+      context 'when client already has an in-progress referral at the destination project' do
+        let!(:existing_referral) { create(:hmis_ce_referral, client: c1, project: destination_project, data_source: ds1, status: :in_progress) }
+
+        it 'returns false' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq 200
+          expect(result.dig('data', 'projectCanAcceptReferral')).to eq(false)
+        end
       end
 
       context 'when dest project does not accept ce referrals' do
