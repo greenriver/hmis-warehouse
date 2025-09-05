@@ -28,7 +28,9 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
   let!(:general_pool) { create :hmis_ce_match_candidate_pool, requirement_expression: 'current_age > 18' }
 
   let!(:veteran_project) { create :hmis_hud_project, data_source: ds1, project_type: 1 }
+  let!(:veteran_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: veteran_project) }
   let!(:general_project) { create :hmis_hud_project, data_source: ds1, project_type: 2 }
+  let!(:general_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: general_project) }
 
   let!(:veteran_unit_group) { create :hmis_unit_group, project: veteran_project, candidate_pool: veteran_pool }
   let!(:general_unit_group) { create :hmis_unit_group, project: general_project, candidate_pool: general_pool }
