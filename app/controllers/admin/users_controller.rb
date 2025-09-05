@@ -12,7 +12,7 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password, :load_entity_column]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire, :expire_password, :load_select_options]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire, :expire_password]
     helper_method :sort_column, :sort_direction
@@ -182,6 +182,35 @@ module Admin
         associations: associations,
         user: @user,
       }
+    end
+
+    def load_select_options
+      entity_type = params[:entity_type]
+      base = params[:base] || 'user'
+
+      entity = case entity_type
+      when 'data_sources'
+        data_source_viewability(base)
+      when 'organizations'
+        organization_viewability(base)
+      when 'projects'
+        project_viewability(base)
+      when 'project_access_groups'
+        project_access_group_viewability(base)
+      when 'coc_codes'
+        coc_viewability(base)
+      when 'reports'
+        user_reports_assignability(base)
+      when 'project_groups'
+        project_groups_editability(base)
+      when 'cohorts'
+        cohort_editability(base)
+      else
+        render json: { error: 'Invalid entity type' }, status: :bad_request
+        return
+      end
+
+      render partial: 'users/select_options', locals: { entity: entity }
     end
 
     private def copy_user_groups
