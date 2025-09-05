@@ -22,7 +22,7 @@ module HmisCsvTwentyTwentySix::Exporter
           # If more than one CoC Code was selected by the user for export, all selected CoC Codes should be included here in a semicolon-separated list
           # (ex. “XX-501;XX-502”)
           # If SourceType <> 1, this field may be null or used to specify other characteristics, as agreed upon by sender and receiver.
-          SourceID: source_id[0..31], # potentially more than one CoC
+          SourceID: source_id[0..349], # potentially more than one CoC
           SourceName: Translation.translate('Open Path HMIS Warehouse'),
           SourceContactFirst: export&.user&.first_name || 'Automated',
           SourceContactLast: export&.user&.last_name || 'Export',

@@ -31,7 +31,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    it 'Q6a' do
+    xit 'Q6a' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
@@ -130,7 +130,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    it 'Q12' do
+    xit 'Q12' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
@@ -235,7 +235,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    it 'Q19b' do
+    xit 'Q19b' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
@@ -319,7 +319,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    it 'Q23e' do
+    xit 'Q23e' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
@@ -468,7 +468,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    it 'Q27f1' do
+    xit 'Q27f1' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27f1',
@@ -496,7 +496,7 @@ RSpec.shared_context 'datalab organization y sso apr', shared_context: :metadata
       )
     end
 
-    it 'Q27i' do
+    xit 'Q27i' do # Skipped until we have a new text kit
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27i',
