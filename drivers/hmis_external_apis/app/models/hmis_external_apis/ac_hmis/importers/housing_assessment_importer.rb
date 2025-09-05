@@ -125,7 +125,9 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     end
 
     tuples.reject { |(_k, v)| v.nil? }.each do |cded_field, value|
-      cded = cded_lookup.fetch(cded_field)
+      cded = cded_lookup[cded_field]
+      raise KeyError, "Missing CDED for key=#{cded_field.inspect}" unless cded
+
       cde = assessment.custom_data_elements.build(
         data_element_definition: cded,
         user: system_hud_user,
@@ -155,7 +157,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def create_ce_enrollment(waitlist)
-    hmis_client = find_hmis_client(waitlist) || create_hmis_client(waitlist)
+    hmis_client = find_and_update_hmis_client(waitlist) || create_hmis_client(waitlist)
     deterministic_id = waitlist.hud_id
 
     # remove existing enrollment if it exists
@@ -184,13 +186,15 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     intake.save!
   end
 
-  def find_hmis_client(waitlist)
+  def find_and_update_hmis_client(waitlist)
     # client_id is the MCI Unique ID
     mci_scope = HmisExternalApis::ExternalId.
       where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE).
       where(value: waitlist.client_id)
 
     client = Hmis::Hud::Client.joins(:ac_hmis_mci_unique_id).merge(mci_scope).first
+    return nil unless client
+
     client.update!(**client_attrs(waitlist))
     client
   end
@@ -437,7 +441,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
 
       raise ArgumentError, "Integer too long for SSN (#{value.inspect})" if value.to_s.length > 9
 
-      value.is_a?(String) ? value : '%09d' % value
+      value.is_a?(String) ? value : '%09d'.format(value)
     end
 
     def client_veteran_status
@@ -459,13 +463,14 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     end
 
     def client_gender_fields
-      code = parse_common_desc(raw_values.gender_common_desc)
+      value = raw_values.gender_common_desc
+      code = parse_common_desc(value)
       if code == '2'
         { 'woman' => 1, 'man' => 0 }
       elsif code == '1'
         { 'man' => 1, 'woman' => 0 }
       else
-        raise ArgumentError, "gender #{gender_common_desc} not supported"
+        raise ArgumentError, "gender #{value} not supported"
       end
     end
 
@@ -494,6 +499,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       return nil unless household_type == 'Individual'
 
       code = parse_common_desc(raw_values.gender_common_desc)
+      # note, our current form has mismatched cases "Identifying" vs "identifying"
       code == '2' ? 'Only Those Identifying as Female' : 'Only Those identifying as Male'
     end
 
@@ -534,16 +540,13 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
 
     def referred_bedroom_sizes
       raw_values.referred_bedroom_sizes.to_s.split(/\s*\|\s*/).compact_blank.map do |size|
-        size = size.strip.gsub(/\+CRIB$/, '') # not sure what to do with "CRIB" requests
-        case size.strip
-        when 'SRO', '0'
-          'SRO'
+        size = size.strip
+        case size
         when '1', '2', '3', '4'
           "#{size} Bed"
-        when '5'
-          '4 Bed' # we don't have 5 bed in our form
         else
-          raise ArgumentError, "Invalid bedroom type #{size.inspect}"
+          # SRO, 0, 5, and x+crib are not supported but we store them anyway
+          size
         end
       end.compact.uniq.sort
     end
@@ -601,7 +604,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     end
 
     def round_currency(amount)
-      ((amount.to_f * 100).round / 100.0)
+      ((BigDecimal(amount.to_s) * 100).round(0) / 100).to_f
     end
 
     def matches_pct?(income, base, expected_int_pct)
