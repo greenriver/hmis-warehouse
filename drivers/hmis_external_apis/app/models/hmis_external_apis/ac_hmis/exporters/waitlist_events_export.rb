@@ -68,7 +68,9 @@ module HmisExternalApis::AcHmis::Exporters
 
     def unit_groups_by_pool_id
       Hmis::UnitGroup.
+        joins(:project).
         where(candidate_pool_id: candidate_pool_ids_for_data_source).
+        where(Hmis::Hud::Project.arel_table[:data_source_id].eq(data_source.id)).
         preload(:project).
         group_by(&:candidate_pool_id)
     end
