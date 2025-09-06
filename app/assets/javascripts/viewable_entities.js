@@ -276,8 +276,13 @@ window.App.ViewableEntities = class {
     // Use jQuery GET request to fetch the options HTML
     $.get(loadUrl)
       .done((optionsHtml) => {
-        // Create a completely new select element
-        const $newSelect = $(`<select name="${selectName}" class="${selectClass}" ${isMultiple ? 'multiple' : ''}></select>`);
+        // Create a completely new select element safely using DOM methods
+        const $newSelect = $('<select></select>');
+
+        // Set attributes safely using jQuery methods (auto-escapes values)
+        if (selectName) $newSelect.attr('name', selectName);
+        if (selectClass) $newSelect.attr('class', selectClass);
+        if (isMultiple) $newSelect.attr('multiple', 'multiple');
 
         // Add the options HTML
         $newSelect.html(optionsHtml);
@@ -318,9 +323,18 @@ window.App.ViewableEntities = class {
         $newSelect.trigger('change');
       })
       .fail(() => {
-        // Handle error case - create a new select with error message
-        const $errorSelect = $(`<select name="${selectName}" class="${selectClass}" disabled></select>`);
-        $errorSelect.html(`<option disabled>Failed to load ${entityType.replace('_', ' ')}</option>`);
+        // Handle error case - create a new select with error message safely
+        const $errorSelect = $('<select disabled></select>');
+
+        // Set attributes safely using jQuery methods
+        if (selectName) $errorSelect.attr('name', selectName);
+        if (selectClass) $errorSelect.attr('class', selectClass);
+
+        // Create error message safely
+        const errorMessage = 'Failed to load ' + entityType.replace('_', ' ');
+        const $errorOption = $('<option disabled></option>').text(errorMessage);
+        $errorSelect.append($errorOption);
+
         $loadingState.replaceWith($errorSelect);
       });
   }
