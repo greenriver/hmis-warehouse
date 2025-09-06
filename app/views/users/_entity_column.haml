@@ -1,7 +1,7 @@
 - associated_items ||= @group.associated_by(associations: associations) rescue []
 - name = entity[:label] || entity[:placeholder]
 
-.c-columns__column.j-column{data: {title: name.pluralize}}
+.c-columns__column.j-column{data: {title: name.pluralize}, id: "#{entity_type.to_s.parameterize}-column"}
   .c-columns__column
     .c-columns__column-header
       %h3.c-columns__column-title=name.pluralize
@@ -27,13 +27,13 @@
             .btn.btn-sm.btn-secondary.mr-2.j-remove-all-toggle No
             .btn.btn-sm.btn-danger.j-remove-all Yes
 
-    .c-columns__column-content.j-column-content
+    .c-columns__column-content.j-column-content{id: "#{entity_type.to_s.parameterize}-content"}
       - if entity[:lazy_load]
-        %ul.c-columns__column-list.j-list.j-editable
+        %ul.c-columns__column-list.j-list.j-editable{id: "#{entity_type.to_s.parameterize}-list"}
           %li.c-columns__column-list-item--read-only
             .rollup-container.c-card.c-card--flush.c-card--block
       - else
-        %ul.c-columns__column-list.j-list.j-editable
+        %ul.c-columns__column-list.j-list.j-editable{id: "#{entity_type.to_s.parameterize}-list"}
       %ul.c-columns__column-list.c-columns__column-list--associated
         - associated_items.each do |associated, items|
           - items.each do |a|
@@ -42,11 +42,11 @@
                 = a
                 %em.d-block.text-small.c-columns__column-list-item-description=associated
   - if @user
-    .c-columns__column
+    .c-columns__column{id: "#{entity_type.to_s.parameterize}-inherited-column"}
       .c-columns__column-header
         %h3.c-columns__column-title= "#{name.pluralize} Inherited from Groups"
       .c-columns__column-content
-        %ul.c-columns__column-list.c-columns__column-list--associated
+        %ul.c-columns__column-list.c-columns__column-list--associated{id: "#{entity_type.to_s.parameterize}-inherited-list"}
           - @user.inherited_for_type(entity_type).each do |group_name, items|
             - items.each do |item|
               %li.c-columns__column-list-item--read-only
