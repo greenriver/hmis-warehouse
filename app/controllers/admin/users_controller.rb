@@ -143,33 +143,126 @@ module Admin
       perform_search(search_query.query_params)
     end
 
-    # Loads select options for entity type dropdowns in the user form, used for lazy loading entities
-    # @param [String] entity_type The type of entity to load options for (data_sources, organizations, etc)
-    # @param [String] base The base parameter name, defaults to 'user'
-    # @param [String] id Optional user ID if editing existing user
-    # @return [String] Rendered partial with select options for the entity type
-    # @example Load project options for new user
-    #   load_select_options(entity_type: 'projects', base: 'user')
-    # @example Load organization options for existing user
-    #   load_select_options(entity_type: 'organizations', base: 'user', id: 123)
+    # Loads select options for entity type dropdowns in the user form via AJAX for lazy loading.
+    # This endpoint provides HTML option elements for large entity collections to improve
+    # initial page load performance by deferring data loading until needed.
     #
-    # NOTE: this is guarded by require_can_edit_users!
+    # @param entity_type [String] The type of entity to load options for. Must be one of:
+    #   'data_sources', 'organizations', 'projects', 'project_access_groups',
+    #   'coc_codes', 'reports', 'project_groups', 'cohorts'
+    # @param base [String] The base parameter name for form inputs, defaults to 'user'
+    # @param id [String] Optional user ID when editing existing user to load current selections
+    #
+    # @return [String] Rendered partial containing HTML option/optgroup elements
+    # @return [JSON] Error response with appropriate HTTP status code on failure
+    #
+    # @example Load project options for new user
+    #   GET /admin/users/load_select_options?entity_type=projects&base=user
+    # @example Load organization options for existing user
+    #   GET /admin/users/load_select_options?entity_type=organizations&base=user&id=123
+    #
+    # @raise [JSON] 400 Bad Request for invalid/missing entity_type
+    # @raise [JSON] 404 Not Found if user ID provided but user doesn't exist
+    # @raise [JSON] 500 Internal Server Error for unexpected failures
+    #
+    # @note This endpoint is protected by require_can_edit_users! before_action
+    # @note We explicitly do not have an id as part of the url, it is passed as a param to support new and existing users
+    # @see ViewableEntities concern for entity building methods
     def load_select_options
-      entity_type = params[:entity_type]
-      base = params[:base] || 'user'
+      entity_type = validate_entity_type_param
+      return if performed? # Early return if validation failed and response was already rendered
 
-      # Handle both cases: existing user (with id) or new user (without id)
-      if params[:id].present?
-        # For existing users, load the actual user and reload associations
-        @user = User.find(params[:id])
-        @user.reload # Ensure we have the latest data
-      else
-        # For new users, create a temporary user object
-        temp_user = User.new
-        @user = temp_user
+      base = validate_base_param
+      @user = load_user_for_entity_options
+
+      begin
+        entity = build_entity_options(entity_type, base)
+        render partial: 'users/select_options', locals: { entity: entity }
+      rescue StandardError => e
+        Rails.logger.error "Failed to load select options for #{entity_type}: #{e.message}"
+        render json: { error: 'Failed to load options' }, status: :internal_server_error
+      end
+    end
+
+    # Validates the entity_type parameter for load_select_options endpoint.
+    # Ensures the requested entity type is supported and prevents potential security issues
+    # from arbitrary entity type values.
+    #
+    # @return [String] The validated entity type if valid
+    # @return [nil] Returns nil and renders JSON error response if invalid
+    #
+    # @note Renders 400 Bad Request response for invalid/missing entity types
+    # @note Valid entity types are: data_sources, organizations, projects,
+    #   project_access_groups, coc_codes, reports, project_groups, cohorts
+    private def validate_entity_type_param
+      entity_type = params[:entity_type]
+      valid_entity_types = ['data_sources', 'organizations', 'projects', 'project_access_groups', 'coc_codes', 'reports', 'project_groups', 'cohorts']
+
+      unless entity_type.present? && valid_entity_types.include?(entity_type)
+        render json: { error: 'Invalid or missing entity type' }, status: :bad_request
+        return nil
       end
 
-      entity = case entity_type
+      entity_type
+    end
+
+    # Validates and sanitizes the base parameter for form input naming.
+    # The base parameter determines the prefix used for form field names
+    # (e.g., 'user[projects][]' vs 'invitation[projects][]').
+    #
+    # @return [String] The sanitized base parameter, defaults to 'user'
+    #
+    # @note Always returns a safe string value, never nil
+    # @note Strips whitespace and falls back to 'user' for empty values
+    private def validate_base_param
+      base = params[:base]
+      return 'user' unless base.present?
+
+      # Sanitize base parameter to prevent potential issues
+      base.to_s.strip.presence || 'user'
+    end
+
+    # Loads the appropriate User object for entity option building.
+    # For existing users, loads the user.
+    # For new users, creates a temporary User object for form building.
+    #
+    # @return [User] The user object (existing or new) for entity option building
+    # @return [nil] Returns nil and renders JSON error response if user not found
+    #
+    # @note For existing users (when params[:id] present), reloads associations
+    # @note For new users, returns a new User instance (not persisted)
+    # @note Renders 404 Not Found response if user ID provided but user doesn't exist
+    private def load_user_for_entity_options
+      return User.new if params[:id].blank?
+
+      begin
+        User.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'User not found' }, status: :not_found
+        return nil
+      end
+    end
+
+    # Builds entity options hash for the specified entity type and base parameter.
+    # Delegates to appropriate ViewableEntities concern methods to generate
+    # form field configurations with collections, selected values, and metadata.
+    #
+    # @param entity_type [String] The validated entity type to build options for
+    # @param base [String] The sanitized base parameter for form field naming
+    #
+    # @return [Hash] Entity options hash containing:
+    #   - :collection - The available items for selection
+    #   - :selected - Currently selected item IDs
+    #   - :input_html - HTML attributes for form inputs
+    #   - :as - Form field type (:select, :grouped_select, etc.)
+    #   - Other metadata specific to the entity type
+    #
+    # @raise [ArgumentError] If entity_type is not supported (should not happen with validation)
+    #
+    # @note Relies on ViewableEntities concern methods for actual option building
+    # @see ViewableEntities concern for individual entity building methods
+    private def build_entity_options(entity_type, base)
+      case entity_type
       when 'data_sources'
         data_source_viewability(base)
       when 'organizations'
@@ -187,11 +280,8 @@ module Admin
       when 'cohorts'
         cohort_editability(base)
       else
-        render json: { error: 'Invalid entity type' }, status: :bad_request
-        return
+        raise ArgumentError, "Unsupported entity type: #{entity_type}"
       end
-
-      render partial: 'users/select_options', locals: { entity: entity }
     end
 
     private def copy_user_groups

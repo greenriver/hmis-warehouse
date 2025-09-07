@@ -233,83 +233,96 @@ window.App.ViewableEntities = class {
     $placeholder.addClass('loaded');
 
     // Get the original select attributes
-    const selectName = $oldSelect.attr('name');
-    const selectClass = $oldSelect.attr('class');
-    const isMultiple = $oldSelect.attr('multiple');
+    const selectAttributes = this.extractSelectAttributes($oldSelect);
 
     // Use jQuery GET request to fetch the options HTML
     // console.log(`ViewableEntities: Firing GET request to ${loadUrl} for entity type ${entityType}`);
     return $.get(loadUrl)
       .then((optionsHtml) => {
-        // console.log(`ViewableEntities: Successfully loaded options for ${entityType}. HTML length:`, optionsHtml.length);
-        // Create a completely new select element safely using DOM methods
-        const $newSelect = $('<select></select>');
-
-        // Set attributes safely using jQuery methods (auto-escapes values)
-        if (selectName) $newSelect.attr('name', selectName);
-        if (selectClass) $newSelect.attr('class', selectClass);
-        if (isMultiple) $newSelect.attr('multiple', 'multiple');
-
-        // SECURITY FIX: Parse HTML safely using jQuery and DOM methods instead of .html()
-        const $tempContainer = $('<div>').html(optionsHtml);
-        const $options = $tempContainer.children();
-
-        // Safely append each option/optgroup by cloning DOM nodes
-        $options.each(function () {
-          $newSelect.append($(this).clone());
-        });
-
-        // Replace the loading state with the new select
+        const $newSelect = this.createSelectFromHTML(optionsHtml, selectAttributes, entityType);
         $loadingState.replaceWith($newSelect);
-
-        // Initialize Select2 for the new select
-        $newSelect.select2({
-          minimumResultsForSearch: 10,
-          placeholder: 'Search for ' + (entityType.replace('_', ' ')),
-          tags: false,
-          multiple: true
-        });
-
-        // Set up event handlers
-        $newSelect.on('select2:select select2:unselect', function () {
-          const values = {};
-          const $selectedOptions = $(this).find(':selected');
-          $selectedOptions.each(function (i, el) {
-            values[el.value] = el.textContent;
-          });
-          self.renderList(values, $(this));
-        });
-
-        // ALWAYS populate the initial list of selected items
-        const initialValues = {};
-        const $selectedOptions = $newSelect.find('option[selected]');
-        $selectedOptions.each(function (i, el) {
-          initialValues[el.value] = el.textContent;
-        });
-        // Always call renderList to show pre-selected items
-        self.renderList(initialValues, $newSelect);
-
-        // Set the select values and trigger change
-        const selectedValues = Object.keys(initialValues);
-        $newSelect.val(selectedValues);
-        $newSelect.trigger('change');
+        this.initializeSelect2($newSelect, entityType, self);
+        this.populateInitialValues($newSelect, self);
       })
       .catch(() => {
-        // console.error(`ViewableEntities: FAILED to load options for ${entityType} from ${loadUrl}`);
-        // Handle error case - create a new select with error message safely
-        const $errorSelect = $('<select disabled></select>');
-
-        // Set attributes safely using jQuery methods
-        if (selectName) $errorSelect.attr('name', selectName);
-        if (selectClass) $errorSelect.attr('class', selectClass);
-
-        // Create error message safely using .text() to prevent XSS
-        const errorMessage = 'Failed to load ' + entityType.replace('_', ' ');
-        const $errorOption = $('<option disabled></option>').text(errorMessage);
-        $errorSelect.append($errorOption);
-
+        const $errorSelect = this.createErrorSelect(selectAttributes, entityType);
         $loadingState.replaceWith($errorSelect);
       });
+  }
+
+  extractSelectAttributes($oldSelect) {
+    return {
+      name: $oldSelect.attr('name'),
+      class: $oldSelect.attr('class'),
+      multiple: $oldSelect.attr('multiple')
+    };
+  }
+
+  createSelectFromHTML(optionsHtml, selectAttributes, entityType) {
+    const $newSelect = $('<select></select>');
+
+    // Set attributes safely using jQuery methods (auto-escapes values)
+    if (selectAttributes.name) $newSelect.attr('name', selectAttributes.name);
+    if (selectAttributes.class) $newSelect.attr('class', selectAttributes.class);
+    if (selectAttributes.multiple) $newSelect.attr('multiple', 'multiple');
+
+    // SECURITY FIX: Parse HTML safely using jQuery and DOM methods instead of .html()
+    const $tempContainer = $('<div>').html(optionsHtml);
+    const $options = $tempContainer.children();
+
+    // Safely append each option/optgroup by cloning DOM nodes
+    $options.each(function () {
+      $newSelect.append($(this).clone());
+    });
+
+    return $newSelect;
+  }
+
+  initializeSelect2($newSelect, entityType, self) {
+    $newSelect.select2({
+      minimumResultsForSearch: 10,
+      placeholder: 'Search for ' + (entityType.replace('_', ' ')),
+      tags: false,
+      multiple: true
+    });
+
+    // Set up event handlers
+    $newSelect.on('select2:select select2:unselect', function () {
+      const values = {};
+      const $selectedOptions = $(this).find(':selected');
+      $selectedOptions.each(function (i, el) {
+        values[el.value] = el.textContent;
+      });
+      self.renderList(values, $(this));
+    });
+  }
+
+  populateInitialValues($newSelect, self) {
+    const initialValues = {};
+    const $selectedOptions = $newSelect.find('option[selected]');
+    $selectedOptions.each(function (i, el) {
+      initialValues[el.value] = el.textContent;
+    });
+
+    self.renderList(initialValues, $newSelect);
+    const selectedValues = Object.keys(initialValues);
+    $newSelect.val(selectedValues);
+    $newSelect.trigger('change');
+  }
+
+  createErrorSelect(selectAttributes, entityType) {
+    const $errorSelect = $('<select disabled></select>');
+
+    // Set attributes safely using jQuery methods
+    if (selectAttributes.name) $errorSelect.attr('name', selectAttributes.name);
+    if (selectAttributes.class) $errorSelect.attr('class', selectAttributes.class);
+
+    // Create error message safely using .text() to prevent XSS
+    const errorMessage = 'Failed to load ' + entityType.replace('_', ' ');
+    const $errorOption = $('<option disabled></option>').text(errorMessage);
+    $errorSelect.append($errorOption);
+
+    return $errorSelect;
   }
 
 };
