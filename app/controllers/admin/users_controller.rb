@@ -143,6 +143,17 @@ module Admin
       perform_search(search_query.query_params)
     end
 
+    # Loads select options for entity type dropdowns in the user form, used for lazy loading entities
+    # @param [String] entity_type The type of entity to load options for (data_sources, organizations, etc)
+    # @param [String] base The base parameter name, defaults to 'user'
+    # @param [String] id Optional user ID if editing existing user
+    # @return [String] Rendered partial with select options for the entity type
+    # @example Load project options for new user
+    #   load_select_options(entity_type: 'projects', base: 'user')
+    # @example Load organization options for existing user
+    #   load_select_options(entity_type: 'organizations', base: 'user', id: 123)
+    #
+    # NOTE: this is guarded by require_can_edit_users!
     def load_select_options
       entity_type = params[:entity_type]
       base = params[:base] || 'user'

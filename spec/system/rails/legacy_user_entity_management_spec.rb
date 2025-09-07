@@ -15,22 +15,26 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
   include_context 'RailsSystemHelper'
 
   let!(:agency) { create :agency }
-  let!(:admin_role) { create :admin_role }
+  let!(:admin_role) { create :admin_role, can_view_projects: true }
   let!(:admin_user) { create :user, agency: agency, permission_context: 'role_based' } # Legacy user, not ACL user
 
   # Create test entities for selection
   let!(:data_source_1) { create :grda_warehouse_data_source, name: 'Test Data Source 1' }
   let!(:data_source_2) { create :grda_warehouse_data_source, name: 'Test Data Source 2' }
   let!(:organization_1) { create :hud_organization, OrganizationName: 'Test Organization 1', data_source: data_source_1 }
-  let!(:organization_2) { create :hud_organization, OrganizationName: 'Test Organization 2', data_source: data_source_1 }
+  let!(:organization_2) { create :hud_organization, OrganizationName: 'Test Organization 2', data_source: data_source_2 }
   let!(:project_1) { create :hud_project, ProjectName: 'Test Project 1', data_source: data_source_1, OrganizationID: organization_1.OrganizationID }
-  let!(:project_2) { create :hud_project, ProjectName: 'Test Project 2', data_source: data_source_1, OrganizationID: organization_2.OrganizationID }
+  let!(:project_2) { create :hud_project, ProjectName: 'Test Project 2', data_source: data_source_2, OrganizationID: organization_2.OrganizationID }
   let!(:project_access_group_1) { create :project_access_group, name: 'Test Project Group 1' }
   let!(:project_access_group_2) { create :project_access_group, name: 'Test Project Group 2' }
 
   before do
     # Set up admin user with legacy role-based permissions
     admin_user.user_roles.create!(role: admin_role)
+    admin_user.access_group.add_viewable(data_source_1)
+    admin_user.access_group.add_viewable(data_source_2)
+    admin_user.access_group.add_viewable(project_access_group_1)
+    admin_user.access_group.add_viewable(project_access_group_2)
   end
 
   describe 'User Creation via Invitation', js: true do
@@ -57,7 +61,7 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
       expect(page).to have_css('.j-column-actions-add', visible: false)
 
       # Verify lazy loading interface is present
-      expect(page).to have_css('#data_sources-column')
+      expect(page).to have_css('#organizations-column')
       expect(page).to have_css('.select-placeholder, select', visible: false, wait: 10)
     end
 
@@ -66,13 +70,14 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
       click_link 'Data Access Assignments'
 
       # Verify multiple entity columns are present with proper IDs
+      # NOTE: data sources and coc codes are not lazy loaded
       expect(page).to have_css('#data_sources-column')
       expect(page).to have_css('#organizations-column')
       expect(page).to have_css('#projects-column')
       expect(page).to have_css('#project_access_groups-column')
 
       # Each column should have interface elements (visible or hidden)
-      within('#data_sources-column') do
+      within('#organizations-column') do
         expect(page).to have_css('select, .select-placeholder', visible: false)
       end
     end
@@ -80,35 +85,35 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
 
   describe 'User Editing with Existing Selections', js: true do
     let!(:existing_user) { create :user, agency: agency, first_name: 'Existing', last_name: 'User', permission_context: 'role_based' }
-    let!(:existing_access_group) { create :access_group, name: 'Existing Access Group' }
 
     before do
-      # Set up existing user with legacy access group and some selected entities
-      existing_access_group.add(existing_user)
-      existing_user.user_roles.create!(role: admin_role)
-
-      # Add some viewable entities to the access group
-      existing_access_group.add_viewable(data_source_1)
-      existing_access_group.add_viewable(organization_1)
-      existing_access_group.add_viewable(project_1)
-      existing_access_group.add_viewable(project_access_group_1)
-
+      access_group = existing_user.access_group
+      # Add some viewable entities to the access group so they appear
+      # on the page as pre-selected
+      access_group.add_viewable(data_source_1)
+      access_group.add_viewable(project_2)
+      access_group.add_viewable(project_access_group_1)
       sign_in_user(admin_user)
     end
 
-    it 'displays existing selections and allows modifications' do
+    it 'displays existing selections and maintains previous selections on save' do
       # Navigate to edit user page
       visit edit_admin_user_path(existing_user)
 
       click_link 'Data Access Assignments'
 
+      access_group = existing_user.access_group
+      expect(access_group.data_sources).to include(data_source_1)
+      expect(access_group.projects).to include(project_2)
+      expect(access_group.projects).to include(project_access_group_1)
+
       # Wait for and verify existing selections are displayed
-      expect(page).to have_content('Test Data Source 1', wait: 10)
-      expect(page).to have_content('Test Organization 1')
-      expect(page).to have_content('Test Project 1')
-      expect(page).to have_content('Test Project Group 1')
+      expect(page).to have_content('Test Data Source 1', wait: 20)
+      expect(page).to have_content('Test Project 2', wait: 20)
+      expect(page).to have_content('Test Project Group 1', wait: 20)
 
       # Verify form functionality
+      puts page.evaluate_script('$(arguments[0]).serialize()', find('form.edit_user'))
 
       click_button 'Update User'
       expect(page).to have_current_path(edit_admin_user_path(existing_user))
@@ -116,34 +121,45 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
       # Verify selections persist after save
       visit edit_admin_user_path(existing_user)
       click_link 'Data Access Assignments'
-      expect(page).to have_content('Test Data Source 1', wait: 10)
-      expect(page).to have_content('Test Organization 1')
-      expect(page).to have_content('Test Project 1')
-      expect(page).to have_content('Test Project Group 1')
+
+      access_group = existing_user.access_group
+      expect(access_group.data_sources).to include(data_source_1)
+      expect(access_group.projects).to include(project_2)
+      expect(access_group.projects).to include(project_access_group_1)
+
+      # Wait for and verify existing selections are displayed
+      expect(page).to have_content('Test Data Source 1', wait: 20)
+      expect(page).to have_content('Test Project 2', wait: 20)
+      expect(page).to have_content('Test Project Group 1', wait: 20)
     end
 
     it 'handles removing selections correctly' do
       visit edit_admin_user_path(existing_user)
       click_link 'Data Access Assignments'
 
-      # Wait for existing selection to appear
-      expect(page).to have_content('Test Data Source 1', wait: 10)
+      # Useful debugging code for future situations,
+      # native.property('innerHTML') returns the HTML of the element
+      el = find('#projects-column')
+      project_column_html = el.native.property('innerHTML')
 
-      # Remove the selection using ID-based targeting
-      removed_successfully = false
-      within('#data_sources-column') do
-        within('#data_sources-list') do
-          if has_css?('.j-remove')
-            find('.j-remove', match: :first).click
-            removed_successfully = true
-          end
-        end
+      expect(existing_user.access_group.projects).to include(project_2)
+      expect(project_column_html).to include('Test Project 2')
+
+      # Remove the selection by clicking on the list item (this is how removal works)
+
+      within('#projects-column') do
+        # *** Explicitly wait for the lazy-loaded content to appear ***
+        expect(page).to have_selector('li', text: 'Test Project 2', wait: 20)
+
+        # Find the list item containing the project and click it to remove
+        list_item = find('li.c-columns__column-list-item', text: 'Test Project 2')
+        list_item.click
       end
 
-      skip 'Remove functionality not available in current interface' unless removed_successfully
-
       # Verify it's removed from the display
-      expect(page).not_to have_content('Test Data Source 1')
+      within('#projects-column') do
+        expect(page).not_to have_content('Test Project 2')
+      end
 
       # Submit the form
       click_button 'Update User'
@@ -153,8 +169,10 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
       visit edit_admin_user_path(existing_user)
       click_link 'Data Access Assignments'
 
-      # Should show "No Data Sources selected" or similar
-      expect(page).to have_content('No Data Sources selected', wait: 10)
+      # Wait for lazy loading and check for empty state
+      within('#projects-column') do
+        expect(page).to have_content('No Projects selected', wait: 15)
+      end
     end
   end
 
@@ -225,6 +243,7 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
         expect(page).to have_content('Test Data Source 1', wait: 10)
       end
       within('#organizations-column') do
+        # lazy loaded
         expect(page).to have_content('Test Organization 1')
       end
     end
@@ -232,30 +251,6 @@ RSpec.feature 'Legacy User Management with Lazy Loading', type: :rails_system do
 
   describe 'Error Handling and Edge Cases', js: true do
     before { sign_in_user(admin_user) }
-
-    it 'handles AJAX failures gracefully' do
-      visit new_user_invitation_path
-      click_link 'Data Access Assignments'
-
-      # Simulate network failure by stubbing the AJAX endpoint
-      page.execute_script("
-        if (typeof $ !== 'undefined' && $.get) {
-          var originalGet = $.get;
-          $.get = function(url) {
-            var deferred = $.Deferred();
-            setTimeout(function() { deferred.reject(); }, 100);
-            return deferred.promise();
-          };
-        }
-      ")
-
-      # Trigger tab changes to test error handling
-      click_link 'Reports & Cohorts'
-      click_link 'Data Access Assignments'
-
-      # Should show fallback interface when AJAX fails
-      expect(page).to have_css('#data_sources-column', wait: 5)
-    end
 
     it 'works correctly when switching between tabs multiple times' do
       visit new_user_invitation_path

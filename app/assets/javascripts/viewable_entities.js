@@ -30,24 +30,27 @@ window.App.ViewableEntities = class {
     };
 
     const getSelect2 = (el) => {
-      return $(el).closest('.j-column').find('.jUserViewable');
+      const $column = $(el).closest('.j-column');
+      const $select = $column.find('.jUserViewable');
+      return $select;
     };
 
     // Use delegated events so they work on AJAX-loaded content
-    $('body').on('click', '.j-add', (event) => {
+    // Clean up existing handlers to prevent duplicates
+    $('body').off('click', '.j-add').on('click', '.j-add', (event) => {
       // eslint-disable-next-line no-unused-vars
       const elements = showHideEl(event, 'add');
     });
-    $('body').on('click', '.j-remove-all-toggle', (event) => {
+    $('body').off('click', '.j-remove-all-toggle').on('click', '.j-remove-all-toggle', (event) => {
       // eslint-disable-next-line no-unused-vars
       const elements = showHideEl(event, 'remove');
     });
     // eslint-disable-next-line no-unused-vars
-    $('body').on('click', '.j-remove-all', function (event) {
+    $('body').off('click', '.j-remove-all').on('click', '.j-remove-all', function (event) {
       self.removeAll(getSelect2(this), $(this).closest('.j-column'));
     });
     // eslint-disable-next-line no-unused-vars
-    $('body').on('click', '.j-list.j-editable li', function (event) {
+    $('body').off('click', '.j-list.j-editable li').on('click', '.j-list.j-editable li', function (event) {
       self.removeItem(this, getSelect2(this));
     });
   }
@@ -58,7 +61,6 @@ window.App.ViewableEntities = class {
     const editable = $listContainer.hasClass('j-editable');
     const ids = Object.keys(items);
     const unlimitableIds = ($list.data('unlimitable') || []);
-
 
     const itemValues = [];
     for (const i in items) {
@@ -107,13 +109,15 @@ window.App.ViewableEntities = class {
   }
 
   removeItem(item, $select2) {
-    const currentIds = $select2.val();
-    const index = currentIds.indexOf($(item).data('id').toString());
-    if (index > -1) {
-      currentIds.splice(index, 1);
-    }
+    const itemIdToRemove = $(item).data('id').toString();
+    const currentIds = $select2.val() || [];
+
+    // Filter out ALL instances of the ID to remove. This handles cases
+    // where duplicate values might exist in the select.
+    const newIds = currentIds.filter(id => id !== itemIdToRemove);
+
     $select2
-      .val(currentIds)
+      .val(newIds)
       .trigger('change');
     $(item).remove();
   }
@@ -186,6 +190,7 @@ window.App.ViewableEntities = class {
   }
 
   loadSelectOptions() {
+    // console.log('ViewableEntities: Starting loadSelectOptions...');
     const self = this;
     const selectPlaceholders = document.querySelectorAll('.select-placeholder');
 
@@ -193,68 +198,27 @@ window.App.ViewableEntities = class {
       return;
     }
 
-    // Load select options when their tab becomes visible or when Add button is clicked
-    const handleTabShown = (event) => {
-      const tabPane = document.querySelector(event.target.getAttribute('href'));
-      if (!tabPane) return;
+    // Load ALL select options immediately on page load with sequential queuing
+    let loadQueue = Promise.resolve();
 
-      const placeholdersInTab = tabPane.querySelectorAll('.select-placeholder:not(.loaded)');
-      if (placeholdersInTab.length > 0) {
-        placeholdersInTab.forEach(placeholder => {
-          self.loadSingleSelectOptions(placeholder);
-        });
-      }
-    };
-
-    // Load select options when Add button is clicked
-    const handleAddClick = (event) => {
-      const column = event.target.closest('.j-column');
-      if (!column) return;
-
-      const placeholder = column.querySelector('.select-placeholder:not(.loaded)');
-      if (placeholder) {
-        self.loadSingleSelectOptions(placeholder);
-      }
-    };
-
-    // Add event listeners to tab links
-    const tabLinks = document.querySelectorAll('[data-bs-toggle="tab"]');
-    tabLinks.forEach((tab) => {
-      // Try multiple event names for different Bootstrap versions
-      tab.addEventListener('shown.bs.tab', handleTabShown);
-      tab.addEventListener('shown', handleTabShown);  // Bootstrap 3 fallback
-
-      // Also add click handler as fallback
-      tab.addEventListener('click', (event) => {
-        // Small delay to ensure tab content is visible
-        setTimeout(() => handleTabShown(event), 100);
-      });
-    });
-
-    // Add event listeners to Add buttons using delegation
-    $('body').on('click', '.j-add', handleAddClick);
-
-    // Load select options in the active tab immediately on page load
-    const activeTabPane = document.querySelector('.tab-pane.active');
-    if (activeTabPane) {
-      const activePlaceholders = activeTabPane.querySelectorAll('.select-placeholder:not(.loaded)');
-      activePlaceholders.forEach((placeholder) => {
-        self.loadSingleSelectOptions(placeholder);
-      });
-    }
-
-    // Also load ALL select options immediately for better UX
-    selectPlaceholders.forEach((placeholder, index) => {
+    selectPlaceholders.forEach((placeholder) => {
       if (!placeholder.classList.contains('loaded')) {
-        // Small delay to stagger requests
-        setTimeout(() => {
-          self.loadSingleSelectOptions(placeholder);
-        }, index * 50); // 50ms delay between each request
+        loadQueue = loadQueue.then(() => {
+          return new Promise((resolve) => {
+            // Small delay between requests to prevent overwhelming server
+            setTimeout(() => {
+              const promise = self.loadSingleSelectOptions(placeholder);
+              // Use .always() for jQuery compatibility instead of .finally()
+              promise.always(() => resolve());
+            }, 50);
+          });
+        });
       }
     });
   }
 
   loadSingleSelectOptions(placeholder) {
+    // console.log('ViewableEntities: Starting loadSingleSelectOptions for placeholder:', placeholder);
     const self = this;
     const $placeholder = $(placeholder);
     const entityType = $placeholder.data('entity-type');
@@ -263,7 +227,7 @@ window.App.ViewableEntities = class {
     const $oldSelect = $placeholder.find('select');
 
     if (!loadUrl || !$oldSelect.length) {
-      return;
+      return Promise.resolve();
     }
 
     $placeholder.addClass('loaded');
@@ -274,8 +238,10 @@ window.App.ViewableEntities = class {
     const isMultiple = $oldSelect.attr('multiple');
 
     // Use jQuery GET request to fetch the options HTML
-    $.get(loadUrl)
-      .done((optionsHtml) => {
+    // console.log(`ViewableEntities: Firing GET request to ${loadUrl} for entity type ${entityType}`);
+    return $.get(loadUrl)
+      .then((optionsHtml) => {
+        // console.log(`ViewableEntities: Successfully loaded options for ${entityType}. HTML length:`, optionsHtml.length);
         // Create a completely new select element safely using DOM methods
         const $newSelect = $('<select></select>');
 
@@ -284,8 +250,14 @@ window.App.ViewableEntities = class {
         if (selectClass) $newSelect.attr('class', selectClass);
         if (isMultiple) $newSelect.attr('multiple', 'multiple');
 
-        // Add the options HTML
-        $newSelect.html(optionsHtml);
+        // SECURITY FIX: Parse HTML safely using jQuery and DOM methods instead of .html()
+        const $tempContainer = $('<div>').html(optionsHtml);
+        const $options = $tempContainer.find('option, optgroup');
+
+        // Safely append each option/optgroup by cloning DOM nodes
+        $options.each(function () {
+          $newSelect.append($(this).clone());
+        });
 
         // Replace the loading state with the new select
         $loadingState.replaceWith($newSelect);
@@ -322,7 +294,8 @@ window.App.ViewableEntities = class {
         $newSelect.val(selectedValues);
         $newSelect.trigger('change');
       })
-      .fail(() => {
+      .catch(() => {
+        // console.error(`ViewableEntities: FAILED to load options for ${entityType} from ${loadUrl}`);
         // Handle error case - create a new select with error message safely
         const $errorSelect = $('<select disabled></select>');
 
@@ -330,7 +303,7 @@ window.App.ViewableEntities = class {
         if (selectName) $errorSelect.attr('name', selectName);
         if (selectClass) $errorSelect.attr('class', selectClass);
 
-        // Create error message safely
+        // Create error message safely using .text() to prevent XSS
         const errorMessage = 'Failed to load ' + entityType.replace('_', ' ');
         const $errorOption = $('<option disabled></option>').text(errorMessage);
         $errorSelect.append($errorOption);
