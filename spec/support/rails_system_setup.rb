@@ -28,8 +28,8 @@ if rails_system_enabled
       headless: ENV.fetch('CI', 'true') == 'true',
       js_errors: false, # More lenient for standard Rails apps
       # logger: STDOUT, # Uncomment this for more verbose logging of everything the browser is doing
-      timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 15).to_i,           # Configurable timeout for slow asset loading
-      process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 30).to_i,   # Configurable process timeout
+      timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 30).to_i,           # Configurable timeout for slow asset loading
+      process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 60).to_i,   # Configurable process timeout
       pending_connection_errors: false, # Ignore pending connection errors
       browser_options: {
         'no-sandbox' => nil,

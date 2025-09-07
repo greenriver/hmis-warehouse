@@ -252,7 +252,7 @@ window.App.ViewableEntities = class {
 
         // SECURITY FIX: Parse HTML safely using jQuery and DOM methods instead of .html()
         const $tempContainer = $('<div>').html(optionsHtml);
-        const $options = $tempContainer.find('option, optgroup');
+        const $options = $tempContainer.children();
 
         // Safely append each option/optgroup by cloning DOM nodes
         $options.each(function () {
