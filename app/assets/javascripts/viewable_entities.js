@@ -3,6 +3,9 @@ window.App = window.App || {};
 
 window.App.ViewableEntities = class {
   constructor() {
+    // Delay between AJAX requests to prevent server overload during sequential loading (in milliseconds)
+    this.AJAX_REQUEST_DELAY = 50;
+
     this.registerEvents();
     this.initSelect2();
     this.loadSelectOptions();
@@ -210,7 +213,7 @@ window.App.ViewableEntities = class {
               const promise = self.loadSingleSelectOptions(placeholder);
               // Use .always() for jQuery compatibility instead of .finally()
               promise.always(() => resolve());
-            }, 50);
+            }, self.AJAX_REQUEST_DELAY);
           });
         });
       }
@@ -239,7 +242,7 @@ window.App.ViewableEntities = class {
     // console.log(`ViewableEntities: Firing GET request to ${loadUrl} for entity type ${entityType}`);
     return $.get(loadUrl)
       .then((optionsHtml) => {
-        const $newSelect = this.createSelectFromHTML(optionsHtml, selectAttributes, entityType);
+        const $newSelect = this.createSelectFromHTML(optionsHtml, selectAttributes);
         $loadingState.replaceWith($newSelect);
         this.initializeSelect2($newSelect, entityType, self);
         this.populateInitialValues($newSelect, self);
@@ -258,7 +261,7 @@ window.App.ViewableEntities = class {
     };
   }
 
-  createSelectFromHTML(optionsHtml, selectAttributes, entityType) {
+  createSelectFromHTML(optionsHtml, selectAttributes) {
     const $newSelect = $('<select></select>');
 
     // Set attributes safely using jQuery methods (auto-escapes values)

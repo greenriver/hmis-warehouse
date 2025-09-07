@@ -9,6 +9,11 @@
 module Admin
   class UsersController < ApplicationController
     include ViewableEntities # TODO: START_ACL remove when ACL transition complete
+
+    # Valid entity types for AJAX loading. Combines known AccessGroup entity types with coc_codes
+    # which is handled separately as it's stored as a JSON array rather than associations.
+    VALID_ENTITY_TYPES = (AccessGroup.known_entity_types.map(&:to_s) + ['coc_codes']).freeze
+
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
@@ -196,7 +201,7 @@ module Admin
     #   project_access_groups, coc_codes, reports, project_groups, cohorts
     private def validate_entity_type_param
       entity_type = params[:entity_type]
-      valid_entity_types = ['data_sources', 'organizations', 'projects', 'project_access_groups', 'coc_codes', 'reports', 'project_groups', 'cohorts']
+      valid_entity_types = VALID_ENTITY_TYPES
 
       unless entity_type.present? && valid_entity_types.include?(entity_type)
         render json: { error: 'Invalid or missing entity type' }, status: :bad_request
