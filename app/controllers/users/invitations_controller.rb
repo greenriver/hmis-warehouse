@@ -14,7 +14,7 @@ class Users::InvitationsController < Devise::InvitationsController
   def new
     @agencies = Agency.order(:name)
     user_options = {}
-    # user_options[:permission_context] = 'acls' if User.anyone_using_acls?
+    user_options[:permission_context] = 'acls' if User.anyone_using_acls?
     @user = User.new(user_options)
   end
 
