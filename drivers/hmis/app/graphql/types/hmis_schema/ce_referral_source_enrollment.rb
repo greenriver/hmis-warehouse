@@ -131,7 +131,7 @@ module Types
       # We don't expect there to be a lot, so calculate in-memory the latest assessment per definition
       assessments.group_by { |assessment| assessment.definition.identifier }.map do |_, group|
         group.max_by { |assessment| [assessment.assessment_date, assessment.id] }
-      end.sort { |a, b| b.assessment_date <=> a.assessment_date } # sort by assessment date, descending
+      end.sort_by(&:assessment_date).reverse # sort by assessment date, descending
     end
 
     def access
