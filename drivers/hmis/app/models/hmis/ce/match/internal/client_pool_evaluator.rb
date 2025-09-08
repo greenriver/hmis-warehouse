@@ -65,18 +65,10 @@ module Hmis::Ce::Match::Internal
     # evaluate!('current_age >= 65 AND veteran_status = 1', {current_age: 50, veteran_status: 1})
     def eval_requirement(client_values)
       @calculator.evaluate!(@pool.requirement_expression, **client_values)
-    rescue Dentaku::Error, ArgumentError => e
-      # Return false if evaluation fails due to nil values or other issues.
-      Rails.logger.debug("Requirement evaluation failed for pool #{@pool.id}: #{e.message}")
-      false
     end
 
     def eval_priority(client_values)
       @calculator.evaluate!(@pool.priority_expression, **client_values)
-    rescue Dentaku::Error, ArgumentError => e
-      # Return nil if evaluation fails due to nil values or other issues.
-      Rails.logger.debug("Priority evaluation failed for pool #{@pool.id}: #{e.message}")
-      nil
     end
   end
 end
