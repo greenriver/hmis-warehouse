@@ -14,7 +14,7 @@ module Mutations
     argument :form_definition_identifier, String, required: true
     argument :values_by_link_id, Types::JsonObject, required: true
 
-    field :project_types, [Types::HmisSchema::Enums::ProjectType], null: false
+    field :project_types, [Types::HmisSchema::Enums::ProjectType], null: true
 
     def resolve(enrollment_id:, form_definition_identifier:, values_by_link_id:)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
