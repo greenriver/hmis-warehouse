@@ -22,7 +22,11 @@ module Mutations
 
       # The match engine expects destination clients
       client = enrollment.client.destination_client
-      return { project_types: [] } unless client
+      unless client
+        errors = HmisErrors::Errors.new
+        errors.add :base, :invalid, full_message: 'Unable to calculate eligibility because client background processing has not finished yet. Please try again later.'
+        return { errors: errors }
+      end
 
       # Convert form values to field value overrides for CE evaluation
       overrides = build_overrides(values_by_link_id, form_definition_identifier)
