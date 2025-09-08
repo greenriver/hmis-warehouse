@@ -43,11 +43,11 @@ module Hmis::Ce::Match
 
     scope :active, -> {
       # Pool is active if there are any active Opportunities that reference it
-      active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
+      active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.distinct.pluck(:candidate_pool_id).compact
       # Pool is active if there are any UnitGroups that reference it
-      active_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.pluck(:candidate_pool_id).compact.uniq
-
-      where(id: active_ids_for_opportunities + active_ids_for_unit_groups)
+      active_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.distinct.pluck(:candidate_pool_id).compact
+      all_active_ids = (active_ids_for_opportunities + active_ids_for_unit_groups).sort.uniq
+      where(id: all_active_ids)
     }
 
     # orphan pools can be safely deleted after a period if inactivity.
