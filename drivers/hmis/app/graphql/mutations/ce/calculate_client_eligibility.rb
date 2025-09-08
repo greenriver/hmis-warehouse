@@ -54,10 +54,10 @@ module Mutations
     def calculate_eligible_project_types(client, field_value_overrides)
       field_map = Hmis::Ce::Match::Expression::FieldMap.new(current_date: Date.current)
       eligible_pools = []
+      clients = GrdaWarehouse::Hud::Client.where(id: client.id)
 
       # Evaluate client against active candidate pools
       Hmis::Ce::Match::CandidatePool.active.find_each do |pool|
-        clients = GrdaWarehouse::Hud::Client.where(id: client.id)
         evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, pool, field_map)
         result = evaluator.call(client, field_value_overrides: field_value_overrides)
 
@@ -77,7 +77,7 @@ module Mutations
       Hmis::Hud::Project.
         with_ce_waitlists_enabled.
         joins(:unit_groups).
-        merge(Hmis::UnitGroup.where(candidate_pool_id: pools.map(&:id)))
+        merge(Hmis::UnitGroup.where(candidate_pool_id: pools.map(&:id))).
         distinct.
         pluck(:project_type)
     end
