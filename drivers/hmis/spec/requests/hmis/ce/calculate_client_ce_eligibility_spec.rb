@@ -4,7 +4,7 @@ require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
+RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
@@ -38,7 +38,7 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
   let(:mutation) do
     <<~GRAPHQL
       mutation($enrollmentId: ID!, $formDefinitionIdentifier: String!, $valuesByLinkId: JsonObject!) {
-        calculateClientEligibility(enrollmentId: $enrollmentId, formDefinitionIdentifier: $formDefinitionIdentifier, valuesByLinkId: $valuesByLinkId) {
+        calculateClientCeEligibility(enrollmentId: $enrollmentId, formDefinitionIdentifier: $formDefinitionIdentifier, valuesByLinkId: $valuesByLinkId) {
           projectTypes
           errors { fullMessage }
         }
@@ -46,7 +46,7 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
     GRAPHQL
   end
 
-  describe 'calculateClientEligibility' do
+  describe 'calculateClientCeEligibility' do
     it 'returns project types for eligible pools' do
       response, result = post_graphql(
         enrollmentId: enrollment.id,
@@ -55,7 +55,7 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
       ) { mutation }
 
       expect(response.status).to eq(200), result.inspect
-      project_types = result.dig('data', 'calculateClientEligibility', 'projectTypes')
+      project_types = result.dig('data', 'calculateClientCeEligibility', 'projectTypes')
       project_type_ids = project_types.map { |pt| Types::HmisSchema::Enums::Hud::ProjectTypeBrief.value_for(pt) }
       expect(project_type_ids).to contain_exactly(veteran_project.project_type, general_project.project_type) # Both pools match
     end
@@ -68,7 +68,7 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
       ) { mutation }
 
       expect(response.status).to eq(200), result.inspect
-      project_types = result.dig('data', 'calculateClientEligibility', 'projectTypes')
+      project_types = result.dig('data', 'calculateClientCeEligibility', 'projectTypes')
       project_type_ids = project_types.map { |pt| Types::HmisSchema::Enums::Hud::ProjectTypeBrief.value_for(pt) }
       expect(project_type_ids).to contain_exactly(2) # Only general pool
     end

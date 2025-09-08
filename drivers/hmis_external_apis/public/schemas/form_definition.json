@@ -765,7 +765,7 @@
                 "DROPDOWN",
                 "RADIO_BUTTONS",
                 "RADIO_BUTTONS_VERTICAL",
-                "CLIENT_ELIGIBILITY"
+                "CLIENT_CE_ELIGIBILITY"
               ]
             }
           }

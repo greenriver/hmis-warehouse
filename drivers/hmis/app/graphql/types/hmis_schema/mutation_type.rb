@@ -59,7 +59,7 @@ module Types
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
     field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
     field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
-    field :calculate_client_eligibility, mutation: Mutations::Ce::CalculateClientEligibility
+    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients

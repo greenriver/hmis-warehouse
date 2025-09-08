@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class Ce::CalculateClientEligibility < CleanBaseMutation
+  class Ce::CalculateClientCeEligibility < CleanBaseMutation
     description 'Calculate client eligibility based on provided assessment values and return applicable project types'
 
     argument :enrollment_id, ID, required: true
