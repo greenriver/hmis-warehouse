@@ -73,7 +73,6 @@
 //= require_directory ./d3_charts
 //= require_directory ./clients
 
-//= require_directory ./window/clients
 //= require_directory ./users
 
 
