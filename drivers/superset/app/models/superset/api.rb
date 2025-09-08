@@ -50,10 +50,9 @@ class Superset::Api
   # @return [Array<Hash>] the parsed JSON response containing roles
   private def fetch_roles
     path = '/security/roles/'
-    query = {
-      'page' => 0,
-      'page_size' => 100,
-    }
+    # Superset has a non-standard pagination system, so we need to format the request like this:
+    # ?q=(page:0,page_size:100)
+    query = { q: '(page:0,page_size:100)' }
     response = get(path, query)
     JSON.parse(response.body)
   end
