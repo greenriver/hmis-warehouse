@@ -4,10 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisCsvImporter::HmisCsvValidation::NonBlankValidation < HmisCsvImporter::HmisCsvValidation::Validation
-  def self.check_validity!(item, column)
+  def self.check_validity!(item, column, constraint_lambda: nil)
     value = item[column]
     return if value.present?
+
+    # If any constraints are provided, check if they are met before adding a validation error
+    return if constraint_lambda.present? && constraint_lambda.call(item)
 
     new(
       importer_log_id: item['importer_log_id'],
