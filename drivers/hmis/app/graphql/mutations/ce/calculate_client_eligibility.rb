@@ -74,11 +74,12 @@ module Mutations
 
       # Get project types from Unit Groups that use these pools.
       # (Unit Groups and not Opportunities, because we want to return results about what projects the client is eligible for, regardless of availability)
-      Hmis::UnitGroup.
-        joins(:project).
-        where(candidate_pool_id: pools.map(&:id)).
-        pluck('Project.project_type').
-        compact.uniq
+      Hmis::Hud::Project.
+        with_ce_waitlists_enabled.
+        joins(:unit_groups).
+        merge(Hmis::UnitGroup.where(candidate_pool_id: pools.map(&:id)))
+        distinct.
+        pluck(:project_type)
     end
   end
 end
