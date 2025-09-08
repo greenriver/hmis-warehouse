@@ -28,11 +28,6 @@ function waitForJQuery() {
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
-// TODO: This can be compartmentalized into a FormInputsController if we end up needing additional global javascript for input forms.
-document.querySelectorAll('.enable-on-load').forEach((input) => {
-  input.disabled = false
-})
-
 // Make both Bootstrap and Popper globally available for legacy scripts.
 window.bootstrap = bootstrap
 window.Popper = Popper
