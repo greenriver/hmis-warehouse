@@ -671,8 +671,15 @@ module UserConcern
 
     # TODO: START_ACL remove after ACL migration is complete
     private def create_access_group
-      group = AccessGroup.for_user(self).first_or_create
+      group = access_group
+      return group if group.persisted?
+
+      group.name = name
+      group.user_id = id
+      group.save!
       group.access_group_members.where(user_id: id).first_or_create
+      group.reload
+      group
     end
 
     def access_group
