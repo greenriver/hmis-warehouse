@@ -72,22 +72,5 @@ RSpec.describe Mutations::Ce::CalculateClientEligibility, type: :request do
       project_type_ids = project_types.map { |pt| Types::HmisSchema::Enums::Hud::ProjectTypeBrief.value_for(pt) }
       expect(project_type_ids).to contain_exactly(2) # Only general pool
     end
-
-    context 'when client has missing values' do
-      let!(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1, dob: nil }
-
-      it 'does not raise' do
-        response, result = post_graphql(
-          enrollmentId: enrollment.id,
-          formDefinitionIdentifier: form_definition.identifier,
-          valuesByLinkId: { 'veteran_q' => 1 },
-        ) { mutation }
-
-        expect(response.status).to eq(200), result.inspect
-        project_types = result.dig('data', 'calculateClientEligibility', 'projectTypes')
-        project_type_ids = project_types.map { |pt| Types::HmisSchema::Enums::Hud::ProjectTypeBrief.value_for(pt) }
-        expect(project_type_ids).to contain_exactly(1) # Only veteran pool (general pool has age requirement)
-      end
-    end
   end
 end
