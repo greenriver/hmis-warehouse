@@ -97,6 +97,8 @@ module Hmis
     private
 
     def household_has_active_ce_referral?(household)
+      return false unless Hmis::Ce.configuration.enabled?
+
       enrollment_ids = household.enrollments.map(&:id)
       return false if enrollment_ids.blank?
 

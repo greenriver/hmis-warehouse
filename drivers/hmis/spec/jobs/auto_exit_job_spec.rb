@@ -225,6 +225,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
   end
 
   describe 'auto-exit is blocked by active CE referral' do
+    before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
+
     let(:project_type) { 1 }
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: project_type }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
