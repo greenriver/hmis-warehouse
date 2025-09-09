@@ -356,6 +356,26 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           expect(results).not_to include(client_enrolled_in_ph.destination_client.id)
         end
       end
+
+      describe 'null-safety for calc functions' do
+        describe 'INCLUDES with NULL needle' do
+          let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, NULL)' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
+        end
+
+        describe 'PROJECT_TYPE with NULL identifier' do
+          let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, PROJECT_TYPE(NULL))' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
+        end
+      end
     end
   end
 

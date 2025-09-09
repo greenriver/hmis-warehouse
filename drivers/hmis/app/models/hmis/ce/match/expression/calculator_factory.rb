@@ -10,17 +10,29 @@ module Hmis::Ce::Match::Expression
       calculator.add_function(
         :INCLUDES,
         :logical,
-        ->(a, b) { Array(a).include?(b) },
+        ->(a, b) do
+          return false if a.nil? || b.nil?
+
+          Array(a).include?(b)
+        end,
       )
       calculator.add_function(
         :EXCLUDES,
         :logical,
-        ->(a, b) { !Array(a).include?(b) },
+        ->(a, b) do
+          return false if a.nil? || b.nil?
+
+          !Array(a).include?(b)
+        end,
       )
       calculator.add_function(
         :PROJECT_TYPE,
         :string,
-        ->(identifier) { HudUtility2026.hmis_project_type_key(identifier, true) },
+        ->(identifier) do
+          return nil if identifier.nil?
+
+          HudUtility2026.hmis_project_type_key(identifier, true)
+        end,
       )
       calculator.add_function(
         :EPOCH_SECONDS,
