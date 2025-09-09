@@ -51,6 +51,18 @@ module Hmis::Ce
       referral.update!(target_enrollment: enrollment)
     end
 
+    def delete_wip_enrollment(_message)
+      enrollment = referral.target_enrollment
+      return unless enrollment
+
+      raise "target enrollment #{enrollment.id} has already had intake completed" unless enrollment.in_progress?
+
+      Hmis::Hud::Enrollment.transaction do
+        referral.update!(target_enrollment: nil)
+        enrollment.destroy!
+      end
+    end
+
     # Sets the Move-In Date on the target enrollment, based on a date value collected on the step form.
     # This requires a Move-in date item to be on the step form with the following attributes:
     # { "link_id": "move_in_date", "type": "DATE", "mapping": { "custom_field_key": "" } }

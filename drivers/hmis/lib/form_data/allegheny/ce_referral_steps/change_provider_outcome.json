@@ -52,7 +52,7 @@
       ]
     },
     {
-      "text": "The client has already been enrolled in the project.",
+      "text": "The client's in-progress enrollment in this project will be deleted.",
       "type": "DISPLAY",
       "link_id": "already_enrolled_message",
       "component": "ALERT_WARNING"
