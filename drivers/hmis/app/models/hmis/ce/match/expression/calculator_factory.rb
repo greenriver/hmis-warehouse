@@ -32,9 +32,9 @@ module Hmis::Ce::Match::Expression
           when Time
             value.to_i
           when Date
-            value.to_time(:utc).to_i
+            value.to_i
           when String
-            Time.zone.parse(value).to_i
+            DateTime.parse(value).to_i
           else
             raise ArgumentError, "Cannot cast #{value.inspect} to seconds"
           end
