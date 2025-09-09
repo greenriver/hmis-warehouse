@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Import::ClientMatching
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
@@ -59,7 +61,7 @@ module Import::ClientMatching
   end
 
   private def valid_social?(ssn)
-    ::HudUtility2024.valid_social?(ssn)
+    ::HudUtility2026.valid_social?(ssn)
   end
 
   private def clean(row)

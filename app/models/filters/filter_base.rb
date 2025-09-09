@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # NOTE: This should be updated and added to for any functionality or additional attributes and only overridden where the defaults are different or where the options are incompatible with this base class.
 module Filters
@@ -25,7 +25,7 @@ module Filters
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    attribute :default_project_type_codes, Array, default: HudUtility2024.homeless_project_type_codes
+    attribute :default_project_type_codes, Array, default: HudUtility2026.homeless_project_type_codes
     attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
@@ -146,7 +146,7 @@ module Filters
       self.age_ranges = normalize_input_array(filters[:age_ranges], &:to_sym) || age_ranges
       self.genders = normalize_input_array(filters[:genders]) || genders
       self.sub_population = filters.dig(:sub_population)&.to_sym || sub_population
-      self.races = filters.dig(:races)&.select { |race| HudUtility2024.races(multi_racial: true).keys.include?(race) }.presence || races
+      self.races = filters.dig(:races)&.select { |race| HudUtility2026.races(multi_racial: true).keys.include?(race) }.presence || races
       self.project_group_ids = normalize_input_array(filters[:project_group_ids]) || project_group_ids
       self.prior_living_situation_ids = normalize_input_array(filters[:prior_living_situation_ids]) || prior_living_situation_ids
       self.destination_ids = normalize_input_array(filters[:destination_ids]) || destination_ids
@@ -190,8 +190,8 @@ module Filters
       self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
       self.secondary_project_ids = normalize_input_array(filters[:secondary_project_ids]) || secondary_project_ids
       self.secondary_project_group_ids = normalize_input_array(filters[:secondary_project_group_ids]) || secondary_project_group_ids
-      self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2024.ethnicities.keys.include?(ethnicity.to_s.to_sym) }.presence&.map(&:to_sym) || ethnicities
-      self.race_ethnicity_combinations = filters.dig(:race_ethnicity_combinations)&.select { |value| HudUtility2024.race_ethnicity_combinations.keys.include?(value.to_sym) }.presence&.map(&:to_sym) || race_ethnicity_combinations
+      self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2026.ethnicities.keys.include?(ethnicity.to_s.to_sym) }.presence&.map(&:to_sym) || ethnicities
+      self.race_ethnicity_combinations = filters.dig(:race_ethnicity_combinations)&.select { |value| HudUtility2026.race_ethnicity_combinations.keys.include?(value.to_sym) }.presence&.map(&:to_sym) || race_ethnicity_combinations
 
       self.excluded_project_ids = normalize_input_array(filters[:excluded_project_ids]) || excluded_project_ids
       self.excluded_project_type_numbers = normalize_input_array(filters[:excluded_project_type_numbers]) || excluded_project_type_numbers
@@ -810,7 +810,7 @@ module Filters
 
     # Select display options
     def project_type_options_for_select(id_limit: [])
-      options = HudUtility2024.project_types.invert
+      options = HudUtility2026.project_types.invert
       options = options.select { |_, id| id.in?(id_limit) } if id_limit.present?
       options.map do |text, id|
         [
@@ -821,7 +821,7 @@ module Filters
     end
 
     def project_type_code_options_for_select
-      HudUtility2024.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+      HudUtility2026.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
     end
 
     def project_options_for_select(user:)
@@ -891,19 +891,19 @@ module Filters
     end
 
     def available_project_types
-      HudUtility2024.project_type_group_titles.invert
+      HudUtility2026.project_type_group_titles.invert
     end
 
     def available_residential_project_types
-      HudUtility2024.residential_type_titles.invert
+      HudUtility2026.residential_type_titles.invert
     end
 
     def available_homeless_project_types
-      HudUtility2024.homeless_type_titles.invert
+      HudUtility2026.homeless_type_titles.invert
     end
 
     def available_project_type_numbers
-      ::HudUtility2024.project_types.invert
+      ::HudUtility2026.project_types.invert
     end
 
     def available_vispdat_limits
@@ -919,7 +919,7 @@ module Filters
     end
 
     def available_times_homeless_in_last_three_years
-      ::HudUtility2024.times_homeless_options
+      ::HudUtility2026.times_homeless_options
     end
 
     def available_file_tags
@@ -942,7 +942,7 @@ module Filters
     end
 
     def project_type_ids
-      ids = HudUtility2024.performance_reporting.values_at(
+      ids = HudUtility2026.performance_reporting.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym),
       ).flatten
 
@@ -951,7 +951,7 @@ module Filters
     end
 
     def selected_project_type_names
-      HudUtility2024.residential_type_titles.values_at(*project_type_codes.reject(&:blank?).map(&:to_sym))
+      HudUtility2026.residential_type_titles.values_at(*project_type_codes.reject(&:blank?).map(&:to_sym))
     end
 
     def user
@@ -1085,7 +1085,7 @@ module Filters
     end
 
     def default_project_type_numbers
-      HudUtility2024.project_types_with_inventory
+      HudUtility2026.project_types_with_inventory
     end
 
     def describe_filter_as_html(keys = nil, limited: true, inline: false, labels: {})
@@ -1316,19 +1316,19 @@ module Filters
 
     def chosen_races
       races.map do |race|
-        HudUtility2024.race(race, multi_racial: true)
+        HudUtility2026.race(race, multi_racial: true)
       end
     end
 
     def chosen_race_ethnicity_combinations
       race_ethnicity_combinations.map do |combination|
-        HudUtility2024.race_ethnicity_combination(combination)
+        HudUtility2026.race_ethnicity_combination(combination)
       end
     end
 
     def chosen_ethnicities
       ethnicities.map do |ethnicity|
-        HudUtility2024.ethnicity(ethnicity)
+        HudUtility2026.ethnicity(ethnicity)
       end
     end
 
@@ -1369,7 +1369,7 @@ module Filters
     def chosen_excluded_project_type_numbers
       return nil unless excluded_project_type_numbers.reject(&:blank?).present?
 
-      excluded_project_type_numbers.map { |number| HudUtility2024.project_type(number) }
+      excluded_project_type_numbers.map { |number| HudUtility2026.project_type(number) }
     end
 
     def chosen_secondary_projects
@@ -1401,7 +1401,7 @@ module Filters
     def chosen_funding_sources
       return nil unless funder_ids.reject(&:blank?).present?
 
-      funder_ids.map { |code| "#{HudUtility2024.funding_source(code&.to_i)} (#{code})" }
+      funder_ids.map { |code| "#{HudUtility2026.funding_source(code&.to_i)} (#{code})" }
     end
 
     def chosen_funding_other_sources
@@ -1412,18 +1412,18 @@ module Filters
 
     def chosen_veteran_statuses
       veteran_statuses.map do |veteran_status|
-        HudUtility2024.veteran_status(veteran_status)
+        HudUtility2026.veteran_status(veteran_status)
       end
     end
 
     def chosen_project_types
       project_type_ids.map do |type|
-        HudUtility2024.project_type(type)
+        HudUtility2026.project_type(type)
       end.uniq
     end
 
     def chosen_project_types_only_homeless?
-      project_type_ids.sort == HudUtility2024.homeless_project_types.sort
+      project_type_ids.sort == HudUtility2026.homeless_project_types.sort
     end
 
     def chosen_household_type
@@ -1564,31 +1564,31 @@ module Filters
     def available_prior_living_situations(grouped: false)
       if grouped
         {
-          'Homeless' => HudUtility2024.homeless_situation_options(as: :prior).map do |id, title|
+          'Homeless' => HudUtility2026.homeless_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Institutional' => HudUtility2024.institutional_situation_options(as: :prior).map do |id, title|
+          'Institutional' => HudUtility2026.institutional_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Temporary' => HudUtility2024.temporary_housing_situation_options(as: :prior).map do |id, title|
+          'Temporary' => HudUtility2026.temporary_housing_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Permanent' => HudUtility2024.permanent_housing_situation_options(as: :prior).map do |id, title|
+          'Permanent' => HudUtility2026.permanent_housing_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Other' => HudUtility2024.other_situation_options(as: :prior).map do |id, title|
+          'Other' => HudUtility2026.other_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
@@ -1596,7 +1596,7 @@ module Filters
           end.to_h,
         }
       else
-        HudUtility2024.living_situations.map do |id, title|
+        HudUtility2026.living_situations.map do |id, title|
           [
             "#{title} (#{id})",
             id,
@@ -1606,34 +1606,34 @@ module Filters
     end
 
     def available_destinations(grouped: false)
-      return HudUtility2024.valid_destinations.invert unless grouped
+      return HudUtility2026.valid_destinations.invert unless grouped
 
       {
-        'Homeless' => HudUtility2024.homeless_situation_options(as: :destination).map do |id, title|
+        'Homeless' => HudUtility2026.homeless_situation_options(as: :destination).map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Institutional' => HudUtility2024.institutional_situation_options(as: :destination).map do |id, title|
+        'Institutional' => HudUtility2026.institutional_situation_options(as: :destination).map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Temporary' => HudUtility2024.temporary_destination_options.map do |id, title|
+        'Temporary' => HudUtility2026.temporary_destination_options.map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Permanent' => HudUtility2024.permanent_destination_options.map do |id, title|
+        'Permanent' => HudUtility2026.permanent_destination_options.map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Other' => HudUtility2024.other_situation_options(as: :destination).map do |id, title|
+        'Other' => HudUtility2026.other_situation_options(as: :destination).map do |id, title|
           [
             "#{title} (#{id})",
             id,
@@ -1644,7 +1644,7 @@ module Filters
 
     def available_disabilities
       @available_disabilities ||= {}.tap do |disabilities|
-        HudUtility2024.disability_types.each do |id, title|
+        HudUtility2026.disability_types.each do |id, title|
           next if id == 8 && !user.can_view_hiv_status? # HIV/AIDS
 
           # Invert for select input
@@ -1654,15 +1654,15 @@ module Filters
     end
 
     def available_indefinite_disabilities
-      HudUtility2024.no_yes_reasons_for_missing_data_options.invert
+      HudUtility2026.no_yes_reasons_for_missing_data_options.invert
     end
 
     def available_dv_status
-      HudUtility2024.no_yes_reasons_for_missing_data_options.invert
+      HudUtility2026.no_yes_reasons_for_missing_data_options.invert
     end
 
     def available_currently_fleeing
-      HudUtility2024.no_yes_reasons_for_missing_data_options.invert
+      HudUtility2026.no_yes_reasons_for_missing_data_options.invert
     end
 
     def to_comparison

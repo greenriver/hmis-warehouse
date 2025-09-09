@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
@@ -126,7 +128,7 @@ module Dashboards
         return {
           start: default_start_date,
           end: default_end_date,
-          project_type_codes: HudUtility2024.homeless_project_type_codes,
+          project_type_codes: HudUtility2026.homeless_project_type_codes,
         }
       end
 

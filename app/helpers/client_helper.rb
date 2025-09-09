@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientHelper
   def enrolled(client, window_only: true)
     enrollments = client.scope_for_ongoing_residential_enrollments
@@ -12,7 +14,7 @@ module ClientHelper
       if project_type == 13
         [project_type, 'RRH']
       else
-        [project_type, HudUtility2024.project_type_brief(project_type)]
+        [project_type, HudUtility2026.project_type_brief(project_type)]
       end
     end.map do |project_type, text|
       content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do

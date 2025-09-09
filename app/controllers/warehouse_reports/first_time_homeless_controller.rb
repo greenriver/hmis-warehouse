@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class FirstTimeHomelessController < ApplicationController
     include ArelHelper
@@ -45,7 +47,7 @@ module WarehouseReports
     end
 
     def first_time_homeless_client_ids
-      @filter.project_type_codes = HudUtility2024.homeless_project_type_codes unless @filter.project_type_ids.present?
+      @filter.project_type_codes = HudUtility2026.homeless_project_type_codes unless @filter.project_type_ids.present?
       @first_time_homeless_client_ids ||= begin
         ids = []
         # Ensure first project also has services in the correct project type

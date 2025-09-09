@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::Exiting::Veteran
   extend ActiveSupport::Concern
 
@@ -31,7 +33,7 @@ module PerformanceDashboard::Overview::Exiting::Veteran
       categories = exiting_by_veteran.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtility2024.veteran_status(s)] }.to_h,
+          labels: categories.map { |s| [s, HudUtility2026.veteran_status(s)] }.to_h,
           chosen: @veteran_statuses,
           columns: columns,
           categories: categories,

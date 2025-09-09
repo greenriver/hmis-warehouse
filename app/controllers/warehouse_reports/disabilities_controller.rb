@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class DisabilitiesController < ApplicationController
     include WarehouseReportAuthorization
@@ -118,12 +120,12 @@ module WarehouseReports
       exclude = []
       exclude << 'HIV/AIDS' unless can_view_hiv_status?
       exclude << 'Mental health disorder' unless can_view_dmh_status?
-      ::HudUtility2024.disability_types.invert.except(*exclude)
+      ::HudUtility2026.disability_types.invert.except(*exclude)
     end
     helper_method :available_disabilities
 
     def available_project_types
-      ::HudUtility2024.project_types.invert
+      ::HudUtility2026.project_types.invert
     end
     helper_method :available_project_types
 

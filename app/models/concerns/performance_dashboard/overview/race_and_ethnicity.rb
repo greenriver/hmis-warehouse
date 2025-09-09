@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::RaceAndEthnicity
   extend ActiveSupport::Concern
 
   private def race_and_ethnicity_buckets
-    (HudUtility2024.races.keys + ['Multiple']).map do |r|
-      (HudUtility2024.ethnicities.keys - [:unknown]).map do |e|
+    (HudUtility2026.races.keys + ['Multiple']).map do |r|
+      (HudUtility2026.ethnicities.keys - [:unknown]).map do |e|
         next if r == 'HispanicLatinaeo' && e == :non_hispanic_latinaeo
         next if r == 'RaceNone' && e != :unknown
 
@@ -25,9 +27,9 @@ module PerformanceDashboard::Overview::RaceAndEthnicity
     race = if key[:race] == 'Multiple'
       'Multi-Racial'
     else
-      HudUtility2024.race(key[:race])
+      HudUtility2026.race(key[:race])
     end
-    "#{race} - #{HudUtility2024.ethnicity(key[:ethnicity])}"
+    "#{race} - #{HudUtility2026.ethnicity(key[:ethnicity])}"
   end
 
   def race_and_ethnicity_bucket_titles

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class EntryExitServiceController < ApplicationController
     include WarehouseReportAuthorization
@@ -18,7 +20,7 @@ module WarehouseReports
       ).
         where(
           p_t[project_source.project_type_column].in(
-            HudUtility2024.residential_project_type_ids,
+            HudUtility2026.residential_project_type_ids,
           ),
         ).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).

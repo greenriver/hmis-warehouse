@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::ProjectType::Detail
   extend ActiveSupport::Concern
 
@@ -40,9 +42,9 @@ module PerformanceDashboard::ProjectType::Detail
   def detail_column_display(header:, column:)
     case header
     when 'Living Situation'
-      HudUtility2024.living_situation(column)
+      HudUtility2026.living_situation(column)
     when 'Destination'
-      HudUtility2024.destination(column)
+      HudUtility2026.destination(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     else

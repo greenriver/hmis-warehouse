@@ -4,12 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Filters::DemographicFilters
   def self.race_ethnicity_combination_filters
     {}.tap do |h|
-      HudUtility2024.race_ethnicity_combinations.keys.each do |combination|
+      HudUtility2026.race_ethnicity_combinations.keys.each do |combination|
         h[combination] = {
-          name: HudUtility2024.race_ethnicity_combinations[combination],
+          name: HudUtility2026.race_ethnicity_combinations[combination],
           extra_filters: {
             race_ethnicity_combinations: [combination],
           },

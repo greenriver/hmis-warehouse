@@ -4,10 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Filters
   class PerformanceDashboard < FilterBase
     def default_project_type_codes
-      HudUtility2024.homeless_project_type_codes
+      HudUtility2026.homeless_project_type_codes
     end
   end
 end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class VeteranStatusCalculated < ReadOnly
     attribute :column, String, lazy: true, default: :veteran_status_calculated
@@ -17,7 +19,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      HudUtility2024.veteran_status(cohort_client.client.veteran_status)
+      HudUtility2026.veteran_status(cohort_client.client.veteran_status)
     end
   end
 end

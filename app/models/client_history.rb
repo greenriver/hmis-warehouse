@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ClientHistory
   attr_reader :client, :user, :requesting_user, :years
   def initialize(client_id:, user_id:, years: 3)
@@ -20,7 +22,7 @@ class ClientHistory
   # Limit to Residential Homeless programs
   def dates
     @dates.transform_values do |data|
-      data.select { |en| ::HudUtility2024.residential_project_type_ids.include?(en[:project_type]) }
+      data.select { |en| ::HudUtility2026.residential_project_type_ids.include?(en[:project_type]) }
     end
     @dates
   end
@@ -38,11 +40,11 @@ class ClientHistory
   end
 
   def organization_counts
-    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:organization_name] }.transform_values(&:count)
+    dates.values.flatten.group_by { |en| HudUtility2026.project_type en[:organization_name] }.transform_values(&:count)
   end
 
   def project_type_counts
-    dates.values.flatten.group_by { |en| HudUtility2024.project_type en[:project_type] }.transform_values(&:count)
+    dates.values.flatten.group_by { |en| HudUtility2026.project_type en[:project_type] }.transform_values(&:count)
   end
 
   def generate_service_history_pdf

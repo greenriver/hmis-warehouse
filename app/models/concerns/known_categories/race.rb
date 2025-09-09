@@ -4,17 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module KnownCategories::Race
   extend ActiveSupport::Concern
 
   def race_calculations
     @race_calculations ||= {}.tap do |calcs|
-      HudUtility2024.races.each do |key, title|
+      HudUtility2026.races.each do |key, title|
         next if key.to_sym == :RaceNone
 
         calcs[title] = ->(value) { value == key }
       end
-      title = HudUtility2024.race('MultiRacial', multi_racial: true)
+      title = HudUtility2026.race('MultiRacial', multi_racial: true)
       calcs[title] = ->(value) { value == title }
       calcs['Client doesn\'t know'] = ->(value) { value == '8' }
       calcs['Client refused'] = ->(value) { value == '9' }

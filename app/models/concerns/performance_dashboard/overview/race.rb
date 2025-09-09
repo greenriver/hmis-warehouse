@@ -4,17 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::Race
   extend ActiveSupport::Concern
 
   private def race_buckets
-    HudUtility2024.races.keys + ['Multiple']
+    HudUtility2026.races.keys + ['Multiple']
   end
 
   def race_title(key)
     return 'Multi-Racial' if key == 'Multiple'
 
-    HudUtility2024.race(key)
+    HudUtility2026.race(key)
   end
 
   def race_bucket_titles

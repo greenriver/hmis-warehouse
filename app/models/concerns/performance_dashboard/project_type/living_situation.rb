@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::ProjectType::LivingSituation
   extend ActiveSupport::Concern
 
@@ -14,7 +16,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
   # Fetch first prior living situation for each client
   def prior_living_situations
     @prior_living_situations ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      buckets = HudUtility2024.living_situations.keys.map { |b| [b, []] }.to_h
+      buckets = HudUtility2026.living_situations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       enrolled.order(first_date_in_program: :desc).
         pluck(:client_id, she_t[:id], e_t[:LivingSituation], :first_date_in_program).each do |c_id, en_id, situation, _|
@@ -35,7 +37,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
       top_situations = all_situations.last(5).to_h
       summary = {}
       all_situations.each do |id, situation|
-        type = ::HudUtility2024.situation_type(id)
+        type = ::HudUtility2026.situation_type(id)
         summary[type] ||= 0
         summary[type] += situation.count
       end
@@ -60,7 +62,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
         if k == :other
           'All others'
         else
-          HudUtility2024.living_situation(k)
+          HudUtility2026.living_situation(k)
         end
       end
       {
@@ -81,7 +83,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
   end
 
   def living_situation_bucket_titles
-    HudUtility2024.living_situations
+    HudUtility2026.living_situations
   end
 
   def enrolled_total_count

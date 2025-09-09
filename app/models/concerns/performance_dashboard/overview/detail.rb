@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module PerformanceDashboard::Overview::Detail
   extend ActiveSupport::Concern
@@ -39,16 +39,16 @@ module PerformanceDashboard::Overview::Detail
     case header
     when 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
       HudUtility2024.no_yes_reasons_for_missing_data(column)
-    when HudUtility2024.race('AmIndAKNative'), HudUtility2024.race('Asian'), HudUtility2024.race('BlackAfAmerican'), HudUtility2024.race('NativeHIPacific'), HudUtility2024.race('White'), HudUtility2024.race('RaceNone'), HudUtility2024.race('HispanicLatinaeo'), HudUtility2024.race('MidEastNAfrican'), HudUtility2024.ethnicity(:unknown), HudUtility2024.ethnicity(:hispanic_latinaeo), HudUtility2024.ethnicity(:non_hispanic_latinaeo)
-      HudUtility2024.no_yes_reasons_for_missing_data(column)
+    when HudUtility2026.race('AmIndAKNative'), HudUtility2026.race('Asian'), HudUtility2026.race('BlackAfAmerican'), HudUtility2026.race('NativeHIPacific'), HudUtility2026.race('White'), HudUtility2026.race('RaceNone'), HudUtility2026.race('HispanicLatinaeo'), HudUtility2026.race('MidEastNAfrican'), HudUtility2026.ethnicity(:unknown), HudUtility2026.ethnicity(:hispanic_latinaeo), HudUtility2026.ethnicity(:non_hispanic_latinaeo), HudUtility2024.ethnicity(:hispanic_latinaeo), HudUtility2024.ethnicity(:non_hispanic_latinaeo)
+      HudUtility2026.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
-      HudUtility2024.veteran_status(column)
+      HudUtility2026.veteran_status(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HudUtility2024.project_type(column)
+      HudUtility2026.project_type(column)
     when 'CoC'
-      HudUtility2024.coc_name(column)
+      HudUtility2026.coc_name(column)
     else
       column
     end
@@ -122,7 +122,7 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     if options[:race] || options[:ethnicity] || options[:race_and_ethnicity]
-      HudUtility2024.races.each do |k, title|
+      HudUtility2026.races.each do |k, title|
         columns[title] = c_t[k.to_sym]
       end
     end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ObviousClientMatcher
   extend ActiveSupport::Concern
 
@@ -35,7 +37,7 @@ module ObviousClientMatcher
     end
 
     private def check_social(incoming_ssn, client_ssn)
-      return false unless ::HudUtility2024.valid_social?(incoming_ssn)
+      return false unless ::HudUtility2026.valid_social?(incoming_ssn)
 
       incoming_ssn == client_ssn
     end

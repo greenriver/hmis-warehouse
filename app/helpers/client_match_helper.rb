@@ -4,11 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientMatchHelper
   def data_quality_warning(type, value)
     return '' if value.blank? || [1, 99].include?(value.to_i)
 
-    label = HudUtility2024.send("#{type.downcase}_data_quality", value)
+    label = HudUtility2026.send("#{type.downcase}_data_quality", value)
     content_tag :abbr, title: label do
       '!!'
     end

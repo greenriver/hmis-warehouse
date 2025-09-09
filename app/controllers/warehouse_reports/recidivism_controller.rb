@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class RecidivismController < ApplicationController
     include WarehouseReportAuthorization
@@ -123,7 +125,7 @@ module WarehouseReports
     end
 
     def homeless_source
-      project_types = HudUtility2024.residential_project_type_numbers_by_code[:so] + HudUtility2024.residential_project_type_numbers_by_code[:es]
+      project_types = HudUtility2026.residential_project_type_numbers_by_code[:so] + HudUtility2026.residential_project_type_numbers_by_code[:es]
       GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(project_types)
     end
 

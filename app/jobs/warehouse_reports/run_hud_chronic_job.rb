@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class RunHudChronicJob < BaseJob
     include ArelHelper
@@ -56,7 +58,7 @@ module WarehouseReports
       @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
 
       most_recent_services = GrdaWarehouse::ServiceHistoryService.service.
-        where(client_id: @client_ids, project_type: HudUtility2024.chronic_project_types).
+        where(client_id: @client_ids, project_type: HudUtility2026.chronic_project_types).
         group(:client_id).
         pluck(:client_id, nf('MAX', [shs_t[:date]]).to_sql).
         to_h

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ServiceHistoryServiceConcern
   extend ActiveSupport::Concern
   included do
@@ -16,19 +18,19 @@ module ServiceHistoryServiceConcern
     scope :service_excluding_extrapolated, -> { where(record_type: :service) }
 
     scope :residential, -> {
-      where(project_type_column => HudUtility2024.residential_project_type_ids)
+      where(project_type_column => HudUtility2026.residential_project_type_ids)
     }
 
     scope :hud_residential, -> do
-      hud_project_type(HudUtility2024.residential_project_type_ids)
+      hud_project_type(HudUtility2026.residential_project_type_ids)
     end
 
     scope :residential_non_homeless, -> do
-      r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
+      r_non_homeless = HudUtility2026.residential_project_type_numbers_by_code[:ph] + HudUtility2026.residential_project_type_numbers_by_code[:th]
       where(project_type_column => r_non_homeless).where(homeless: false)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
+      r_non_homeless = HudUtility2026.residential_project_type_numbers_by_code[:ph] + HudUtility2026.residential_project_type_numbers_by_code[:th]
       hud_project_type(r_non_homeless).where(homeless: false)
     end
 
@@ -74,7 +76,7 @@ module ServiceHistoryServiceConcern
     end
 
     scope :bed_night, -> do
-      where(service_type: HudUtility2024.record_type('Bed Night', true))
+      where(service_type: HudUtility2026.record_type('Bed Night', true))
     end
 
     def self.service_types

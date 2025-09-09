@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Generates aggregated census reports with client and bed counts by date.
 # Supports filtering by project, organization, data source, or project type.
 # Produces JSON structures for charting and analysis.
@@ -27,7 +29,7 @@ module Censuses
       # Limit ES projects to Night-by-night only
       if @filter.limit_es_to_nbn
         nbn_project_ids = scope.merge(GrdaWarehouse::Hud::Project.night_by_night).pluck(:id)
-        is_not_es = p_t[GrdaWarehouse::Hud::Project.project_type_column].not_in(HudUtility2024.project_type_number_from_code(:es))
+        is_not_es = p_t[GrdaWarehouse::Hud::Project.project_type_column].not_in(HudUtility2026.project_type_number_from_code(:es))
         scope = scope.where(is_not_es.or(p_t[:id].in(nbn_project_ids)))
       end
 
@@ -96,7 +98,7 @@ module Censuses
           for_data_source(start_date, end_date, ds, project_scope)
         end
       when :by_project_type
-        HudUtility2024.residential_type_titles.keys.each do |project_type|
+        HudUtility2026.residential_type_titles.keys.each do |project_type|
           for_project_type(start_date, end_date, project_type, project_scope)
         end
       else
@@ -132,8 +134,8 @@ module Censuses
     end
 
     private def for_project_type(start_date, end_date, project_type, project_scope)
-      project_type_ids = HudUtility2024.residential_project_type_numbers_by_code[project_type]
-      project_group_title = HudUtility2024.project_type_group_titles[project_type]
+      project_type_ids = HudUtility2026.residential_project_type_numbers_by_code[project_type]
+      project_group_title = HudUtility2026.project_type_group_titles[project_type]
       dimension_scope = census_data_scope(project_scope).by_project_type(project_type_ids)
       project_count = dimension_scope.group_by(&:project_id).count
       dimension_label = project_count_str(project_count, prefix: project_group_title)
@@ -197,7 +199,7 @@ module Censuses
 
     def detail_name(project_count, project_type, data_source_id, organization_id, project_id)
       if project_type != 'all'
-        ptype = HudUtility2024.project_type_group_titles[project_type]
+        ptype = HudUtility2026.project_type_group_titles[project_type]
         return "#{project_count_str(project_count, prefix: ptype)} on"
       end
 
@@ -237,7 +239,7 @@ module Censuses
         joins(:client, :data_source, :organization, :project).
         merge(census_projects_scope) # merge with project scope filtered by @filter params
 
-      enrollments = enrollments.in_project_type(HudUtility2024.residential_project_type_numbers_by_code[project_type]) if project_type && project_type != 'all'
+      enrollments = enrollments.in_project_type(HudUtility2026.residential_project_type_numbers_by_code[project_type]) if project_type && project_type != 'all'
       enrollments = enrollments.where(data_source_id: data_source.to_i) if data_source && data_source != 'all'
       enrollments = enrollments.merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i)) if organization && organization != 'all'
       enrollments = enrollments.merge(GrdaWarehouse::Hud::Project.where(id: project.to_i)) if project && project != 'all'
@@ -260,7 +262,7 @@ module Censuses
       local_census_scope = census_data_scope(census_projects_scope).for_date_range(start_date, end_date)
 
       if project_type && project_type != 'all'
-        project_type_ids = HudUtility2024.residential_project_type_numbers_by_code[project_type]
+        project_type_ids = HudUtility2026.residential_project_type_numbers_by_code[project_type]
         local_census_scope = local_census_scope.by_project_type(project_type_ids)
       end
       local_census_scope = local_census_scope.by_data_source_id(data_source.to_i) if data_source && data_source != 'all'

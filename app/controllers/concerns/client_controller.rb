@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientController
   extend ActiveSupport::Concern
   include ActionView::Helpers::TagHelper
@@ -118,7 +120,7 @@ module ClientController
 
       ssn_matches = []
       ssn = attr[:SSN].delete('-')
-      if ::HudUtility2024.valid_social?(ssn)
+      if ::HudUtility2026.valid_social?(ssn)
         ssn_matches = client_search_scope.
           where(c_t[:SSN].eq(ssn)).
           pluck(:id)

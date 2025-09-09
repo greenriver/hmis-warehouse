@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Household::Exiting::ProjectType
   extend ActiveSupport::Concern
 
@@ -29,10 +31,10 @@ module PerformanceDashboard::Household::Exiting::ProjectType
       columns = [@filter.date_range_words]
       columns += exiting_by_project_type.values.map(&:count)
       categories = exiting_by_project_type.keys
-      categories &= HudUtility2024.performance_reporting.values.flatten
+      categories &= HudUtility2026.performance_reporting.values.flatten
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtility2024.project_type(s)] }.to_h,
+          labels: categories.map { |s| [s, HudUtility2026.project_type(s)] }.to_h,
           chosen: @project_types,
           columns: columns,
           categories: categories,
@@ -54,7 +56,7 @@ module PerformanceDashboard::Household::Exiting::ProjectType
     details = details.where(project_type_query(sub_key)) if sub_key
     details.pluck(*detail_columns(options).values).
       map do |row|
-        row[-1] = "#{HudUtility2024.project_type(row.last)} (#{row.last})"
+        row[-1] = "#{HudUtility2026.project_type(row.last)} (#{row.last})"
         row
       end.
       index_by(&:first)
