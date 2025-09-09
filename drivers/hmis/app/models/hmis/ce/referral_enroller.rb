@@ -56,12 +56,12 @@ module Hmis::Ce
       return unless enrollment
 
       unless enrollment.in_progress?
-          message = "target enrollment #{enrollment.id} has already had intake completed, unable to perform delete_wip_enrollment message"
-          raise message if Rails.env.development?
+        message = "target enrollment #{enrollment.id} has already had intake completed, unable to perform delete_wip_enrollment message"
+        raise message if Rails.env.development?
 
-          Sentry.capture_message(message)
-          return # in non-dev env: return, we are unable to perform the action
-     end
+        Sentry.capture_message(message)
+        return # in non-dev env: return, we are unable to perform the action
+      end
 
       Hmis::Hud::Enrollment.transaction do
         referral.update!(target_enrollment: nil)
