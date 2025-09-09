@@ -29,12 +29,15 @@ module Hmis::Ce::Match::Expression
           return nil if value.nil?
 
           case value
-          when Time
-            value.to_i
+          when ActiveSupport::TimeWithZone, Time
+            value.in_time_zone.to_i
           when Date
-            value.to_time.to_i
+            Time.zone.local(value.year, value.month, value.day).to_i
           when String
-            DateTime.parse(value).to_i
+            parsed = Time.zone.parse(value)
+            raise ArgumentError, "Cannot cast #{value.inspect} to seconds" unless parsed
+
+            parsed.to_i
           else
             raise ArgumentError, "Cannot cast #{value.inspect} to seconds"
           end

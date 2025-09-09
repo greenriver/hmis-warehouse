@@ -689,40 +689,59 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       client = create(:hmis_hud_client, data_source: data_source)
       assessment = create_assessment_with_cde(client, 'yes')
       timestamp = Time.zone.parse('2025-01-01 12:00:00')
-      assessment.update!(DateUpdated: timestamp)
+      assessment_date = Date.new(2025, 2, 3)
+      assessment.update!(DateUpdated: timestamp, AssessmentDate: assessment_date)
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
 
       pool = create(
         :hmis_ce_match_candidate_pool,
         requirement_expression: '1=1',
-        priority_expression: "{EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.date_updated`)}",
+        priority_expression: "{EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.date_updated`), EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.assessment_date`)}",
       )
 
       generate_candidates(pool, clients: destination_clients_for([client]))
 
       dest_client = destination_clients_for([client]).sole
       candidate = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool)
-      expect(candidate.priority_scores).to eq([timestamp.to_i])
+      expect(candidate.priority_scores).to eq([timestamp.to_i, Time.zone.local(2025, 2, 3).to_i])
     end
 
-    it 'supports EPOCH_SECONDS with string literal timestamps' do
-      client = create(:hmis_hud_client, data_source: data_source)
-      create_assessment_with_cde(client, 'yes')
+    it 'interprets naive and date-only strings in the application Time.zone' do
+      Time.use_zone('America/Chicago') do
+        client = create(:hmis_hud_client, data_source: data_source)
+        create_assessment_with_cde(client, 'yes')
 
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
 
-      pool = create(
-        :hmis_ce_match_candidate_pool,
-        requirement_expression: '1=1',
-        priority_expression: "{EPOCH_SECONDS('2025-02-03 15:04:05')}",
-      )
+        naive = '2025-02-03 15:04:05'
+        pool_naive = create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: '1=1',
+          priority_expression: "{EPOCH_SECONDS('#{naive}')}",
+        )
 
-      generate_candidates(pool, clients: destination_clients_for([client]))
+        date_only = '2025-02-03'
+        pool_date = create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: '1=1',
+          priority_expression: "{EPOCH_SECONDS('#{date_only}')}",
+        )
 
-      dest_client = destination_clients_for([client]).sole
-      candidate = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool)
-      expected = Time.zone.parse('2025-02-03 15:04:05').to_i
-      expect(candidate.priority_scores).to eq([expected])
+        generate_candidates(pool_naive, clients: destination_clients_for([client]))
+        generate_candidates(pool_date, clients: destination_clients_for([client]))
+
+        dest_client = destination_clients_for([client]).sole
+        cand_naive = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_naive)
+        cand_date = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_date)
+
+        expected_local = Time.zone.parse(naive).to_i
+        expected_utc = ActiveSupport::TimeZone['UTC'].parse(naive).to_i
+        expected_local_midnight = Time.zone.local(2025, 2, 3).to_i
+
+        expect(cand_naive.priority_scores).to eq([expected_local])
+        expect(cand_naive.priority_scores.first).not_to eq(expected_utc)
+        expect(cand_date.priority_scores).to eq([expected_local_midnight])
+      end
     end
   end
 end
