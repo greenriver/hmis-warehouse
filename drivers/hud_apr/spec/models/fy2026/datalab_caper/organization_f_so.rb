@@ -292,6 +292,18 @@ RSpec.shared_context 'datalab organization f so caper', shared_context: :metadat
       )
     end
 
+    ## Add internal integrity checks for Q16 from TUP observations
+    # Sum of B2-B15 should equal B16, etc.
+    it 'Q24a internal integrity checks' do
+      ['B', 'C', 'D', 'E', 'F'].each do |letter|
+        check_sum(
+          question: 'Q24a',
+          source: (2..15).to_a.map { |i| "#{letter}#{i}" },
+          total: "#{letter}16",
+        )
+      end
+    end
+
     # Removed in 2026
     # it 'Q24d' do
     #   compare_results(
