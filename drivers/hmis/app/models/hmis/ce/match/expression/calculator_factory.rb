@@ -32,7 +32,7 @@ module Hmis::Ce::Match::Expression
           when Time
             value.to_i
           when Date
-            value.to_i
+            value.to_time.to_i
           when String
             DateTime.parse(value).to_i
           else
