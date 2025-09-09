@@ -42,7 +42,7 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
 
     # Verify required columns exist
     headers = csv_content.headers
-    expect(headers).to include('PersonalID', 'Woman', 'Man', 'NonBinary', 'DateCreated', 'DateUpdated')
+    expect(headers).to include(*HmisCsvTwentyTwentySix::Loader::Custom::CustomGender.hud_csv_headers)
 
     # Verify at least some records have gender data
     records_with_gender = csv_content.select do |row|
@@ -62,7 +62,7 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
     # Verify the file has the correct headers
     csv_content = CSV.read(custom_sexual_orientation_file, headers: true)
     headers = csv_content.headers
-    expect(headers).to include('EnrollmentID', 'PersonalID', 'SexualOrientation', 'SexualOrientationOther', 'DateCreated', 'DateUpdated')
+    expect(headers).to include(*HmisCsvTwentyTwentySix::Loader::Custom::CustomSexualOrientation.hud_csv_headers)
   end
 
   def create_test_dir
