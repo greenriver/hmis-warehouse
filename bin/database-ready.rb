@@ -7,6 +7,8 @@
 # The script seems to be freezing with no output. This might help debug it.
 $stdout.sync = true
 
+require 'timeout'
+
 class DbTester
   attr_accessor :model, :start_time
 
@@ -31,8 +33,22 @@ class DbTester
   def can_connect?
     loop do
       puts "Attempting to connect with #{model}"
-      num = model.connection.execute('select 2*3').values.flatten.first.to_i
-      return unless num != 6
+
+      begin
+        puts 'Executing test query...'
+        result = Timeout.timeout(30) do
+          model.connection.execute('select 2*3')
+        end
+        puts 'Query executed successfully, processing result...'
+
+        num = result.values.flatten.first.to_i
+        puts "Query result: #{num}"
+        return if num == 6
+      rescue Timeout::Error
+        puts 'Database query timed out after 30 seconds'
+      rescue StandardError => e
+        puts "Database connection error: #{e.class}: #{e.message}"
+      end
 
       puts "Cannot connect to database. Trying again in #{SLEEP_TIME_SEC} seconds."
       sleep_or_exit
@@ -42,7 +58,18 @@ class DbTester
   def important_table?
     loop do
       puts "Attempting to select from a table that should exist with #{model}"
-      return if model.connection.schema_migration.table_exists?
+
+      begin
+        result = Timeout.timeout(30) do
+          model.connection.schema_migration.table_exists?
+        end
+        puts "Table existence check completed: #{result}"
+        return if result
+      rescue Timeout::Error
+        puts 'Table existence check timed out after 30 seconds'
+      rescue StandardError => e
+        puts "Error checking table existence: #{e.class}: #{e.message}"
+      end
 
       puts "schema_migrations does not exist. Trying again in #{SLEEP_TIME_SEC} seconds."
       sleep_or_exit
@@ -53,14 +80,27 @@ class DbTester
     loop do
       puts "Checking migrations for #{model}"
 
-      ups = 0
-      downs = 0
-      model.connection.migration_context.migrations_status.each do |status, _version, _name|
-        ups += 1 if status == 'up'
-        downs += 1 if status == 'down'
-      end
+      begin
+        ups = 0
+        downs = 0
 
-      return if ups > 3 && downs == 0
+        migration_status = Timeout.timeout(30) do
+          model.connection.migration_context.migrations_status
+        end
+        puts "Migration status fetched, processing #{migration_status.length} migrations..."
+
+        migration_status.each do |status, _version, _name|
+          ups += 1 if status == 'up'
+          downs += 1 if status == 'down'
+        end
+
+        puts "Migration summary: #{ups} up, #{downs} down"
+        return if ups > 3 && downs == 0
+      rescue Timeout::Error
+        puts 'Migration status check timed out after 30 seconds'
+      rescue StandardError => e
+        puts "Error checking migration status: #{e.class}: #{e.message}"
+      end
 
       puts "Less than 3 migrations up or a migration has not run yet. Trying again in #{SLEEP_TIME_SEC} seconds."
 

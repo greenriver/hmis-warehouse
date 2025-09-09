@@ -129,9 +129,9 @@ module Types
         joins(:definition).where(definition: { identifier: object.definition_identifiers })
 
       # We don't expect there to be a lot, so calculate in-memory the latest assessment per definition
-      assessments.group_by(&:definition).map do |_, group|
+      assessments.group_by { |assessment| assessment.definition.identifier }.map do |_, group|
         group.max_by { |assessment| [assessment.assessment_date, assessment.id] }
-      end
+      end.sort_by(&:assessment_date).reverse # sort by assessment date, descending
     end
 
     def access
