@@ -5,6 +5,8 @@ require 'rails_helper'
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
   let!(:organization) { create(:hmis_hud_organization) }
   let!(:project) { create(:hmis_hud_project, organization: organization) }
+  let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
+  let!(:other_project) { create(:hmis_hud_project, organization: organization) } # project without waitlists enabled
 
   before do
     allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:rebuild_candidate_pools) # prevent automatic rebuilds
@@ -18,6 +20,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:unit_group_1) { create(:hmis_unit_group, project: project) }
       let!(:unit_group_2) { create(:hmis_unit_group, project: project) }
       let!(:unit_group_no_rules) { create(:hmis_unit_group, project: project) }
+      let!(:unit_group_waitlists_not_enabled) { create(:hmis_unit_group, project: other_project) }
 
       before do
         # These rules create two distinct keys, resulting in two pools
@@ -46,6 +49,11 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'leaves candidate_pool_id nil for unit groups with no rules' do
         described_class.call
         expect(unit_group_no_rules.reload.candidate_pool_id).to be_nil
+      end
+
+      it 'leaves candidate_pool_id nil for unit groups without waitlists enabled' do
+        described_class.call
+        expect(unit_group_waitlists_not_enabled.reload.candidate_pool_id).to be_nil
       end
 
       it 'can be scoped to specific unit groups' do

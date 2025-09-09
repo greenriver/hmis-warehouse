@@ -636,7 +636,8 @@ module Types
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
-        joins(:ce_match_candidates).
+        joins(ce_match_candidates: :candidate_pool).
+        merge(Hmis::Ce::Match::CandidatePool.active).
         distinct.order(:id)
 
       scope = scope.apply_filters(filters) if filters

@@ -160,6 +160,17 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
+  scope :with_ce_waitlists_enabled, -> do
+    configs = Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?)
+
+    conditions = [
+      arel_table[:project_type].in(configs.map(&:project_type)),
+      arel_table[:id].in(configs.map(&:project_id)),
+      Hmis::Hud::Organization.arel_table[:id].in(configs.map(&:organization_id)),
+    ]
+    joins(:organization).where(conditions.inject(&:or))
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
