@@ -119,6 +119,7 @@ module Types
       can :perform_any_referral_tasks
       can :perform_own_referral_tasks
       can :assign_referral_tasks
+      can :update_unit_availability
       can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
