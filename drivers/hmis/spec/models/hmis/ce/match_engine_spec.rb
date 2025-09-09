@@ -154,6 +154,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           UserID: 'fake',
         )
       end
+      return assessment
     end
   end
 
@@ -677,6 +678,51 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
       senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_with_comma_expr)
       expect(senior_veteran_candidate.priority_scores).to eq([100, 68, 1])
+    end
+  end
+
+  describe 'priority expression functions' do
+    include_context 'with CDE assessment setup'
+
+    let(:cde_key) { 'test' }
+    it 'supports EPOCH_SECONDS on custom assessment date fields' do
+      client = create(:hmis_hud_client, data_source: data_source)
+      assessment = create_assessment_with_cde(client, 'yes')
+      timestamp = Time.zone.parse('2025-01-01 12:00:00')
+      assessment.update!(DateUpdated: timestamp)
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+      pool = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: '1=1',
+        priority_expression: "{EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.date_updated`)}",
+      )
+
+      generate_candidates(pool, clients: destination_clients_for([client]))
+
+      dest_client = destination_clients_for([client]).sole
+      candidate = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool)
+      expect(candidate.priority_scores).to eq([timestamp.to_i])
+    end
+
+    it 'supports EPOCH_SECONDS with string literal timestamps' do
+      client = create(:hmis_hud_client, data_source: data_source)
+      create_assessment_with_cde(client, 'yes')
+
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+      pool = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: '1=1',
+        priority_expression: "{EPOCH_SECONDS('2025-02-03 15:04:05')}",
+      )
+
+      generate_candidates(pool, clients: destination_clients_for([client]))
+
+      dest_client = destination_clients_for([client]).sole
+      candidate = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool)
+      expected = Time.zone.parse('2025-02-03 15:04:05').to_i
+      expect(candidate.priority_scores).to eq([expected])
     end
   end
 end

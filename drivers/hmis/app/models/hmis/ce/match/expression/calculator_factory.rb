@@ -22,6 +22,24 @@ module Hmis::Ce::Match::Expression
         :string,
         ->(identifier) { HudUtility2026.hmis_project_type_key(identifier, true) },
       )
+      calculator.add_function(
+        :EPOCH_SECONDS,
+        :numeric,
+        ->(value) {
+          return nil if value.nil?
+
+          case value
+          when Time
+            value.to_i
+          when Date
+            value.to_time(:utc).to_i
+          when String
+            Time.zone.parse(value).to_i
+          else
+            raise ArgumentError, "Cannot cast #{value.inspect} to seconds"
+          end
+        },
+      )
 
       return calculator
     end
