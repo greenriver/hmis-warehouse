@@ -50,7 +50,7 @@ module Hmis::Ce::Match::Internal
 
       # Only run priority evaluation if eligibility evaluation passed.
       # To be eligible, client's priority scores must all be non-null AND the eligibility requirement must pass.
-      priority_scores = eval_priority(client_values) if eval_requirement(client_values)
+      priority_scores = eval_priority(client_values, client.id) if eval_requirement(client_values, client.id)
       Result.new(client_values, priority_scores)
     end
 
@@ -58,12 +58,20 @@ module Hmis::Ce::Match::Internal
 
     # evaluate the pool's expressions, for example:
     # evaluate!('current_age >= 65 AND veteran_status = 1', {current_age: 50, veteran_status: 1})
-    def eval_requirement(client_values)
-      @calculator.evaluate!(@pool.requirement_expression, **client_values)
+    def eval_requirement(client_values, client_id)
+      eval_expression(@pool.requirement_expression, client_values, client_id)
     end
 
-    def eval_priority(client_values)
-      @calculator.evaluate!(@pool.priority_expression, **client_values)
+    def eval_priority(client_values, client_id)
+      eval_expression(@pool.priority_expression, client_values, client_id)
+    end
+
+    # Wrapper to raise evaluation with additional context
+    def eval_expression(expression, client_values, client_id)
+      @calculator.evaluate!(expression, **client_values)
+    rescue Dentaku::ArgumentError => e
+      err_with_context = "Error evaluating expression '#{expression}' for Client##{client_id} and Pool##{@pool.id}: #{e.message}"
+      raise e, err_with_context, e.backtrace
     end
   end
 end
