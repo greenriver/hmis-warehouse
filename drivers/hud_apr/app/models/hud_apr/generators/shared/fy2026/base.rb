@@ -303,7 +303,7 @@ module HudApr::Generators::Shared::Fy2026
             household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
             household_type: household_type,
-            housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment || 99,
+            housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
             income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
             income_date_at_exit: income_at_exit&.InformationDate,
             income_date_at_start: income_at_start&.InformationDate,
