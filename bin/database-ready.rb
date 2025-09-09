@@ -43,7 +43,7 @@ class DbTester
 
         num = result.values.flatten.first.to_i
         puts "Query result: #{num}"
-        return unless num != 6
+        return if num == 6
       rescue Timeout::Error
         puts 'Database query timed out after 30 seconds'
       rescue StandardError => e
