@@ -45,7 +45,7 @@ module Mutations
       # Get the form definition to map from link_id to custom_field_key
       form_definition = Hmis::Form::Definition.find(form_definition_id)
 
-      # Build overrides hash
+      # Build overrides hash. Note that values_by_link_id does not include hidden fields.
       values_by_link_id.filter_map do |link_id, value|
         form_item = form_definition.link_id_item_hash[link_id]
         custom_field_key = form_item&.dig('mapping', 'custom_field_key')
