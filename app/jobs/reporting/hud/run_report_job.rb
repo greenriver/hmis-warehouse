@@ -22,27 +22,42 @@ module Reporting::Hud
       # advisory lock to check the number of jobs running for this generator so we don't
       # all check at exactly the same time and get the same result
       @generator = class_name.constantize.new(report)
-      if report.manual
-        HudReports::ReportInstance.with_advisory_lock(@generator.class.name, timeout_seconds: 20) do
-          # We can't only count the running delayed jobs because we start a DJ every time we check
-          # So, we'll check the report class for running reports instead.
-          running_reports_count = HudReports::ReportInstance.
-            created_recently.
-            incomplete.
-            started.
-            for_report(report.report_name).
-            count
 
-          if running_reports_count > 1
-            puts "Found #{running_reports_count} running reports, for #{@generator.class.name} (#{report.report_name}), postponing run of #{report_id}"
-            requeue_job(class_name)
-            return
-          end
+      # this report was called directly as opposed to being called through an automated process (e.g. to back a different report)
+      # so we'll make sure there isn't another similar report running before we start
+      if report.manual
+        requeued = check_and_requeue_for_running(report, @generator.class.name)
+        # a similar report is already running, this report has been adding back to the queue so it will be tried again in a bit
+        return if requeued
+      end
+
+      # puts "Running: #{@generator.class.name} Report ID: #{report_id}"
+      run_report(report, @generator, email: email)
+    end
+
+    # Check if a similar report is already running and requeue this report if it is
+    #
+    # @param report [HudReports::ReportInstance] the report to check
+    # @param generator_class_name [String] the class name of the generator
+    # @return [Boolean] true if the report was requeued, false otherwise
+    protected def check_and_requeue_for_running(report, generator_class_name)
+      HudReports::ReportInstance.with_advisory_lock(generator_class_name, timeout_seconds: 20) do
+        # We can't only count the running delayed jobs because we start a DJ every time we check
+        # So, we'll check the report class for running reports instead.
+        running_reports_count = HudReports::ReportInstance.
+          created_recently.
+          incomplete.
+          started.
+          for_report(report.report_name).
+          count
+
+        if running_reports_count > 1
+          puts "Found #{running_reports_count} running reports, for #{generator_class_name} (#{report.report_name}), postponing run of #{report.id}"
+          requeue_job(class_name)
+          return true
         end
       end
-      # puts "Running: #{@generator.class.name} Report ID: #{report_id}"
-
-      run_report(report, @generator, email: email)
+      false
     end
 
     protected def run_report(report, generator, email:)
