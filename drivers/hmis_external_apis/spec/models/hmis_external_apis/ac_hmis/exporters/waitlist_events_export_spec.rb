@@ -42,9 +42,11 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::WaitlistEventsExport, type: 
     result = CSV.parse(output, headers: true)
     row = result.first
 
+    expect(row['ID']).to eq("#{event.id}_#{unit_group.id}")
     expect(row['PersonalID']).to eq(destination_client.id.to_s)
     expect(row['ProjectID']).to eq(project.id.to_s)
     expect(row['ProjectName']).to eq(project.project_name)
+    expect(row['UnitGroupID']).to eq(unit_group.id.to_s)
     expect(row['UnitGroupName']).to eq(unit_group.name)
     expect(row['EventName']).to eq('add')
     expect(row['CreatedAt']).to eq(event.created_at.strftime('%Y-%m-%d %H:%M:%S'))

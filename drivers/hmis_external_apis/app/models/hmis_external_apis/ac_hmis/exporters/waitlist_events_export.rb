@@ -33,9 +33,11 @@ module HmisExternalApis::AcHmis::Exporters
         Array.wrap(groups_by_pool_id[event.candidate_pool_id]).each do |unit_group|
           project = unit_group.project
           values = [
+            "#{event.id}_#{unit_group.id}", # ID
             destination_client_id,    # PersonalID (destination client id)
             project.id,               # ProjectID
             project.project_name,     # ProjectName
+            unit_group.id,            # UnitGroupID
             unit_group.name,          # UnitGroupName
             event.event_name,         # EventName
             event.created_at,         # CreatedAt
@@ -49,9 +51,11 @@ module HmisExternalApis::AcHmis::Exporters
 
     def columns
       [
+        'ID',           # Stable ID for this row (concatenation of Hmis::Ce::Match::CandidateEvent#id and Hmis::UnitGroup#id)
         'PersonalID',   # Destination ID of client (warehouse client id)
         'ProjectID',    # ID of the project that uses the candidate pool
         'ProjectName',  # Name of the project that uses the candidate pool
+        'UnitGroupID',  # ID of the unit group that uses the candidate pool
         'UnitGroupName', # Name of the unit group that uses the candidate pool
         'EventName',    # Event name (e.g., add, update, remove)
         'CreatedAt',    # Timestamp when the event was created

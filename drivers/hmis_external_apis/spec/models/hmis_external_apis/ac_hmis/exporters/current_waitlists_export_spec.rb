@@ -43,10 +43,14 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CurrentWaitlistsExport, type
     result = CSV.parse(output, headers: true)
     row = result.first
 
+    expect(row['ID']).to eq("#{candidate.id}_#{unit_group.id}")
     expect(row['PersonalID']).to eq(destination_client.id.to_s)
     expect(row['ProjectID']).to eq(project.id.to_s)
     expect(row['ProjectName']).to eq(project.project_name)
+    expect(row['UnitGroupID']).to eq(unit_group.id.to_s)
     expect(row['UnitGroupName']).to eq(unit_group.name)
+    expect(row['CreatedAt']).to eq(candidate.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+    expect(row['UpdatedAt']).to eq(candidate.updated_at.strftime('%Y-%m-%d %H:%M:%S'))
     expect(row['PriorityScore1']).to eq('5')
     expect(row['PriorityScore2']).to eq('4')
     expect(row['PriorityScore3']).to eq('3')

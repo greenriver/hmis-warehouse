@@ -33,9 +33,11 @@ module HmisExternalApis::AcHmis::Exporters
         Array.wrap(groups_by_pool_id[candidate.candidate_pool_id]).each do |unit_group|
           project = unit_group.project
           values = [
+            "#{candidate.id}_#{unit_group.id}",     # ID
             destination_client_id,                  # PersonalID
             project.id,                             # ProjectID
             project.project_name,                   # ProjectName
+            unit_group.id,                          # UnitGroupID
             unit_group.name,                        # UnitGroupName
             candidate.created_at,                   # CreatedAt
             candidate.updated_at,                   # UpdatedAt
@@ -52,9 +54,11 @@ module HmisExternalApis::AcHmis::Exporters
 
     def columns
       [
-        'PersonalID',
+        'ID', # Stable ID for this row (concatenation of Hmis::Ce::Match::Candidate#id and Hmis::UnitGroup#id)
+        'PersonalID', # Destination ID of client (warehouse client id)
         'ProjectID',
         'ProjectName',
+        'UnitGroupID',
         'UnitGroupName',
         'CreatedAt',
         'UpdatedAt',
