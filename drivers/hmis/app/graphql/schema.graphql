@@ -1081,6 +1081,7 @@ type CeReferral {
 }
 
 type CeReferralAccess {
+  canAssignReferralTasks: Boolean!
   canViewReferralDetails: Boolean!
   canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!
@@ -9621,6 +9622,7 @@ type ProjectAccess {
   canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
   canStartReferrals: Boolean!
+  canUpdateUnitAvailability: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -10175,6 +10177,7 @@ type QueryAccess {
   canSplitHouseholds: Boolean!
   canStartReferrals: Boolean!
   canTransferEnrollments: Boolean!
+  canUpdateUnitAvailability: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
