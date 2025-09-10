@@ -22,34 +22,39 @@ module Reporting::Hud
       # advisory lock to check the number of jobs running for this generator so we don't
       # all check at exactly the same time and get the same result
       @generator = class_name.constantize.new(report)
-      HudReports::ReportInstance.with_advisory_lock(@generator.class.name, timeout_seconds: 20) do
-        # We can't only count the running delayed jobs because we start a DJ every time we check
-        # So, we'll check the report class for running reports instead.
-        running_reports_count = HudReports::ReportInstance.
-          created_recently.
-          incomplete.
-          started.
-          for_report(report.report_name).
-          count
+      if report.manual
+        HudReports::ReportInstance.with_advisory_lock(@generator.class.name, timeout_seconds: 20) do
+          # We can't only count the running delayed jobs because we start a DJ every time we check
+          # So, we'll check the report class for running reports instead.
+          running_reports_count = HudReports::ReportInstance.
+            created_recently.
+            incomplete.
+            started.
+            for_report(report.report_name).
+            count
 
-        if running_reports_count > 1
-          puts "Found #{running_reports_count} running reports, for #{@generator.class.name} (#{report.report_name}), postponing run of #{report_id}"
-          requeue_job(class_name)
-          return
+          if running_reports_count > 1
+            puts "Found #{running_reports_count} running reports, for #{@generator.class.name} (#{report.report_name}), postponing run of #{report_id}"
+            requeue_job(class_name)
+            return
+          end
         end
       end
-
       # puts "Running: #{@generator.class.name} Report ID: #{report_id}"
 
+      run_report(report, @generator, email: email)
+    end
+
+    protected def run_report(report, generator, email:)
       capture_failure(report) do
-        @generator.prepare_report
-        @generator.class.questions.each do |q, klass|
-          klass.new(@generator, report).run! if report.build_for_questions.include?(q)
+        generator.prepare_report
+        generator.class.questions.each do |q, klass|
+          klass.new(generator, report).run! if report.build_for_questions.include?(q)
         end
       end
 
       report_completed = report.complete_report
-      NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
+      NotifyUser.driver_hud_report_finished(generator).deliver_now if report.user_id && email
       report_completed
     end
 
