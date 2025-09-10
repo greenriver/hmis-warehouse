@@ -1081,6 +1081,7 @@ type CeReferral {
 }
 
 type CeReferralAccess {
+  canAssignReferralTasks: Boolean!
   canViewReferralDetails: Boolean!
   canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!

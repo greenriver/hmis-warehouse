@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'ce_clients query' do
     let(:query) do
       <<~GRAPHQL
-        query GetAdminConsolidatedWaitlist($limit: Int = 25, $offset: Int = 0, $filters: CeClientFilterOptions = null) {
+        query GetCeClients($limit: Int = 25, $offset: Int = 0, $filters: CeClientFilterOptions = null) {
           ceClients(limit: $limit, offset: $offset, filters: $filters) {
             offset
             limit
@@ -51,10 +51,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:variables) do
       {}
     end
+    let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, receives_direct_referrals: true, project: p1) }
 
     context 'when there are ce clients' do
       let!(:client_proxy_no_pools) do
-        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Alice', last_name: 'Anderson')
+        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
+        create(:hmis_ce_client_proxy, client: source_client.destination_client)
+      end
+      let!(:client_proxy_inactive_pools) do
+        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1)
         create(:hmis_ce_client_proxy, client: source_client.destination_client)
       end
       let!(:client_proxy_in_pool_1) do
@@ -67,8 +72,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(:hmis_ce_client_proxy, client: source_client.destination_client)
       end
 
+      # Pool 1 is active because it's tied to a unit group
       let!(:pool_1) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1, client_proxy_in_pool_1_and_2] }
+      let!(:pool_1_unit_group) { create :hmis_unit_group, project: p1, candidate_pool: pool_1 }
+
+      # Pool 2 is active because it's tied to an open opportunity
       let!(:pool_2) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1_and_2] }
+      let!(:pool_2_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_2, status: 'open' }
+
+      # cruft: Pool 3 is not active, candidate membership should be disregarded
+      let!(:pool_3) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
+
+      # cruft: Pool 4 is not active, candidate membership should be disregarded
+      let!(:pool_4) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
+      let!(:pool_4_opportunity) { create :hmis_ce_opportunity, data_source: ds1, project: p1, candidate_pool: pool_4, status: 'closed' }
 
       it 'raises if the user does not have permission' do
         remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
@@ -85,7 +102,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_no_pools.id.to_s))
       end
 
-      it 'includes clients belonging to any candidate pools' do
+      it 'excludes clients belonging to inactive candidate pools' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+        # Client Proxy that belongs to inactive pool is excluded
+        expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_inactive_pools.id.to_s))
+      end
+
+      it 'includes clients belonging to active candidate pools' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
 
@@ -102,6 +129,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                            'viewableSourceClientIds' => [client_proxy_in_pool_1_and_2.client.source_clients.sole.id.to_s],
                            'clientName' => 'Alex Ocean'),
         )
+      end
+
+      context 'with ce waitlist configuration disabled for p1' do
+        before(:each) { ce_project_config.update!(supports_waitlist_referrals: false) }
+
+        it 'excludes clients belonging to inactive pool due to project not being configured for waitlists' do
+          expect(pool_1.active?).to be false # confirm setup
+
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+          # client belonging to pool1 is excluded from the list because pool1 is no longer active
+          expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_in_pool_1.id.to_s))
+          # clinet belonging to pool2 is still included
+          expect(ce_clients).to contain_exactly(a_hash_including('id' => client_proxy_in_pool_1_and_2.id.to_s))
+        end
       end
 
       context 'with event snapshots' do

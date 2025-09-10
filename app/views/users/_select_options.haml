@@ -1,0 +1,24 @@
+- # This partial returns just the <option> tags for lazy loading
+- if entity[:as] == :grouped_select
+  - entity[:collection].each do |group_name, items|
+    %optgroup{label: group_name}
+      - items.each do |item|
+        - label = entity[:label_method].is_a?(Proc) ? entity[:label_method].call(item) : item.send(entity[:label_method] || :name)
+        - selected = entity[:selected].include?(item.id) ? {selected: true} : {}
+        %option{value: item.id, **selected}= label
+- else
+  - entity[:collection].each do |item|
+    - if item.is_a?(Array)
+      - # Handle [label, value] pairs (like reports, project_groups)
+      - label, value = item
+      - selected = entity[:selected].include?(value) ? {selected: true} : {}
+      %option{value: value, **selected}= label
+    - elsif item.is_a?(String)
+      - # Handle plain strings (like coc_codes)
+      - selected = entity[:selected].include?(item) ? {selected: true} : {}
+      %option{value: item, **selected}= item
+    - else
+      - # Handle ActiveRecord objects (like cohorts)
+      - label = entity[:label_method].is_a?(Proc) ? entity[:label_method].call(item) : item.send(entity[:label_method] || :name)
+      - selected = entity[:selected].include?(item.id) ? {selected: true} : {}
+      %option{value: item.id, **selected}= label

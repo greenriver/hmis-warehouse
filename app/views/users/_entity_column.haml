@@ -1,7 +1,7 @@
 - associated_items ||= @group.associated_by(associations: associations) rescue []
 - name = entity[:label] || entity[:placeholder]
 
-.c-columns__column.j-column{data: {title: name.pluralize}}
+.c-columns__column.j-column{data: {title: name.pluralize}, id: "#{entity_type.to_s.parameterize}-column"}
   .c-columns__column
     .c-columns__column-header
       %h3.c-columns__column-title=name.pluralize
@@ -13,7 +13,13 @@
 
     .c-columns__column-actions
       .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add
-        = f.input name.parameterize(separator: '_').to_sym,  **entity, label: false
+        - if entity[:lazy_load]
+          .select-placeholder{data: {entity_type: entity[:entity_type], user_id: @user.id, base: entity[:base], load_url: entity[:load_options_url]}}
+            .loading-state
+              %select{name: entity[:input_html][:name], class: "#{entity[:input_html][:class]} form-control", multiple: entity[:multiple], disabled: true}
+                %option Loading #{entity[:label] || entity[:placeholder]}...
+        - else
+          = f.input name.parameterize(separator: '_').to_sym,  **entity, label: false
       .c-columns__column-action.c-columns__column-action--remove.hide.j-column-actions-remove
         .d-flex.align-items-center
           %p.mr-2.mb-0 Are you sure you want to remove all the <b>#{name.pluralize}</b>?
@@ -21,8 +27,13 @@
             .btn.btn-sm.btn-secondary.mr-2.j-remove-all-toggle No
             .btn.btn-sm.btn-danger.j-remove-all Yes
 
-    .c-columns__column-content.j-column-content
-      %ul.c-columns__column-list.j-list.j-editable
+    .c-columns__column-content.j-column-content{id: "#{entity_type.to_s.parameterize}-content"}
+      - if entity[:lazy_load]
+        %ul.c-columns__column-list.j-list.j-editable{id: "#{entity_type.to_s.parameterize}-list"}
+          %li.c-columns__column-list-item--read-only
+            .rollup-container.c-card.c-card--flush.c-card--block
+      - else
+        %ul.c-columns__column-list.j-list.j-editable{id: "#{entity_type.to_s.parameterize}-list"}
       %ul.c-columns__column-list.c-columns__column-list--associated
         - associated_items.each do |associated, items|
           - items.each do |a|
@@ -31,11 +42,11 @@
                 = a
                 %em.d-block.text-small.c-columns__column-list-item-description=associated
   - if @user
-    .c-columns__column
+    .c-columns__column{id: "#{entity_type.to_s.parameterize}-inherited-column"}
       .c-columns__column-header
         %h3.c-columns__column-title= "#{name.pluralize} Inherited from Groups"
       .c-columns__column-content
-        %ul.c-columns__column-list.c-columns__column-list--associated
+        %ul.c-columns__column-list.c-columns__column-list--associated{id: "#{entity_type.to_s.parameterize}-inherited-list"}
           - @user.inherited_for_type(entity_type).each do |group_name, items|
             - items.each do |item|
               %li.c-columns__column-list-item--read-only

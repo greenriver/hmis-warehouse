@@ -70,6 +70,17 @@ export default class extends Controller {
         this.addButtonLabels();
       }, 100);
     });
+
+    // Listen for date changes and dispatch a standard change event for submit-on-change functionality
+    this.element.addEventListener('change.td', (_event) => {
+      // Find the input field within the datepicker wrapper
+      const inputField = this.element.querySelector('input');
+      if (inputField) {
+        // Dispatch a standard change event on the input field for submit-on-change functionality
+        const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+        inputField.dispatchEvent(changeEvent);
+      }
+    });
   }
 
   disconnect() {
