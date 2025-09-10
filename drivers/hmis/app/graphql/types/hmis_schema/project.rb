@@ -206,8 +206,8 @@ module Types
       return [] unless current_permission?(entity: object, permission: :can_view_units)
 
       project_units = object.units
-      capacity = project_units.group(:unit_type_id).count
-      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
+      capacity = project_units.group(:unit_type_id).count # Map unit type to number of units
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count # Map unit type to number of unoccupied units
 
       Hmis::UnitType.where(id: capacity.keys).order(:id).distinct.map do |unit_type|
         OpenStruct.new(
