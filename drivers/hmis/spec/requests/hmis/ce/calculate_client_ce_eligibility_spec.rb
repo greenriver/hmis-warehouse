@@ -37,8 +37,8 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation($enrollmentId: ID!, $formDefinitionIdentifier: String!, $valuesByLinkId: JsonObject!) {
-        calculateClientCeEligibility(enrollmentId: $enrollmentId, formDefinitionIdentifier: $formDefinitionIdentifier, valuesByLinkId: $valuesByLinkId) {
+      mutation($enrollmentId: ID!, $formDefinitionId: ID!, $valuesByLinkId: JsonObject!) {
+        calculateClientCeEligibility(enrollmentId: $enrollmentId, formDefinitionId: $formDefinitionId, valuesByLinkId: $valuesByLinkId) {
           projectTypes
           errors { fullMessage }
         }
@@ -50,7 +50,7 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
     it 'returns project types for eligible pools' do
       response, result = post_graphql(
         enrollmentId: enrollment.id,
-        formDefinitionIdentifier: form_definition.identifier,
+        formDefinitionId: form_definition.id,
         valuesByLinkId: { 'veteran_q' => 1, 'unmapped_q' => 'ignored' },
       ) { mutation }
 
@@ -63,7 +63,7 @@ RSpec.describe Mutations::Ce::CalculateClientCeEligibility, type: :request do
     it 'returns subset when fewer pools match' do
       response, result = post_graphql(
         enrollmentId: enrollment.id,
-        formDefinitionIdentifier: form_definition.identifier,
+        formDefinitionId: form_definition.id,
         valuesByLinkId: { 'veteran_q' => 0 },
       ) { mutation }
 

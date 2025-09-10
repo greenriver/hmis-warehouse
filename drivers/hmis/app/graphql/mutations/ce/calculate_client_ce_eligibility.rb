@@ -8,6 +8,8 @@
 
 module Mutations
   class Ce::CalculateClientCeEligibility < CleanBaseMutation
+    # Does not mutate data, but implemented as a mutation in order to use CleanBaseMutation's validation error pattern.
+
     description 'Calculate client eligibility based on provided assessment values and return applicable project types'
 
     argument :enrollment_id, ID, required: true
