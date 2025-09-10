@@ -63,10 +63,9 @@ module Hmis::Ce
         return # in non-dev env: return, we are unable to perform the action
       end
 
-      Hmis::Hud::Enrollment.transaction do
-        referral.update!(target_enrollment: nil)
-        enrollment.destroy!
-      end
+
+      referral.update!(target_enrollment: nil)
+      enrollment.destroy!
     end
 
     # Sets the Move-In Date on the target enrollment, based on a date value collected on the step form.
