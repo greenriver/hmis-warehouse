@@ -17,7 +17,7 @@ module HmisCsvTwentyTwentySix
           @custom_file_definition
         end
 
-        def hud_csv_headers
+        def hud_csv_headers(version: '2026') # rubocop:disable Lint/UnusedMethodArgument
           custom_file_definition.real_columns.map { |col| col['name'] }
         end
 

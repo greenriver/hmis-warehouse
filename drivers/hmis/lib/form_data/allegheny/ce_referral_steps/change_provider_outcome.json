@@ -1,0 +1,61 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "date",
+      "mapping": {
+        "custom_field_key": "housing_workflow_change_provider_outcome_date"
+      },
+      "required": true
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_change_provider_outcome_note"
+      },
+      "required": false
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "denial_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_change_provider_outcome_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        {
+          "code": "HMIS user error"
+        },
+        {
+          "code": "Inability to complete intake"
+        },
+        {
+          "code": "Does not meet eligibility criteria"
+        },
+        {
+          "code": "No longer interested in this program"
+        },
+        {
+          "code": "No longer experiencing homelessness"
+        },
+        {
+          "code": "Estimated vacancy no longer available"
+        },
+        {
+          "code": "Enrolled, but declined HMIS data entry"
+        }
+      ]
+    },
+    {
+      "text": "The client has already been enrolled in the project.",
+      "type": "DISPLAY",
+      "link_id": "already_enrolled_message",
+      "component": "ALERT_WARNING"
+    }
+  ]
+}

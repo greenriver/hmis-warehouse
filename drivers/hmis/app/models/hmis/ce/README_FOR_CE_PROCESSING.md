@@ -49,7 +49,7 @@ sequenceDiagram
     end
 
     alt Rule or Unit Group Changes
-        UserAction->>+RailsApp: Create/Update/Destroy Rule or UnitGroup
+        UserAction->>+RailsApp: Create/Update/Destroy Rule, UnitGroup, or ProjectCeConfig
         RailsApp->>+CandidatePoolBuilder: `after_save`/`after_destroy` callback<br>runs builder synchronously
         CandidatePoolBuilder->>CandidatePoolBuilder: Creates/updates pools & associations
         CandidatePoolBuilder->>+ChangeMarker: Marks new/updated pools as dirty
@@ -123,7 +123,7 @@ The `Hmis::MarkClientAsDirtyBehavior` concern is the primary mechanism for flagg
 
 When a record with this concern is saved, an `after_save` callback triggers `Hmis::Ce::ChangeMarker.upsert_or_bump_version`, which either creates a new marker or increments the `current_version` of an existing one.
 
-`Hmis::Ce::Match::Rule` and `Hmis::UnitGroup` models use `after_*` callbacks to synchronously run the `CandidatePoolBuilder` to ensure pool data is always consistent with the latest rules.
+`Hmis::Ce::Match::Rule`, `Hmis::UnitGroup` and `Hmis::ProjectCeConfig` models use `after_*` callbacks to synchronously run the `CandidatePoolBuilder` to ensure pool data is always consistent with the latest rules and configuration.
 
 #### 4. Client Deduplication & Cleanup Integration
 

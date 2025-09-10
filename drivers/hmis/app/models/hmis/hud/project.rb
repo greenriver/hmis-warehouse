@@ -160,6 +160,17 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: referral_project_ids)
   end
 
+  scope :with_ce_waitlists_enabled, -> do
+    configs = Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?)
+
+    conditions = [
+      arel_table[:project_type].in(configs.map(&:project_type)),
+      arel_table[:id].in(configs.map(&:project_id)),
+      Hmis::Hud::Organization.arel_table[:id].in(configs.map(&:organization_id)),
+    ]
+    joins(:organization).where(conditions.inject(&:or))
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
@@ -370,6 +381,20 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     raise "Invalid CoC Code #{coc_code_arg} for project" unless uniq_coc_codes.include?(coc_code_arg)
 
     coc_code_arg
+  end
+
+  def possible_unit_types
+    unit_type_scope = Hmis::UnitType.all
+
+    # Only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    unit_type_ids = unit_type_mappings.active.pluck(:unit_type_id)
+    if unit_type_ids.any?
+      unit_type_ids += units.distinct.pluck(:unit_type_id) # include unit types for existing units
+      unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+    end
+
+    unit_type_scope
   end
 
   include RailsDrivers::Extensions

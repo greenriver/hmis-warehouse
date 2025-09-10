@@ -41,13 +41,21 @@ module Hmis::Ce::Match
     # foreign key constraint violations
     before_destroy :nullify_deleted_associations
 
-    # pools for active opportunities
     scope :active, -> {
-      active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
-      where(id: active_ids)
+      # Pool is active if there are any active Opportunities that reference it
+      active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.distinct.pluck(:candidate_pool_id).compact
+      # Pool is active if there are any UnitGroups that reference it
+      active_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.distinct.pluck(:candidate_pool_id).compact
+      all_active_ids = (active_ids_for_opportunities + active_ids_for_unit_groups).sort.uniq
+      where(id: all_active_ids)
     }
 
-    # orphan pools can be safely deleted after a period if inactivity
+    # orphan pools can be safely deleted after a period if inactivity.
+    # currently we consider a pool orphaned if it is not tied to any opportunities or unit groups.
+    #
+    # Note this could be expanded to allow deleting additional pools if needed, including:
+    # 1) Pools that are exclusively tied to closed opportunities. (Would require modification to opportunities relation :restrict_with_exception).
+    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_ce_waitlists_enabled)
     scope :orphaned, -> {
       referenced_ids = [
         ::Hmis::Ce::Opportunity,
@@ -67,7 +75,7 @@ module Hmis::Ce::Match
     end
 
     def active?
-      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id)
+      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.with_ce_waitlists_enabled.exists?(candidate_pool_id: id)
     end
 
     def warehouse_clients

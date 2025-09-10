@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Users::InvitationsController, type: :controller do
@@ -38,12 +46,12 @@ RSpec.describe Users::InvitationsController, type: :controller do
 
   describe 'POST #create' do
     context 'with valid parameters' do
-      it 'creates a new user and redirects to admin_users_path' do
+      it 'creates a new user and redirects to edit_admin_user_path' do
         expect do
           post :create, params: valid_params, format: :html
         end.to change(User, :count).by(1)
 
-        expect(response).to redirect_to(admin_users_path)
+        expect(response).to redirect_to(edit_admin_user_path(User.last))
         expect(flash[:notice]).to eq('An invitation email has been sent to john.doe@example.com.')
       end
     end

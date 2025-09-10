@@ -79,6 +79,11 @@ module HmisCsvTwentyTwentySix::Importer
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
             arguments: { valid_options: HudUtility2026.project_types.keys.map(&:to_s).freeze },
           },
+          # ProjectType can only be blank if ContinuumProject is not 1
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+            arguments: { constraint_lambda: ->(item) { item['ContinuumProject'].to_s != '1' } },
+          },
         ],
         HousingType: [
           {

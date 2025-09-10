@@ -207,6 +207,18 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    ## Add internal integrity checks for Q16 from TUP observations
+    # Sum of B2-B11 should equal B14
+    # Sum of C2-C13 should equal C14
+    # Sum of D2-D11 should equal D14
+    it 'Q16 internal integrity checks' do
+      check_sum(
+        question: 'Q16',
+        source: ['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11'],
+        total: 'B14',
+      )
+    end
+
     it 'Q17' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -310,6 +322,47 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
         file_path: result_file_prefix + results_dir,
         question: 'Q23c',
       )
+    end
+
+    ## Add internal integrity checks for Q23c from TUP observations
+    it 'Q23c internal integrity checks' do
+      ['B', 'C', 'D', 'E', 'F'].each do |col|
+        check_sum(
+          question: 'Q23c',
+          source: (2..5).map { |i| "#{col}#{i}" },
+          total: "#{col}6",
+        )
+
+        check_sum(
+          question: 'Q23c',
+          source: (8..13).map { |i| "#{col}#{i}" },
+          total: "#{col}14",
+        )
+
+        check_sum(
+          question: 'Q23c',
+          source: (16..22).map { |i| "#{col}#{i}" },
+          total: "#{col}23",
+        )
+
+        check_sum(
+          question: 'Q23c',
+          source: (25..31).map { |i| "#{col}#{i}" },
+          total: "#{col}32",
+        )
+
+        check_sum(
+          question: 'Q23c',
+          source: (34..38).map { |i| "#{col}#{i}" },
+          total: "#{col}39",
+        )
+
+        check_sum(
+          question: 'Q23c',
+          source: [6, 14, 23, 32, 39].map { |i| "#{col}#{i}" },
+          total: "#{col}40",
+        )
+      end
     end
 
     it 'Q23d' do

@@ -16,7 +16,8 @@ module HmisCsvFixtures
     allowed_projects: nil,
     skip_location_cleanup: false,
     deidentified: nil,
-    dry_run: false
+    dry_run: false,
+    stop_version: nil # allow setting the stop version for testing a specific importer version
   )
     unless data_source
       data_source = GrdaWarehouse::DataSource.where(
@@ -40,13 +41,6 @@ module HmisCsvFixtures
       tmp_path = File.join(file_path, data_source.id.to_s)
       FileUtils.cp_r(source_file_path, tmp_path)
 
-      TodoOrDie('Remove this stanza, update tests to use AutoMigrate', by: '2025-10-01')
-      if version == '2026'
-        version = 'AutoMigrate'
-      elsif version == 'AutoMigrate'
-        # Until we remove the 2024 tests, prevent them from auto migrating to 2026
-        stop_version = '2024'
-      end
       importer = if version == '2020'
         HmisCsvTwentyTwenty::Loader::Loader.new(
           file_path: tmp_path,
