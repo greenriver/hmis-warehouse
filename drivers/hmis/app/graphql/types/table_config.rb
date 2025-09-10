@@ -11,7 +11,7 @@ module Types
     skip_activity_log
     # backed by Hmis::TableConfiguration
 
-    field :columns, [Types::TableColumnConfig], null: false, default_value: [], fallback_value: []
-    field :filters, [Types::TableFilterConfig], null: false, default_value: [], fallback_value: []
+    field :columns, [Types::TableColumnConfig], null: false, default_value: []
+    field :filters, [Types::TableFilterConfig], null: false, default_value: []
   end
 end
