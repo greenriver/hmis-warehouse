@@ -63,7 +63,6 @@ module Hmis::Ce
         return # in non-dev env: return, we are unable to perform the action
       end
 
-
       referral.update!(target_enrollment: nil)
       enrollment.destroy!
     end
