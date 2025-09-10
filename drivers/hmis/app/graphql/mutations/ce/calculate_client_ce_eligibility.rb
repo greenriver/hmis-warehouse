@@ -11,12 +11,12 @@ module Mutations
     description 'Calculate client eligibility based on provided assessment values and return applicable project types'
 
     argument :enrollment_id, ID, required: true
-    argument :form_definition_identifier, String, required: true
+    argument :form_definition_id, ID, required: true
     argument :values_by_link_id, Types::JsonObject, required: true
 
     field :project_types, [Types::HmisSchema::Enums::ProjectType], null: true
 
-    def resolve(enrollment_id:, form_definition_identifier:, values_by_link_id:)
+    def resolve(enrollment_id:, form_definition_id:, values_by_link_id:)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
       access_denied! unless current_user.can_edit_enrollments_for?(enrollment)
 
@@ -29,7 +29,7 @@ module Mutations
       end
 
       # Convert form values to field value overrides for CE evaluation
-      overrides = build_overrides(values_by_link_id, form_definition_identifier)
+      overrides = build_overrides(values_by_link_id, form_definition_id)
 
       # Get evaluate client eligibility against all candidate pools
       eligible_project_types = calculate_eligible_project_types(client, overrides)
@@ -39,10 +39,9 @@ module Mutations
 
     private
 
-    def build_overrides(values_by_link_id, form_definition_identifier)
+    def build_overrides(values_by_link_id, form_definition_id)
       # Get the form definition to map from link_id to custom_field_key
-      form_definition = Hmis::Form::Definition.published.find_by(identifier: form_definition_identifier)
-      return {} unless form_definition
+      form_definition = Hmis::Form::Definition.find(form_definition_id)
 
       # Build overrides hash
       values_by_link_id.filter_map do |link_id, value|

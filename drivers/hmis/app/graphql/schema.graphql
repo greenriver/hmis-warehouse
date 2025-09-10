@@ -6937,7 +6937,7 @@ type Mutation {
   """
   Calculate client eligibility based on provided assessment values and return applicable project types
   """
-  calculateClientCeEligibility(enrollmentId: ID!, formDefinitionIdentifier: String!, valuesByLinkId: JsonObject!): CalculateClientCeEligibilityPayload
+  calculateClientCeEligibility(enrollmentId: ID!, formDefinitionId: ID!, valuesByLinkId: JsonObject!): CalculateClientCeEligibilityPayload
 
   """
   Perform MCI clearance and return matches
