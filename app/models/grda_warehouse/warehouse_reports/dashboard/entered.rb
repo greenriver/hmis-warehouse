@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Entered < GrdaWarehouse::WarehouseReports::Dashboard::Base
     include ArelHelper
@@ -77,7 +79,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         end
       end
 
-      data = {
+      data = { # rubocop:disable Lint/UselessAssignment
         client_enrollment_totals_by_type: @client_enrollment_totals_by_type,
         client_entry_totals_by_type: @client_entry_totals_by_type,
         first_time_total_deduplicated: @first_time_client_ids.count,
@@ -119,7 +121,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       entry_dates.first(2).reduce(:-).abs
     end
 
-    def setup_data_structure start_date:
+    def setup_data_structure start_date: # rubocop:disable Lint/UnusedMethodArgument
       {
         first_time: {
           label: 'First time clients in the project type',

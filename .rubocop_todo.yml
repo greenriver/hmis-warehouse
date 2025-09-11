@@ -1180,7 +1180,6 @@ Lint/UnusedMethodArgument:
   Exclude:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
     - 'app/models/grda_warehouse/grades/base.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -1206,7 +1205,6 @@ Lint/UselessAssignment:
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health/participation_saver.rb'
@@ -2463,7 +2461,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/grda_warehouse/warehouse_reports/enrolled_disabled_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/exports/ad_hoc.rb'
