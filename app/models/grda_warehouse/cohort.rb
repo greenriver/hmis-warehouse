@@ -94,16 +94,14 @@ module GrdaWarehouse
         return none if ids.empty?
 
         where(id: ids)
-      else
-        if user.can_access_some_cohorts # rubocop:disable Style/IfInsideElse
-          if current_scope.present?
-            current_scope.merge(user.cohorts)
-          else
-            user.cohorts
-          end
+      elsif user.can_access_some_cohorts
+        if current_scope.present?
+          current_scope.merge(user.cohorts)
         else
-          none
+          user.cohorts
         end
+      else
+        none
       end
       # END_ACL
     end

@@ -39,6 +39,8 @@ module Types
           find_by(owner: owner)
         return config if config
       end
+
+      nil # return nil if no applicable config was found
     end
   end
 end

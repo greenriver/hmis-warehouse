@@ -86,6 +86,12 @@ end
 
 # rubocop:disable Style/IfUnlessModifier
 Rack::Attack.tap do |config|
+  # Block unauthenticated Active Storage endpoints entirely. These default routes are disabled,
+  # but we also defensively block requests to them in case an env overrides draw_routes.
+  config.blocklist('block active storage routes') do |request|
+    request.path.start_with?('/rails/active_storage')
+  end
+
   # Throttling configuration
   # * Multiple throttles can match the same request
   # * Names must be unique or they will be silently overwritten
