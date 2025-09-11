@@ -38,17 +38,17 @@ module PerformanceDashboard::Overview::Detail
   def detail_column_display(header:, column:)
     case header
     when 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
-      HudUtility2024.no_yes_reasons_for_missing_data(column)
-    when HudUtility2026.race('AmIndAKNative'), HudUtility2026.race('Asian'), HudUtility2026.race('BlackAfAmerican'), HudUtility2026.race('NativeHIPacific'), HudUtility2026.race('White'), HudUtility2026.race('RaceNone'), HudUtility2026.race('HispanicLatinaeo'), HudUtility2026.race('MidEastNAfrican'), HudUtility2026.ethnicity(:unknown), HudUtility2026.ethnicity(:hispanic_latinaeo), HudUtility2026.ethnicity(:non_hispanic_latinaeo), HudUtility2024.ethnicity(:hispanic_latinaeo), HudUtility2024.ethnicity(:non_hispanic_latinaeo)
-      HudUtility2026.no_yes_reasons_for_missing_data(column)
+      HudUtilityCurrent.no_yes_reasons_for_missing_data(column)
+    when HudUtilityCurrent.race('AmIndAKNative'), HudUtilityCurrent.race('Asian'), HudUtilityCurrent.race('BlackAfAmerican'), HudUtilityCurrent.race('NativeHIPacific'), HudUtilityCurrent.race('White'), HudUtilityCurrent.race('RaceNone'), HudUtilityCurrent.race('HispanicLatinaeo'), HudUtilityCurrent.race('MidEastNAfrican'), HudUtilityCurrent.ethnicity(:unknown), HudUtilityCurrent.ethnicity(:hispanic_latinaeo), HudUtilityCurrent.ethnicity(:non_hispanic_latinaeo), HudUtilityCurrent.ethnicity(:hispanic_latinaeo), HudUtilityCurrent.ethnicity(:non_hispanic_latinaeo)
+      HudUtilityCurrent.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
-      HudUtility2026.veteran_status(column)
+      HudUtilityCurrent.veteran_status(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HudUtility2026.project_type(column)
+      HudUtilityCurrent.project_type(column)
     when 'CoC'
-      HudUtility2026.coc_name(column)
+      HudUtilityCurrent.coc_name(column)
     else
       column
     end
@@ -122,7 +122,7 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     if options[:race] || options[:ethnicity] || options[:race_and_ethnicity]
-      HudUtility2026.races.each do |k, title|
+      HudUtilityCurrent.races.each do |k, title|
         columns[title] = c_t[k.to_sym]
       end
     end

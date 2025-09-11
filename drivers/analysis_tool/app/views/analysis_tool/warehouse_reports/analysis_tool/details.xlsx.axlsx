@@ -1,7 +1,7 @@
 wb = xlsx_package.workbook
 
 wb.add_worksheet(name: @report.support_title(params)[0..30]) do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   row = [
     'Warehouse Client ID',
     'First Name',
@@ -20,7 +20,7 @@ wb.add_worksheet(name: @report.support_title(params)[0..30]) do |sheet|
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
       client.gender,
-      HudUtility2024.no_yes_missing(client.VeteranStatus),
+      HudUtilityCurrent.no_yes_missing(client.VeteranStatus),
       client.race_description,
     ]
     sheet.add_row(row)

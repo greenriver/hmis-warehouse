@@ -264,7 +264,7 @@ module Cohorts
         where(she_t[:client_id].eq(wcp_t[:client_id])).
         # homeless or overrides_homeless_active_status
         where(
-          p_t[:ProjectType].in(HudUtility2026.homeless_project_types).
+          p_t[:ProjectType].in(HudUtilityCurrent.homeless_project_types).
           or(p_t[:active_homeless_status_override].eq(true)),
         ).
         open_between(start_date: @actives[:start], end_date: @actives[:end])

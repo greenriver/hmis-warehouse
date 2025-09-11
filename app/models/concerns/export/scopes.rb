@@ -50,7 +50,7 @@ module Export::Scopes
         if @coc_codes.present?
           e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
             or(e_scope.where(EnrollmentCoC: nil)).
-            or(e_scope.where.not(EnrollmentCoC: HudUtility2026.cocs.keys))
+            or(e_scope.where.not(EnrollmentCoC: HudUtilityCurrent.cocs.keys))
         end
         e_scope.distinct.preload(:project, :client)
       end
@@ -90,7 +90,7 @@ module Export::Scopes
       if @coc_codes.present?
         e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
           or(e_scope.where(EnrollmentCoC: nil)).
-          or(e_scope.where.not(EnrollmentCoC: HudUtility2026.cocs.keys))
+          or(e_scope.where.not(EnrollmentCoC: HudUtilityCurrent.cocs.keys))
       end
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).

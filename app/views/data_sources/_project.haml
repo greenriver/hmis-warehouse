@@ -5,8 +5,8 @@
     %td
       .d-flex
         .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
-          .service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudUtility2024.project_type_with_sub_type(project.project_type, project.rrh_sub_type) }}
-            = HudUtility2024.brief_project_type_with_sub_type(project.project_type, project.rrh_sub_type)
+          .service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudUtilityCurrent.project_type_with_sub_type(project.project_type, project.rrh_sub_type) }}
+            = HudUtilityCurrent.brief_project_type_with_sub_type(project.project_type, project.rrh_sub_type)
     %td.text-center
       %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => project.confidential_hint}}
         = checkmark project.confidential

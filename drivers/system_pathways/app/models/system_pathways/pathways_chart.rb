@@ -69,7 +69,7 @@ module SystemPathways
       return 'Served by Homeless System' if key.nil?
 
       # Normalize ES - NBN and ES - Entry/Exit into  ES
-      HudUtility2024.project_type_brief(key)
+      HudUtilityCurrent.project_type_brief(key)
     end
 
     def chart_data

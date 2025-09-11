@@ -9,9 +9,9 @@
 module Filters::DemographicFilters
   def self.race_ethnicity_combination_filters
     {}.tap do |h|
-      HudUtility2026.race_ethnicity_combinations.keys.each do |combination|
+      HudUtilityCurrent.race_ethnicity_combinations.keys.each do |combination|
         h[combination] = {
-          name: HudUtility2026.race_ethnicity_combinations[combination],
+          name: HudUtilityCurrent.race_ethnicity_combinations[combination],
           extra_filters: {
             race_ethnicity_combinations: [combination],
           },

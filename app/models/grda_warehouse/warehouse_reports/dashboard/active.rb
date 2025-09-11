@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Active < GrdaWarehouse::WarehouseReports::Dashboard::Base
-
     attr_accessor :range
 
     def self.params
@@ -23,22 +22,21 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def set_date_range
       start_date = parameters.with_indifferent_access[:start]
       end_date = parameters.with_indifferent_access[:end]
-      @range = ::Filters::DateRange.new({start: start_date, end: end_date})
+      @range = ::Filters::DateRange.new({ start: start_date, end: end_date })
       @month_name = @range.start.to_time.strftime('%B')
     end
 
-
-    scope :for_month, -> (date: Date.current) do
+    scope :for_month, ->(date: Date.current) do
       start_of_month = date&.to_date&.beginning_of_month
       where("parameters->> 'start' = ? or parameters ->> 'start_date' = ?", start_of_month, start_of_month)
     end
 
     def init
-      set_date_range()
+      set_date_range
 
       @clients = []
       @enrollments = {}
-      @labels = HudUtility2024.homeless_type_titles.sort.to_h
+      @labels = HudUtilityCurrent.homeless_type_titles.sort.to_h
       @data = {
         clients: {
           label: 'Client count',
@@ -55,10 +53,10 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def run!
       # Active Clients
-      init() # setup some useful buckets
+      init # setup some useful buckets
 
       @labels.each do |key, _|
-        project_type = HudUtility2024.residential_project_type_numbers_by_code[key]
+        project_type = HudUtilityCurrent.residential_project_type_numbers_by_code[key]
 
         enrollment_counts_by_client = enrollment_counts(project_type)
         enrollment_count = enrollment_counts_by_client.values.sum

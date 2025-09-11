@@ -21,7 +21,7 @@ module ClientDetailReports
 
     private def filter_params
       # default to homeless project types, but don't set it if we have any sort of filter set
-      return { project_type_codes: HudUtility2026.homeless_project_type_codes } unless params[:filter].present?
+      return { project_type_codes: HudUtilityCurrent.homeless_project_type_codes } unless params[:filter].present?
 
       params.require(:filter).permit(
         :start,

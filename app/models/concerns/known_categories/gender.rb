@@ -9,8 +9,8 @@ module KnownCategories::Gender
 
   def gender_calculations
     @gender_calculations ||= {}.tap do |calcs|
-      HudUtility2024.genders.each do |key, title|
-        field = HudUtility2024.gender_id_to_field_name[key]
+      HudUtilityCurrent.genders.each do |key, title|
+        field = HudUtilityCurrent.gender_id_to_field_name[key]
         next if field == :GenderNone
 
         calcs[title] = ->(value) { value == key }

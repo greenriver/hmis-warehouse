@@ -91,17 +91,17 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{HudUtility2024.housing_type p.housing_type.presence}
+              #{HudUtilityCurrent.housing_type p.housing_type.presence}
       .col-sm-6
         %h4 Project Types
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{HudUtility2024.project_type p.project_type.presence}
+              #{HudUtilityCurrent.project_type p.project_type.presence}
     - else
       .col-sm-12
         %h4 Project Types
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{HudUtility2024.project_type p.project_type.presence}
+              #{HudUtilityCurrent.project_type p.project_type.presence}

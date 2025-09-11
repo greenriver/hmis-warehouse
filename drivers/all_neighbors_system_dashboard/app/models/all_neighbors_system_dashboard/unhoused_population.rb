@@ -60,7 +60,7 @@ module AllNeighborsSystemDashboard
             homelessness_status: status,
             config: {
               keys: keys,
-              names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+              names: keys.map.with_index { |key, i| [key, options[:types][i]] }.to_h,
               colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
               label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
             },
@@ -229,14 +229,14 @@ module AllNeighborsSystemDashboard
         select(:destination_client_id)
       scope = filter_for_count_level(scope, 'Individuals')
       # this entire set is limited to unhoused clients
-      scope = scope.where(project_type: HudUtility2024.homeless_project_type_numbers)
+      scope = scope.where(project_type: HudUtilityCurrent.homeless_project_type_numbers)
       scope = case label
       when 'Safe Haven', 'Transitional Housing'
-        scope.where(project_type: HudUtility2024.project_type(label, true))
+        scope.where(project_type: HudUtilityCurrent.project_type(label, true))
       when 'Emergency Shelter'
-        scope.where(project_type: [HudUtility2024.project_type('Emergency Shelter - Entry Exit', true), HudUtility2024.project_type('Emergency Shelter - Night-by-Night', true)])
+        scope.where(project_type: [HudUtilityCurrent.project_type('Emergency Shelter - Entry Exit', true), HudUtilityCurrent.project_type('Emergency Shelter - Night-by-Night', true)])
       when 'Unsheltered'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+        scope.where(project_type: HudUtilityCurrent.project_type('Street Outreach', true))
       end
 
       scope = filter_for_date(scope, date)
@@ -247,7 +247,7 @@ module AllNeighborsSystemDashboard
 
     def race_status_values(date, bar, label, status)
       if bar.include?('Census')
-        race_code = HudUtility2024.race(label, true)
+        race_code = HudUtilityCurrent.race(label, true)
         return get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
       end
 
@@ -257,13 +257,13 @@ module AllNeighborsSystemDashboard
       scope = filter_for_count_level(scope, 'Individuals')
       scope = filter_for_date(scope, date)
       # this entire set is limited to unhoused clients
-      scope = scope.where(project_type: HudUtility2024.homeless_project_type_numbers)
+      scope = scope.where(project_type: HudUtilityCurrent.homeless_project_type_numbers)
 
       scope = case status
       when 'Unsheltered'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+        scope.where(project_type: HudUtilityCurrent.project_type('Street Outreach', true))
       when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
+        scope.where.not(project_type: HudUtilityCurrent.project_type('Street Outreach', true))
       else
         scope
       end

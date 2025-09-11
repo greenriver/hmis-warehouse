@@ -44,7 +44,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(1)
 
-        enrollment_1.update(last_date_in_program: '2020-01-31'.to_date, destination: HudUtility2024.temporary_destinations.first)
+        enrollment_1.update(last_date_in_program: '2020-01-31'.to_date, destination: HudUtilityCurrent.temporary_destinations.first)
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
       end
@@ -94,7 +94,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
     end
 
     describe 'with CLS' do
-      let!(:homeless_cls) { create :hud_current_living_situation, InformationDate: date, CurrentLivingSituation: HudUtility2024.homeless_situations(as: :current).first, EnrollmentID: ce_source_enrollment.EnrollmentID, PersonalID: ce_source_enrollment.PersonalID, data_source_id: ds.id }
+      let!(:homeless_cls) { create :hud_current_living_situation, InformationDate: date, CurrentLivingSituation: HudUtilityCurrent.homeless_situations(as: :current).first, EnrollmentID: ce_source_enrollment.EnrollmentID, PersonalID: ce_source_enrollment.PersonalID, data_source_id: ds.id }
       it 'finds the client' do
         travel_to('2020-01-01'.to_date) do
           currently_homeless_cohort.sync
@@ -103,7 +103,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       end
 
       describe 'with additional CLS' do
-        let!(:homeless_cls) { create :hud_current_living_situation, InformationDate: date + 1.days, CurrentLivingSituation: HudUtility2024.other_situations(as: :current).first, EnrollmentID: ce_source_enrollment.EnrollmentID, PersonalID: ce_source_enrollment.PersonalID, data_source_id: ds.id }
+        let!(:homeless_cls) { create :hud_current_living_situation, InformationDate: date + 1.days, CurrentLivingSituation: HudUtilityCurrent.other_situations(as: :current).first, EnrollmentID: ce_source_enrollment.EnrollmentID, PersonalID: ce_source_enrollment.PersonalID, data_source_id: ds.id }
         it 'no longer finds the client' do
           travel_to('2020-01-01'.to_date) do
             currently_homeless_cohort.sync

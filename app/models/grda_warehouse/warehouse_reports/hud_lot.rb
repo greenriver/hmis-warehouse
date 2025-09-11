@@ -114,7 +114,7 @@ module GrdaWarehouse::WarehouseReports
           end
         end
 
-        lit_dates.merge(extra_days).sort_by { |k,_| k }.to_h
+        lit_dates.merge(extra_days).sort_by { |k, _| k }.to_h
       end
     end
 
@@ -164,11 +164,11 @@ module GrdaWarehouse::WarehouseReports
         # From there, find the maximum 'street/shelter' and TH/PH
         # If the TH/PH date is > street shelter, do nothing
         # If the street shelter is present, set a self reported break
-        max_unknown_date = un_processed_dates.select{|d, type| d < date_prior_to_entry && type.blank?}.keys.max
+        max_unknown_date = un_processed_dates.select { |d, type| d < date_prior_to_entry && type.blank? }.keys.max
         next unless max_unknown_date.present?
 
-        max_th_ph_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.in?([th_stay, ph_stay])}.keys.max
-        max_es_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.include?(any_shelter_stay)}.keys.max
+        max_th_ph_date = un_processed_dates.select { |d, type| d < max_unknown_date && type&.in?([th_stay, ph_stay]) }.keys.max
+        max_es_date = un_processed_dates.select { |d, type| d < max_unknown_date && type&.include?(any_shelter_stay) }.keys.max
         # Must fall between two street/shelter
         next unless max_es_date.present?
         # If we have a PH/TH date, we the street date must be newer
@@ -191,7 +191,7 @@ module GrdaWarehouse::WarehouseReports
 
         if en.ph?
           # Homeless Situation
-          if HudUtility2024.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
+          if HudUtilityCurrent.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
 
             # Add any dates between DateToStreetESSH and the MoveInDate
             count_until = [enrollment.MoveInDate, en.last_date_in_program, filter.end].compact.min
@@ -199,7 +199,7 @@ module GrdaWarehouse::WarehouseReports
               self_report_dates[d] = self_reported_shelter
             end
             # Institutional Situations
-          elsif HudUtility2024.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+          elsif HudUtilityCurrent.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
             next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
             # Add any dates between DateToStreetESSH and the MoveInDate
@@ -213,14 +213,14 @@ module GrdaWarehouse::WarehouseReports
           next unless en.project_type.in?([0, 1, 2, 4, 8, 11, 12, 14])
 
           # Homeless enrollment, or institutional stay
-          if en.es? || en.es_nbn? || en.sh? || en.so? || HudUtility2024.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+          if en.es? || en.es_nbn? || en.sh? || en.so? || HudUtilityCurrent.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
             (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d| # rubocop:disable Style/IdenticalConditionalBranches
               self_report_dates[d] = self_reported_shelter
             end
           else
             next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
-            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|#  rubocop:disable Style/IdenticalConditionalBranches
+            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d| #  rubocop:disable Style/IdenticalConditionalBranches
               self_report_dates[d] = self_reported_shelter
             end
           end
@@ -233,7 +233,7 @@ module GrdaWarehouse::WarehouseReports
       self_report_dates
     end
 
-    private def set_unknowns(un_processed_dates) # rubocop:disable Do not prefix writer method names with `set_`. (convention:Naming/AccessorMethodName
+    private def set_unknowns(un_processed_dates) # not prefix writer method names with `set_`. (convention:Naming/AccessorMethodName
       unknown_dates = {}
       un_processed_dates.each do |d, type|
         unknown_dates[d] = unknown if type.blank?
@@ -252,12 +252,12 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def institutional_stay_longer_than_90_days?(entry)
-      entry.enrollment.LivingSituation.in?(HudUtility2024.institutional_situations(as: :prior)) &&
+      entry.enrollment.LivingSituation.in?(HudUtilityCurrent.institutional_situations(as: :prior)) &&
         entry.enrollment.LengthOfStay.in?([4, 5])
     end
 
     private def transitional_or_permanent_longer_than_7_days?(entry)
-      entry.enrollment.LivingSituation.in?(HudUtility2024.temporary_and_permanent_housing_situations(as: :prior)) &&
+      entry.enrollment.LivingSituation.in?(HudUtilityCurrent.temporary_and_permanent_housing_situations(as: :prior)) &&
         entry.enrollment.LengthOfStay.in?([2, 3, 4, 5])
     end
 

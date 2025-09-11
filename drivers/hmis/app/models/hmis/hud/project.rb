@@ -178,7 +178,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     name: 'Name',
   }.freeze
 
-  HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
+  HudUtilityCurrent.residential_project_type_numbers_by_code.each do |k, v|
     scope k, -> { where(project_type: v) }
     define_method "#{k}?" do
       v.include? project_type
@@ -230,7 +230,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def allows_same_day_exit?
     if services_only_rrh?
       true # RRH-Services-Only projects allow same-day exit
-    elsif HudUtility2024.residential_project_type_ids.include?(project_type)
+    elsif HudUtilityCurrent.residential_project_type_ids.include?(project_type)
       false # Residential projects do not allow same-day exit
     else
       true # Non-residential projects allow same-day exit
@@ -256,7 +256,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     {
       code: id,
       label: project_name,
-      secondary_label: HudUtility2024.project_type_brief(project_type),
+      secondary_label: HudUtilityCurrent.project_type_brief(project_type),
       group_label: organization.organization_name,
       group_code: organization.id,
     }

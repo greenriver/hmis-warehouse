@@ -12,7 +12,7 @@ module PerformanceDashboard::ProjectType::Destination
   # Fetch last destination for each client
   def destinations
     @destinations ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      buckets = HudUtility2026.valid_destinations.keys.map { |b| [b, []] }.to_h
+      buckets = HudUtilityCurrent.valid_destinations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       exits_current_period.
         order(last_date_in_program: :desc).
@@ -31,7 +31,7 @@ module PerformanceDashboard::ProjectType::Destination
       top_destinations = all_destinations.last(5).to_h
       summary = {}
       all_destinations.each do |id, dests|
-        type = ::HudUtility2026.destination_type(id)
+        type = ::HudUtilityCurrent.destination_type(id)
         summary[type] ||= 0
         summary[type] += dests.count
       end
@@ -62,7 +62,7 @@ module PerformanceDashboard::ProjectType::Destination
         if k == :other
           'All others'
         else
-          HudUtility2026.destination(k)
+          HudUtilityCurrent.destination(k)
         end
       end
       {
@@ -83,7 +83,7 @@ module PerformanceDashboard::ProjectType::Destination
   end
 
   def destination_bucket_titles
-    HudUtility2026.valid_destinations
+    HudUtilityCurrent.valid_destinations
   end
 
   private def destination_details(options)

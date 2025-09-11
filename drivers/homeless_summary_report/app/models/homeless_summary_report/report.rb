@@ -99,7 +99,7 @@ module HomelessSummaryReport
     end
 
     def self.default_project_type_codes
-      HudUtility2024.spm_project_type_codes
+      HudUtilityCurrent.spm_project_type_codes
     end
 
     def url
@@ -229,7 +229,7 @@ module HomelessSummaryReport
                   # calculate the count of people in each destination of the type
                   ids.each do |d_id|
                     count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
-                    details << "#{HudUtility2024.destination(d_id)}: #{count}" if count&.positive?
+                    details << "#{HudUtilityCurrent.destination(d_id)}: #{count}" if count&.positive?
                   end
                 end
 
@@ -507,7 +507,7 @@ module HomelessSummaryReport
       valid_exit = spm_member.exit_date.blank? || spm_member.exit_date > @filter.end
 
       # this must be for a PH project, exluding RRH
-      valid_project_types = HudUtility2024.permanent_housing_project_types - [HudUtility2024.project_type_number('PH - RRH')]
+      valid_project_types = HudUtilityCurrent.permanent_housing_project_types - [HudUtilityCurrent.project_type_number('PH - RRH')]
       valid_project = valid_project_types.include?(spm_member.enrollment&.project&.project_type)
 
       valid_project && valid_move_in && valid_exit
@@ -612,7 +612,7 @@ module HomelessSummaryReport
         },
         'Measure 7' => {
           fields: m7_fields,
-          headers: destination_buckets.keys + ::HudUtility2024.valid_destinations.map { |id, d| "#{d} (#{id})" },
+          headers: destination_buckets.keys + ::HudUtilityCurrent.valid_destinations.map { |id, d| "#{d} (#{id})" },
           description: 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
         },
       }
@@ -625,17 +625,17 @@ module HomelessSummaryReport
     private def destination_buckets
       {
         'Client Count' => [],
-        'Homeless Destinations' => ::HudUtility2024.homeless_destinations,
-        'Permanent Destinations' => HudUtility2024.permanent_destinations,
-        'Temporary Destinations' => HudUtility2024.temporary_destinations,
-        'Institutional Destinations' => HudUtility2024.institutional_destinations,
-        'Unknown, doesn\'t know, refused, or not collected' => HudUtility2024.other_destinations,
+        'Homeless Destinations' => ::HudUtilityCurrent.homeless_destinations,
+        'Permanent Destinations' => HudUtilityCurrent.permanent_destinations,
+        'Temporary Destinations' => HudUtilityCurrent.temporary_destinations,
+        'Institutional Destinations' => HudUtilityCurrent.institutional_destinations,
+        'Unknown, doesn\'t know, refused, or not collected' => HudUtilityCurrent.other_destinations,
         'Remained housed' => [0], # include those who remained housed for 7b2
       }.freeze
     end
 
     def destinations
-      @destinations ||= destination_buckets.values.select(&:present?) + HudUtility2024.valid_destinations.keys
+      @destinations ||= destination_buckets.values.select(&:present?) + HudUtilityCurrent.valid_destinations.keys
     end
 
     def field_measure(field)

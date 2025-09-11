@@ -49,7 +49,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     scope :housed, -> do
       where(
-        destination_id: ::HudUtility2026.permanent_destinations,
+        destination_id: ::HudUtilityCurrent.permanent_destinations,
         exit_date: Reporting::MonthlyReports::Base.lookback_start..Date.current,
       )
     end
@@ -155,10 +155,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
       gender_scope = nil
       genders.each do |value|
-        column = HudUtility2024.gender_id_to_field_name[value]
+        column = HudUtilityCurrent.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = GrdaWarehouse::Hud::Client.destination.where(column.to_sym => HudUtility2024.gender_comparison_value(value))
+        gender_query = GrdaWarehouse::Hud::Client.destination.where(column.to_sym => HudUtilityCurrent.gender_comparison_value(value))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
 
@@ -171,10 +171,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       scope = scope.joins(:client)
       gender_scope = nil
       @filter.genders.each do |value|
-        column = HudUtility2024.gender_id_to_field_name[value]
+        column = HudUtilityCurrent.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtilityCurrent.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)
@@ -328,11 +328,11 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def homeless_project_type_ids
-      HudUtility2026.homeless_project_type_numbers
+      HudUtilityCurrent.homeless_project_type_numbers
     end
 
     def homeless_project_types
-      homeless_project_type_ids.map { |m| HudUtility2026.project_type(m) }
+      homeless_project_type_ids.map { |m| HudUtilityCurrent.project_type(m) }
     end
 
     def census_by_project_type
@@ -343,7 +343,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
           select(:client_id).distinct.count
         homeless_project_type_ids.each do |project_type_id|
           months.each do |year, month|
-            data[project_type_id] ||= [HudUtility2026.project_type(project_type_id)]
+            data[project_type_id] ||= [HudUtilityCurrent.project_type(project_type_id)]
             data[project_type_id] << counts[[year, month, project_type_id]]
           end
         end
@@ -420,7 +420,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
           select(:client_id).distinct.count
         homeless_project_type_ids.each do |project_type_id|
           months.each do |year, month|
-            data[project_type_id] ||= [HudUtility2026.project_type(project_type_id)]
+            data[project_type_id] ||= [HudUtilityCurrent.project_type(project_type_id)]
             data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
           end
         end
@@ -438,7 +438,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
           select(:client_id).distinct.count
         homeless_project_type_ids.each do |project_type_id|
           months.each do |year, month|
-            data[project_type_id] ||= [HudUtility2026.project_type(project_type_id)]
+            data[project_type_id] ||= [HudUtilityCurrent.project_type(project_type_id)]
             data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
           end
         end

@@ -29,7 +29,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       @non_overlapping = true
     elsif project_type.present?
       @project_type = project_type.to_i
-      raise Error, 'Invalid project type' unless ::HudUtility2024.project_types.key?(@project_type)
+      raise Error, 'Invalid project type' unless ::HudUtilityCurrent.project_types.key?(@project_type)
     end
 
     # FIXME: there is some sort of schema cache issue in development
@@ -72,7 +72,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def shared_clients
     GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
-    ).select(*['id', 'DOB'] + HudUtility2024.gender_fields + GrdaWarehouse::Hud::Client.race_fields)
+    ).select(*['id', 'DOB'] + HudUtilityCurrent.gender_fields + GrdaWarehouse::Hud::Client.race_fields)
   end
   memoize :shared_clients
 
@@ -248,7 +248,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       {
         coc: project_services.first.enrollment.enrollment_coc,
         project_name: project.name(user),
-        project_type: ::HudUtility2024.project_type_brief(project.ProjectType),
+        project_type: ::HudUtilityCurrent.project_type_brief(project.ProjectType),
         history: history_details(project_services),
       }
     end.sort_by do |service|
@@ -275,13 +275,13 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   #   [Project Type, [async_count, concurrent_count]]
   # ]
   def chart_by_project_type
-    HudUtility2024.performance_reporting.values.flatten.uniq.map do |p_type|
+    HudUtilityCurrent.performance_reporting.values.flatten.uniq.map do |p_type|
       async = async_by_type[p_type]&.count || 0
       concurrent = concurrent_by_type[p_type]&.count || 0
       next unless (async + concurrent).positive?
 
       [
-        HudUtility2024.project_type(p_type),
+        HudUtilityCurrent.project_type(p_type),
         [
           async,
           concurrent,

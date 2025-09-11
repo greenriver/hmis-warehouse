@@ -24,7 +24,7 @@ RSpec.describe ActiveClientReport, type: :model do
     Filters::FilterBase.new(
       start: start_date,
       end: end_date,
-      project_type_codes: HudUtility2024.homeless_project_type_codes,
+      project_type_codes: HudUtilityCurrent.homeless_project_type_codes,
       sub_population: :clients,
       enforce_one_year_range: false,
       require_service_during_range: true,

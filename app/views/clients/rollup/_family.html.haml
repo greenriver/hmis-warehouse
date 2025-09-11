@@ -16,4 +16,4 @@
           %td= pii.ssn
           %td= client.age
           %td= client.gender
-          %td= client.race_fields.map{ |f| HudUtility2024.race(f) }.join ', '
+          %td= client.race_fields.map{ |f| HudUtilityCurrent.race(f) }.join ', '

@@ -10,7 +10,7 @@ module ClientMatchHelper
   def data_quality_warning(type, value)
     return '' if value.blank? || [1, 99].include?(value.to_i)
 
-    label = HudUtility2026.send("#{type.downcase}_data_quality", value)
+    label = HudUtilityCurrent.send("#{type.downcase}_data_quality", value)
     content_tag :abbr, title: label do
       '!!'
     end

@@ -24,7 +24,7 @@ module CasClientData
         range = GrdaWarehouse::Config.cas_sync_range
 
         # Homeless and Coordinated Entry Projects
-        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2026.homeless_project_types + [14]).pluck(:id)
+        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtilityCurrent.homeless_project_types + [14]).pluck(:id)
         # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
         override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
 
@@ -53,7 +53,7 @@ module CasClientData
         scope
       when :ce_with_assessment
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          in_project_type(HudUtility2026.performance_reporting[:ce]).
+          in_project_type(HudUtilityCurrent.performance_reporting[:ce]).
           ongoing.
           joins(enrollment: :assessments)
         where(id: enrollment_scope.select(:client_id))
@@ -485,7 +485,7 @@ module CasClientData
         range = GrdaWarehouse::Config.cas_sync_range
 
         # Homeless and Coordinated Entry Projects
-        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2026.homeless_project_types + [14]).pluck(:id)
+        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtilityCurrent.homeless_project_types + [14]).pluck(:id)
         # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
         override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
         enrollment_scope = service_history_enrollments.in_project(homeless_ce_project_ids + override_project_ids)
@@ -520,7 +520,7 @@ module CasClientData
         project_group_scope.exists? && any_release_on_file?
       when :ce_with_assessment
         enrollment_scope = service_history_enrollments.
-          in_project_type(HudUtility2026.performance_reporting[:ce]).
+          in_project_type(HudUtilityCurrent.performance_reporting[:ce]).
           ongoing.
           joins(enrollment: :assessments)
         enrollment_scope.exists?
@@ -771,7 +771,7 @@ module CasClientData
         en.project_type.in?(project_type_codes) &&
 
           en.move_in_date.blank? && # no move-in date
-          en.rrh_sub_type != HudUtility2026.rrh_sub_type_sso_only # not services only
+          en.rrh_sub_type != HudUtilityCurrent.rrh_sub_type_sso_only # not services only
       end.any?
     end
 
@@ -800,7 +800,7 @@ module CasClientData
     def enrolled_in_th(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = HudUtility2026.residential_project_type_numbers_by_code[:th]
+      project_type_codes = HudUtilityCurrent.residential_project_type_numbers_by_code[:th]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
@@ -809,7 +809,7 @@ module CasClientData
     def enrolled_in_sh(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = HudUtility2026.residential_project_type_numbers_by_code[:sh]
+      project_type_codes = HudUtilityCurrent.residential_project_type_numbers_by_code[:sh]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
@@ -818,7 +818,7 @@ module CasClientData
     def enrolled_in_so(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = HudUtility2026.residential_project_type_numbers_by_code[:so]
+      project_type_codes = HudUtilityCurrent.residential_project_type_numbers_by_code[:so]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
@@ -827,7 +827,7 @@ module CasClientData
     def enrolled_in_es(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = HudUtility2026.residential_project_type_numbers_by_code[:es]
+      project_type_codes = HudUtilityCurrent.residential_project_type_numbers_by_code[:es]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?

@@ -49,7 +49,7 @@ module PerformanceDashboard::Overview::Enrolled::Race
       categories = enrolled_by_race.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtility2026.race(s)] }.to_h,
+          labels: categories.map { |s| [s, HudUtilityCurrent.race(s)] }.to_h,
           chosen: @races,
           columns: columns,
           categories: categories.map { |s| race_title(s) },

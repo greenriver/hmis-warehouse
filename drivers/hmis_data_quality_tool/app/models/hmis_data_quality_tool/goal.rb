@@ -61,7 +61,7 @@ module HmisDataQualityTool
     end
 
     def available_cocs
-      ::HudUtility2024.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).map do |code, name|
+      ::HudUtilityCurrent.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).map do |code, name|
         [
           "#{name} (#{code})",
           code,
@@ -70,7 +70,7 @@ module HmisDataQualityTool
     end
 
     def coc_name
-      name = ::HudUtility2024.coc_name(coc_code)
+      name = ::HudUtilityCurrent.coc_name(coc_code)
       return "#{name} (#{coc_code})" unless name == coc_code
 
       coc_code

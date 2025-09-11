@@ -16,7 +16,7 @@
         - ce_participations.each do |ce_participation|
           %tr
             %td= ce_participation.CEParticipationID
-            %td= HudUtility2024.no_yes(ce_participation.AccessPoint)
+            %td= HudUtilityCurrent.no_yes(ce_participation.AccessPoint)
             %td= ce_participation.CEParticipationStatusStartDate
             %td= ce_participation.CEParticipationStatusEndDate
             %td

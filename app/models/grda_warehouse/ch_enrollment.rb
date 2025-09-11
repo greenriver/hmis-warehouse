@@ -210,43 +210,43 @@ module GrdaWarehouse
     # Line 3 (2.02.6)
     def self.project_type(enrollment)
       ptype = enrollment.project.project_type
-      result = HudUtility2024.chronic_project_types.include?(ptype) ? :continue : :skip
-      { result: result, display_value: "#{ptype} (#{::HudUtility2024.project_type_brief(ptype)})", line: 3 }
+      result = HudUtilityCurrent.chronic_project_types.include?(ptype) ? :continue : :skip
+      { result: result, display_value: "#{ptype} (#{::HudUtilityCurrent.project_type_brief(ptype)})", line: 3 }
     end
 
     # Line 9  (3.917.1)
     def self.prior_living_situation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = if HudUtility2024.homeless_situations(as: :prior).include?(value)
+      result = if HudUtilityCurrent.homeless_situations(as: :prior).include?(value)
         :continue
       elsif value.present?
         :skip
       else
         :missing
       end
-      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
+      display_value = value ? "#{value} (#{::HudUtilityCurrent.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 9 }
     end
 
     # Line 14 (3.917.1)
     def self.prior_living_situation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = if HudUtility2024.institutional_situations(as: :prior).include?(value)
+      result = if HudUtilityCurrent.institutional_situations(as: :prior).include?(value)
         :continue
       elsif value.present?
         :skip
       else
         :missing
       end
-      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
+      display_value = value ? "#{value} (#{::HudUtilityCurrent.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 14 }
     end
 
     # Line 21 (3.917.1)
     def self.prior_living_situation_other(enrollment)
       value = enrollment.LivingSituation
-      is_other = (HudUtility2024.temporary_situations(as: :prior) + HudUtility2024.permanent_situations(as: :prior) + HudUtility2024.other_situations(as: :prior)).include?(value)
-      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
+      is_other = (HudUtilityCurrent.temporary_situations(as: :prior) + HudUtilityCurrent.permanent_situations(as: :prior) + HudUtilityCurrent.other_situations(as: :prior)).include?(value)
+      display_value = value ? "#{value} (#{::HudUtilityCurrent.living_situation(value)})" : ''
       { result: is_other ? :continue : :skip, display_value: display_value, line: 21 }
     end
 

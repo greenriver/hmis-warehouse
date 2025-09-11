@@ -362,7 +362,7 @@ module PublicReports
           count
         out_count = homeless_scope.entry.
           exit_within_date_range(start_date: start_date, end_date: end_date).
-          where(destination: ::HudUtility2024.permanent_destinations).
+          where(destination: ::HudUtilityCurrent.permanent_destinations).
           select(:client_id).
           distinct.
           count
@@ -445,7 +445,7 @@ module PublicReports
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
         # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
-        races = ::HudUtility2024.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
+        races = ::HudUtilityCurrent.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
         iteration_dates.each do |date|
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)

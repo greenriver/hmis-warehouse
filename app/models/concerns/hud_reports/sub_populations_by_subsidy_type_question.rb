@@ -21,7 +21,7 @@ module HudReports::SubPopulationsBySubsidyTypeQuestion
     first_row = 2
     metadata = {
       header_row: [' '] + sub_pops.keys,
-      row_labels: GrdaWarehouse::Hud::Export.current_hud_utility.rental_subsidy_types.values + ['Total'],
+      row_labels: HudUtilityCurrent.rental_subsidy_types.values + ['Total'],
       first_column: 'B',
       last_column: last_column,
       first_row: first_row,
@@ -32,7 +32,7 @@ module HudReports::SubPopulationsBySubsidyTypeQuestion
     cols = (metadata[:first_column]..metadata[:last_column]).to_a
     sub_pops.values.each.with_index do |population_clause, col_index|
       scope = leavers.where(population_clause)
-      GrdaWarehouse::Hud::Export.current_hud_utility.rental_subsidy_types.keys.each.with_index(2) do |code, row_index|
+      HudUtilityCurrent.rental_subsidy_types.keys.each.with_index(2) do |code, row_index|
         sheet.update_cell_members(
           cell: [cols[col_index], row_index],
           members: scope.where(a_t[:exit_destination_subsidy_type].eq(code)),
@@ -41,7 +41,7 @@ module HudReports::SubPopulationsBySubsidyTypeQuestion
       sheet.update_cell_members(
         cell: [cols[col_index], 13],
         # We only want clients captured in the rows above. Filter the scope to clients with a valid subsidy type
-        members: scope.where(a_t[:exit_destination_subsidy_type].in(GrdaWarehouse::Hud::Export.current_hud_utility.rental_subsidy_types.keys)),
+        members: scope.where(a_t[:exit_destination_subsidy_type].in(HudUtilityCurrent.rental_subsidy_types.keys)),
       )
     end
   end

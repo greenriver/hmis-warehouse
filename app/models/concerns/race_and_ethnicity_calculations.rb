@@ -20,7 +20,7 @@ module RaceAndEthnicityCalculations
   end
 
   def race_col_lookup
-    HudUtility2026.races.map { |k, _| [k.underscore, k] }.to_h
+    HudUtilityCurrent.races.map { |k, _| [k.underscore, k] }.to_h
   end
 
   private def pluck_to_hash(columns, scope)
@@ -92,6 +92,6 @@ module RaceAndEthnicityCalculations
   end
 
   private def race_ethnicity_combinations
-    HudUtility2026.race_ethnicity_combinations
+    HudUtilityCurrent.race_ethnicity_combinations
   end
 end

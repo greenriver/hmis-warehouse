@@ -44,7 +44,7 @@ class Filters::Criteria::FilterForRace < Filters::Criteria::Base
   protected
 
   def race_columns
-    @race_columns ||= HudUtility2026.race_fields.map(&:to_s)
+    @race_columns ||= HudUtilityCurrent.race_fields.map(&:to_s)
   end
 
   def race_alternative(key)

@@ -14,7 +14,7 @@ module
     # @return [Hash] A hash containing report configurations for different DV categories
     def dv_detail_hash
       {}.tap do |hashes|
-        HudUtility2024.no_yes_reasons_for_missing_data_options.each do |key, title|
+        HudUtilityCurrent.no_yes_reasons_for_missing_data_options.each do |key, title|
           hashes["dv_#{key}"] = {
             title: "DV Response #{title}",
             headers: client_headers,
@@ -22,7 +22,7 @@ module
             scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_dv(key)).distinct },
           }
         end
-        ::HudUtility2024.when_occurreds.each do |key, title|
+        ::HudUtilityCurrent.when_occurreds.each do |key, title|
           hashes["dv_occurrence_#{key}"] = {
             title: "DV Occurrence Timing #{title}",
             headers: client_headers,
@@ -117,7 +117,7 @@ module
       rows['*DV Victim/Survivor'] ||= []
       rows['*DV Response'] ||= []
       rows['*DV Response'] += ['Response', nil, 'Count', 'Percentage', nil]
-      ::HudUtility2024.no_yes_reasons_for_missing_data_options.each do |id, title|
+      ::HudUtilityCurrent.no_yes_reasons_for_missing_data_options.each do |id, title|
         rows["_DV Response_data_#{title}"] ||= []
         rows["_DV Response_data_#{title}"] += [
           title,
@@ -129,7 +129,7 @@ module
       rows['*DV Victim/Survivor - Most Recent Occurrence'] ||= []
       rows['*DV Occurrence Timing'] ||= []
       rows['*DV Occurrence Timing'] += ['Timing', nil, 'Count', 'Percentage', nil]
-      ::HudUtility2024.when_occurreds.each do |id, title|
+      ::HudUtilityCurrent.when_occurreds.each do |id, title|
         rows["_DV Occurrence Timing_data_#{title}"] ||= []
         rows["_DV Occurrence Timing_data_#{title}"] += [
           title,

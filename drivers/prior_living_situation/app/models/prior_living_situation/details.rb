@@ -111,13 +111,13 @@ module
     def detail_column_display(header:, column:)
       case header
       when 'Project Type'
-        HudUtility2024.project_type(column)
+        HudUtilityCurrent.project_type(column)
       when 'CoC'
-        HudUtility2024.coc_name(column)
+        HudUtilityCurrent.coc_name(column)
       when 'Woman', 'Man', 'Culturally Specific', 'Different Identity', 'Non-Binary', 'Transgender', 'Questioning', 'Unknown Gender'
-        HudUtility2024.no_yes_reasons_for_missing_data(column)
-      when *HudUtility2024.races.values
-        HudUtility2024.no_yes_missing(column)
+        HudUtilityCurrent.no_yes_reasons_for_missing_data(column)
+      when *HudUtilityCurrent.races.values
+        HudUtilityCurrent.no_yes_missing(column)
       else
         column
       end
@@ -137,7 +137,7 @@ module
         'Transgender',
         'Questioning',
         'Unknown Gender',
-      ] + HudUtility2024.races.values
+      ] + HudUtilityCurrent.races.values
     end
 
     def client_columns
@@ -154,7 +154,7 @@ module
         c_t[:Transgender],
         c_t[:Questioning],
         c_t[:GenderNone],
-      ] + HudUtility2024.races.keys.map { |k| c_t[k.to_sym] }
+      ] + HudUtilityCurrent.races.keys.map { |k| c_t[k.to_sym] }
     end
   end
 end

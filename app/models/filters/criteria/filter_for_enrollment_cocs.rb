@@ -16,7 +16,7 @@ class Filters::Criteria::FilterForEnrollmentCocs < Filters::Criteria::Base
       merge(
         GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: input.coc_codes).
         or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
-        or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtility2026.cocs.keys)),
+        or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtilityCurrent.cocs.keys)),
       )
   end
 end

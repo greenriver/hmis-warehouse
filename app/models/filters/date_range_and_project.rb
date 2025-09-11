@@ -11,7 +11,7 @@ module Filters
     attribute :project_type, Array[String]
 
     def project_types
-      HudUtility2026.homeless_type_titles.map(&:reverse)
+      HudUtilityCurrent.homeless_type_titles.map(&:reverse)
     end
   end
 end

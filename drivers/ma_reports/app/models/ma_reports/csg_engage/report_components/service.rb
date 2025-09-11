@@ -47,7 +47,7 @@ module MaReports::CsgEngage::ReportComponents
         end
       end
       field('ServiceProvided') do
-        HudUtility2024.service_type_provided(service.RecordType, service.TypeProvided) || 'Unknown Service Type'
+        HudUtilityCurrent.service_type_provided(service.RecordType, service.TypeProvided) || 'Unknown Service Type'
       rescue StandardError
         'Unknown Service Type'
       end

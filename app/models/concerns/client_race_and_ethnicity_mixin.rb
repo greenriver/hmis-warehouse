@@ -11,7 +11,7 @@ module ClientRaceAndEthnicityMixin
   included do
     scope :race_ethnicity_alternative, ->(key, hispanic_latinaeo = false) {
       scope = self
-      columns = (HudUtility2026.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
+      columns = (HudUtilityCurrent.race_fields - [:RaceNone]).map { |k| [k, 0] }.to_h
 
       key = key.to_sym
       if key.in?([:MultiRacial, :multi_racial])

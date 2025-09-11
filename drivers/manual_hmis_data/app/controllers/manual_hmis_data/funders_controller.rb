@@ -105,7 +105,7 @@ module ManualHmisData
       {
         Funder: {
           type: :select_two,
-          collection: HudUtility2024.funding_sources.invert,
+          collection: HudUtilityCurrent.funding_sources.invert,
         },
         StartDate: {
           type: :date_picker,

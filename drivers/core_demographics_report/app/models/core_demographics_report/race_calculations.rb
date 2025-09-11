@@ -28,7 +28,7 @@ module
     # Defines the available race categories including special cases for unknown/missing data
     # @return [Hash] A hash mapping race keys to their display titles
     def race_buckets
-      @race_buckets ||= ::HudUtility2024.races(multi_racial: true).merge(unknown_race_buckets).except('RaceNone')
+      @race_buckets ||= ::HudUtilityCurrent.races(multi_racial: true).merge(unknown_race_buckets).except('RaceNone')
     end
 
     # Defines special categories for unknown or missing race data
