@@ -337,6 +337,12 @@ module CeWorkflows::Ac
         form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
         template_id: template.id,
         swimlane: project_staff_swimlane,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'delete_wip_enrollment',
+          },
+        ],
       )
       create_enrollment_task.connect_to!(change_provider_outcome_task)
 

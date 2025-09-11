@@ -60,6 +60,7 @@ module Types
       field :can_view_referral_details, Boolean, null: false
       field :can_view_target_project, Boolean, null: false
       field :can_view_source_enrollment_details, Boolean, null: false
+      field :can_assign_referral_tasks, Boolean, null: false
     end
 
     # Detailed fields that only those with full view access should see. Must be nullable
@@ -241,6 +242,7 @@ module Types
       {
         can_view_referral_details: policy_for(object, policy_type: :ce_referral).can_view?,
         can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
+        can_assign_referral_tasks: policy_for(object, policy_type: :ce_referral).can_assign_referral_tasks?,
         can_view_source_enrollment_details: source_enrollment.present?,
       }
     end

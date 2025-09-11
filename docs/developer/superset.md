@@ -5,9 +5,9 @@ If you are running on Apple M1 architecture, this may help get superset up and r
 ```bash
 docker run --privileged --rm tonistiigi/binfmt --install amd64
 ```
-In one terminal start up the Superset container.  It is set to start in the background by default, so you may need to `docker-compose down` first
+In one terminal start up the Superset container.  It is set to start in the background by default, so you may need to `docker compose down` first
 ```sh
-docker-compose up superset
+docker compose up superset
 ```
 If all goes well, it'll run through the config and you'll end up with a new
 `superset` db on your postgres container.  If it looks like there were any
@@ -19,7 +19,7 @@ There's an `init.sh` script in `superset/op/` that only runs if
 `superset/op/.did.db.init` doesn't exist. Removing that file will let the
 script run again.
 
-At this point the usual `docker-compose up -d` should bring up a functional superset installation at http://superset.hmis-warehouse.dev.test.
+At this point the usual `docker compose up -d` should bring up a functional superset installation at http://superset.hmis-warehouse.dev.test.
 
 ## Logging in to superset
 
