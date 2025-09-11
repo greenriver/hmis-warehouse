@@ -41,12 +41,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             name
             status
             expiresAt
+            prioritySchemes { id name expression }
             candidates {
               nodesCount
               nodes {
                 id
                 destinationClientId
-                priorityScore
+                priorityScores
                 clientName
               }
             }
@@ -76,14 +77,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when the opportunity has rules' do
       let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: nil, unit: unit }
-      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit) }
+      let!(:rule1) { create(:hmis_ce_eligibility_requirement, owner: unit.unit_group) }
       let!(:rule2) { create(:hmis_ce_eligibility_requirement, owner: project) }
       let!(:rule3) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_types: [project.project_type] }) }
 
       let!(:funder) { create(:hmis_hud_funder, project: project, data_source: project.data_source) }
       let!(:rule4) { create(:hmis_ce_eligibility_requirement, owner: project.organization, applicability_config: { project_funders: [funder.funder] }) }
       before do
-        Hmis::Ce::Match::CandidatePoolBuilder.new(Hmis::Ce::Opportunity.where(id: opportunity.id)).perform
+        # Ensure the unit group gets a pool and the opportunity captures assignment rules
+        Hmis::Ce::Match::CandidatePoolBuilder.call
+        # Recreate the opportunity with assignment_rules captured from the resolver
+        # so the GraphQL layer can return historical rules regardless of current state.
+        opportunity.update!(assignment_rules: [rule1, rule2, rule3, rule4].map(&:attributes))
       end
 
       it 'returns rules with their correct ownerTypes' do
@@ -92,11 +97,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         rules = result.dig('data', 'ceOpportunity', 'eligibilityRequirements')
         expect(rules).to contain_exactly(
-          a_hash_including('id' => "#{opportunity.id}.#{rule1.id}", 'ownerType' => 'UNIT'),
+          a_hash_including('id' => "#{opportunity.id}.#{rule1.id}", 'ownerType' => 'UNIT_GROUP'),
           a_hash_including('id' => "#{opportunity.id}.#{rule2.id}", 'ownerType' => 'PROJECT'),
           a_hash_including('id' => "#{opportunity.id}.#{rule3.id}", 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
           a_hash_including('id' => "#{opportunity.id}.#{rule4.id}", 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
         )
+      end
+
+      it 'returns most-specific priority schemes ordered by rank, then id' do
+        # Build assignment rules with mixed owners and ranks
+        org_rule = create(:hmis_ce_priority_scheme, owner: project.organization, expression: 'org_expr', priority_rank: 2)
+        proj_rule_low = create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_low', priority_rank: 2)
+        proj_rule_high = create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_high', priority_rank: 1)
+        ds_rule = create(:hmis_ce_priority_scheme, owner: project.data_source, expression: 'ds_expr', priority_rank: 1)
+
+        # Keep eligibility rules as before and include priority rules in the snapshot
+        snapshot_rules = [rule1, rule2, rule3, rule4, org_rule, proj_rule_low, proj_rule_high, ds_rule]
+        opportunity.update!(assignment_rules: snapshot_rules.map(&:attributes))
+
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        prios = result.dig('data', 'ceOpportunity', 'prioritySchemes')
+        # Should only include project-level rules, ordered by priority_rank then id
+        expect(prios.map { |r| r['expression'] }).to eq(['proj_high', 'proj_low'])
       end
     end
 
@@ -176,17 +200,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(candidates.size).to eq(2)
 
           # Verify candidates are ordered by priority score
-          expect(candidates.map { |c| c['priorityScore'] }).to eq([100, 80])
+          expect(candidates.map { |c| c['priorityScores'] }).to eq([[100], [80]])
 
           # Verify first candidate (highest priority)
           expect(candidates[0]).to include(
-            'priorityScore' => 100,
+            'priorityScores' => [100],
             'destinationClientId' => client_2.destination_client.id.to_s,
           )
 
           # Verify second candidate
           expect(candidates[1]).to include(
-            'priorityScore' => 80,
+            'priorityScores' => [80],
             'destinationClientId' => client_1.destination_client.id.to_s,
           )
         end
@@ -213,6 +237,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'when the opportunity has several referrals' do
+      let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
+      let!(:opportunity) { create :hmis_ce_opportunity, project: project, data_source: ds1, candidate_pool: candidate_pool, unit: unit, workflow_template: workflow_template }
       # opportunities are single-use, so there should only be one in-progress or accepted referral, but there could be many failed referrals.
       let!(:rejected1) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
       let!(:rejected2) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }

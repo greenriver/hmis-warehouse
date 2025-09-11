@@ -76,7 +76,7 @@ class Menu::Menu
   def op_analytics_menu
     Menu::Item.new(
       user: user,
-      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available? && GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).where(url: 'superset/warehouse_reports/reports').exists? },
+      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user) },
       path: Superset.warehouse_login_url,
       title: Translation.translate('OP Analytics'),
       id: 'superset',

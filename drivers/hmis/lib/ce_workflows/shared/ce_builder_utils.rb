@@ -21,13 +21,19 @@ module CeWorkflows::Shared
     # @param clients [ActiveRecord::Relation, nil] Optional client scope to mark as dirty for processing.
     #   If provided, these clients will be marked dirty and processed along with any other dirty records.
     #   If nil, only processes existing dirty records.
-    # @param opportunities [ActiveRecord::Relation, nil] Optional opportunities scope to limit pool building
+    # @param unit_groups [ActiveRecord::Relation, nil] Optional unit groups scope to limit pool building.
     # @param progress [Boolean] Whether to show progress during processing
     # @param cleanup_orphans [Boolean] Whether to immediately remove orphaned pools (development only)
-    def self.build_candidate_pools(clients: nil, opportunities: nil, progress: false, cleanup_orphans: false)
-      # Build candidate pools using the production job
-      # This creates/updates pools based on active opportunities and marks them as dirty
-      Hmis::Ce::BuildCandidatePoolsJob.new.perform(opportunity_ids: opportunities&.pluck(:id))
+    # @param force_reprocessing [Boolean] Whether to mark all pools as dirty for reprocessing.
+    def self.build_candidate_pools(clients: nil, unit_groups: nil, progress: false, cleanup_orphans: false, force_reprocessing: false)
+      # Build candidate pools by calling the builder directly.
+      # This creates/updates pools based on unit groups and their rules.
+      Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do
+        Hmis::Ce::Match::CandidatePoolBuilder.call(
+          unit_group_ids: unit_groups&.pluck(:id),
+          force_reprocessing: force_reprocessing,
+        )
+      end
 
       # Optional immediate cleanup for development (production uses time-based cleanup)
       Hmis::Ce::Match::CandidatePool.orphaned.find_each(&:destroy!) if cleanup_orphans

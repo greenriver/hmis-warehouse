@@ -224,6 +224,13 @@ module HudApr::Generators::Shared::Fy2026
           adjusted_move_in_date = calculate_hh_move_in_date(hh_id, last_service_history_enrollment)
           hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
+
+          destination = last_service_history_enrollment.destination
+          destination_subsidy_type = exit_record&.exit&.DestinationSubsidyType
+          # Filter out invalid destinations
+          # requires valid rental subsidy type, this is a fix for bad data that the TUP checks
+          destination = 99 if destination == 435 && ! destination_subsidy_type.in?(HudUtility2026.rental_subsidy_types.keys)
+
           ce_hash = {}
           options = {
             client_id: source_client.id,
@@ -265,7 +272,7 @@ module HudApr::Generators::Shared::Fy2026
 
             los_under_threshold: enrollment.LOSUnderThreshold,
             date_to_street: dates_to_street[last_service_history_enrollment.client_id],
-            destination: last_service_history_enrollment.destination,
+            destination: destination,
             developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability_exit: disabilities_at_exit.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability_latest: disabilities_latest.detect(&:developmental?)&.DisabilityResponse,
@@ -282,7 +289,7 @@ module HudApr::Generators::Shared::Fy2026
             enrollment_coc: enrollment.enrollment_coc,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             exit_created: exit_record&.exit&.DateCreated,
-            exit_destination_subsidy_type: exit_record&.exit&.DestinationSubsidyType,
+            exit_destination_subsidy_type: destination_subsidy_type,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
             sex: source_client.Sex || 99,

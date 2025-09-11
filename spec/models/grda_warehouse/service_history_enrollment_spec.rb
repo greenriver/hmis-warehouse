@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # NOTE:
@@ -132,6 +140,111 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
         expect(homeless_scope).to include past_move_in_th
         expect(literally_homeless_scope).not_to include no_move_in
         expect(literally_homeless_scope).not_to include past_move_in_th
+      end
+    end
+  end
+
+  describe '.in_age_ranges' do
+    let(:on_date) { Date.current }
+
+    let!(:client_under_18) { create(:grda_warehouse_hud_client, DOB: on_date - 10.years) }
+    let!(:client_18_to_24) { create(:grda_warehouse_hud_client, DOB: on_date - 20.years) }
+    let!(:client_25_to_61) { create(:grda_warehouse_hud_client, DOB: on_date - 40.years) }
+    let!(:client_over_61) { create(:grda_warehouse_hud_client, DOB: on_date - 70.years) }
+    let!(:client_no_dob) { create(:grda_warehouse_hud_client, DOB: nil) }
+
+    let!(:enrollment_under_18) { create(:grda_warehouse_service_history, client: client_under_18) }
+    let!(:enrollment_18_to_24) { create(:grda_warehouse_service_history, client: client_18_to_24) }
+    let!(:enrollment_25_to_61) { create(:grda_warehouse_service_history, client: client_25_to_61) }
+    let!(:enrollment_over_61) { create(:grda_warehouse_service_history, client: client_over_61) }
+    let!(:enrollment_no_dob) { create(:grda_warehouse_service_history, client: client_no_dob, age: nil) }
+
+    subject(:scope_call) { described_class.in_age_ranges(age_ranges, on_date: on_date) }
+
+    context 'when filtering for under_eighteen' do
+      let(:age_ranges) { [:under_eighteen] }
+
+      it 'returns only enrollments for clients under 18' do
+        expect(scope_call).to contain_exactly(enrollment_under_18)
+      end
+    end
+
+    context 'when filtering for eighteen_to_twenty_four' do
+      let(:age_ranges) { [:eighteen_to_twenty_four] }
+
+      it 'returns only enrollments for clients between 18 and 24' do
+        expect(scope_call).to contain_exactly(enrollment_18_to_24)
+      end
+    end
+
+    context 'when filtering for twenty_five_to_sixty_one' do
+      let(:age_ranges) { [:twenty_five_to_sixty_one] }
+
+      it 'returns only enrollments for clients between 25 and 61' do
+        expect(scope_call).to contain_exactly(enrollment_25_to_61)
+      end
+    end
+
+    context 'when filtering for over_sixty_one' do
+      let(:age_ranges) { [:over_sixty_one] }
+
+      it 'returns only enrollments for clients over 61' do
+        expect(scope_call).to contain_exactly(enrollment_over_61)
+      end
+    end
+
+    context 'with a client without a DOB' do
+      let(:age_ranges) { GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges.keys }
+
+      it 'does not include the enrollment for the client without a DOB' do
+        expect(scope_call).not_to include(enrollment_no_dob)
+      end
+    end
+
+    context 'when filtering for multiple age ranges' do
+      let(:age_ranges) { [:under_eighteen, :over_sixty_one] }
+
+      it 'returns enrollments for clients in all specified age ranges' do
+        expect(scope_call).to contain_exactly(enrollment_under_18, enrollment_over_61)
+      end
+    end
+
+    context 'when no age ranges are provided' do
+      let(:age_ranges) { [] }
+
+      it 'returns all enrollments' do
+        expect(scope_call).to contain_exactly(
+          enrollment_under_18,
+          enrollment_18_to_24,
+          enrollment_25_to_61,
+          enrollment_over_61,
+          enrollment_no_dob,
+        )
+      end
+    end
+
+    context 'when first_date_in_program is after on_date' do
+      let(:on_date) { Date.current - 1.year }
+      let!(:client) { create(:grda_warehouse_hud_client, DOB: Date.current - 18.years) }
+      let!(:enrollment_eighteen_at_entry) do
+        create(:grda_warehouse_service_history, client: client, first_date_in_program: Date.current)
+      end
+      context 'looking at 18 to 24' do
+        let(:age_ranges) { [:eighteen_to_twenty_four] }
+        it 'calculates age based on the later first_date_in_program and includes the enrollment' do
+          # The client is 17 on on_date (under_eighteen), but turns 18 by first_date_in_program (eighteen_to_twenty_four).
+          # This confirms the scope uses the later date for age calculation.
+          expect(scope_call).to include(enrollment_eighteen_at_entry)
+        end
+      end
+
+      context 'looking at under 18' do
+        let(:age_ranges) { [:under_eighteen] }
+        it 'calculates age based on the later first_date_in_program and does not include the enrollment' do
+          # The client is 17 on on_date (under_eighteen), but turns 18 by first_date_in_program (eighteen_to_twenty_four).
+          # This confirms the scope uses the later date for age calculation.
+          expect(scope_call).to_not include(enrollment_eighteen_at_entry)
+        end
       end
     end
   end
