@@ -3175,7 +3175,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/census_calculations.rb'
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/dashboard_data.rb'
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/enrollment.rb'
-    - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/enrollment_attribute_calculations.rb'
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/event.rb'
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/fake_data.rb'
     - 'drivers/all_neighbors_system_dashboard/app/models/all_neighbors_system_dashboard/fake_housing_total_placements_data.rb'

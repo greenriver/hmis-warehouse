@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module AllNeighborsSystemDashboard
   module EnrollmentAttributeCalculations
     extend ActiveSupport::Concern
@@ -140,9 +142,9 @@ module AllNeighborsSystemDashboard
           'Unsheltered'
         when *SHELTERED_SITUATIONS
           'Sheltered'
-        when HudUtilityCurrent::SITUATION_INSTITUTIONAL_RANGE
+        when HudUtilityCurrent.current_hud_utility::SITUATION_INSTITUTIONAL_RANGE
           'Institutional'
-        when HudUtilityCurrent::SITUATION_TEMPORARY_RANGE, HudUtilityCurrent::SITUATION_PERMANENT_RANGE
+        when HudUtilityCurrent.current_hud_utility::SITUATION_TEMPORARY_RANGE, HudUtilityCurrent.current_hud_utility::SITUATION_PERMANENT_RANGE
           'Housed'
         when *DECEASED_SITUATIONS
           'Deceased'
@@ -178,7 +180,7 @@ module AllNeighborsSystemDashboard
         case enrollment.destination
         when nil
           nil
-        when HudUtilityCurrent::SITUATION_PERMANENT_RANGE
+        when HudUtilityCurrent.current_hud_utility::SITUATION_PERMANENT_RANGE
           'Permanent'
         when *EXCLUDEABLE_DESTINATIONS
           'Excludable'
@@ -271,7 +273,7 @@ module AllNeighborsSystemDashboard
             # you have a move-in date (you are not homeless)
             enrollment.move_in_date.present? ||
             # or you exited to a permanent destination (no longer homeless)
-            enrollment.destination.in?(HudUtilityCurrent::SITUATION_PERMANENT_RANGE) # From SPM M2
+            enrollment.destination.in?(HudUtilityCurrent.current_hud_utility::SITUATION_PERMANENT_RANGE) # From SPM M2
           end.
           sort_by(&:exit_date).
           group_by(&:client_id)

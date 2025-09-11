@@ -69,14 +69,14 @@ module HudConcerns::Client
     # @return [Array<Integer>] An array of integers representing the client's race where the race field is `1` with any valid values of `RaceNone`
     def race_multi_include_race_none
       @race_multi_include_race_none ||= [].tap do |gm|
-        ::HudUtilityCurrent.race_field_name_to_id[:RaceNone].race_field_name_to_id.except(:RaceNone).each do |k, v|
+        ::HudUtilityCurrent.race_field_name_to_id.except(:RaceNone).each do |k, v|
           gm << v if self[k] == 1
         end
         # Always include RaceNone data
         gm << self.RaceNone if self.RaceNone.in?([8, 9, 99])
         # set to '99' (Data not collected). This should only occur if the field is missing or we have data that doesn't
         # match a known race code, including codes for Client doesn't know, Prefers not to answer, and Data not collected
-        gm << ::HudUtilityCurrent.race_field_name_to_id[:RaceNone].race_field_name_to_id[:RaceNone] if gm.empty?
+        gm << ::HudUtilityCurrent.race_field_name_to_id[:RaceNone] if gm.empty?
       end
     end
 
