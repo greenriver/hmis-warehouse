@@ -47,7 +47,7 @@ FactoryBot.define do
       with_custom_client_name { false }
     end
     after(:build) do |client, evaluator|
-      race_attributes = HudUtilityCurrentent.races.except('RaceNone').keys.map { |r| [r, [1, 0].sample] }.to_h
+      race_attributes = HudUtilityCurrent.races.except('RaceNone').keys.map { |r| [r, [1, 0].sample] }.to_h
       race_attributes['RaceNone'] = [8, 9, 99].sample if race_attributes.values.sum.zero?
       client.assign_attributes(race_attributes)
 
