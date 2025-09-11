@@ -47,8 +47,6 @@ module Hmis::Ce
         reversible = false
       when 'delete_wip_enrollment'
         referral_enroller.delete_wip_enrollment(message)
-      when 'raise_if_no_enrollment'
-        referral_enroller.raise_if_no_enrollment(message)
       when 'set_move_in_date'
         # Can be triggered on the same step as create_enrollment, or a later step
         referral_enroller.set_move_in_date(message)
