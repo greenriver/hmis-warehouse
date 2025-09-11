@@ -69,6 +69,10 @@ module Hmis::Ce
       enrollment.destroy!
     end
 
+    def raise_if_no_enrollment(_message)
+      raise "Referral #{referral.id} has no enrollment. This may indicate user error or a misconfigured workflow." if referral.target_enrollment.nil?
+    end
+
     # Sets the Move-In Date on the target enrollment, based on a date value collected on the step form.
     # This requires a Move-in date item to be on the step form with the following attributes:
     # { "link_id": "move_in_date", "type": "DATE", "mapping": { "custom_field_key": "" } }
