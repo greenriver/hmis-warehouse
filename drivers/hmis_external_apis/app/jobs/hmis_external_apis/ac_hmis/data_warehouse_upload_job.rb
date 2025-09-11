@@ -74,8 +74,11 @@ module HmisExternalApis::AcHmis
         'case_note_export',
         'unit_export',
         'custom_assessments_export',
+        # FIXME: these exporters are to be enabled manually
         # 'ce_referrals',
         # 'ce_referral_tasks',
+        # 'waitlist_events_export',
+        # 'current_waitlists_export',
       ].freeze
     end
 
@@ -258,6 +261,23 @@ module HmisExternalApis::AcHmis
       uploader.run!
     end
 
+    def waitlist_events_export
+      export = HmisExternalApis::AcHmis::Exporters::WaitlistEventsExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-waitlist-events.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'WaitlistEvents.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
     def ce_referrals
       export = HmisExternalApis::AcHmis::Exporters::CeReferralExport.new
       export.run!
@@ -307,6 +327,23 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'CustomAssessments.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def current_waitlists_export
+      export = HmisExternalApis::AcHmis::Exporters::CurrentWaitlistsExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-current-waitlists.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CurrentWaitlists.csv',
             io: export.output,
           ),
         ],
