@@ -131,26 +131,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:cded_field_one) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'fieldOne', form_definition: fd1 }
 
       let!(:assmt_fd1_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd1, assessment_date: 2.weeks.ago) }
+      # Cruft: Old assessment taken with this form doesn't get returned
       let!(:assmt_fd1_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd1, assessment_date: 3.weeks.ago) }
 
       let!(:fd2) { create(:custom_assessment_with_custom_fields, role: :CUSTOM_ASSESSMENT, status: :published, version: 1) }
       # custom_assessment_with_custom_fields factory generates cded "custom_question_1"
       let!(:cded_custom_question_1) { create :hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'custom_question_1', form_definition: fd2 }
 
-      let!(:assmt_fd2_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd2, assessment_date: 2.weeks.ago) }
-      let!(:assmt_fd2_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd2, assessment_date: 3.weeks.ago) }
+      let!(:assmt_fd2_new) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd2, assessment_date: 1.week.ago) }
+      # Cruft: Old assessment taken on old version of the same form doesn't get returned (regression #8145)
+      let!(:fd2_old) { create(:custom_assessment_with_custom_fields, identifier: fd2.identifier, role: :CUSTOM_ASSESSMENT, status: :retired, version: 0) }
+      let!(:assmt_fd2_old) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment, definition: fd2_old, assessment_date: 3.weeks.ago) }
 
       # Update the candidate pool to refer to those cdeds
       let!(:pool) { create :hmis_ce_match_candidate_pool, requirement_expression: "`cde.custom_assessment.fieldOne` = '1'", priority_expression: 'cde.custom_assessment.custom_question_1' }
 
-      it 'returns the latest assessment per definition' do
+      it 'returns the latest assessment per definition, ordered by date' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
         enrollments = result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodes')
-        expect(enrollments.sole['assessments']).to contain_exactly(
-          { 'id' => assmt_fd1_new.id.to_s, 'assessmentName' => fd1.title, 'assessmentDate' => assmt_fd1_new.assessment_date.iso8601 },
-          { 'id' => assmt_fd2_new.id.to_s, 'assessmentName' => fd2.title, 'assessmentDate' => assmt_fd2_new.assessment_date.iso8601 },
-        )
+        assessments = enrollments.sole['assessments']
+        expect(assessments.count).to eq(2)
+        # assessment 2 is returned 1st because it was completed more recently
+        expect(assessments.first).to eq({ 'id' => assmt_fd2_new.id.to_s, 'assessmentName' => fd2.title, 'assessmentDate' => assmt_fd2_new.assessment_date.iso8601 })
+        expect(assessments.second).to eq({ 'id' => assmt_fd1_new.id.to_s, 'assessmentName' => fd1.title, 'assessmentDate' => assmt_fd1_new.assessment_date.iso8601 })
       end
     end
 

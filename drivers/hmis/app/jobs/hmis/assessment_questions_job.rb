@@ -4,11 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Job for processing CustomAssessments that represent CE Assessments (e.g. HAT) into HUD CE AssessmentQuestions table.
 # This is necessary because CAS calculators rely and answers to be present in the AssessmentQuestions table.
 module Hmis
   class AssessmentQuestionsJob < BaseJob
     include ::Hmis::Concerns::HmisArelHelper
+
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(custom_assessment_ids:)
       @custom_assessment_ids = Array.wrap(custom_assessment_ids)
