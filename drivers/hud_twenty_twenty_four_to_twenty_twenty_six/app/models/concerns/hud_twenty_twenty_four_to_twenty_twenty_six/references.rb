@@ -18,6 +18,9 @@ module HudTwentyTwentyFourToTwentyTwentySix
       private def reference(reference_name, &block)
         reference = @references[reference_name]
 
+        # return if the reference file is not included in this import
+        return if reference.nil?
+
         if reference[:file].present?
           content = File.read(reference[:file])
           CSV.parse(content, headers: true) do |row|
