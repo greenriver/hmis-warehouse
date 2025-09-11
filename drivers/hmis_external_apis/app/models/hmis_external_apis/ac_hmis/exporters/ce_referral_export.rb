@@ -42,7 +42,7 @@ module HmisExternalApis::AcHmis::Exporters
           unit_type_name,                        # UnitTypeName
           target_project.id,                     # TargetProjectID (maps to Project.csv)
           target_project.project_name,           # TargetProjectName
-          referral.custom_status.key,            # ReferralStatus
+          referral.custom_status&.key,           # ReferralStatus
           referred_by_hud_user_pk,               # Matches User.csv in HMIS CSV Export
           referral.target_enrollment_id,         # TargetEnrollmentID (maps to Enrollment.csv if Enrollment is non-WIP)
           referral.source_enrollment_id,         # SourceEnrollmentID (maps to Enrollment.csv)
