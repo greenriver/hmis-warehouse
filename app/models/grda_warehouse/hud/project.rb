@@ -168,7 +168,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = HudUtilityCurrent.residential_project_type_idsHudUtilityCurrenturrent.chronic_project_types
+      r_non_homeless = HudUtilityCurrent.residential_project_type_ids - HudUtilityCurrent.chronic_project_types
       _residential_for_project_type_ids(r_non_homeless)
     end
 
