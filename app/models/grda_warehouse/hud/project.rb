@@ -136,7 +136,7 @@ module GrdaWarehouse::Hud
 
     scope :hud_non_residential, -> do
       # all non-residential project types, but re-add 13 for RRH SSO
-      _non_residential_for_project_type_ids(HudUtilityCurrent.all_project_typesHudUtilityCurrenturrent.residential_project_type_ids + [13])
+      _non_residential_for_project_type_ids(HudUtilityCurrent.all_project_types - HudUtilityCurrent.residential_project_type_ids + [13])
     end
 
     scope :chronic, -> do
