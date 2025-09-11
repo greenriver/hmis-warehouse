@@ -141,8 +141,9 @@ module LongitudinalSpm
     def spm_describe(measure_or_table, cell = nil, row_col = :row)
       return spm_generator.describe_table(measure_or_table) if cell.blank?
 
-      # Don't break terribly if the SPM version has changed
-      return '' unless spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2024'
+      # Don't break terribly if loading a 2020 version.
+      # There were breaking changes moving from version 2020 to version 2023.
+      return '' if spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2020'
 
       @sample_spm ||= spms.first.hud_spm # Just find one of the SPMs so we can get metadata
       # Sometimes we get into a weird state where the SPMs didn't run, return so we don't throw errors
