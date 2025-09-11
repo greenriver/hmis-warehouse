@@ -59,7 +59,7 @@ module Types
     def unit_size
       return object.unit_size if object.unit_size.present?
 
-      object.unit_type&.unit_size
+      unit_type&.unit_size
     end
 
     def occupancy_status
