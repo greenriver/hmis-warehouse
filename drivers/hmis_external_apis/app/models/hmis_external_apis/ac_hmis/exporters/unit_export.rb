@@ -17,7 +17,7 @@ module HmisExternalApis::AcHmis::Exporters
       Rails.logger.info 'Generating Unit export'
       write_row(columns)
       total = units.count
-      Rails.logger.info "There are #{units} Units to export"
+      Rails.logger.info "There are #{total} Units to export"
 
       units.each.with_index do |unit, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 100).zero?
