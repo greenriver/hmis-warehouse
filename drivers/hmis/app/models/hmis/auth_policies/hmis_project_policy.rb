@@ -25,6 +25,10 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::BasePolicy
     project_permissions.include?(:can_manage_units)
   end
 
+  def can_update_unit_availability?
+    project_permissions.include?(:can_update_unit_availability)
+  end
+
   def can_send_out_direct_referral?
     project_permissions.include?(:can_manage_outgoing_referrals)
   end

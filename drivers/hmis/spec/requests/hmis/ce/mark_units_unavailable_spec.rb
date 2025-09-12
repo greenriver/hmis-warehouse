@@ -13,7 +13,7 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Mutations::Ce::MarkUnitsUnavailable, type: :request do
   include_context 'hmis base setup'
 
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_units, :can_update_unit_availability]) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
   let!(:unit_group) { create(:hmis_unit_group, project: project) }
   let!(:unit) { create :hmis_unit, project: project, unit_group: unit_group }

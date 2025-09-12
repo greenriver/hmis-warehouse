@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis::Exporters
   class CdedExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
@@ -32,6 +34,8 @@ module HmisExternalApis::AcHmis::Exporters
           cded.key,
           cded.owner_type.demodulize,
           cded.field_type,
+          cded.label,
+          cded.form_definition_identifier,
         ]
         write_row(values)
       end
@@ -41,9 +45,11 @@ module HmisExternalApis::AcHmis::Exporters
 
     def columns
       [
-        'CustomFieldKey',
-        'RecordType',
-        'FieldType',
+        'CustomFieldKey', # maps to CustomFieldKey in CustomFieldValues.csv
+        'RecordType', # eg 'Service', 'CustomAssessment', 'Client'
+        'FieldType', # eg 'string', 'integer'
+        'Label', # human-readable label for this field
+        'AssessmentKey', # maps to AssessmentKey in CustomAssessments.csv if RecordType is CustomAssessment
       ]
     end
 
