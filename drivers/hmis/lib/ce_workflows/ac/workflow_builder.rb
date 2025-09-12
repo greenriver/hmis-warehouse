@@ -244,10 +244,6 @@ module CeWorkflows::Ac
           message: 'set_custom_referral_status',
           params: { 'custom_status_key': enrolled_status.key },
         },
-        {
-          event: 'complete_step',
-          message: 'raise_if_no_enrollment',
-        },
       ]
 
       # Provider Outcome Task 1 - defined outside the loop since it's only available once
