@@ -8,8 +8,16 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
   include_context 'hmis base setup'
   include_context 'file upload setup'
 
-  # let!(:access_control) { create_access_control(hmis_user, [p1], with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files]) }
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  let!(:access_control) do
+    create_access_control(
+      hmis_user,
+      ds1,
+      with_permission: [
+        :can_view_clients,
+        :can_view_any_nonconfidential_client_files,
+      ],
+    )
+  end
 
   # let!(:client) { create(:hmis_hud_client, data_source: ds1, user: u1) }
   let!(:nonconfidential_file) do
