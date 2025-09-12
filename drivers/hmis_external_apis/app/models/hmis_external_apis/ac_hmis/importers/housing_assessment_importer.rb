@@ -5,11 +5,13 @@ require 'rubyXL'
 class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   def self.call(...) = new.call(...)
 
-  def call(filename, ce_project_id:, dry_run: true)
-    raise 'Missing AC HMIS MCI credentials' unless mci.creds
+  def call(filename, ce_project_id:, form_definition_identifier:, dry_run: true)
+    raise 'Missing AC HMIS MCI credentials' unless mci_creds
+    raise 'Missing AC HMIS MCI Unique ID credentials' unless mci_uniq_creds
 
     with_tx_lock do
       @ce_project_id = ce_project_id
+      @form_definition_identifier = form_definition_identifier
       raw_rows = read_file_rows(filename)
       column_names = raw_rows.shift.map { |col| col.to_s.downcase.strip }
       raise unless column_names.sort == COLUMN_NAMES.sort # allow any order
@@ -24,6 +26,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       end
       raise ActiveRecord::Rollback if dry_run
     end
+    log_info 'Import complete'
   end
 
   protected
@@ -56,31 +59,37 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     by_client_id.values
   end
 
-  def create_form_processor(_waitlist, assessment)
-    form_processor = assessment.build_form_processor
-    form_processor.definition = form_definition
-    form_processor.save!
-  end
-
   def complete_assessment(waitlist, assessment)
     household_type = waitlist.household_type
     # Build an array of [cded_key, value] tuples to support repeated keys (multi-valued CDEs)
     tuples = []
 
-    tuples << ['housing_needs_chronically_homeless', waitlist.chronically_homeless]
+    # The following fields are added purely to make assessments display correctly, they are NOT referenced directly by Match Rules:
     tuples << ['housing_needs_aha_score', waitlist.aha_score]
     tuples << ['housing_needs_alternative_assessment_score', waitlist.alt_aha_score]
+    tuples << ['housing_needs_does_this_household_require_alt_aha', waitlist.alt_aha_score ? 'Yes' : 'No'] # Ensure Alt-AHA section appears if present
+    tuples << ['housing_needs_aha_score_with_override', waitlist.aha_score] # used in stg/trn assessments
+    tuples << ['housing_needs_select_which_score', waitlist.selected_score_type]
+    tuples << ['housing_needs_housing_waitlist_authorization', 'Yes']
+
+    # The following fields are referenced by CE Match Rules
+    tuples << ['housing_needs_assessment_result_score', waitlist.result_score]
+    tuples << ['housing_needs_chronically_homeless', waitlist.chronically_homeless]
+    # Note: Assessment is present in the export file, so we can assume the client is Eligible, Posted to the waitlist, and authorized.
+    tuples << ['housing_needs_result_type', 'Eligible'] # TODO: may need to add/change depending on #8129
+    tuples << ['housing_needs_post_referrals_to_waitlist', 'Yes']
+
     tuples << ['housing_needs_ami', waitlist.income_percentage_ami]
     waitlist.referred_bedroom_sizes.each do |v|
       tuples << ['housing_needs_preferred_bedroom_size', v]
     end
     tuples << ['housing_needs_household_composition', household_type]
     tuples << ['housing_needs_transition_aged_youth', waitlist.tay]
-    tuples << ['housing_needs_monthly_household_income', waitlist.infer_monthly_household_income]
+    tuples << ['housing_needs_monthly_household_income', waitlist.infer_monthly_household_income] # just for assessment
     tuples << ['housing_needs_fpl', waitlist.income_percentage_fpl]
-    tuples << ['housing_needs_number_of_household_members', waitlist.number_of_household_members]
+    tuples << ['housing_needs_number_of_household_members', waitlist.number_of_household_members] # just for assessment
     tuples << ['housing_needs_eligible_for_projects_serving_gender', waitlist.eligible_for_projects_serving_gender]
-    tuples << ['housing_needs_any_household_income', waitlist.any_household_income]
+    tuples << ['housing_needs_any_household_income', waitlist.any_household_income] # just for assessment
 
     # attrs that need translation based on waitlist type
     [
@@ -128,15 +137,35 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       cded = cded_lookup[cded_field]
       raise KeyError, "Missing CDED for key=#{cded_field.inspect}" unless cded
 
-      cde = assessment.custom_data_elements.build(
+      cde = Hmis::Hud::CustomDataElement.new(
+        owner: assessment,
         data_element_definition: cded,
         user: system_hud_user,
         data_source_id: assessment.data_source_id,
+        date_created: waitlist.date_created,
+        date_updated: waitlist.date_updated,
       )
       value_field_name = "value_#{cded.field_type}"
       cde[value_field_name] = value
       cde.save!
     end
+  end
+
+  def create_ce_assessment(waitlist, enrollment)
+    ce_assessment = enrollment.assessments.new
+
+    ce_assessment.attributes = {
+      assessment_date: waitlist.assessment_date,
+      assessment_location: enrollment.project.project_name,
+      assessment_type: 1, # Phone
+      assessment_level: 2, # Housing Needs Assessment
+      prioritization_status: 1, # Placed on prioritization list
+      date_created: waitlist.date_created,
+      date_updated: waitlist.date_updated,
+      user_id: system_hud_user.user_id,
+    }
+    ce_assessment.save!
+    ce_assessment
   end
 
   def create_housing_assessment(waitlist, enrollment)
@@ -148,11 +177,20 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       date_created: waitlist.date_created,
       date_updated: waitlist.date_updated,
       assessment_date: waitlist.assessment_date,
-      form_definition_identifier: form_definition.identifier,
-      data_source: hmis_data_source,
+      created_by_hud_user: system_hud_user,
+      updated_by_hud_user: system_hud_user,
     }
     assessment.save!
-    create_form_processor(waitlist, assessment)
+
+    # Create form processor linked to specific Form Definition version,
+    # and create and link up HUD CE Assessment record
+    form_processor = assessment.build_form_processor
+    form_processor.definition = form_definition
+    form_processor.custom_assessment_id = assessment.id
+    form_processor.ce_assessment = create_ce_assessment(waitlist, enrollment)
+    form_processor.save!
+
+    assessment.save!
     assessment
   end
 
@@ -171,6 +209,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       entry_date: waitlist.assessment_date,
       user_id: system_hud_user.user_id,
       household_id: deterministic_id,
+      relationship_to_hoh: 1, # HoH
       enrollment_id: deterministic_id,
       date_created: waitlist.date_created,
       date_updated: waitlist.date_updated,
@@ -186,6 +225,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     intake.save!
   end
 
+  # TODO: if not found by MCI Unique ID, should we try to look up by MCI ID?
   def find_and_update_hmis_client(waitlist)
     # client_id is the MCI Unique ID
     mci_scope = HmisExternalApis::ExternalId.
@@ -195,7 +235,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     client = Hmis::Hud::Client.joins(:ac_hmis_mci_unique_id).merge(mci_scope).first
     return nil unless client
 
-    client.update!(**client_attrs(waitlist))
+    log_info("Found client with MCI Unique ID #{waitlist.client_id}: #{client.id}")
     client
   end
 
@@ -222,12 +262,22 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       **client_attrs(waitlist),
     )
 
+    # Create MCI Unique ID
     HmisExternalApis::AcHmis::Mci.external_ids.create!(
       namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE,
       value: waitlist.client_id,
       source: client,
-      remote_credential: mci.creds,
+      remote_credential: mci_uniq_creds,
     )
+    # Create MCI ID
+    HmisExternalApis::AcHmis::Mci.external_ids.create!(
+      namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
+      value: waitlist.client_mci_id,
+      source: client,
+      remote_credential: mci_creds,
+    )
+
+    log_info "Created client for MCI Unique ID #{waitlist.client_id}: #{client.id}"
     client
   end
 
@@ -245,7 +295,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def form_definition
-    @form_definition ||= Hmis::Form::Definition.published.where(identifier: 'housing_needs_assessment_2_0_individuals').first!
+    @form_definition ||= Hmis::Form::Definition.published.where(identifier: @form_definition_identifier).first!
   end
 
   def system_hud_user
@@ -268,8 +318,13 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     end
   end
 
-  def mci
-    @mci ||= HmisExternalApis::AcHmis::Mci.new
+  # Note: cred does not have to be active, to support running in lower environments where these integrations may be turned off
+  def mci_creds
+    @mci_creds ||= GrdaWarehouse::RemoteCredential.where(slug: HmisExternalApis::AcHmis::Mci::SYSTEM_ID).sole
+  end
+
+  def mci_uniq_creds
+    @mci_uniq_creds ||= GrdaWarehouse::RemoteCredential.where(slug: HmisExternalApis::AcHmis::DataWarehouseApi::SYSTEM_ID).sole
   end
 
   def cded_lookup
@@ -469,8 +524,10 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
         'Household without minors'
       when 'Households with Children'
         'Household with minors'
+      when 'Households with Children|Households without Children'
+        'Household without minors' # if both are listed, assume its a household without minors that is being referred to hh with children due to pregnancy
       else
-        raise "invalid #{raw_values.household_composition}"
+        raise "invalid household composition: '#{raw_values.household_composition}'"
       end
     end
 
@@ -496,13 +553,39 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       income.to_f > 0 ? 'Yes' : 'No'
     end
 
+    def aha_score
+      parsed = raw_values.aha_score.to_i
+      parsed = -1 if parsed == 0 # mimic behavior of assessments which sets to -1 if missing
+      raise "unexpected aha score: #{raw_values.aha_score}, expected 1-10 or -1" unless [-1, *1..10].include?(parsed)
+
+      parsed
+    end
+
+    def alt_aha_score
+      parsed = raw_values.alt_aha_score.to_i
+      parsed = nil if parsed == 0
+      raise "unexpected alt_aha_score: #{parsed}, expected 1-10 or nil" unless [nil, *1..10].include?(parsed)
+
+      parsed
+    end
+
+    def selected_score_type
+      result_score == aha_score ? 'AHA' : 'Alt AHA'
+    end
+
+    def result_score
+      result_score = [aha_score, alt_aha_score].compact.max
+      raise "unexpected result score: #{result_score}, expected 1-10" unless [*1..10].include?(result_score)
+
+      result_score
+    end
+
     delegate(
       :client_id,
       :client_first_name,
       :client_last_name,
       :chronically_homeless,
-      :aha_score,
-      :alt_aha_score,
+      :client_mci_id,
       :anyone_in_household_service_in_military,
       :anyone_in_household_megans_law,
       :anyone_in_household_disability,
