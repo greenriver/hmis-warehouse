@@ -607,6 +607,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     def client_ssn_data_quality = data_quality(raw_values.ssn_data_quality)
     def client_dob_data_quality = data_quality(raw_values.dob_data_quality)
 
+    # FIXME this needs to be updated to refer to 'Households with children'/without - depending on household_composition field
     def referred_bedroom_sizes
       raw_values.referred_bedroom_sizes.to_s.split(/\s*\|\s*/).compact_blank.map do |size|
         size = size.strip
