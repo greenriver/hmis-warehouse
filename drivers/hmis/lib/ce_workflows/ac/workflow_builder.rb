@@ -238,7 +238,13 @@ module CeWorkflows::Ac
       )
       denied_pending_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': denied_pending_status.key } }]
       assigned_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': assigned_status.key } }]
-      enrolled_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': enrolled_status.key } }]
+      enrolled_status_trigger_config = [
+        {
+          event: 'enable_step',
+          message: 'set_custom_referral_status',
+          params: { 'custom_status_key': enrolled_status.key },
+        },
+      ]
 
       # Provider Outcome Task 1 - defined outside the loop since it's only available once
       provider_outcome_task_1 = Hmis::WorkflowDefinition::UserTask.create!(
@@ -314,7 +320,7 @@ module CeWorkflows::Ac
 
       # The denial loop with 3 opportunities to send back. Built in a subroutine for reusability
       denial_loop_tasks = build_provider_outcome_denial_review_loop(
-        next_task_after_success: create_enrollment_task,
+        next_task_after_success: confirm_success_task,
         next_task_after_denial: admin_decline_gateway,
         denied_pending_trigger_config: denied_pending_trigger_config,
         assigned_status_trigger_config: assigned_status_trigger_config,
@@ -337,12 +343,18 @@ module CeWorkflows::Ac
         form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
         template_id: template.id,
         swimlane: project_staff_swimlane,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'delete_wip_enrollment',
+          },
+        ],
       )
       create_enrollment_task.connect_to!(change_provider_outcome_task)
 
       # Second denial loop kicked off by the optional Change Provider Outcome task
       second_denial_loop_tasks = build_provider_outcome_denial_review_loop(
-        next_task_after_success: confirm_success_task, # create enrollment task was already completed, so go straight to confirm success
+        next_task_after_success: confirm_success_task,
         next_task_after_denial: admin_decline_gateway,
         denied_pending_trigger_config: denied_pending_trigger_config,
         assigned_status_trigger_config: assigned_status_trigger_config,
@@ -377,12 +389,32 @@ module CeWorkflows::Ac
         swimlane: project_staff_swimlane,
         trigger_config: assigned_status_trigger_config,
       )
+      create_enrollment_task_2 = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Create Enrollment (Second)',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_enrollment',
+          },
+        ],
+      )
       provider_outcome_task_3 = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Provider Outcome (Third Attempt)',
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_3),
         template_id: template.id,
         swimlane: project_staff_swimlane,
         trigger_config: assigned_status_trigger_config,
+      )
+      create_enrollment_task_3 = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Create Enrollment (Third)',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_enrollment',
+          },
+        ],
       )
 
       # Denial Review User Tasks
@@ -412,13 +444,15 @@ module CeWorkflows::Ac
       provider_outcome_gateway_2 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_2')
       provider_outcome_task_2.connect_to!(provider_outcome_gateway_2)
       provider_outcome_gateway_2.connect_to!(denial_review_task_2, condition: 'move_forward = 0')
-      provider_outcome_gateway_2.connect_to!(next_task_after_success)
+      provider_outcome_gateway_2.connect_to!(create_enrollment_task_2)
+      create_enrollment_task_2.connect_to!(next_task_after_success)
 
       # Provider Outcome 3 => Gateway => Denial Review 3 OR Create Enrollment (Script)
       provider_outcome_gateway_3 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_3')
       provider_outcome_task_3.connect_to!(provider_outcome_gateway_3)
       provider_outcome_gateway_3.connect_to!(denial_review_task_3, condition: 'move_forward = 0')
-      provider_outcome_gateway_3.connect_to!(next_task_after_success)
+      provider_outcome_gateway_3.connect_to!(create_enrollment_task_3)
+      create_enrollment_task_3.connect_to!(next_task_after_success)
 
       # Denial Review 1 => Gateway => Decline OR send back to Provider Outcome
       denial_review_gateway_1 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'denial_review_1')

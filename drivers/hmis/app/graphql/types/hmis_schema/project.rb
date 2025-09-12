@@ -119,6 +119,7 @@ module Types
       can :perform_any_referral_tasks
       can :perform_own_referral_tasks
       can :assign_referral_tasks
+      can :update_unit_availability
       can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
@@ -206,10 +207,10 @@ module Types
       return [] unless current_permission?(entity: object, permission: :can_view_units)
 
       project_units = object.units
-      capacity = project_units.group(:unit_type_id).count
-      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
+      capacity = project_units.group(:unit_type_id).count # Map unit type to number of units
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count # Map unit type to number of unoccupied units
 
-      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
+      Hmis::UnitType.where(id: capacity.keys).order(:id).distinct.map do |unit_type|
         OpenStruct.new(
           id: unit_type.id,
           unit_type: unit_type.description,

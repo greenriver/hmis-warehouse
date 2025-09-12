@@ -764,7 +764,8 @@
                 "CHECKBOX",
                 "DROPDOWN",
                 "RADIO_BUTTONS",
-                "RADIO_BUTTONS_VERTICAL"
+                "RADIO_BUTTONS_VERTICAL",
+                "CLIENT_CE_ELIGIBILITY"
               ]
             }
           }

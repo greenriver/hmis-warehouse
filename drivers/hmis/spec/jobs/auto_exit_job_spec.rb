@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -219,6 +221,46 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+    end
+  end
+
+  describe 'auto-exit is blocked by active CE referral' do
+    before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
+
+    let(:project_type) { 1 }
+    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: project_type }
+    let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months }
+
+    def expect_no_auto_exit_for(enrollment)
+      expect do
+        Hmis::AutoExitJob.perform_now
+        enrollment.reload
+      end.not_to(change { enrollment.exit })
+    end
+
+    context 'when referral references source_enrollment' do
+      it 'does not auto-exit enrollment' do
+        # Active referral (status initialized) tied to source_enrollment blocks auto-exit
+        create :hmis_ce_referral, data_source: ds1, project: p1, client: c1, source_enrollment: e1
+        expect_no_auto_exit_for(e1)
+      end
+    end
+
+    context 'when referral references target_enrollment' do
+      let(:project_type) { 6 }
+
+      before do
+        # Make enrollment eligible for auto-exit by having an old service/contact
+        create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: Date.current - 31.days
+        # Active referral (status initialized) tied to target_enrollment blocks auto-exit
+        create :hmis_ce_referral, data_source: ds1, project: p1, client: c1, target_enrollment: e1
+      end
+
+      it 'does not auto-exit enrollment' do
+        expect_no_auto_exit_for(e1)
+      end
     end
   end
 

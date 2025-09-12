@@ -978,7 +978,8 @@ CREATE TABLE public.hmis_roles (
     can_view_client_eligible_opportunities boolean DEFAULT false,
     can_administrate_coordinated_entry boolean DEFAULT false,
     can_assign_referral_tasks boolean DEFAULT false,
-    can_print_client_case_notes boolean DEFAULT false
+    can_print_client_case_notes boolean DEFAULT false,
+    can_update_unit_availability boolean DEFAULT false
 );
 
 
@@ -4193,6 +4194,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250909182836'),
 ('20250727131402'),
 ('20250618150200'),
 ('20250523175114'),
@@ -4528,4 +4530,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20160628182622'),
 ('20160616140826'),
 ('20160615125048');
-
