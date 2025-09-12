@@ -80,14 +80,34 @@ module DatalabTestkit
       end
     end
 
-    def check_sum(question:, source:, total:)
-      sum = source.map do |cell_name|
-        raw_actual = report_result.answer(question: question, cell: cell_name).summary
-        normalize(raw_actual).to_f
-      end.reduce(:+)
-      total_actual = report_result.answer(question: question, cell: total).summary
-      total_actual = normalize(total_actual).to_f
-      expect(sum).to eq(total_actual)
+    # Validations are single rows from the validations defined in drivers/hud_apr/spec/models/fy2026/datalab_2_0_spec.rb
+    # # Internal sum (note question for total is also Q7a)
+    # { total: 'B10', source: { question: 'Q7a', expression: 'C2+C3+C4+C5' }},
+    # # Equality to constant
+    # { total: 'B10', source: { question: 'Q7b', expression: 0 }},
+    # # Cross table comparison
+    # { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
+    def check_sum(validation:, question:)
+      raw_expected_total = report_result.answer(question: question, cell: validation[:total]).summary
+      expected_total = normalize(raw_expected_total).to_f
+
+      expression = validation[:source][:expression]
+      source_question = validation[:source][:question]
+
+      # For now, all expressions are sums of cells or constants
+      # In the future, we may want to support other expressions
+      source_cells = expression.split('+')
+
+      value = 0
+      source_cells.each do |cell_name|
+        if cell_name.is_a?(Integer)
+          value += cell_name
+        else
+          raw_actual = report_result.answer(question: source_question, cell: cell_name).summary
+          value += normalize(raw_actual).to_f
+        end
+      end
+      expect(value).to eq(expected_total), "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
     end
 
     def normalize(value)

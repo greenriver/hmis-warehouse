@@ -77,6 +77,39 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     # NOTE: SPM runs subsequent DQ reports, but sets @report_result, so we'll use that if available
     @report_result || ::HudReports::ReportInstance.last
   end
+
+  # Generates a validations hash in the following format:
+  # {
+  #   'APR FY2026': {
+  #     'Q7a' => [
+  #       # Internal sum (note question for total is also Q7a)
+  #       { total: 'B10', source: { question: 'Q7a', expression: 'C2+C3+C4+C5' }},
+  #       # Equality to constant
+  #       { total: 'B10', source: { question: 'Q7b', expression: 0 }},
+  #       # Cross table comparison
+  #       { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
+  #     ],
+  #   },
+  # }
+  def validations
+    validation_source_file = 'drivers/datalab_testkit/spec/fixtures/internal_consistency_validations/tup_validations.csv'
+    validations = {}
+    return validations unless File.exist?(validation_source_file)
+
+    CSV.foreach(validation_source_file, headers: true) do |row|
+      validations[row['Report']] ||= {}
+      validations[row['Report']][row['Filename'].gsub('.csv', '')] ||= []
+      validations[row['Report']][row['Filename'].gsub('.csv', '')] << {
+        total: row['Field to validate'],
+        source: {
+          # NOTE: this will be getting a new column soon
+          question: row['Filename'].gsub('.csv', ''),
+          expression: row['Values to check against'],
+        },
+      }
+    end
+    validations
+  end
 end
 
 RSpec.configure do |rspec|
