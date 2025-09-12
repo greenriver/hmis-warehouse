@@ -8,7 +8,9 @@
 
 module Mutations
   class Ce::CalculateClientCeEligibility < CleanBaseMutation
-    # Does not mutate data, but implemented as a mutation in order to use CleanBaseMutation's validation error pattern.
+    # Calculates provisional client eligibility, based on the form values provided.
+    # Does not result in the client actually becoming a Candidate for any opportunities.
+    # Does not mutate data. Implemented as a mutation in order to use CleanBaseMutation's validation error pattern.
 
     description 'Calculate client eligibility based on provided assessment values and return applicable project types'
 
@@ -41,6 +43,11 @@ module Mutations
 
     private
 
+    ALWAYS_OVERRIDE = {
+      # Custom fields that should always be overridden when calculating provisional client eligibility. (#8129)
+      'housing_needs_post_referrals_to_waitlist': 'Yes',
+    }.stringify_keys.freeze
+
     def build_overrides(values_by_link_id, form_definition_id)
       # Get the form definition to map from link_id to custom_field_key
       form_definition = Hmis::Form::Definition.find(form_definition_id)
@@ -50,6 +57,9 @@ module Mutations
         form_item = form_definition.link_id_item_hash[link_id]
         custom_field_key = form_item&.dig('mapping', 'custom_field_key')
         next unless custom_field_key
+
+        # If this field is present in the ALWAYS_OVERRIDE map, use that override value instead of whatever was submitted
+        next ["cde.custom_assessment.#{custom_field_key}", ALWAYS_OVERRIDE[custom_field_key]] if ALWAYS_OVERRIDE.key?(custom_field_key)
 
         # Map to CDE field format for CE evaluation - see FieldMap
         ["cde.custom_assessment.#{custom_field_key}", value]
