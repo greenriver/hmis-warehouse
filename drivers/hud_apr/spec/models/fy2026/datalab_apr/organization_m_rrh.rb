@@ -130,7 +130,7 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q12' do # Skipped until we have a new text kit
+    it 'Q12' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
@@ -291,14 +291,14 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q22f' do # Skipped until we have a new text kit
+    it 'Q22f' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
       )
     end
 
-    xit 'Q22g' do # Skipped until we have a new text kit
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
@@ -322,7 +322,7 @@ RSpec.shared_context 'datalab organization m rrh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q23e' do # Skipped until we have a new text kit
+    it 'Q23e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
