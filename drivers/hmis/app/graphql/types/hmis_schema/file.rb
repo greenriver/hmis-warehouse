@@ -52,7 +52,8 @@ module Types
         # Use service url in dev to avoid CORS issues
         return object.client_file.blob.url if Rails.env.development?
 
-        Rails.application.routes.url_helpers.rails_blob_url(object.client_file, only_path: true)
+        # TODO(#8123) Re-enable File previews and download URLs
+        nil
       end
     end
 
