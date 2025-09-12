@@ -27,6 +27,20 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
     { 'ORIGIN' => 'https://hmis.dev.test' }
   end
 
+  ACTIVE_STORAGE_URL_REGEX = /\Ahttps?:\/\/[^\/]+\/rails\/active_storage\/(disk|blobs)\//
+
+  def get_file_path_for(file_id, params: {})
+    get hmis_client_file_path(client_id: c1.id, id: file_id), params: params, headers: request_headers
+  end
+
+  def expect_active_storage_redirect
+    expect(response).to have_http_status(:found)
+    location = response.headers['Location']
+    expect(location).to be_present
+    expect(location).to match(ACTIVE_STORAGE_URL_REGEX)
+    location
+  end
+
   describe 'GET /hmis/clients/:client_id/files/:id' do
     context 'when not authenticated' do
       it 'returns 401' do
@@ -51,22 +65,19 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
       end
 
       it 'redirects to an ActiveStorage service URL for nonconfidential file' do
-        get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: request_headers
-        expect(response).to have_http_status(:found)
-        location = response.headers['Location']
-        expect(location).to be_present
-        expect(location).to match(/\Ahttps?:\/\/[^\/]+\/rails\/active_storage\/(disk|blobs)\//)
+        get_file_path_for(nonconfidential_file.id)
+        expect_active_storage_redirect
       end
 
       it 'respects disposition=attachment in final response headers' do
-        get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), params: { disposition: 'attachment' }, headers: request_headers
+        get_file_path_for(nonconfidential_file.id, params: { disposition: 'attachment' })
         expect(response).to have_http_status(:found)
         follow_redirect!
         expect(response.headers['Content-Disposition']).to include('attachment')
       end
 
       it 'defaults to inline disposition when param is missing' do
-        get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: request_headers
+        get_file_path_for(nonconfidential_file.id)
         expect(response).to have_http_status(:found)
         follow_redirect!
         expect(response.headers['Content-Disposition']).to include('inline')
@@ -84,11 +95,8 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
         end
 
         it 'redirects to an ActiveStorage service URL for confidential file' do
-          get hmis_client_file_path(client_id: c1.id, id: confidential_file.id), headers: request_headers
-          expect(response).to have_http_status(:found)
-          location = response.headers['Location']
-          expect(location).to be_present
-          expect(location).to match(/\Ahttps?:\/\/[^\/]+\/rails\/active_storage\/(disk|blobs)\//)
+          get_file_path_for(confidential_file.id)
+          expect_active_storage_redirect
         end
       end
 
@@ -99,11 +107,8 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
 
         it 'redirects to an ActiveStorage service URL for user-owned confidential file' do
           owned_confidential = create(:file, client: c1, user: hmis_user, confidential: true, blob: blob)
-          get hmis_client_file_path(client_id: c1.id, id: owned_confidential.id), headers: request_headers
-          expect(response).to have_http_status(:found)
-          location = response.headers['Location']
-          expect(location).to be_present
-          expect(location).to match(/\Ahttps?:\/\/[^\/]+\/rails\/active_storage\/(disk|blobs)\//)
+          get_file_path_for(owned_confidential.id)
+          expect_active_storage_redirect
         end
       end
     end
