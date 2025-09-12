@@ -45,7 +45,8 @@ module Mutations
 
     ALWAYS_OVERRIDE = {
       # Custom fields that should always be overridden when calculating provisional client eligibility. (#8129)
-      'housing_needs_post_referrals_to_waitlist': 'Yes',
+      'cde.custom_assessment.housing_needs_post_referrals_to_waitlist': 'Yes',
+      'custom_assessment.prevention_assessment_questions.date_created': Date.current,
     }.stringify_keys.freeze
 
     def build_overrides(values_by_link_id, form_definition_id)
@@ -63,7 +64,7 @@ module Mutations
 
         # Map to CDE field format for CE evaluation - see FieldMap
         ["cde.custom_assessment.#{custom_field_key}", value]
-      end.to_h
+      end.to_h.merge(ALWAYS_OVERRIDE)
     end
 
     def calculate_eligible_project_types(client, field_value_overrides)
