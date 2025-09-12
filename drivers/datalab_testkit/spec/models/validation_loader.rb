@@ -9,7 +9,7 @@
 module ValidationLoader
   # Load validations for dynamic test generation at class level
   def self.load_validations
-    validation_source_file = 'drivers/datalab_testkit/spec/fixtures/internal_consistency_validations/tup_validations.csv'
+    validation_source_file = 'drivers/datalab_testkit/spec/fixtures/results/internal_consistency_validations/tup_validations.csv'
     validations = {}
 
     if File.exist?(validation_source_file)
