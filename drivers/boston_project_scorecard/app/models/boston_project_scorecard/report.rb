@@ -316,6 +316,8 @@ module BostonProjectScorecard
       apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
 
+      raise 'APR not completed' unless apr.reload.completed?
+
       apr
     end
 
@@ -347,6 +349,8 @@ module BostonProjectScorecard
       generator = apr_generator
       apr = HudReports::ReportInstance.from_filter(comparison_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
+
+      raise 'APR Comparison not completed' unless apr.reload.completed?
 
       apr
     end
