@@ -48,7 +48,9 @@ module Types
 
     def url
       unless_redacted do
-        return hmis_client_file_path(client_id: object.client_id, id: object.id) if object.client_file.attached?
+        return unless object.client_file.attached?
+
+        Rails.application.routes.url_helpers.hmis_client_file_path(client_id: object.client_id, id: object.id)
       end
     end
 

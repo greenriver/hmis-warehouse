@@ -1,4 +1,3 @@
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -22,9 +21,9 @@ module Hmis
 
     def redacted?(file)
       return false unless file.confidential
-      return false if file.user_id == current_user.id && current_user.can_manage_own_client_files_for?(file)
+      return false if file.user_id == current_hmis_user.id && current_hmis_user.can_manage_own_client_files_for?(file)
 
-      !current_user.can_view_any_confidential_client_files_for?(file)
+      !current_hmis_user.can_view_any_confidential_client_files_for?(file)
     end
 
     def object_url(file)
@@ -41,7 +40,7 @@ module Hmis
 
     def file_disposition
       dispositions = ['inline', 'attachment']
-      params[:disposition].presence_in?(dispositions) || dispositions.first
+      params[:disposition].presence_in(dispositions) || dispositions.first
     end
 
     def object_file_name(file)
