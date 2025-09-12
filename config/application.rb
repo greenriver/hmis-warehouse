@@ -177,6 +177,6 @@ module BostonHmis
 
     # Maintain Rails 7.0 behavior for specific settings
     config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
-    config.active_record.default_column_serializer = 'YAML' # Keep historic behavior
+    config.active_record.default_column_serializer = YAML # Keep historic behavior
   end
 end

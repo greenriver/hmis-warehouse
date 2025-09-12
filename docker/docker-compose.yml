@@ -29,6 +29,7 @@ x-app: &app
     CHROME_URL: http://chrome:3333
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
+    RUBYOPT: "--disable-frozen-string-literal"
 
   env_file:
     - .env.development.local
