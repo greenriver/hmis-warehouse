@@ -88,6 +88,7 @@ module DatalabTestkit
     # # Cross table comparison
     # { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
     def check_sum(validation:, question:)
+      # puts "Checking sum for #{question} #{validation[:total]}"
       raw_expected_total = report_result.answer(question: question, cell: validation[:total]).summary
       expected_total = normalize(raw_expected_total).to_f
 

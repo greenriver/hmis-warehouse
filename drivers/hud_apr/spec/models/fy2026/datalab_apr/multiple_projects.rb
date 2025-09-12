@@ -26,15 +26,17 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       #     'B2', # expected '27.0000' (27), got '26.0000' (26)
       #   ],
       # }
-      validation_skips = {}
-      apr_validations = ValidationLoader.load_validations['APR FY2026']
+      let(:validation_skips) { {} }
+      let(:apr_validations) { ValidationLoader.load_validations['APR FY2026'] }
 
-      apr_validations.each do |question, table_validations|
-        table_validations.each do |validation|
-          next if validation_skips[question]&.include?(validation[:total])
+      it 'runs all validation checks' do
+        apr_validations.each do |question, table_validations|
+          table_validations.each do |validation|
+            next if validation_skips[question]&.include?(validation[:total])
 
-          it "#{question} #{validation[:total]}" do
-            check_sum(validation: validation, question: question)
+            aggregate_failures do
+              check_sum(validation: validation, question: question)
+            end
           end
         end
       end
