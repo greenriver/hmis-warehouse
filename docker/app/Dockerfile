@@ -31,7 +31,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG USER_ID=10000
 ARG GROUP_ID=10000
-ARG BUNDLER_VERSION=2.6.3
+ARG BUNDLER_VERSION=2.7.2
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=3.4.5
