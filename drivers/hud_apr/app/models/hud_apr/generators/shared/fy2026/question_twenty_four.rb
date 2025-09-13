@@ -130,13 +130,15 @@ module HudApr::Generators::Shared::Fy2026
         'Jail/prison' => a_t[:housing_assessment].eq(7),
         'Deceased' => a_t[:housing_assessment].eq(10),
         label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
-        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
-        'Total' => leavers_clause.and(a_t[:housing_assessment].eq(99).or(valid_subsidy_information_clause)), # must have valid subsidy information
+        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(a_t[:housing_assessment].eq(nil)),
+        'Total' => a_t[:housing_assessment].eq(99).
+          or(a_t[:housing_assessment].eq(nil)).
+          or(valid_subsidy_information_clause), # must have valid subsidy information
       }.freeze
     end
 
     private def valid_subsidy_information_clause
-      a_t[:housing_assessment].in([3, 4, 5, 6, 7, 10, 8, 9, 99]).or(
+      a_t[:housing_assessment].in([3, 4, 5, 6, 7, 10, 8, 9]).or(
         a_t[:housing_assessment].eq(1).and(a_t[:subsidy_information].in([1, 2, 3, 4])),
       ).or(
         a_t[:housing_assessment].eq(2).and(a_t[:subsidy_information].in([11, 12])),

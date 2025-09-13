@@ -48,6 +48,44 @@ module DatalabTestkit
       end
     end
 
+    # Compares the results of a single question against expected goal data from a CSV file.
+    # This method validates that the report output matches the expected values cell by cell.
+    #
+    # @param goal [Array<Array>] Optional pre-loaded goal data. If not provided, will load from CSV
+    # @param file_path [String] Path to directory containing the goal CSV file
+    # @param question [String] The report question identifier (e.g., 'Q7a', 'Q24')
+    # @param skip [Array<String>] Cell names to skip during comparison (e.g., ['A1', 'B5'])
+    # @param external_column_header [Boolean] True if CSV has header row that's not part of the table data
+    # @param external_row_label [Boolean] True if CSV has row labels that are outside the actual table
+    # @param csv_name [String] Custom CSV filename, defaults to "#{question}.csv"
+    # @param detail_columns [Array<String>] Column names to include in error messages for debugging
+    #
+    # @example Basic usage
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q7a'
+    #   )
+    #
+    # @example Skip problematic cells
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q24',
+    #     skip: ['A1', 'B1'] # Skip cells that have known issues
+    #   )
+    #
+    # @example Debug with detail columns (shows underlying data when assertions fail)
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q7a',
+    #     detail_columns: [:personal_id, :first_date_in_program, :last_date_in_program] # Shows these fields in error messages
+    #   )
+    #
+    # @example Custom CSV filename
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q7a',
+    #     csv_name: 'custom_goals.csv' # Use different filename than default Q7a.csv
+    #   )
     def compare_results(goal: nil, file_path:, question:, skip: [], external_column_header: false, external_row_label: false, csv_name: nil, detail_columns: [])
       goal ||= goals(file_path: file_path, question: question, csv_name: csv_name, external_column_header: external_column_header)
 
