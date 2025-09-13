@@ -15,12 +15,23 @@ module ValidationLoader
     if File.exist?(validation_source_file)
       CSV.foreach(validation_source_file, headers: true) do |row|
         validations[row['Report']] ||= {}
-        validations[row['Report']][row['Filename'].gsub('.csv', '')] ||= []
-        validations[row['Report']][row['Filename'].gsub('.csv', '')] << {
+        # Remove the CSV extension and capitalize the first letter to match the warehouse question names
+        question = row['Filename'].gsub('.csv', '').sub('q', 'Q')
+        source_question = row['Filename'].gsub('.csv', '').sub('q', 'Q')
+
+        # -1 means all project types are applicable
+        project_types = if row['Applicable project types'] == '-1'
+          HudUtility2026.project_types.keys.freeze
+        else
+          row['Applicable project types'].split(',').map(&:to_i)
+        end
+        validations[row['Report']][question] ||= []
+        validations[row['Report']][question] << {
           total: row['Field to validate'],
           source: {
-            question: row['Filename'].gsub('.csv', ''),
+            question: source_question,
             expression: row['Values to check against'],
+            relevant_project_types: project_types,
           },
         }
       end

@@ -88,7 +88,6 @@ module DatalabTestkit
     # # Cross table comparison
     # { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
     def check_sum(validation:, question:)
-      # puts "Checking sum for #{question} #{validation[:total]}"
       raw_expected_total = report_result.answer(question: question, cell: validation[:total]).summary
       expected_total = normalize(raw_expected_total).to_f
 
@@ -101,13 +100,17 @@ module DatalabTestkit
 
       value = 0
       source_cells.each do |cell_name|
-        if cell_name.is_a?(Integer)
-          value += cell_name
+        # Integer cells are stored as strings, so we need to check if the string is an integer
+        if cell_name.to_i.to_s == cell_name
+          value += normalize(cell_name).to_f
         else
+          puts cell_name
           raw_actual = report_result.answer(question: source_question, cell: cell_name).summary
           value += normalize(raw_actual).to_f
         end
       end
+      # puts validation.inspect
+      # puts "Checking sum for #{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
       expect(value).to eq(expected_total), "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
     end
 

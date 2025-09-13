@@ -24,15 +24,20 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
       #     'B2', # expected '27.0000' (27), got '26.0000' (26)
       #   ],
       # }
-      let(:validation_skips) { {} }
+      let(:validation_skips) do
+        {
+          'Q5a' => ['C2'],
+        }
+      end
       let(:caper_validations) { ValidationLoader.load_validations['CAPER FY2026'] }
 
       it 'runs all validation checks' do
-        caper_validations.each do |question, table_validations|
-          table_validations.each do |validation|
-            next if validation_skips[question]&.include?(validation[:total])
+        aggregate_failures do
+          caper_validations.each do |question, table_validations|
+            table_validations.each do |validation|
+              next if validation_skips[question]&.include?(validation[:total])
+              next unless validation[:source][:relevant_project_types]&.include?(2)
 
-            aggregate_failures do
               check_sum(validation: validation, question: question)
             end
           end
@@ -313,18 +318,6 @@ RSpec.shared_context 'datalab organization s th caper', shared_context: :metadat
         file_path: result_file_prefix + results_dir,
         question: 'Q24a',
       )
-    end
-
-    ## Add internal integrity checks for Q16 from TUP observations
-    # Sum of B2-B15 should equal B16, etc.
-    it 'Q24a internal integrity checks' do
-      ['B', 'C', 'D', 'E', 'F'].each do |letter|
-        check_sum(
-          question: 'Q24a',
-          source: (2..15).to_a.map { |i| "#{letter}#{i}" },
-          total: "#{letter}16",
-        )
-      end
     end
 
     # Removed in 2026

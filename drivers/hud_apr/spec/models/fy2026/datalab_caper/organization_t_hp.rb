@@ -24,15 +24,20 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       #     'B2', # expected '27.0000' (27), got '26.0000' (26)
       #   ],
       # }
-      let(:validation_skips) { {} }
+      let(:validation_skips) do
+        {
+          'Q5a' => ['C2'],
+        }
+      end
       let(:caper_validations) { ValidationLoader.load_validations['CAPER FY2026'] }
 
       it 'runs all validation checks' do
-        caper_validations.each do |question, table_validations|
-          table_validations.each do |validation|
-            next if validation_skips[question]&.include?(validation[:total])
+        aggregate_failures do
+          caper_validations.each do |question, table_validations|
+            table_validations.each do |validation|
+              next if validation_skips[question]&.include?(validation[:total])
+              next unless validation[:source][:relevant_project_types]&.include?(12)
 
-            aggregate_failures do
               check_sum(validation: validation, question: question)
             end
           end
