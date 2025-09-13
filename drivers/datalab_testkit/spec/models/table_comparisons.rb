@@ -104,7 +104,6 @@ module DatalabTestkit
         if cell_name.to_i.to_s == cell_name
           value += normalize(cell_name).to_f
         else
-          puts cell_name
           raw_actual = report_result.answer(question: source_question, cell: cell_name).summary
           value += normalize(raw_actual).to_f
         end

@@ -131,7 +131,7 @@ module HudApr::Generators::Shared::Fy2026
         'Deceased' => a_t[:housing_assessment].eq(10),
         label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
         'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
-        'Total' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(valid_subsidy_information_clause)), # must have valid subsidy information
+        'Total' => leavers_clause.and(a_t[:housing_assessment].eq(99).or(valid_subsidy_information_clause)), # must have valid subsidy information
       }.freeze
     end
 
