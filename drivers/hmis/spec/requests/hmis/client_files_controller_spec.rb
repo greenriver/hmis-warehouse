@@ -19,7 +19,6 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
     )
   end
 
-  # let!(:client) { create(:hmis_hud_client, data_source: ds1, user: u1) }
   let!(:nonconfidential_file) do
     create(:file, client: c1, user: hmis_user, confidential: false, blob: blob, name: 'Public.pdf')
   end
@@ -89,6 +88,14 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
         expect(response).to have_http_status(:found)
         follow_redirect!
         expect(response.headers['Content-Disposition']).to include('inline')
+      end
+
+      it 'returns 404 when file belongs to a different client' do
+        other_client = create(:hmis_hud_client, data_source: ds1, user: u1)
+        other_clients_file = create(:file, client: other_client, user: hmis_user, confidential: false, blob: blob)
+
+        get hmis_client_file_path(client_id: c1.id, id: other_clients_file.id), headers: request_headers
+        expect(response).to have_http_status(:not_found)
       end
 
       it 'returns 404 for confidential file without confidential permission' do

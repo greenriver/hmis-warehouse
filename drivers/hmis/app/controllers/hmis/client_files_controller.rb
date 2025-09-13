@@ -29,7 +29,7 @@ module Hmis
       !current_hmis_user.can_view_any_confidential_client_files_for?(file)
     end
 
-    # returns the direct url to the active storage file with a short expiration 
+    # returns the direct url to the active storage file with a short expiration
     def object_url(file)
       file.client_file.blob.url(
         filename: object_file_name(file),
@@ -54,7 +54,8 @@ module Hmis
 
     def load_authorized_client_file
       client = Hmis::Hud::Client.viewable_by(current_hmis_user).find(params[:client_id])
-      Hmis::File.viewable_by(current_hmis_user, client_ids: [client.id]).find(params[:id])
+      Hmis::File.where(client: client).
+        viewable_by(current_hmis_user, client_ids: [client.id]).find(params[:id])
     end
   end
 end
