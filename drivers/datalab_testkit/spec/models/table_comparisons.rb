@@ -48,6 +48,44 @@ module DatalabTestkit
       end
     end
 
+    # Compares the results of a single question against expected goal data from a CSV file.
+    # This method validates that the report output matches the expected values cell by cell.
+    #
+    # @param goal [Array<Array>] Optional pre-loaded goal data. If not provided, will load from CSV
+    # @param file_path [String] Path to directory containing the goal CSV file
+    # @param question [String] The report question identifier (e.g., 'Q7a', 'Q24')
+    # @param skip [Array<String>] Cell names to skip during comparison (e.g., ['A1', 'B5'])
+    # @param external_column_header [Boolean] True if CSV has header row that's not part of the table data
+    # @param external_row_label [Boolean] True if CSV has row labels that are outside the actual table
+    # @param csv_name [String] Custom CSV filename, defaults to "#{question}.csv"
+    # @param detail_columns [Array<String>] Column names to include in error messages for debugging
+    #
+    # @example Basic usage
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q7a'
+    #   )
+    #
+    # @example Skip problematic cells
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q24',
+    #     skip: ['A1', 'B1'] # Skip cells that have known issues
+    #   )
+    #
+    # @example Debug with detail columns (shows underlying data when assertions fail)
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q7a',
+    #     detail_columns: [:personal_id, :first_date_in_program, :last_date_in_program] # Shows these fields in error messages
+    #   )
+    #
+    # @example Custom CSV filename
+    #   compare_results(
+    #     file_path: 'spec/fixtures/datalab_caper',
+    #     question: 'Q7a',
+    #     csv_name: 'custom_goals.csv' # Use different filename than default Q7a.csv
+    #   )
     def compare_results(goal: nil, file_path:, question:, skip: [], external_column_header: false, external_row_label: false, csv_name: nil, detail_columns: [])
       goal ||= goals(file_path: file_path, question: question, csv_name: csv_name, external_column_header: external_column_header)
 
@@ -80,14 +118,37 @@ module DatalabTestkit
       end
     end
 
-    def check_sum(question:, source:, total:)
-      sum = source.map do |cell_name|
-        raw_actual = report_result.answer(question: question, cell: cell_name).summary
-        normalize(raw_actual).to_f
-      end.reduce(:+)
-      total_actual = report_result.answer(question: question, cell: total).summary
-      total_actual = normalize(total_actual).to_f
-      expect(sum).to eq(total_actual)
+    # Validations are single rows from the validations defined in drivers/hud_apr/spec/models/fy2026/datalab_2_0_spec.rb
+    # # Internal sum (note question for total is also Q7a)
+    # { total: 'B10', source: { question: 'Q7a', expression: 'C2+C3+C4+C5' }},
+    # # Equality to constant
+    # { total: 'B10', source: { question: 'Q7b', expression: 0 }},
+    # # Cross table comparison
+    # { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
+    def check_sum(validation:, question:)
+      raw_expected_total = report_result.answer(question: question, cell: validation[:total]).summary
+      expected_total = normalize(raw_expected_total).to_f
+
+      expression = validation[:source][:expression]
+      source_question = validation[:source][:question]
+
+      # For now, all expressions are sums of cells or constants
+      # In the future, we may want to support other expressions
+      source_cells = expression.split('+')
+
+      value = 0
+      source_cells.each do |cell_name|
+        # Integer cells are stored as strings, so we need to check if the string is an integer
+        if cell_name.to_i.to_s == cell_name
+          value += normalize(cell_name).to_f
+        else
+          raw_actual = report_result.answer(question: source_question, cell: cell_name).summary
+          value += normalize(raw_actual).to_f
+        end
+      end
+      # puts validation.inspect
+      # puts "Checking sum for #{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
+      expect(value).to eq(expected_total), "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
     end
 
     def normalize(value)
