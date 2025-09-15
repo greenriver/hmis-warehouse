@@ -130,7 +130,11 @@ module HudApr::Generators::Shared::Fy2026
         'Jail/prison' => a_t[:housing_assessment].eq(7),
         'Deceased' => a_t[:housing_assessment].eq(10),
         label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
-        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(a_t[:housing_assessment].eq(nil)),
+        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).
+          or(a_t[:housing_assessment].eq(nil).
+          # Bad data, as noted in the test kit goes in DNC
+          or(a_t[:housing_assessment].eq(1).and(a_t[:subsidy_information].not_in([1, 2, 3, 4])))).
+          or(a_t[:housing_assessment].eq(2).and(a_t[:subsidy_information].not_in([11, 12]))),
         'Total' => a_t[:housing_assessment].eq(99).
           or(a_t[:housing_assessment].eq(nil)).
           or(valid_subsidy_information_clause), # must have valid subsidy information
