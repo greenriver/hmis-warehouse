@@ -11,8 +11,8 @@ module Types
     description 'HUD Project Types'
     graphql_name 'ProjectType'
 
-    HudUtility2026.hmis_project_type_keys.each do |number, identifier|
-      description = HudUtility2026.project_type(number)
+    Hud.util('2026').hmis_project_type_keys.each do |number, identifier|
+      description = Hud.util('2026').project_type(number)
       description = description.sub(/\s*\(.+\)$/, '')
 
       value identifier, description, value: number

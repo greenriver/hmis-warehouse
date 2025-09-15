@@ -14,9 +14,9 @@
     %td
       = f.input :DOB, as: :date_picker, label: false
     %td
-      = f.input :Gender, collection: HudUtilityCurrent.genders.invert, label: false
-    %td= client.race_fields.map{ |f| HudUtilityCurrent.race f }.join ', '
+      = f.input :Gender, collection: Hud.util.genders.invert, label: false
+    %td= client.race_fields.map{ |f| Hud.util.race f }.join ', '
     %td
-      = f.input :VeteranStatus, collection: HudUtilityCurrent.no_yes_reasons_for_missing_data_options.invert, label: false
+      = f.input :VeteranStatus, collection: Hud.util.no_yes_reasons_for_missing_data_options.invert, label: false
     %td
       = f.submit value: 'Save', class: 'btn btn-secondary'

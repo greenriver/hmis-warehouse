@@ -100,7 +100,7 @@ module HudSpmReport::Generators::Fy2023
 
     def project_type_numbers(project_type_codes)
       project_type_codes.flat_map do |code|
-        HudUtility2024.project_type_number_from_code(code)
+        Hud.util('2024').project_type_number_from_code(code)
       end
     end
 

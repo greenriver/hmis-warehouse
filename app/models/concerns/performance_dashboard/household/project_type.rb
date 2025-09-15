@@ -10,15 +10,15 @@ module PerformanceDashboard::Household::ProjectType
   extend ActiveSupport::Concern
 
   private def project_type_buckets
-    buckets = HudUtilityCurrent.project_types.keys
-    buckets & HudUtilityCurrent.performance_reporting.values.flatten
+    buckets = Hud.util.project_types.keys
+    buckets & Hud.util.performance_reporting.values.flatten
   end
 
   def project_type_bucket_titles
     project_type_buckets.map do |key|
       [
         key,
-        HudUtilityCurrent.project_type(key),
+        Hud.util.project_type(key),
       ]
     end.to_h
   end

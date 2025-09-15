@@ -14,7 +14,7 @@
 module GrdaWarehouse::Tasks
   class DmhChronicallyHomeless < ChronicallyHomeless
     include TsqlImport
-    RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = HudUtilityCurrent.residential_project_type_ids - HudUtilityCurrent.chronic_project_types
+    RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = Hud.util.residential_project_type_ids - Hud.util.chronic_project_types
 
     def run!
       Rails.logger.info '====DRY RUN====' if @dry_run

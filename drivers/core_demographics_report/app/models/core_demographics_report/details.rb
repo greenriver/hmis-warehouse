@@ -97,13 +97,13 @@ module
     end
 
     private def gender_headers
-      headers = HudUtilityCurrent.gender_field_name_label.dup
+      headers = Hud.util.gender_field_name_label.dup
       headers[:GenderNone] = 'Unknown Gender'
       headers.values
     end
 
     private def gender_columns
-      HudUtilityCurrent.gender_field_name_label.keys.map do |col|
+      Hud.util.gender_field_name_label.keys.map do |col|
         c_t[col]
       end
     end
@@ -111,15 +111,15 @@ module
     def detail_column_display(header:, column:, project_id:)
       case header
       when 'Project Type'
-        HudUtilityCurrent.project_type(column)
+        Hud.util.project_type(column)
       when 'CoC'
-        HudUtilityCurrent.coc_name(column)
+        Hud.util.coc_name(column)
       when *gender_headers
-        HudUtilityCurrent.no_yes_reasons_for_missing_data(column)
+        Hud.util.no_yes_reasons_for_missing_data(column)
       when 'Relationship To HoH'
-        HudUtilityCurrent.relationship_to_hoh(column)
+        Hud.util.relationship_to_hoh(column)
       when 'Destination'
-        HudUtilityCurrent.destination(column)
+        Hud.util.destination(column)
       else
         pii_policy = filter.user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
         pii_value(col: header, raw_value: column, pii_policy: pii_policy)

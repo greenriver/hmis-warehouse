@@ -47,7 +47,7 @@ module WarehouseReports
     end
 
     def first_time_homeless_client_ids
-      @filter.project_type_codes = HudUtilityCurrent.homeless_project_type_codes unless @filter.project_type_ids.present?
+      @filter.project_type_codes = Hud.util.homeless_project_type_codes unless @filter.project_type_ids.present?
       @first_time_homeless_client_ids ||= begin
         ids = []
         # Ensure first project also has services in the correct project type

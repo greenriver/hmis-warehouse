@@ -78,14 +78,14 @@ module Types
 
         'Contact Information'
       when 'Hmis::Hud::Disability'
-        HudUtilityCurrent.disability_type(item_attributes['DisabilityType']) || 'Disability'
+        Hud.util.disability_type(item_attributes['DisabilityType']) || 'Disability'
       when 'Hmis::Hud::CustomDataElement'
         # Try to label Custom Data Elements based on their definition label
         definition_id = item_attributes['data_element_definition_id']
         custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       when 'Hmis::Hud::CustomAssessment'
         # Label Assessment by name (eg "Exit Assessment")
-        HudUtilityCurrent.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
+        Hud.util.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
           custom_assessment_title ||
           'Assessment'
       else

@@ -97,7 +97,7 @@ module HudPit::Generators::Pit::Fy2023
           household_ages = ages_for(hh_id, @generator.filter.on)
           household_type = household_types[hh_id]
           # https://files.hudexchange.info/resources/documents/Reporting-Gender-for-the-PIT-Count.pdf
-          pit_gender = HudUtility.gender(source_client.gender_binary)
+          pit_gender = Hud.util('legacy').gender(source_client.gender_binary)
           # Only count clients once (where one category is Multiple Races)
           pit_race = source_client.pit_race
           processed_source_clients << source_client.id

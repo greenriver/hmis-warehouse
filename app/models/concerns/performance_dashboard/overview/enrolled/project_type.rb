@@ -31,10 +31,10 @@ module PerformanceDashboard::Overview::Enrolled::ProjectType
       columns = [@filter.date_range_words]
       columns += enrolled_by_project_type.values.map(&:count)
       categories = enrolled_by_project_type.keys
-      categories &= HudUtilityCurrent.performance_reporting.values.flatten
+      categories &= Hud.util.performance_reporting.values.flatten
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtilityCurrent.project_type(s)] }.to_h,
+          labels: categories.map { |s| [s, Hud.util.project_type(s)] }.to_h,
           chosen: @project_types,
           columns: columns,
           categories: categories,
@@ -56,7 +56,7 @@ module PerformanceDashboard::Overview::Enrolled::ProjectType
     details = details.where(project_type_query(sub_key)) if sub_key
     details.pluck(*detail_columns(options).values).
       map do |row|
-        row[-1] = "#{HudUtilityCurrent.project_type(row.last)} (#{row.last})"
+        row[-1] = "#{Hud.util.project_type(row.last)} (#{row.last})"
         row
       end.
       index_by(&:first)

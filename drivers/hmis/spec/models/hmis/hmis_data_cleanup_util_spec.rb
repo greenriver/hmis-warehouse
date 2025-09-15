@@ -159,8 +159,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
   end
 
   context 'clients with badly formatted race/gender data' do
-    let!(:race_fields) { HudUtilityCurrent.races.keys.excluding('RaceNone') }
-    let!(:gender_fields) { HudUtilityCurrent.gender_fields.excluding(:GenderNone) }
+    let!(:race_fields) { Hud.util.races.keys.excluding('RaceNone') }
+    let!(:gender_fields) { Hud.util.gender_fields.excluding(:GenderNone) }
 
     context 'when the client has some race/gender fields specified' do
       let!(:c1_with_race_and_gender) do

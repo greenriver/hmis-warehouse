@@ -9,33 +9,33 @@ module ReportGenerators::SystemPerformance::Fy2019
     LOOKBACK_STOP_DATE = '2012-10-01'
 
     # PH = [3,9,10,13]
-    PH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
+    PH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:th).flatten(1)
+    TH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = HudUtility2024.residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
+    SH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
     # SO = [4]
-    SO = HudUtility2024.residential_project_type_numbers_by_code.values_at(:so).flatten(1)
+    SO = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
 
-    def run!(debug=false)
+    def run!(debug = false)
       @debug = debug
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
-        calculate()
-        Rails.logger.info "Done"
+        calculate
+        Rails.logger.info 'Done'
       end # End silence ActiveRecord Log
     end
 
     def calculate
       if start_report(Reports::SystemPerformance::Fy2019::MeasureOne.first)
-        set_report_start_and_end()
+        set_report_start_and_end
         # Overview: Calculate the length of time each client has been homeless within a window
         # Column B is the distinct clients homeless
         # Column D is the Average of the total time homeless
         # Column G is the Median of the total time homeless
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
 
         # Relevant Project Types/Program Types
@@ -57,23 +57,22 @@ module ReportGenerators::SystemPerformance::Fy2019
         # Line 2 looks at (1, 8, 2)
 
         Rails.logger.info "Starting report #{@report.report.name}"
-        add_one_a_answers()
+        add_one_a_answers
         update_report_progress(percent: 50)
 
-        add_one_b_answers()
+        add_one_b_answers
 
         Rails.logger.info @answers.inspect
 
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
     end
 
     def add_one_a_answers
-      calculate_one_a_es_sh()
-      calculate_one_a_es_sh_th()
-
+      calculate_one_a_es_sh
+      calculate_one_a_es_sh_th
     end
 
     def calculate_one_a_es_sh
@@ -93,9 +92,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
-        if homeless_day_count > 0
-          clients[id] = homeless_day_count
-        end
+        clients[id] = homeless_day_count if homeless_day_count > 0
         if index % 100 == 0 && index != 0
           # save our progress, divide by two because we need to loop over these again
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
@@ -104,21 +101,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
-        @answers[:onea_c2][:value] = clients.size
-        @support[:onea_c2][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end
-        }
-        @answers[:onea_e2][:value] = clients.values.reduce(:+) / (clients.size)
-        @answers[:onea_h2][:value] = median(clients.values)
-      end
+      return unless clients.size > 0
+
+      @answers[:onea_c2][:value] = clients.size
+      @support[:onea_c2][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:onea_e2][:value] = clients.values.reduce(:+) / clients.size
+      @answers[:onea_h2][:value] = median(clients.values)
     end
 
     def calculate_one_a_es_sh_th
@@ -137,9 +134,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
-        if homeless_day_count > 0
-          clients[id] = homeless_day_count
-        end
+        clients[id] = homeless_day_count if homeless_day_count > 0
         if index % 100 == 0 && index != 0
           # save our progress, start at 50% because we've already run through once
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
@@ -148,26 +143,26 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
-        @answers[:onea_c3][:value] = clients.count
-        @support[:onea_c3][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end
-        }
-        @answers[:onea_e3][:value] = clients.values.reduce(:+) / (clients.count)
-        @answers[:onea_h3][:value] = median(clients.values)
-      end
+      return unless clients.size > 0
+
+      @answers[:onea_c3][:value] = clients.count
+      @support[:onea_c3][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:onea_e3][:value] = clients.values.reduce(:+) / clients.count
+      @answers[:onea_h3][:value] = median(clients.values)
     end
 
     def add_one_b_answers
-      calculate_one_b_es_sh_ph()
-      calculate_one_b_es_sh_th_ph()
+      calculate_one_b_es_sh_ph
+      calculate_one_b_es_sh_th_ph
     end
 
     def calculate_one_b_es_sh_ph
@@ -196,9 +191,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true, true)
-        if homeless_day_count > 0
-          clients[id] = homeless_day_count
-        end
+        clients[id] = homeless_day_count if homeless_day_count > 0
         if index % 100 == 0 && index != 0
           # save our progress, divide by two because we need to loop over these again
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
@@ -207,21 +200,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
-        @answers[:oneb_c2][:value] = clients.size
-        @support[:oneb_c2][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end
-        }
-        @answers[:oneb_e2][:value] = clients.values.reduce(:+) / (clients.size)
-        @answers[:oneb_h2][:value] = median(clients.values)
-      end
+      return unless clients.size > 0
+
+      @answers[:oneb_c2][:value] = clients.size
+      @support[:oneb_c2][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:oneb_e2][:value] = clients.values.reduce(:+) / clients.size
+      @answers[:oneb_h2][:value] = median(clients.values)
     end
 
     def calculate_one_b_es_sh_th_ph
@@ -238,7 +231,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         where(
           she_t[:first_date_in_program].in(@report_start..@report_end).
           or(e_t[:MoveInDate].in(@report_start..@report_end)).
-          or(e_t[:MoveInDate].eq(nil).and(she_t[:last_date_in_program].in(@report_start..@report_end)))
+          or(e_t[:MoveInDate].eq(nil).and(she_t[:last_date_in_program].in(@report_start..@report_end))),
         )
 
       ph_pre_housed_ids = add_filters(scope: ph_pre_housed_scope).distinct.pluck(:client_id)
@@ -249,9 +242,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true, true)
-        if homeless_day_count > 0
-          clients[id] = homeless_day_count
-        end
+        clients[id] = homeless_day_count if homeless_day_count > 0
         if index % 100 == 0 && index != 0
           # save our progress, start at 50% because we've already run through once
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 75).round(2))
@@ -260,21 +251,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
-        @answers[:oneb_c3][:value] = clients.count
-        @support[:oneb_c3][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end
-        }
-        @answers[:oneb_e3][:value] = clients.values.reduce(:+) / (clients.count)
-        @answers[:oneb_h3][:value] = median(clients.values)
-      end
+      return unless clients.size > 0
+
+      @answers[:oneb_c3][:value] = clients.count
+      @support[:oneb_c3][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:oneb_e3][:value] = clients.values.reduce(:+) / clients.count
+      @answers[:oneb_h3][:value] = median(clients.values)
     end
 
     def clients_in_projects_of_type(project_types:)
@@ -295,14 +286,14 @@ module ReportGenerators::SystemPerformance::Fy2019
         MoveInDate: e_t[:MoveInDate],
         DOB: c_t[:DOB],
       }
-      #Rails.logger.info "Calculating Days Homeless for: #{id}"
+      # Rails.logger.info "Calculating Days Homeless for: #{id}"
       # Load all bed nights
       all_night_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:enrollment, :service_history_services, :client).
         where(client_id: id).
         hud_project_type(PH + TH + ES + SH)
 
-      #all_night_scope = add_filters(scope: all_night_scope)
+      # all_night_scope = add_filters(scope: all_night_scope)
 
       all_nights = all_night_scope.
         order(date: :asc).
@@ -313,9 +304,10 @@ module ReportGenerators::SystemPerformance::Fy2019
         # Add fake records for every day between DateToStreetESSH and first_date_in_program.
         # Also add fake records for
         # Find the first entry for each enrollment based on unique project type and first_date in program
-        entries = all_nights.select{|m| project_types.include?(m[:project_type])}.index_by{|m| [m[:project_type], m[:first_date_in_program]]}
+        entries = all_nights.select { |m| project_types.include?(m[:project_type]) }.index_by { |m| [m[:project_type], m[:first_date_in_program]] }
         entries.each do |_, entry|
           next unless literally_homeless?(client_id: id, enrollment_id: entry[:enrollment_id])
+
           # 3.917.3 - add any days prior to project entry
           if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
             start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE.to_date, entry[:DOB]&.to_date].compact.max
@@ -334,70 +326,74 @@ module ReportGenerators::SystemPerformance::Fy2019
           # move in date adjustments - These dates will exist as PH, but we want to make sure they get
           # included in the acceptable project types.  Convert the project type of any days pre-move-in
           # for PH to a project type we will be counting
-          if PH.include?(entry[:project_type])
-            start_date = [entry[:first_date_in_program].to_date, entry[:DOB]&.to_date].compact.max
-            stop_date = nil
-            if entry[:MoveInDate].present? && entry[:MoveInDate] > entry[:first_date_in_program]
-              stop_date = [entry[:MoveInDate], @report_end + 1.day].min
-            elsif entry[:MoveInDate].blank?
-              stop_date = [entry[:last_date_in_program] - 1.day, @report_end].min rescue @report_end
+          next unless PH.include?(entry[:project_type])
+
+          start_date = [entry[:first_date_in_program].to_date, entry[:DOB]&.to_date].compact.max
+          stop_date = nil
+          if entry[:MoveInDate].present? && entry[:MoveInDate] > entry[:first_date_in_program]
+            stop_date = [entry[:MoveInDate], @report_end + 1.day].min
+          elsif entry[:MoveInDate].blank?
+            stop_date = begin
+                            [entry[:last_date_in_program] - 1.day, @report_end].min
+                          rescue StandardError
+                            @report_end
+                          end
+          end
+          next unless stop_date.present?
+
+          date_range = (start_date...stop_date)
+          date_range.each do |date|
+            check = {
+              enrollment_id: entry[:enrollment_id],
+              date: date,
+              project_type: entry[:project_type],
+              first_date_in_program: entry[:first_date_in_program],
+              last_date_in_program: entry[:last_date_in_program],
+              DateToStreetESSH: entry[:DateToStreetESSH],
+              MoveInDate: entry[:MoveInDate],
+            }
+            matching_night = all_nights.detect do |night|
+              night == check
             end
-            next unless stop_date.present?
-            date_range = (start_date...stop_date)
-            date_range.each do |date|
-              check = {
-                enrollment_id: entry[:enrollment_id],
-                date: date,
-                project_type: entry[:project_type],
-                first_date_in_program: entry[:first_date_in_program],
-                last_date_in_program: entry[:last_date_in_program],
-                DateToStreetESSH: entry[:DateToStreetESSH],
-                MoveInDate: entry[:MoveInDate],
-              }
-              matching_night = all_nights.detect do |night|
-                night == check
-              end
-              # convert date to homeless night
-              if matching_night.present?
-                matching_night[:project_type] = 1 # force these days to be ES since that's included in all 1b measures
-              else
-                check[:project_type] = 1 # force these days to be ES since that's included in all 1b measures
-                all_nights << check
-              end
+            # convert date to homeless night
+            if matching_night.present?
+              matching_night[:project_type] = 1 # force these days to be ES since that's included in all 1b measures
+            else
+              check[:project_type] = 1 # force these days to be ES since that's included in all 1b measures
+              all_nights << check
             end
           end
         end
-        all_nights.sort_by{|m| m[:date]}
+        all_nights.sort_by { |m| m[:date] }
       end
       homeless_days = filter_days_for_homelessness(all_nights, project_types, stop_project_types, consider_move_in_date)
       if homeless_days.any?
         # Find the latest bed night (stopping at the report date end)
-        client_end_date = [homeless_days.last.to_date, @report_end ].min
-        #Rails.logger.info "Latest Homeless Bed Night: #{client_end_date}"
+        client_end_date = [homeless_days.last.to_date, @report_end].min
+        # Rails.logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
         client_start_date = [client_end_date.to_date - 365.days, LOOKBACK_STOP_DATE.to_date].max
-        #Rails.logger.info "Client's initial start date: #{client_start_date}"
+        # Rails.logger.info "Client's initial start date: #{client_start_date}"
         days_before_client_start_date = homeless_days.select do |d|
           d.to_date < client_start_date.to_date
         end
         # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
-          if d.to_date == new_client_start_date.to_date - 1.day
-            new_client_start_date = d.to_date
-          else
-            # Non-contiguous
-            break
-          end
+          break unless d.to_date == new_client_start_date.to_date - 1.day
+
+          new_client_start_date = d.to_date
+
+          # Non-contiguous
         end
         client_start_date = [new_client_start_date.to_date, LOOKBACK_STOP_DATE.to_date].max
-        #Rails.logger.info "Client's new start date: #{client_start_date}"
+        # Rails.logger.info "Client's new start date: #{client_start_date}"
 
         # Remove any days outside of client_start_date and client_end_date
-        #Rails.logger.info "Days homeless before limits #{homeless_days.count}"
+        # Rails.logger.info "Days homeless before limits #{homeless_days.count}"
         homeless_days.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
-        #Rails.logger.info "Days homeless after limits #{homeless_days.count}"
+        # Rails.logger.info "Days homeless after limits #{homeless_days.count}"
       end
       homeless_days.uniq.count
     end
@@ -431,13 +427,13 @@ module ReportGenerators::SystemPerformance::Fy2019
             or(
               e_t[:LivingSituation].in(institutional_living_situations).
                 and(e_t[:LOSUnderThreshold].eq(1)).
-                and(e_t[:PreviousStreetESSH].eq(1))
+                and(e_t[:PreviousStreetESSH].eq(1)),
             ).
             or(
               e_t[:LivingSituation].in(housed_living_situations).
                 and(e_t[:LOSUnderThreshold].eq(1)).
-                and(e_t[:PreviousStreetESSH].eq(1))
-            )
+                and(e_t[:PreviousStreetESSH].eq(1)),
+            ),
         ).
         distinct.
         select(:client_id)
@@ -451,26 +447,26 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       if hoh_client.present?
         ph_th_hoh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-            hud_project_type(PH + TH).
-            open_between(start_date: @report_start - 1.day, end_date: @report_end).
-            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-            where(she_t[:client_id].eq(hoh_client[:client_id]).and(she_t[:enrollment_group_id].eq(hoh_client[:enrollment_id]))).
-            joins(:enrollment).
-            where(
-                e_t[:LivingSituation].in(homeless_living_situations).
-                    or(
-                        e_t[:LivingSituation].in(institutional_living_situations).
-                            and(e_t[:LOSUnderThreshold].eq(1)).
-                            and(e_t[:PreviousStreetESSH].eq(1))
-                    ).
-                    or(
-                        e_t[:LivingSituation].in(housed_living_situations).
-                            and(e_t[:LOSUnderThreshold].eq(1)).
-                            and(e_t[:PreviousStreetESSH].eq(1))
-                    )
-            ).
-            distinct.
-            select(:client_id)
+          hud_project_type(PH + TH).
+          open_between(start_date: @report_start - 1.day, end_date: @report_end).
+          with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+          where(she_t[:client_id].eq(hoh_client[:client_id]).and(she_t[:enrollment_group_id].eq(hoh_client[:enrollment_id]))).
+          joins(:enrollment).
+          where(
+            e_t[:LivingSituation].in(homeless_living_situations).
+                or(
+                  e_t[:LivingSituation].in(institutional_living_situations).
+                      and(e_t[:LOSUnderThreshold].eq(1)).
+                      and(e_t[:PreviousStreetESSH].eq(1)),
+                ).
+                or(
+                  e_t[:LivingSituation].in(housed_living_situations).
+                      and(e_t[:LOSUnderThreshold].eq(1)).
+                      and(e_t[:PreviousStreetESSH].eq(1)),
+                ),
+          ).
+          distinct.
+          select(:client_id)
 
         ph_th_hoh_client_ids = add_filters(scope: ph_th_hoh_scope).distinct.pluck(:client_id)
 
@@ -485,7 +481,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     def filter_days_for_homelessness(dates, project_types, stop_project_types, consider_move_in_dates)
       filtered_days = []
       # build a useful hash of arrays
-      days = dates.sort_by{|d| d[:date]}.group_by{|d| d[:date]}
+      days = dates.sort_by { |d| d[:date] }.group_by { |d| d[:date] }
 
       puts "Processing #{dates.count} dates" if @debug
       days.each do |k, bed_nights|
@@ -500,28 +496,24 @@ module ReportGenerators::SystemPerformance::Fy2019
           # Ignore nights in a project that are on the date of exit
           next if is_on_exit(night, k)
 
-          has_countable_project =  has_countable_project || has_countable_project_on?(night, stop_project_types)
-          in_stop_project =  in_stop_project || in_stop_project_on?(night, k, stop_project_types, consider_move_in_dates)
+          has_countable_project ||= has_countable_project_on?(night, stop_project_types)
+          in_stop_project ||= in_stop_project_on?(night, k, stop_project_types, consider_move_in_dates)
         end
-        if  has_countable_project && (! in_stop_project)
-          filtered_days << k
-        end
+        filtered_days << k if has_countable_project && ! in_stop_project
       end
       puts "Found: #{filtered_days.count}" if @debug
-      puts "#{filtered_days.map{|day| [ day.month, day.year] }.uniq}" if @debug
+      puts "#{filtered_days.map { |day| [day.month, day.year] }.uniq}" if @debug
       return filtered_days.sort
     end
 
     private def has_countable_project_on?(night, stop_project_types)
-      (! stop_project_types.include?(night[:project_type]))
+      ! stop_project_types.include?(night[:project_type])
     end
 
     private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
-      if consider_move_in_dates && PH.include?(night[:project_type])
-        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
-      else
-        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
-      end
+      return stop_project_types.include?(night[:project_type]) && night[:MoveInDate].present? && night[:MoveInDate] <= date if consider_move_in_dates && PH.include?(night[:project_type])
+
+      return stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date)
     end
 
     private def is_on_exit(night, date)
@@ -540,17 +532,17 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       @child_ids ||= {}
       @child_ids[project_types] ||= begin
-        child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
-            hud_project_type(project_types).
-            open_between(start_date: @report_start - 1.day, end_date: @report_end).
-            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-            joins(:enrollment, :client).
-            where(
-                e_t[:LivingSituation].in(living_situation_not_collected).or(e_t[:LivingSituation].eq(nil)),
-                c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report_start - 17.years)),
-            ).
-            distinct.
-            select(:client_id)
+        child_candidates_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          hud_project_type(project_types).
+          open_between(start_date: @report_start - 1.day, end_date: @report_end).
+          with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+          joins(:enrollment, :client).
+          where(
+            e_t[:LivingSituation].in(living_situation_not_collected).or(e_t[:LivingSituation].eq(nil)),
+            c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report_start - 17.years)),
+          ).
+          distinct.
+          select(:client_id)
 
         child_candidates = add_filters(scope: child_candidates_scope).
           pluck(
@@ -566,9 +558,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         child_id_to_hoh = {}
         child_candidates.each do |(client_id, dob, entry_date, age, hoh_id, household_id, enrollment_group_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
-          if age.present? && age <= 17
-            child_id_to_hoh[[client_id, enrollment_group_id]] = head_of_household_for(project_types, hoh_id, household_id)
-          end
+          child_id_to_hoh[[client_id, enrollment_group_id]] = head_of_household_for(project_types, hoh_id, household_id) if age.present? && age <= 17
         end
         child_id_to_hoh
       end
@@ -576,23 +566,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
     def hoh_client_ids(project_types)
       @hoh_to_client_id ||= {}
-      @hoh_to_client_id[project_types] ||= begin
-        GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          hud_project_type(project_types).
-          open_between(start_date: @report_start - 1.day, end_date: @report_end).
-          with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-          joins(:client).
-          where(she_t[:head_of_household].eq(true)).
-          distinct.
-          pluck(
-            :head_of_household_id,
-            :client_id,
-            :enrollment_group_id,
-            :household_id
-          ).map do |(hoh_id, client_id, enrollment_id, household_id)|
-            [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
-          end.to_h
-      end
+      @hoh_to_client_id[project_types] ||= GrdaWarehouse::ServiceHistoryEnrollment.exit.
+        hud_project_type(project_types).
+        open_between(start_date: @report_start - 1.day, end_date: @report_end).
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+        joins(:client).
+        where(she_t[:head_of_household].eq(true)).
+        distinct.
+        pluck(
+          :head_of_household_id,
+          :client_id,
+          :enrollment_group_id,
+          :household_id,
+        ).map do |(hoh_id, client_id, enrollment_id, household_id)|
+        [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
+      end.to_h
     end
 
     def head_of_household_for(project_types, client_id, household_id)
@@ -602,7 +590,6 @@ module ReportGenerators::SystemPerformance::Fy2019
     def hoh_for_children_without_living_situation(project_types, client_id, enrollment_id)
       children_without_living_situation(project_types)[[client_id, enrollment_id]]
     end
-
 
     def setup_questions
       {

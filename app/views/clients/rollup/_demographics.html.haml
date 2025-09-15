@@ -29,7 +29,7 @@
         %td= pii.dob_and_age
         %td= @client.gender
         %td= @client.race_description(include_missing_reason: true)
-        %td= HudUtilityCurrent.no_yes_reasons_for_missing_data @client.VeteranStatus
+        %td= Hud.util.no_yes_reasons_for_missing_data @client.VeteranStatus
         %td{colspan: 2}
 
       - source_clients.joins(:data_source).preload(:data_source).each do |client|

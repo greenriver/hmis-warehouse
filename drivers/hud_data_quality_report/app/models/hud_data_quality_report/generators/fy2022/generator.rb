@@ -19,7 +19,7 @@ module HudDataQualityReport::Generators::Fy2022
     end
 
     def self.default_project_type_codes
-      HudUtility2024.residential_project_type_numbers_by_code.keys
+      Hud.util('2024').residential_project_type_numbers_by_code.keys
     end
 
     def url

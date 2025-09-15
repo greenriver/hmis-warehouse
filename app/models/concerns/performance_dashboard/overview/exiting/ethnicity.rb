@@ -44,7 +44,7 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
       categories = exiting_by_ethnicity.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtilityCurrent.ethnicity(s.to_sym)] }.to_h,
+          labels: categories.map { |s| [s, Hud.util.ethnicity(s.to_sym)] }.to_h,
           chosen: @ethnicities,
           columns: columns,
           categories: categories,

@@ -356,7 +356,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def nbn_with_no_service?(enrollment)
-      enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn)) &&
+      enrollment.project_type.in?(Hud.util('2024').project_type_number_from_code(:es_nbn)) &&
         ! enrollment.service_history_services.
           bed_night.
           service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).

@@ -37,7 +37,7 @@ module Hmis::Ce
       raise "Expected to find CE event for referral #{referral.id}" unless event
 
       referral_result = message.params['referral_result']&.to_i
-      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtilityCurrent.referral_results.keys.include?(referral_result)
+      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless Hud.util.referral_results.keys.include?(referral_result)
 
       event.update!(
         result_date: Date.current,
@@ -54,7 +54,7 @@ module Hmis::Ce
 
       # Fall back to determining the event type based on the referral target project
       project = referral.target_project
-      event_type = HudUtility2026.project_to_ce_event_type(project)
+      event_type = Hud.util('2026').project_to_ce_event_type(project)
       raise "Unable to determine CE Event Type for project type #{project.project_type} on project #{project.id} for referral #{referral.id}" unless event_type
 
       event_type

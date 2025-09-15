@@ -51,7 +51,7 @@ module HudChronicDefinition
     def months_12_homeless?(on_date:, scope:)
       scope = source_enrollments if scope.nil?
       @hud_chronic_data ||= {}
-      date_to_street = scope.with_project_type(HudUtilityCurrent.chronic_project_types).
+      date_to_street = scope.with_project_type(Hud.util.chronic_project_types).
         ongoing(on_date: on_date).
         # Using the earliest DateToStreetESSH for any open enrollment in a homeless project
         where.not(DateToStreetESSH: nil).
@@ -69,7 +69,7 @@ module HudChronicDefinition
     # 3 years? (3.917.4)
     def times_4_homeless?(on_date:, scope:)
       scope = source_enrollments if scope.nil?
-      scope.with_project_type(HudUtilityCurrent.chronic_project_types).
+      scope.with_project_type(Hud.util.chronic_project_types).
         ongoing(on_date: on_date).
         # Look for any open enrollment where the client has been homeless 4 or more times
         where(TimesHomelessPastThreeYears: 4).
@@ -100,7 +100,7 @@ module HudChronicDefinition
 
     def months_homeless_past_three_years_more_than_12?(on_date:, scope:)
       scope = source_enrollments if scope.nil?
-      months_on_street = scope.with_project_type(HudUtilityCurrent.chronic_project_types).
+      months_on_street = scope.with_project_type(Hud.util.chronic_project_types).
         ongoing(on_date: on_date).
         # Only return records where the client answered the question
         where.not(MonthsHomelessPastThreeYears: nil).
@@ -116,7 +116,7 @@ module HudChronicDefinition
     # Has the client been homeless more than 12 months (3.917.5)
     def total_months_homeless_more_than_12?(on_date:, scope:)
       scope = source_enrollments if scope.nil?
-      entry = scope.with_project_type(HudUtilityCurrent.chronic_project_types).
+      entry = scope.with_project_type(Hud.util.chronic_project_types).
         ongoing(on_date: on_date).
         # Only return records where the client answered the question
         where.not(MonthsHomelessPastThreeYears: nil).

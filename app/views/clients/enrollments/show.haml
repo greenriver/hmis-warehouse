@@ -14,7 +14,7 @@
         %tbody
           %tr
             %td Project Type
-            %td= ::HudUtilityCurrent.project_type_brief(@service_history_enrollment.project_type)
+            %td= ::Hud.util.project_type_brief(@service_history_enrollment.project_type)
           %tr
             %td Entry Date
             %td= @enrollment.EntryDate || '-'
@@ -29,11 +29,11 @@
             %td= yes_no(@enrollment.chronically_homeless_at_start?(date: @enrollment.max_date_served))
           %tr
             %td Prior Living Situation
-            %td= ::HudUtilityCurrent.living_situation(@enrollment.LivingSituation) || '-'
+            %td= ::Hud.util.living_situation(@enrollment.LivingSituation) || '-'
           %tr
             %td Exit Date
             %td= @service_history_enrollment.last_date_in_program || '-'
-          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.project_type.in?(HudUtilityCurrent.project_types_with_move_in_dates)
+          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.project_type.in?(Hud.util.project_types_with_move_in_dates)
             - move_in_date_inherited = @enrollment.MoveInDate.blank? && @service_history_enrollment.move_in_date.present?
             %tr
               %td Move-in Date

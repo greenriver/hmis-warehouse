@@ -7,7 +7,7 @@
 
 = simple_form_for @project_config, url: synthetic_ce_assessments_project_config_path(project_id: @project.id) do |f|
   = f.input :active, as: :pretty_boolean, label: 'Configuration Active?'
-  = f.input :assessment_type, as: :select_two, collection: HudUtilityCurrent.assessment_types.invert, include_blank: false
-  = f.input :assessment_level, as: :select_two, collection: HudUtilityCurrent.assessment_levels.invert, include_blank: false
-  = f.input :prioritization_status, as: :select_two, collection: HudUtilityCurrent.prioritization_statuses.invert, include_blank: false
+  = f.input :assessment_type, as: :select_two, collection: Hud.util.assessment_types.invert, include_blank: false
+  = f.input :assessment_level, as: :select_two, collection: Hud.util.assessment_levels.invert, include_blank: false
+  = f.input :prioritization_status, as: :select_two, collection: Hud.util.prioritization_statuses.invert, include_blank: false
   = f.submit 'Save Configuration'

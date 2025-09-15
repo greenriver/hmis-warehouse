@@ -34,9 +34,9 @@ module GrdaWarehouse::ClientMatcherLookups
     def valid_ssn?(value)
       case format
       when :last_four
-        ::HudUtilityCurrent.valid_last_four_social?(value)
+        ::Hud.util.valid_last_four_social?(value)
       when :full
-        ::HudUtilityCurrent.valid_social?(value)
+        ::Hud.util.valid_social?(value)
       end
     end
   end

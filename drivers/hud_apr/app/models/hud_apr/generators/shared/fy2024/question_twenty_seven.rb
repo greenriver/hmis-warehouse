@@ -598,7 +598,7 @@ module HudApr::Generators::Shared::Fy2024
     private def q27l_lengths
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
+      move_in_projects = Hud.util('2024').residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).and(a_t[:pay_for_success].eq(false)).
         or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(a_t[:adjusted_move_in_date].lteq(@report.end_date)))
       {
@@ -727,9 +727,9 @@ module HudApr::Generators::Shared::Fy2024
       {
         'Male' => a_t[:gender_multi].eq('1'),
         'Female' => a_t[:gender_multi].eq('0'),
-        'No Single Gender' => a_t[:gender_multi].in(::HudUtility2024.no_single_gender_queries),
-        'Questioning' => a_t[:gender_multi].in(::HudUtility2024.questioning_gender_queries),
-        'Transgender' => a_t[:gender_multi].in(::HudUtility2024.transgender_gender_queries),
+        'No Single Gender' => a_t[:gender_multi].in(::Hud.util('2024').no_single_gender_queries),
+        'Questioning' => a_t[:gender_multi].in(::Hud.util('2024').questioning_gender_queries),
+        'Transgender' => a_t[:gender_multi].in(::Hud.util('2024').transgender_gender_queries),
         label_for(:dkptr) => a_t[:gender_multi].in(['8', '9']),
         'Data Not Collected' => a_t[:gender_multi].eq('99'),
         'Total' => youth_filter,

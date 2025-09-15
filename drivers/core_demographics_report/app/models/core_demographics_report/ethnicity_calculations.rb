@@ -28,7 +28,7 @@ module
     # Defines the available ethnicity categories including special cases
     # @return [Hash] A hash mapping ethnicity keys to their display titles
     def ethnicity_buckets
-      @ethnicity_buckets ||= ::HudUtilityCurrent.ethnicities.merge(dont_know: "Don't know", prefers_not_to_answer: 'Prefers not to answer', not_collected: 'Data not collected').except(:unknown)
+      @ethnicity_buckets ||= ::Hud.util.ethnicities.merge(dont_know: "Don't know", prefers_not_to_answer: 'Prefers not to answer', not_collected: 'Data not collected').except(:unknown)
     end
 
     # Counts the number of clients with a specific ethnicity

@@ -20,7 +20,7 @@ module PerformanceDashboard::ProjectType::Returns
           order(last_date_in_program: :asc).
           pluck(:client_id, she_t[:id], she_t[:destination], :last_date_in_program).
           each do |c_id, en_id, destination, last_date_in_program|
-            next unless HudUtilityCurrent.permanent_destinations.include?(destination)
+            next unless Hud.util.permanent_destinations.include?(destination)
 
             exits[c_id] = {
               exit_id: en_id,

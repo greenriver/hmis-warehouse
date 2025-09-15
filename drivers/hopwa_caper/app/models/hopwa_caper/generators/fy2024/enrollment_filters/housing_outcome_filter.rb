@@ -12,7 +12,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     def self.all
-      HudUtility2024.housing_assessment_at_exits.map do |code, label|
+      Hud.util('2024').housing_assessment_at_exits.map do |code, label|
         new(label: label, code: code)
       end
     end

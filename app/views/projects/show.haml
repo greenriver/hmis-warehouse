@@ -15,7 +15,7 @@
         %tr
           %th Project Type
           %td
-            = HudUtilityCurrent.project_type_with_sub_type(@project.project_type, @project.rrh_sub_type)
+            = Hud.util.project_type_with_sub_type(@project.project_type, @project.rrh_sub_type)
             - if @project.active_homeless_status_override.present?
               %br
               %em Enrolled clients are actively homeless for CAS and Cohorts
@@ -46,7 +46,7 @@
             .d-flex
               .project__housing-type
                 - if @project.HousingType.present?
-                  = HudUtilityCurrent.housing_type(@project.HousingType)
+                  = Hud.util.housing_type(@project.HousingType)
                   (#{@project.HousingType})
         - if project_policy.can_view_imports?
           %tr
@@ -101,7 +101,7 @@
           %td= @project.data_source.short_name
         %tr
           %th Target Population
-          %td= HudUtilityCurrent.target_population(@project.TargetPopulation)
+          %td= Hud.util.target_population(@project.TargetPopulation)
         %tr
           %th Household Type
           %td

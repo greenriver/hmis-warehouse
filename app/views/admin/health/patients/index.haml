@@ -52,7 +52,7 @@
                     %td
                       = patient&.client&.DOB
                     %td
-                      = HudUtilityCurrent.gender(patient&.client&.Gender)
+                      = Hud.util.gender(patient&.client&.Gender)
                     %td
                       = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
         .form-actions

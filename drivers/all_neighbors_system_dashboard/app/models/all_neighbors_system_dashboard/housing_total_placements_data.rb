@@ -252,7 +252,7 @@ module AllNeighborsSystemDashboard
           name: bar,
           series: date_range.map do |date|
             counts = options[:types].map do |race_name|
-              # race_code = HudUtilityCurrent.race(race_name, true)
+              # race_code = Hud.util.race(race_name, true)
               scope = housed_total_scope.select(:destination_client_id)
               scope = filter_for_count_level(scope, options[:count_level])
               scope = scope.where(Enrollment.arel_table[:race_list].matches("%#{race_name}%"))

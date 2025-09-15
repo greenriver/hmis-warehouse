@@ -24,7 +24,7 @@ RSpec.describe ActiveClientReport, type: :model do
     Filters::FilterBase.new(
       start: start_date,
       end: end_date,
-      project_type_codes: HudUtilityCurrent.homeless_project_type_codes,
+      project_type_codes: Hud.util.homeless_project_type_codes,
       sub_population: :clients,
       enforce_one_year_range: false,
       require_service_during_range: true,
@@ -74,7 +74,7 @@ RSpec.describe ActiveClientReport, type: :model do
       create(
         :hud_current_living_situation,
         InformationDate: end_date + 1.day, # CLS is outside of report range
-        CurrentLivingSituation: HudUtility2026.homeless_situations(as: :current).first,
+        CurrentLivingSituation: Hud.util('2026').homeless_situations(as: :current).first,
         enrollment: other_enrollment,
       )
 

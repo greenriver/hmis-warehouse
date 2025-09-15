@@ -8,14 +8,14 @@ module PerformanceDashboard::Overview::Gender
   extend ActiveSupport::Concern
 
   private def gender_buckets
-    HudUtilityCurrent.genders.keys
+    Hud.util.genders.keys
   end
 
   def gender_bucket_titles
     gender_buckets.map do |key|
       [
         key,
-        HudUtilityCurrent.gender(key),
+        Hud.util.gender(key),
       ]
     end.to_h
   end
@@ -29,6 +29,6 @@ module PerformanceDashboard::Overview::Gender
   def gender_query(key)
     return '0=1' unless key
 
-    c_t[HudUtilityCurrent.gender_id_to_field_name[key.to_i].to_sym].eq(HudUtilityCurrent.gender_comparison_value(key))
+    c_t[Hud.util.gender_id_to_field_name[key.to_i].to_sym].eq(Hud.util.gender_comparison_value(key))
   end
 end

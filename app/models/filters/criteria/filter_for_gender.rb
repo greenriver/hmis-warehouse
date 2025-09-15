@@ -8,12 +8,12 @@ class Filters::Criteria::FilterForGender < Filters::Criteria::Base
     scope = scope.joins(config.join_clients_method)
 
     gender_queries = input.genders.filter_map do |value|
-      column = HudUtilityCurrent.gender_id_to_field_name[value]
+      column = Hud.util.gender_id_to_field_name[value]
       next unless column
 
       config.report_scope_source.
         joins(config.join_clients_method).
-        where(arel.c_t[column.to_sym].eq(HudUtilityCurrent.gender_comparison_value(value)))
+        where(arel.c_t[column.to_sym].eq(Hud.util.gender_comparison_value(value)))
     end
 
     return scope if gender_queries.empty?

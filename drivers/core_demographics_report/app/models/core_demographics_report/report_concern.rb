@@ -90,7 +90,7 @@ module
     end
 
     def self.genders
-      g = HudUtilityCurrent.gender_field_name_label.dup
+      g = Hud.util.gender_field_name_label.dup
       g[:GenderNone] = 'Unknown Gender'
       g
     end

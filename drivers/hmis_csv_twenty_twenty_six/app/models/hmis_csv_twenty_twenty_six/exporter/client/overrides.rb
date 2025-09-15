@@ -54,7 +54,7 @@ module HmisCsvTwentyTwentySix::Exporter
 
     def self.enforce_race_none(row)
       # RaceNone should be 99 if it was blank and all other race columns are blank or 0
-      race_columns = HudUtility2026.race_fields - [:RaceNone]
+      race_columns = Hud.util('2026').race_fields - [:RaceNone]
       any_races = race_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
       row.RaceNone ||= 99 unless any_races
 
@@ -72,7 +72,7 @@ module HmisCsvTwentyTwentySix::Exporter
         row = replace_blank(row, hud_field: hud_field, default_value: 99)
       end
 
-      default_to_no = HudUtility2026.race_fields - [:RaceNone]
+      default_to_no = Hud.util('2026').race_fields - [:RaceNone]
       default_to_no.each do |hud_field|
         row = replace_blank(row, hud_field: hud_field, default_value: 0)
       end

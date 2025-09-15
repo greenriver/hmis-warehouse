@@ -20,7 +20,7 @@ module HudPit::Fy2024
           'Multi-Racial (not Hispanic/Latina/e/o)'
         end
       elsif other_than_hispanic_latinaeo?(client)
-        race = ::HudUtility2024.race(race_fields(client).first)
+        race = ::Hud.util('2024').race(race_fields(client).first)
         race += ' & Hispanic/Latina/e/o' if hispanic_latinaeo?(client)
         race
       else
@@ -29,13 +29,13 @@ module HudPit::Fy2024
     end
 
     def self.more_than_one_gender(client)
-      @gender_fields ||= HudUtility2024.gender_known_ids.map { |id| HudUtility2024.gender_id_to_field_name[id] }
+      @gender_fields ||= Hud.util('2024').gender_known_ids.map { |id| Hud.util('2024').gender_id_to_field_name[id] }
       genders = @gender_fields.select { |f| client.send(f).to_i == 1 }
       genders.count > 1
     end
 
     private_class_method def self.race_fields(client, exclude: ['HispanicLatinaeo'])
-      race_field_keys = ::HudUtility2024.races.keys - exclude
+      race_field_keys = ::Hud.util('2024').races.keys - exclude
       race_field_keys.select { |f| client.send(f).to_i == 1 }
     end
 

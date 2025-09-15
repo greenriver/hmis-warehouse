@@ -16,7 +16,7 @@ module Types
       'Current Living Situation',
       'Case Note',
       'Assessment',
-      *HudUtilityCurrent.assessment_name_by_data_collection_stage.values,
+      *Hud.util.assessment_name_by_data_collection_stage.values,
     ].map do |contact_type|
       value to_enum_key(contact_type), description: contact_type
     end

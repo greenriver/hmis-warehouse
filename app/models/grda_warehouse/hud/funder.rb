@@ -66,11 +66,11 @@ module GrdaWarehouse::Hud
     end
 
     def self.valid_funder_code? funder
-      HudUtilityCurrent.funding_sources.keys.include?(funder)
+      Hud.util.funding_sources.keys.include?(funder)
     end
 
     def pay_for_success?
-      HudUtilityCurrent.funding_source('HUD: Pay for Success', true, raise_on_missing: true).to_s == self.Funder.to_s
+      Hud.util.funding_source('HUD: Pay for Success', true, raise_on_missing: true).to_s == self.Funder.to_s
     end
 
     def operating_year
@@ -84,7 +84,7 @@ module GrdaWarehouse::Hud
         pluck(:Funder).
         map do |funder_code|
           [
-            "#{HudUtilityCurrent.funding_source(funder_code&.to_i)} (#{funder_code})",
+            "#{Hud.util.funding_source(funder_code&.to_i)} (#{funder_code})",
             funder_code,
           ]
         end

@@ -35,19 +35,19 @@ module HmisCsvTwentyTwentyFour::Importer
         NameDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.name_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').name_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         SSNDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.ssn_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').ssn_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         DOBDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.dob_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').dob_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         VeteranStatus: [
@@ -56,7 +56,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
         # TODO: Enforce Race and Gender constraints?
@@ -66,7 +66,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Man: [
@@ -75,7 +75,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         NonBinary: [
@@ -84,7 +84,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         CulturallySpecific: [
@@ -93,7 +93,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Transgender: [
@@ -102,7 +102,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Questioning: [
@@ -111,7 +111,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         DifferentIdentity: [
@@ -120,13 +120,13 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         GenderNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.race_gender_none_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').race_gender_none_options.keys.map(&:to_s).freeze },
           },
         ],
         AmIndAKNative: [
@@ -135,7 +135,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Asian: [
@@ -144,7 +144,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         BlackAfAmerican: [
@@ -153,7 +153,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         HispanicLatinaeo: [
@@ -162,7 +162,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         MidEastNAfrican: [
@@ -171,7 +171,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         NativeHIPacific: [
@@ -180,7 +180,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         White: [
@@ -189,13 +189,13 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         RaceNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.race_gender_none_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').race_gender_none_options.keys.map(&:to_s).freeze },
           },
         ],
       }

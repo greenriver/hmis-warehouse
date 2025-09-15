@@ -23,7 +23,7 @@
           %tr
 
             %td= inventory.InventoryID
-            %td= HudUtilityCurrent.availability(inventory.Availability)
+            %td= Hud.util.availability(inventory.Availability)
             %td
               - if inventory.computed_start_date.present?
                 = "#{inventory.computed_start_date} - #{inventory.computed_end_date || 'ongoing'}"

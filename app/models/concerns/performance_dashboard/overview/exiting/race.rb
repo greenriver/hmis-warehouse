@@ -36,7 +36,7 @@ module PerformanceDashboard::Overview::Exiting::Race
       categories = exiting_by_race.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtilityCurrent.race(s)] }.to_h,
+          labels: categories.map { |s| [s, Hud.util.race(s)] }.to_h,
           chosen: @races,
           columns: columns,
           categories: categories.map { |s| race_title(s) },

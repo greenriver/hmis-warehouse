@@ -28,11 +28,11 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   scope :auto_exited, -> { where.not(auto_exited: nil) }
 
   def aftercare_methods
-    HudUtilityCurrent.aftercare_method_fields.select { |k| send(k) == 1 }.values
+    Hud.util.aftercare_method_fields.select { |k| send(k) == 1 }.values
   end
 
   def counseling_methods
-    HudUtilityCurrent.counseling_method_fields.select { |k| send(k) == 1 }.values
+    Hud.util.counseling_method_fields.select { |k| send(k) == 1 }.values
   end
 
   private def warehouse_trigger_processing

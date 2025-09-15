@@ -22,7 +22,7 @@ module Types
       Hmis::Hud::Client.new(
         **attributes,
         **Hmis::Hud::Processors::ClientProcessor.gender_attributes(genders),
-        **HudUtilityCurrent.races.keys.map { |k| [k, 99] }.to_h,
+        **Hud.util.races.keys.map { |k| [k, 99] }.to_h,
         name_data_quality: 1,
         dob_data_quality: 1,
         ssn_data_quality: attributes[:ssn].present? ? 1 : 99,

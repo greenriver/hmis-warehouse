@@ -62,31 +62,31 @@ module HudReports
     def transform_value(column, value, pii_policy)
       case column
       when /project_type$/
-        HudUtilityCurrent.project_type_brief(value)
+        Hud.util.project_type_brief(value)
       when /prior_living_situation$/
-        HudUtilityCurrent.living_situation(value)
+        Hud.util.living_situation(value)
       when /.*destination$/
-        HudUtilityCurrent.destination(value)
+        Hud.util.destination(value)
       when /_days_/
         number_with_delimiter(value)
       when /.*length_of_stay$/
-        HudUtilityCurrent.residence_prior_length_of_stay(value)
+        Hud.util.residence_prior_length_of_stay(value)
       when /^ssn$/
         GrdaWarehouse::PiiProvider.viewable_ssn(value, policy: pii_policy)
       when /^dob$/
         GrdaWarehouse::PiiProvider.viewable_dob(value, policy: pii_policy)
       when /ssn_quality$/
-        HudUtilityCurrent.ssn_data_quality(value)
+        Hud.util.ssn_data_quality(value)
       when /name_quality$/
-        HudUtilityCurrent.name_data_quality(value)
+        Hud.util.name_data_quality(value)
       when /dob_quality$/
-        HudUtilityCurrent.dob_data_quality(value)
+        Hud.util.dob_data_quality(value)
       when /veteran_status$/
-        HudUtilityCurrent.veteran_status(value)
+        Hud.util.veteran_status(value)
       when /relationship_to_hoh$/
-        HudUtilityCurrent.relationship_to_hoh(value)
+        Hud.util.relationship_to_hoh(value)
       when /.*disabling_condition$/
-        HudUtilityCurrent.disability_response(value)
+        Hud.util.disability_response(value)
       when /.*first_name$/, /.*last_name$/, /.*middle_name$/, /.*full_name$/, /.*brief_name$/
         GrdaWarehouse::PiiProvider.viewable_name(value, policy: pii_policy)
       when /.*hiv_aids/

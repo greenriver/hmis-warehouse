@@ -21,9 +21,9 @@ module HmisDataQualityTool
     pii_attr :last_name
     pii_attr :age
 
-    HOMELESS_LIVING_SITUATIONS = HudUtilityCurrent.homeless_situations(as: :prior)
-    INSTITUTIONAL_LIVING_SITUATIONS = HudUtilityCurrent.institutional_situations(as: :prior)
-    HOUSED_LIVING_SITUATIONS = HudUtilityCurrent.temporary_situations(as: :prior) + HudUtilityCurrent.permanent_situations(as: :prior)
+    HOMELESS_LIVING_SITUATIONS = Hud.util.homeless_situations(as: :prior)
+    INSTITUTIONAL_LIVING_SITUATIONS = Hud.util.institutional_situations(as: :prior)
+    HOUSED_LIVING_SITUATIONS = Hud.util.temporary_situations(as: :prior) + Hud.util.permanent_situations(as: :prior)
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
@@ -48,19 +48,19 @@ module HmisDataQualityTool
         household_max_age: { title: 'Age of Oldest Household Member' },
         household_id: { title: 'Household ID' },
         head_of_household_count: { title: 'Count of Heads of Household' },
-        disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        living_situation: { title: 'Living Situation', translator: ->(v) { "#{HudUtilityCurrent.living_situation(v)} (#{v})" } },
-        relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{HudUtilityCurrent.relationship_to_hoh(v)} (#{v})" } },
+        disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        living_situation: { title: 'Living Situation', translator: ->(v) { "#{Hud.util.living_situation(v)} (#{v})" } },
+        relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{Hud.util.relationship_to_hoh(v)} (#{v})" } },
         coc_code: { title: 'CoC Code' },
-        destination: { title: 'Exit Destination', translator: ->(v) { "#{HudUtilityCurrent.destination(v)} (#{v})" } },
+        destination: { title: 'Exit Destination', translator: ->(v) { "#{Hud.util.destination(v)} (#{v})" } },
         entry_date_entered_at: { title: 'Entry Date Added' },
         exit_date_entered_at: { title: 'Exit Date Added' },
         days_to_enter_entry_date: { title: 'Days to Add Entry Date' },
         days_to_enter_exit_date: { title: 'Days to Add Exit Date' },
         project_operating_start_date: { title: 'Project Operating Start Date' },
         project_operating_end_date: { title: 'Project Operating End Date' },
-        project_type: { title: 'Project Type', translator: ->(v) { "#{HudUtilityCurrent.project_type(v)} (#{v})" } },
-        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HudUtilityCurrent.tracking_method(v || 0)} (#{v})" } },
+        project_type: { title: 'Project Type', translator: ->(v) { "#{Hud.util.project_type(v)} (#{v})" } },
+        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{Hud.util.tracking_method(v || 0)} (#{v})" } },
         lot: { title: 'Length of Time in Project' },
         days_since_last_service: { title: 'Days Since Last Service' },
         ch_details_expected: { title: 'Chronic related fields (3.917) expected?' },
@@ -81,47 +81,47 @@ module HmisDataQualityTool
         enrollment_coc: { title: 'Enrollment CoC Code' },
         has_disability: { title: 'At least one disability?' },
         days_between_entry_and_create: { title: 'Days between entry date and date added to HMIS' },
-        domestic_violence_victim_at_entry: { title: 'Survivor of domestic violence response at entry', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        income_from_any_source_at_entry: { title: 'Income from any source at entry', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        income_from_any_source_at_annual: { title: 'Income from any source at annual assessment', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        income_from_any_source_at_exit: { title: 'Income from any source at exit', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        domestic_violence_victim_at_entry: { title: 'Survivor of domestic violence response at entry', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_entry: { title: 'Income from any source at entry', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_annual: { title: 'Income from any source at annual assessment', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_exit: { title: 'Income from any source at exit', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         cash_income_as_expected_at_entry: { title: 'Cash income reported as expected at entry' },
         cash_income_as_expected_at_annual: { title: 'Cash income reported as expected at annual assessment' },
         cash_income_as_expected_at_exit: { title: 'Cash income reported as expected at exit' },
-        ncb_from_any_source_at_entry: { title: 'Non-cash benefits from any source at entry', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        ncb_from_any_source_at_annual: { title: 'Non-cash benefits from any source at annual assessment', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        ncb_from_any_source_at_exit: { title: 'Non-cash benefits from any source at exit', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_entry: { title: 'Non-cash benefits from any source at entry', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_annual: { title: 'Non-cash benefits from any source at annual assessment', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_exit: { title: 'Non-cash benefits from any source at exit', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         ncb_as_expected_at_entry: { title: 'Non-cash benefits as expected at entry' },
         ncb_as_expected_at_annual: { title: 'Non-cash benefits as expected at annual assessment' },
         ncb_as_expected_at_exit: { title: 'Non-cash benefits as expected at exit' },
-        insurance_from_any_source_at_entry: { title: 'Insurance from any source at entry', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        insurance_from_any_source_at_annual: { title: 'Insurance from any source at annual assessment', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        insurance_from_any_source_at_exit: { title: 'Insurance from any source at exit', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_entry: { title: 'Insurance from any source at entry', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_annual: { title: 'Insurance from any source at annual assessment', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_exit: { title: 'Insurance from any source at exit', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         insurance_as_expected_at_entry: { title: 'Insurance as expected at entry' },
         insurance_as_expected_at_annual: { title: 'Insurance as expected at annual assessment' },
         insurance_as_expected_at_exit: { title: 'Insurance as expected at exit' },
         ch_at_entry: { title: 'Chronically Homeless at Entry' },
         enrollment_anniversary_date: { title: 'Enrollment anniversary' },
         annual_assessment_status: { title: 'Missing assessments', translator: ->(v) { v.map(&:humanize).join(', ') } },
-        percent_ami: { title: 'Income as a Percent of AMI', translator: ->(v) { "#{HudUtilityCurrent.percent_ami(v)} (#{v})" } },
+        percent_ami: { title: 'Income as a Percent of AMI', translator: ->(v) { "#{Hud.util.percent_ami(v)} (#{v})" } },
         vamc_station: { title: 'VAMC Station Number' },
-        veteran: { title: 'Veteran', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        veteran: { title: 'Veteran', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         hoh_veteran: { title: 'Head of Household is a Veteran' },
         hh_veteran_count: { title: 'Count of Veterans in Household' },
-        target_screen_required: { title: 'Homelessness Prevention Targeting Screening is Required', translator: ->(v) { "#{HudUtilityCurrent.no_yes(v)} (#{v})" } },
+        target_screen_required: { title: 'Homelessness Prevention Targeting Screening is Required', translator: ->(v) { "#{Hud.util.no_yes(v)} (#{v})" } },
         target_screen_completed: { title: 'Homelessness Prevention Targeting Screening is Completed' },
         total_monthly_income_at_entry: { title: 'Total Monthly Income At Entry' },
         total_monthly_income_from_source_at_entry: { title: 'Total Income From Sources At Entry' },
         total_monthly_income_at_exit: { title: 'Total Monthly Income At Exit' },
         total_monthly_income_from_source_at_exit: { title: 'Total Income From Sources At Exit' },
-        afghanistan_oef: { title: 'Afghanistan (Operation Enduring Freedom)', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        iraq_oif: { title: 'Iraq (Operation Iraqi Freedom)', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        iraq_ond: { title: 'Iraq (Operation New Dawn)', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        military_branch: { title: 'Military Branch', translator: ->(v) { "#{HudUtilityCurrent.military_branch(v)} (#{v})" } },
-        discharge_status: { title: 'Discharge Status', translator: ->(v) { "#{HudUtilityCurrent.discharge_status(v)} (#{v})" } },
-        employed: { title: 'Employed', translator: ->(v) { "#{HudUtilityCurrent.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        employment_type: { title: 'Employment Type', translator: ->(v) { "#{HudUtilityCurrent.employment_type(v)} (#{v})" } },
-        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { "#{HudUtilityCurrent.not_employed_reason(v)} (#{v})" } },
+        afghanistan_oef: { title: 'Afghanistan (Operation Enduring Freedom)', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        iraq_oif: { title: 'Iraq (Operation Iraqi Freedom)', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        iraq_ond: { title: 'Iraq (Operation New Dawn)', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        military_branch: { title: 'Military Branch', translator: ->(v) { "#{Hud.util.military_branch(v)} (#{v})" } },
+        discharge_status: { title: 'Discharge Status', translator: ->(v) { "#{Hud.util.discharge_status(v)} (#{v})" } },
+        employed: { title: 'Employed', translator: ->(v) { "#{Hud.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        employment_type: { title: 'Employment Type', translator: ->(v) { "#{Hud.util.employment_type(v)} (#{v})" } },
+        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { "#{Hud.util.not_employed_reason(v)} (#{v})" } },
       }.freeze
     end
 
@@ -385,13 +385,13 @@ module HmisDataQualityTool
       report_item.annual_assessment_status = annual_assessment_complete(enrollment, hoh.first_date_in_program) if annual_expected
 
       # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?(HudUtilityCurrent.disability_responses.keys - [99]) } || false
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?(Hud.util.disability_responses.keys - [99]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
       en_cls = enrollment.current_living_situations&.select { |s| s.InformationDate.present? && s.InformationDate <= max_date }
 
-      lot = if project_type.in?(HudUtilityCurrent.project_type_number_from_code(:es_nbn))
+      lot = if project_type.in?(Hud.util.project_type_number_from_code(:es_nbn))
         # count services <= min of report end and current date
         en_services.select(&:bed_night?)&.count || 0
       else
@@ -401,10 +401,10 @@ module HmisDataQualityTool
       end
       report_item.lot = lot
       end_date = [enrollment.exit&.ExitDate, report.filter.end, Date.current].compact.min
-      max_service = if project_type.in?(HudUtilityCurrent.project_type_number_from_code(:es_nbn))
+      max_service = if project_type.in?(Hud.util.project_type_number_from_code(:es_nbn))
         # most recent service, or start date if no service
         en_services.max_by(&:DateProvided)&.DateProvided || enrollment.EntryDate
-      elsif enrollment.project.project_type_to_use.in?(HudUtilityCurrent.project_type_number_from_code(:so))
+      elsif enrollment.project.project_type_to_use.in?(Hud.util.project_type_number_from_code(:so))
         # max CLS for SO, or start date if no CLS
         en_cls.max_by(&:InformationDate)&.InformationDate || enrollment.EntryDate
       else
@@ -418,22 +418,22 @@ module HmisDataQualityTool
 
     private def hp_targeting_criteria_complete(enrollment)
       # V7 HP Targeting Criteria in https://files.hudexchange.info/resources/documents/HMIS-Data-Dictionary-2024.pdf
-      valid_yes_no_missing_options = HudUtilityCurrent.yes_no_missing_options.keys - [99]
-      return true unless (HudUtilityCurrent.time_to_housing_losses.keys - [99]).include?(enrollment.TimeToHousingLoss) # V7.A
-      return true unless (HudUtilityCurrent.annual_percent_amis.keys - [99]).include?(enrollment.AnnualPercentAMI) # V7.B
-      return true unless (HudUtilityCurrent.literal_homeless_histories.keys - [99]).include?(enrollment.LiteralHomelessHistory) # V7.C
+      valid_yes_no_missing_options = Hud.util.yes_no_missing_options.keys - [99]
+      return true unless (Hud.util.time_to_housing_losses.keys - [99]).include?(enrollment.TimeToHousingLoss) # V7.A
+      return true unless (Hud.util.annual_percent_amis.keys - [99]).include?(enrollment.AnnualPercentAMI) # V7.B
+      return true unless (Hud.util.literal_homeless_histories.keys - [99]).include?(enrollment.LiteralHomelessHistory) # V7.C
       return true unless valid_yes_no_missing_options.include?(enrollment.ClientLeaseholder) # V7.D
       return true unless valid_yes_no_missing_options.include?(enrollment.HOHLeaseholder) # V7.E
       return true unless valid_yes_no_missing_options.include?(enrollment.SubsidyAtRisk) # V7.F
-      return true unless (HudUtilityCurrent.eviction_histories.keys - [99]).include?(enrollment.EvictionHistory) # V7.G
+      return true unless (Hud.util.eviction_histories.keys - [99]).include?(enrollment.EvictionHistory) # V7.G
       return true unless valid_yes_no_missing_options.include?(enrollment.CriminalRecord) # V7.H
-      return true unless (HudUtilityCurrent.incarcerated_adults.keys - [99]).include?(enrollment.IncarceratedAdult) # V7.I
+      return true unless (Hud.util.incarcerated_adults.keys - [99]).include?(enrollment.IncarceratedAdult) # V7.I
       return true unless valid_yes_no_missing_options.include?(enrollment.PrisonDischarge) # V7.J
       return true unless valid_yes_no_missing_options.include?(enrollment.SexOffender) # V7.K
       return true unless valid_yes_no_missing_options.include?(enrollment.DisabledHoH) # V7.L
       return true unless valid_yes_no_missing_options.include?(enrollment.CurrentPregnant) # V7.M
       return true unless valid_yes_no_missing_options.include?(enrollment.SingleParent) # V7.N
-      return true unless (HudUtilityCurrent.dependent_under_6_options.keys - [99]).include?(enrollment.DependentUnder6) # V7.O
+      return true unless (Hud.util.dependent_under_6_options.keys - [99]).include?(enrollment.DependentUnder6) # V7.O
       return true unless valid_yes_no_missing_options.include?(enrollment.HH5Plus) # V7.P
       return true unless valid_yes_no_missing_options.include?(enrollment.CoCPrioritized) # V7.Q
 
@@ -531,9 +531,9 @@ module HmisDataQualityTool
     end
 
     def self.chronic_denominator?(item)
-      return false unless hoh_or_adult?(item) && HudUtilityCurrent.residential_project_type_ids.include?(item.project_type)
+      return false unless hoh_or_adult?(item) && Hud.util.residential_project_type_ids.include?(item.project_type)
       # required for HoH and Adults in ES, SO, SH
-      return true if HudUtilityCurrent.chronic_project_types.include?(item.project_type)
+      return true if Hud.util.chronic_project_types.include?(item.project_type)
 
       return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
       return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh == 1
@@ -570,7 +570,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            ! HudUtilityCurrent.no_yes_reasons_for_missing_data_options.key?(item.disabling_condition)
+            ! Hud.util.no_yes_reasons_for_missing_data_options.key?(item.disabling_condition)
           },
         },
         hoh_validation_issues: {
@@ -582,7 +582,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            ! HudUtilityCurrent.relationships_to_hoh.key?(item.relationship_to_hoh)
+            ! Hud.util.relationships_to_hoh.key?(item.relationship_to_hoh)
           },
         },
         living_situation_issues: {
@@ -598,7 +598,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.living_situation.blank?
 
-            ! (HudUtilityCurrent.valid_prior_living_situations - [99]).include?(item.living_situation)
+            ! (Hud.util.valid_prior_living_situations - [99]).include?(item.living_situation)
           },
         },
         exit_date_issues: {
@@ -611,7 +611,7 @@ module HmisDataQualityTool
           denominator: ->(_item) { true },
           limiter: ->(item) {
             return false unless item.exit_date.present?
-            return item.exit_date <= item.entry_date if HudUtilityCurrent.residential_project_type_ids.include?(item.project_type)
+            return item.exit_date <= item.entry_date if Hud.util.residential_project_type_ids.include?(item.project_type)
 
             item.exit_date < item.entry_date
           },
@@ -633,7 +633,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false unless item.exit_date.present?
 
-            ! HudUtilityCurrent.valid_destinations.key?(item.destination)
+            ! Hud.util.valid_destinations.key?(item.destination)
           },
         },
         unaccompanied_youth_issues: {
@@ -694,7 +694,7 @@ module HmisDataQualityTool
             # Must have a CoC Code
             return true if item.coc_code.blank?
             # Must be a known CoC
-            return true unless HudUtilityCurrent.valid_coc?(item.coc_code)
+            return true unless Hud.util.valid_coc?(item.coc_code)
             # If the project doesn't have a CoC, then we don't know if the enrollment CoC is in the right place
             # so just ignore it
             return false if item.project_coc_codes.blank?
@@ -712,11 +712,11 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             in_project_types = [
-              HudUtilityCurrent.performance_reporting[:rrh],
-              HudUtilityCurrent.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:prevention],
             ].flatten.include?(item.project_type)
 
             # Only hohs that include the above funder(s) and project type(s)
@@ -727,17 +727,17 @@ module HmisDataQualityTool
 
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
             return false unless [
-              HudUtilityCurrent.performance_reporting[:rrh],
-              HudUtilityCurrent.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:prevention],
             ].flatten.include?(item.project_type)
 
-            ! (HudUtilityCurrent.percent_amis.keys - [99]).include?(item.percent_ami)
+            ! (Hud.util.percent_amis.keys - [99]).include?(item.percent_ami)
           },
         },
         hp_targeting_criteria: {
@@ -750,10 +750,10 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             in_project_types = [
-              HudUtilityCurrent.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:prevention],
             ].flatten.include?(item.project_type)
 
             # Only hohs that include the above funder(s) and project type(s)
@@ -764,17 +764,17 @@ module HmisDataQualityTool
 
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
             return false unless [
-              HudUtilityCurrent.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:prevention],
             ].flatten.include?(item.project_type)
 
             # Screening Required flag is missing
-            return true unless (HudUtilityCurrent.yes_no_missing_options.keys - [99]).include?(item.target_screen_required)
+            return true unless (Hud.util.yes_no_missing_options.keys - [99]).include?(item.target_screen_required)
             # Screening is not required
             return false if item.target_screen_required == 0
 
@@ -790,20 +790,20 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
-              HudUtilityCurrent.funder_components['VA: CRS Contract Residential Services'],
-              HudUtilityCurrent.funder_components['VA: Community Contract Safe Haven'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
+              Hud.util.funder_components['VA: CRS Contract Residential Services'],
+              Hud.util.funder_components['VA: Community Contract Safe Haven'],
             ].flatten
             in_project_types = [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             # Only hohs or veterans that include the above funder(s) and project type(s)
@@ -815,29 +815,29 @@ module HmisDataQualityTool
 
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
-              HudUtilityCurrent.funder_components['VA: CRS Contract Residential Services'],
-              HudUtilityCurrent.funder_components['VA: Community Contract Safe Haven'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
+              Hud.util.funder_components['VA: CRS Contract Residential Services'],
+              Hud.util.funder_components['VA: Community Contract Safe Haven'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
             return false unless [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             # normalize station numbers that can be converted to integers
             vamc_number = item.vamc_station
             vamc_number = vamc_number.to_i if Integer(vamc_number, exception: false).present?
-            ! (HudUtilityCurrent.vamc_station_numbers.keys - [99]).include?(vamc_number)
+            ! (Hud.util.vamc_station_numbers.keys - [99]).include?(vamc_number)
           },
         },
         homeless_living_situation_issues: {
@@ -847,10 +847,10 @@ module HmisDataQualityTool
           detail_columns: default_detail_columns + [
             :living_situation,
           ],
-          denominator: ->(item) { adult?(item) && HudUtilityCurrent.performance_reporting[:prevention].include?(item.project_type) },
+          denominator: ->(item) { adult?(item) && Hud.util.performance_reporting[:prevention].include?(item.project_type) },
           limiter: ->(item) {
             return false unless adult?(item)
-            return false unless HudUtilityCurrent.performance_reporting[:prevention].include?(item.project_type)
+            return false unless Hud.util.performance_reporting[:prevention].include?(item.project_type)
 
             HOMELESS_LIVING_SITUATIONS.include?(item.living_situation)
           },
@@ -862,10 +862,10 @@ module HmisDataQualityTool
           detail_columns: default_detail_columns + [
             :living_situation,
           ],
-          denominator: ->(item) { adult?(item) && HudUtilityCurrent.performance_reporting[:rrh].include?(item.project_type) },
+          denominator: ->(item) { adult?(item) && Hud.util.performance_reporting[:rrh].include?(item.project_type) },
           limiter: ->(item) {
             return false unless adult?(item)
-            return false unless HudUtilityCurrent.performance_reporting[:rrh].include?(item.project_type)
+            return false unless Hud.util.performance_reporting[:rrh].include?(item.project_type)
 
             ! HOMELESS_LIVING_SITUATIONS.include?(item.living_situation)
           },
@@ -952,7 +952,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             # Only items with funders intersecting the above funding source(s)
             (funding_sources & item.funders).any?
@@ -960,7 +960,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
@@ -976,7 +976,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             # Only items with funders intersecting the above funding source(s)
             (funding_sources & item.funders).any?
@@ -984,7 +984,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
@@ -1020,12 +1020,12 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:es].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot >= 90 && HudUtilityCurrent.residential_project_type_numbers_by_code[:es].include?(item.project_type)
+            item.lot >= 90 && Hud.util.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           es_stay_length: 90,
         },
@@ -1038,12 +1038,12 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:es].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot >= 180 && HudUtilityCurrent.residential_project_type_numbers_by_code[:es].include?(item.project_type)
+            item.lot >= 180 && Hud.util.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           es_stay_length: 180,
         },
@@ -1056,12 +1056,12 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:es].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot >= 365 && HudUtilityCurrent.residential_project_type_numbers_by_code[:es].include?(item.project_type)
+            item.lot >= 365 && Hud.util.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           es_stay_length: 365,
         },
@@ -1074,11 +1074,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless HudUtilityCurrent.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
+            return false unless Hud.util.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 90
           },
@@ -1093,11 +1093,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless HudUtilityCurrent.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
+            return false unless Hud.util.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 180
           },
@@ -1112,11 +1112,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless HudUtilityCurrent.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
+            return false unless Hud.util.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 365
           },
@@ -1131,12 +1131,12 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:so].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service >= 90 && HudUtilityCurrent.residential_project_type_numbers_by_code[:so].include?(item.project_type)
+            item.days_since_last_service >= 90 && Hud.util.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           so_missed_exit_length: 90,
         },
@@ -1149,12 +1149,12 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:so].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service >= 180 && HudUtilityCurrent.residential_project_type_numbers_by_code[:so].include?(item.project_type)
+            item.days_since_last_service >= 180 && Hud.util.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           so_missed_exit_length: 180,
         },
@@ -1167,12 +1167,12 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtilityCurrent.residential_project_type_numbers_by_code[:so].include?(item.project_type)
+            Hud.util.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service >= 365 && HudUtilityCurrent.residential_project_type_numbers_by_code[:so].include?(item.project_type)
+            item.days_since_last_service >= 365 && Hud.util.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           so_missed_exit_length: 365,
         },
@@ -1186,13 +1186,13 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            hoh?(item) && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 90 && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            item.lot >= 90 && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 90,
         },
@@ -1206,13 +1206,13 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            hoh?(item) && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 180 && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            item.lot >= 180 && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 180,
         },
@@ -1226,13 +1226,13 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            hoh?(item) && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 365 && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            item.lot >= 365 && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 365,
         },
@@ -1245,12 +1245,12 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            hoh?(item) && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.blank?
-            return false unless HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            return false unless Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
 
             item.move_in_date < item.entry_date
           },
@@ -1264,12 +1264,12 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh?(item) && HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            hoh?(item) && Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
-            return false unless HudUtilityCurrent.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
+            return false unless Hud.util.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
 
             item.move_in_date > item.exit_date
           },
@@ -1683,7 +1683,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
 
             # Only veterans that include the above funder(s)
@@ -1692,14 +1692,14 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false if (funding_sources & item.funders).empty?
 
             # Must be a veteran
             return false unless item.veteran == 1
 
-            ! (HudUtilityCurrent.yes_no_missing_options.keys - [99]).include?(item.afghanistan_oef)
+            ! (Hud.util.yes_no_missing_options.keys - [99]).include?(item.afghanistan_oef)
           },
         },
         iraq_oif: {
@@ -1712,7 +1712,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
 
             # Only veterans that include the above funder(s)
@@ -1721,14 +1721,14 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false if (funding_sources & item.funders).empty?
 
             # Must be a veteran
             return false unless item.veteran == 1
 
-            ! (HudUtilityCurrent.yes_no_missing_options.keys - [99]).include?(item.iraq_oif)
+            ! (Hud.util.yes_no_missing_options.keys - [99]).include?(item.iraq_oif)
           },
         },
         iraq_ond: {
@@ -1741,7 +1741,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
 
             # Only veterans that include the above funder(s)
@@ -1750,14 +1750,14 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false if (funding_sources & item.funders).empty?
 
             # Must be a veteran
             return false unless item.veteran == 1
 
-            ! (HudUtilityCurrent.yes_no_missing_options.keys - [99]).include?(item.iraq_ond)
+            ! (Hud.util.yes_no_missing_options.keys - [99]).include?(item.iraq_ond)
           },
         },
         military_branch: {
@@ -1770,7 +1770,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
 
             # Only veterans that include the above funder(s)
@@ -1779,14 +1779,14 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false if (funding_sources & item.funders).empty?
 
             # Must be a veteran
             return false unless item.veteran == 1
 
-            ! (HudUtilityCurrent.military_branches.keys - [99]).include?(item.military_branch)
+            ! (Hud.util.military_branches.keys - [99]).include?(item.military_branch)
           },
         },
         discharge_status: {
@@ -1801,7 +1801,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
 
             # Only veterans that include the above funder(s)
@@ -1810,14 +1810,14 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: SSVF'],
             ].flatten
             return false if (funding_sources & item.funders).empty?
 
             # Must be a veteran
             return false unless item.veteran == 1
 
-            ! (HudUtilityCurrent.discharge_statuses.keys - [99]).include?(item.discharge_status)
+            ! (Hud.util.discharge_statuses.keys - [99]).include?(item.discharge_status)
           },
         },
         employed: {
@@ -1829,21 +1829,21 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['HHS: RHY'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['HHS: RHY'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
             ].flatten
 
             in_project_types = [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:prevention],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             # Only adults that include the above funder(s) and project type(s)
@@ -1854,26 +1854,26 @@ module HmisDataQualityTool
 
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['HHS: RHY'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['HHS: RHY'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
             return false unless [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:prevention],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
-            ! (HudUtilityCurrent.yes_no_missing_options.keys - [99]).include?(item.employed)
+            ! (Hud.util.yes_no_missing_options.keys - [99]).include?(item.employed)
           },
         },
         employment_type_matches_status: {
@@ -1886,21 +1886,21 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['HHS: RHY'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['HHS: RHY'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
             ].flatten
 
             in_project_types = [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:prevention],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             # Only adults that include the above funder(s) and project type(s)
@@ -1911,23 +1911,23 @@ module HmisDataQualityTool
 
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['HHS: RHY'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['HHS: RHY'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
             return false unless [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:prevention],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             is_employed = item.employed == 1
@@ -1946,21 +1946,21 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) {
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['HHS: RHY'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['HHS: RHY'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
             ].flatten
 
             in_project_types = [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:prevention],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             # Only adults that include the above funder(s) and project type(s)
@@ -1971,23 +1971,23 @@ module HmisDataQualityTool
 
             # Limit to items with intersecting funders below
             funding_sources = [
-              HudUtilityCurrent.funder_components['HUD: HUD-VASH'],
-              HudUtilityCurrent.funder_components['HHS: RHY'],
-              HudUtilityCurrent.funder_components['VA: SSVF'],
-              HudUtilityCurrent.funder_components['VA: GPD'],
+              Hud.util.funder_components['HUD: HUD-VASH'],
+              Hud.util.funder_components['HHS: RHY'],
+              Hud.util.funder_components['VA: SSVF'],
+              Hud.util.funder_components['VA: GPD'],
             ].flatten
             return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
             return false unless [
-              HudUtilityCurrent.performance_reporting[:es_entry_exit],
-              HudUtilityCurrent.performance_reporting[:th],
-              HudUtilityCurrent.performance_reporting[:psh],
-              HudUtilityCurrent.performance_reporting[:so],
-              HudUtilityCurrent.performance_reporting[:sh],
-              HudUtilityCurrent.performance_reporting[:oph],
-              HudUtilityCurrent.performance_reporting[:prevention],
-              HudUtilityCurrent.performance_reporting[:rrh],
+              Hud.util.performance_reporting[:es_entry_exit],
+              Hud.util.performance_reporting[:th],
+              Hud.util.performance_reporting[:psh],
+              Hud.util.performance_reporting[:so],
+              Hud.util.performance_reporting[:sh],
+              Hud.util.performance_reporting[:oph],
+              Hud.util.performance_reporting[:prevention],
+              Hud.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
             is_not_employed = item.employed == 0

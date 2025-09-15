@@ -34,7 +34,7 @@ module GrdaWarehouse::Hud
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> do
       joins(:projects).where(
-        Project.arel_table[:ProjectType].in(HudUtilityCurrent.residential_project_type_ids),
+        Project.arel_table[:ProjectType].in(Hud.util.residential_project_type_ids),
       )
     end
 

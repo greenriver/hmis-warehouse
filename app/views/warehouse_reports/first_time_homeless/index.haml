@@ -48,10 +48,10 @@
               %nobr= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %td= client.first_service_history.age
             %td= client.age()
-            %td= HudUtilityCurrent.no_yes_reasons_for_missing_data(client.VeteranStatus)
+            %td= Hud.util.no_yes_reasons_for_missing_data(client.VeteranStatus)
             %td= client.first_service_history.date
             %td
-              = ::HudUtilityCurrent.project_type(client.first_service_history.project_type)
+              = ::Hud.util.project_type(client.first_service_history.project_type)
             %td= project.name(current_user)
             %td= project.organization_name(current_user)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')

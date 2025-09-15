@@ -11,12 +11,12 @@ module KnownCategories::Race
 
   def race_calculations
     @race_calculations ||= {}.tap do |calcs|
-      HudUtilityCurrent.races.each do |key, title|
+      Hud.util.races.each do |key, title|
         next if key.to_sym == :RaceNone
 
         calcs[title] = ->(value) { value == key }
       end
-      title = HudUtilityCurrent.race('MultiRacial', multi_racial: true)
+      title = Hud.util.race('MultiRacial', multi_racial: true)
       calcs[title] = ->(value) { value == title }
       calcs['Client doesn\'t know'] = ->(value) { value == '8' }
       calcs['Client refused'] = ->(value) { value == '9' }

@@ -10,8 +10,8 @@ module PerformanceDashboard::Overview::RaceAndEthnicity
   extend ActiveSupport::Concern
 
   private def race_and_ethnicity_buckets
-    (HudUtilityCurrent.races.keys + ['Multiple']).map do |r|
-      (HudUtilityCurrent.ethnicities.keys - [:unknown]).map do |e|
+    (Hud.util.races.keys + ['Multiple']).map do |r|
+      (Hud.util.ethnicities.keys - [:unknown]).map do |e|
         next if r == 'HispanicLatinaeo' && e == :non_hispanic_latinaeo
         next if r == 'RaceNone' && e != :unknown
 
@@ -27,9 +27,9 @@ module PerformanceDashboard::Overview::RaceAndEthnicity
     race = if key[:race] == 'Multiple'
       'Multi-Racial'
     else
-      HudUtilityCurrent.race(key[:race])
+      Hud.util.race(key[:race])
     end
-    "#{race} - #{HudUtilityCurrent.ethnicity(key[:ethnicity])}"
+    "#{race} - #{Hud.util.ethnicity(key[:ethnicity])}"
   end
 
   def race_and_ethnicity_bucket_titles

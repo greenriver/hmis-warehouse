@@ -166,7 +166,7 @@ class GrdaWarehouse::PiiProvider
     value.rjust(9, '0')
   end
 
-  SSN_RGX = HudUtilityCurrent.current_hud_utility::SSN_RGX
+  SSN_RGX = Hud.util.current_hud_utility::SSN_RGX
   private_constant :SSN_RGX
 
   def format_masked_ssn(value)

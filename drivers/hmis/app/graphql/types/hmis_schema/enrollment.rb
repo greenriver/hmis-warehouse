@@ -479,7 +479,7 @@ module Types
       when Hmis::Hud::CurrentLivingSituation
         'CURRENT_LIVING_SITUATION'
       when Hmis::Hud::CustomAssessment
-        assessment_name = HudUtilityCurrent.assessment_name_by_data_collection_stage[last_contact_entity.data_collection_stage]
+        assessment_name = Hud.util.assessment_name_by_data_collection_stage[last_contact_entity.data_collection_stage]
         assessment_name.present? ? Types::BaseEnum.to_enum_key(assessment_name) : 'ASSESSMENT'
       when Hmis::Hud::CustomCaseNote
         'CASE_NOTE'

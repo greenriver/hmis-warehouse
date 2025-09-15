@@ -133,9 +133,9 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
     it 'cohort client has expected values' do
       {
-        most_recent_prior_living_situation: HudUtilityCurrent.living_situation(source_enrollment.LivingSituation),
+        most_recent_prior_living_situation: Hud.util.living_situation(source_enrollment.LivingSituation),
         most_recent_household_type: 'Without Children',
-        most_recent_self_report_months_homeless: HudUtilityCurrent.months_homeless_past_three_years(source_enrollment.MonthsHomelessPastThreeYears),
+        most_recent_self_report_months_homeless: Hud.util.months_homeless_past_three_years(source_enrollment.MonthsHomelessPastThreeYears),
         most_recent_disabling_condition: 'Yes',
       }.each do |col, val|
         expect(cohort.cohort_clients.first.send(col)).to include(val)

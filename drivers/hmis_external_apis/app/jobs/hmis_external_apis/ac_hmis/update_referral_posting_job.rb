@@ -28,7 +28,7 @@ module HmisExternalApis::AcHmis
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    # map from HudUtility.referral_results to implementation-specific codes
+    # map from Hud.util('legacy').referral_results to implementation-specific codes
     REFERRAL_RESULT_CODE_MAP = {
       1 => 157, # 157 Successful referral: client accepted
       2 => 158, # 158 Unsuccessful referral: client rejected

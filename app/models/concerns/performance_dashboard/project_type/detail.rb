@@ -42,9 +42,9 @@ module PerformanceDashboard::ProjectType::Detail
   def detail_column_display(header:, column:)
     case header
     when 'Living Situation'
-      HudUtilityCurrent.living_situation(column)
+      Hud.util.living_situation(column)
     when 'Destination'
-      HudUtilityCurrent.destination(column)
+      Hud.util.destination(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     else

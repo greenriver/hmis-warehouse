@@ -21,7 +21,7 @@ module CePerformance
 
     after_initialize :filter
 
-    HOUSING_REFERRAL_EVENTS = HudUtilityCurrent.ce_events_referrals_to_housing.freeze
+    HOUSING_REFERRAL_EVENTS = Hud.util.ce_events_referrals_to_housing.freeze
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -132,7 +132,7 @@ module CePerformance
     end
 
     def default_project_type_codes
-      HudUtilityCurrent.performance_reporting.keys
+      Hud.util.performance_reporting.keys
     end
 
     private def build_control_sections
@@ -187,7 +187,7 @@ module CePerformance
     def clients_title(sub_population_title: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
       return "Housing Needs Assessment Range: #{vispdat_range}" if vispdat_range.present?
       return "Housing Needs Assessment Type: #{vispdat_type}" if vispdat_type.present?
-      return "Event Type: #{::HudUtilityCurrent.event(event_type)}" if event_type.present?
+      return "Event Type: #{::Hud.util.event(event_type)}" if event_type.present?
 
       sub_population_title
     end
@@ -377,7 +377,7 @@ module CePerformance
 
     private def any_cls_literally_homeless?(ce_apr_client)
       ce_apr_client.hud_report_apr_living_situations.any? do |m|
-        m.living_situation.in?(::HudUtilityCurrent.homeless_situations(as: :current))
+        m.living_situation.in?(::Hud.util.homeless_situations(as: :current))
       end
     end
 

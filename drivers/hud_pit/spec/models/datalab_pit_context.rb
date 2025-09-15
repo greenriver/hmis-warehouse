@@ -17,7 +17,7 @@ RSpec.shared_context 'datalab pit context', shared_context: :metadata do
   def pit_filter_spec
     shared_filter_spec.merge(
       {
-        project_type_codes: HudUtility2024.homeless_project_type_codes,
+        project_type_codes: Hud.util('2024').homeless_project_type_codes,
       },
     )
   end

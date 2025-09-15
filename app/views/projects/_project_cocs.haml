@@ -24,7 +24,7 @@
             %td= p_coc.CoCCode
             %td= p_coc.Zip
             %td= p_coc.Geocode
-            %td= HudUtilityCurrent.geography_type p_coc.GeographyType
+            %td= Hud.util.geography_type p_coc.GeographyType
             %td
               - if can_edit_projects?
                 - if p_coc.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)

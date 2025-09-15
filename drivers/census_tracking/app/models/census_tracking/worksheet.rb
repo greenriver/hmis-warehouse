@@ -22,7 +22,7 @@ module CensusTracking
         where(id: @filter.effective_project_ids).
         map do |project|
           [
-            HudUtilityCurrent.project_type(project.project_type) || 'Unknown Project Type',
+            Hud.util.project_type(project.project_type) || 'Unknown Project Type',
             project.organization.name(@filter.user),
             project.name(@filter.user),
             project.id,

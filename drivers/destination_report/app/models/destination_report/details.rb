@@ -113,20 +113,20 @@ module
     def detail_column_display(header:, column:)
       case header
       when 'Project Type'
-        HudUtilityCurrent.project_type(column)
+        Hud.util.project_type(column)
       when 'CoC'
-        HudUtilityCurrent.coc_name(column)
+        Hud.util.coc_name(column)
       when 'Woman', 'Man', 'Non-Binary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
-        HudUtilityCurrent.no_yes_reasons_for_missing_data(column)
-      when *HudUtilityCurrent.races.values
-        HudUtilityCurrent.no_yes_missing(column)
+        Hud.util.no_yes_reasons_for_missing_data(column)
+      when *Hud.util.races.values
+        Hud.util.no_yes_missing(column)
       else
         column
       end
     end
 
     private def genders
-      @genders ||= HudUtilityCurrent.gender_field_name_label.map do |col, label|
+      @genders ||= Hud.util.gender_field_name_label.map do |col, label|
         label = 'Unknown Gender' if col == :GenderNone
         [
           c_t[col],
@@ -142,7 +142,7 @@ module
         'First Name',
         'Last Name',
         'DOB',
-      ] + genders.values + HudUtilityCurrent.races.values
+      ] + genders.values + Hud.util.races.values
     end
 
     def client_columns
@@ -152,7 +152,7 @@ module
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
-      ] + genders.keys + HudUtilityCurrent.races.keys.map { |k| c_t[k.to_sym] }
+      ] + genders.keys + Hud.util.races.keys.map { |k| c_t[k.to_sym] }
     end
   end
 end

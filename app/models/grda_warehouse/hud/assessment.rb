@@ -126,7 +126,7 @@ module GrdaWarehouse::Hud
       name_from_questions = assessment_questions.detect(&:assessment_name)
       return name_from_questions.assessment_name if name_from_questions.present?
 
-      HudUtilityCurrent.assessment_level self.AssessmentLevel
+      Hud.util.assessment_level self.AssessmentLevel
     end
 
     def pathways?

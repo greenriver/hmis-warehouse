@@ -183,12 +183,12 @@ RSpec.describe Hmis::Ce::Match::Expression::ClientFieldMap, type: :model do
   describe '#format_for_display' do
     it 'formats veteran status using HUD utility' do
       formatted = field_map.format_for_display('veteran_status', 1)
-      expect(formatted).to eq(HudUtility2026.veteran_status(1))
+      expect(formatted).to eq(Hud.util('2026').veteran_status(1))
     end
 
     it 'formats project types using HUD utility' do
       formatted = field_map.format_for_display('open_enrollment_project_types', [2, 3])
-      expected = [HudUtility2026.project_type(2), HudUtility2026.project_type(3)]
+      expected = [Hud.util('2026').project_type(2), Hud.util('2026').project_type(3)]
       expect(formatted).to eq(expected)
     end
   end

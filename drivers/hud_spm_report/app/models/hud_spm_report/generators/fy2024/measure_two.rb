@@ -128,11 +128,11 @@ module HudSpmReport::Generators::Fy2024
 
     private def report_rows
       {
-        2 => HudUtility2024.project_type_number_from_code(:so),
-        3 => HudUtility2024.project_type_number_from_code(:es),
-        4 => HudUtility2024.project_type_number_from_code(:th),
-        5 => HudUtility2024.project_type_number_from_code(:sh),
-        6 => HudUtility2024.project_type_number_from_code(:ph),
+        2 => Hud.util('2024').project_type_number_from_code(:so),
+        3 => Hud.util('2024').project_type_number_from_code(:es),
+        4 => Hud.util('2024').project_type_number_from_code(:th),
+        5 => Hud.util('2024').project_type_number_from_code(:sh),
+        6 => Hud.util('2024').project_type_number_from_code(:ph),
       }.freeze
     end
 

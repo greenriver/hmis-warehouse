@@ -18,9 +18,9 @@
         = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
     .row
       .col-sm-6
-        = f.input :Gender, collection: HudUtilityCurrent.genders.invert, as: :select_two
+        = f.input :Gender, collection: Hud.util.genders.invert, as: :select_two
       .col-sm-6
-        = f.input :VeteranStatus, collection: HudUtilityCurrent.no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
+        = f.input :VeteranStatus, collection: Hud.util.no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
     .row
       - if GrdaWarehouse::DataSource.authoritative.scannable.count > 1
         .col-sm-4

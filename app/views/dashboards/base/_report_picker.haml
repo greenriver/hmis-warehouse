@@ -4,7 +4,7 @@
   = simple_form_for filter, as: :filters, url: request.env['PATH_INFO'], method: :get do |f|
     .row
       .col
-        = f.input :project_type_codes, collection: HudUtilityCurrent.homeless_type_titles.invert, as: :select_two, label: 'Project Types', input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' } }
+        = f.input :project_type_codes, collection: Hud.util.homeless_type_titles.invert, as: :select_two, label: 'Project Types', input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' } }
       .col
         = f.input :organization_ids, collection: filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
     .row
@@ -30,9 +30,9 @@
         = f.input :age_ranges, collection: filter.available_age_ranges, as: :select_two, input_html: { multiple: true }, required: false
     .row
       .col-4
-        = f.input :races, collection: HudUtilityCurrent.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
+        = f.input :races, collection: Hud.util.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
       .col-4
-        = f.input :genders, collection: HudUtilityCurrent.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
+        = f.input :genders, collection: Hud.util.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
       .col-4
         = f.input :dv_status, collection: filter.available_dv_status, label: 'DV Status', as: :select_two, required: false, input_html: { multiple: true }
     .w-20

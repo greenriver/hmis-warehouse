@@ -335,7 +335,7 @@ module HmisUtil
     public def create_default_occurrence_point_instances!
       # Move-in Date
       unless Hmis::Form::Instance.where(definition_identifier: 'move_in_date').exists?
-        HudUtilityCurrent.permanent_housing_project_types.each do |ptype|
+        Hud.util.permanent_housing_project_types.each do |ptype|
           Hmis::Form::Instance.create!(
             definition_identifier: 'move_in_date',
             project_type: ptype,
@@ -349,7 +349,7 @@ module HmisUtil
       # Date of Engagement
       unless Hmis::Form::Instance.where(definition_identifier: 'date_of_engagement').exists?
         # Note: spec has funder components too, but by default we just show it for the project types.
-        HudUtilityCurrent.doe_project_types.each do |ptype|
+        Hud.util.doe_project_types.each do |ptype|
           Hmis::Form::Instance.create!(
             definition_identifier: 'date_of_engagement',
             project_type: ptype,
@@ -363,7 +363,7 @@ module HmisUtil
       # PATH Status
       return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
 
-      HudUtilityCurrent.path_funders.each do |funder|
+      Hud.util.path_funders.each do |funder|
         Hmis::Form::Instance.create!(
           definition_identifier: 'path_status',
           funder: funder,

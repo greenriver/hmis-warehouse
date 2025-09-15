@@ -39,7 +39,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.hmis_participation_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('2024').hmis_participation_types.keys.map(&:to_s).freeze },
           },
         ],
         HMISParticipationStatusStartDate: [

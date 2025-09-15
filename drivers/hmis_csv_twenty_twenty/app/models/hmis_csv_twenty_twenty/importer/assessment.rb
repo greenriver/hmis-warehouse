@@ -34,7 +34,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.assessment_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').assessment_types.keys.map(&:to_s).freeze },
           },
         ],
         AssessmentLevel: [
@@ -43,7 +43,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.assessment_levels.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').assessment_levels.keys.map(&:to_s).freeze },
           },
         ],
         PrioritizationStatus: [
@@ -52,7 +52,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.prioritization_statuses.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').prioritization_statuses.keys.map(&:to_s).freeze },
           },
         ],
       }

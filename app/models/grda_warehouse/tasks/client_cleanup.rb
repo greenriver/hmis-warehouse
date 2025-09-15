@@ -110,7 +110,7 @@ module GrdaWarehouse::Tasks
         merge(
           GrdaWarehouse::Hud::Project.
           with_project_type(
-            HudUtilityCurrent.performance_reporting.values.flatten,
+            Hud.util.performance_reporting.values.flatten,
           ),
         ).
         where.not(HouseholdID: nil).
@@ -593,7 +593,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def gender_columns
-      @gender_columns ||= ::HudUtilityCurrent.gender_fields - [:GenderNone]
+      @gender_columns ||= ::Hud.util.gender_fields - [:GenderNone]
     end
 
     def choose_best_race dest_attr, source_clients

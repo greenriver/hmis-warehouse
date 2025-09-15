@@ -9,11 +9,11 @@
     %table.table.table-striped
       %thead
         %tr
-          - HudUtilityCurrent.gender_id_to_field_name.each_key do |id|
-            %th= HudUtilityCurrent.gender(id)
+          - Hud.util.gender_id_to_field_name.each_key do |id|
+            %th= Hud.util.gender(id)
       %tbody
         %tr
-          - HudUtilityCurrent.gender_id_to_field_name.each_value do |field|
+          - Hud.util.gender_id_to_field_name.each_value do |field|
             %td= data.count { |row| row[field] == 1 }
   %h3 Age
   .card.mb-6
@@ -31,9 +31,9 @@
     %table.table.table-striped
       %thead
         %tr
-          - HudUtilityCurrent.races(multi_racial: true).values.each do |race|
+          - Hud.util.races(multi_racial: true).values.each do |race|
             %th= race
       %tbody
         %tr
-          - HudUtilityCurrent.races(multi_racial: true).keys.each do |race|
+          - Hud.util.races(multi_racial: true).keys.each do |race|
             %td= data.count { |row| row[:race] == race }

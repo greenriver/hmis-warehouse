@@ -40,9 +40,9 @@ module PerformanceDashboard::Household::Detail
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HudUtilityCurrent.project_type(column)
+      Hud.util.project_type(column)
     when 'CoC'
-      HudUtilityCurrent.coc_name(column)
+      Hud.util.coc_name(column)
     else
       column
     end

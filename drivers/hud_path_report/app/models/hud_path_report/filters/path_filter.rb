@@ -11,15 +11,15 @@ module HudPathReport::Filters
     end
 
     def path_project_types_for_select
-      HudUtilityCurrent.project_type_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze
+      Hud.util.project_type_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze
     end
 
     def path_project_type_ids
-      path_project_types.map { |s| HudUtilityCurrent.performance_reporting[s] }.flatten
+      path_project_types.map { |s| Hud.util.performance_reporting[s] }.flatten
     end
 
     def path_project_types
-      HudUtilityCurrent.path_project_type_codes
+      Hud.util.path_project_type_codes
     end
   end
 end

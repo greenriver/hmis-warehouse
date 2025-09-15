@@ -128,7 +128,7 @@ module MedicaidHmisInterchange::Health
     # for the client that contained at least one service
     private def client_batch(medicaid_ids)
       homeless_enrollments_with_service = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        in_project_type(HudUtilityCurrent.homeless_project_types).
+        in_project_type(Hud.util.homeless_project_types).
         with_service
       GrdaWarehouse::Hud::Client.where(id: medicaid_ids.keys). # X-DB join
         joins(service_history_enrollments: :enrollment).

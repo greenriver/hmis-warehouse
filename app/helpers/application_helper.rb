@@ -148,7 +148,7 @@ module ApplicationHelper
     if can_view_full_ssn?
       # pad with leading 0s if we don't have enough characters
       number = number.to_s.rjust(9, '0') if number.present?
-      content_tag :span, number.to_s.gsub(HudUtilityCurrent.current_hud_utility::SSN_RGX, '\1-\2-\3')
+      content_tag :span, number.to_s.gsub(Hud.util.current_hud_utility::SSN_RGX, '\1-\2-\3')
     else
       masked_ssn(number)
     end
@@ -157,10 +157,10 @@ module ApplicationHelper
   def masked_ssn(number, include_content_tag: true)
     # pad with leading 0s if we don't have enough characters
     number = number.to_s.rjust(9, '0') if number.present?
-    value = number.to_s.gsub(HudUtilityCurrent.current_hud_utility::SSN_RGX, 'XXX-XX-\3')
+    value = number.to_s.gsub(Hud.util.current_hud_utility::SSN_RGX, 'XXX-XX-\3')
     return value unless include_content_tag
 
-    content_tag :span, number.to_s.gsub(HudUtilityCurrent.current_hud_utility::SSN_RGX, 'XXX-XX-\3')
+    content_tag :span, number.to_s.gsub(Hud.util.current_hud_utility::SSN_RGX, 'XXX-XX-\3')
   end
 
   def beautify_option(_key, value)

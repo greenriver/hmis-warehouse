@@ -68,7 +68,7 @@ module Hmis::Ce::Match::Expression
     def veteran_status_field
       {
         query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
-        format_for_display: ->(v) { HudUtility2026.veteran_status(v) },
+        format_for_display: ->(v) { Hud.util('2026').veteran_status(v) },
         arel_field: arel.c_t['VeteranStatus'],
       }
     end
@@ -118,6 +118,6 @@ module Hmis::Ce::Match::Expression
     # display helpers
     def helpers = ApplicationController.helpers
     def format_days(days) = days.nil? ? nil : helpers.pluralize(days, 'day')
-    def format_project_types(project_type_ids) = project_type_ids.uniq.map { |t| HudUtility2026.project_type(t) }
+    def format_project_types(project_type_ids) = project_type_ids.uniq.map { |t| Hud.util('2026').project_type(t) }
   end
 end

@@ -31,7 +31,7 @@ module CoreDemographicsReport::DemographicSummary
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || HudUtilityCurrent.homeless_project_types
+      @project_types = filter.project_type_ids || Hud.util.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 

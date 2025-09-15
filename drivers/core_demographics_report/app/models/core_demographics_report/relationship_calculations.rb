@@ -14,7 +14,7 @@ module
     # @return [Hash] A hash containing report configurations for different relationship types
     def relationship_detail_hash
       {}.tap do |hashes|
-        ::HudUtilityCurrent.relationships_to_hoh.each do |key, title|
+        ::Hud.util.relationships_to_hoh.each do |key, title|
           hashes["relationship_#{key}"] = {
             title: "Relationship #{title}",
             headers: client_headers,
@@ -52,7 +52,7 @@ module
       rows['_Relationship to Head of Household Break'] ||= []
       rows['*Relationship to Head of Household'] ||= []
       rows['*Relationship to Head of Household'] += ['Relationship', nil, 'Count', 'Percentage', nil]
-      ::HudUtilityCurrent.relationships_to_hoh.each do |id, title|
+      ::Hud.util.relationships_to_hoh.each do |id, title|
         rows["_Relationship_data_#{title}"] ||= []
         rows["_Relationship_data_#{title}"] += [
           title,

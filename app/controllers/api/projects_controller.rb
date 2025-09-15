@@ -34,7 +34,7 @@ module Api
             o_name_at_ds = "#{o_name} at #{ds_name}"
             @data[[o_id, o_name_at_ds]] ||= []
 
-            p_name += " (#{HudUtilityCurrent.brief_project_type_with_sub_type(type, rrh_sub_type)})" if HudUtilityCurrent.brief_project_type_with_sub_type(type).present?
+            p_name += " (#{Hud.util.brief_project_type_with_sub_type(type, rrh_sub_type)})" if Hud.util.brief_project_type_with_sub_type(type).present?
             @data[[o_id, o_name_at_ds]] << [
               p_name,
               id,
@@ -90,12 +90,12 @@ module Api
     end
 
     private def project_types
-      return HudUtilityCurrent.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
+      return Hud.util.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
 
       @project_types ||= begin
         types = []
 
-        project_type_to_id = HudUtilityCurrent.performance_reporting.merge(HudUtilityCurrent.residential_project_type_numbers_by_code)
+        project_type_to_id = Hud.util.performance_reporting.merge(Hud.util.residential_project_type_numbers_by_code)
         if project_params[:project_types].present?
           project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
             types += project_type_to_id[type]

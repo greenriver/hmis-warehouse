@@ -18,7 +18,7 @@ module DisabilitySummary
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || HudUtilityCurrent.homeless_project_types
+      @project_types = filter.project_type_ids || Hud.util.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 
@@ -131,7 +131,7 @@ module DisabilitySummary
           reporting_age: age_calculation,
           entry_date: she_t[:first_date_in_program],
         }
-        HudUtilityCurrent.gender_fields.each do |field|
+        Hud.util.gender_fields.each do |field|
           columns[field] = c_t[field]
         end
         # race_cache_client = GrdaWarehouse::Hud::Client.new
@@ -147,7 +147,7 @@ module DisabilitySummary
             coc_code = row[:coc_code]
             disability_response = row[:disability_response]
             indefinite = row[:indefinite]
-            disability = HudUtilityCurrent.disability_type(row[:disability_type])
+            disability = Hud.util.disability_type(row[:disability_type])
             # race = nil #race_cache_client.race_string(destination_id: client_id, scope_limit: GrdaWarehouse::Hud::Client.joins(:service_history_enrollments).merge(report_scope))
 
             # only count the first response for a client in each type per coc
@@ -162,9 +162,9 @@ module DisabilitySummary
 
             indefinite ||= 99
             response = if row[:disability_type] == 10
-              HudUtilityCurrent.disability_response disability_response
+              Hud.util.disability_response disability_response
             else
-              HudUtilityCurrent.no_yes_reasons_for_missing_data disability_response
+              Hud.util.no_yes_reasons_for_missing_data disability_response
             end
 
             client_data = {
@@ -179,7 +179,7 @@ module DisabilitySummary
               reporting_age: row[:reporting_age],
               id: client_id,
             }
-            HudUtilityCurrent.gender_fields.each do |field|
+            Hud.util.gender_fields.each do |field|
               client_data[field] = row[field]
             end
 
@@ -196,10 +196,10 @@ module DisabilitySummary
             data[:by_coc][coc_code] ||= {}
             # data[:by_coc][coc_code][:clients] ||= {}
             # data[:by_coc][coc_code][:clients][disability] ||= {}
-            # data[:by_coc][coc_code][:clients][disability][HudUtilityCurrent.no_yes_reasons_for_missing_data(indefinite)] ||= Set.new
-            # data[:by_coc][coc_code][:clients][disability][HudUtilityCurrent.no_yes_reasons_for_missing_data(indefinite)] << client_id
+            # data[:by_coc][coc_code][:clients][disability][Hud.util.no_yes_reasons_for_missing_data(indefinite)] ||= Set.new
+            # data[:by_coc][coc_code][:clients][disability][Hud.util.no_yes_reasons_for_missing_data(indefinite)] << client_id
             data[:by_coc][coc_code][:disabilities] ||= disability_options(indefinite_options)
-            data[:by_coc][coc_code][:disabilities][disability][HudUtilityCurrent.no_yes_reasons_for_missing_data(indefinite)] << client_id
+            data[:by_coc][coc_code][:disabilities][disability][Hud.util.no_yes_reasons_for_missing_data(indefinite)] << client_id
 
             data[:by_coc][coc_code][:disabilities_summary] ||= disability_options(Set)
             data[:by_coc][coc_code][:disabilities_summary][disability] << client_id
@@ -216,15 +216,15 @@ module DisabilitySummary
 
       return unless disability.present?
       return unless disability.in?(filter.available_disabilities.keys)
-      return if coc.present? && ! coc.in?(HudUtilityCurrent.cocs.keys)
-      return if indefinite.present? && ! indefinite.in?(HudUtilityCurrent.no_yes_reasons_for_missing_data_options.values)
+      return if coc.present? && ! coc.in?(Hud.util.cocs.keys)
+      return if indefinite.present? && ! indefinite.in?(Hud.util.no_yes_reasons_for_missing_data_options.values)
 
       ids = if detail == 'universe'
         data_for_disabilities[:all][:clients][disability]
       elsif indefinite.blank?
         data_for_disabilities[:by_coc][coc][:disabilities][disability].values.map(&:to_a).flatten.to_set
       else
-        data_for_disabilities[:by_coc][coc][:disabilities][disability][HudUtilityCurrent.no_yes_reasons_for_missing_data(indefinite)]
+        data_for_disabilities[:by_coc][coc][:disabilities][disability][Hud.util.no_yes_reasons_for_missing_data(indefinite)]
       end
 
       clients = data_for_disabilities[:clients].select do |client_id, _|
@@ -245,8 +245,8 @@ module DisabilitySummary
       indefinite = params.dig(:indefinite)
       return unless disability.present?
       return unless disability.in?(filter.available_disabilities.keys)
-      return if coc.present? && ! coc.in?(HudUtilityCurrent.cocs.keys)
-      return if indefinite.present? && ! indefinite.in?(HudUtilityCurrent.no_yes_reasons_for_missing_data_options.values)
+      return if coc.present? && ! coc.in?(Hud.util.cocs.keys)
+      return if indefinite.present? && ! indefinite.in?(Hud.util.no_yes_reasons_for_missing_data_options.values)
 
       title = disability
       title += " (Indefinite and Impairing: #{indefinite})" if indefinite
@@ -272,7 +272,7 @@ module DisabilitySummary
     end
 
     private def indefinite_options
-      HudUtilityCurrent.no_yes_reasons_for_missing_data_options.values.map { |k| [k, Set.new] }.to_h
+      Hud.util.no_yes_reasons_for_missing_data_options.values.map { |k| [k, Set.new] }.to_h
     end
 
     def self.data_for_export(reports)

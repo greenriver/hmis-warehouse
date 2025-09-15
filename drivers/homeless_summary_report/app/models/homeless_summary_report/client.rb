@@ -26,7 +26,7 @@ module HomelessSummaryReport
     ].freeze
     DEMOGRAPHIC_VARIANTS = [
       :all,
-      *HudUtilityCurrent.race_ethnicity_combinations.keys,
+      *Hud.util.race_ethnicity_combinations.keys,
       :fleeing_dv,
       :veteran,
       :has_disability,

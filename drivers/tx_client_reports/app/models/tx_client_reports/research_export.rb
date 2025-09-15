@@ -96,10 +96,10 @@ module TxClientReports
     def format_demographic_value(value, index)
       case demographic_headers[index]
         # TODO: This needs to be updated in the receiving system before we update here
-      when *::HudUtility.races.values, *::HudUtility.genders.values
-        ::HudUtility.no_yes_missing(value)
+      when *::Hud.util('legacy').races.values, *::Hud.util('legacy').genders.values
+        ::Hud.util('legacy').no_yes_missing(value)
       when 'Ethnicity'
-        ::HudUtility.ethnicity(value)
+        ::Hud.util('legacy').ethnicity(value)
       else
         value
       end
@@ -108,7 +108,7 @@ module TxClientReports
     def format_enrollment_value(value, index)
       case enrollment_headers[index]
       when 'Project Type'
-        ::HudUtility.project_type_brief(value)
+        ::Hud.util('legacy').project_type_brief(value)
       else
         value
       end
@@ -147,8 +147,8 @@ module TxClientReports
           'Reporting Age', # NOTE: this is age at the latter of report start or entry
         ]
         # TODO: DEPRECATED_FY2024 This needs to be updated in the receiving system before we update here
-        headers += ::HudUtility.genders.values
-        headers += ::HudUtility.races.values
+        headers += ::Hud.util('legacy').genders.values
+        headers += ::Hud.util('legacy').races.values
         headers << 'Ethnicity'
         headers
       end
@@ -165,8 +165,8 @@ module TxClientReports
         :client_id,
         age_calculation,
         # TODO: DEPRECATED_FY2024 This needs to be updated in the receiving system before we update here
-        *::HudUtility.gender_fields.map { |k| c_t[k] },
-        *::HudUtility.races.keys.map { |k| c_t[k] },
+        *::Hud.util('legacy').gender_fields.map { |k| c_t[k] },
+        *::Hud.util('legacy').races.keys.map { |k| c_t[k] },
         c_t[:Ethnicity],
       ]
     end

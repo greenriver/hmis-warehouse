@@ -105,11 +105,11 @@ module HudApr::Generators::Shared::Fy2021
       [
         {
           column: 'B',
-          situations: HudUtility.living_situations.keys,
+          situations: Hud.util('legacy').living_situations.keys,
         },
         {
           column: 'C',
-          situations: HudUtility.living_situations.keys - [16, 1, 18, 37, 8, 9, 99],
+          situations: Hud.util('legacy').living_situations.keys - [16, 1, 18, 37, 8, 9, 99],
         },
         {
           column: 'D',

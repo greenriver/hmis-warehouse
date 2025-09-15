@@ -79,7 +79,7 @@ module Hmis
       if clobber
         Hmis::Hud::CustomAssessment.
           joins(:project).merge(project_scope).
-          where(data_collection_stage: HudUtilityCurrent.data_collection_stages.keys). # Only clobber HUD assessments, not fully custom assessments
+          where(data_collection_stage: Hud.util.data_collection_stages.keys). # Only clobber HUD assessments, not fully custom assessments
           each(&:really_destroy!)
       end
 

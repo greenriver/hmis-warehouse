@@ -353,7 +353,7 @@ module GrdaWarehouse::Tasks
       elsif value.in?(['yes', 'no'])
         ApplicationController.helpers.yes_no(value == 'yes')
       elsif key.in?([:veteran_status])
-        HudUtilityCurrent.no_yes_reasons_for_missing_data(value)
+        Hud.util.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
         value.map do |id|
           CasAccess::Neighborhood.find_by(id: id)&.name
@@ -406,25 +406,25 @@ module GrdaWarehouse::Tasks
           rrh_successful_exit: 'RRH successful exit:',
           hmis_days_homeless_last_three_years: Translation.translate('Days homeless in the last three years, from HMIS'),
           hmis_days_homeless_all_time: Translation.translate('Total days homeless, from HMIS'),
-          am_ind_ak_native: "Race: #{::HudUtilityCurrent.race('AmIndAKNative')}",
-          asian: "Race: #{::HudUtilityCurrent.race('Asian')}",
-          black_af_american: "Race: #{::HudUtilityCurrent.race('BlackAfAmerican')}",
-          native_hi_pacific: "Race: #{::HudUtilityCurrent.race('NativeHIPacific')}",
+          am_ind_ak_native: "Race: #{::Hud.util.race('AmIndAKNative')}",
+          asian: "Race: #{::Hud.util.race('Asian')}",
+          black_af_american: "Race: #{::Hud.util.race('BlackAfAmerican')}",
+          native_hi_pacific: "Race: #{::Hud.util.race('NativeHIPacific')}",
           # TODO: DEPRECATED_FY2024 enable the following after adding them to CAS
-          # hispanic_latinaeo: "Race: #{::HudUtilityCurrent.race('HispanicLatinaeo')}",
-          # mid_east_n_african: "Race: #{::HudUtilityCurrent.race('MidEastNAfrican')}",
-          white: "Race: #{::HudUtilityCurrent.race('White')}",
+          # hispanic_latinaeo: "Race: #{::Hud.util.race('HispanicLatinaeo')}",
+          # mid_east_n_african: "Race: #{::Hud.util.race('MidEastNAfrican')}",
+          white: "Race: #{::Hud.util.race('White')}",
           # TODO: DEPRECATED_FY2024 enable the following after adding them to CAS
-          female: "Gender: #{::HudUtilityCurrent.gender(0)}",
-          male: "Gender: #{::HudUtilityCurrent.gender(1)}",
-          no_single_gender: "Gender: #{::HudUtilityCurrent.gender(4)}",
-          woman: "Gender: #{::HudUtilityCurrent.gender(0)}",
-          man: "Gender: #{::HudUtilityCurrent.gender(1)}",
-          # non_binary: "Gender: #{::HudUtilityCurrent.gender(4)}",
-          # CulturallySpecific: "Gender: #{::HudUtilityCurrent.gender(2)}",
-          # DifferentIdentity: "Gender: #{::HudUtilityCurrent.gender(3)}",
-          transgender: "Gender: #{::HudUtilityCurrent.gender(5)}",
-          questioning: "Gender: #{::HudUtilityCurrent.gender(6)}",
+          female: "Gender: #{::Hud.util.gender(0)}",
+          male: "Gender: #{::Hud.util.gender(1)}",
+          no_single_gender: "Gender: #{::Hud.util.gender(4)}",
+          woman: "Gender: #{::Hud.util.gender(0)}",
+          man: "Gender: #{::Hud.util.gender(1)}",
+          # non_binary: "Gender: #{::Hud.util.gender(4)}",
+          # CulturallySpecific: "Gender: #{::Hud.util.gender(2)}",
+          # DifferentIdentity: "Gender: #{::Hud.util.gender(3)}",
+          transgender: "Gender: #{::Hud.util.gender(5)}",
+          questioning: "Gender: #{::Hud.util.gender(6)}",
         },
       )
       @title_override[column]

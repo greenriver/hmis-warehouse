@@ -290,32 +290,32 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def d_one_b
       @d_one_b ||= get_client_ids(all_served_last_assessment.
-        where(client_gender: 1)) # HudUtility.gender man
+        where(client_gender: 1)) # Hud.util('legacy').gender man
     end
 
     def d_one_c
       @d_one_c ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: 0)) # HudUtility.gender woman
+          where(client_gender: 0)) # Hud.util('legacy').gender woman
     end
 
     def d_one_d
       @d_one_d ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: [2, 3])) # HudUtility.gender trans
+          where(client_gender: [2, 3])) # Hud.util('legacy').gender trans
     end
 
     def d_one_e
       @d_one_e ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: 4)) # HudUtility.gender non-binary
+          where(client_gender: 4)) # Hud.util('legacy').gender non-binary
     end
 
     def d_one_f
       @d_one_f ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: [6, 8, 9])) # HudUtility.gender questioning, 8, 9
+          where(client_gender: [6, 8, 9])) # Hud.util('legacy').gender questioning, 8, 9
     end
 
     def d_one_g
       @d_one_g ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: 99)) # HudUtility.gender 99
+          where(client_gender: 99)) # Hud.util('legacy').gender 99
     end
 
     def d_two_a
@@ -491,37 +491,37 @@ module GrdaWarehouse::WarehouseReports::Youth
     def g_one_b
       @g_one_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-        where(client_gender: 1)) # HudUtility.gender man
+        where(client_gender: 1)) # Hud.util('legacy').gender man
     end
 
     def g_one_c
       @g_one_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: 0)) # HudUtility.gender woman
+          where(client_gender: 0)) # Hud.util('legacy').gender woman
     end
 
     def g_one_d
       @g_one_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: [2, 3])) # HudUtility.gender trans
+          where(client_gender: [2, 3])) # Hud.util('legacy').gender trans
     end
 
     def g_one_e
       @g_one_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: 4)) # HudUtility.gender non-binary
+          where(client_gender: 4)) # Hud.util('legacy').gender non-binary
     end
 
     def g_one_f
       @g_one_f ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: [6, 8, 9])) # HudUtility.gender questioning, 8, 9
+          where(client_gender: [6, 8, 9])) # Hud.util('legacy').gender questioning, 8, 9
     end
 
     def g_one_g
       @g_one_g ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: 99)) # HudUtility.gender 99
+          where(client_gender: 99)) # Hud.util('legacy').gender 99
     end
 
     def g_two_a

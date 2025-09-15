@@ -23,7 +23,7 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def self.default_project_type_codes
-      HudUtility2026.residential_project_type_numbers_by_code.keys
+      Hud.util('2026').residential_project_type_numbers_by_code.keys
     end
 
     def url

@@ -172,7 +172,7 @@ module
     # @param column [Symbol] The gender column name to convert
     # @return [Integer] The numeric ID for the gender column
     private def gender_column_to_numeric(column)
-      HudUtilityCurrent.gender_id_to_field_name.detect { |_, l| l == column }.first
+      Hud.util.gender_id_to_field_name.detect { |_, l| l == column }.first
     end
 
     # Retrieves client IDs for a specific gender
@@ -198,7 +198,7 @@ module
             each do |row|
               client_id, age, _, *gender_values = row
               client = genders.keys.zip(gender_values).to_h
-              # HudUtilityCurrent.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
+              # Hud.util.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
               # all of these to the id "8" so they all will be included in the Unknown Gender counts.
               gender = GrdaWarehouse::Hud::Client.gender_binary(client).presence || 8
               gender = 8 if gender.in?([9, 99])
@@ -214,7 +214,7 @@ module
               each do |row|
                 client_id, age, _, *gender_values = row
                 client = genders.keys.zip(gender_values).to_h
-                # HudUtilityCurrent.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
+                # Hud.util.gender_id_to_field_name includes multiple :GenderNone records. We are mapping
                 # all of these to the id "8" so they all will be included in the Unknown Gender counts.
                 gender = GrdaWarehouse::Hud::Client.gender_binary(client).presence || 8
                 gender = 8 if gender.in?([9, 99])

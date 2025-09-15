@@ -105,7 +105,7 @@ module ManualHmisData
       {
         GeographyType: {
           type: :select_two,
-          collection: HudUtilityCurrent.geography_types.invert,
+          collection: Hud.util.geography_types.invert,
         },
       }
     end

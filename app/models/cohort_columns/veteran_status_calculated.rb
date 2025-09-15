@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      HudUtilityCurrent.veteran_status(cohort_client.client.veteran_status)
+      Hud.util.veteran_status(cohort_client.client.veteran_status)
     end
   end
 end

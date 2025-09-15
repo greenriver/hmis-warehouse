@@ -18,19 +18,19 @@ module ServiceHistoryServiceConcern
     scope :service_excluding_extrapolated, -> { where(record_type: :service) }
 
     scope :residential, -> {
-      where(project_type_column => HudUtilityCurrent.residential_project_type_ids)
+      where(project_type_column => Hud.util.residential_project_type_ids)
     }
 
     scope :hud_residential, -> do
-      hud_project_type(HudUtilityCurrent.residential_project_type_ids)
+      hud_project_type(Hud.util.residential_project_type_ids)
     end
 
     scope :residential_non_homeless, -> do
-      r_non_homeless = HudUtilityCurrent.residential_project_type_numbers_by_code[:ph] + HudUtilityCurrent.residential_project_type_numbers_by_code[:th]
+      r_non_homeless = Hud.util.residential_project_type_numbers_by_code[:ph] + Hud.util.residential_project_type_numbers_by_code[:th]
       where(project_type_column => r_non_homeless).where(homeless: false)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = HudUtilityCurrent.residential_project_type_numbers_by_code[:ph] + HudUtilityCurrent.residential_project_type_numbers_by_code[:th]
+      r_non_homeless = Hud.util.residential_project_type_numbers_by_code[:ph] + Hud.util.residential_project_type_numbers_by_code[:th]
       hud_project_type(r_non_homeless).where(homeless: false)
     end
 
@@ -76,7 +76,7 @@ module ServiceHistoryServiceConcern
     end
 
     scope :bed_night, -> do
-      where(service_type: HudUtilityCurrent.record_type('Bed Night', true))
+      where(service_type: Hud.util.record_type('Bed Night', true))
     end
 
     def self.service_types

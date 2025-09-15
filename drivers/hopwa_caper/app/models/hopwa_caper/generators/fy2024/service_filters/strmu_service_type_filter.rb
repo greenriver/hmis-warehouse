@@ -16,7 +16,7 @@ module HopwaCaper::Generators::Fy2024::ServiceFilters
     end
 
     def codes
-      service_types = HudUtility2024.hopwa_financial_assistance_options.invert
+      service_types = Hud.util('2024').hopwa_financial_assistance_options.invert
       types.map { |type| service_types.fetch(type) }
     end
 

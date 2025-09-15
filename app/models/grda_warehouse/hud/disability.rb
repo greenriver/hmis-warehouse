@@ -143,9 +143,9 @@ module GrdaWarehouse::Hud
     # see Disabilities.csv spec version 5
     def response
       if self.DisabilityType == 10
-        ::HudUtilityCurrent.disability_response(self.DisabilityResponse)
+        ::Hud.util.disability_response(self.DisabilityResponse)
       else
-        ::HudUtilityCurrent.no_yes_reasons_for_missing_data(self.DisabilityResponse)
+        ::Hud.util.no_yes_reasons_for_missing_data(self.DisabilityResponse)
       end
     end
 
@@ -161,7 +161,7 @@ module GrdaWarehouse::Hud
     end
 
     def disability_type_text
-      ::HudUtilityCurrent.disability_type self.DisabilityType
+      ::Hud.util.disability_type self.DisabilityType
     end
 
     def self.related_item_keys

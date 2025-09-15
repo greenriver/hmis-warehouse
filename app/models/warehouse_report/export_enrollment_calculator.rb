@@ -41,7 +41,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         find_each do |client_record|
           first_exit = client_record.source_exits.min_by(&:ExitDate)
           first_permanent_exit = client_record.source_exits.
-            select { |e| HudUtilityCurrent.permanent_destinations.include?(e.Destination) }.
+            select { |e| Hud.util.permanent_destinations.include?(e.Destination) }.
             min_by(&:ExitDate)
           exits[client_record.id] = (first_permanent_exit || first_exit)
         end
@@ -262,7 +262,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   end
 
   def pregnancy_status_for(client)
-    HudUtilityCurrent.no_yes_reasons_for_missing_data(health_and_dv_for(client)&.PregnancyStatus)
+    Hud.util.no_yes_reasons_for_missing_data(health_and_dv_for(client)&.PregnancyStatus)
   end
 
   def health_and_dv_for(client)
@@ -367,7 +367,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def returned?(client)
     exit_enrollment = exit_for_client(client)
     return false unless exit_enrollment
-    return false unless HudUtilityCurrent.permanent_destinations.include?(exit_enrollment.Destination)
+    return false unless Hud.util.permanent_destinations.include?(exit_enrollment.Destination)
 
     chronic_enrollments = chronic_enrollments_for(client)
     return false unless chronic_enrollments.present?

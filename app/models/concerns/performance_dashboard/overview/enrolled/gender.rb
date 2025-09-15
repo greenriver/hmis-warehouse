@@ -15,15 +15,15 @@ module PerformanceDashboard::Overview::Enrolled::Gender
       enrolled.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, *HudUtilityCurrent.gender_fields.map { |g| c_t[g] }, :first_date_in_program).each do |row|
+        pluck(:client_id, *Hud.util.gender_fields.map { |g| c_t[g] }, :first_date_in_program).each do |row|
           id = row.first
           _entry_date = row.last
           row = row.slice(1..-1) # remove first and last elements from the row
-          genders = HudUtilityCurrent.gender_fields.map.with_index do |k, i|
+          genders = Hud.util.gender_fields.map.with_index do |k, i|
             if k == :GenderNone
               row[i]
             elsif row[i] == 1
-              HudUtilityCurrent.gender_id_to_field_name.invert[k]
+              Hud.util.gender_id_to_field_name.invert[k]
             end
           end.compact
           next unless genders.present?
@@ -45,7 +45,7 @@ module PerformanceDashboard::Overview::Enrolled::Gender
       categories = enrolled_by_gender.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtilityCurrent.gender(s)] }.to_h,
+          labels: categories.map { |s| [s, Hud.util.gender(s)] }.to_h,
           chosen: @genders,
           columns: columns,
           categories: categories,

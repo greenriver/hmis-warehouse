@@ -756,7 +756,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def domestic_violence(client)
       return 1 if client.source_health_and_dvs.
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.with_project_type(HudUtilityCurrent.project_type_number('CE'))).
+        merge(GrdaWarehouse::Hud::Project.with_project_type(Hud.util.project_type_number('CE'))).
         select do |m|
                     m.DomesticViolenceSurvivor == 1 &&
                     [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))

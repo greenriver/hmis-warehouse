@@ -10,11 +10,11 @@ module PerformanceDashboard::Overview::Ethnicity
   extend ActiveSupport::Concern
 
   private def ethnicity_buckets
-    HudUtilityCurrent.ethnicities.keys
+    Hud.util.ethnicities.keys
   end
 
   def ethnicity_title(key)
-    HudUtilityCurrent.ethnicity(key)
+    Hud.util.ethnicity(key)
   end
 
   def ethnicity_bucket_titles

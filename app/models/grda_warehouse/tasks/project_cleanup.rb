@@ -125,7 +125,7 @@ module GrdaWarehouse::Tasks
 
     # Just check the last two years for discrepancies to speed checking
     private def homeless_status_correct?(project)
-      if HudUtilityCurrent.homeless_project_types.include?(project.project_type)
+      if Hud.util.homeless_project_types.include?(project.project_type)
         # ES, SO, SH, TH
         any_non_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).
@@ -154,7 +154,7 @@ module GrdaWarehouse::Tasks
 
     # Just check the last two years for discrepancies to speed checking
     private def literally_homeless_status_correct?(project)
-      if HudUtilityCurrent.chronic_project_types.include?(project.project_type)
+      if Hud.util.chronic_project_types.include?(project.project_type)
         # ES, SO, SH
         any_non_literally_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).
@@ -188,7 +188,7 @@ module GrdaWarehouse::Tasks
       # debug_log("Setting client locations for #{project.ProjectName}")
       coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
         # Ensure the CoC codes are valid
-        select { |code| HudUtilityCurrent.valid_coc?(code) }
+        select { |code| Hud.util.valid_coc?(code) }
       # Don't do anything if we don't know what CoC the project operates in
       return unless coc_codes.present?
 

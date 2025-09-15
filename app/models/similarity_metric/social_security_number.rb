@@ -6,7 +6,7 @@
 
 module SimilarityMetric
   class SocialSecurityNumber < Base
-    FAKES_RX = /   # not using HudUtilityCurrent.valid_social? because I think it's too strict for matching purposes
+    FAKES_RX = /   # not using Hud.util.valid_social? because I think it's too strict for matching purposes
       \A
         (?:
           ([2-9])\1*

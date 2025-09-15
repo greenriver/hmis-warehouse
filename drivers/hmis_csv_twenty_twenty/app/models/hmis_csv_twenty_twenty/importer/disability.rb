@@ -44,7 +44,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.data_collection_stages.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').data_collection_stages.keys.map(&:to_s).freeze },
           },
         ],
         DisabilityType: [
@@ -53,7 +53,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.disability_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').disability_types.keys.map(&:to_s).freeze },
           },
         ],
         DisabilityResponse: [
@@ -62,13 +62,13 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.disability_responses.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').disability_responses.keys.map(&:to_s).freeze },
           },
         ],
         IndefiniteAndImpairs: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: Hud.util('legacy').no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
       }

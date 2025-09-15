@@ -124,7 +124,7 @@ module HudReports
     # @return [Symbol] The default report version (:fy2024 or :fy2026)
     # Override as necessary in subclasses
     def default_report_version
-      "fy#{::HudUtilityCurrent.hud_csv_version}".to_sym
+      "fy#{::Hud.util.hud_csv_version}".to_sym
     end
 
     protected def filter_class

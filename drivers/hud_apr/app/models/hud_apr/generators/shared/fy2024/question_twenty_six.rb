@@ -202,9 +202,9 @@ module HudApr::Generators::Shared::Fy2024
       {
         'Male' => a_t[:gender_multi].eq('1'),
         'Female' => a_t[:gender_multi].eq('0'),
-        'No Single Gender' => a_t[:gender_multi].in(::HudUtility2024.no_single_gender_queries),
-        'Questioning' => a_t[:gender_multi].in(::HudUtility2024.questioning_gender_queries),
-        'Transgender' => a_t[:gender_multi].in(::HudUtility2024.transgender_gender_queries),
+        'No Single Gender' => a_t[:gender_multi].in(::Hud.util('2024').no_single_gender_queries),
+        'Questioning' => a_t[:gender_multi].in(::Hud.util('2024').questioning_gender_queries),
+        'Transgender' => a_t[:gender_multi].in(::Hud.util('2024').transgender_gender_queries),
         label_for(:dkptr) => a_t[:gender_multi].in(['8', '9']),
         'Data Not Collected' => a_t[:gender_multi].eq('99'),
         'Total' => Arel.sql('1=1'),

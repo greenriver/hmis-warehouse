@@ -13,7 +13,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     protected def codes
-      lookups = HudUtility2024.destinations.invert
+      lookups = Hud.util('2024').destinations.invert
       types.map do |type|
         lookups.fetch(type)
       end
