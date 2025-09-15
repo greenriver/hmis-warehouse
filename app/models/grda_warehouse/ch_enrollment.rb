@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ChEnrolment persist the HUD calculation for chronic homelessness at the enrollment level
 #
 # Details:
@@ -210,14 +212,14 @@ module GrdaWarehouse
     # Line 3 (2.02.6)
     def self.project_type(enrollment)
       ptype = enrollment.project.project_type
-      result = Hud.util.chronic_project_types.include?(ptype) ? :continue : :skip
+      result = ::Hud.util.chronic_project_types.include?(ptype) ? :continue : :skip
       { result: result, display_value: "#{ptype} (#{::Hud.util.project_type_brief(ptype)})", line: 3 }
     end
 
     # Line 9  (3.917.1)
     def self.prior_living_situation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = if Hud.util.homeless_situations(as: :prior).include?(value)
+      result = if ::Hud.util.homeless_situations(as: :prior).include?(value)
         :continue
       elsif value.present?
         :skip
@@ -231,7 +233,7 @@ module GrdaWarehouse
     # Line 14 (3.917.1)
     def self.prior_living_situation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = if Hud.util.institutional_situations(as: :prior).include?(value)
+      result = if ::Hud.util.institutional_situations(as: :prior).include?(value)
         :continue
       elsif value.present?
         :skip
@@ -245,7 +247,7 @@ module GrdaWarehouse
     # Line 21 (3.917.1)
     def self.prior_living_situation_other(enrollment)
       value = enrollment.LivingSituation
-      is_other = (Hud.util.temporary_situations(as: :prior) + Hud.util.permanent_situations(as: :prior) + Hud.util.other_situations(as: :prior)).include?(value)
+      is_other = (::Hud.util.temporary_situations(as: :prior) + ::Hud.util.permanent_situations(as: :prior) + ::Hud.util.other_situations(as: :prior)).include?(value)
       display_value = value ? "#{value} (#{::Hud.util.living_situation(value)})" : ''
       { result: is_other ? :continue : :skip, display_value: display_value, line: 21 }
     end

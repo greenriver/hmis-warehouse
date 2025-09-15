@@ -144,7 +144,7 @@ module Hmis
         data_source_id: enrollment.data_source_id,
         user_id: user.user_id,
         exit_date: exit_date,
-        destination: Hud.util.destination_no_exit_interview_completed,
+        destination: ::Hud.util.destination_no_exit_interview_completed,
         auto_exited: DateTime.current,
       )
 
