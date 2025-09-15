@@ -129,7 +129,8 @@ module HudApr::Generators::Shared::Fy2026
         'Client became homeless - moving to a shelter or other place unfit for human habitation' => a_t[:housing_assessment].eq(6),
         'Jail/prison' => a_t[:housing_assessment].eq(7),
         'Deceased' => a_t[:housing_assessment].eq(10),
-        label_for(:dkptr) => data_not_collected_clause.
+        label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
+        'Data not collected (no exit interview completed)' => data_not_collected_clause.
           # Bad data, as noted in the test kit goes in DNC
           or(bad_data_subsidy_information_clause),
         'Total' => Arel.sql('1=1'), # MUST match overall Q5a Leavers
