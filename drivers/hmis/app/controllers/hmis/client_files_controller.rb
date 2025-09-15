@@ -14,6 +14,7 @@ module Hmis
       file = load_authorized_client_file
       return head(:not_found) if redacted?(file) || !file.client_file.attached?
 
+      log_client_file_access(file)
       redirect_to object_url(file), allow_other_host: true
     end
 
@@ -56,6 +57,33 @@ module Hmis
       client = Hmis::Hud::Client.viewable_by(current_hmis_user).find(params[:client_id])
       Hmis::File.where(client: client).
         viewable_by(current_hmis_user, client_ids: [client.id]).find(params[:id])
+    end
+
+    def log_client_file_access(file)
+      # Link this event to the client for downstream processing (join-table population)
+      resolved_fields = {
+        "Client/#{file.client_id}" => ['files'],
+        "File/#{file.id}" => ['url'],
+      }
+
+      row = {
+        user_id: true_hmis_user.id,
+        data_source_id: current_hmis_user.hmis_data_source_id,
+        ip_address: request.remote_ip&.to_s,
+        session_hash: session.id&.to_s,
+        request_id: request.uuid,
+        variables: { 'fileId' => file.id, 'clientId' => file.client_id },
+        referer: request.referer,
+        operation_name: 'ClientFileRedirect',
+        header_page_path: request.headers['X-Hmis-Path'].presence,
+        header_client_id: request.headers['X-Hmis-Client-Id'].presence&.to_i,
+        header_enrollment_id: request.headers['X-Hmis-Enrollment-Id'].presence&.to_i,
+        header_project_id: request.headers['X-Hmis-Project-Id'].presence&.to_i,
+        created_at: DateTime.current,
+        resolved_fields: resolved_fields,
+        resolved_at: Time.current,
+      }
+      Hmis::ActivityLog.insert_all!([row])
     end
   end
 end

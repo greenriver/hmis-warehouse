@@ -76,6 +76,22 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
         expect_active_storage_redirect
       end
 
+      it 'creates an HMIS activity log with client reference and file variables' do
+        expect do
+          get_file_path_for(nonconfidential_file.id)
+        end.to change(Hmis::ActivityLog, :count).by(1)
+
+        log = Hmis::ActivityLog.order(:id).last
+        expect(log.operation_name).to eq('ClientFileRedirect')
+        # resolved_fields keys drive processing; values are ignored by the processor
+        expect(log.resolved_fields).to be_a(Hash)
+        expect(log.resolved_fields).to have_key("Client/#{c1.id}")
+        # variables are metadata for correlation
+        expect(log.variables).to include('fileId' => nonconfidential_file.id, 'clientId' => c1.id)
+        expect(log.user_id).to eq(hmis_user.id)
+        expect(log.data_source_id).to eq(ds1.id)
+      end
+
       it 'respects disposition=attachment in final response headers' do
         get_file_path_for(nonconfidential_file.id, params: { disposition: 'attachment' })
         expect(response).to have_http_status(:found)
@@ -100,7 +116,9 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
 
       it 'returns 404 for confidential file without confidential permission' do
         remove_permissions(access_control, :can_view_any_confidential_client_files)
-        get hmis_client_file_path(client_id: c1.id, id: confidential_file.id), headers: request_headers
+        expect do
+          get hmis_client_file_path(client_id: c1.id, id: confidential_file.id), headers: request_headers
+        end.not_to change(Hmis::ActivityLog, :count)
         expect(response).to have_http_status(:not_found)
       end
 
