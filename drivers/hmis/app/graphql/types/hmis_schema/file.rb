@@ -54,6 +54,14 @@ module Types
       end
     end
 
+    # Log url access only when a non-nil value was actually resolved
+    def activity_log_field_name(field_name, value = nil)
+      case field_name
+      when 'url'
+        value.present? ? 'url' : nil
+      end
+    end
+
     def tags
       unless_redacted([]) { object.tags.map(&:id) }
     end

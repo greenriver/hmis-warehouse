@@ -7,7 +7,7 @@
 module GraphqlTraceBehavior
   def execute_field(field:, query:, ast_node:, arguments:, object:)
     result = super
-    context_activity_logger(query.context).capture_event(field, object)
+    context_activity_logger(query.context).capture_event(field, object, result)
     result
   end
 

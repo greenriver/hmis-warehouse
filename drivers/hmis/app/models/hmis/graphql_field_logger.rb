@@ -12,7 +12,8 @@ class Hmis::GraphqlFieldLogger
 
   # @param [Types::BaseField] field
   # @param [Object] object from graphql resolver
-  def capture_event(field, object)
+  # @param [Object] value resolved field value
+  def capture_event(field, object, value)
     self.last_event_at = Time.current
     return if field.name == '__typename'
 
@@ -24,7 +25,7 @@ class Hmis::GraphqlFieldLogger
     key = "#{object.class.graphql_name}/#{object_identity}"
     @collection[key] ||= []
 
-    field_name = object.activity_log_field_name(field.name)
+    field_name = object.activity_log_field_name(field.name, value)
     @collection[key].push(field_name) if field_name
     true
   end

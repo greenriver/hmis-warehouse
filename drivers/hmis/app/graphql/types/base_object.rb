@@ -104,9 +104,11 @@ module Types
     end
 
     # How should we log this field access? Return nil to skip. Override as needed
+    # If your logging depends on the resolved value, use the optional value argument.
     # @param [String] field_name
+    # @param [Object] value resolved field value (may be nil)
     # @return [String, nil]
-    def activity_log_field_name(_field_name)
+    def activity_log_field_name(_field_name, _value = nil)
       nil
     end
 
