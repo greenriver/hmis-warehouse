@@ -26,7 +26,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
     # { [project_id, unit_type_id] => unit_count }
     unit_counts_by_project_and_unit_type_id = Hmis::Unit.group(:project_id, :unit_type_id).count
 
-    records_to_import = scope.
+    records_needing_new_units = scope.
       filter(&:active?).
       filter { |record| record.project.present? }. # could happen if project was deleted but ProjectUnitTypeMapping wasn't properly cleaned up
       filter do |record|
@@ -35,29 +35,29 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
         !unit_counts_by_project_and_unit_type_id[key]
       end
 
-    return unless records_to_import.any?
+    return unless records_needing_new_units.any?
 
-    # Batch import unit groups
-    unit_groups_to_create = records_to_import.map do |record|
+    # Collect unit groups to create
+    unit_groups_to_create = records_needing_new_units.map do |record|
       {
         project_id: record.project.id,
         unit_type_id: record.unit_type.id,
         name: record.unit_type.description,
       }
     end
-    # We can probably assume these don't already exist, since there were no existing units with this type in this project.
-    # But just in case, ignore duplicates.
+
+    # Batch import unit groups. These probably don't already exist,
+    # since we checked that no units exist for this project and unit type.
+    # But, it could exist and be empty, so just in case, ignore on conflict.
     Hmis::UnitGroup.import!(unit_groups_to_create, on_duplicate_key_ignore: true)
 
-    # Get unit group IDs and put them in a hash key by [project_id, unit_type_id] for lookup when creating units
-    unit_groups_by_key = Hmis::UnitGroup.where(project: records_to_import.map(&:project), unit_type: records_to_import.map(&:unit_type)).
+    # Get unit group IDs and put them in a hash keyed by [project_id, unit_type_id] for lookup when creating units
+    unit_groups_by_key = Hmis::UnitGroup.where(project: records_needing_new_units.map(&:project), unit_type: records_needing_new_units.map(&:unit_type)).
       pluck(:project_id, :unit_type_id, :id).
       to_h { |project_id, unit_type_id, id| [[project_id, unit_type_id], id] }
 
-    # Create units with proper unit_group_id references
-    # Using flat_map because each record can generate multiple units (based on unit_capacity),
-    # so we need to flatten the nested arrays of unit attributes
-    units_to_create = records_to_import.flat_map do |record|
+    # Collect units to create
+    units_to_create = records_needing_new_units.flat_map do |record|
       project = record.project
       unit_type = record.unit_type
 
@@ -76,6 +76,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
       end
     end
 
+    # Batch import units
     Hmis::Unit.import!(units_to_create, validate: false)
   end
 
