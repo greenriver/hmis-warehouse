@@ -17,32 +17,71 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   scope :active, -> { where(active: true) }
 
   def self.freshen_project_units(user:, today: Date.current)
+    scope = preload(:project, :unit_type).order(:id).to_a
+    create_new_units(scope, user: user)
+    destroy_inactive_units(scope, today: today)
+  end
+
+  def self.create_new_units(scope, user:)
     # { [project_id, unit_type_id] => unit_count }
     unit_counts_by_project_and_unit_type_id = Hmis::Unit.group(:project_id, :unit_type_id).count
 
-    scope = preload(:project, :unit_type).order(:id).to_a
-    unit_attrs = scope.filter(&:active?).flat_map do |record|
-      unit_type = record.unit_type
+    records_to_import = scope.
+      filter(&:active?).
+      filter { |record| record.project.present? }. # could happen if project was deleted but ProjectUnitTypeMapping wasn't properly cleaned up
+      filter do |record|
+        # If this ProjectID is already mapped to this UnitTypeID in our system, and it is marked as Active=Y, do nothing (don't import).
+        key = [record.project.id, record.unit_type.id]
+        !unit_counts_by_project_and_unit_type_id[key]
+      end
+
+    return unless records_to_import.any?
+
+    # Batch import unit groups
+    unit_groups_to_create = records_to_import.map do |record|
+      {
+        project_id: record.project.id,
+        unit_type_id: record.unit_type.id,
+        name: record.unit_type.description,
+      }
+    end
+    # We can probably assume these don't already exist, since there were no existing units with this type in this project.
+    # But just in case, ignore duplicates.
+    Hmis::UnitGroup.import!(unit_groups_to_create, on_duplicate_key_ignore: true)
+
+    # Get unit group IDs and put them in a hash key by [project_id, unit_type_id] for lookup when creating units
+    unit_groups_by_key = Hmis::UnitGroup.where(project: records_to_import.map(&:project), unit_type: records_to_import.map(&:unit_type)).
+      pluck(:project_id, :unit_type_id, :id).
+      to_h { |project_id, unit_type_id, id| [[project_id, unit_type_id], id] }
+
+    # Create units with proper unit_group_id references
+    # Using flat_map because each record can generate multiple units (based on unit_capacity),
+    # so we need to flatten the nested arrays of unit attributes
+    units_to_create = records_to_import.flat_map do |record|
       project = record.project
-      next if project.nil? # could happen if project was deleted but ProjectUnitTypeMapping wasn't properly cleaned up
+      unit_type = record.unit_type
 
-      # If this ProjectID is already mapped to this UnitTypeID in our system, and it is marked as Active=Y, do nothing.
-      key = [project.id, unit_type.id]
-      next if unit_counts_by_project_and_unit_type_id[key]
+      unit_group_id = unit_groups_by_key[[project.id, unit_type.id]]
+      raise "Failed to create unit group for project  #{project.id}, unit_type #{unit_type.id}" unless unit_group_id
 
-      # If this ProjectID is not already mapped to this UnitTypeID, add it and add the number of units specified in the UnitCapacity column.
+      # Create the number of units specified in the UnitCapacity column
       record.unit_capacity.to_i.times.map do
         {
           project_id: project.id,
           unit_type_id: unit_type.id,
+          hmis_unit_group_id: unit_group_id,
           unit_size: unit_type.unit_size,
           user_id: user.id,
         }
       end
     end
-    Hmis::Unit.import!(unit_attrs.compact, validate: false)
 
-    # If this ProjectID is already mapped to this UnitTypeID in our system, but it is marked as Active=N, then remove the mapping. At this point also remove any Units for this unit type. Raise if any of those Units are occupied
+    Hmis::Unit.import!(units_to_create, validate: false)
+  end
+
+  def self.destroy_inactive_units(scope, today: Date.current)
+    # If this ProjectID is already mapped to this UnitTypeID in our system, but it is marked as Active=N, then remove the mapping.
+    # At this point also remove any Units for this unit type. Raise if any of those Units are occupied
     scope.filter(&:inactive?).each do |record|
       existing_units = record.project.units.where(unit_type: record.unit_type)
       raise "Can't remove active units: #{record.inspect}" if existing_units.occupied_on(today).any?
