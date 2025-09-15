@@ -59,9 +59,6 @@ module Mutations
         custom_field_key = form_item&.dig('mapping', 'custom_field_key')
         next unless custom_field_key
 
-        # If this field is present in the ALWAYS_OVERRIDE map, use that override value instead of whatever was submitted
-        next ["cde.custom_assessment.#{custom_field_key}", ALWAYS_OVERRIDE[custom_field_key]] if ALWAYS_OVERRIDE.key?(custom_field_key)
-
         # Map to CDE field format for CE evaluation - see FieldMap
         ["cde.custom_assessment.#{custom_field_key}", value]
       end.to_h.merge(ALWAYS_OVERRIDE)
