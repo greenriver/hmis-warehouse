@@ -129,24 +129,25 @@ module HudApr::Generators::Shared::Fy2026
         'Client became homeless - moving to a shelter or other place unfit for human habitation' => a_t[:housing_assessment].eq(6),
         'Jail/prison' => a_t[:housing_assessment].eq(7),
         'Deceased' => a_t[:housing_assessment].eq(10),
-        label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
-        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).
-          or(a_t[:housing_assessment].eq(nil).
+        label_for(:dkptr) => data_not_collected_clause.
           # Bad data, as noted in the test kit goes in DNC
-          or(a_t[:housing_assessment].eq(1).and(a_t[:subsidy_information].not_in([1, 2, 3, 4])))).
-          or(a_t[:housing_assessment].eq(2).and(a_t[:subsidy_information].not_in([11, 12]))),
-        'Total' => a_t[:housing_assessment].eq(99).
-          or(a_t[:housing_assessment].eq(nil)).
-          or(valid_subsidy_information_clause), # must have valid subsidy information
+          or(bad_data_subsidy_information_clause),
+        'Total' => Arel.sql('1=1'), # MUST match overall Q5a Leavers
       }.freeze
     end
 
-    private def valid_subsidy_information_clause
-      a_t[:housing_assessment].in([3, 4, 5, 6, 7, 10, 8, 9]).or(
-        a_t[:housing_assessment].eq(1).and(a_t[:subsidy_information].in([1, 2, 3, 4])),
-      ).or(
-        a_t[:housing_assessment].eq(2).and(a_t[:subsidy_information].in([11, 12])),
-      )
+    private def bad_data_subsidy_information_clause
+      # Accounted for in rows 2 - 5
+      a_t[:housing_assessment].eq(1).and(a_t[:subsidy_information].not_in([1, 2, 3, 4])).
+        # Accounted for in rows 6 - 7
+        or(a_t[:housing_assessment].eq(2).and(a_t[:subsidy_information].not_in([11, 12]))).
+        # Accounted for in rows 8 - 13
+        or(a_t[:housing_assessment].not_in([3, 4, 5, 6, 7, 10]))
+    end
+
+    private def data_not_collected_clause
+      a_t[:housing_assessment].eq(99).
+        or(a_t[:housing_assessment].eq(nil))
     end
 
     private def intentionally_blank
