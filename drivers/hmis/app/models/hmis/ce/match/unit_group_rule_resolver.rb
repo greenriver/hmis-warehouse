@@ -57,7 +57,9 @@ module Hmis::Ce::Match
     def compose_requirement_expression(rules)
       # All applicable eligibility requirements are combined with AND.
       rules.filter(&:eligibility_requirement?).
-        map(&:expression).
+        map do |rule|
+          "(#{rule.expression})" # Wrap rule in parens in case it internally has an OR condition
+        end.
         join(' AND ').presence
     end
   end
