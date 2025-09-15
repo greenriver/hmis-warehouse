@@ -15,6 +15,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   belongs_to :unit_type, class_name: 'Hmis::UnitType'
 
   scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
 
   def self.freshen_project_units(user:, today: Date.current)
     scope = preload(:project, :unit_type).order(:id)
@@ -29,7 +30,6 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
     unit_counts_by_project_and_unit_type_id = Hmis::Unit.group(:project_id, :unit_type_id).count
 
     records_needing_new_units = scope.
-      filter(&:active?).
       filter { |record| record.project.present? }. # could happen if project was deleted but ProjectUnitTypeMapping wasn't properly cleaned up
       filter do |record|
         # If this ProjectID is already mapped to this UnitTypeID in our system, and it is marked as Active=Y, do nothing (don't import).
@@ -85,7 +85,9 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   def self.destroy_inactive_units(scope, today: Date.current)
     # If this ProjectID is already mapped to this UnitTypeID in our system, but it is marked as Active=N, then remove the mapping.
     # At this point also remove any Units for this unit type. Raise if any of those Units are occupied
-    scope.filter(&:inactive?).each do |record|
+    # TODO(#8157) Update to look up by unit-group/unit-type relationship, something like:
+    #  record.project.unit_groups.where(unit_type: record.unit_type).each(&:destroy!)
+    scope.each do |record|
       existing_units = record.project.units.where(unit_type: record.unit_type)
       raise "Can't remove active units: #{record.inspect}" if existing_units.occupied_on(today).any?
 
