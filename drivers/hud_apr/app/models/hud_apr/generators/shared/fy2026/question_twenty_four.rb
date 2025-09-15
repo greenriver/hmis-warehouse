@@ -138,12 +138,16 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     private def bad_data_subsidy_information_clause
-      # Accounted for in rows 2 - 5
-      a_t[:housing_assessment].eq(1).and(a_t[:subsidy_information].not_in([1, 2, 3, 4])).
-        # Accounted for in rows 6 - 7
-        or(a_t[:housing_assessment].eq(2).and(a_t[:subsidy_information].not_in([11, 12]))).
-        # Accounted for in rows 8 - 13
-        or(a_t[:housing_assessment].not_in([3, 4, 5, 6, 7, 10]))
+      # housing_assessment is 1 and subsidy_information is not in acceptable values (1, 2, 3, 4) or is NULL
+      a_t[:housing_assessment].eq(1).and(
+        a_t[:subsidy_information].not_in([1, 2, 3, 4]).or(a_t[:subsidy_information].eq(nil)),
+      ).
+        # housing_assessment is 2 and subsidy_information is not in acceptable values (11, 12) or is NULL
+        or(a_t[:housing_assessment].eq(2).and(
+             a_t[:subsidy_information].not_in([11, 12]).or(a_t[:subsidy_information].eq(nil)),
+           )).
+        # housing_assessment is not in other known values (3, 4, 5, 6, 7, 10) and not 8, 9, 99, or NULL
+        or(a_t[:housing_assessment].not_in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 99]).and(a_t[:housing_assessment].not_eq(nil)))
     end
 
     private def data_not_collected_clause
