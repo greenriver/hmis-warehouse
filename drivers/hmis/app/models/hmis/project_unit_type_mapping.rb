@@ -17,9 +17,11 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   scope :active, -> { where(active: true) }
 
   def self.freshen_project_units(user:, today: Date.current)
-    scope = preload(:project, :unit_type).order(:id).to_a
-    create_new_units(scope, user: user)
-    destroy_inactive_units(scope, today: today)
+    scope = preload(:project, :unit_type).order(:id)
+    # Create initial Units for new Active Project Unit Type Mappings
+    create_new_units(scope.active, user: user)
+    # Destroy Units for Project Unit Type Mappings that are Inactive
+    destroy_inactive_units(scope.inactive, today: today)
   end
 
   def self.create_new_units(scope, user:)
