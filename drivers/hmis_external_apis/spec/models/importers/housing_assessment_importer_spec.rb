@@ -213,7 +213,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
         @saved = false
       end
 
-      def save_new_enrollment!
+      def save!
         @saved = true
       end
     end
@@ -294,7 +294,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
     it 'uses existing client when found and does not create a new client' do
       waitlist = build_waitlist
       enrollments = FakeEnrollments.new
-      project = instance_double('Hmis::Hud::Project', enrollments: enrollments)
+      project = instance_double('Hmis::Hud::Project', enrollments: enrollments, project_id: 'mocked_project_id')
 
       allow(importer).to receive(:hmis_ce_project).and_return(project)
       allow(importer).to receive(:find_and_update_hmis_client).with(waitlist).and_return(existing_client)
@@ -315,7 +315,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
     it 'creates a new client when lookup returns nil' do
       waitlist = build_waitlist
       enrollments = FakeEnrollments.new
-      project = instance_double('Hmis::Hud::Project', enrollments: enrollments)
+      project = instance_double('Hmis::Hud::Project', enrollments: enrollments, project_id: 'mocked_project_id')
 
       allow(importer).to receive(:hmis_ce_project).and_return(project)
       allow(importer).to receive(:find_and_update_hmis_client).with(waitlist).and_return(nil)
@@ -331,7 +331,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
       waitlist = build_waitlist
       existing_record = FakeExistingEnrollment.new
       enrollments = FakeEnrollments.new(existing: [existing_record])
-      project = instance_double('Hmis::Hud::Project', enrollments: enrollments)
+      project = instance_double('Hmis::Hud::Project', enrollments: enrollments, project_id: 'mocked_project_id')
 
       allow(importer).to receive(:hmis_ce_project).and_return(project)
       allow(importer).to receive(:find_and_update_hmis_client).with(waitlist).and_return(existing_client)
