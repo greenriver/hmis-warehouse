@@ -137,8 +137,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       cded = cded_lookup[cded_field]
       raise KeyError, "Missing CDED for key=#{cded_field.inspect}" unless cded
 
-      cde = Hmis::Hud::CustomDataElement.new(
-        owner: assessment,
+      cde = assessment.custom_data_elements.build(
         data_element_definition: cded,
         user: system_hud_user,
         data_source_id: assessment.data_source_id,
@@ -607,17 +606,22 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     def client_ssn_data_quality = data_quality(raw_values.ssn_data_quality)
     def client_dob_data_quality = data_quality(raw_values.dob_data_quality)
 
-    # FIXME this needs to be updated to refer to 'Households with children'/without - depending on household_composition field
     def referred_bedroom_sizes
-      raw_values.referred_bedroom_sizes.to_s.split(/\s*\|\s*/).compact_blank.map do |size|
-        size = size.strip
-        case size
+      referred_bedroom_sizes_list = raw_values.referred_bedroom_sizes.to_s.split(/\s*\|\s*/).compact_blank
+      referred_household_types_list = raw_values.household_composition.to_s.split(/\s*\|\s*/).compact_blank
+      (referred_bedroom_sizes_list + referred_household_types_list).map do |value|
+        value = value.strip
+        case value
         when '1', '2', '3', '4'
-          "#{size} Bed"
-        else
-          # SRO, 0, 5, and x+crib are not supported but we store them anyway
-          size
+          "#{value} Bed"
+        when 'SRO'
+          'SRO'
+        when 'Households without Children'
+          'Households Without Children' # match casing in assessment
+        when 'Households with Children'
+          'Households With Children' # match casing in assessment
         end
+        # Note: 0, 5, and x+crib are not supported, we do not store them
       end.compact.uniq.sort
     end
 
