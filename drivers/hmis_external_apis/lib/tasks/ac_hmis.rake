@@ -11,8 +11,8 @@ namespace :ac_hmis do
     HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(force: force)
   end
 
-  # rails driver:hmis_external_apis:ac_hmis:import_housing_assessments[bucket_name,s3_key,<ce_project_id>]
-  task :import_housing_assessments, [:bucket_name, :s3_key, :project_id] => :environment do |_task, args|
+  # rails driver:hmis_external_apis:ac_hmis:import_housing_assessments[bucket_name,s3_key,<ce_project_id>,<form_definition_identifier>]
+  task :import_housing_assessments, [:bucket_name, :s3_key, :project_id, :form_definition_identifier] => :environment do |_task, args|
     next unless HmisEnforcement.hmis_enabled?
     next unless Rails.env.development? || HmisExternalApis::AcHmis::Mci.enabled?
 
@@ -25,7 +25,7 @@ namespace :ac_hmis do
 
     Tempfile.create(['housing_waitlist.xlsx']) do |tmp|
       aws.fetch(file_name: args.s3_key, target_path: tmp.path)
-      HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter.call(tmp.path, ce_project_id: args.project_id&.to_i, dry_run: false)
+      HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter.call(tmp.path, ce_project_id: args.project_id&.to_i, form_definition_identifier: args.form_definition_identifier, dry_run: false)
     end
   end
 end
