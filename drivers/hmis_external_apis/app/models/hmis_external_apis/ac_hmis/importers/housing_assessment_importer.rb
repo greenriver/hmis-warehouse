@@ -75,6 +75,9 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     # The following fields are referenced by CE Match Rules
     tuples << ['housing_needs_assessment_result_score', waitlist.result_score]
     tuples << ['housing_needs_chronically_homeless', waitlist.chronically_homeless]
+    tuples << ['housing_needs_over_365_days_homeless_or_one_year_consecutive', waitlist.chronically_homeless] # hidden field
+    tuples << ['housing_needs_homeless_duration', 'A year or more'] if waitlist.chronically_homeless == 'Yes' # infer to keep chronicity true when opened for editing
+
     # Note: Assessment is present in the export file, so we can assume the client is Eligible, Posted to the waitlist, and authorized.
     tuples << ['housing_needs_result_type', 'Eligible'] # TODO: may need to add/change depending on #8129
     tuples << ['housing_needs_post_referrals_to_waitlist', 'Yes']
@@ -91,7 +94,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     tuples << ['housing_needs_eligible_for_projects_serving_gender', waitlist.eligible_for_projects_serving_gender]
     tuples << ['housing_needs_any_household_income', waitlist.any_household_income] # just for assessment
 
-    # attrs that need translation based on waitlist type
+    # attrs that need translation based on household type
     [
       [
         'housing_needs_military_service',
@@ -212,8 +215,12 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       enrollment_id: deterministic_id,
       date_created: waitlist.date_created,
       date_updated: waitlist.date_updated,
+      project_id: hmis_ce_project.project_id,
     )
-    enrollment.save_new_enrollment! # handles auto enter
+
+    ActiveRecord::Base.record_timestamps = false
+    enrollment.save!
+    ActiveRecord::Base.record_timestamps = true
     enrollment
   end
 
