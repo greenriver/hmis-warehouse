@@ -1,8 +1,3 @@
-\restrict jfdZSkUP8wMHcAXvzBYP9pSzlrPeMw0EX5TkkFNEfI6yqkHcYpyR2HtIkhYFGPR
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -14,66 +9,45 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
 --
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA public;
-
-
 --
 -- Name: EXTENSION fuzzystrmatch; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION fuzzystrmatch IS 'determine similarities and distance between strings';
-
-
 --
 -- Name: hstore; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS hstore WITH SCHEMA public;
-
-
 --
 -- Name: EXTENSION hstore; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs';
-
-
 --
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
-
-
 --
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
-
-
 --
 -- Name: prevent_modification(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.prevent_modification() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  RETURN NULL;
+CREATE FUNCTION public.prevent_modification() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NULL;
 END;
 $$;
-
-
 SET default_tablespace = '';
-
 SET default_table_access_method = heap;
-
 --
 -- Name: access_control_uploads; Type: TABLE; Schema: public; Owner: -
 --
@@ -86,27 +60,16 @@ CREATE TABLE public.access_control_uploads (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: access_control_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.access_control_uploads_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.access_control_uploads_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: access_control_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.access_control_uploads_id_seq OWNED BY public.access_control_uploads.id;
-
-
 --
 -- Name: access_controls; Type: TABLE; Schema: public; Owner: -
 --
@@ -121,27 +84,16 @@ CREATE TABLE public.access_controls (
     updated_at timestamp(6) without time zone NOT NULL,
     description text
 );
-
-
 --
 -- Name: access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.access_controls_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.access_controls_id_seq OWNED BY public.access_controls.id;
-
-
 --
 -- Name: access_group_members; Type: TABLE; Schema: public; Owner: -
 --
@@ -152,28 +104,16 @@ CREATE TABLE public.access_group_members (
     user_id integer,
     deleted_at timestamp without time zone
 );
-
-
 --
 -- Name: access_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.access_group_members_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.access_group_members_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: access_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.access_group_members_id_seq OWNED BY public.access_group_members.id;
-
-
 --
 -- Name: access_groups; Type: TABLE; Schema: public; Owner: -
 --
@@ -182,33 +122,21 @@ CREATE TABLE public.access_groups (
     id integer NOT NULL,
     name character varying,
     user_id integer,
-    coc_codes character varying[] DEFAULT '{}'::character varying[],
+    coc_codes character varying [] DEFAULT '{}'::character varying [],
     deleted_at timestamp without time zone,
     system jsonb DEFAULT '[]'::jsonb,
     must_exist boolean DEFAULT false NOT NULL
 );
-
-
 --
 -- Name: access_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.access_groups_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.access_groups_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: access_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.access_groups_id_seq OWNED BY public.access_groups.id;
-
-
 --
 -- Name: account_requests; Type: TABLE; Schema: public; Owner: -
 --
@@ -230,27 +158,16 @@ CREATE TABLE public.account_requests (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: account_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.account_requests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.account_requests_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: account_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.account_requests_id_seq OWNED BY public.account_requests.id;
-
-
 --
 -- Name: active_storage_attachments; Type: TABLE; Schema: public; Owner: -
 --
@@ -263,27 +180,16 @@ CREATE TABLE public.active_storage_attachments (
     blob_id bigint NOT NULL,
     created_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: active_storage_attachments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.active_storage_attachments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.active_storage_attachments_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: active_storage_attachments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.active_storage_attachments_id_seq OWNED BY public.active_storage_attachments.id;
-
-
 --
 -- Name: active_storage_blobs; Type: TABLE; Schema: public; Owner: -
 --
@@ -299,27 +205,16 @@ CREATE TABLE public.active_storage_blobs (
     checksum character varying,
     created_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: active_storage_blobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.active_storage_blobs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.active_storage_blobs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: active_storage_blobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.active_storage_blobs_id_seq OWNED BY public.active_storage_blobs.id;
-
-
 --
 -- Name: active_storage_variant_records; Type: TABLE; Schema: public; Owner: -
 --
@@ -329,27 +224,16 @@ CREATE TABLE public.active_storage_variant_records (
     blob_id bigint NOT NULL,
     variation_digest character varying NOT NULL
 );
-
-
 --
 -- Name: active_storage_variant_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.active_storage_variant_records_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.active_storage_variant_records_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: active_storage_variant_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.active_storage_variant_records.id;
-
-
 --
 -- Name: activity_logs; Type: TABLE; Schema: public; Owner: -
 --
@@ -370,27 +254,16 @@ CREATE TABLE public.activity_logs (
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
-
-
 --
 -- Name: activity_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.activity_logs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.activity_logs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: activity_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.activity_logs_id_seq OWNED BY public.activity_logs.id;
-
-
 --
 -- Name: agencies; Type: TABLE; Schema: public; Owner: -
 --
@@ -402,8 +275,6 @@ CREATE TABLE public.agencies (
     updated_at timestamp without time zone NOT NULL,
     expose_publically boolean DEFAULT false NOT NULL
 );
-
-
 --
 -- Name: agencies_consent_limits; Type: TABLE; Schema: public; Owner: -
 --
@@ -412,27 +283,16 @@ CREATE TABLE public.agencies_consent_limits (
     consent_limit_id bigint NOT NULL,
     agency_id bigint NOT NULL
 );
-
-
 --
 -- Name: agencies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.agencies_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.agencies_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: agencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.agencies_id_seq OWNED BY public.agencies.id;
-
-
 --
 -- Name: app_config_properties; Type: TABLE; Schema: public; Owner: -
 --
@@ -444,27 +304,16 @@ CREATE TABLE public.app_config_properties (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: app_config_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.app_config_properties_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.app_config_properties_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: app_config_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.app_config_properties_id_seq OWNED BY public.app_config_properties.id;
-
-
 --
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
@@ -475,92 +324,41 @@ CREATE TABLE public.ar_internal_metadata (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: building_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.building_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.building_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: building_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.building_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.building_services_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: buildings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.buildings_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.buildings_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: client_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.client_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.client_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: client_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.client_notes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.client_notes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: client_opportunity_match_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.client_opportunity_match_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.client_opportunity_match_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: client_opportunity_matches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.client_opportunity_matches_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.client_opportunity_matches_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
 --
@@ -588,20 +386,11 @@ CREATE TABLE public.client_service_history (
     housing_status_at_entry integer,
     housing_status_at_exit integer
 );
-
-
 --
 -- Name: clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.clients_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: clients_unduplicated; Type: TABLE; Schema: public; Owner: -
 --
@@ -612,28 +401,16 @@ CREATE TABLE public.clients_unduplicated (
     unduplicated_client_id integer NOT NULL,
     dc_id integer
 );
-
-
 --
 -- Name: clients_unduplicated_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.clients_unduplicated_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.clients_unduplicated_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: clients_unduplicated_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.clients_unduplicated_id_seq OWNED BY public.clients_unduplicated.id;
-
-
 --
 -- Name: collections; Type: TABLE; Schema: public; Owner: -
 --
@@ -652,39 +429,21 @@ CREATE TABLE public.collections (
     source_type character varying,
     source_id bigint
 );
-
-
 --
 -- Name: collections_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.collections_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.collections_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: collections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.collections_id_seq OWNED BY public.collections.id;
-
-
 --
 -- Name: configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.configs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: consent_limits; Type: TABLE; Schema: public; Owner: -
 --
@@ -698,75 +457,36 @@ CREATE TABLE public.consent_limits (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: consent_limits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.consent_limits_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.consent_limits_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: consent_limits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.consent_limits_id_seq OWNED BY public.consent_limits.id;
-
-
 --
 -- Name: contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: data_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.data_sources_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.data_sources_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: date_of_birth_quality_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.date_of_birth_quality_codes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.date_of_birth_quality_codes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: deidentified_clients_xlsxes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.deidentified_clients_xlsxes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.deidentified_clients_xlsxes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: delayed_jobs; Type: TABLE; Schema: public; Owner: -
 --
@@ -785,135 +505,61 @@ CREATE TABLE public.delayed_jobs (
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
-
-
 --
 -- Name: delayed_jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.delayed_jobs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.delayed_jobs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: delayed_jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.delayed_jobs_id_seq OWNED BY public.delayed_jobs.id;
-
-
 --
 -- Name: disabling_conditions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.disabling_conditions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.disabling_conditions_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: discharge_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.discharge_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.discharge_statuses_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: domestic_violence_survivors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.domestic_violence_survivors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.domestic_violence_survivors_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: entity_view_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.entity_view_permissions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.entity_view_permissions_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: ethnicities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.ethnicities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.ethnicities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: external_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.external_referrals_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.external_referrals_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: file_tags_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.file_tags_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.file_tags_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: funding_source_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.funding_source_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.funding_source_services_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: funding_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.funding_sources_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.funding_sources_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: glacier_archives; Type: TABLE; Schema: public; Owner: -
 --
@@ -936,28 +582,16 @@ CREATE TABLE public.glacier_archives (
     job_id character varying,
     archive_name character varying
 );
-
-
 --
 -- Name: glacier_archives_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.glacier_archives_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.glacier_archives_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: glacier_archives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.glacier_archives_id_seq OWNED BY public.glacier_archives.id;
-
-
 --
 -- Name: glacier_vaults; Type: TABLE; Schema: public; Owner: -
 --
@@ -971,64 +605,31 @@ CREATE TABLE public.glacier_vaults (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: glacier_vaults_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.glacier_vaults_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.glacier_vaults_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: glacier_vaults_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
-
-
 --
 -- Name: has_developmental_disabilities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.has_developmental_disabilities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.has_developmental_disabilities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: has_hivaids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.has_hivaids_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.has_hivaids_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: has_mental_health_problems_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.has_mental_health_problems_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.has_mental_health_problems_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_access_controls; Type: TABLE; Schema: public; Owner: -
 --
@@ -1043,27 +644,16 @@ CREATE TABLE public.hmis_access_controls (
     user_group_id bigint,
     description text
 );
-
-
 --
 -- Name: hmis_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_access_controls_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_access_controls_id_seq OWNED BY public.hmis_access_controls.id;
-
-
 --
 -- Name: hmis_access_groups; Type: TABLE; Schema: public; Owner: -
 --
@@ -1077,27 +667,16 @@ CREATE TABLE public.hmis_access_groups (
     description text,
     collection_type character varying
 );
-
-
 --
 -- Name: hmis_access_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_access_groups_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_access_groups_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_access_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_access_groups_id_seq OWNED BY public.hmis_access_groups.id;
-
-
 --
 -- Name: hmis_activity_logs; Type: TABLE; Schema: public; Owner: -
 --
@@ -1121,57 +700,41 @@ CREATE TABLE public.hmis_activity_logs (
     resolved_at timestamp without time zone,
     request_id character varying
 );
-
-
 --
 -- Name: COLUMN hmis_activity_logs.variables; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.variables IS 'GraphQL variables';
-
-
 --
 -- Name: COLUMN hmis_activity_logs.referer; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.referer IS 'user-provided';
-
-
 --
 -- Name: COLUMN hmis_activity_logs.operation_name; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.operation_name IS 'user-provided GraphQL operation name';
-
-
 --
 -- Name: COLUMN hmis_activity_logs.header_page_path; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.header_page_path IS 'user-provided, decrypted path';
-
-
 --
 -- Name: COLUMN hmis_activity_logs.header_client_id; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.header_client_id IS 'user-provided';
-
-
 --
 -- Name: COLUMN hmis_activity_logs.header_enrollment_id; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.header_enrollment_id IS 'user-provided';
-
-
 --
 -- Name: COLUMN hmis_activity_logs.header_project_id; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.header_project_id IS 'user-provided';
-
-
 --
 -- Name: hmis_activity_logs_clients; Type: TABLE; Schema: public; Owner: -
 --
@@ -1180,8 +743,6 @@ CREATE TABLE public.hmis_activity_logs_clients (
     activity_log_id bigint NOT NULL,
     client_id bigint NOT NULL
 );
-
-
 --
 -- Name: hmis_activity_logs_enrollments; Type: TABLE; Schema: public; Owner: -
 --
@@ -1191,27 +752,16 @@ CREATE TABLE public.hmis_activity_logs_enrollments (
     enrollment_id bigint NOT NULL,
     project_id bigint
 );
-
-
 --
 -- Name: hmis_activity_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_activity_logs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_activity_logs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_activity_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_activity_logs_id_seq OWNED BY public.hmis_activity_logs.id;
-
-
 --
 -- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
 --
@@ -1283,27 +833,16 @@ CREATE TABLE public.hmis_roles (
     can_print_client_case_notes boolean DEFAULT false,
     can_update_unit_availability boolean DEFAULT false
 );
-
-
 --
 -- Name: hmis_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_roles_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_roles_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
-
-
 --
 -- Name: hmis_user_access_controls; Type: TABLE; Schema: public; Owner: -
 --
@@ -1316,56 +855,64 @@ CREATE TABLE public.hmis_user_access_controls (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_user_access_controls_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
-
-
 --
 -- Name: hmis_user_client_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.hmis_user_client_activity_log_summaries AS
- SELECT concat(hmis_activity_logs_clients.client_id, ':', hmis_activity_logs.user_id) AS id,
+SELECT concat(
+        hmis_activity_logs_clients.client_id,
+        ':',
+        hmis_activity_logs.user_id
+    ) AS id,
     max(hmis_activity_logs.created_at) AS last_accessed_at,
     hmis_activity_logs_clients.client_id,
     hmis_activity_logs.user_id
-   FROM (public.hmis_activity_logs
-     JOIN public.hmis_activity_logs_clients ON ((hmis_activity_logs_clients.activity_log_id = hmis_activity_logs.id)))
-  GROUP BY hmis_activity_logs_clients.client_id, hmis_activity_logs.user_id;
-
-
+FROM (
+        public.hmis_activity_logs
+        JOIN public.hmis_activity_logs_clients ON (
+            (
+                hmis_activity_logs_clients.activity_log_id = hmis_activity_logs.id
+            )
+        )
+    )
+GROUP BY hmis_activity_logs_clients.client_id,
+    hmis_activity_logs.user_id;
 --
 -- Name: hmis_user_enrollment_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.hmis_user_enrollment_activity_log_summaries AS
- SELECT concat(hmis_activity_logs_enrollments.enrollment_id, ':', hmis_activity_logs.user_id) AS id,
+SELECT concat(
+        hmis_activity_logs_enrollments.enrollment_id,
+        ':',
+        hmis_activity_logs.user_id
+    ) AS id,
     max(hmis_activity_logs.created_at) AS last_accessed_at,
     hmis_activity_logs_enrollments.enrollment_id,
     hmis_activity_logs_enrollments.project_id,
     hmis_activity_logs.user_id
-   FROM (public.hmis_activity_logs
-     JOIN public.hmis_activity_logs_enrollments ON ((hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id)))
-  GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs_enrollments.project_id, hmis_activity_logs.user_id;
-
-
+FROM (
+        public.hmis_activity_logs
+        JOIN public.hmis_activity_logs_enrollments ON (
+            (
+                hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id
+            )
+        )
+    )
+GROUP BY hmis_activity_logs_enrollments.enrollment_id,
+    hmis_activity_logs_enrollments.project_id,
+    hmis_activity_logs.user_id;
 --
 -- Name: hmis_user_group_members; Type: TABLE; Schema: public; Owner: -
 --
@@ -1378,27 +925,16 @@ CREATE TABLE public.hmis_user_group_members (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: hmis_user_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_user_group_members_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_user_group_members_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_user_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_user_group_members_id_seq OWNED BY public.hmis_user_group_members.id;
-
-
 --
 -- Name: hmis_user_groups; Type: TABLE; Schema: public; Owner: -
 --
@@ -1411,63 +947,31 @@ CREATE TABLE public.hmis_user_groups (
     updated_at timestamp(6) without time zone NOT NULL,
     description text
 );
-
-
 --
 -- Name: hmis_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_user_groups_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.hmis_user_groups_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: hmis_user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.id;
-
-
 --
 -- Name: housing_attributes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.housing_attributes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.housing_attributes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: housing_media_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.housing_media_links_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.housing_media_links_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: imported_clients_csvs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.imported_clients_csvs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.imported_clients_csvs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: imports; Type: TABLE; Schema: public; Owner: -
 --
@@ -1484,28 +988,16 @@ CREATE TABLE public.imports (
     unzipped_files json,
     import_errors json
 );
-
-
 --
 -- Name: imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.imports_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.imports_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.imports_id_seq OWNED BY public.imports.id;
-
-
 --
 -- Name: letsencrypt_plugin_challenges; Type: TABLE; Schema: public; Owner: -
 --
@@ -1516,27 +1008,16 @@ CREATE TABLE public.letsencrypt_plugin_challenges (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: letsencrypt_plugin_challenges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.letsencrypt_plugin_challenges_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.letsencrypt_plugin_challenges_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: letsencrypt_plugin_challenges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.letsencrypt_plugin_challenges_id_seq OWNED BY public.letsencrypt_plugin_challenges.id;
-
-
 --
 -- Name: letsencrypt_plugin_settings; Type: TABLE; Schema: public; Owner: -
 --
@@ -1547,27 +1028,16 @@ CREATE TABLE public.letsencrypt_plugin_settings (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: letsencrypt_plugin_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.letsencrypt_plugin_settings_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.letsencrypt_plugin_settings_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: letsencrypt_plugin_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.letsencrypt_plugin_settings_id_seq OWNED BY public.letsencrypt_plugin_settings.id;
-
-
 --
 -- Name: links; Type: TABLE; Schema: public; Owner: -
 --
@@ -1581,27 +1051,16 @@ CREATE TABLE public.links (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.links_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.links_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.links_id_seq OWNED BY public.links.id;
-
-
 --
 -- Name: login_activities; Type: TABLE; Schema: public; Owner: -
 --
@@ -1624,124 +1083,56 @@ CREATE TABLE public.login_activities (
     country character varying,
     created_at timestamp without time zone
 );
-
-
 --
 -- Name: login_activities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.login_activities_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.login_activities_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: login_activities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.login_activities_id_seq OWNED BY public.login_activities.id;
-
-
 --
 -- Name: match_census_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_census_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_census_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_decision_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_decision_reasons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_decision_reasons_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_decisions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_decisions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_decisions_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_events_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_events_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_mitigation_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_mitigation_reasons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_mitigation_reasons_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_prioritizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_prioritizations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_prioritizations_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_progress_updates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_progress_updates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_progress_updates_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: match_routes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.match_routes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.match_routes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: messages; Type: TABLE; Schema: public; Owner: -
 --
@@ -1758,75 +1149,36 @@ CREATE TABLE public.messages (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.messages_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.messages_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
-
-
 --
 -- Name: mitigation_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.mitigation_reasons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.mitigation_reasons_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: name_quality_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.name_quality_codes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.name_quality_codes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: neighborhood_interests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.neighborhood_interests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.neighborhood_interests_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: neighborhoods_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.neighborhoods_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.neighborhoods_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: nicknames; Type: TABLE; Schema: public; Owner: -
 --
@@ -1836,64 +1188,31 @@ CREATE TABLE public.nicknames (
     name character varying,
     nickname_id integer
 );
-
-
 --
 -- Name: nicknames_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.nicknames_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.nicknames_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: nicknames_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.nicknames_id_seq OWNED BY public.nicknames.id;
-
-
 --
 -- Name: non_hmis_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.non_hmis_assessments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.non_hmis_assessments_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: non_hmis_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.non_hmis_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.non_hmis_clients_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.notifications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.notifications_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: oauth_access_grants; Type: TABLE; Schema: public; Owner: -
 --
@@ -1909,27 +1228,16 @@ CREATE TABLE public.oauth_access_grants (
     created_at timestamp without time zone NOT NULL,
     revoked_at timestamp without time zone
 );
-
-
 --
 -- Name: oauth_access_grants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.oauth_access_grants_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.oauth_access_grants_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: oauth_access_grants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.oauth_access_grants_id_seq OWNED BY public.oauth_access_grants.id;
-
-
 --
 -- Name: oauth_access_tokens; Type: TABLE; Schema: public; Owner: -
 --
@@ -1946,27 +1254,16 @@ CREATE TABLE public.oauth_access_tokens (
     revoked_at timestamp without time zone,
     previous_refresh_token character varying DEFAULT ''::character varying NOT NULL
 );
-
-
 --
 -- Name: oauth_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.oauth_access_tokens_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.oauth_access_tokens_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: oauth_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.oauth_access_tokens_id_seq OWNED BY public.oauth_access_tokens.id;
-
-
 --
 -- Name: oauth_applications; Type: TABLE; Schema: public; Owner: -
 --
@@ -1982,27 +1279,16 @@ CREATE TABLE public.oauth_applications (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: oauth_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.oauth_applications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.oauth_applications_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: oauth_applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.oauth_applications_id_seq OWNED BY public.oauth_applications.id;
-
-
 --
 -- Name: oauth_identities; Type: TABLE; Schema: public; Owner: -
 --
@@ -2016,27 +1302,16 @@ CREATE TABLE public.oauth_identities (
     raw_info json,
     uid character varying NOT NULL
 );
-
-
 --
 -- Name: oauth_identities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.oauth_identities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.oauth_identities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: oauth_identities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.oauth_identities_id_seq OWNED BY public.oauth_identities.id;
-
-
 --
 -- Name: old_passwords; Type: TABLE; Schema: public; Owner: -
 --
@@ -2049,76 +1324,36 @@ CREATE TABLE public.old_passwords (
     password_salt character varying,
     created_at timestamp without time zone
 );
-
-
 --
 -- Name: old_passwords_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.old_passwords_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.old_passwords_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: old_passwords_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.old_passwords_id_seq OWNED BY public.old_passwords.id;
-
-
 --
 -- Name: opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.opportunities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.opportunities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: opportunity_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.opportunity_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.opportunity_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: opportunity_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.opportunity_properties_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.opportunity_properties_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: outreach_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.outreach_histories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.outreach_histories_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: pghero_query_stats; Type: TABLE; Schema: public; Owner: -
 --
@@ -2133,27 +1368,16 @@ CREATE TABLE public.pghero_query_stats (
     calls bigint,
     captured_at timestamp without time zone
 );
-
-
 --
 -- Name: pghero_query_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.pghero_query_stats_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.pghero_query_stats_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: pghero_query_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.pghero_query_stats_id_seq OWNED BY public.pghero_query_stats.id;
-
-
 --
 -- Name: pghero_space_stats; Type: TABLE; Schema: public; Owner: -
 --
@@ -2166,135 +1390,61 @@ CREATE TABLE public.pghero_space_stats (
     size bigint,
     captured_at timestamp without time zone
 );
-
-
 --
 -- Name: pghero_space_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.pghero_space_stats_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.pghero_space_stats_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: pghero_space_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_stats.id;
-
-
 --
 -- Name: physical_disabilities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.physical_disabilities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.physical_disabilities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: program_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.program_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.program_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: program_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.program_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.program_services_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.programs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: project_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.project_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.project_clients_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: project_programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.project_programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.project_programs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: reissue_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.reissue_requests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.reissue_requests_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: rejected_matches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.rejected_matches_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.rejected_matches_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: report_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.report_definitions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.report_definitions_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: report_results; Type: TABLE; Schema: public; Owner: -
 --
@@ -2320,28 +1470,16 @@ CREATE TABLE public.report_results (
     support_file_id integer,
     export_id integer
 );
-
-
 --
 -- Name: report_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.report_results_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.report_results_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: report_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.report_results_id_seq OWNED BY public.report_results.id;
-
-
 --
 -- Name: report_results_summaries; Type: TABLE; Schema: public; Owner: -
 --
@@ -2354,40 +1492,21 @@ CREATE TABLE public.report_results_summaries (
     updated_at timestamp without time zone NOT NULL,
     weight integer DEFAULT 0 NOT NULL
 );
-
-
 --
 -- Name: report_results_summaries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.report_results_summaries_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.report_results_summaries_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: report_results_summaries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.report_results_summaries_id_seq OWNED BY public.report_results_summaries.id;
-
-
 --
 -- Name: reporting_decisions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.reporting_decisions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.reporting_decisions_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: reports; Type: TABLE; Schema: public; Owner: -
 --
@@ -2402,40 +1521,21 @@ CREATE TABLE public.reports (
     report_results_summary_id integer,
     enabled boolean DEFAULT true NOT NULL
 );
-
-
 --
 -- Name: reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.reports_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.reports_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.reports_id_seq OWNED BY public.reports.id;
-
-
 --
 -- Name: requirements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.requirements_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.requirements_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: roles; Type: TABLE; Schema: public; Owner: -
 --
@@ -2616,84 +1716,41 @@ CREATE TABLE public.roles (
     can_edit_cohort_columns boolean DEFAULT false,
     can_receive_cohort_note_notifications boolean DEFAULT false
 );
-
-
 --
 -- Name: roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.roles_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.roles_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
-
-
 --
 -- Name: rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.rules_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
-);
-
-
+CREATE TABLE public.schema_migrations (version character varying NOT NULL);
 --
 -- Name: service_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.service_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.service_rules_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.services_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: shelter_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.shelter_histories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.shelter_histories_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: similarity_metrics; Type: TABLE; Schema: public; Owner: -
 --
@@ -2709,112 +1766,51 @@ CREATE TABLE public.similarity_metrics (
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
-
-
 --
 -- Name: similarity_metrics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.similarity_metrics_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.similarity_metrics_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: similarity_metrics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.similarity_metrics_id_seq OWNED BY public.similarity_metrics.id;
-
-
 --
 -- Name: social_security_number_quality_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.social_security_number_quality_codes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.social_security_number_quality_codes_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: stalled_responses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.stalled_responses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.stalled_responses_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: sub_program_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.sub_program_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.sub_program_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: sub_programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.sub_programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.sub_programs_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: subgrantee_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.subgrantee_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.subgrantee_contacts_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: subgrantee_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.subgrantee_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.subgrantee_services_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: subgrantees_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.subgrantees_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.subgrantees_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
@@ -2829,28 +1825,16 @@ CREATE TABLE public.taggings (
     context character varying(128),
     created_at timestamp without time zone
 );
-
-
 --
 -- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.taggings_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.taggings_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: taggings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
-
-
 --
 -- Name: tags; Type: TABLE; Schema: public; Owner: -
 --
@@ -2860,27 +1844,16 @@ CREATE TABLE public.tags (
     name character varying,
     taggings_count integer DEFAULT 0
 );
-
-
 --
 -- Name: tags_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.tags_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.tags_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: tags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
-
-
 --
 -- Name: task_queues; Type: TABLE; Schema: public; Owner: -
 --
@@ -2895,27 +1868,16 @@ CREATE TABLE public.task_queues (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: task_queues_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.task_queues_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.task_queues_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: task_queues_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.task_queues_id_seq OWNED BY public.task_queues.id;
-
-
 --
 -- Name: tokens; Type: TABLE; Schema: public; Owner: -
 --
@@ -2928,28 +1890,16 @@ CREATE TABLE public.tokens (
     path character varying NOT NULL,
     expires_at timestamp without time zone
 );
-
-
 --
 -- Name: tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.tokens_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.tokens_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.tokens_id_seq OWNED BY public.tokens.id;
-
-
 --
 -- Name: translations; Type: TABLE; Schema: public; Owner: -
 --
@@ -2962,27 +1912,16 @@ CREATE TABLE public.translations (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: translations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.translations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.translations_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: translations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.translations_id_seq OWNED BY public.translations.id;
-
-
 --
 -- Name: two_factors_memorized_devices; Type: TABLE; Schema: public; Owner: -
 --
@@ -2998,39 +1937,21 @@ CREATE TABLE public.two_factors_memorized_devices (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
-
-
 --
 -- Name: two_factors_memorized_devices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.two_factors_memorized_devices_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.two_factors_memorized_devices_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: two_factors_memorized_devices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.two_factors_memorized_devices_id_seq OWNED BY public.two_factors_memorized_devices.id;
-
-
 --
 -- Name: unavailable_as_candidate_fors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.unavailable_as_candidate_fors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.unavailable_as_candidate_fors_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: unique_names; Type: TABLE; Schema: public; Owner: -
 --
@@ -3040,40 +1961,21 @@ CREATE TABLE public.unique_names (
     name character varying,
     double_metaphone character varying
 );
-
-
 --
 -- Name: unique_names_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.unique_names_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.unique_names_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: unique_names_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.unique_names_id_seq OWNED BY public.unique_names.id;
-
-
 --
 -- Name: units_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.units_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.units_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: uploads; Type: TABLE; Schema: public; Owner: -
 --
@@ -3094,28 +1996,16 @@ CREATE TABLE public.uploads (
     deleted_at timestamp without time zone,
     user_id integer
 );
-
-
 --
 -- Name: uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.uploads_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.uploads_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
-
-
 --
 -- Name: user_access_controls; Type: TABLE; Schema: public; Owner: -
 --
@@ -3128,27 +2018,16 @@ CREATE TABLE public.user_access_controls (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.user_access_controls_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.user_access_controls_id_seq OWNED BY public.user_access_controls.id;
-
-
 --
 -- Name: user_group_members; Type: TABLE; Schema: public; Owner: -
 --
@@ -3161,27 +2040,16 @@ CREATE TABLE public.user_group_members (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
 --
 -- Name: user_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.user_group_members_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.user_group_members_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: user_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.user_group_members_id_seq OWNED BY public.user_group_members.id;
-
-
 --
 -- Name: user_groups; Type: TABLE; Schema: public; Owner: -
 --
@@ -3198,27 +2066,16 @@ CREATE TABLE public.user_groups (
     source_id bigint,
     context character varying
 );
-
-
 --
 -- Name: user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.user_groups_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.user_groups_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.user_groups_id_seq OWNED BY public.user_groups.id;
-
-
 --
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
@@ -3231,27 +2088,16 @@ CREATE TABLE public.user_roles (
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone
 );
-
-
 --
 -- Name: user_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.user_roles_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.user_roles_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: user_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.user_roles_id_seq OWNED BY public.user_roles.id;
-
-
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
@@ -3306,7 +2152,7 @@ CREATE TABLE public.users (
     last_activity_at timestamp without time zone,
     expired_at timestamp without time zone,
     confirmed_2fa integer DEFAULT 0 NOT NULL,
-    otp_backup_codes character varying[],
+    otp_backup_codes character varying [],
     password_changed_at timestamp without time zone,
     training_completed boolean DEFAULT false,
     last_training_completed date,
@@ -3326,34 +2172,21 @@ CREATE TABLE public.users (
     training_courses jsonb,
     custom_session_invalidator character varying
 );
-
-
 --
 -- Name: COLUMN users.custom_session_invalidator; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN public.users.custom_session_invalidator IS 'Changing the value of this column will invalidate the current session for the user.';
-
-
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.users_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
-
-
 --
 -- Name: versions; Type: TABLE; Schema: public; Owner: -
 --
@@ -3373,51 +2206,26 @@ CREATE TABLE public.versions (
     referenced_user_id integer,
     referenced_entity_name character varying
 );
-
-
 --
 -- Name: versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.versions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.versions_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
-
-
 --
 -- Name: veteran_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.veteran_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.veteran_statuses_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: vouchers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.vouchers_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.vouchers_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: warehouse_alerts; Type: TABLE; Schema: public; Owner: -
 --
@@ -3430,1744 +2238,1412 @@ CREATE TABLE public.warehouse_alerts (
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone
 );
-
-
 --
 -- Name: warehouse_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.warehouse_alerts_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.warehouse_alerts_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: warehouse_alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.warehouse_alerts_id_seq OWNED BY public.warehouse_alerts.id;
-
-
 --
 -- Name: weighting_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.weighting_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
+CREATE SEQUENCE public.weighting_rules_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 --
 -- Name: access_control_uploads id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_control_uploads ALTER COLUMN id SET DEFAULT nextval('public.access_control_uploads_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.access_control_uploads
+ALTER COLUMN id
+SET DEFAULT nextval('public.access_control_uploads_id_seq'::regclass);
 --
 -- Name: access_controls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_controls ALTER COLUMN id SET DEFAULT nextval('public.access_controls_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.access_controls
+ALTER COLUMN id
+SET DEFAULT nextval('public.access_controls_id_seq'::regclass);
 --
 -- Name: access_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_group_members ALTER COLUMN id SET DEFAULT nextval('public.access_group_members_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.access_group_members
+ALTER COLUMN id
+SET DEFAULT nextval('public.access_group_members_id_seq'::regclass);
 --
 -- Name: access_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_groups ALTER COLUMN id SET DEFAULT nextval('public.access_groups_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.access_groups
+ALTER COLUMN id
+SET DEFAULT nextval('public.access_groups_id_seq'::regclass);
 --
 -- Name: account_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.account_requests ALTER COLUMN id SET DEFAULT nextval('public.account_requests_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.account_requests
+ALTER COLUMN id
+SET DEFAULT nextval('public.account_requests_id_seq'::regclass);
 --
 -- Name: active_storage_attachments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.active_storage_attachments ALTER COLUMN id SET DEFAULT nextval('public.active_storage_attachments_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.active_storage_attachments
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.active_storage_attachments_id_seq'::regclass
+    );
 --
 -- Name: active_storage_blobs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.active_storage_blobs ALTER COLUMN id SET DEFAULT nextval('public.active_storage_blobs_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.active_storage_blobs
+ALTER COLUMN id
+SET DEFAULT nextval('public.active_storage_blobs_id_seq'::regclass);
 --
 -- Name: active_storage_variant_records id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAULT nextval('public.active_storage_variant_records_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.active_storage_variant_records
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.active_storage_variant_records_id_seq'::regclass
+    );
 --
 -- Name: activity_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.activity_logs ALTER COLUMN id SET DEFAULT nextval('public.activity_logs_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.activity_logs
+ALTER COLUMN id
+SET DEFAULT nextval('public.activity_logs_id_seq'::regclass);
 --
 -- Name: agencies id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.agencies ALTER COLUMN id SET DEFAULT nextval('public.agencies_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.agencies
+ALTER COLUMN id
+SET DEFAULT nextval('public.agencies_id_seq'::regclass);
 --
 -- Name: app_config_properties id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.app_config_properties ALTER COLUMN id SET DEFAULT nextval('public.app_config_properties_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.app_config_properties
+ALTER COLUMN id
+SET DEFAULT nextval('public.app_config_properties_id_seq'::regclass);
 --
 -- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('public.clients_unduplicated_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.clients_unduplicated
+ALTER COLUMN id
+SET DEFAULT nextval('public.clients_unduplicated_id_seq'::regclass);
 --
 -- Name: collections id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.collections ALTER COLUMN id SET DEFAULT nextval('public.collections_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.collections
+ALTER COLUMN id
+SET DEFAULT nextval('public.collections_id_seq'::regclass);
 --
 -- Name: consent_limits id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.consent_limits ALTER COLUMN id SET DEFAULT nextval('public.consent_limits_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.consent_limits
+ALTER COLUMN id
+SET DEFAULT nextval('public.consent_limits_id_seq'::regclass);
 --
 -- Name: delayed_jobs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.delayed_jobs ALTER COLUMN id SET DEFAULT nextval('public.delayed_jobs_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.delayed_jobs
+ALTER COLUMN id
+SET DEFAULT nextval('public.delayed_jobs_id_seq'::regclass);
 --
 -- Name: glacier_archives id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.glacier_archives ALTER COLUMN id SET DEFAULT nextval('public.glacier_archives_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.glacier_archives
+ALTER COLUMN id
+SET DEFAULT nextval('public.glacier_archives_id_seq'::regclass);
 --
 -- Name: glacier_vaults id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('public.glacier_vaults_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.glacier_vaults
+ALTER COLUMN id
+SET DEFAULT nextval('public.glacier_vaults_id_seq'::regclass);
 --
 -- Name: hmis_access_controls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_access_controls ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_controls_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_access_controls
+ALTER COLUMN id
+SET DEFAULT nextval('public.hmis_access_controls_id_seq'::regclass);
 --
 -- Name: hmis_access_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_access_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_groups_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_access_groups
+ALTER COLUMN id
+SET DEFAULT nextval('public.hmis_access_groups_id_seq'::regclass);
 --
 -- Name: hmis_activity_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_activity_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_activity_logs_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_activity_logs
+ALTER COLUMN id
+SET DEFAULT nextval('public.hmis_activity_logs_id_seq'::regclass);
 --
 -- Name: hmis_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_roles ALTER COLUMN id SET DEFAULT nextval('public.hmis_roles_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_roles
+ALTER COLUMN id
+SET DEFAULT nextval('public.hmis_roles_id_seq'::regclass);
 --
 -- Name: hmis_user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_access_controls_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_user_access_controls
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.hmis_user_access_controls_id_seq'::regclass
+    );
 --
 -- Name: hmis_user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_user_group_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_group_members_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_user_group_members
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.hmis_user_group_members_id_seq'::regclass
+    );
 --
 -- Name: hmis_user_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_user_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_groups_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.hmis_user_groups
+ALTER COLUMN id
+SET DEFAULT nextval('public.hmis_user_groups_id_seq'::regclass);
 --
 -- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.imports ALTER COLUMN id SET DEFAULT nextval('public.imports_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.imports
+ALTER COLUMN id
+SET DEFAULT nextval('public.imports_id_seq'::regclass);
 --
 -- Name: letsencrypt_plugin_challenges id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.letsencrypt_plugin_challenges ALTER COLUMN id SET DEFAULT nextval('public.letsencrypt_plugin_challenges_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.letsencrypt_plugin_challenges
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.letsencrypt_plugin_challenges_id_seq'::regclass
+    );
 --
 -- Name: letsencrypt_plugin_settings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.letsencrypt_plugin_settings ALTER COLUMN id SET DEFAULT nextval('public.letsencrypt_plugin_settings_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.letsencrypt_plugin_settings
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.letsencrypt_plugin_settings_id_seq'::regclass
+    );
 --
 -- Name: links id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.links ALTER COLUMN id SET DEFAULT nextval('public.links_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.links
+ALTER COLUMN id
+SET DEFAULT nextval('public.links_id_seq'::regclass);
 --
 -- Name: login_activities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.login_activities ALTER COLUMN id SET DEFAULT nextval('public.login_activities_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.login_activities
+ALTER COLUMN id
+SET DEFAULT nextval('public.login_activities_id_seq'::regclass);
 --
 -- Name: messages id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.messages_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.messages
+ALTER COLUMN id
+SET DEFAULT nextval('public.messages_id_seq'::regclass);
 --
 -- Name: nicknames id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.nicknames ALTER COLUMN id SET DEFAULT nextval('public.nicknames_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.nicknames
+ALTER COLUMN id
+SET DEFAULT nextval('public.nicknames_id_seq'::regclass);
 --
 -- Name: oauth_access_grants id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.oauth_access_grants ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_grants_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.oauth_access_grants
+ALTER COLUMN id
+SET DEFAULT nextval('public.oauth_access_grants_id_seq'::regclass);
 --
 -- Name: oauth_access_tokens id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.oauth_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_tokens_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.oauth_access_tokens
+ALTER COLUMN id
+SET DEFAULT nextval('public.oauth_access_tokens_id_seq'::regclass);
 --
 -- Name: oauth_applications id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.oauth_applications ALTER COLUMN id SET DEFAULT nextval('public.oauth_applications_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.oauth_applications
+ALTER COLUMN id
+SET DEFAULT nextval('public.oauth_applications_id_seq'::regclass);
 --
 -- Name: oauth_identities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.oauth_identities ALTER COLUMN id SET DEFAULT nextval('public.oauth_identities_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.oauth_identities
+ALTER COLUMN id
+SET DEFAULT nextval('public.oauth_identities_id_seq'::regclass);
 --
 -- Name: old_passwords id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.old_passwords ALTER COLUMN id SET DEFAULT nextval('public.old_passwords_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.old_passwords
+ALTER COLUMN id
+SET DEFAULT nextval('public.old_passwords_id_seq'::regclass);
 --
 -- Name: pghero_query_stats id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.pghero_query_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_query_stats_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.pghero_query_stats
+ALTER COLUMN id
+SET DEFAULT nextval('public.pghero_query_stats_id_seq'::regclass);
 --
 -- Name: pghero_space_stats id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.pghero_space_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_space_stats_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.pghero_space_stats
+ALTER COLUMN id
+SET DEFAULT nextval('public.pghero_space_stats_id_seq'::regclass);
 --
 -- Name: report_results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.report_results ALTER COLUMN id SET DEFAULT nextval('public.report_results_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.report_results
+ALTER COLUMN id
+SET DEFAULT nextval('public.report_results_id_seq'::regclass);
 --
 -- Name: report_results_summaries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.report_results_summaries ALTER COLUMN id SET DEFAULT nextval('public.report_results_summaries_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.report_results_summaries
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.report_results_summaries_id_seq'::regclass
+    );
 --
 -- Name: reports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.reports ALTER COLUMN id SET DEFAULT nextval('public.reports_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.reports
+ALTER COLUMN id
+SET DEFAULT nextval('public.reports_id_seq'::regclass);
 --
 -- Name: roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.roles
+ALTER COLUMN id
+SET DEFAULT nextval('public.roles_id_seq'::regclass);
 --
 -- Name: similarity_metrics id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.similarity_metrics ALTER COLUMN id SET DEFAULT nextval('public.similarity_metrics_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.similarity_metrics
+ALTER COLUMN id
+SET DEFAULT nextval('public.similarity_metrics_id_seq'::regclass);
 --
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.taggings ALTER COLUMN id SET DEFAULT nextval('public.taggings_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.taggings
+ALTER COLUMN id
+SET DEFAULT nextval('public.taggings_id_seq'::regclass);
 --
 -- Name: tags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.tags
+ALTER COLUMN id
+SET DEFAULT nextval('public.tags_id_seq'::regclass);
 --
 -- Name: task_queues id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.task_queues ALTER COLUMN id SET DEFAULT nextval('public.task_queues_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.task_queues
+ALTER COLUMN id
+SET DEFAULT nextval('public.task_queues_id_seq'::regclass);
 --
 -- Name: tokens id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.tokens ALTER COLUMN id SET DEFAULT nextval('public.tokens_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.tokens
+ALTER COLUMN id
+SET DEFAULT nextval('public.tokens_id_seq'::regclass);
 --
 -- Name: translations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.translations ALTER COLUMN id SET DEFAULT nextval('public.translations_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.translations
+ALTER COLUMN id
+SET DEFAULT nextval('public.translations_id_seq'::regclass);
 --
 -- Name: two_factors_memorized_devices id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.two_factors_memorized_devices ALTER COLUMN id SET DEFAULT nextval('public.two_factors_memorized_devices_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.two_factors_memorized_devices
+ALTER COLUMN id
+SET DEFAULT nextval(
+        'public.two_factors_memorized_devices_id_seq'::regclass
+    );
 --
 -- Name: unique_names id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.unique_names ALTER COLUMN id SET DEFAULT nextval('public.unique_names_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.unique_names
+ALTER COLUMN id
+SET DEFAULT nextval('public.unique_names_id_seq'::regclass);
 --
 -- Name: uploads id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uploads_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.uploads
+ALTER COLUMN id
+SET DEFAULT nextval('public.uploads_id_seq'::regclass);
 --
 -- Name: user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.user_access_controls
+ALTER COLUMN id
+SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
 --
 -- Name: user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_group_members ALTER COLUMN id SET DEFAULT nextval('public.user_group_members_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.user_group_members
+ALTER COLUMN id
+SET DEFAULT nextval('public.user_group_members_id_seq'::regclass);
 --
 -- Name: user_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_groups ALTER COLUMN id SET DEFAULT nextval('public.user_groups_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.user_groups
+ALTER COLUMN id
+SET DEFAULT nextval('public.user_groups_id_seq'::regclass);
 --
 -- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_roles ALTER COLUMN id SET DEFAULT nextval('public.user_roles_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.user_roles
+ALTER COLUMN id
+SET DEFAULT nextval('public.user_roles_id_seq'::regclass);
 --
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.users
+ALTER COLUMN id
+SET DEFAULT nextval('public.users_id_seq'::regclass);
 --
 -- Name: versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.versions_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.versions
+ALTER COLUMN id
+SET DEFAULT nextval('public.versions_id_seq'::regclass);
 --
 -- Name: warehouse_alerts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
-
-
+ALTER TABLE ONLY public.warehouse_alerts
+ALTER COLUMN id
+SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
 --
 -- Name: access_control_uploads access_control_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_control_uploads
-    ADD CONSTRAINT access_control_uploads_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT access_control_uploads_pkey PRIMARY KEY (id);
 --
 -- Name: access_controls access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_controls
-    ADD CONSTRAINT access_controls_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT access_controls_pkey PRIMARY KEY (id);
 --
 -- Name: access_group_members access_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_group_members
-    ADD CONSTRAINT access_group_members_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT access_group_members_pkey PRIMARY KEY (id);
 --
 -- Name: access_groups access_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_groups
-    ADD CONSTRAINT access_groups_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT access_groups_pkey PRIMARY KEY (id);
 --
 -- Name: account_requests account_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.account_requests
-    ADD CONSTRAINT account_requests_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT account_requests_pkey PRIMARY KEY (id);
 --
 -- Name: active_storage_attachments active_storage_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_attachments
-    ADD CONSTRAINT active_storage_attachments_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT active_storage_attachments_pkey PRIMARY KEY (id);
 --
 -- Name: active_storage_blobs active_storage_blobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_blobs
-    ADD CONSTRAINT active_storage_blobs_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT active_storage_blobs_pkey PRIMARY KEY (id);
 --
 -- Name: active_storage_variant_records active_storage_variant_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_variant_records
-    ADD CONSTRAINT active_storage_variant_records_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT active_storage_variant_records_pkey PRIMARY KEY (id);
 --
 -- Name: activity_logs activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.activity_logs
-    ADD CONSTRAINT activity_logs_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT activity_logs_pkey PRIMARY KEY (id);
 --
 -- Name: agencies agencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.agencies
-    ADD CONSTRAINT agencies_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT agencies_pkey PRIMARY KEY (id);
 --
 -- Name: app_config_properties app_config_properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.app_config_properties
-    ADD CONSTRAINT app_config_properties_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT app_config_properties_pkey PRIMARY KEY (id);
 --
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ar_internal_metadata
-    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
-
-
+ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 --
 -- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.clients_unduplicated
-    ADD CONSTRAINT clients_unduplicated_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT clients_unduplicated_pkey PRIMARY KEY (id);
 --
 -- Name: collections collections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.collections
-    ADD CONSTRAINT collections_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT collections_pkey PRIMARY KEY (id);
 --
 -- Name: consent_limits consent_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.consent_limits
-    ADD CONSTRAINT consent_limits_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT consent_limits_pkey PRIMARY KEY (id);
 --
 -- Name: delayed_jobs delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.delayed_jobs
-    ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
 --
 -- Name: glacier_archives glacier_archives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.glacier_archives
-    ADD CONSTRAINT glacier_archives_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT glacier_archives_pkey PRIMARY KEY (id);
 --
 -- Name: glacier_vaults glacier_vaults_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.glacier_vaults
-    ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_access_controls hmis_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_access_controls
-    ADD CONSTRAINT hmis_access_controls_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_access_controls_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_access_groups hmis_access_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_access_groups
-    ADD CONSTRAINT hmis_access_groups_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_access_groups_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_activity_logs hmis_activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_activity_logs
-    ADD CONSTRAINT hmis_activity_logs_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_activity_logs_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_roles hmis_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_roles
-    ADD CONSTRAINT hmis_roles_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_roles_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_user_access_controls hmis_user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_user_access_controls
-    ADD CONSTRAINT hmis_user_access_controls_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_user_access_controls_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_user_group_members hmis_user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_user_group_members
-    ADD CONSTRAINT hmis_user_group_members_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_user_group_members_pkey PRIMARY KEY (id);
 --
 -- Name: hmis_user_groups hmis_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_user_groups
-    ADD CONSTRAINT hmis_user_groups_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT hmis_user_groups_pkey PRIMARY KEY (id);
 --
 -- Name: imports imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.imports
-    ADD CONSTRAINT imports_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT imports_pkey PRIMARY KEY (id);
 --
 -- Name: letsencrypt_plugin_challenges letsencrypt_plugin_challenges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.letsencrypt_plugin_challenges
-    ADD CONSTRAINT letsencrypt_plugin_challenges_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT letsencrypt_plugin_challenges_pkey PRIMARY KEY (id);
 --
 -- Name: letsencrypt_plugin_settings letsencrypt_plugin_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.letsencrypt_plugin_settings
-    ADD CONSTRAINT letsencrypt_plugin_settings_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT letsencrypt_plugin_settings_pkey PRIMARY KEY (id);
 --
 -- Name: links links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.links
-    ADD CONSTRAINT links_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT links_pkey PRIMARY KEY (id);
 --
 -- Name: login_activities login_activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.login_activities
-    ADD CONSTRAINT login_activities_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT login_activities_pkey PRIMARY KEY (id);
 --
 -- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.messages
-    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
 --
 -- Name: nicknames nicknames_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.nicknames
-    ADD CONSTRAINT nicknames_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT nicknames_pkey PRIMARY KEY (id);
 --
 -- Name: oauth_access_grants oauth_access_grants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_grants
-    ADD CONSTRAINT oauth_access_grants_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT oauth_access_grants_pkey PRIMARY KEY (id);
 --
 -- Name: oauth_access_tokens oauth_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_tokens
-    ADD CONSTRAINT oauth_access_tokens_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT oauth_access_tokens_pkey PRIMARY KEY (id);
 --
 -- Name: oauth_applications oauth_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_applications
-    ADD CONSTRAINT oauth_applications_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT oauth_applications_pkey PRIMARY KEY (id);
 --
 -- Name: oauth_identities oauth_identities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_identities
-    ADD CONSTRAINT oauth_identities_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT oauth_identities_pkey PRIMARY KEY (id);
 --
 -- Name: old_passwords old_passwords_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.old_passwords
-    ADD CONSTRAINT old_passwords_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT old_passwords_pkey PRIMARY KEY (id);
 --
 -- Name: pghero_query_stats pghero_query_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pghero_query_stats
-    ADD CONSTRAINT pghero_query_stats_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT pghero_query_stats_pkey PRIMARY KEY (id);
 --
 -- Name: pghero_space_stats pghero_space_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pghero_space_stats
-    ADD CONSTRAINT pghero_space_stats_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT pghero_space_stats_pkey PRIMARY KEY (id);
 --
 -- Name: report_results report_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.report_results
-    ADD CONSTRAINT report_results_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT report_results_pkey PRIMARY KEY (id);
 --
 -- Name: report_results_summaries report_results_summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.report_results_summaries
-    ADD CONSTRAINT report_results_summaries_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT report_results_summaries_pkey PRIMARY KEY (id);
 --
 -- Name: reports reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reports
-    ADD CONSTRAINT reports_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT reports_pkey PRIMARY KEY (id);
 --
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
 --
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
+ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 --
 -- Name: similarity_metrics similarity_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.similarity_metrics
-    ADD CONSTRAINT similarity_metrics_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT similarity_metrics_pkey PRIMARY KEY (id);
 --
 -- Name: taggings taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.taggings
-    ADD CONSTRAINT taggings_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT taggings_pkey PRIMARY KEY (id);
 --
 -- Name: tags tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tags
-    ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
 --
 -- Name: task_queues task_queues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.task_queues
-    ADD CONSTRAINT task_queues_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT task_queues_pkey PRIMARY KEY (id);
 --
 -- Name: tokens tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tokens
-    ADD CONSTRAINT tokens_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT tokens_pkey PRIMARY KEY (id);
 --
 -- Name: translations translations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.translations
-    ADD CONSTRAINT translations_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT translations_pkey PRIMARY KEY (id);
 --
 -- Name: two_factors_memorized_devices two_factors_memorized_devices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.two_factors_memorized_devices
-    ADD CONSTRAINT two_factors_memorized_devices_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT two_factors_memorized_devices_pkey PRIMARY KEY (id);
 --
 -- Name: unique_names unique_names_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.unique_names
-    ADD CONSTRAINT unique_names_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT unique_names_pkey PRIMARY KEY (id);
 --
 -- Name: uploads uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.uploads
-    ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
 --
 -- Name: user_access_controls user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_access_controls
-    ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
 --
 -- Name: user_group_members user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_group_members
-    ADD CONSTRAINT user_group_members_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT user_group_members_pkey PRIMARY KEY (id);
 --
 -- Name: user_groups user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_groups
-    ADD CONSTRAINT user_groups_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT user_groups_pkey PRIMARY KEY (id);
 --
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id);
 --
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 --
 -- Name: versions versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.versions
-    ADD CONSTRAINT versions_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT versions_pkey PRIMARY KEY (id);
 --
 -- Name: warehouse_alerts warehouse_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.warehouse_alerts
-    ADD CONSTRAINT warehouse_alerts_pkey PRIMARY KEY (id);
-
-
+ADD CONSTRAINT warehouse_alerts_pkey PRIMARY KEY (id);
 --
 -- Name: delayed_jobs_priority; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority, run_at);
-
-
 --
 -- Name: idx_oauth_on_provider_and_uid; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
-
-
 --
 -- Name: index_access_control_uploads_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_access_control_uploads_on_user_id ON public.access_control_uploads USING btree (user_id);
-
-
 --
 -- Name: index_access_controls_on_collection_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_access_controls_on_collection_id ON public.access_controls USING btree (collection_id);
-
-
 --
 -- Name: index_access_controls_on_role_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_access_controls_on_role_id ON public.access_controls USING btree (role_id);
-
-
 --
 -- Name: index_access_controls_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_access_controls_on_user_group_id ON public.access_controls USING btree (user_group_id);
-
-
 --
 -- Name: index_account_requests_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_account_requests_on_user_id ON public.account_requests USING btree (user_id);
-
-
 --
 -- Name: index_active_storage_attachments_on_blob_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_active_storage_attachments_on_blob_id ON public.active_storage_attachments USING btree (blob_id);
-
-
 --
 -- Name: index_active_storage_attachments_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_active_storage_attachments_uniqueness ON public.active_storage_attachments USING btree (record_type, record_id, name, blob_id);
-
-
 --
 -- Name: index_active_storage_blobs_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_blobs USING btree (key);
-
-
 --
 -- Name: index_active_storage_variant_records_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
-
-
 --
 -- Name: index_active_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_active_users_on_email ON public.users USING btree (email) WHERE (deleted_at IS NULL);
-
-
+CREATE UNIQUE INDEX index_active_users_on_email ON public.users USING btree (email)
+WHERE (deleted_at IS NULL);
 --
 -- Name: index_active_users_on_lower_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_active_users_on_lower_email ON public.users USING btree (btrim(lower((email)::text))) WHERE (deleted_at IS NULL);
-
-
+CREATE UNIQUE INDEX index_active_users_on_lower_email ON public.users USING btree (btrim(lower((email)::text)))
+WHERE (deleted_at IS NULL);
 --
 -- Name: index_activity_logs_on_controller_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_controller_name ON public.activity_logs USING btree (controller_name);
-
-
 --
 -- Name: index_activity_logs_on_created_at_and_item_model_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_created_at_and_item_model_and_user_id ON public.activity_logs USING btree (created_at, item_model, user_id);
-
-
 --
 -- Name: index_activity_logs_on_item_model; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_item_model ON public.activity_logs USING btree (item_model);
-
-
 --
 -- Name: index_activity_logs_on_item_model_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_item_model_and_user_id ON public.activity_logs USING btree (item_model, user_id);
-
-
 --
 -- Name: index_activity_logs_on_item_model_and_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_item_model_and_user_id_and_created_at ON public.activity_logs USING btree (item_model, user_id, created_at);
-
-
 --
 -- Name: index_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_user_id ON public.activity_logs USING btree (user_id);
-
-
 --
 -- Name: index_activity_logs_on_user_id_and_item_model_and_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_user_id_and_item_model_and_created_at ON public.activity_logs USING btree (user_id, item_model, created_at);
-
-
 --
 -- Name: index_agencies_consent_limits_on_agency_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_agencies_consent_limits_on_agency_id ON public.agencies_consent_limits USING btree (agency_id);
-
-
 --
 -- Name: index_agencies_consent_limits_on_consent_limit_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencies_consent_limits USING btree (consent_limit_id);
-
-
 --
 -- Name: index_app_config_properties_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_app_config_properties_on_key ON public.app_config_properties USING btree (key);
-
-
 --
 -- Name: index_collections_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_collections_on_source ON public.collections USING btree (source_type, source_id);
-
-
 --
 -- Name: index_collections_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_collections_on_user_id ON public.collections USING btree (user_id);
-
-
 --
 -- Name: index_consent_limits_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_consent_limits_on_name ON public.consent_limits USING btree (name);
-
-
 --
 -- Name: index_glacier_archives_on_glacier_vault_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_glacier_archives_on_glacier_vault_id ON public.glacier_archives USING btree (glacier_vault_id);
-
-
 --
 -- Name: index_glacier_archives_on_upload_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_glacier_archives_on_upload_id ON public.glacier_archives USING btree (upload_id);
-
-
 --
 -- Name: index_glacier_vaults_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_glacier_vaults_on_name ON public.glacier_vaults USING btree (name);
-
-
 --
 -- Name: index_hmis_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_access_controls_on_access_group_id ON public.hmis_access_controls USING btree (access_group_id);
-
-
 --
 -- Name: index_hmis_access_controls_on_role_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_access_controls_on_role_id ON public.hmis_access_controls USING btree (role_id);
-
-
 --
 -- Name: index_hmis_access_controls_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_access_controls_on_user_group_id ON public.hmis_access_controls USING btree (user_group_id);
-
-
 --
 -- Name: index_hmis_activity_logs_clients_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_clients_on_activity_log_id ON public.hmis_activity_logs_clients USING btree (activity_log_id);
-
-
 --
 -- Name: index_hmis_activity_logs_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_clients_on_client_id ON public.hmis_activity_logs_clients USING btree (client_id);
-
-
 --
 -- Name: index_hmis_activity_logs_enrollments_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_enrollments_on_activity_log_id ON public.hmis_activity_logs_enrollments USING btree (activity_log_id);
-
-
 --
 -- Name: index_hmis_activity_logs_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_enrollments_on_enrollment_id ON public.hmis_activity_logs_enrollments USING btree (enrollment_id);
-
-
 --
 -- Name: index_hmis_activity_logs_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_enrollments_on_project_id ON public.hmis_activity_logs_enrollments USING btree (project_id);
-
-
 --
 -- Name: index_hmis_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs USING btree (user_id);
-
-
 --
 -- Name: index_hmis_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_user_access_controls_on_access_control_id ON public.hmis_user_access_controls USING btree (access_control_id);
-
-
 --
 -- Name: index_hmis_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_user_access_controls_on_user_id ON public.hmis_user_access_controls USING btree (user_id);
-
-
 --
 -- Name: index_hmis_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_user_group_members_on_user_group_id ON public.hmis_user_group_members USING btree (user_group_id);
-
-
 --
 -- Name: index_hmis_user_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_user_group_members_on_user_id ON public.hmis_user_group_members USING btree (user_id);
-
-
 --
 -- Name: index_imports_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_imports_on_deleted_at ON public.imports USING btree (deleted_at);
-
-
 --
 -- Name: index_login_activities_on_identity; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_login_activities_on_identity ON public.login_activities USING btree (identity);
-
-
 --
 -- Name: index_login_activities_on_ip; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_login_activities_on_ip ON public.login_activities USING btree (ip);
-
-
 --
 -- Name: index_oauth_access_grants_on_application_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_oauth_access_grants_on_application_id ON public.oauth_access_grants USING btree (application_id);
-
-
 --
 -- Name: index_oauth_access_grants_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_oauth_access_grants_on_resource_owner_id ON public.oauth_access_grants USING btree (resource_owner_id);
-
-
 --
 -- Name: index_oauth_access_grants_on_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_oauth_access_grants_on_token ON public.oauth_access_grants USING btree (token);
-
-
 --
 -- Name: index_oauth_access_tokens_on_application_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_oauth_access_tokens_on_application_id ON public.oauth_access_tokens USING btree (application_id);
-
-
 --
 -- Name: index_oauth_access_tokens_on_refresh_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_oauth_access_tokens_on_refresh_token ON public.oauth_access_tokens USING btree (refresh_token);
-
-
 --
 -- Name: index_oauth_access_tokens_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_oauth_access_tokens_on_resource_owner_id ON public.oauth_access_tokens USING btree (resource_owner_id);
-
-
 --
 -- Name: index_oauth_access_tokens_on_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_oauth_access_tokens_on_token ON public.oauth_access_tokens USING btree (token);
-
-
 --
 -- Name: index_oauth_applications_on_uid; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_oauth_applications_on_uid ON public.oauth_applications USING btree (uid);
-
-
 --
 -- Name: index_oauth_identities_on_uid; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_oauth_identities_on_uid ON public.oauth_identities USING btree (uid);
-
-
 --
 -- Name: index_oauth_identities_on_user_id_and_provider; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_oauth_identities_on_user_id_and_provider ON public.oauth_identities USING btree (user_id, provider);
-
-
 --
 -- Name: index_password_archivable; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_password_archivable ON public.old_passwords USING btree (password_archivable_type, password_archivable_id);
-
-
 --
 -- Name: index_pghero_query_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_pghero_query_stats_on_database_and_captured_at ON public.pghero_query_stats USING btree (database, captured_at);
-
-
 --
 -- Name: index_pghero_space_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_pghero_space_stats_on_database_and_captured_at ON public.pghero_space_stats USING btree (database, captured_at);
-
-
 --
 -- Name: index_report_results_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_report_results_on_deleted_at ON public.report_results USING btree (deleted_at);
-
-
 --
 -- Name: index_report_results_on_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_report_results_on_report_id ON public.report_results USING btree (report_id);
-
-
 --
 -- Name: index_reports_on_report_results_summary_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_reports_on_report_results_summary_id ON public.reports USING btree (report_results_summary_id);
-
-
 --
 -- Name: index_roles_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_roles_on_name ON public.roles USING btree (name);
-
-
 --
 -- Name: index_similarity_metrics_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_similarity_metrics_on_type ON public.similarity_metrics USING btree (type);
-
-
 --
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_context ON public.taggings USING btree (context);
-
-
 --
 -- Name: index_taggings_on_tag_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_tag_id ON public.taggings USING btree (tag_id);
-
-
 --
 -- Name: index_taggings_on_taggable_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_taggable_id ON public.taggings USING btree (taggable_id);
-
-
 --
 -- Name: index_taggings_on_taggable_id_and_taggable_type_and_context; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_taggable_id_and_taggable_type_and_context ON public.taggings USING btree (taggable_id, taggable_type, context);
-
-
 --
 -- Name: index_taggings_on_taggable_type; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_taggable_type ON public.taggings USING btree (taggable_type);
-
-
 --
 -- Name: index_taggings_on_tagger_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_tagger_id ON public.taggings USING btree (tagger_id);
-
-
 --
 -- Name: index_taggings_on_tagger_id_and_tagger_type; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_tagger_id_and_tagger_type ON public.taggings USING btree (tagger_id, tagger_type);
-
-
 --
 -- Name: index_tags_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_tags_on_name ON public.tags USING btree (name);
-
-
 --
 -- Name: index_tokens_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_tokens_on_created_at ON public.tokens USING btree (created_at);
-
-
 --
 -- Name: index_tokens_on_expires_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_tokens_on_expires_at ON public.tokens USING btree (expires_at);
-
-
 --
 -- Name: index_tokens_on_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_tokens_on_token ON public.tokens USING btree (token);
-
-
 --
 -- Name: index_tokens_on_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_tokens_on_updated_at ON public.tokens USING btree (updated_at);
-
-
 --
 -- Name: index_translations_on_key; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_translations_on_key ON public.translations USING btree (key);
-
-
 --
 -- Name: index_two_factors_memorized_devices_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_two_factors_memorized_devices_on_user_id ON public.two_factors_memorized_devices USING btree (user_id);
-
-
 --
 -- Name: index_uploads_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_at);
-
-
 --
 -- Name: index_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_access_controls_on_access_control_id ON public.user_access_controls USING btree (access_control_id);
-
-
 --
 -- Name: index_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_access_controls_on_user_id ON public.user_access_controls USING btree (user_id);
-
-
 --
 -- Name: index_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_group_members_on_user_group_id ON public.user_group_members USING btree (user_group_id);
-
-
 --
 -- Name: index_user_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_group_members_on_user_id ON public.user_group_members USING btree (user_id);
-
-
 --
 -- Name: index_user_groups_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_groups_on_source ON public.user_groups USING btree (source_type, source_id);
-
-
 --
 -- Name: index_user_roles_on_role_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_roles_on_role_id ON public.user_roles USING btree (role_id);
-
-
 --
 -- Name: index_user_roles_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_roles_on_user_id ON public.user_roles USING btree (user_id);
-
-
 --
 -- Name: index_users_on_confirmation_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_confirmation_token ON public.users USING btree (confirmation_token);
-
-
 --
 -- Name: index_users_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_users_on_deleted_at ON public.users USING btree (deleted_at);
-
-
 --
 -- Name: index_users_on_invitation_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_invitation_token ON public.users USING btree (invitation_token);
-
-
 --
 -- Name: index_users_on_invitations_count; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_users_on_invitations_count ON public.users USING btree (invitations_count);
-
-
 --
 -- Name: index_users_on_invited_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_users_on_invited_by_id ON public.users USING btree (invited_by_id);
-
-
 --
 -- Name: index_users_on_reset_password_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING btree (reset_password_token);
-
-
 --
 -- Name: index_users_on_unlock_token; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_unlock_token ON public.users USING btree (unlock_token);
-
-
 --
 -- Name: index_versions_on_item_type_and_item_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING btree (item_type, item_id);
-
-
 --
 -- Name: taggings_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggable_id, taggable_type, context, tagger_id, tagger_type);
-
-
+CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (
+    tag_id,
+    taggable_id,
+    taggable_type,
+    context,
+    tagger_id,
+    tagger_type
+);
 --
 -- Name: taggings_idy; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
-
-
 --
 -- Name: unduplicated_clients_unduplicated_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_unduplicated USING btree (unduplicated_client_id);
-
-
 --
 -- Name: hmis_user_client_activity_log_summaries no_modify_hmis_user_client_activity_log_summaries; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_client_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
-
-
+CREATE TRIGGER no_modify_hmis_user_client_activity_log_summaries INSTEAD OF DELETE
+OR
+UPDATE ON public.hmis_user_client_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
 --
 -- Name: hmis_user_enrollment_activity_log_summaries no_modify_hmis_user_enrollment_activity_log_summaries; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER no_modify_hmis_user_enrollment_activity_log_summaries INSTEAD OF DELETE OR UPDATE ON public.hmis_user_enrollment_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
-
-
+CREATE TRIGGER no_modify_hmis_user_enrollment_activity_log_summaries INSTEAD OF DELETE
+OR
+UPDATE ON public.hmis_user_enrollment_activity_log_summaries FOR EACH ROW EXECUTE FUNCTION public.prevent_modification();
 --
 -- Name: user_roles fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT fk_rails_318345354e FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
+ADD CONSTRAINT fk_rails_318345354e FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 --
 -- Name: oauth_access_grants fk_rails_330c32d8d9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_grants
-    ADD CONSTRAINT fk_rails_330c32d8d9 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
-
-
+ADD CONSTRAINT fk_rails_330c32d8d9 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
 --
 -- Name: user_roles fk_rails_3369e0d5fc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT fk_rails_3369e0d5fc FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
-
-
+ADD CONSTRAINT fk_rails_3369e0d5fc FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
 --
 -- Name: glacier_archives fk_rails_6121d2e55f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.glacier_archives
-    ADD CONSTRAINT fk_rails_6121d2e55f FOREIGN KEY (glacier_vault_id) REFERENCES public.glacier_vaults(id);
-
-
+ADD CONSTRAINT fk_rails_6121d2e55f FOREIGN KEY (glacier_vault_id) REFERENCES public.glacier_vaults(id);
 --
 -- Name: two_factors_memorized_devices fk_rails_65991dd82f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.two_factors_memorized_devices
-    ADD CONSTRAINT fk_rails_65991dd82f FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
+ADD CONSTRAINT fk_rails_65991dd82f FOREIGN KEY (user_id) REFERENCES public.users(id);
 --
 -- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_tokens
-    ADD CONSTRAINT fk_rails_732cb83ab7 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
-
-
+ADD CONSTRAINT fk_rails_732cb83ab7 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
 --
 -- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_variant_records
-    ADD CONSTRAINT fk_rails_993965df05 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
-
-
+ADD CONSTRAINT fk_rails_993965df05 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
 --
 -- Name: reports fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reports
-    ADD CONSTRAINT fk_rails_b231202c9b FOREIGN KEY (report_results_summary_id) REFERENCES public.report_results_summaries(id);
-
-
+ADD CONSTRAINT fk_rails_b231202c9b FOREIGN KEY (report_results_summary_id) REFERENCES public.report_results_summaries(id);
 --
 -- Name: oauth_access_grants fk_rails_b4b53e07b8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_grants
-    ADD CONSTRAINT fk_rails_b4b53e07b8 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
-
-
+ADD CONSTRAINT fk_rails_b4b53e07b8 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
 --
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_attachments
-    ADD CONSTRAINT fk_rails_c3b3935057 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
-
-
+ADD CONSTRAINT fk_rails_c3b3935057 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
 --
 -- Name: report_results fk_rails_cd0d43bf48; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.report_results
-    ADD CONSTRAINT fk_rails_cd0d43bf48 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
+ADD CONSTRAINT fk_rails_cd0d43bf48 FOREIGN KEY (user_id) REFERENCES public.users(id);
 --
 -- Name: oauth_access_tokens fk_rails_ee63f25419; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_tokens
-    ADD CONSTRAINT fk_rails_ee63f25419 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
-
-
+ADD CONSTRAINT fk_rails_ee63f25419 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict jfdZSkUP8wMHcAXvzBYP9pSzlrPeMw0EX5TkkFNEfI6yqkHcYpyR2HtIkhYFGPR
-
-SET search_path TO "$user", public;
-
-INSERT INTO "schema_migrations" (version) VALUES
-('20250909182836'),
-('20250727131402'),
-('20250618150200'),
-('20250523175114'),
-('20250507192058'),
-('20250501151733'),
-('20250501135342'),
-('20250218131829'),
-('20250217181347'),
-('20250208211846'),
-('20250124171033'),
-('20250124170335'),
-('20241211202350'),
-('20241206145314'),
-('20241205185449'),
-('20241203185952'),
-('20241101132207'),
-('20241101132053'),
-('20241028193644'),
-('20241021194355'),
-('20241018140929'),
-('20241018034506'),
-('20241016202657'),
-('20241011125827'),
-('20240911204731'),
-('20240911201727'),
-('20240829152856'),
-('20240710124743'),
-('20230420195221');
-
+\ unrestrict jfdZSkUP8wMHcAXvzBYP9pSzlrPeMw0EX5TkkFNEfI6yqkHcYpyR2HtIkhYFGPR
+SET search_path TO "$user",
+    public;
+INSERT INTO "schema_migrations" (version)
+VALUES ('20250909182836'),
+    ('20250727131402'),
+    ('20250618150200'),
+    ('20250523175114'),
+    ('20250507192058'),
+    ('20250501151733'),
+    ('20250501135342'),
+    ('20250218131829'),
+    ('20250217181347'),
+    ('20250208211846'),
+    ('20250124171033'),
+    ('20250124170335'),
+    ('20241211202350'),
+    ('20241206145314'),
+    ('20241205185449'),
+    ('20241203185952'),
+    ('20241101132207'),
+    ('20241101132053'),
+    ('20241028193644'),
+    ('20241021194355'),
+    ('20241018140929'),
+    ('20241018034506'),
+    ('20241016202657'),
+    ('20241011125827'),
+    ('20240911204731'),
+    ('20240911201727'),
+    ('20240829152856'),
+    ('20240710124743'),
+    ('20230420195221');
