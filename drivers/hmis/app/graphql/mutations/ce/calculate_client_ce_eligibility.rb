@@ -46,7 +46,6 @@ module Mutations
     ALWAYS_OVERRIDE = {
       # Custom fields that should always be overridden when calculating provisional client eligibility. (#8129)
       'cde.custom_assessment.housing_needs_post_referrals_to_waitlist': 'Yes',
-      'custom_assessment.prevention_assessment_questions.date_created': Date.current,
     }.stringify_keys.freeze
 
     def build_overrides(values_by_link_id, form_definition_id)
@@ -54,14 +53,21 @@ module Mutations
       form_definition = Hmis::Form::Definition.find(form_definition_id)
 
       # Build overrides hash. Note that values_by_link_id does not include hidden fields.
-      values_by_link_id.filter_map do |link_id, value|
+      overrides = values_by_link_id.filter_map do |link_id, value|
         form_item = form_definition.link_id_item_hash[link_id]
         custom_field_key = form_item&.dig('mapping', 'custom_field_key')
         next unless custom_field_key
 
         # Map to CDE field format for CE evaluation - see FieldMap
         ["cde.custom_assessment.#{custom_field_key}", value]
-      end.to_h.merge(ALWAYS_OVERRIDE)
+      end.to_h
+
+      # Add assessment metadata overrides, because for the purposes of calculating what opportunities the client *would* be eligible for given the form values, we should also pretend they've had a real form submitted
+      overrides["custom_assessment.#{form_definition.identifier}.date_created"] = Time.current
+      overrides["custom_assessment.#{form_definition.identifier}.date_updated"] = Time.current
+      overrides["custom_assessment.#{form_definition.identifier}.assessment_date"] = Date.current
+
+      overrides.merge(ALWAYS_OVERRIDE)
     end
 
     def calculate_eligible_project_types(client, field_value_overrides)
