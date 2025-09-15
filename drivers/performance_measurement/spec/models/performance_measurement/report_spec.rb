@@ -420,7 +420,7 @@ RSpec.describe PerformanceMeasurement::Report, type: :model do
   def setup(file_path)
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
-    import_hmis_csv_fixture(file_path, version: 'AutoMigrate', skip_location_cleanup: true)
+    import_hmis_csv_fixture(file_path, version: 'AutoMigrate', skip_location_cleanup: true, stop_version: '2026')
   end
 
   def cleanup
