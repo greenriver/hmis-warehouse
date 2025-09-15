@@ -50,8 +50,7 @@ module Types
       unless_redacted do
         return unless object.client_file.attached?
 
-        # TODO(#8123) Re-enable File previews and download URLs
-        nil
+        Rails.application.routes.url_helpers.hmis_client_file_path(client_id: object.client_id, id: object.id)
       end
     end
 
