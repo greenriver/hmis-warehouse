@@ -19,7 +19,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       waitlists = build_waitlists(raw_rows, column_names)
       waitlists.each do |waitlist|
         enrollment = create_ce_enrollment(waitlist)
-        ensure_intake_assessment!(enrollment)
+        ensure_intake_assessment!(waitlist, enrollment)
         assessment = create_housing_assessment(waitlist, enrollment)
         complete_assessment(waitlist, assessment)
         log_info("Processed row #{waitlist.row_number}. HUD ID: #{waitlist.hud_id}, enrollment_id: #{enrollment.id}")
@@ -217,11 +217,15 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     enrollment
   end
 
-  def ensure_intake_assessment!(enrollment)
+  def ensure_intake_assessment!(waitlist, enrollment)
     return if enrollment.intake_assessment.present?
 
     intake = enrollment.build_synthetic_intake_assessment
+    intake.date_created = waitlist.date_created
+    intake.date_updated = waitlist.date_updated
+    ActiveRecord::Base.record_timestamps = false
     intake.save!
+    ActiveRecord::Base.record_timestamps = true
   end
 
   # TODO: if not found by MCI Unique ID, should we try to look up by MCI ID?
