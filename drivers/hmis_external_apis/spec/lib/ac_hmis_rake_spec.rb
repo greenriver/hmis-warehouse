@@ -16,15 +16,16 @@ RSpec.describe 'ac_hmis rake tasks', type: :task do
     allow(HmisExternalApis::AcHmis::Mci).to receive(:enabled?).and_return(true)
   end
 
-  def run_task(bucket_name, s3_key, project_id)
+  def run_task(bucket_name, s3_key, project_id, form_definition_identifier)
     Rake::Task[task_name].reenable
-    Rake::Task[task_name].invoke(bucket_name, s3_key, project_id)
+    Rake::Task[task_name].invoke(bucket_name, s3_key, project_id, form_definition_identifier)
   end
 
   it 'downloads from s3 to a tempfile and invokes the importer with the temp path' do
     bucket_name = 'my-bucket'
     s3_key = 'path/to/wait_list.xlsx'
     project_id = '123'
+    form_identifier = 'housing_assessment'
 
     s3_double = instance_double('AwsS3')
     allow(AwsS3).to receive(:new).with(bucket_name: bucket_name).and_return(s3_double)
@@ -38,11 +39,12 @@ RSpec.describe 'ac_hmis rake tasks', type: :task do
     importer = HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     allow(importer).to receive(:call)
 
-    run_task(bucket_name, s3_key, project_id)
+    run_task(bucket_name, s3_key, project_id, form_identifier)
 
-    expect(importer).to have_received(:call) do |path, ce_project_id:, dry_run:|
+    expect(importer).to have_received(:call) do |path, ce_project_id:, form_definition_identifier:, dry_run:|
       expect(path).to eq(downloaded_path)
       expect(ce_project_id).to eq(123)
+      expect(form_definition_identifier).to eq('housing_assessment')
       expect(dry_run).to eq(false)
     end
 
