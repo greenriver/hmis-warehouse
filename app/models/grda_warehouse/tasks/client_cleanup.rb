@@ -85,6 +85,8 @@ module GrdaWarehouse::Tasks
           clean_warehouse_clients
           log 'Deleting hmis clients'
           clean_hmis_clients
+          log 'Deleting Coordinated Entry records'
+          clean_coordinated_entry_records
           log 'Fix missing created dates'
           add_destination_created_dates
           log 'Soft-deleting destination clients'
@@ -898,6 +900,18 @@ module GrdaWarehouse::Tasks
       return if @dry_run
 
       GrdaWarehouse::HmisClient.where(client_id: @clients).delete_all
+    end
+
+    private def clean_coordinated_entry_records
+      return unless @clients.any?
+      return if @dry_run
+      return unless HmisEnforcement.hmis_enabled?
+
+      # Clean up ClientProxies, and CE Candidates via cascading destroy.
+      Hmis::Ce::ClientProxy.where(
+        client_id: @clients, # Manual join to handle polymorphic relationship
+        client_type: GrdaWarehouse::Hud::Client.sti_name,
+      ).destroy_all
     end
 
     private def add_destination_created_dates
