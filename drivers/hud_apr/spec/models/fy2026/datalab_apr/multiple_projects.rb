@@ -29,6 +29,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       let(:validation_skips) do
         {
           'Q5a' => ['C2'], # TUP specific requirement of 100 or more clients
+          'Q4a' => ['P2', 'Q2'], # The length of Q4a is flexible, these checks doesn't work against a multi-project run
         }
       end
       let(:apr_validations) { ValidationLoader.load_validations['APR FY2026'] }
