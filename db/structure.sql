@@ -1,4 +1,4 @@
--- \restrict 2P8EgfTgHJe4hZ779giVfN3mcaasoCzEYFQSJychfgOT8t5EMtf8bxEzvwTbY9s
+-- \restrict Uaybebtj5K32zYOz8KzpMKzLTXgeKKaoReIBSPPbkA8uhvA21VHaxXt68cbEJzC
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -5136,7 +5136,9 @@ ALTER TABLE ONLY public.oauth_access_tokens
 -- PostgreSQL database dump complete
 --
 
--- \unrestrictSET search_path TO "$user", public;
+-- \unrestrict Uaybebtj5K32zYOz8KzpMKzLTXgeKKaoReIBSPPbkA8uhvA21VHaxXt68cbEJzC
+
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250909182836'),

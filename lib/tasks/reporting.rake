@@ -105,7 +105,7 @@ namespace :reporting do
           schema_file = Rails.root.join('db', 'reporting_structure.sql')
           schema = File.read(schema_file)
           schema.gsub!(/^\\restrict/, '-- \restrict')
-          schema.gsub!(/^\\unrestrict .*$\n\n/, '-- \unrestrict')
+          schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
           File.write(schema_file, schema)
         end
       end
@@ -130,7 +130,7 @@ namespace :reporting do
           schema_file = Rails.root.join('db', 'reporting_structure.sql')
           schema = File.read(schema_file)
           schema.gsub!(/^\\restrict/, '-- \restrict')
-          schema.gsub!(/^\\unrestrict .*$\n\n/, '-- \unrestrict')
+          schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
           File.write(schema_file, schema)
         end
       end
