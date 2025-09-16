@@ -8,9 +8,33 @@ namespace :db do
         Rake::Task['db:schema:load:primary'].invoke
       end
     end
+
+    task :dump do
+      # Work-around for pg_dump 17.6, which adds \restrict and \unrestrict to the structure file
+      # Fixed in a future version of active record: https://github.com/rails/rails/pull/55531/files
+      Rake::Task['db:schema:dump'].enhance do
+        schema_file = Rails.root.join('db', 'structure.sql')
+        schema = File.read(schema_file)
+        schema.gsub!(/^\\restrict/, '-- \restrict')
+        schema.gsub!(/^\\unrestrict .*$\n\n/, '-- \unrestrict')
+        File.write(schema_file, schema)
+      end
+    end
   end
 
   namespace :structure do
+    task :dump do
+      # Work-around for pg_dump 17.6, which adds \restrict and \unrestrict to the structure file
+      # Fixed in a future version of active record: https://github.com/rails/rails/pull/55531/files
+      Rake::Task['db:structure:dump'].enhance do
+        schema_file = Rails.root.join('db', 'structure.sql')
+        schema = File.read(schema_file)
+        schema.gsub!(/^\\restrict/, '-- \restrict')
+        schema.gsub!(/^\\unrestrict .*$\n\n/, '-- \unrestrict')
+        File.write(schema_file, schema)
+      end
+    end
+
     namespace :conditional_load do
       desc 'Conditionally load the database structure (primary)'
       task :primary, [] => [:environment] do |_t, _args|

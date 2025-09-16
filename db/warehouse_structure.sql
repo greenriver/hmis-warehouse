@@ -1,3 +1,8 @@
+\restrict MQvMKbbnwgO7bfiWPzfn72kiBcJDXTkxrPIaYvzr8oi69DWdI87aFEnRzZXJNXC
+
+-- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -75573,6 +75578,8 @@ ALTER TABLE ONLY public.import_logs
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict MQvMKbbnwgO7bfiWPzfn72kiBcJDXTkxrPIaYvzr8oi69DWdI87aFEnRzZXJNXC
 
 SET search_path TO "$user", public;
 
