@@ -3,8 +3,13 @@ name: Make Service Images
 on:
   push:
     # Just enable this for your branch as needed
-#     branches:
-#       - tb/client-export/185190925
+    #     branches:
+    #       - tb/client-export/185190925
+    paths:
+      - 'docker/pg17/**'
+      - 'docker/minio/**'
+      - 'docker/sftp/**'
+  workflow_dispatch:
 
 # Branch pushes will cancel any running jobs to the same branch
 concurrency:
@@ -33,6 +38,11 @@ jobs:
             context: docker/sftp
             dockerfile: docker/sftp/Dockerfile
             cache_key: sftp
+          - name: PostgreSQL PostGIS
+            image: ghcr.io/greenriver/postgres-postgis:17
+            context: docker/pg17
+            dockerfile: docker/pg17/Dockerfile
+            cache_key: postgres
 
     steps:
       - name: Log in to Docker Hub
