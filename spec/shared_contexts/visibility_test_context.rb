@@ -173,6 +173,10 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   end
 
   # roles
+  # NOTE: can_view_clients now includes can_view_limited_client_dashboard so we don't break existing tests.
+  # After reviewing production deployments, it was determined that can_view_clients is always used in conjunction
+  # with some version of can view client dashboard.
+  # For new situations, we'll use a different role or override can_view_limited_client_dashboard back to false
   let!(:can_view_clients) { create :role, can_view_clients: true, can_view_client_name: true, can_view_limited_client_dashboard: true }
   let!(:can_create_clients) { create :role, can_create_clients: true }
   let!(:can_search_window) { create :role, can_search_window: true } # START_ACL remove after ACL migration
