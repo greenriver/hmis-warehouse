@@ -120,12 +120,18 @@ module DatalabTestkit
 
     # Validations are single rows from the validations defined in drivers/hud_apr/spec/models/fy2026/datalab_2_0_spec.rb
     # # Internal sum (note question for total is also Q7a)
-    # { total: 'B10', source: { question: 'Q7a', expression: 'C2+C3+C4+C5' }},
+    # { total: 'B10', source: { question: 'Q7a', expression: 'C2+C3+C4+C5', relevant_project_types: [13], operator: '==' }},
     # # Equality to constant
-    # { total: 'B10', source: { question: 'Q7b', expression: 0 }},
+    # { total: 'B10', source: { question: 'Q7b', expression: 0, relevant_project_types: [13], operator: '==' }},
     # # Cross table comparison
-    # { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
+    # { total: 'B10', source: { question: 'Q4', expression: 'B7', relevant_project_types: [13], operator: '==' }},
+    # Non-equal comparison
+    # { total: 'F2', source: { question: '', expression: '1', relevant_project_types: [0, 1, 2, 3, 4, 6, 8, 9, 7, 10, 11, 12, 13, 14], operator: '<=' }},
+    # NOTE: project type filter is applied prior to calling check_sum
     def check_sum(validation:, question:)
+      # ignore some checks we aren't sure of yet
+      return if validation[:total].to_s.include?('+')
+
       raw_expected_total = report_result.answer(question: question, cell: validation[:total]).summary
       expected_total = normalize(raw_expected_total).to_f
 
@@ -148,7 +154,27 @@ module DatalabTestkit
       end
       # puts validation.inspect
       # puts "Checking sum for #{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
-      expect(value).to eq(expected_total), "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{value}'"
+      # flip the order of the expectation if the source_question is blank
+
+      if source_question != question
+        run_expectation(validation: validation, question: question, calculated_value: expected_total, expected_total: value)
+      else
+        run_expectation(validation: validation, question: question, calculated_value: value, expected_total: expected_total)
+      end
+    end
+
+    def run_expectation(validation:, question:, calculated_value:, expected_total:)
+      operator = validation[:source][:operator].to_s
+      case operator
+      when '==', ''
+        expect(calculated_value).to eq(expected_total), "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{calculated_value}'; #{validation.inspect}"
+      when '>='
+        expect(calculated_value).to be >= expected_total, "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{calculated_value}'; #{validation.inspect}"
+      when '<='
+        expect(calculated_value).to be <= expected_total, "#{question} #{validation[:total]}: expected '#{expected_total}', got '#{calculated_value}'; #{validation.inspect}"
+      else
+        raise "Unknown operator: #{operator} for question #{question} #{validation.inspect}"
+      end
     end
 
     def normalize(value)

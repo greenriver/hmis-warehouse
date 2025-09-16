@@ -17,7 +17,7 @@ module ValidationLoader
         validations[row['Report']] ||= {}
         # Remove the CSV extension and capitalize the first letter to match the warehouse question names
         question = row['Filename'].gsub('.csv', '').sub('q', 'Q')
-        source_question = row['Filename'].gsub('.csv', '').sub('q', 'Q')
+        source_question = row['Filename to check against'].gsub('.csv', '').sub('q', 'Q')
 
         # -1 means all project types are applicable
         project_types = if row['Applicable project types'] == '-1'
@@ -32,10 +32,24 @@ module ValidationLoader
             question: source_question,
             expression: row['Values to check against'],
             relevant_project_types: project_types,
+            operator: clean_operator(row),
           },
         }
       end
     end
     validations
+  end
+
+  def self.clean_operator(row)
+    case row['Comparison'].to_s.strip.downcase
+    when 'equal to', 'equal to a fixed comparison value'
+      '=='
+    when 'greater than or equal to', 'greater than or equal to a fixed comparison value'
+      '>='
+    when 'percentage cannot be more than 100', 'less than or equal to'
+      '<='
+    else
+      raise "Unknown operator: #{row['Comparison']}"
+    end
   end
 end
