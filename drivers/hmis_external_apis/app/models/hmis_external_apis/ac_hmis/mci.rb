@@ -56,10 +56,11 @@ module HmisExternalApis::AcHmis
         # "middleNameSearchCriteria": 0,  # FIXME: No documentation for how to use this
         # "lastNameSearchCriteria": 0,    # FIXME: No documentation for how to use this
       }
-      # Route is partially on base_url to allow changing URLs without code change. Full route may be `/clients/v1/api/clients/clearance` or `/clients-uat/api/clients/clearance`.
-      result = conn.post('clearance', payload).
-        then { |r| handle_error(r) }
 
+      # Full route may be `/clients/v1/api/clients/clearance` or `/clients-uat/api/clients/clearance`
+      route = build_route('clearance')
+      result = conn.post(route, payload).
+        then { |r| handle_error(r) }
       Rails.logger.info "Did clearance for client #{client.id}"
       return [] if result.http_status == 204
 
@@ -89,8 +90,8 @@ module HmisExternalApis::AcHmis
       payload = MciPayload.from_client(client, mci_id: nil)
 
       # Full route may be `/clients/v1/api/clients/newclient` or `/clients-uat/api/clients/newclient`.
-      endpoint = 'newclient'
-      result = conn.post(endpoint, payload).then { |r| handle_error(r) }
+      route = build_route('newclient')
+      result = conn.post(route, payload).then { |r| handle_error(r) }
 
       # Store MCI ID for client
       external_id = create_external_id(
@@ -178,6 +179,17 @@ module HmisExternalApis::AcHmis
     end
 
     private
+
+    # Flexible route-building to support old approach (hard-coded MCI route, credential only contains base URL) and new approach (credential contains some of route).
+    # The new approach was implemented to allow for changing the API endpoint without a code change.
+    def build_route(endpoint)
+      base_url = creds.base_url
+      if base_url.match?(/\/api\//) # expectation is that if base_url contains /api/ then the endpoint is relative to the base url
+        URI.join(base_url, endpoint).to_s
+      else
+        URI.join(base_url, 'clients/v1/api/clients/', endpoint).to_s
+      end
+    end
 
     def handle_error(result)
       Rails.logger.error "MCI Error: #{result.error}" if result.error
