@@ -31,9 +31,6 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
-    # Prefer explicit Origin header when present
-    return URI.parse(request.origin).host if request.origin.present?
-
     # Trust Rack/Rails host resolution (respects trusted proxies and allowed hosts)
     return request.host if request.host.present?
 
