@@ -15,6 +15,11 @@ module HmisUtil
 
     def initialize(env_key: nil)
       @env_key = env_key if env_key.presence # allow override for testing
+      @version = if Date.current < '2025-10-01'.to_date && Rails.env.production?
+        '2024'
+      else
+        '2026'
+      end
     end
 
     def self.seed_all
@@ -334,7 +339,7 @@ module HmisUtil
         identifier: 'move_in_date',
         data_collected_about: :HOH,
         project_types: HudUtility2024.permanent_housing_project_types,
-        funders: HudUtility2026.move_in_date_funders,
+        funders: @version == '2026' ? HudUtility2026.move_in_date_funders : [],
       )
       create_system_instances!(
         identifier: 'date_of_engagement',
