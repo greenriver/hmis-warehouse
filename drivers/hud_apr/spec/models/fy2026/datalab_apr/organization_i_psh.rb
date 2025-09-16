@@ -253,10 +253,15 @@ RSpec.shared_context 'datalab organization i psh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q19b' do # Skipped until we have a new text kit
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
+        skip: [
+          'F17', # expected '1.0000' (1), got '0.0000' (0)
+          'H17', # expected '1.0000' (1), got '0.0000' (0)
+          'I17', # expected '1.0000' (1.0000), got '0.0000' (0.0000)
+        ],
       )
     end
 

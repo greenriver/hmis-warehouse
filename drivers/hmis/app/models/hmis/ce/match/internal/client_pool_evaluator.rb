@@ -45,8 +45,13 @@ module Hmis::Ce::Match::Internal
       end
     end
 
-    def call(client)
+    # @param client [GrdaWarehouse::Hud::Client] The client to evaluate
+    # @param field_value_overrides [Hash] Optional field value overrides, used for calculating eligibility
+    #   based on form state before the assessment is submitted.
+    # @return [Result] Contains client values used in evaluation and priority scores (if eligible)
+    def call(client, field_value_overrides: {})
       client_values = @client_field_values[client.id] || {}
+      client_values = client_values.merge(field_value_overrides)
 
       # Only run priority evaluation if eligibility evaluation passed.
       # To be eligible, client's priority scores must all be non-null AND the eligibility requirement must pass.
