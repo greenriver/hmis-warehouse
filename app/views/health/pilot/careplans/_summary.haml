@@ -6,14 +6,14 @@
         %h3.section-expander-block__header Care Plan Dates
       .col-sm-4
         .slab__base-dates
-          = f.input :sdh_enroll_date, label: 'SDH Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}
-          = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
+          = f.input :sdh_enroll_date, label: 'SDH Enroll Date', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
+          = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
       .col-sm-4
-        = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker}}
-        = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker}}
+        = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
+        = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
       .col-sm-4     
-        = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}              
-        = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker}}
+        = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}     
+        = f.input :self_sufficiency_final_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
       
               
       
