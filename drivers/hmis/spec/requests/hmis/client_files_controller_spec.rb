@@ -76,16 +76,9 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
         expect_active_storage_redirect
       end
 
-      it 'uses X-Forwarded-Host when Origin is missing' do
-        headers = { 'X-Forwarded-Host' => 'hmis.dev.test' }
-        get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: headers
+      it 'works when Origin is missing (uses request.host from Rack/Rails)' do
+        get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id)
         expect_active_storage_redirect
-      end
-
-      it 'raises when Origin and X-Forwarded-Host are missing ' do
-        expect do
-          get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id)
-        end.to raise_error(RuntimeError, 'cannot determine HMIS host (no Origin, X-Forwarded-Host)')
       end
 
       it 'creates an HMIS activity log with client reference and file variables' do

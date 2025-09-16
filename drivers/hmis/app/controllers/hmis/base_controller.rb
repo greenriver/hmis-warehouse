@@ -34,14 +34,10 @@ class Hmis::BaseController < ActionController::Base
     # Prefer explicit Origin header when present
     return URI.parse(request.origin).host if request.origin.present?
 
-    # Behind proxies/load balancers, rely on original host header
-    forwarded_host = request.x_forwarded_host.presence || request.headers['X-Forwarded-Host'].presence
-    if forwarded_host.present?
-      # Header may be a comma-separated list; take the first
-      return forwarded_host.split(',').first.strip
-    end
+    # Trust Rack/Rails host resolution (respects trusted proxies and allowed hosts)
+    return request.host if request.host.present?
 
-    raise 'cannot determine HMIS host (no Origin, X-Forwarded-Host)'
+    raise 'cannot determine HMIS host'
   end
 
   def attach_data_source_id
