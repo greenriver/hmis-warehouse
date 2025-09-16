@@ -5,6 +5,16 @@ on:
     branches:
       - '*'
       - '**/*'
+    paths-ignore:
+      - 'docker/pg17/**'
+      - 'docker/minio/**'
+      - 'docker/sftp/**'
+  workflow_run:
+    workflows: ["Make Service Images"]
+    types: [completed]
+    branches:
+      - '*'
+      - '**/*'
 concurrency:
   group: ${{ github.ref }}-warehouse-system-tests
   cancel-in-progress: true
