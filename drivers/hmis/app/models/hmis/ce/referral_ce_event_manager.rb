@@ -21,7 +21,7 @@ module Hmis::Ce
       # If the referral already has a CE event, return early and don't raise
       return if referral.ce_event.present?
 
-      # If there is no event type determined for this project/unit group, return without creating one
+      # If there is no CE event type for this project/unit group, return without creating a CE event
       event_type = determine_event_type
       return unless event_type
 
@@ -35,8 +35,8 @@ module Hmis::Ce
     end
 
     def set_ce_event_result(message) # rubocop:disable Naming/AccessorMethodName
-      # If there is no event type determined for this project/unit group, that indicates CE event creation wasn't possible
-      event_type = determine_event_type(capture_to_sentry: false)
+      # If there is no event type determined for this project/unit group, that indicates CE event wasn't created
+      event_type = determine_event_type(capture_to_sentry: false) # No need to capture to Sentry a second time
       return unless event_type
 
       # If CE Event Type can be determined, but CE Event is missing, raise.
