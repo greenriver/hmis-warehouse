@@ -18,6 +18,7 @@ class ClientAccessControl::ClientsController < ApplicationController
 
   before_action :require_can_access_some_client_search!, only: [:index, :search, :simple]
   before_action :require_can_access_some_version_of_clients!, only: [:show, :service_range, :rollup, :image]
+  before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:index, :search, :simple, :appropriate, :new, :from_source]
   before_action :set_client, only: [:show, :service_range, :rollup, :image, :enrollment_details]
