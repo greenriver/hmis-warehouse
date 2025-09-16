@@ -56,7 +56,7 @@ module HmisExternalApis::AcHmis
         # "middleNameSearchCriteria": 0,  # FIXME: No documentation for how to use this
         # "lastNameSearchCriteria": 0,    # FIXME: No documentation for how to use this
       }
-      # new route in some environments(?) is "clients/api/Clients/clearance", move to base_url on remote credential instead
+      # Route is partially on base_url to allow changing URLs without code change. Full route may be `/clients/v1/api/clients/clearance` or `/clients-uat/api/clients/clearance`.
       result = conn.post('clearance', payload).
         then { |r| handle_error(r) }
 
@@ -88,6 +88,7 @@ module HmisExternalApis::AcHmis
 
       payload = MciPayload.from_client(client, mci_id: nil)
 
+      # Full route may be `/clients/v1/api/clients/newclient` or `/clients-uat/api/clients/newclient`.
       endpoint = 'newclient'
       result = conn.post(endpoint, payload).then { |r| handle_error(r) }
 
