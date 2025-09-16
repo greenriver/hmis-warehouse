@@ -144,6 +144,36 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
           expect_active_storage_redirect
         end
       end
+
+      context 'when Origin header is missing' do
+        let(:forwarded_headers) do
+          { 'X-Forwarded-Host' => 'hmis.dev.test' }
+        end
+
+        it 'falls back to X-Forwarded-Host header' do
+          get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: forwarded_headers
+          expect(response).to have_http_status(:found)
+        end
+
+        context 'when both Origin and X-Forwarded-Host are missing' do
+          let(:referer_headers) do
+            { 'Referer' => 'https://hmis.dev.test/client/123/files' }
+          end
+
+          it 'falls back to Referer header' do
+            get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: referer_headers
+            expect(response).to have_http_status(:found)
+          end
+        end
+
+        context 'when all headers are missing' do
+          it 'raises an error' do
+            expect do
+              get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: {}
+            end.to raise_error('cannot determine HMIS host because origin, X-Forwarded-Host, and referer are all missing')
+          end
+        end
+      end
     end
   end
 end

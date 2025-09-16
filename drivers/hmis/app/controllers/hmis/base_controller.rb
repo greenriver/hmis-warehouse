@@ -31,9 +31,21 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
-    raise 'cannot determine HMIS host because origin is missing' unless request.origin.present?
+    # Try to get the HMIS host from various sources in order of preference
+    origin = request.origin
+    forwarded_host = request.headers['X-Forwarded-Host']
+    referer = request.referer
 
-    URI.parse(request.origin).host
+    # First try the Origin header (most reliable for CORS requests)
+    return URI.parse(origin).host if origin.present?
+
+    # Fall back to X-Forwarded-Host (set by load balancer/proxy)
+    return forwarded_host.split(',').first.strip if forwarded_host.present?
+
+    # Fall back to Referer header (less reliable but better than nothing)
+    return URI.parse(referer).host if referer.present?
+
+    raise 'cannot determine HMIS host because origin, X-Forwarded-Host, and referer are all missing'
   end
 
   def attach_data_source_id
