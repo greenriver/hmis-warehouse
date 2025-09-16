@@ -79,7 +79,7 @@ module Hmis
         header_client_id: request.headers['X-Hmis-Client-Id'].presence&.to_i,
         header_enrollment_id: request.headers['X-Hmis-Enrollment-Id'].presence&.to_i,
         header_project_id: request.headers['X-Hmis-Project-Id'].presence&.to_i,
-        created_at: DateTime.current,
+        created_at: Time.current,
         resolved_fields: resolved_fields,
         resolved_at: Time.current,
       }

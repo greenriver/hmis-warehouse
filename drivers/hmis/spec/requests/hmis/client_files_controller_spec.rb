@@ -76,6 +76,18 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
         expect_active_storage_redirect
       end
 
+      it 'uses X-Forwarded-Host when Origin is missing' do
+        headers = { 'X-Forwarded-Host' => 'hmis.dev.test' }
+        get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: headers
+        expect_active_storage_redirect
+      end
+
+      it 'raises when Origin and X-Forwarded-Host are missing ' do
+        expect do
+          get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id)
+        end.to raise_error(RuntimeError, 'cannot determine HMIS host (no Origin, X-Forwarded-Host)')
+      end
+
       it 'creates an HMIS activity log with client reference and file variables' do
         expect do
           get_file_path_for(nonconfidential_file.id)
@@ -142,36 +154,6 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
           owned_confidential = create(:file, client: c1, user: hmis_user, confidential: true, blob: blob)
           get_file_path_for(owned_confidential.id)
           expect_active_storage_redirect
-        end
-      end
-
-      context 'when Origin header is missing' do
-        let(:forwarded_headers) do
-          { 'X-Forwarded-Host' => 'hmis.dev.test' }
-        end
-
-        it 'falls back to X-Forwarded-Host header' do
-          get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: forwarded_headers
-          expect(response).to have_http_status(:found)
-        end
-
-        context 'when both Origin and X-Forwarded-Host are missing' do
-          let(:referer_headers) do
-            { 'Referer' => 'https://hmis.dev.test/client/123/files' }
-          end
-
-          it 'falls back to Referer header' do
-            get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: referer_headers
-            expect(response).to have_http_status(:found)
-          end
-        end
-
-        context 'when all headers are missing' do
-          it 'raises an error' do
-            expect do
-              get hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: {}
-            end.to raise_error('cannot determine HMIS host because origin, X-Forwarded-Host, and referer are all missing')
-          end
         end
       end
     end
