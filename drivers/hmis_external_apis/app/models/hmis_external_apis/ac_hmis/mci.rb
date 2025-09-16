@@ -118,7 +118,8 @@ module HmisExternalApis::AcHmis
 
       payload = MciPayload.from_client(client, mci_id: external_id.value)
 
-      conn.post('updateclient', payload).then { |r| handle_error(r) }
+      route = build_route('updateclient')
+      conn.post(route, payload).then { |r| handle_error(r) }
 
       Rails.logger.info "Updated MCI information for client #{client.id} with external ID with primary key of #{external_id.id}"
 
