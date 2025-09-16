@@ -352,68 +352,7 @@ module HmisUtil
         funders: HudUtility2024.path_funders,
       )
 
-      # For Current living situation, just raise an error if the minimum HUD requirements aren't met.
-      # Since CLS is not a mutually exclusive form type, there may be multiple Definitions for it.
-      # (E.g. one CLS form that collects geolocation applied to SO projects, another CLS form applied to other projects).
-      #
-      # Minimum HUD requirements in FY24/26 are:
-      # - HoH and Adults in ES NBN (if specified by funder)
-      # - HoH and Adults in Street Outreach (if specified by funder)
-      # - HoH and Adults in Services Only (if specified by funder)
-      # - HoH and Adults in Coordinated Entry (if specified by funder)
-      HudUtility2026.cls_project_types.each do |project_type|
-        # For ES, rule must either apply to ALL funders OR have separate rules for funder 53 (ESG RUSH) and 8 (ESG ES).
-        # For other project types, rule must apply to all funders. These could be further constrained by funder if needed in the future (for example locally funded SO projects don't technically need to collect CLS).
-        funders = project_type == 1 ? [53, 8] : [nil]
-        funders.each do |funder|
-          rule_exists = Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION).where(
-            project_type: [project_type, nil],
-            data_collected_about: [:HOH_AND_ADULTS, :ALL_CLIENTS, nil],
-            funder: [funder, nil],
-            other_funder: nil,
-            entity: nil,
-          ).exists?
-
-          raise "Missing minimum form instance for Current Living Situation for project type #{project_type}, funder #{funder}" unless rule_exists
-        end
-      end
-    end
-
-    #  Find or create default system instance, which applies to all projects
-    private def create_default_system_instance!(identifier:)
-      instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
-      instance.assign_attributes(active: true, system: true)
-      instance.save! if instance.changed?
-    end
-
-    # Find or create system instances as specified. This method is used to ensure HUD required forms are properly
-    # enabled to meet minimum HUD requirements.
-    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
-      raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
-      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.where(identifier: identifier).exists?
-
-      project_types.each do |project_type|
-        instance = Hmis::Form::Instance.find_or_initialize_by(
-          definition_identifier: identifier,
-          data_collected_about: data_collected_about,
-          project_type: project_type,
-          funder: nil,
-          entity: nil,
-        )
-        instance.assign_attributes(active: true, system: true)
-        instance.save! if instance.changed?
-      end
-      funders.each do |funder|
-        instance = Hmis::Form::Instance.find_or_initialize_by(
-          definition_identifier: identifier,
-          data_collected_about: data_collected_about,
-          funder: funder,
-          project_type: nil,
-          entity: nil,
-        )
-        instance.assign_attributes(active: true, system: true)
-        instance.save! if instance.changed?
-      end
+      validate_current_living_situation! unless Rails.env.test? || Rails.env.development?
     end
 
     FORM_TITLES = {
@@ -526,6 +465,71 @@ module HmisUtil
           role: role,
           title: role.to_s.titlecase,
         )
+      end
+    end
+
+    # Find or create system instances as specified. This method is used to ensure HUD required forms are properly
+    # enabled to meet minimum HUD requirements.
+    private def create_system_instances!(identifier:, data_collected_about:, project_types: [], funders: [])
+      raise 'must specify either project_types or funders' if project_types.empty? && funders.empty?
+      raise "form not found: #{identifier}" unless Hmis::Form::Definition.published.where(identifier: identifier).exists?
+
+      project_types.each do |project_type|
+        instance = Hmis::Form::Instance.find_or_initialize_by(
+          definition_identifier: identifier,
+          data_collected_about: data_collected_about,
+          project_type: project_type,
+          funder: nil,
+          entity: nil,
+        )
+        instance.assign_attributes(active: true, system: true)
+        instance.save! if instance.changed?
+      end
+      funders.each do |funder|
+        instance = Hmis::Form::Instance.find_or_initialize_by(
+          definition_identifier: identifier,
+          data_collected_about: data_collected_about,
+          funder: funder,
+          project_type: nil,
+          entity: nil,
+        )
+        instance.assign_attributes(active: true, system: true)
+        instance.save! if instance.changed?
+      end
+    end
+
+    # Find or create default system instance, which applies to all projects
+    private def create_default_system_instance!(identifier:)
+      instance = Hmis::Form::Instance.defaults.find_or_initialize_by(definition_identifier: identifier)
+      instance.assign_attributes(active: true, system: true)
+      instance.save! if instance.changed?
+    end
+
+    # For Current living situation, just raise an error if the minimum HUD requirements aren't met.
+    # Since CLS is not a mutually exclusive form type, there may be multiple Definitions for it.
+    # (E.g. one CLS form that collects geolocation applied to SO projects, another CLS form applied to other projects).
+    #
+    # Minimum HUD requirements in FY24/26 are:
+    # - HoH and Adults in ES NBN (if specified by funder)
+    # - HoH and Adults in Street Outreach (if specified by funder)
+    # - HoH and Adults in Services Only (if specified by funder)
+    # - HoH and Adults in Coordinated Entry (if specified by funder)
+    private def validate_current_living_situation!
+      HudUtility2026.cls_project_types.each do |project_type|
+        # For ES, rule must either apply to ALL funders OR have separate rules for funder 53 (ESG RUSH) and 8 (ESG ES).
+        # For other project types, rule must apply to all funders. These could be further constrained by funder if needed in the future (for example locally funded SO projects don't technically need to collect CLS).
+        funders = project_type == 1 ? [53, 8] : [nil]
+        funders.each do |funder|
+          rule_exists = Hmis::Form::Instance.active.with_role(:CURRENT_LIVING_SITUATION).where(
+            project_type: [project_type, nil],
+            data_collected_about: [:HOH_AND_ADULTS, :ALL_CLIENTS, nil],
+            funder: [funder, nil],
+            other_funder: nil,
+            entity: nil,
+          ).exists?
+
+          raise "Missing minimum form instance for Current Living Situation for project type #{project_type}, funder #{funder}" unless rule_exists
+        end
       end
     end
   end
