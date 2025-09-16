@@ -98,4 +98,16 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
       expect(rules.map(&:id)).to eq([ug_priority.id, proj_req.id, org_req.id])
     end
   end
+
+  describe '#compose_requirement_expression' do
+    it 'parenthesizes expressions containing OR before ANDing' do
+      rule1 = double('Rule', expression: 'current_age > 18 OR score > 8', eligibility_requirement?: true)
+      rule2 = double('Rule', expression: 'current_age < 65', eligibility_requirement?: true)
+      rules = [rule1, rule2]
+
+      result = resolver.send(:compose_requirement_expression, rules)
+
+      expect(result).to eq('(current_age > 18 OR score > 8) AND current_age < 65')
+    end
+  end
 end
