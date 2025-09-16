@@ -5,6 +5,7 @@ on:
     # Just enable this for your branch as needed
     #     branches:
     #       - tb/client-export/185190925
+    # We may be able to reduce the number of images we build by only building if the source files have changed
     # paths:
     #   - 'docker/pg17/**'
     #   - 'docker/minio/**'
