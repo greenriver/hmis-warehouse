@@ -399,4 +399,45 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       expect(script_step.status).to eq('completed')
     end
   end
+
+  describe 'Workflow with optional step' do
+    let(:required_task) do
+      create(:hmis_workflow_definition_user_task, template: template, name: 'required task')
+    end
+
+    let(:optional_task) do
+      create(:hmis_workflow_definition_user_task, template: template, name: 'optional task')
+    end
+
+    before do
+      #             start
+      #           /      \
+      # required_task    optional_task
+      #      |
+      # accept_referral
+      start_event.connect_to!(required_task)
+      start_event.connect_to!(optional_task)
+      required_task.connect_to!(accept_referral)
+    end
+
+    it 'marks uncompleted steps as unavailable when referral is completed' do
+      expect do
+        engine.start_workflow!(user: user)
+      end.to change(engine.active_steps, :count).from(0).to(2)
+
+      required_step = engine.active_steps.where(node: required_task).sole
+      optional_step = engine.active_steps.where(node: optional_task).sole
+
+      # Complete the required task, which should complete the referral
+      engine.start_step!(required_step, user: user)
+      engine.complete_step!(required_step, user: user, submitted_values: {})
+
+      expect(referral).to be_accepted
+      expect(referral.completed_at).not_to be_nil
+
+      # The optional step should now be marked as unavailable
+      optional_step.reload
+      expect(optional_step.status).to eq('unavailable')
+    end
+  end
 end

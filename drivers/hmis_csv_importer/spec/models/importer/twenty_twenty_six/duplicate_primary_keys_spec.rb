@@ -15,8 +15,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/duplicate_primary_keys',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 

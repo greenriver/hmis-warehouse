@@ -527,8 +527,11 @@ module Types
       # Can't accept the referral if any client in the household has an existing open enrollment in the project.
       personal_ids = source_enrollment.household_members.pluck(:PersonalID)
 
-      # This doesn't check viewable_by either, see comment above
-      !project.enrollments.open_including_wip.where(personal_id: personal_ids).exists?
+      # These don't check viewable_by either, see comment above
+      return false if project.enrollments.open_including_wip.where(personal_id: personal_ids).exists?
+      return false if project.ce_referrals.active.joins(:client).where(client: { personal_id: personal_ids }).exists?
+
+      true
     end
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
@@ -633,7 +636,8 @@ module Types
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
-        joins(:ce_match_candidates).
+        joins(ce_match_candidates: :candidate_pool).
+        merge(Hmis::Ce::Match::CandidatePool.active).
         distinct.order(:id)
 
       scope = scope.apply_filters(filters) if filters

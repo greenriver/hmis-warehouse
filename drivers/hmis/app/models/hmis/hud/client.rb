@@ -268,7 +268,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
-      ccn_query = ccn_t[:last].matches("#{input.first_name}%")
+      ccn_query = ccn_t[:last].matches("#{input.last_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
       client_id_query = scope.left_outer_joins(:names).

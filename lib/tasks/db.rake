@@ -11,10 +11,33 @@ namespace :db do
   end
 
   namespace :structure do
-    desc 'Conditionally load the database structure'
-    task :conditional_load, [] => [:environment] do |_t, _args|
-      ApplicationRecord.load_db_if_empty do
-        Rake::Task['db:structure:load'].invoke
+    namespace :conditional_load do
+      desc 'Conditionally load the database structure (primary)'
+      task :primary, [] => [:environment] do |_t, _args|
+        ApplicationRecord.load_db_if_empty do
+          ApplicationRecord.connection.execute(File.read('db/structure.sql'))
+        end
+      end
+
+      desc 'Conditionally load the database structure (warehouse)'
+      task :warehouse, [] => [:environment] do |_t, _args|
+        GrdaWarehouseBase.load_db_if_empty do
+          GrdaWarehouseBase.connection.execute(File.read('db/warehouse_structure.sql'))
+        end
+      end
+
+      desc 'Conditionally load the database structure (health)'
+      task :health, [] => [:environment] do |_t, _args|
+        HealthBase.load_db_if_empty do
+          HealthBase.connection.execute(File.read('db/health_structure.sql'))
+        end
+      end
+
+      desc 'Conditionally load the database structure (reporting)'
+      task :reporting, [] => [:environment] do |_t, _args|
+        ReportingBase.load_db_if_empty do
+          ReportingBase.connection.execute(File.read('db/reporting_structure.sql'))
+        end
       end
     end
   end

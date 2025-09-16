@@ -154,6 +154,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           UserID: 'fake',
         )
       end
+      return assessment
     end
   end
 
@@ -353,6 +354,26 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           results = generate_candidates(pool)
           expect(results.sort).to eq(clients_not_enrolled_in_ph.map { |c| c.destination_client.id }.sort)
           expect(results).not_to include(client_enrolled_in_ph.destination_client.id)
+        end
+      end
+
+      describe 'null-safety for calc functions' do
+        describe 'INCLUDES with NULL needle' do
+          let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, NULL)' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
+        end
+
+        describe 'PROJECT_TYPE with NULL identifier' do
+          let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, PROJECT_TYPE(NULL))' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
         end
       end
     end
@@ -677,6 +698,70 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
       senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_with_comma_expr)
       expect(senior_veteran_candidate.priority_scores).to eq([100, 68, 1])
+    end
+  end
+
+  describe 'priority expression functions' do
+    include_context 'with CDE assessment setup'
+
+    let(:cde_key) { 'test' }
+    it 'supports EPOCH_SECONDS on custom assessment date fields' do
+      client = create(:hmis_hud_client, data_source: data_source)
+      assessment = create_assessment_with_cde(client, 'yes')
+      timestamp = Time.zone.parse('2025-01-01 12:00:00')
+      assessment_date = Date.new(2025, 2, 3)
+      assessment.update!(DateUpdated: timestamp, AssessmentDate: assessment_date)
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+      pool = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: '1=1',
+        priority_expression: "{EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.date_updated`), EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.assessment_date`)}",
+      )
+
+      generate_candidates(pool, clients: destination_clients_for([client]))
+
+      dest_client = destination_clients_for([client]).sole
+      candidate = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool)
+      expect(candidate.priority_scores).to eq([timestamp.to_i, Time.zone.local(2025, 2, 3).to_i])
+    end
+
+    it 'interprets naive and date-only strings in the application Time.zone' do
+      Time.use_zone('America/Chicago') do
+        client = create(:hmis_hud_client, data_source: data_source)
+        create_assessment_with_cde(client, 'yes')
+
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+        naive = '2025-02-03 15:04:05'
+        pool_naive = create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: '1=1',
+          priority_expression: "{EPOCH_SECONDS('#{naive}')}",
+        )
+
+        date_only = '2025-02-03'
+        pool_date = create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: '1=1',
+          priority_expression: "{EPOCH_SECONDS('#{date_only}')}",
+        )
+
+        generate_candidates(pool_naive, clients: destination_clients_for([client]))
+        generate_candidates(pool_date, clients: destination_clients_for([client]))
+
+        dest_client = destination_clients_for([client]).sole
+        cand_naive = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_naive)
+        cand_date = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_date)
+
+        expected_local = Time.zone.parse(naive).to_i
+        expected_utc = ActiveSupport::TimeZone['UTC'].parse(naive).to_i
+        expected_local_midnight = Time.zone.local(2025, 2, 3).to_i
+
+        expect(cand_naive.priority_scores).to eq([expected_local])
+        expect(cand_naive.priority_scores.first).not_to eq(expected_utc)
+        expect(cand_date.priority_scores).to eq([expected_local_midnight])
+      end
     end
   end
 end

@@ -167,7 +167,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Management',
       },
       can_manage_units: {
-        description: 'Ability to manage bed and unit capacity in the project. If Coordinated Entry is enabled in the project, users can also mark units as available for receiving referrals.',
+        description: 'Ability to manage bed and unit capacity in the project.',
         administrative: false,
         access: [:editable],
         category: 'Project Access',
@@ -242,6 +242,14 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_assign_referral_tasks: {
         description: 'Ability to assign contacts for any referral to the project that the user can view',
+        administrative: false,
+        access: [:editable],
+        category: 'Referrals',
+        sub_category: 'Management',
+        proc: -> { Hmis::Ce.configuration.enabled? },
+      },
+      can_update_unit_availability: {
+        description: 'Ability to mark units as available or unavailable for receiving referrals.',
         administrative: false,
         access: [:editable],
         category: 'Referrals',

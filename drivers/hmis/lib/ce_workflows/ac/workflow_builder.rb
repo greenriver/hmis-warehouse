@@ -24,6 +24,9 @@ module CeWorkflows::Ac
       provider_outcome_1: 'housing_workflow_provider_outcome_1',
       provider_outcome_2: 'housing_workflow_provider_outcome_2',
       provider_outcome_3: 'housing_workflow_provider_outcome_3',
+      # change_provider_outcome is similar to the provider_outcome forms. It is an optional task
+      # used for moving a referral into the denial workflow even after the provider initially accepted
+      change_provider_outcome: 'change_provider_outcome',
       # First 2 denial review forms are the same. The third one is slightly different because it only allows "approving" the denial,
       # since it can no longer be sent back to the provider. Use 3 different forms for the same reason as above.
       denial_review_1: 'housing_workflow_denial_review_1',
@@ -102,18 +105,14 @@ module CeWorkflows::Ac
         ],
       )
 
-      # Build the provider outcome and denial review loop. This is shared with the housing workflow.
-      loop_nodes = build_provider_outcome_denial_review_loop(
+      # Build the sub-workflow shared with Admin Assign. This includes the provider outcome / denial review loop.
+      sub_workflow_nodes = build_shared_sub_workflow(
         template: template,
         ce_staff_swimlane: ce_staff_swimlane,
         project_staff_swimlane: project_staff_swimlane,
       )
-      provider_outcome_task_1 = loop_nodes[:provider_outcome_task_1]
-
-      # Admin Decline Event that does NOT update a CE Event result. This is used for declines that happen before a CE Event is created.
-      admin_decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template, name: 'Administrative Decline', ce_event_result: nil)
-      # Decline event that updates the CE Event with "Client rejected" result. ("Provider rejected" is only recorded if the event is rejected from Provider Outcome=>Denial Review flow).
-      admin_decline_event_with_result = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template, name: 'Referral Declined by Client', ce_event_result: '2')
+      sub_workflow_entrypoint = sub_workflow_nodes[:entrypoint]
+      admin_decline_gateway = sub_workflow_nodes[:admin_decline_gateway]
 
       # Start Referral => Initial Review
       start_event.connect_to!(initial_review_task)
@@ -121,7 +120,7 @@ module CeWorkflows::Ac
       # Initial Review => Gateway => Initial Client Engagement (or Decline)
       initial_review_task_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'initial_review_task')
       initial_review_task.connect_to!(initial_review_task_gateway)
-      initial_review_task_gateway.connect_to!(admin_decline_event, condition: 'move_forward = 0') # admin decline
+      initial_review_task_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
       initial_review_task_gateway.connect_to!(initial_client_engagement_task) # happy path: move to next task
 
       # Initial Client Engagement => Client Engagement
@@ -130,21 +129,18 @@ module CeWorkflows::Ac
       # Client Engagement => Gateway => Client Offer Outcome (or Decline)
       client_engagement_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'client_engagement_task')
       client_engagement_task.connect_to!(client_engagement_gateway)
-      client_engagement_gateway.connect_to!(admin_decline_event, condition: 'move_forward = 0') # admin decline
+      client_engagement_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0') # admin decline
       client_engagement_gateway.connect_to!(client_offer_outcome_task) # happy path: move to next task
 
       # Client Offer Outcome => Gateway => Provider Outcome 1 (or Decline)
       client_offer_outcome_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'client_offer_outcome')
       client_offer_outcome_task.connect_to!(client_offer_outcome_gateway)
-      client_offer_outcome_gateway.connect_to!(admin_decline_event_with_result, condition: 'move_forward = 0')
-      client_offer_outcome_gateway.connect_to!(provider_outcome_task_1) # happy path: continue to provider outcome task
+      client_offer_outcome_gateway.connect_to!(admin_decline_gateway, condition: 'move_forward = 0')
+      client_offer_outcome_gateway.connect_to!(sub_workflow_entrypoint) # happy path: continue to the sub-workflow
 
-      # REST IS HANDLED BY THE SHARED "DENIAL REVIEW LOOP" CODE
+      # REST IS HANDLED BY build_shared_sub_workflow
 
       template.validate!
-
-      puts(template.to_mermaid_diagram)
-
       template
     end
 
@@ -198,38 +194,32 @@ module CeWorkflows::Ac
       # Initial Outgoing Referral Task => CE Event
       initial_outgoing_referral_task.connect_to!(create_ce_event_task)
 
-      # Build the provider outcome and denial review loop. This is shared with the housing workflow.
-      loop_nodes = build_provider_outcome_denial_review_loop(
+      # Build the sub-workflow shared with the Housing Workflow. This includes the provider outcome / denial review loop.
+      sub_workflow_nodes = build_shared_sub_workflow(
         template: template,
         ce_staff_swimlane: ce_staff_swimlane,
         project_staff_swimlane: project_staff_swimlane,
       )
-      provider_outcome_task_1 = loop_nodes[:provider_outcome_task_1]
+      sub_workflow_entrypoint = sub_workflow_nodes[:entrypoint]
 
-      # Connect the CE Event creation to the first provider outcome task
-      create_ce_event_task.connect_to!(provider_outcome_task_1)
+      # Connect the CE Event creation to the entrypoint for the shared sub-workflow
+      create_ce_event_task.connect_to!(sub_workflow_entrypoint)
 
-      # REST IS HANDLED BY THE SHARED "DENIAL REVIEW LOOP" CODE
+      # REST IS HANDLED BY build_shared_sub_workflow
 
       template.validate!
-
-      puts(template.to_mermaid_diagram)
-
       template
     end
 
     private
 
-    # Shared code for building provider outcome and denial review loop.
-    # The provider can deny the referral up to three times, with a denial review step after each denial.
-    # If the provider denies the referral three times, it goes to a final denial review step. From there,
-    # the denial must be accepted (aka the referral must be declined).
-    #
-    # This loop also handles:
+    # Shared code for building the parts of the workflow that are the same for Housing Workflow and Admin Assign.
+    # This handles:
+    # - Building the nodes and connections in the Provider Outcome / Denial Review loop (see build_provider_outcome_denial_review_loop below)
     # - Updating custom referral status to 'Assigned' or 'Denial Pending' as appropriate
     # - Setting the CE Event result (both for decline and accept)
     # - Generating the target Enrollment when the referral is accepted by the provider
-    def build_provider_outcome_denial_review_loop(template:, ce_staff_swimlane:, project_staff_swimlane:)
+    def build_shared_sub_workflow(template:, ce_staff_swimlane:, project_staff_swimlane:)
       # Statuses
       assigned_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
         key: 'assigned',
@@ -241,10 +231,22 @@ module CeWorkflows::Ac
         name: 'Denial Pending',
         data_source: @data_source,
       )
+      enrolled_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
+        key: 'enrolled',
+        name: 'Enrolled',
+        data_source: @data_source,
+      )
       denied_pending_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': denied_pending_status.key } }]
       assigned_status_trigger_config = [{ event: 'enable_step', message: 'set_custom_referral_status', params: { 'custom_status_key': assigned_status.key } }]
+      enrolled_status_trigger_config = [
+        {
+          event: 'enable_step',
+          message: 'set_custom_referral_status',
+          params: { 'custom_status_key': enrolled_status.key },
+        },
+      ]
 
-      # Provider Outcome User Tasks
+      # Provider Outcome Task 1 - defined outside the loop since it's only available once
       provider_outcome_task_1 = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Provider Outcome',
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_1),
@@ -252,6 +254,134 @@ module CeWorkflows::Ac
         swimlane: project_staff_swimlane,
         trigger_config: assigned_status_trigger_config,
       )
+
+      # Confirm Success User Task
+      confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
+        name: 'Confirm Success',
+        form_definition_identifier: CE_STEP_FORMS.fetch(:confirm_success),
+        template_id: template.id,
+        swimlane: ce_staff_swimlane,
+        trigger_config: enrolled_status_trigger_config,
+      )
+
+      # Script Tasks
+      provider_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Update CE Event with result "Unsuccessful referral: provider rejected"',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'set_ce_event_result',
+            params: { referral_result: '3' },
+          },
+        ],
+      )
+      client_rejects_ce_event_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Update CE Event with result "Unsuccessful referral: client rejected"',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'set_ce_event_result',
+            params: { referral_result: '2' },
+          },
+        ],
+      )
+      create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Create Enrollment',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_enrollment',
+          },
+        ],
+      )
+
+      # Events
+      accept_event = CeWorkflows::Shared::CeBuilderUtils.create_accept_event(template, update_ce_event: true)
+      decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template)
+
+      # Set up gateway for declining that closes the CE Event if a ReferralResult outcome has been specified.
+      # If neither condition matches, it declines the referral without updating the CE Event.
+      # NOTE: this depends on forms being set up correctly so they collect referral_result if a CE Event has been created.
+      admin_decline_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'admin_decline_gateway')
+      admin_decline_gateway.connect_to!(client_rejects_ce_event_task, condition: 'referral_result = 2')
+      admin_decline_gateway.connect_to!(provider_rejects_ce_event_task, condition: 'referral_result = 3')
+      admin_decline_gateway.connect_to!(decline_event)
+      client_rejects_ce_event_task.connect_to!(decline_event)
+      provider_rejects_ce_event_task.connect_to!(decline_event)
+
+      # Create Enrollment (Script) => Confirm Success Task
+      create_enrollment_task.connect_to!(confirm_success_task)
+
+      # Confirm Success Task => Accept Event
+      confirm_success_task.connect_to!(accept_event)
+
+      # The denial loop with 3 opportunities to send back. Built in a subroutine for reusability
+      denial_loop_tasks = build_provider_outcome_denial_review_loop(
+        next_task_after_success: confirm_success_task,
+        next_task_after_denial: admin_decline_gateway,
+        denied_pending_trigger_config: denied_pending_trigger_config,
+        assigned_status_trigger_config: assigned_status_trigger_config,
+        template: template,
+        ce_staff_swimlane: ce_staff_swimlane,
+        project_staff_swimlane: project_staff_swimlane,
+      )
+      denial_loop_entrypoint = denial_loop_tasks[:entrypoint]
+
+      # Provider Outcome 1 => Gateway => Denial Review 1 OR Create Enrollment (Script)
+      provider_outcome_gateway_1 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_1')
+      provider_outcome_task_1.connect_to!(provider_outcome_gateway_1)
+      provider_outcome_gateway_1.connect_to!(denial_loop_entrypoint, condition: 'move_forward = 0')
+      provider_outcome_gateway_1.connect_to!(create_enrollment_task)
+
+      # Change Provider Outcome optional user task.
+      # After the first Provider Outcome, the user can use this optional task to re-initiate the loop
+      change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
+        name: 'Change Provider Outcome (Optional)',
+        form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
+        template_id: template.id,
+        swimlane: project_staff_swimlane,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'delete_wip_enrollment',
+          },
+        ],
+      )
+      create_enrollment_task.connect_to!(change_provider_outcome_task)
+
+      # Second denial loop kicked off by the optional Change Provider Outcome task
+      second_denial_loop_tasks = build_provider_outcome_denial_review_loop(
+        next_task_after_success: confirm_success_task,
+        next_task_after_denial: admin_decline_gateway,
+        denied_pending_trigger_config: denied_pending_trigger_config,
+        assigned_status_trigger_config: assigned_status_trigger_config,
+        template: template,
+        ce_staff_swimlane: ce_staff_swimlane,
+        project_staff_swimlane: project_staff_swimlane,
+      )
+      second_loop_entrypoint = second_denial_loop_tasks[:entrypoint]
+      # add a condition here that will always be true, just so it doesn't show up as a default task in the happy path
+      change_provider_outcome_task.connect_to!(second_loop_entrypoint, condition: 'denial_reason != null')
+
+      {
+        entrypoint: provider_outcome_task_1,
+        admin_decline_gateway: admin_decline_gateway,
+      }
+    end
+
+    # Shared code for building the Provider Outcome / Denial Review loop.
+    # The provider can deny the referral up to three times, with a denial review step after each denial.
+    # If the provider denies the referral three times, it goes to a final denial review step. From there,
+    # the denial must be accepted (aka the referral must be declined).
+    #
+    # This method defines its outflows internally, so it accepts tasks as args:
+    # - next_task_after_success: the task that should be executed next on the "happy path" if the Provider Outcome step is successful
+    # - next_task_after_denial: the task that should be executed next on the "unhappy path" if the Denial Review step is approved
+    def build_provider_outcome_denial_review_loop(next_task_after_success:, next_task_after_denial:, denied_pending_trigger_config:, assigned_status_trigger_config:, template:, ce_staff_swimlane:, project_staff_swimlane:)
+      # Provider Outcome User Tasks (first one is handled in build_shared_sub_workflow)
       provider_outcome_task_2 = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Provider Outcome (Second Attempt)',
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_2),
@@ -259,12 +389,32 @@ module CeWorkflows::Ac
         swimlane: project_staff_swimlane,
         trigger_config: assigned_status_trigger_config,
       )
+      create_enrollment_task_2 = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Create Enrollment (Second)',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_enrollment',
+          },
+        ],
+      )
       provider_outcome_task_3 = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Provider Outcome (Third Attempt)',
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_3),
         template_id: template.id,
         swimlane: project_staff_swimlane,
         trigger_config: assigned_status_trigger_config,
+      )
+      create_enrollment_task_3 = Hmis::WorkflowDefinition::ScriptTask.create!(
+        name: 'Create Enrollment (Third)',
+        template_id: template.id,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_enrollment',
+          },
+        ],
       )
 
       # Denial Review User Tasks
@@ -290,73 +440,37 @@ module CeWorkflows::Ac
         trigger_config: denied_pending_trigger_config,
       )
 
-      # Confirm Success User Task
-      confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Confirm Success',
-        form_definition_identifier: CE_STEP_FORMS.fetch(:confirm_success),
-        template_id: template.id,
-        swimlane: ce_staff_swimlane,
-      )
-
-      create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
-        name: 'Create Enrollment',
-        template_id: template.id,
-        trigger_config: [
-          {
-            event: 'complete_step',
-            message: 'create_enrollment',
-          },
-        ],
-      )
-
-      # Accept event that updates the CE Event with successful referral result.
-      accept_event = CeWorkflows::Shared::CeBuilderUtils.create_accept_event(template, update_ce_event: true)
-      # Decline event that updates the CE Event with "Provider rejected" result.
-      # ("Client rejected" is only recorded if the event is rejected from Client Offer Outcome)
-      # Note: this requires that the `create_ce_event` trigger ran at some point earlier in the workflow.
-      decline_event = CeWorkflows::Shared::CeBuilderUtils.create_decline_event(template, name: 'Referral Declined by Provider', ce_event_result: '3')
-
-      # Provider Outcome 1 => Gateway => Denial Review 1 OR Create Enrollment (Script)
-      provider_outcome_gateway_1 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_1')
-      provider_outcome_task_1.connect_to!(provider_outcome_gateway_1)
-      provider_outcome_gateway_1.connect_to!(denial_review_task, condition: 'move_forward = 0')
-      provider_outcome_gateway_1.connect_to!(create_enrollment_task)
-
       # Provider Outcome 2 => Gateway => Denial Review 2 OR Create Enrollment (Script)
       provider_outcome_gateway_2 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_2')
       provider_outcome_task_2.connect_to!(provider_outcome_gateway_2)
       provider_outcome_gateway_2.connect_to!(denial_review_task_2, condition: 'move_forward = 0')
-      provider_outcome_gateway_2.connect_to!(create_enrollment_task)
+      provider_outcome_gateway_2.connect_to!(create_enrollment_task_2)
+      create_enrollment_task_2.connect_to!(next_task_after_success)
 
       # Provider Outcome 3 => Gateway => Denial Review 3 OR Create Enrollment (Script)
       provider_outcome_gateway_3 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'provider_outcome_3')
       provider_outcome_task_3.connect_to!(provider_outcome_gateway_3)
       provider_outcome_gateway_3.connect_to!(denial_review_task_3, condition: 'move_forward = 0')
-      provider_outcome_gateway_3.connect_to!(create_enrollment_task)
+      provider_outcome_gateway_3.connect_to!(create_enrollment_task_3)
+      create_enrollment_task_3.connect_to!(next_task_after_success)
 
       # Denial Review 1 => Gateway => Decline OR send back to Provider Outcome
       denial_review_gateway_1 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'denial_review_1')
       denial_review_task.connect_to!(denial_review_gateway_1)
-      denial_review_gateway_1.connect_to!(decline_event, condition: 'denial_review_decision = 1') # Accept Denial
+      denial_review_gateway_1.connect_to!(next_task_after_denial, condition: 'denial_review_decision = 1') # Accept Denial
       denial_review_gateway_1.connect_to!(provider_outcome_task_2) # "Send back" to next attempt at Provider Outcome
 
       # Denial Review 2 => Gateway => Decline OR send back to Provider Outcome
       denial_review_gateway_2 = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'denial_review_2')
       denial_review_task_2.connect_to!(denial_review_gateway_2)
-      denial_review_gateway_2.connect_to!(decline_event, condition: 'denial_review_decision = 1') # Accept Denial
+      denial_review_gateway_2.connect_to!(next_task_after_denial, condition: 'denial_review_decision = 1') # Accept Denial
       denial_review_gateway_2.connect_to!(provider_outcome_task_3) # "Send back" to next attempt at Provider Outcome
 
       # Denial Review 2 => Gateway => Decline. Cannot be "sent back" to Provider Outcome.
-      denial_review_task_3.connect_to!(decline_event)
+      denial_review_task_3.connect_to!(next_task_after_denial)
 
-      # Create Enrollment (Script) => Confirm Success Task
-      create_enrollment_task.connect_to!(confirm_success_task)
-
-      # Confirm Success Task => Accept Event
-      confirm_success_task.connect_to!(decline_event, condition: 'move_forward = 0')
-      confirm_success_task.connect_to!(accept_event, condition: 'move_forward = 1')
       {
-        provider_outcome_task_1: provider_outcome_task_1,
+        entrypoint: denial_review_task,
       }
     end
   end

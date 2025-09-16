@@ -279,7 +279,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -662,6 +662,38 @@ CREATE VIEW analytics.cas_referral_contacts AS
 
 
 --
+-- Name: cas_analytics_referral_timeline_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_referral_timeline_events (
+    id bigint NOT NULL,
+    referral_id bigint,
+    contact_id bigint,
+    name character varying NOT NULL,
+    event_date date NOT NULL,
+    step character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_referral_timeline_events; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_referral_timeline_events AS
+ SELECT id,
+    name,
+    event_date,
+    step,
+    referral_id,
+    contact_id,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_referral_timeline_events;
+
+
+--
 -- Name: cas_analytics_referral_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -725,6 +757,32 @@ CREATE VIEW analytics.cas_referrals AS
     created_at,
     updated_at
    FROM public.cas_analytics_referrals;
+
+
+--
+-- Name: cas_analytics_rejection_reasons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_rejection_reasons (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    referral_result character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_rejection_reasons; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_rejection_reasons AS
+ SELECT id,
+    name,
+    referral_result,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_rejection_reasons;
 
 
 --
@@ -6337,6 +6395,25 @@ ALTER SEQUENCE public.cas_analytics_referral_contacts_id_seq OWNED BY public.cas
 
 
 --
+-- Name: cas_analytics_referral_timeline_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_referral_timeline_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_referral_timeline_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_referral_timeline_events_id_seq OWNED BY public.cas_analytics_referral_timeline_events.id;
+
+
+--
 -- Name: cas_analytics_referral_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -6372,6 +6449,25 @@ CREATE SEQUENCE public.cas_analytics_referrals_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_referrals_id_seq OWNED BY public.cas_analytics_referrals.id;
+
+
+--
+-- Name: cas_analytics_rejection_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_rejection_reasons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_rejection_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_rejection_reasons_id_seq OWNED BY public.cas_analytics_rejection_reasons.id;
 
 
 --
@@ -24456,7 +24552,8 @@ CREATE TABLE public.hmis_unit_groups (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     candidate_pool_id bigint,
-    ce_event_type integer
+    ce_event_type integer,
+    unit_type_id bigint
 );
 
 
@@ -25389,7 +25486,10 @@ CREATE TABLE public.hud_report_apr_clients (
     race_multi_include_race_none jsonb,
     hoh_move_in_date date,
     adjusted_move_in_date date,
-    sex integer
+    sex integer,
+    income_from_any_source_at_annual_assessment_raw integer,
+    income_from_any_source_at_exit_raw integer,
+    income_from_any_source_at_start_raw integer
 );
 
 
@@ -27450,7 +27550,15 @@ CREATE TABLE public.ma_yya_report_clients (
     flex_funds jsonb DEFAULT '[]'::jsonb,
     zip_codes jsonb DEFAULT '[]'::jsonb,
     language character varying,
-    followup_previous_period boolean
+    followup_previous_period boolean,
+    employed boolean DEFAULT false,
+    former_foster_ward boolean DEFAULT false,
+    former_juvenile_justice_ward boolean DEFAULT false,
+    voluntary_dcf_service boolean DEFAULT false,
+    voluntary_dys_yes_service boolean DEFAULT false,
+    exchange_for_sex boolean DEFAULT false,
+    permanent_exit_date date,
+    days_to_return integer
 );
 
 
@@ -33992,6 +34100,13 @@ ALTER TABLE ONLY public.cas_analytics_referral_contacts ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: cas_analytics_referral_timeline_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_timeline_events ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_timeline_events_id_seq'::regclass);
+
+
+--
 -- Name: cas_analytics_referral_users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -34003,6 +34118,13 @@ ALTER TABLE ONLY public.cas_analytics_referral_users ALTER COLUMN id SET DEFAULT
 --
 
 ALTER TABLE ONLY public.cas_analytics_referrals ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referrals_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_rejection_reasons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_rejection_reasons ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_rejection_reasons_id_seq'::regclass);
 
 
 --
@@ -38097,6 +38219,14 @@ ALTER TABLE ONLY public.cas_analytics_referral_contacts
 
 
 --
+-- Name: cas_analytics_referral_timeline_events cas_analytics_referral_timeline_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_timeline_events
+    ADD CONSTRAINT cas_analytics_referral_timeline_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cas_analytics_referral_users cas_analytics_referral_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -38110,6 +38240,14 @@ ALTER TABLE ONLY public.cas_analytics_referral_users
 
 ALTER TABLE ONLY public.cas_analytics_referrals
     ADD CONSTRAINT cas_analytics_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_rejection_reasons cas_analytics_rejection_reasons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_rejection_reasons
+    ADD CONSTRAINT cas_analytics_rejection_reasons_pkey PRIMARY KEY (id);
 
 
 --
@@ -66454,6 +66592,13 @@ CREATE INDEX index_hmis_unit_groups_on_project_id ON public.hmis_unit_groups USI
 
 
 --
+-- Name: index_hmis_unit_groups_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_unit_type_id ON public.hmis_unit_groups USING btree (unit_type_id);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -74682,6 +74827,14 @@ ALTER TABLE ONLY public.wfe_step_assignments
 
 
 --
+-- Name: hmis_unit_groups fk_rails_4af3f4cb4a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_4af3f4cb4a FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: wfd_swimlanes fk_rails_4de79171d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75424,10 +75577,18 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250904184751'),
+('20250904183709'),
+('20250904181252'),
+('20250904175920'),
+('20250904130155'),
+('20250828205652'),
 ('20250821194338'),
 ('20250821182429'),
 ('20250820220743'),
 ('20250818183500'),
+('20250818171810'),
+('20250807182745'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),

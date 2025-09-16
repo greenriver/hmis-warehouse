@@ -22,7 +22,7 @@ module Mutations
       raise 'Cannot manage units across projects' if project_ids.size > 1
 
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
-      access_denied! unless policy_for(project, policy_type: :hmis_project).can_manage_units?
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_update_unit_availability?
 
       opportunities = units.map { |unit| build_opportunity_for_unit(unit) }
       Hmis::Ce::Opportunity.import!(opportunities)

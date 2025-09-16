@@ -118,13 +118,6 @@ namespace :reporting do
       task :dump do
         Rake::Task['db:structure:dump'].invoke
       end
-
-      desc 'Conditionally load the database structure'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        ReportingBase.load_db_if_empty do
-          ReportingBase.connection.execute(File.read('db/reporting_structure.sql'))
-        end
-      end
     end
 
     namespace :test do

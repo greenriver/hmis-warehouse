@@ -311,5 +311,5 @@ volumes:
   ngrok:
 networks:
   default:
-    name: traefik
+    name: development
     external: true

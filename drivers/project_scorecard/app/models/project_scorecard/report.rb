@@ -236,6 +236,8 @@ module ProjectScorecard
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
         generator.new(apr).run!(email: false, manual: false)
 
+        raise 'APR not completed' unless apr.reload.completed?
+
         assessment_answers.merge!(
           {
             apr_id: apr.id,
