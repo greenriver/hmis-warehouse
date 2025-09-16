@@ -22,7 +22,10 @@ jobs:
     # Service containers to run with job
     services:
       postgres:
-        image: index.docker.io/postgis/postgis@sha256:1d7869b7f4dc799835cc8106061f10bcde94377da4704cd508511b78b9005c02 # 17-3.5-alpine
+        image: ghcr.io/${{ github.repository_owner }}/postgres-postgis:17
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
