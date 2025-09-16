@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -163,7 +165,11 @@ module PerformanceMeasurement::WarehouseReports
       @pdf_export = PerformanceMeasurement::DocumentExports::ReportExport.new
     end
 
-    def formatted_cell(cell, key)
+    def formatted_cell(cell, key, project_id: nil)
+      if project_id.present? && key.to_s.include?('bed_details') && cell.is_a?(Array)
+        value = cell.detect { |m| m.key?(project_id.to_s) }.try(:[], project_id.to_s)
+        return value if value.present?
+      end
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
       return view_context.yes_no(cell) if cell.in?([true, false])
 

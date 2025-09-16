@@ -1,14 +1,22 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+require_relative './table_comparisons'
+
 RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
+  include DatalabTestkit::TableComparisons
+
   def shared_filter_spec
     {
-      start: Date.parse('2021-10-01'),
-      end: Date.parse('2022-09-30'),
+      start: Date.parse('2023-10-01'),
+      end: Date.parse('2024-09-30'),
       user_id: User.setup_system_user.id,
       coc_codes: ['XX-500', 'XX-501'],
     }.freeze
@@ -69,8 +77,6 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     # NOTE: SPM runs subsequent DQ reports, but sets @report_result, so we'll use that if available
     @report_result || ::HudReports::ReportInstance.last
   end
-
-  require_relative './table_comparisons'
 end
 
 RSpec.configure do |rspec|

@@ -1,2 +1,10 @@
 = render 'breadcrumbs'
-= render 'tags'
+%h1 Tags & Badges
+.row
+  .col-sm-10
+    .mb-5
+      %h2 Tags
+      = render 'tags'
+    %h2 Badges
+    = render 'badges'
+  .col-sm-2= render 'pages'

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::CellDetailsConcern
   extend ActiveSupport::Concern
 
@@ -66,7 +68,6 @@ module HudApr::CellDetailsConcern
     def self.parenting_fields
       [
         :parenting_youth,
-        :parenting_juvenile,
       ].freeze
     end
 
@@ -119,13 +120,16 @@ module HudApr::CellDetailsConcern
       [
         :income_date_at_start,
         :income_from_any_source_at_start,
+        :income_from_any_source_at_start_raw,
         :income_sources_at_start,
         :income_date_at_annual_assessment,
         :annual_assessment_in_window,
         :income_from_any_source_at_annual_assessment,
+        :income_from_any_source_at_annual_assessment_raw,
         :income_sources_at_annual_assessment,
         :income_date_at_exit,
         :income_from_any_source_at_exit,
+        :income_from_any_source_at_exit_raw,
         :income_sources_at_exit,
         :income_total_at_start,
         :income_total_at_annual_assessment,

@@ -1,10 +1,21 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Cohorts::DocumentExports
+  # Handles export of cohort data to Excel files (.xlsx) format
+  #
+  # This class is responsible for:
+  # - Validating user authorization for cohort downloads
+  # - Collecting cohort data based on specified population parameters
+  # - Rendering an Excel workbook using the axlsx template engine
+  # - Creating a downloadable file with proper naming and MIME type
   class CohortExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
@@ -30,54 +41,45 @@ module GrdaWarehouse::Cohorts::DocumentExports
       end.to_h
     end
 
-    protected def view_assigns
-      {
-        user: user,
-        cohort: cohort,
-        cohort_clients: cohort_clients,
-        population: population,
-        cohort_names: cohort_names,
-      }
-    end
-
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
-
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
-        )
-
-        write_tmp_file(
-          renderer.render(
-            action: :show,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "Cohort - #{cohort.name} - #{params['population']} - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
-        end
+        self.filename = "Cohort - #{cohort.name} - #{params['population']} - #{Time.current.to_fs(:db)}.xlsx"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
       end
     end
 
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
-
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
+    private def excel_package
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        wb.add_worksheet(name: cohort.sanitized_name.slice(0, 30)) do |sheet|
+          title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+          sheet.add_row(['Warehouse Client ID', 'Alerts'] + cohort.visible_columns(user: user).map(&:title), style: title)
+          cohort_clients.each do |cohort_client|
+            row = [cohort_client.client_id]
+            row += ([CohortColumns::Meta.new] + cohort.visible_columns(user: user)).map do |column|
+              column.cohort = cohort
+              column.cohort_names = cohort_names
+              column.cohort_client = cohort_client
+              if column.renderer == 'html'
+                column.text_value(cohort_client)
+              elsif column.input_type == 'read_only'
+                if column.value_requires_user?
+                  column.value(cohort_client, user)
+                else
+                  column.value(cohort_client)
+                end
+              elsif column.input_type == 'notes'
+              elsif column.input_type == 'enrollment_tag'
+                column.value(cohort_client)&.map(&:last)&.join('; ')
+              else
+                cohort_client.public_send(column.column)
+              end
+            end
+            sheet.add_row(row)
+          end
+        end
       end
-      true
     end
 
     protected def cohort_class
@@ -86,10 +88,6 @@ module GrdaWarehouse::Cohorts::DocumentExports
 
     def generator_url
       cohort_path(cohort)
-    end
-
-    private def controller_class
-      CohortsController
     end
   end
 end

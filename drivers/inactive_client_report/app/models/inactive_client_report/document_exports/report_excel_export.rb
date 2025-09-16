@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module InactiveClientReport::DocumentExports
   class ReportExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -15,60 +17,66 @@ module InactiveClientReport::DocumentExports
       @report ||= report_class.new(filter)
     end
 
-    protected def view_assigns
-      {
-        report: report,
-        filter: filter,
-        pdf: false,
-      }
-    end
-
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
+        self.filename = "#{report.class.name} - #{Time.current.to_fs(:db)}.xlsx"
+        self.file_data = excel_package.to_stream.read
+        self.mime_type = EXCEL_MIME_TYPE
+      end
+    end
 
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
+    private def excel_package
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        wb_styles = wb.styles
+        header_style = wb_styles.add_style({ sz: 14 })
+        wb_styles.add_style(
+          {
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+          },
         )
+        wb.add_worksheet(name: 'Clients') do |sheet|
+          sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+          header = ['Warehouse ID']
+          header += ['Last Name', 'First Name'] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          header << 'DOB' if user.can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          header += [
+            'Age',
+            'Last Seen',
+            'Ongoing Enrollments',
+            'Days Homeless in the Last 3 Years',
+            'Days Since Most-Recent Contact',
+            'Most-Recent Entry Date',
+            'Most-Recent Current Living Situation',
+            'Most-Recent Bed Night',
+            'Most-Recent CE Assessment',
+            'Most-Recent CE Assessor',
+          ]
 
-        write_tmp_file(
-          renderer.render(
-            action: :index,
-            format: :xlsx,
-            assigns: view_assigns,
-          ),
-          "#{report.class.name} - #{Time.current.to_fs(:db)}",
-        ) do |io|
-          self.downloadable_file = io
+          sheet.add_row(header, style: header_style)
+          report.clients.find_each do |client|
+            projects = client.last_intentional_contacts(user, include_confidential_names: false, include_dates: true).select(&:present?)
+            row = [client.id]
+            row += [client.last_name, client.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row << client.dob if user.can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row << GrdaWarehouse::Hud::Client.age(date: Date.current, dob: client.dob)
+            row << projects.join('; ')
+            row << client.service_history_entry_ongoing.map { |en| en&.project&.name(user, include_project_type: true) }.compact.join('; ')
+            row << client.processed_service_history&.days_homeless_last_three_years
+            row << report.days_since_most_recent_contact(client)
+            row << report.max_entry_date(client)
+            row << report.most_recent_cls(client)
+            row << report.most_recent_bed_night(client)
+            row << report.most_recent_ce_assessment(client)&.dig(:assessment_date)
+            row << report.most_recent_ce_assessment(client)&.dig(:assessor)
+
+            sheet.add_row(row)
+          end
         end
       end
     end
-
-    def downloadable_file=(file_io)
-      self.filename = File.basename(file_io.path)
-      self.file_data = file_io.read
-      self.mime_type = EXCEL_MIME_TYPE
-    end
-
-    private def write_tmp_file(data, file_name)
-      Dir.mktmpdir do |dir|
-        safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
-        file_path = "#{dir}/#{safe_name}.xlsx"
-        File.open(file_path, 'wb') { |file| file.write(data) }
-        yield(Pathname.new(file_path).open)
-      end
-      true
-    end
-
     protected def report_class
       InactiveClientReport::Report
-    end
-
-    private def controller_class
-      InactiveClientReport::WarehouseReports::ReportsController
     end
   end
 end

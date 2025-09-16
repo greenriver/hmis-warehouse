@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::AppSettingsController < Hmis::BaseController
   skip_before_action :authenticate_hmis_user!
   prepend_before_action :skip_timeout
@@ -36,6 +38,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       revision: Git.revision,
       branch: Git.branch,
       theme: theme&.hmis_value,
+      # deprecated, use globalFeatureFlags on the GraphQL API instead
       globalFeatureFlags: {
         # Whether to show MCI ID in client search results
         mciId: HmisExternalApis::AcHmis::Mci.enabled?,

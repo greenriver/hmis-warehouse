@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module LoginAndPermissionsSpecHelper
   def hmis_login(user)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
@@ -14,6 +16,7 @@ module LoginAndPermissionsSpecHelper
     return :projects if entity.is_a? GrdaWarehouse::Hud::Project
     return :organizations if entity.is_a? Hmis::Hud::Organization
     return :organizations if entity.is_a? GrdaWarehouse::Hud::Organization
+    return :project_groups if entity.is_a? Hmis::ProjectGroup
     return :data_sources if entity.is_a? GrdaWarehouse::DataSource
 
     raise "Unsupported entity type: #{entity.class.name}"
@@ -55,6 +58,7 @@ module LoginAndPermissionsSpecHelper
   def assign_viewable(access_control, viewable)
     viewable = Hmis::Hud::Project.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::Hud::Project
     viewable = Hmis::Hud::Organization.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::Hud::Organization
+    viewable = Hmis::ProjectGroup.find_by(id: viewable.id) if viewable.is_a? Hmis::ProjectGroup
 
     access_control.access_group.add_viewable(viewable)
   end

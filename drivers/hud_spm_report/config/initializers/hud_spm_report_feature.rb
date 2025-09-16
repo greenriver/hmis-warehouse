@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The core app (or other drivers) can check the presence of the
 # HudSpmReport driver with the following code snippet
 #
@@ -23,6 +25,11 @@ Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2023::Generato
 }
 
 Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2024::Generator'] = {
+  title: 'System Performance Measures',
+  helper: 'hud_reports_spms_path',
+}
+
+Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2026::Generator'] = {
   title: 'System Performance Measures',
   helper: 'hud_reports_spms_path',
 }

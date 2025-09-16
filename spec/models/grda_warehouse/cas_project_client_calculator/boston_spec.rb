@@ -342,5 +342,43 @@ RSpec.describe GrdaWarehouse::CasProjectClientCalculator::Boston, type: :model d
         expect(GrdaWarehouse::Hud::Assessment.family_pathways.to_a).to include(assessment)
       end
     end
+
+    it 'counts warehouse nights sheltered even when there is no assessment' do
+      aggregate_failures do
+        # Create a client with no assessment but with warehouse nights sheltered
+        client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '101842')
+        allow(client).to receive(:sheltered_days_homeless_last_three_years).and_return(100)
+        allow(client).to receive(:unsheltered_days_homeless_last_three_years).and_return(50)
+        allow(client.processed_service_history).to receive(:days_homeless_last_three_years).and_return(150)
+
+        # Verify that warehouse nights are still counted
+        value = @calculator.value_for_cas_project_client(client: client, column: :calculated_homeless_nights_sheltered)
+        expect(value).to eq(100)
+
+        # Verify that warehouse nights are still counted
+        value = @calculator.value_for_cas_project_client(client: client, column: :calculated_homeless_nights_unsheltered)
+        expect(value).to eq(50)
+
+        # Verify that warehouse nights are still counted
+        value = @calculator.value_for_cas_project_client(client: client, column: :total_homeless_nights_sheltered)
+        expect(value).to eq(100)
+
+        # Verify that warehouse nights are still counted
+        value = @calculator.value_for_cas_project_client(client: client, column: :total_homeless_nights_unsheltered)
+        expect(value).to eq(50)
+
+        # Verify that additional nights are 0 since there is no assessment
+        value = @calculator.value_for_cas_project_client(client: client, column: :additional_homeless_nights_sheltered)
+        expect(value).to eq(0)
+
+        # Verify that additional nights are 0 since there is no assessment
+        value = @calculator.value_for_cas_project_client(client: client, column: :additional_homeless_nights_unsheltered)
+        expect(value).to eq(0)
+
+        # Verify that total nights in the last 3 years is the sum of the warehouse nights
+        value = @calculator.value_for_cas_project_client(client: client, column: :days_homeless_in_last_three_years_cached)
+        expect(value).to eq(150)
+      end
+    end
   end
 end

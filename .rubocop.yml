@@ -3,7 +3,6 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   SuggestExtensions: false
   Exclude:
-    - "db/**/*"
     - "config/*"
     - "config/environments/**/*.rb"
     - "config/initializers/**/*.rb"
@@ -12,7 +11,14 @@ AllCops:
     - "bin/{rails,rake,bundle}"
     - "app/assets/**/*"
     - "bin/db_prep"
-
+    - "db/schema.rb"
+    - "db/**/schema.rb"
+    - "db/structure.rb"
+    - "db/**/structure.rb"
+    - "db/seeds.rb"
+    - "db/**/seeds.rb"
+    # Add other specific db files you want to exclude
+    # But DON'T exclude "db/**/*"
   Include:
     - "**/Rakefile"
     - "app/**/*.rb"
@@ -20,6 +26,7 @@ AllCops:
     - "drivers/**/*.rb"
     - "lib/**/*.rb"
     - "config/deploy/docker/lib/*.rb"
+    - "db/**/migrate/*.rb"
 
   NewCops: disable
 
@@ -44,6 +51,9 @@ Metrics/PerceivedComplexity:
   Max: 50
   Exclude:
     - "app/models/exporters/tableau"
+Style/Alias:
+  # alias_method has more consistent behavior and syntax
+  EnforcedStyle: prefer_alias_method
 # Trailing commas make for clearer diffs because the last line won't appear
 # to have been changed, as it would if it lacked a comma and had one added.
 Style/TrailingCommaInArguments:

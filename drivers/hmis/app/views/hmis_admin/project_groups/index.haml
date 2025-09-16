@@ -1,0 +1,17 @@
+- title = 'HMIS Project Groups'
+= content_for(:title, title)
+%h1= content_for :title
+
+
+- @prompt = "Search project groups..."
+.row.mb-4
+  .col-sm-8
+    = render_generic_search_form
+  .col-sm-4.text-right
+    = link_to new_hmis_admin_project_group_path, class: 'btn btn-primary mb-2' do
+      %span.icon-plus
+      Add Project Group
+- if @project_groups.exists?
+  = render_paginated_list(scope: @project_groups, item_name: 'project group', list_partial: 'list')
+- else
+  .none-found There are no project groups.

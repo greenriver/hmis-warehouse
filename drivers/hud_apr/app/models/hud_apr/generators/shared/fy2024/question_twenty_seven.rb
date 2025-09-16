@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2024
   class QuestionTwentySeven < Base
     include HudReports::SubPopulationsBySubsidyTypeQuestion
@@ -12,7 +14,7 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::LivingSituationsQuestion
     include HudReports::GenderQuestion
 
-    QUESTION_NUMBER = 'Question 27'.freeze
+    QUESTION_NUMBER = 'Question 27'
 
     def self.table_descriptions
       {

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class DatePickerInput < SimpleForm::Inputs::StringInput
   def input(wrapper_options)
     set_html_options
@@ -17,9 +19,11 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
         template.content_tag(:em, 'Blank', label_html_options)
       end
     else
-      data = { provide: 'datepicker', 'date-today-highlight' => true }
-      data = {} if input_html_options[:disabled]
-      template.content_tag :div, class: 'input-group date datepicker', data: data do
+      div_data_attributes = input_html_options.delete(:data)
+
+      div_data_attributes['date-options'] = div_data_attributes.delete(:date_options).to_json
+
+      template.content_tag :div, class: 'input-group date datepicker', data: div_data_attributes do
         input = super(wrapper_options)
         input += input_button
         input
@@ -34,16 +38,13 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
   private
 
   def input_button
-    template.content_tag :div, class: 'input-group-append' do
-      template.content_tag :button, class: 'btn btn-secondary', type: 'button', aria: { label: 'Open Date Picker' } do
-        template.content_tag :span, '', class: 'icon-calendar mr-0'
-      end
-    end
+    template.content_tag :button, '', class: 'btn btn-secondary icon-calendar', type: 'button', aria: { label: 'Open Date Picker' }
   end
 
   def set_html_options
     input_html_options[:type] = 'text'
     input_html_options[:data] ||= {}
+    input_html_options[:data][:controller] = 'datepicker'
     input_html_options[:data].merge!(date_options: date_options)
   end
 
@@ -58,22 +59,24 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
   end
 
   def display_pattern
-    I18n.t('datepicker.dformat', default: '%d/%m/%Y')
+    I18n.t('datepicker.dformat', default: '%b %-d, %Y')
   end
 
   def picker_pattern
-    I18n.t('datepicker.pformat', default: 'DD/MM/YYYY')
+    I18n.t('datepicker.pformat', default: 'MMM d, yyyy')
   end
 
-  def date_view_header_format
-    I18n.t('dayViewHeaderFormat', default: 'MMMM YYYY')
-  end
+  # def date_view_header_format
+  #   I18n.t('dayViewHeaderFormat', default: 'MMMM YYYY')
+  # end
 
   def date_options_base
     {
-      locale: I18n.locale.to_s,
-      format: picker_pattern,
-      dayViewHeaderFormat: date_view_header_format,
+      localization: {
+        locale: I18n.locale.to_s,
+        format: picker_pattern,
+        dayViewHeaderFormat: { month: 'long', year: 'numeric' },
+      },
     }
   end
 

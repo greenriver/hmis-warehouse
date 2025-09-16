@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # backed by a db view
 module Hmis
   class EnrollmentAccessSummary < ApplicationRecord
@@ -11,8 +13,8 @@ module Hmis
     self.primary_key = 'id'
 
     belongs_to :user, class_name: 'Hmis::User'
-    belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment'
-    belongs_to :project, class_name: 'Hmis::Hud::Project'
+    belongs_to :enrollment, -> { with_deleted }, class_name: 'Hmis::Hud::Enrollment'
+    belongs_to :project, -> { with_deleted }, class_name: 'Hmis::Hud::Project'
 
     def readonly?
       true

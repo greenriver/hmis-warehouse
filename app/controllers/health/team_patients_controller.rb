@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health
   class TeamPatientsController < HealthController
     include ClientPathGenerator
@@ -27,7 +29,7 @@ module Health
         @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
           Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
           ::Health::CoordinationTeam.first
-        @active_team.name
+        @active_team&.name
       else
         @active_team = ::Health::CoordinationTeam.find_by(name: @team_name)
       end
@@ -79,6 +81,35 @@ module Health
         order(last_name: :asc, first_name: :asc)
 
       @team = Health::CoordinationTeam.find_by(name: team_name)
+    end
+
+    def create_search_queries
+      safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
+      query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
+      if query.valid?
+        redirect_to team_patient_search_query_health_team_patients_path(id: query.id)
+      else
+        flash[:error] = 'Search query not valid'
+        redirect_to health_team_patients_path
+        return
+      end
+    end
+
+    def search
+      @search_query = GrdaWarehouse::ClientSearchQuery.find(params[:id])
+      return handle_invalid_query('Search query not found') if @search_query.nil?
+
+      @search_query.touch
+      # Call the index method to setup all the instance variables
+      index
+      # Render the index view to preserve search results behavior
+      render :index
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to health_team_patients_path
+      return
     end
 
     def set_dates

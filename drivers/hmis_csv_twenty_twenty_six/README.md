@@ -1,0 +1,224 @@
+# HmisCsvTwentyTwentySix
+
+## Overview
+
+The `HmisCsvTwentyTwentySix` driver provides support for the FY2026 HUD HMIS CSV format. It integrates into the version-aware HMIS import pipeline, allowing it to automatically process standard HMIS CSV files as well as custom CSV files (like `CustomGender.csv` and `CustomDataElement.csv`) when FY2026 HMIS exports are uploaded.
+
+The import system automatically detects the HMIS CSV version from the `Export.csv` file and routes to the appropriate loader and importer.
+
+## Changes from FY2024
+
+*   **Column Changes**
+    *   **Client**
+        *   Removed gender columns (Woman, Man, NonBinary, CulturallySpecific, Transgender, Questioning, DifferentIdentity, GenderNone, DifferentIdentityText)
+        *   Added sex column (Sex)
+    *   **Enrollment**
+        *   Added V10 MentalHealthConsultation
+        *   Removed R3 sexual orientation (SexualOrientation, SexualOrientationOther)
+    *   **Service**
+        *   Added InformationDate
+*   Introduction of "dry-run" imports. These will **always** pause for review.
+
+## Standard HMIS CSV Import
+
+The driver handles both exporting and importing standard HMIS CSV files for the 2026 format.
+
+### Exporter Module
+
+The exporter module provides logic for exporting data into the HMIS CSV 2026 format.
+
+`HmisCsvTwentyTwentySix::Exporter::Base.new(....).export!` will export a specified date range for specified projects.
+
+### Importer Modules
+
+The importer modules handle the processing of incoming HMIS CSV 2026 files. The process involves three main stages: loading, pre-processing, and ingestion.
+
+1.  **Loader (`HmisCsvTwentyTwentySix::Loader`)**: Reads the source CSV files and inserts the raw data into data lake tables where all columns are stored as strings.
+2.  **Importer (`HmisCsvTwentyTwentySix::Importer`)**: Processes the raw data from the loader.
+    *   **Row Pre-Processing**: Consumes records from the loader, applies model-specific transformations (e.g., type casting, de-identification), and runs row-level validations.
+    *   **Aggregated Pre-Processing**: Handles records that require aggregation before being processed.
+    *   **Ingestion**: Merges the cleaned and validated records into the final warehouse tables.
+3.  **Validation (`HmisCsvValidation`)**: A configurable rules engine to check for well-formedness of the imported data. Errors can be logged as warnings or can exclude a row from the import.
+
+## Custom File Exports
+
+In addition to imports, the FY2026 driver supports exporting custom CSV files alongside the standard HMIS files. This allows communities to package their extended data with the official HUD CSV export.
+
+### User Guide
+
+When creating an HMIS report for the FY2026 format, you will see a new "Custom Files" option.
+
+1.  **Select Version**: Choose "2026" from the HMIS version dropdown.
+2.  **Choose Custom Files**: A multi-select box will appear, listing all available custom files (e.g., `CustomGender.csv`, `CustomSexualOrientation.csv`).
+3.  **Run Export**: Select the files you wish to include and run the export as usual.
+4.  **Download**: The generated ZIP archive will contain both the standard HMIS CSV files and the custom files you selected.
+
+### Developer Details
+
+The custom export system is built to be extensible and mirrors the custom import functionality.
+
+-   **Configuration-Driven**: New custom export file types are defined via YAML configuration in the `drivers/hmis_csv_twenty_twenty_six/config/custom/` directory.
+-   **Code Generation**: The `HmisCsvTwentyTwentySix::Custom::FileManager.bootstrap_custom_models!` command generates the required `Exporter` models based on the YAML configurations. This includes `HmisCsvTwentyTwentySix::Exporter::Custom::Base` and specific classes like `HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender`.
+-   **UI Integration**:
+    -   `app/controllers/warehouse_reports/hmis_exports_controller.rb` has been updated to accept a `custom_file_types: []` parameter.
+    -   `app/models/filters/hmis_export.rb` handles the validation and storage of the selected custom files.
+    -   `app/views/warehouse_reports/hmis_exports/_shared_filter.haml` contains the UI for selecting the files, visible only when the 2026 version is selected.
+-   **Export Process**:
+    -   The `HmisCsvTwentyTwentySix::Exporter::Base` class now dynamically discovers and includes the generated custom exporter classes when an export is initiated.
+    -   The `augments_export_class` property in the YAML config allows a custom file to reuse the data scope of a standard exporter (e.g., `CustomGender` uses the `Client` exporter's scope), ensuring data consistency and preventing N+1 queries.
+
+## Custom Files System
+
+The custom files system allows for importing additional CSV files beyond the standard HUD HMIS specification.
+
+### General Overview
+```mermaid
+
+graph TD
+    subgraph "A. One-Time Setup (Code Generation)"
+        direction LR
+        YAML[".yaml Config File<br/>(Defines file structure, rules, and mappings)"] -- "Is read by" --> CFM("HmisCsvTwentyTwentySix::Custom::FileManager<br/>(The code generator)")
+        CFM -- "Generates" --> GenModels["Generated Models<br/>(e.g., HmisCsvTwentyTwentySix::Importer::Custom::CustomGender)"]
+        CFM -- "Generates" --> Migrations["Database Migrations"]
+    end
+
+    subgraph "B. Runtime Import Process"
+        Upload["User uploads CSVs in a Zip or system imports from S3"] --> Importer("HmisCsvImporter::Importer<br/>(Main import orchestrator)")
+
+        Importer -- "Uses generated model for custom file" --> GenModels
+
+        GenModels -- "Includes shared logic from" --> CIC("HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern")
+
+        CIC -- "Uses for data transformation" --> CM("HmisCsvTwentyTwentySix::Importer::Custom::ColumnMapper")
+
+        CM -- "Reads mapping rules from" --> YAML
+
+        CIC -- "Returns processed data to" --> Importer
+
+        Importer -- "Is this data augmenting<br/>an existing table?" --> Decision{"Check: Augmentation or New Data"}
+
+        Decision -- "Yes (e.g., CustomGender)" --> BulkUpdate["Efficiently Bulk Update<br/>existing records in DB"]
+        Decision -- "No (e.g., CustomDataElement)" --> Insert["Insert new records<br/>into a custom table in DB"]
+
+        BulkUpdate --> DB[("Warehouse Database")]
+        Insert --> DB
+    end
+
+
+    class YAML config
+    class CFM,Importer,CIC,CM process
+    class GenModels,Migrations,Upload,Decision,BulkUpdate,Insert,DB component
+```
+
+### Quick Start
+
+1.  **Create a YAML configuration file** in `drivers/hmis_csv_twenty_twenty_six/config/custom/`
+2.  **Define your file structure** with columns, validations, and processing rules.
+3.  **Run the bootstrap task** to generate model and migration files:
+    ```bash
+    dcr shell bundle exec rails r "HmisCsvTwentyTwentySix::Custom::FileManager.bootstrap_custom_models!"
+    ```
+4.  **Run the generated migrations**:
+    ```bash
+    dcr shell bundle exec rails db:migrate:warehouse
+    ```
+5.  **Upload FY2026 HMIS CSV files**. Custom files included in the upload will be processed automatically.
+
+### Configuration Structure
+
+Custom files are defined via YAML configuration files.
+
+```yaml
+# custom_example.yaml
+custom_files:
+  - filename: "CustomExample.csv"
+    class_name: "CustomExample"
+    required: false
+    description: "Example custom file for demonstration"
+
+    # Choose ONE of these processing types:
+    # Add data to existing rows in an existing table
+    augments_warehouse_table: "GrdaWarehouse::Hud::Client"
+    augment_key: "PersonalID"
+    augment_import_class: "HmisCsvTwentyTwentySix::Importer::Client"
+
+    # Own data for a given data source in a non-HUD table
+    warehouse_class_name: "GrdaWarehouse::Hud::CustomExample"
+
+    columns:
+      - name: "PersonalID"
+        type: "string"
+        required: true
+        validations: ["NonBlank"]
+      - name: "CustomField"
+        type: "integer"
+        required: false
+```
+
+### Processing Types
+
+#### 1. Augmentation Files
+
+These files add data to existing warehouse tables. Use this for restoring fields that were removed from newer HMIS versions but still exist in the warehouse schema.
+
+```yaml
+# custom_gender.yaml
+custom_files:
+  - filename: "CustomGender.csv"
+    class_name: "CustomGender"
+    augments_warehouse_table: "GrdaWarehouse::Hud::Client"
+    augment_key: "PersonalID"
+    columns:
+      # ...
+```
+
+#### 2. Warehouse Tables
+
+These files own their own warehouse tables, similar to standard HUD files. Use this for completely new data types that don't fit into standard HMIS CSV tables.
+
+```yaml
+# custom_data_element.yaml
+custom_files:
+  - filename: "CustomDataElement.csv"
+    class_name: "CustomDataElement"
+    warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
+    columns:
+      # ...
+```
+
+### Column Mapping Types
+
+You can define how data from a source column is mapped to the warehouse.
+
+*   **Direct Mapping**: Maps the source value directly to a target column.
+*   **Value-Based Multi-Column Mapping**: Maps different source values to different target columns.
+*   **Concatenation Mapping**: Combines multiple source values into a single target field.
+*   **Record Lookup Mapping**: Looks up foreign keys in other warehouse tables to establish associations.
+*   **Static Value Mapping**: Assigns a fixed value to a target column, useful for setting defaults.
+
+#### `CustomDataElement` Import Process
+
+The import process for `CustomDataElement.csv` demonstrates how multiple mapping types are combined to handle complex requirements. The objective is to place the generic `Value` from the CSV into the correct typed `value_*` column in the `CustomDataElements` table (e.g., `value_string`, `value_date`). This is determined by the `field_type` in the associated `CustomDataElementDefinition` record.
+
+The process is as follows:
+
+1.  **`value_mapping` for `owner_type`**: The `RecordType` from the CSV (e.g., "Client", "Enrollment") is mapped to a full model name (`GrdaWarehouse::Hud::Client`).
+2.  **`record_lookup` for `owner_id`**: Using the `owner_type` from the previous step, the system performs a lookup to find the correct record by its HMIS key (e.g., `PersonalID` for a Client) and establish the polymorphic `owner` association.
+3.  **Dynamic Value Placement**: A custom routine uses the `CustomDataElementDefinitionID` to look up the definition, find its `field_type`, and place the CSV `Value` into the correct `value_string`, `value_integer`, etc., column.
+4.  **Foreign Key Association**: The `CustomImportConcern` establishes the direct foreign key link by setting the `data_element_definition_id` on the `CustomDataElement` record.
+
+This configuration-driven approach allows for complex import logic to be handled without requiring unique code for each new file type.
+
+### Model and Migration Generation
+
+The `HmisCsvTwentyTwentySix::Custom::FileManager.bootstrap_custom_models!` task automatically generates the necessary model and migration files for your custom files based on your YAML configurations. The generated files for loaders and importers will be placed in the appropriate directories within the driver. These generated files should be committed to your repository.
+
+### Best Practices
+
+1.  **Use descriptive filenames** for your YAML configs.
+2.  **Always validate required fields**.
+3.  **Be explicit about data types**.
+4.  **Handle missing files gracefully** with `required: false`.
+5.  **Generate and commit models** after any change to the YAML files.
+6.  **Test thoroughly**.
+7.  **Document your additions**.

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -55,7 +57,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
   let!(:fd1) { create :hmis_form_definition, definition: definition_json, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT }
-  let!(:fd2) { create :hmis_form_definition, data_source: ds1 }
+  let!(:fd2) { create :hmis_form_definition }
 
   let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, status: Hmis::Form::Definition::RETIRED, role: :CUSTOM_ASSESSMENT }
   let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED, role: :CUSTOM_ASSESSMENT }
@@ -94,10 +96,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_gql_error post_graphql(id: fd2.id) { mutation }, message: 'only draft forms can be published'
   end
 
-  it 'should fail if the user lacks permission' do
+  it 'should fail if the user lacks permission on administrative form' do
     remove_permissions(access_control, :can_administrate_config)
     expect_access_denied post_graphql(id: non_assessment_form.id) { mutation }
+  end
 
+  it 'should fail if the user lacks permission on non-administrative form' do
     remove_permissions(access_control, :can_manage_forms)
     expect_access_denied post_graphql(id: fd2.id) { mutation }
   end

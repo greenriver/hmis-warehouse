@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   use_doorkeeper
   get 'oauth/user-data', to: 'oauth#user'
@@ -432,6 +434,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # Client search queries
+  resources :client_searches, only: [:create], controller: 'clients/search_queries', as: :client_search_queries
+  get '/client_searches/:id', to: 'client_access_control/clients#search', as: 'client_search_query'
+
   resources :clients, only: [:create, :update, :edit] do
     member do
       # get :appropriate
@@ -561,7 +567,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :cohort_column_options, except: [:destroy]
+  resources :cohort_column_options
 
   resources :cohort_column_names, only: [:new, :create]
 
@@ -579,6 +585,10 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+
+    # Client search queries
+    resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries
+    get '/client_searches/:id', to: 'cohorts/clients#search', as: 'cohort_client_search_query'
   end
 
   resources :imports, only: [:index, :show] do
@@ -662,14 +672,27 @@ Rails.application.routes.draw do
     resources :patients, only: [:index] do
       collection do
         post :detail
+        # Patient search queries
+        resources :searches, only: [:create], to: 'patients#create_search_queries', as: :create_patient_searches
+        get 'searches/:id', to: 'patients#search', as: :patient_search_query
       end
     end
     resources :team_patients, only: [:index] do
       collection do
         post :detail
+
+        # Patient search queries
+        resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
+        get 'searches/:id', to: 'team_patients#search', as: :team_patient_search_query
       end
     end
-    resources :my_patients, only: [:index]
+    resources :my_patients, only: [:index] do
+      collection do
+        # Patient search queries
+        resources :searches, only: [:create], to: 'my_patients#create_search_queries', as: :create_my_patient_searches
+        get 'searches/:id', to: 'my_patients#search', as: :my_patient_search_query
+      end
+    end
     namespace :he do
       get :search
       resources :cases do
@@ -729,6 +752,13 @@ Rails.application.routes.draw do
       resource :edit_history, only: :show
       resource :locations, only: :show
       patch :reactivate, on: :member
+      collection do
+        # User search queries
+        resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+        get '/searches/:id', to: 'users#search', as: 'user_search_query'
+        get :load_select_options
+        post :stop_impersonating
+      end
       member do
         post :unlock
         post :un_expire
@@ -736,21 +766,26 @@ Rails.application.routes.draw do
         post :impersonate
         patch :expire_password
       end
-      collection do
-        post :stop_impersonating
-      end
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
 
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
+      collection do
+        # Inactive user search queries
+        resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+        get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+      end
     end
     resources :account_requests, only: [:index, :edit, :update, :destroy] do
       post :confirm
     end
 
     resources :collections do
+      resource :audit, only: :show, controller: 'collection_audits' do
+        get :export, on: :member
+      end
       get :entities, on: :member
       patch :bulk_entities, on: :member
     end
@@ -758,6 +793,9 @@ Rails.application.routes.draw do
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
     resources :roles do
+      resource :audit, only: :show, controller: 'role_audits' do
+        get :export, on: :member
+      end
       patch :batch_update, on: :collection
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
@@ -770,10 +808,18 @@ Rails.application.routes.draw do
       get :sample, on: :collection
     end
     resources :access_controls do
+      resource :audit, only: :show, controller: 'access_control_audits' do
+        get :export, on: :member
+      end
       post :assign, on: :collection
+      get :audits, on: :collection, to: 'access_controls#audits', as: :audits
+      post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
     end
     resources :access_overviews, only: [:index]
     resources :user_groups do
+      resource :audit, only: :show, controller: 'user_group_audits' do
+        get :export, on: :member
+      end
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
     resources :user_trainings, only: [:edit, :update]
@@ -810,6 +856,9 @@ Rails.application.routes.draw do
           get :disenrollment_accepted
           post :bulk_assign_agency
           post :bulk_assign_agency_and_care_staff
+          # Patient search queries
+          resources :searches, only: [:create], to: 'patient_referrals#create_search_queries', as: :create_patient_referral_searches
+          get 'searches/:id', to: 'patient_referrals#search', as: :patient_referral_search_query
         end
         post :assign_agency
       end
@@ -818,6 +867,9 @@ Rails.application.routes.draw do
         collection do
           get :review
           get :reviewed
+          # Patient search queries
+          resources :searches, only: [:create], to: 'agency_patient_referrals#create_search_queries', as: :create_agency__patient_referral_searches
+          get 'searches/:id', to: 'agency_patient_referrals#search', as: :agency_patient_referral_search_query
         end
       end
       resources :users, only: [:index] do
@@ -849,7 +901,11 @@ Rails.application.routes.draw do
     resources :talentlms_courses, only: [:new, :create, :destroy, :edit, :update]
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
+
+    resource :deprecation, only: [:show]
+    resources :system_maintenance_tasks, only: [:index]
   end
+
   resource :account, only: [:edit, :update] do
     get :locations, on: :member
   end
@@ -876,9 +932,10 @@ Rails.application.routes.draw do
       get :buttons
       get :careplan
       get :client_dashboard
+      get :colors
+      get :datepicker
       get :form
       get :health_dashboard
-      get :health_team
       get :icon_font
       get :menu
       get :modals
@@ -908,6 +965,7 @@ Rails.application.routes.draw do
   end
 
   get 'healthz' => 'system_status#operational'
+  get 'bootz' => 'system_status#details'
 
   root 'root#index'
 end

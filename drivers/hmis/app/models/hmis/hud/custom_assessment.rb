@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -18,11 +20,12 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   self.table_name = :CustomAssessments
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  include ::HmisStructure::Assessment
+  include ::HmisStructure::CustomAssessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::FormSubmittable
+  include ::Hmis::MarkClientAsDirtyBehavior
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
@@ -150,7 +153,24 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     title
   end
 
+  def data_integrity_reconciliation
+    [
+      [Hmis::Hud::DataIntegrity::TotalIncomeReconciler, form_processor.related_income_benefits],
+      # add other reconcilers as needed
+    ].each do |command, records|
+      records.each do |record|
+        command.call(record).each do |message|
+          # surface issues in development
+          raise message if Rails.env.development?
+
+          Sentry.capture_message(message)
+        end
+      end
+    end
+  end
+
   def save_submitted_assessment!(current_user:, as_wip: false)
+    data_integrity_reconciliation
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
       form_processor.save! # Not passing validation context because records have already been validated

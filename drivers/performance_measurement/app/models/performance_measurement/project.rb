@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -11,7 +13,7 @@ module PerformanceMeasurement
 
     belongs_to :report
     belongs_to :hud_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :project_id, optional: true
-    has_many :client_projects, primary_key: [:project_id, :report_id], foreign_key: [:project_id, :report_id]
+    has_many :client_projects, primary_key: [:project_id, :report_id], query_constraints: [:project_id, :report_id]
 
     scope :reporting_period, -> do
       where(reporting_period: true)

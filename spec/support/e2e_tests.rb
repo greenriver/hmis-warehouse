@@ -22,7 +22,6 @@ module E2eTests
   module Setup
     # The setup to be run prior to the test suite
     def self.perform(
-      process_timeout: 30,
       default_max_wait_time: 20,
       default_normalize_ws: true,
       automatic_label_click: true,
@@ -62,7 +61,6 @@ module E2eTests
             window_size: [1200, 1600],
             browser_options: RemoteChrome.connected? ? { 'no-sandbox' => nil } : {},
             headless: ENV.fetch('CI', 'true') == 'true',
-            process_timeout: process_timeout,
             js_errors: true,
             logger: FerrumLogger.new,
             inspector: true,
@@ -167,11 +165,18 @@ module E2eTests
     end
 
     def puts(log_str)
+      return if log_str.nil?
+
       _log_symbol, _log_time, log_body_str = log_str.strip.split(' ', 3)
 
       return if log_body_str.nil?
 
-      log_body = JSON.parse(log_body_str)
+      log_body = begin
+        JSON.parse(log_body_str)
+       rescue JSON::ParserError
+         nil
+      end
+      return if log_body.nil?
 
       case log_body['method']
       when 'Runtime.consoleAPICalled'

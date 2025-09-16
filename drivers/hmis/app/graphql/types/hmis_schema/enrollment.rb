@@ -120,6 +120,8 @@ module Types
     field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
+    field :staff_assignments, [Types::HmisSchema::StaffAssignment], null: true
+
     # Associated records. These automatically require the "can_view_enrollment_details" permission
     # because they use the overridden 'field' class method.
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForEnrollment' }
@@ -207,6 +209,9 @@ module Types
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :hp_screening_score, Integer, null: true
     field :threshold_score, Integer, null: true
+    # V10
+    field :mental_health_consultation, HmisSchema::Enums::Hud::MentalHealthConsultation, null: true
+
     # C4
     field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
@@ -389,6 +394,7 @@ module Types
     end
 
     def services(**args)
+      # TODO(#7573) - improve n+1 and update the test in drivers/hmis/spec/requests/hmis/bulk_services_client_search_spec.rb
       resolve_services(**args)
     end
 
@@ -453,23 +459,11 @@ module Types
 
     def last_contact
       last_contact_entity = [
-        load_ar_association(
-          object,
-          :services,
-          scope: Hmis::Hud::Service.where.not(date_provided: nil).order(date_provided: :asc),
-        ).last,
-        # CustomService DateProvided is guaranteed non-null by DB
-        load_ar_association(object, :custom_services, scope: Hmis::Hud::CustomService.order(:date_provided)).last,
-        # CLS InformationDate is guaranteed non-null by DB
-        load_ar_association(object, :current_living_situations, scope: Hmis::Hud::CurrentLivingSituation.order(:information_date)).last,
-        # AssessmentDate is guaranteed non-null by DB
-        load_ar_association(object, :custom_assessments, scope: Hmis::Hud::CustomAssessment.order(:assessment_date)).last,
-        # CustomCaseNote's information_date can be null in DB
-        load_ar_association(
-          object,
-          :custom_case_notes,
-          scope: Hmis::Hud::CustomCaseNote.where.not(information_date: nil).order(information_date: :asc),
-        ).last,
+        load_ar_association(object, :services_ordered_by_date).last,
+        load_ar_association(object, :custom_services_ordered_by_date).last,
+        load_ar_association(object, :cls_ordered_by_date).last,
+        load_ar_association(object, :custom_assessments_ordered_by_date).last,
+        load_ar_association(object, :custom_case_notes_with_date_ordered).last,
       ].compact.
         max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
 
@@ -497,6 +491,12 @@ module Types
         contact_date: contact_date,
         contact_type: contact_type,
       }
+    end
+
+    def staff_assignments
+      assignments = load_ar_association(object, :staff_assignments)
+      # Sort in-memory to avoid n+1. Equivalent of: order(created_at: :desc, id: :desc)
+      assignments.to_a.sort_by { |sa| [-sa.created_at.to_i, -sa.id] }
     end
   end
 end

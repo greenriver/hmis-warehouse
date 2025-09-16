@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
     # attr_accessor :requires_expiration_date
@@ -12,7 +14,7 @@ module GrdaWarehouse
     include ClientFileBase
     include ArelHelper
 
-    CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'.freeze
+    CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'
 
     mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
     has_paper_trail
@@ -33,6 +35,17 @@ module GrdaWarehouse
 
     validates :data_source, presence: true, if: ->(o) { o.confidential? && o.enrollment_id.blank? }
     validates :enrollment, presence: true, if: ->(o) { o.confidential? && o.data_source_id.blank? }
+
+    # If the attached client_file is changed, clear the active_storage_url
+    # The scheduled task will re-populate it as necessary
+    before_save :clear_active_storage_url
+
+    private def clear_active_storage_url
+      # Only set the URL for S3 storage services
+      return unless Rails.application.config.active_storage.service.in?([:amazon, :minio])
+
+      self.active_storage_url = nil
+    end
 
     scope :confidential, -> do
       where(confidential: true)
@@ -419,6 +432,25 @@ module GrdaWarehouse
         current_user.id
       else # rubocop:disable Style/EmptyElse
         nil
+      end
+    end
+
+    def self.maintain_urls
+      where(active_storage_url: nil).find_in_batches do |files|
+        batch = []
+        files.each do |file|
+          next unless file.client_file.attached?
+
+          batch << {
+            id: file.id,
+            active_storage_url: file.client_file&.blob&.url,
+          }
+        rescue StandardError
+          # Ignore errors, in development.  We'll revisit in production
+          # but if we can't find the url, we don't need to populate it
+          raise unless Rails.env.development?
+        end
+        upsert_all(batch, update_only: [:active_storage_url], record_timestamps: false) if batch.any?
       end
     end
 

@@ -8,7 +8,7 @@
 
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
-    serialize :client_details, Array
+    serialize :client_details, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
     after_save :invalidate_cache

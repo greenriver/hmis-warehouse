@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,9 +8,6 @@
 
 module GrdaWarehouse::Tasks
   class CensusImport
-    include TsqlImport
-    include ArelHelper
-
     def initialize replace_all = nil
       @replace_all = true if replace_all.present?
     end
@@ -29,15 +28,7 @@ module GrdaWarehouse::Tasks
         end_date = Date.current
         start_date = end_date - 3.years
       end
-      GrdaWarehouse::Census::CensusBuilder.new.create_census(start_date, end_date)
-    end
-
-    def history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
-    end
-
-    def history_scope
-      history_source.service.where.not(history_source.project_type_column => nil)
+      GrdaWarehouse::Census::CensusBuilder.call(start_date, end_date)
     end
   end
 end

@@ -4,16 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceMeasurement
   class StaticSpm < GrdaWarehouseBase
     self.table_name = :pm_coc_static_spms
     acts_as_paranoid
+    validates_presence_of :report_start, :report_end
 
     belongs_to :goal
     KNOWN_SPM_CELLS = {
       '1a' => ['D2', 'G2'],
       '1b' => ['D2', 'G2'],
-      '2a and 2b' => ['B7', 'C7', 'E7'],
+      '2a and 2b' => ['B7', 'C7', 'E7', 'I7'],
       # '3.2' => ['C2'], # actually using the PIT counts
       '4.1' => ['C2', 'C3'],
       '4.2' => ['C2', 'C3'],

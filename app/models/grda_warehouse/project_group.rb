@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'roo'
 module GrdaWarehouse
   class ProjectGroup < GrdaWarehouseBase
@@ -18,6 +20,8 @@ module GrdaWarehouse
     validates_presence_of :name
     # allows us to skip this expensive operation when running in tests
     attr_accessor :skip_maintain_system_group
+    # used to store the excluded project ids and types for the form, saved to the filter
+    attr_accessor :excluded_project_ids, :excluded_project_type_numbers
     after_create :maintain_system_group, unless: :skip_maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
@@ -44,6 +48,20 @@ module GrdaWarehouse
 
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects
+
+    after_initialize do
+      # Initialize filter with excluded project ids and types
+      self.excluded_project_ids = excluded_project_ids_form_filter
+      self.excluded_project_type_numbers = excluded_project_type_numbers_from_filter
+    end
+
+    def excluded_project_ids_form_filter
+      filter.excluded_project_ids || []
+    end
+
+    def excluded_project_type_numbers_from_filter
+      filter.excluded_project_type_numbers || []
+    end
 
     scope :viewable_by, ->(user) do
       # only used in the context of reporting
@@ -140,7 +158,8 @@ module GrdaWarehouse
     end
 
     def filter
-      @filter ||= begin
+      # NOTE: not memoized as memoization breaks tests, also this is not an expensive operation
+      @filter = begin
         f = ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
         f.coc_codes = []
         f
@@ -154,6 +173,8 @@ module GrdaWarehouse
         :project_ids,
         :organization_ids,
         :data_source_ids,
+        :excluded_project_ids,
+        :excluded_project_type_numbers,
       ]
       filter.describe_filter_as_html(keys)
     end

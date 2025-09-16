@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The core app (or other drivers) can check the presence of the
 # HudApr driver with the following code snippet
 #
@@ -32,6 +34,11 @@ Rails.application.config.hud_reports['HudApr::Generators::Apr::Fy2024::Generator
   helper: 'hud_reports_aprs_path',
 }
 
+Rails.application.config.hud_reports['HudApr::Generators::Apr::Fy2026::Generator'] = {
+  title: 'Annual Performance Report',
+  helper: 'hud_reports_aprs_path',
+}
+
 Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2020::Generator'] = {
   title: 'Consolidated Annual Performance and Evaluation Report',
   helper: 'hud_reports_capers_path',
@@ -48,6 +55,11 @@ Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2023::Generat
 }
 
 Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2024::Generator'] = {
+  title: 'Consolidated Annual Performance and Evaluation Report',
+  helper: 'hud_reports_capers_path',
+}
+
+Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2026::Generator'] = {
   title: 'Consolidated Annual Performance and Evaluation Report',
   helper: 'hud_reports_capers_path',
 }
@@ -72,7 +84,17 @@ Rails.application.config.hud_reports['HudApr::Generators::CeApr::Fy2024::Generat
   helper: 'hud_reports_ce_aprs_path',
 }
 
+Rails.application.config.hud_reports['HudApr::Generators::CeApr::Fy2026::Generator'] = {
+  title: 'Coordinated Entry Annual Performance Report',
+  helper: 'hud_reports_ce_aprs_path',
+}
+
 Rails.application.config.hud_reports['HudApr::Generators::Dq::Fy2024::Generator'] = {
+  title: 'HMIS Data Quality Report',
+  helper: 'hud_reports_dqs_path',
+}
+
+Rails.application.config.hud_reports['HudApr::Generators::Dq::Fy2026::Generator'] = {
   title: 'HMIS Data Quality Report',
   helper: 'hud_reports_dqs_path',
 }

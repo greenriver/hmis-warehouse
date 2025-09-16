@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa
   class RunReportJob < ::BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -19,7 +21,14 @@ module HudLsa
       report.complete_report
       # make the emailer work
       report.report = report
-      NotifyUser.driver_hud_report_finished(report).deliver_now if report.user_id && email
+
+      report_name = if report.hic?
+        'HIC'
+      else
+        'LSA'
+      end
+      report_url = report.url
+      NotifyUser.driver_hud_report_finished(report, report_name: report_name, report_url: report_url).deliver_now if report.user_id && email
     end
 
     def max_attempts

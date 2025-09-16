@@ -37,22 +37,9 @@
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
   .row
-    .col-7
+    .col-sm-7
       = render 'blank_form_button'
-
-    .col-5
-      .form__actions--right
-        %button.btn.btn-secondary(aria-label="Cancel" pjax-modal-close type="button") Cancel
-        = f.button :submit, 'Save', class: 'btn btn-primary'
-
-:javascript
-  $('#form_participation_signature_on').on('change', function(event) {
-    if ($('#form_signature_on').val() == '') {
-      $('#form_signature_on').datepicker('setDate', $('#form_participation_signature_on').val())
-    }
-  });
-  $('#form_signature_on').on('change', function(event) {
-    if ($('#form_participation_signature_on').val() == '') {
-      $('#form_participation_signature_on').datepicker('setDate', $('#form_signature_on').val())
-    }
-  });
+  .row.mt-4
+    .col-sm-5.offset-sm-7.text-right
+      %button.btn.btn-secondary(aria-label="Cancel" pjax-modal-close type="button") Cancel
+      = f.button :submit, 'Save', class: 'btn btn-primary ml-2'

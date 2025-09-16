@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPathReport::Fy2020
   class PathClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_path_clients'
@@ -15,6 +17,8 @@ module HudPathReport::Fy2020
     pii_attr :age
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 
     def self.detail_headers
       special = ['destination_client_id', 'client_id', 'personal_id', 'first_name', 'last_name']

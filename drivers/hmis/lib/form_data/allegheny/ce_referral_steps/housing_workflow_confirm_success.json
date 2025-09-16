@@ -1,0 +1,22 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "date",
+      "mapping": {
+        "custom_field_key": "housing_workflow_confirm_success_date"
+      },
+      "required": true
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_confirm_success_note"
+      },
+      "required": false
+    }
+  ]
+}

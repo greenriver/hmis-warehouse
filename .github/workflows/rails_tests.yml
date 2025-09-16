@@ -1,32 +1,48 @@
 name: Rails Tests
 
 on:
-  # NOTE: runs on both PRs and pulls. This would normally cause redundant jobs to run but there are conditions on github.event_name in the matrix to avoid this. In particular, we want the system tests to run only on PR so we can use the base_ref to infer the appropriate release branch name in the hmis FE repo (see issue #6566)
   push:
     branches:
       - '*'
       - '**/*'
-  pull_request:
-    branches:
-      - '*'
-      - '**/*'
+
 concurrency:
   group: ${{ github.ref }}-tests
   cancel-in-progress: true
 
 jobs:
   determine_matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    container: ruby:3.3.8-slim-bookworm
+
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - id: set-matrix
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo 'matrix={"test_group":[{"id":"system_tests","system_tests":"true"}]}' >> $GITHUB_OUTPUT
-          else
-            echo 'matrix={"test_group":[{"id":"ci_bucket_1","tag":"ci_bucket:bucket-1"},{"id":"ci_bucket_2","tag":"ci_bucket:bucket-2"},{"id":"ci_bucket_3","tag":"ci_bucket:bucket-3"},{"id":"ci_bucket_4","tag":"ci_bucket:bucket-4"},{"id":"ci_bucket_default","tag":"~ci_bucket","logging_tests":true,"okta_tests":true}]}' >> $GITHUB_OUTPUT
-          fi
+          ruby -rjson -e '
+            buckets_file = ".github/rspec_buckets.json"
+            test_groups = []
+            if File.exist?(buckets_file)
+              buckets = JSON.parse(File.read(buckets_file))
+              buckets.each do |bucket|
+                bucket_id = bucket["id"]
+                matrix_id = "ci_#{bucket_id.tr("-", "_")}"
+                matrix_tag = "ci_bucket:#{bucket_id}"
+                test_groups << { id: matrix_id, tag: matrix_tag }
+              end
+            end
+            test_groups << {
+              id: "ci_bucket_default",
+              tag: "~ci_bucket",
+              logging_tests: true,
+              okta_tests: true
+            }
+            matrix = { test_group: test_groups }
+            File.open(ENV["GITHUB_OUTPUT"], "a") { |f| f.puts "matrix=#{matrix.to_json}" }
+          '
 
   # Label of the container job
   tests:
@@ -35,17 +51,22 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.determine_matrix.outputs.matrix)}}
 
+    permissions:
+      contents: read
+      packages: read
+      pull-requests: read
+
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    container: ruby:3.3.8-slim-bookworm
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:3.3.7-alpine3.20
 
     # Service containers to run with job
     services:
       postgres:
-        image: index.docker.io/postgis/postgis@sha256:681931a625df344215e9b8998bf34daf146b6a395ceacee4439eb9c85869239f # 16-3.4-alpine
+        image: index.docker.io/postgis/postgis@sha256:1d7869b7f4dc799835cc8106061f10bcde94377da4704cd508511b78b9005c02 # 17-3.5-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
@@ -94,6 +115,7 @@ jobs:
 
     env:
       CLIENT: test
+      ENABLE_HMIS_API: 'true'
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
       DATABASE_DB_TEST: warehouse_test
@@ -117,6 +139,9 @@ jobs:
       USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
+      CACHE_HOST: redis
+      CACHE_PORT: 6379
+      CACHE_DB: 1
       REPORTING_DATABASE_ADAPTER: postgresql
       REPORTING_DATABASE_DB_TEST: reporting_test
       REPORTING_DATABASE_HOST: postgres
@@ -132,7 +157,9 @@ jobs:
       REPORTING_DATABASE_DB: reporting_test
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+      FERRUM_PROCESS_TIMEOUT: 45
+      FERRUM_DEFAULT_TIMEOUT: 45
 
     steps:
       - name: Checkout
@@ -141,6 +168,8 @@ jobs:
       - name: 'Container Setup'
         id: container-setup
         uses: ./.github/workflows/container_setup
+        with:
+          additional_packages: libpq-dev chromium chromium-common
 
       - name: 'App setup'
         run: |
@@ -167,7 +196,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -183,7 +212,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixpoints/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -194,7 +223,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -205,18 +234,12 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}/merged/source
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
           destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
-
-      # Regenerate the graphql schema and fail if it has changed
-      - name: 'Check HMIS GraphQL schema'
-        if: matrix.test_group.system_tests
-        run: |
-          bundle exec rake driver:hmis:dump_graphql_schema
 
       - name: Run tests
         if: matrix.test_group.tag
@@ -224,17 +247,19 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
+          CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           bundle exec rails ci:update_spec_tags[.github/rspec_buckets.json]
 
           # capture rspec profiling information
+          # see lib/tasks/ci.rake for more details
           # mkdir -p tmp/rspec_profiles
-          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
 
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
 
       - name: Run okta tests
         if: matrix.test_group.okta_tests
@@ -242,9 +267,10 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
+          CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
@@ -254,27 +280,13 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-
-      - name: Build front end and run tests
-        if: matrix.test_group.system_tests
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
-          CHROME_URL: http://chrome:3333
-        run:
-          # Are you looking to run the system tests locally? See:
-          # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
-          bash ./bin/run_hmis_system_tests.sh
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color -fd spec/models/logging_spec.rb
+          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color -fd spec/models/logging_spec.rb
 
       - name: Archive artifacts
         if: always()

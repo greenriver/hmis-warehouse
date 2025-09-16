@@ -1,6 +1,13 @@
 = render 'breadcrumbs'
 
-%h1 Edit Role: #{@role.name}
+.d-flex
+  %h1 Edit Role: #{@role.name}
+  .ml-auto
+    = link_to admin_role_audit_path(@role), class: 'btn btn-info mb-3' do
+      %i.fa.fa-history
+      %span.icon-eye
+      History
+
 = simple_form_for [:admin, @role] do |f|
   = render 'new_form', f: f, submit_text: 'Update Role'
 

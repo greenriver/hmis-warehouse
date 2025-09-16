@@ -1,0 +1,5 @@
+InventoryID,ProjectID,CoCCode,HouseholdType,Availability,UnitInventory,BedInventory,CHVetBedInventory,YouthVetBedInventory,VetBedInventory,CHYouthBedInventory,YouthBedInventory,CHBedInventory,OtherBedInventory,ESBedType,InventoryStartDate,InventoryEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+237,469,KY-500,1,1,50,50,,,,,0,,,,2013-01-01,2013-12-31,2014-10-24 00:00:00,2014-10-24 10:48:00,brooklyn,,539d181dc19258275458a4d9fd7aa92f
+238,469,KY-500,1,1,50,50,,,,,,,,,2017-01-01,2017-12-31,2014-09-30 00:00:00,2017-02-06 13:30:53,jedediah,,539d181dc19258275458a4d9fd7aa92f
+291,620,KY-500,3,,11,24,,,,,0,,,,,,2016-02-08 00:00:00,2016-02-08 10:26:17,burley,,539d181dc19258275458a4d9fd7aa92f
+421,556,KY-500,3,,4,10,,,,,0,,,,,,2016-09-30 00:00:00,2016-10-22 13:24:01,jaunita,,539d181dc19258275458a4d9fd7aa92f

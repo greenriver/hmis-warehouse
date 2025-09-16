@@ -4,25 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport
   class BaseController < ::HudReports::BaseController
     before_action :filter
 
-    def available_report_versions
-      {
-        'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2023' => { slug: :fy2023, active: false },
-        'FY 2024 (current)' => { slug: :fy2024, active: true },
-      }.freeze
-    end
-    helper_method :available_report_versions
-
-    def default_report_version
-      :fy2024
-    end
-
     private def relevant_project_types
-      HudUtility2024.spm_project_type_numbers
+      HudUtility2026.spm_project_type_numbers
     end
 
     def cell_value(cell, path)
@@ -93,11 +82,18 @@ module HudSpmReport
     end
     helper_method :path_for_new
 
+    def available_report_versions
+      # We only want to show the versions that have a matching generator class
+      super.select { |_, v| possible_generator_classes.keys.include?(v[:slug]) }
+    end
+    helper_method :available_report_versions
+
     private def possible_generator_classes
       {
         fy2020: HudSpmReport::Generators::Fy2020::Generator,
         fy2023: HudSpmReport::Generators::Fy2023::Generator,
         fy2024: HudSpmReport::Generators::Fy2024::Generator,
+        fy2026: HudSpmReport::Generators::Fy2026::Generator,
       }
     end
   end

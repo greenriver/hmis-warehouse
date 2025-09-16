@@ -4,12 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # part of the "new" permission system
 #
 class UserGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
   include UserPermissionCache
+  include HistoryDescriptions
 
   has_many :access_controls, inverse_of: :user_group
   has_many :user_group_members, inverse_of: :user_group

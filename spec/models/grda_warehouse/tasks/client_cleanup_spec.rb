@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 DEFAULT_DEST_ATTR = {
@@ -344,6 +352,139 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           VETERAN_ATTR.each_key do |k|
             expect(destination_client[k]).to eq(nil)
           end
+        end
+      end
+    end
+
+    describe 'choose_best_veteran_status method' do
+      let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+      let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: nil } }
+
+      describe 'when status is determined to be 1 (veteran)' do
+        context 'when a source client has VeteranStatus == 1' do
+          let(:source_clients) do
+            [
+              { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+              { VeteranStatus: 1, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990, MilitaryBranch: 1 },
+              { VeteranStatus: 99, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+            ]
+          end
+
+          it 'sets veteran-related columns from the source client with VeteranStatus == 1' do
+            result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+            expect(result[:VeteranStatus]).to eq(1)
+            expect(result[:YearEnteredService]).to eq(1960)
+            expect(result[:YearSeparated]).to eq(1990)
+            expect(result[:MilitaryBranch]).to eq(1)
+          end
+        end
+
+        context 'when no source client has VeteranStatus == 1 but va_verified_veteran is true' do
+          let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: true } }
+          let(:source_clients) do
+            [
+              { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+              { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+              { VeteranStatus: 8, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+            ]
+          end
+
+          it 'sets status to 1 but does not modify veteran-related columns' do
+            # Set some existing veteran-related values
+            dest_attr[:YearEnteredService] = 1945
+            dest_attr[:MilitaryBranch] = 2
+
+            result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+            expect(result[:VeteranStatus]).to eq(1)
+            # Veteran-related columns should remain unchanged since no source has VeteranStatus == 1
+            expect(result[:YearEnteredService]).to eq(1945)
+            expect(result[:MilitaryBranch]).to eq(2)
+            expect(result[:YearSeparated]).to be_nil
+          end
+        end
+      end
+
+      describe 'when status is determined to be 0 (non-veteran)' do
+        context 'when no source client has VeteranStatus == 1 and va_verified_veteran is false' do
+          let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: false } }
+          let(:source_clients) do
+            [
+              { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+              { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+              { VeteranStatus: 8, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+            ]
+          end
+
+          it 'sets status to 0 and clear out veteran-related columns' do
+            # Set some existing veteran-related values
+            dest_attr[:YearEnteredService] = 1945
+            dest_attr[:MilitaryBranch] = 2
+
+            result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+            expect(result[:VeteranStatus]).to eq(0)
+            expect(result[:YearEnteredService]).to be_nil
+            expect(result[:MilitaryBranch]).to be_nil
+            expect(result[:YearSeparated]).to be_nil
+          end
+        end
+
+        let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: 'non_veteran', va_verified_veteran: false } }
+        let(:source_clients) do
+          [
+            { VeteranStatus: 0, DateUpdated: 2.days.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+            { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+            { VeteranStatus: 8, DateUpdated: 3.days.ago, YearEnteredService: 1970, YearSeparated: 2000 },
+          ]
+        end
+
+        it 'sets veteran-related columns to nil' do
+          # Set some existing veteran-related values
+          dest_attr[:YearEnteredService] = 1945
+          dest_attr[:MilitaryBranch] = 2
+
+          result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+          expect(result[:VeteranStatus]).to eq(0)
+          # All veteran-related columns should be set to nil
+          expect(result[:YearEnteredService]).to be_nil
+          expect(result[:YearSeparated]).to be_nil
+          expect(result[:WorldWarII]).to be_nil
+          expect(result[:KoreanWar]).to be_nil
+          expect(result[:VietnamWar]).to be_nil
+          expect(result[:DesertStorm]).to be_nil
+          expect(result[:AfghanistanOEF]).to be_nil
+          expect(result[:IraqOIF]).to be_nil
+          expect(result[:IraqOND]).to be_nil
+          expect(result[:OtherTheater]).to be_nil
+          expect(result[:MilitaryBranch]).to be_nil
+          expect(result[:DischargeStatus]).to be_nil
+        end
+      end
+
+      describe 'when status is determined to be a non-binary value (99, 8, etc.)' do
+        let(:dest_attr) { { VeteranStatus: nil, verified_veteran_status: nil, va_verified_veteran: false } }
+        let(:source_clients) do
+          [
+            { VeteranStatus: 99, DateUpdated: 1.day.ago, YearEnteredService: 1950, YearSeparated: 1980 },
+            { VeteranStatus: 8, DateUpdated: 2.days.ago, YearEnteredService: 1960, YearSeparated: 1990 },
+          ]
+        end
+
+        it 'sets veteran-related columns to nil' do
+          # Set some existing veteran-related values
+          dest_attr[:YearEnteredService] = 1945
+          dest_attr[:MilitaryBranch] = 2
+
+          result = cleanup.choose_best_veteran_status(dest_attr, source_clients)
+
+          expect(result[:VeteranStatus]).to eq(99) # Most recent non-binary value
+          # All veteran-related columns should be set to nil
+          expect(result[:YearEnteredService]).to be_nil
+          expect(result[:YearSeparated]).to be_nil
+          expect(result[:MilitaryBranch]).to be_nil
         end
       end
     end
@@ -852,6 +993,89 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
           expect(1).to eq(@dest_attr[col])
         end
+      end
+    end
+  end
+
+  describe 'recently_ran?' do
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+    let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
+    let(:cache) { Rails.cache }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_store)
+      Rails.cache.clear
+    end
+
+    before do
+      Rails.cache.delete('client_cleanup_last_run')
+    end
+
+    it 'returns false when cache is empty' do
+      expect(cleanup.send(:recently_ran?)).to be false
+    end
+
+    it 'returns true when last run was within 30 minutes' do
+      Rails.cache.write('client_cleanup_last_run', Time.current)
+      expect(cleanup.send(:recently_ran?)).to be true
+    end
+
+    it 'returns false when last run was more than 30 minutes ago' do
+      Rails.cache.write('client_cleanup_last_run', 31.minutes.ago)
+      expect(cleanup.send(:recently_ran?)).to be false
+    end
+  end
+
+  describe 'methods that check recently_ran?' do
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+
+    let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
+    let(:cache) { Rails.cache }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_store)
+      Rails.cache.clear
+    end
+
+    describe '#fix_incorrect_household_ids' do
+      it 'runs when recently_ran? is false' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(nil)
+        expect(Rails.logger).to_not receive(:info).with(/skipping/i)
+        cleanup.fix_incorrect_household_ids
+      end
+
+      it 'does not run when recently_ran? is true' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
+        expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
+        cleanup.fix_incorrect_household_ids
+      end
+    end
+
+    describe '#fix_incorrect_ages_in_service_history' do
+      it 'runs when recently_ran? is false' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(nil)
+        expect(Rails.logger).to_not receive(:info).with(/skipping/i)
+        cleanup.fix_incorrect_ages_in_service_history
+      end
+
+      it 'does not run when recently_ran? is true' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
+        expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
+        cleanup.fix_incorrect_ages_in_service_history
+      end
+    end
+
+    describe '#add_missing_ages_to_service_history' do
+      it 'runs when recently_ran? is false' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(nil)
+        expect(Rails.logger).to_not receive(:info).with(/skipping/i)
+        cleanup.add_missing_ages_to_service_history
+      end
+
+      it 'does not run when recently_ran? is true' do
+        allow(Rails.cache).to receive(:read).with('client_cleanup_last_run').and_return(Time.current)
+        expect(Rails.logger).to receive(:info).with(/Client cleanup last run was .*, skipping/i).twice
+        cleanup.add_missing_ages_to_service_history
       end
     end
   end

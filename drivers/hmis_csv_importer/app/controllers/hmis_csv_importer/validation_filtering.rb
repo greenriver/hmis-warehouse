@@ -4,17 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvImporter::ValidationFiltering
   extend ActiveSupport::Concern
 
   included do
     private def detect_filename
       filename = params[:file] + '.csv'
-      HmisCsvImporter::Importer::Importer.importable_files_map.keys.detect { |v| v == filename }
+      importable_files_map(version: version(importer_log, @import)).keys.detect { |v| v == filename }
     end
 
     private def pattern
-      '%::' + HmisCsvImporter::Importer::Importer.importable_files_map[@filename].downcase
+      '%::' + importable_files_map(version: version(importer_log, @import)).detect { |k, _| k == @filename }.last.downcase
     end
 
     private def filter_setup

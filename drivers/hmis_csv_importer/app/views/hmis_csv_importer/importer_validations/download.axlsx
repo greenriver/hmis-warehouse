@@ -1,14 +1,18 @@
+# frozen_string_literal: true
+
 sheet_title = "#{@filename} Validation Flags"
 validations = @validations
 
 wb = xlsx_package.workbook
+
+inferred_cols = validations.detect(&:source)&.source&.class&.hmis_structure&.keys || []
 wb.add_worksheet(name: sheet_title[0..30]) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  row = ['Message'] + validations.first.source.class.hmis_structure.keys
+  row = ['Message'] + inferred_cols
   sheet.add_row(row, style: title)
   validations.each do |error|
-    source = error.source
-    row = [error.status] + source.hmis_data.values
+    source_data = error.source&.hmis_data || {}
+    row = [error.status] + source_data.values_at(*inferred_cols)
     sheet.add_row(row)
   end
 end

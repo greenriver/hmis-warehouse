@@ -23,10 +23,6 @@ module Types
         end
       end
 
-      def resolve_clients_with_loader(association_name = :clients, **args)
-        load_ar_association(object, association_name, scope: scoped_clients(Hmis::Hud::Client, **args))
-      end
-
       def resolve_clients(scope = object.clients, **args)
         scoped_clients(scope, **args)
       end

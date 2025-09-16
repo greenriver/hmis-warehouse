@@ -17,7 +17,6 @@ module GrdaWarehouse::Hud
     include RandomScope
     include ArelHelper
     include HealthCharts
-    include ApplicationHelper
     include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
@@ -133,7 +132,7 @@ module GrdaWarehouse::Hud
       ongoing
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', query_constraints: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client
@@ -1081,7 +1080,8 @@ module GrdaWarehouse::Hud
     def apply_housing_release_status
       return unless GrdaWarehouse::Config.implied_consent?
 
-      self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
+      consent_class = GrdaWarehouse::Config.active_consent_class.new(client: self)
+      self.housing_release_status = consent_class.current_consent_type
     end
 
     # End Release information
@@ -1309,6 +1309,17 @@ module GrdaWarehouse::Hud
         end
         return child && adult
       end
+    end
+
+    # extracted from ApplicationHelper
+    private def dates_overlap(d_1_start, d_1_end, d_2_start, d_2_end)
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+
+      d_1_start < d_2_end && d_1_end > d_2_start
+    rescue StandardError
+      true
+      # this catches empty
     end
 
     def policy_class
@@ -1795,14 +1806,16 @@ module GrdaWarehouse::Hud
         ).pluck(:id)
       end
 
-      if ssn.length == 9
-        ssn_ids = source.where(
-          arel_table[:SSN].eq(ssn),
-        ).pluck(:id)
-      elsif ssn.length == 4
-        ssn_ids = source.where(
-          arel_table[:SSN].matches("%#{ssn}"),
-        ).pluck(:id)
+      if ssn.present?
+        if ssn.length == 9
+          ssn_ids = source.where(
+            arel_table[:SSN].eq(ssn),
+          ).pluck(:id)
+        elsif ssn.length == 4
+          ssn_ids = source.where(
+            arel_table[:SSN].matches("%#{ssn}"),
+          ).pluck(:id)
+        end
       end
 
       all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
@@ -1870,7 +1883,7 @@ module GrdaWarehouse::Hud
       dob = attributes['DOB'].to_date
       self.class.age(date: date, dob: dob)
     end
-    alias age_on age
+    alias_method :age_on, :age
 
     def youth_on?(date = Date.current)
       (18..24).cover?(age(date))
@@ -2105,7 +2118,7 @@ module GrdaWarehouse::Hud
         nicks = Nickname.for(self.FirstName).map(&:name)
 
         if nicks.any?
-          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
+          nicks_for_search = nicks.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
           ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
@@ -2117,7 +2130,7 @@ module GrdaWarehouse::Hud
         alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
         alt_names = alt_first_names + alt_last_names
         if alt_names.any?
-          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
+          alt_names_for_search = alt_names.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
               and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
@@ -2161,28 +2174,44 @@ module GrdaWarehouse::Hud
     end
 
     def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+      Rails.logger.info '=== Starting client split ==='
+      Rails.logger.info "Original client: #{id}"
+      Rails.logger.info "Clients to split: #{client_ids.inspect}"
+      Rails.logger.info "HMIS receiver: #{hmis_receiver_id}"
+      Rails.logger.info "Health receiver: #{health_receiver_id}"
+
       client_names = []
+      to_clean = [id]
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
       GrdaWarehouse::Hud::Base.transaction do
         client_ids.each do |client_id|
+          Rails.logger.info "Processing split for client: #{client_id}"
           c = self.class.find(client_id)
-          c.warehouse_client_source.destroy if c.warehouse_client_source.present?
+          Rails.logger.info "Found source client: #{c.inspect}"
+
+          if c.warehouse_client_source.present?
+            Rails.logger.info "Destroying warehouse client source for: #{client_id}"
+            c.warehouse_client_source.destroy
+          end
+
           destination_client = c.dup
           destination_client.data_source = dnd_warehouse_data_source
           destination_client.save
+          Rails.logger.info "Created new destination client: #{destination_client.id}"
 
           receive_hmis = hmis_receiver_id == client_id
           receive_health = health_receiver_id == client_id
 
-          GrdaWarehouse::ClientSplitHistory.create(
+          split_history = GrdaWarehouse::ClientSplitHistory.create(
             split_from: id,
             split_into: destination_client.id,
             receive_hmis: receive_hmis,
             receive_health: receive_health,
           )
+          Rails.logger.info "Created split history record: #{split_history.inspect}"
 
-          GrdaWarehouse::WarehouseClient.create(
+          warehouse_client = GrdaWarehouse::WarehouseClient.create(
             id_in_source: c.PersonalID,
             source_id: c.id,
             destination_id: destination_client.id,
@@ -2192,13 +2221,28 @@ module GrdaWarehouse::Hud
             reviewd_by: current_user.id,
             approved_at: Time.now,
           )
+          Rails.logger.info "Created warehouse client record: #{warehouse_client.inspect}"
 
-          destination_client.move_dependent_hmis_items(id, destination_client.id) if receive_hmis
-          destination_client.move_dependent_health_items(id, destination_client.id) if receive_health
+          if receive_hmis
+            Rails.logger.info "Moving HMIS items from #{id} to #{destination_client.id}"
+            destination_client.move_dependent_hmis_items(id, destination_client.id)
+          end
+
+          if receive_health
+            Rails.logger.info "Moving health items from #{id} to #{destination_client.id}"
+            destination_client.move_dependent_health_items(id, destination_client.id)
+          end
+
+          to_clean << destination_client.id
+          to_clean << client_id
 
           client_names << c.full_name
         end
       end
+
+      Rails.logger.info "Queueing cleanup for clients: #{to_clean.inspect}"
+      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq)
+      Rails.logger.info '=== Completed client split ==='
 
       client_names
     end
@@ -2208,64 +2252,79 @@ module GrdaWarehouse::Hud
     # if it's a destination record, all of its sources will move and it will be deleted
     #
     # returns the source client records that moved
-    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
-      raise 'only works for destination_clients' unless self.destination? # rubocop:disable Style/RedundantSelf
+    def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil, cleanup: true)
+      raise 'only works for destination_clients' unless destination?
 
       setup_notifier('PatientMerger') unless @notifier
       moved = []
-      transaction do
-        # get the existing destination client for other_client
-        prev_destination_client = if other_client.destination_client
-          other_client.destination_client
-        elsif other_client.destination?
-          other_client
-        end
-        # if it had sources then move those over to us
-        # and say who made the decision and when
-        other_client.source_clients.each do |m|
-          m.warehouse_client_source.update!(
-            destination_id: self.id, # rubocop:disable Style/RedundantSelf
-            reviewed_at: reviewed_at,
-            reviewd_by: reviewed_by.id,
-            client_match_id: client_match_id,
-          )
-          moved << m
-        end
-        # if we are a source, move us
-        if other_client.warehouse_client_source
-          other_client.warehouse_client_source.update!(
-            destination_id: self.id, # rubocop:disable Style/RedundantSelf
-            reviewed_at: reviewed_at,
-            reviewd_by: reviewed_by.id,
-            client_match_id: client_match_id,
-          )
-          moved << other_client
-        end
-        # clean up the previous destination
-        if prev_destination_client
-          # move any CAS column data
-          previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-          current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s)) # rubocop:disable Style/RedundantSelf
-          current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
-          self.update(current_cas_columns) # rubocop:disable Style/RedundantSelf
-          self.save # rubocop:disable Style/RedundantSelf
-
-          prev_destination_client.force_full_service_history_rebuild
-          prev_destination_client.source_clients.reload
-          if prev_destination_client.source_clients.empty?
-            # Create a client_merge_history record so we can keep links working
-            GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-            prev_destination_client.destroy
+      to_clean = [id]
+      begin
+        transaction do
+          # get the existing destination client for other_client
+          prev_destination_client = if other_client.destination_client
+            other_client.destination_client
+          elsif other_client.destination?
+            to_clean << other_client.id
+            other_client
           end
+          # if it had sources then move those over to us
+          # and say who made the decision and when
+          other_client.source_clients.each do |m|
+            m.warehouse_client_source.update!(
+              destination_id: id,
+              reviewed_at: reviewed_at,
+              reviewd_by: reviewed_by.id,
+              client_match_id: client_match_id,
+            )
+            moved << m
+          end
+          # if we are a source, move us
+          if other_client.warehouse_client_source
+            other_client.warehouse_client_source.update!(
+              destination_id: id,
+              reviewed_at: reviewed_at,
+              reviewd_by: reviewed_by.id,
+              client_match_id: client_match_id,
+            )
+            moved << other_client
+          end
+          # clean up the previous destination
+          if prev_destination_client
+            # move any CAS column data
+            previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+            current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+            current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
+            update(current_cas_columns)
+            save!
 
-          move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
+            prev_destination_client.force_full_service_history_rebuild
+            prev_destination_client.source_clients.reload
+            if prev_destination_client.source_clients.empty?
+              # Create a client_merge_history record so we can keep links working
+              GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+              prev_destination_client.destroy
+            end
+
+            move_dependent_items(prev_destination_client.id, id)
+            to_clean << prev_destination_client.id
+          end
+          # and invalidate our own service history
+          force_full_service_history_rebuild
+          # and invalidate any cache for these clients
+          self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
         end
-        # and invalidate our own service history
-        force_full_service_history_rebuild
-        # and invalidate any cache for these clients
-        self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
+      rescue Health::MedicaidIdConflict => e
+        @notifier.ping(
+          'Non-matching Medicaid IDs on patient merge',
+          {
+            exception: e,
+          },
+        )
+        # add a split record to prevent these client being merged automatically in the future
+        GrdaWarehouse::ClientSplitHistory.create(split_from: other_client.id, split_into: id)
+        return []
       end
-      self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
+      self.class.clear_view_cache(id)
       self.class.clear_view_cache(other_client.id)
       # un-match anyone who we just moved so they don't show up in the matching again until they've been checked
       moved.each do |m|
@@ -2274,14 +2333,8 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ClientMatch.processed_or_candidate.
           where(destination_client_id: m.id).destroy_all
       end
+      ClientCleanupJob.set(priority: 6).perform_later(to_clean.uniq) if cleanup
       moved
-    rescue Health::MedicaidIdConflict => e
-      @notifier.ping(
-        'Non-matching Medicaid IDs on patient merge',
-        {
-          exception: e,
-        },
-      )
     end
 
     def move_dependent_hmis_items(previous_id, new_id)

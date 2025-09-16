@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'faker'
 
@@ -32,7 +34,7 @@ RSpec.describe Health::Patient, type: :model do
     let!(:referral_ds) { create :referral_ds }
 
     before(:each) do
-      Timecop.travel(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
+      travel_to(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
       referral_args = {
         first_name: 'First',
         last_name: 'Last',
@@ -46,13 +48,13 @@ RSpec.describe Health::Patient, type: :model do
     end
 
     after(:each) do
-      Timecop.return
+      travel_back
     end
 
     it 'sets the default outreach cut-off and engagement dates after referral' do
       enrollment_start_date = @referral.enrollment_start_date
 
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 90.days)
         expect(@patient.engagement_date).to eq(enrollment_start_date + Health::PatientReferral::ENGAGEMENT_IN_DAYS)
@@ -74,7 +76,7 @@ RSpec.describe Health::Patient, type: :model do
       @patient.reload
 
       expect(@patient.patient_referrals.count).to eq(2)
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         # Days disenrolled days don't count against outreach for auto re-enrollment
         expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
@@ -105,7 +107,7 @@ RSpec.describe Health::Patient, type: :model do
       @patient.reload
 
       expect(@patient.patient_referrals.count).to eq(2)
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         # Days disenrolled days don't count against outreach for auto re-enrollment
         expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
@@ -124,7 +126,7 @@ RSpec.describe Health::Patient, type: :model do
       create(:pctp_careplan, patient_id: @patient.id, instrument: careplan)
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on + 1.day
-      Timecop.travel(new_enrollment_date)
+      travel_to(new_enrollment_date)
       referral_args = {
         first_name: @referral.first_name,
         last_name: @referral.last_name,
@@ -136,7 +138,7 @@ RSpec.describe Health::Patient, type: :model do
       @patient.reload
 
       expect(@patient.patient_referrals.count).to eq(2)
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(@patient.outreach_cutoff_date).to eq(new_enrollment_date + 90.days)
         expect(@patient.engagement_date).to eq(new_enrollment_date + Health::PatientReferral::ENGAGEMENT_IN_DAYS)

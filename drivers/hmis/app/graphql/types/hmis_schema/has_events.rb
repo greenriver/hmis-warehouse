@@ -22,10 +22,6 @@ module Types
         end
       end
 
-      def resolve_events_with_loader(association_name = :events, **args)
-        load_ar_association(object, association_name, scope: scoped_events(Hmis::Hud::Event, **args))
-      end
-
       def resolve_events(scope = object.events, **args)
         scoped_events(scope, **args)
       end

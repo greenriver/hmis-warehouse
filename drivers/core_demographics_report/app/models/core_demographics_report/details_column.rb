@@ -4,29 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # CoreDemographicsReport::DetailsColumn
 module CoreDemographicsReport
   DetailsColumn = Struct.new(:label, :index, :user, :project_id_index, keyword_init: true) do
+    include ::PiiDisplay
     def value(row)
       raw_value = row[index]
 
       project_id = row[project_id_index]
       policy = user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
-      pii_value(raw_value, policy)
+      pii_value(col: label, raw_value: raw_value, pii_policy: policy)
     end
 
     protected
-
-    def pii_value(raw_value, policy)
-      case label
-      when 'First Name', 'Last Name'
-        GrdaWarehouse::PiiProvider.viewable_name(raw_value, policy: policy)
-      when 'DOB'
-        GrdaWarehouse::PiiProvider.viewable_dob(raw_value, policy: policy)
-      else
-        raw_value
-      end
-    end
 
     def field
       @field ||= label.gsub(' ', '_').downcase

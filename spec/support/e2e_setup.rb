@@ -61,8 +61,6 @@ RSpec.shared_context 'SystemSpecHelper' do
     label = find('label', text: from)
     scroll_to(label, align: :center)
     id = label['for']
-    # we seem to have invalid ids such as "3.917A.1"
-    # find("##{id}").click
     find("[id='#{id}']").click
     find('li[role=option]', text: choice).trigger(:click)
   end
@@ -121,6 +119,11 @@ RSpec.shared_context 'SystemSpecHelper' do
 
   def mui_click_menu_item(label)
     find("[role='menuitem']", text: label).click
+  end
+
+  def mui_click_checkbox(label)
+    checkbox_label = find('label', text: label, match: :prefer_exact)
+    checkbox_label.find('input[type="checkbox"]', visible: :all).click
   end
 
   def with_hidden

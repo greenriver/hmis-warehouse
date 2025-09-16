@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ==  Mutations::SubmitAssessment
 #
 # This mutation creates or updates a custom assessment, form processor, and related HUD records.
@@ -101,7 +103,7 @@ module Mutations
       is_valid = assessment.valid?(:form_submission)
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = assessment.form_processor.collect_record_validations(user: current_user)
+      record_validations = assessment.form_processor.collect_processing_validations(user: current_user)
       errors.push(*record_validations)
 
       errors.drop_warnings! if input.confirmed

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class BulkAssignService < CleanBaseMutation
     description 'Assign services for a set of Clients. If any client is not enrolled, the client will be enrolled in the project as well.'
@@ -13,7 +15,7 @@ module Mutations
     def resolve(input:)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
       access_denied! unless project
-      access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
+      access_denied! unless current_user.permissions_for?(project, :can_edit_enrollments, :can_view_enrollment_details, mode: :all)
 
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids)
       access_denied! unless clients.count == input.client_ids.uniq.length
@@ -25,10 +27,10 @@ module Mutations
       can_enroll_clients = current_permission?(permission: :can_enroll_clients, entity: project)
 
       # Determine and validate CoC Code, which is needed for creating new Enrollments
-      coc_code = determine_coc_code(coc_code_arg: input.coc_code, project: project)
+      coc_code = project.determine_coc_code(coc_code_arg: input.coc_code)
 
       project_has_units = project.units.exists?
-      available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
+      available_units = project.units.unoccupied_on(input.date_provided).not_receiving_referrals.order(updated_at: :desc).to_a
 
       # async record load must be called outside of a db transaction to avoid deadlocks
       enrollment_by_client = clients.to_h do |client|
@@ -39,6 +41,8 @@ module Mutations
         )
         [client.id, enrollment]
       end
+
+      errors = HmisErrors::Errors.new
 
       Hmis::Hud::Service.transaction do
         clients.each do |client|
@@ -62,12 +66,14 @@ module Mutations
             entry_date_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment)
             # Ignore informational warnings (e.g. >30 days ago). Keep out-of-range warnings (e.g. existing overlapping enrollment)
             entry_date_errors.reject! { |e| e.warning? && e.type == :information }
-            error_out(entry_date_errors.first.full_message) unless entry_date_errors.empty?
+            errors.push(*entry_date_errors)
+            raise ActiveRecord::Rollback if errors.any?
 
             # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
             # not support specifying the unit type. Needs improvement if/when we expand unit capabilities.
             if project_has_units
-              error_out('Failed to enroll client because there are no available units.') if available_units.empty?
+              errors.add :base, :invalid, full_message: 'Failed to enroll client because there are no available units' if available_units.empty?
+              raise ActiveRecord::Rollback if errors.any?
 
               enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
             end
@@ -103,23 +109,9 @@ module Mutations
         end
       end
 
+      return { success: false, errors: errors } if errors.any?
+
       { success: true }
-    end
-
-    # Determine and validate CoC Code, which is needed for creating new Enrollments
-    def determine_coc_code(coc_code_arg:, project:)
-      # If project has exactly 1 CoC code, always use that
-      return project.uniq_coc_codes.first if project.uniq_coc_codes.size == 1
-
-      raise 'CoC Code required for project' unless coc_code_arg
-      raise "Invalid CoC Code #{coc_code_arg} for project" unless project.uniq_coc_codes.include?(coc_code_arg)
-
-      coc_code_arg
-    end
-
-    def error_out(msg)
-      # error out with user-facing error message
-      raise HmisErrors::ApiError.new(msg, display_message: msg)
     end
   end
 end

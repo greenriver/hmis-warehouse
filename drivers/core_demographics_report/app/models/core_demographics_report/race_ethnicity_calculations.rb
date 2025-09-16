@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::RaceEthnicityCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for race and ethnicity combinations
+    # @return [Hash] A hash containing report configurations for different race and ethnicity combinations
     def race_ethnicity_detail_hash
       {}.tap do |hashes|
         race_combination_buckets.each do |key, titles|
@@ -23,6 +25,8 @@ module
       end
     end
 
+    # Returns a hash of race and ethnicity combinations and their display titles
+    # @return [Hash] A hash mapping race and ethnicity combinations to their display titles
     def race_combination_buckets
       @race_combination_buckets ||= {}.tap do |r|
         # from RaceCalculations
@@ -44,10 +48,18 @@ module
       end
     end
 
+    # Counts the number of clients with a specific race and ethnicity combination
+    # @param type [Array] The race and ethnicity combination to count
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Integer] The count of clients with the specified combination, masked if population is small
     def race_combination_count(type, coc_code = base_count_sym)
       mask_small_population(client_ids_in_race_combination(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with a specific race and ethnicity combination
+    # @param type [Array] The race and ethnicity combination to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Float] The percentage of clients with the specified combination
     def race_combination_percentage(type, coc_code = base_count_sym)
       total_count = mask_small_population(client_race_combinations[coc_code].count)
       return 0 if total_count.zero?
@@ -58,6 +70,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares race and ethnicity combination data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with race and ethnicity combination data
     def race_combination_data_for_export(rows)
       rows['_Race by Ethnicity Break'] ||= []
       rows['*Race by Ethnicity'] ||= []
@@ -87,16 +102,25 @@ module
       rows
     end
 
+    # Groups clients by their race and ethnicity combinations
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Hash] A hash mapping race and ethnicity combinations to sets of client IDs
     private def race_combination_breakdowns(coc_code = base_count_sym)
       client_race_combinations[coc_code].group_by do |_, v|
         v
       end
     end
 
+    # Retrieves client IDs for a specific race and ethnicity combination
+    # @param key [Array] The race and ethnicity combination to filter by
+    # @param coc_code [Symbol] The CoC code to filter by (defaults to base_count_sym)
+    # @return [Array] Array of client IDs with the specified combination
     private def client_ids_in_race_combination(key, coc_code = base_count_sym)
       race_combination_breakdowns(coc_code)[key]&.map(&:first)
     end
 
+    # Retrieves and caches client race and ethnicity combination information
+    # @return [Hash] A hash containing client race and ethnicity combinations for each CoC code
     private def client_race_combinations
       @client_race_combinations ||= Rails.cache.fetch(race_combinations_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
@@ -125,6 +149,8 @@ module
       end
     end
 
+    # Generates a cache key for race and ethnicity combinations
+    # @return [Array] Cache key array
     private def race_combinations_cache_key
       [self.class.name, cache_slug, 'client_race_combinations']
     end

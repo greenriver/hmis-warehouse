@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -8,7 +10,7 @@ module EccoviaData
   class CaseManager < GrdaWarehouseBase
     include Shared
     self.table_name = :eccovia_case_managers
-    belongs_to :client, class_name: '::GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
+    belongs_to :client, class_name: '::GrdaWarehouse::Hud::Client', query_constraints: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
     acts_as_paranoid
 
     # NOTE: this is how you get assigned case manager for a client:

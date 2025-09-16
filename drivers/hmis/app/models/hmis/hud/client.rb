@@ -1,24 +1,30 @@
+# frozen_string_literal: false
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Client < Hmis::Hud::Base
+  self.table_name = :Client
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+  self.ignored_columns += [:preferred_name]
+
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::HudConcerns::Client
   include ClientSearch
+  # this may be invoked multiple times for the same record as IdentifyDuplicates may also mark clients as dirty
+  include ::Hmis::MarkClientAsDirtyBehavior
 
   has_paper_trail(meta: { client_id: :id })
 
   attr_accessor :gender, :race
-
-  self.table_name = :Client
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -36,6 +42,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
+  has_many :enrollments_with_exits, -> { preload(:exit) }, **hmis_relation(:PersonalID, 'Enrollment')
+
   # Projects that this Client is enrolled in, including through WIP enrollments
   has_many :projects, through: :enrollments
 
@@ -64,6 +72,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Merge Audits for merges from this client into another client
   has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
 
+  has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', foreign_key: :client_id, dependent: :destroy
+
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
   accepts_nested_attributes_for :contact_points, allow_destroy: true
@@ -77,6 +87,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :scan_card_codes, class_name: 'Hmis::ScanCardCode', inverse_of: :client
 
   has_many :alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
+  has_many :active_alerts, -> { active }, class_name: '::Hmis::ClientAlert'
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
@@ -109,7 +120,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   class << self
-    alias viewable_by visible_to
+    alias_method :viewable_by, :visible_to
   end
 
   scope :searchable_to, ->(user) do
@@ -207,10 +218,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     searchable_to(user).where(id: source_id)
   end
 
-  def ssn_serial
-    self.SSN&.[](-4..-1)
-  end
-
   def warehouse_id
     warehouse_client_source&.destination_id
   end
@@ -261,7 +268,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
-      ccn_query = ccn_t[:last].matches("#{input.first_name}%")
+      ccn_query = ccn_t[:last].matches("#{input.last_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
       client_id_query = scope.left_outer_joins(:names).
@@ -310,10 +317,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
-  use_enum(:gender_enum_map, ::HudUtility2024.genders) do |hash|
+  use_enum(:gender_enum_map, ::HudUtility2026.genders) do |hash|
     hash.map do |value, desc|
       {
-        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2024.gender_id_to_field_name[value],
+        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2026.gender_id_to_field_name[value],
         value: value,
         desc: desc,
         null: [8, 9, 99].include?(value),
@@ -321,7 +328,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  use_enum(:race_enum_map, ::HudUtility2024.races.except('RaceNone'), include_base_null: true) do |hash|
+  use_enum(:race_enum_map, ::HudUtility2026.races.except('RaceNone'), include_base_null: true) do |hash|
     hash.map do |value, desc|
       {
         key: value,

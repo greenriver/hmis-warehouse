@@ -15,10 +15,11 @@
       - @client.splits_from.each do |split|
         - if c = split.source_client
           - split_froms = true
+          - pii = c.pii_provider(user: current_user)
           %tr
-            %td= link_to c.full_name, edit_client_path(c)
-            %td= c.DOB
-            %td= ssn c.SSN
+            %td= link_to pii.full_name, edit_client_path(c)
+            %td= pii.dob_or_age
+            %td= pii.ssn
             %td= @client.warehouse_client_destination.last.reviewed_at
             %td
               - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
@@ -40,10 +41,11 @@
       - @client.splits_to.each do |split|
         - if c = split.destination_client
           - split_tos = true
+          - pii = c.pii_provider(user: current_user)
           %tr
-            %td= link_to c.full_name, edit_client_path(c)
-            %td= c.DOB
-            %td= ssn c.SSN
+            %td= link_to pii.full_name, edit_client_path(c)
+            %td= pii.dob_or_age
+            %td= pii.ssn
             %td= c.warehouse_client_destination.first.reviewed_at
             %td
               - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i

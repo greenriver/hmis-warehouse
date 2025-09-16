@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 task spec: ['db:test:prepare:health']
 
 require 'dotenv'
@@ -88,7 +90,7 @@ namespace :health do
   end
 
   desc 'Import development data'
-  task :dev_import, [:reset] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :dev_import, [:reset] => [:environment, 'log:info_to_stdout'] do |_task, args|
     if Rails.env.development?
       # clear out any previous patients and associated data
       if args.reset.present?
@@ -157,7 +159,7 @@ namespace :health do
   end
 
   desc 'Identify and optionally remove (call with [destroy]) empty careplans'
-  task :cleanup_careplans, [:destroy] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :cleanup_careplans, [:destroy] => [:environment, 'log:info_to_stdout'] do |_task, args|
     empty = [nil, '']
     hcp_t = Health::Careplan.arel_table
     careplans = Health::Careplan.
@@ -179,13 +181,13 @@ namespace :health do
   end
 
   desc 'Export CHAs in interchange format'
-  task :export_chas, [:filename] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :export_chas, [:filename] => [:environment, 'log:info_to_stdout'] do |_task, args|
     job = Health::ChaTools::Export.setup(filename: args[:filename])
     Kiba.run(job)
   end
 
   desc 'Export patient disenrollment demographics'
-  task :export_disenrollment_demographics, [:filename, :start_date, :end_date] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :export_disenrollment_demographics, [:filename, :start_date, :end_date] => [:environment, 'log:info_to_stdout'] do |_task, args|
     start_date = args[:start_date].to_date
     end_date = args[:end_date].to_date
     Health::Tasks::ExportDisenrollmentDemographics.new(filename: args[:filename], start_date: start_date, end_date: end_date).run!
@@ -203,31 +205,6 @@ namespace :health do
         participation_date = release.signature_on
       end
       release.update(participation_signature_on: participation_date)
-    end
-  end
-
-  # DB related, provides health:db:migrate etc.
-  namespace :db do |ns|
-    namespace :schema do
-      desc 'Conditionally load the database schema'
-      task :conditional_load, [] => [:environment] do |t, args|
-        if HealthBase.connection.table_exists?(:schema_migrations)
-          puts 'Refusing to load the health database schema since there are tables present. This is not an error.'
-        else
-          Rake::Task['db:schema:load:health'].invoke
-        end
-      end
-    end
-
-    namespace :structure do
-      desc 'Conditionally load the database structure'
-      task :conditional_load, [] => [:environment] do |t, args|
-        if HealthBase.connection.table_exists?(:schema_migrations)
-          puts 'Refusing to load the health database structure since there are tables present. This is not an error.'
-        else
-          Rake::Task['db:structure:load:health'].invoke
-        end
-      end
     end
   end
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::Funder
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
@@ -121,7 +123,7 @@ module HmisStructure::Funder
             null: false,
           },
         }
-      when '2024'
+      when '2024', '2026'
         {
           FunderID: {
             type: :string,

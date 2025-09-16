@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -22,6 +24,17 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     :file,
   ].freeze
 
+  FIELD_TYPE_TO_COLUMN = {
+    float: :value_float,
+    integer: :value_integer,
+    boolean: :value_boolean,
+    string: :value_string,
+    text: :value_text,
+    date: :value_date,
+    json: :value_json,
+    file: :value_file,
+  }.freeze
+
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :assessments
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
@@ -41,4 +54,12 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   scope :for_clients, -> { for_type(Hmis::Hud::Client.sti_name) }
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
+
+  def cde_arel_field
+    cde_t = Hmis::Hud::CustomDataElement.arel_table
+    column_name = FIELD_TYPE_TO_COLUMN[field_type.to_sym]
+    raise ArgumentError, "Invalid field type: #{field_type}" unless column_name
+
+    cde_t[column_name]
+  end
 end

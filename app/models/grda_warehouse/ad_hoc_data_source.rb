@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
   acts_as_paranoid
 
@@ -29,7 +31,7 @@ class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
   def self.blank_csv
     [
       ['First Name', 'Middle Name', 'Last Name', 'SSN', 'DOB'],
-      ['First', 'Middle', 'Last', '000-00-000', '2000-01-30'],
+      ['First', 'Middle', 'Last', '000-00-0000', '2000-01-30'],
     ]
   end
 end

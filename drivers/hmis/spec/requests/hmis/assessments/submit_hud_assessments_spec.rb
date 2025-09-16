@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
@@ -145,7 +147,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
 
         # Jump ahead to make sure DateUpdated changes
-        Timecop.travel(Time.current + 5.minutes) do
+        travel_to(Time.current + 5.minutes) do
           _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
           errors = result.dig('data', 'submitAssessment', 'errors')
           expect(errors).to be_empty
@@ -220,7 +222,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
         # Jump ahead to make sure DateUpdated changes
-        Timecop.travel(Time.current + 5.minutes) do
+        travel_to(Time.current + 5.minutes) do
           _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
           errors = result.dig('data', 'submitAssessment', 'errors')
           expect(errors).to be_empty
@@ -435,6 +437,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     _resp, result = post_graphql(input: { input: input.merge(validate_only: true) }) { submit_assessment_mutation }
     errors = result.dig('data', 'submitAssessment', 'errors')
     expect(errors).to contain_exactly(a_hash_including(expected_error))
+  end
+
+  it 'prevents saving IncomeBenefit with invalid strings' do
+    definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+    unemployment_item = definition.link_id_item_hash.values.find { |item| item.mapping&.field_name == 'unemploymentAmount' }
+    input = {
+      enrollment_id: e1.id,
+      form_definition_id: definition.id,
+      **build_minimum_values(
+        definition,
+        values: { unemployment_item.link_id => 'bad string' },
+        hud_values: { 'IncomeBenefit.insuranceFromAnySource': 'YES' },
+      ),
+      confirmed: false,
+    }
+    _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+    errors = result.dig('data', 'submitAssessment', 'errors')
+    expected_error = {
+      'severity' => 'error',
+      'attribute' => 'unemploymentAmount',
+      'fullMessage' => /Unemployment Insurance not a valid currency amount/,
+    }
+    expect(errors).to include(a_hash_including(expected_error))
   end
 end
 

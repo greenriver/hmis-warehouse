@@ -23,10 +23,6 @@ module Types
         end
       end
 
-      def resolve_households_with_loader(association_name = :households, **args)
-        load_ar_association(object, association_name, scope: scoped_households(Hmis::Hud::Enrollment, **args))
-      end
-
       def resolve_households(scope = object.households, **args)
         scoped_households(scope, **args)
       end

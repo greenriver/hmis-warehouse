@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,8 +8,10 @@
 
 module Hmis
   class UnitType < HmisBase
+    acts_as_paranoid
     has_paper_trail
 
+    has_many :unit_groups, class_name: 'Hmis::UnitGroup'
     has_many :units, class_name: 'Hmis::Unit'
     has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
     alias_attribute :date_updated, :updated_at

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class CreateProjectConfig < CleanBaseMutation
     argument :input, Types::HmisSchema::ProjectConfigInput, required: true
@@ -18,17 +20,8 @@ module Mutations
       errors.add :config_type, :required if input.config_type.blank?
       return { errors: errors } if errors.any?
 
-      class_name = case input.config_type
-      when 'AUTO_ENTER'
-        Hmis::ProjectAutoEnterConfig
-      when 'AUTO_EXIT'
-        Hmis::ProjectAutoExitConfig
-      when 'STAFF_ASSIGNMENT'
-        Hmis::ProjectStaffAssignmentConfig
-      else raise "Unsupported type: #{input.config_type}"
-      end
-
-      record = class_name.new(input.to_params)
+      record = Hmis::ProjectConfig.config_factory(input.config_type)
+      record.assign_attributes(input.to_params.excluding(:config_type))
       if record.valid?
         record.save!
       else

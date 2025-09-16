@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/rds.rb'
   load 'lib/rds_sql_server/sql_server_base.rb'
@@ -147,7 +149,7 @@ module HudLsa::Generators::Fy2024
     # Confirm the chosen projects are not missing critical data.
     # Any structural failures that will cause the run to fail should be caught here
     private def preflight_passes?
-      issues = missing_data(user).except(:show_missing_data)
+      issues = missing_data(user, project_ids: filter.effective_project_ids_during_range(export_date_range), filter: filter).except(:show_missing_data)
       issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids_during_range(export_date_range)
       return true if issue_project_ids.empty?
 
@@ -215,7 +217,7 @@ module HudLsa::Generators::Fy2024
 
       if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
         @hmis_export = GrdaWarehouse::HmisExport.find(@hmis_export_id)
-        update(export_id: @hmis_export.id)
+        update(export_id: @hmis_export.id, options: @hmis_export.options.merge(enforce_project_date_scope: true))
         return
       end
 
@@ -244,7 +246,7 @@ module HudLsa::Generators::Fy2024
         end
       end
 
-      @hmis_export = HmisCsvTwentyTwentyFour::Exporter::Base.new(
+      exporter = HmisCsvTwentyTwentyFour::Exporter::Base.new(
         version: '2024',
         start_date: export_date_range.first,
         end_date: export_date_range.last,
@@ -255,8 +257,14 @@ module HudLsa::Generators::Fy2024
         hash_status: 1,
         include_deleted: false,
         user_id: user_id,
+        enforce_project_date_scope: true,
         options: filter.to_h,
-      ).export!
+      )
+      # this is usually set in the HMIS CSV Export controller, we need to do it here
+      # to ensure we limit PDDEs correctly
+      exporter.setup_enforce_project_date_scope
+
+      @hmis_export = exporter.export!
       update(export_id: @hmis_export.id)
     end
 

@@ -13,7 +13,7 @@
   %p Use this form to connect any patients who are not automatically matched to clients on import, or to fix an incorrectly matched patient.
   .o-page__controls
     .o-page__search
-      = render 'search_form'
+      = render_generic_search_form
     .o-page__sort
       = render 'sort', sort_options: sort_options
   - if @pagy.count.positive?

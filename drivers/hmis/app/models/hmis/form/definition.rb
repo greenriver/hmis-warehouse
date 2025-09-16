@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
 # The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
@@ -114,6 +116,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT_DETAIL,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
+    :CE_REFERRAL_STEP,
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
@@ -206,6 +209,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     EXTERNAL_FORM: {
       owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
       permission: :can_manage_external_form_submissions,
+    },
+    CE_REFERRAL_STEP: {
+      owner_class: 'Hmis::WorkflowExecution::Step',
+      authorize: -> { raise 'not expected to be submitted via submit form' },
     },
   }.freeze
 
@@ -454,11 +461,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # validate form_values provides against the definition
   #   * errors & warnings on missing required fields
   #   * check if the input ids match the definition
-  def validate_form_values(form_values)
+  # if link_ids is provided, validate only the provided link IDs. Otherwise, validate the whole form
+  def validate_form_values(form_values, link_ids: nil)
     errors = HmisErrors::Errors.new
 
     # Iterate over item hash so that errors are sorted according to the definition
     link_id_item_hash.each do |link_id, item|
+      next if link_ids&.exclude?(link_id)
+
       # Skip assessment date, it is validated separately
       next if item.assessment_date
       # Skip if not present in value hash
@@ -486,9 +496,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       elsif item.warn_if_empty && (is_missing || is_data_not_collected)
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
-
-      # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
-      # TODO(##184402463): Add support for RequiredWhen
     end
 
     # Ensure all link IDs are in the FormDefinition
@@ -608,78 +615,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
-  # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
-  # For application forms, we now rely on PublishFormDefinition to generate CDEDs, but
-  # this is still used in test fixtures and in PublishExternalFormsJob.
-  def introspect_custom_data_element_definitions(set_definition_identifier: false, data_source: GrdaWarehouse::DataSource.hmis.first)
-    owner_type = owner_class.sti_name
-    raise "unable to determine owner class for form role: #{role}" unless owner_type
-
-    hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
-    cded_scope = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type, data_source: data_source)
-    cdeds_by_key = cded_scope.index_by(&:key)
-
-    cded_records = []
-    walk_definition_nodes(as_open_struct: true) do |item|
-      # Skip non-questions items (Groups and Display items)
-      next if NON_QUESTION_ITEM_TYPES.include?(item.type)
-      # Skip items that already map to a standard (HUD) field
-      next if item.mapping&.field_name
-
-      key = item.mapping&.custom_field_key
-      # find CDED if it exists, or initialize a new one with defaults
-      cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
-
-      # Infer CDED attributes based on Item
-      cded.owner_type = owner_type
-      cded.field_type = self.class.infer_cded_field_type(item.type)
-      cded.repeats = item.repeats || false
-
-      # Infer label for CustomDataElementDefinition based on various labels
-      cded.label = self.class.generate_cded_field_label(item)
-
-      # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
-      cded.form_definition_identifier = identifier if set_definition_identifier
-
-      cded_records << cded
-    end
-
-    cded_records
-  end
-
-  # Helper for determining CustomDataElementDefinition attributes
-  def self.infer_cded_field_type(item_type)
-    case item_type
-    when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
-      'string'
-    when 'BOOLEAN'
-      'boolean'
-    when 'DATE'
-      'date'
-    when 'INTEGER'
-      'integer'
-    when 'CURRENCY'
-      'float'
-    when 'FILE', 'IMAGE'
-      'file'
-    else
-      raise "unable to determine cded type for #{item_type}"
-    end
-  end
-
   def numeric_validator
     @numeric_validator ||= Hmis::Form::NumericInputValidator.new
   end
 
-  # Helper for determining CustomDataElementDefinition attributes
-  def self.generate_cded_field_label(item)
-    label = item.readonly_text.presence || item.brief_text.presence || item.text.presence || item.link_id.humanize
-    ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
-  end
-
   def set_hud_requirements
     changed = [] # list of Link IDs that were changed
-    rule_module = HmisUtil::HudAssessmentFormRules2024.new
+    rule_module = HmisUtil::HudAssessmentFormRules2026.new
 
     walk_definition_nodes do |item|
       link_id = item['link_id']

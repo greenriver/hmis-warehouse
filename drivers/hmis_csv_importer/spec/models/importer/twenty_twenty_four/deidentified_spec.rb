@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter, type: :model do
@@ -18,6 +20,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         version: 'AutoMigrate',
         deidentified: true,
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -53,6 +56,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           version: 'AutoMigrate',
           deidentified: true,
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 

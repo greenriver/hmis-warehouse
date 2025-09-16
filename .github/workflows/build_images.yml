@@ -20,11 +20,12 @@ jobs:
   build:
     name: Build
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     # Supports OIDC to fetch/push images from/to ECR
     permissions:
       contents: read
+      packages: read
       id-token: write
       pull-requests: write
 
@@ -37,10 +38,10 @@ jobs:
             dockerfile: docker/app/Dockerfile
             keep_latest_tag: true
             cache_key: warehouse
-            hadolint_ignore: DL3018
+            hadolint_ignore: DL3008
             trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
-              BUILD_TAG=3.3.7-alpine3.20
+              BUILD_TAG=3.3.8-slim-bookworm
               BUNDLER_VERSION=2.6.3
             tags: |
               type=sha,prefix=githash-
@@ -53,7 +54,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-        
+
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 

@@ -44,13 +44,13 @@
       });
 
       // set file type from querystring if it exists
-      file_type_param_value = "#{params[:file_type] if params.has_key?(:file_type)}"
+      file_type_param_value = "#{j(params[:file_type]) if params.has_key?(:file_type)}"
       if($('#override_file_name option[value="' + file_type_param_value + '"]').length > 0) {
         file_input.val(file_type_param_value)
       }
 
       // set hmis id from querystring if it exists
-      hmis_param_value = "#{params[:hmis_value] if params.has_key?(:hmis_value)}"
+      hmis_param_value = "#{j(params[:hmis_value]) if params.has_key?(:hmis_value)}"
       if(hmis_param_value) {
         $('#override_matched_hud_key').val(hmis_param_value)
       }

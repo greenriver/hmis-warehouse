@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ProtectedId
   PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
   INITIAL_DELIMITER = '=='
@@ -20,13 +22,17 @@ module ProtectedId
     module_function :encode
 
     def encoded?(id)
-      false if id.blank?
+      return false if id.blank?
+
       # confirm that the string is encoded
       id.starts_with?(INITIAL_DELIMITER)
     end
     module_function :encoded?
 
     def decode(encoded)
+      # Sanitize input to remove null bytes that could cause bcrypt issues
+      encoded = sanitize_value(encoded)
+
       encoded.map { |part| decode(part) }.compact if encoded.is_a?(Enumerable)
       return encoded unless encoded?(encoded)
 
@@ -67,6 +73,14 @@ module ProtectedId
       [id_part, day_stamp]
     end
     module_function :deobfuscate
+
+    private def sanitize_value(value)
+      return value unless value.is_a?(String)
+
+      # Remove null bytes and other control characters that could cause issues with bcrypt
+      value.gsub(/[[:cntrl:]]/, '').strip
+    end
+    module_function :sanitize_value
   end
 
   module Labeler
@@ -84,11 +98,11 @@ module ProtectedId
 
     def find(*args, &block)
       id = decode(args.first)
-      super(id, *args[1..-1], &block)
+      super(id, *args[1..-1], &block) # rubocop:disable Style/SlicingWithRange
     end
   end
 end
 
-ActiveRecord::Base.send(:include, ProtectedId::Labeler)
-#ActiveRecord::Base.extend(ProtectedId::Finder)
-#ActiveRecord::Relation.send(:include, ProtectedId::Finder)
+ActiveRecord::Base.include(ProtectedId::Labeler)
+# ActiveRecord::Base.extend(ProtectedId::Finder)
+# ActiveRecord::Relation.send(:include, ProtectedId::Finder)

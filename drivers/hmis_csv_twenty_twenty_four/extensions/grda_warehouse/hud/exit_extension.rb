@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -9,8 +11,8 @@ module HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      has_many :imported_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Importer::Exit', primary_key: [:ExitID, :data_source_id], foreign_key: [:ExitID, :data_source_id]
-      has_many :loaded_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Loader::Exit', primary_key: [:ExitID, :data_source_id], foreign_key: [:ExitID, :data_source_id]
+      has_many :imported_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Importer::Exit', primary_key: [:ExitID, :data_source_id], query_constraints: [:ExitID, :data_source_id]
+      has_many :loaded_items_2024, class_name: '::HmisCsvTwentyTwentyFour::Loader::Exit', primary_key: [:ExitID, :data_source_id], query_constraints: [:ExitID, :data_source_id]
     end
   end
 end

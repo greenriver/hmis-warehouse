@@ -34,7 +34,7 @@
       width: 1200,
       height: 400,
       detail_path: '#{detail_path&.html_safe}',
-      client_word: '#{@pathways_chart.client_word}',
+      client_word: '#{j @pathways_chart.client_word}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
     sankeyChart.prepare();

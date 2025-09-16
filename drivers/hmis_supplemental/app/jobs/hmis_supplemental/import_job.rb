@@ -4,16 +4,24 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisSupplemental::ImportJob < BaseJob
   attr_reader :data_set
 
+  def perform(**args)
+    instrument_as_maintenance_task(name: "DataSource##{args[:data_set_id]}") do |run|
+      run.complete! if _perform(**args)
+    end
+  end
+
   # csv_string is mostly for QA
-  def perform(data_set_id:, csv_string: nil)
+  def _perform(data_set_id:, csv_string: nil)
     @data_set = HmisSupplemental::DataSet.where(id: data_set_id).first
     return unless @data_set
 
     csv_string ||= read_csv_from_s3
-
+    did_run = false
     with_lock do
       values = read_csv_rows(csv_string).
         flat_map { |row| row_values(row) }.
@@ -24,6 +32,7 @@ class HmisSupplemental::ImportJob < BaseJob
         return
       end
 
+      did_run = true
       values = deduplicate_rows(values)
       data_set.transaction do
         # Delete and recreate. This could be an upsert
@@ -31,6 +40,7 @@ class HmisSupplemental::ImportJob < BaseJob
         HmisSupplemental::FieldValue.import!(values, validate: false)
       end
     end
+    did_run
   end
 
   protected
@@ -110,7 +120,10 @@ class HmisSupplemental::ImportJob < BaseJob
 
   def log(message, type: :error)
     Rails.logger.send(type, "#{self.class.name} s3:#{object_key}: #{message}")
-    nil
+
+    return nil unless type == :error
+
+    Sentry.capture_message(message, level: :error)
   end
 
   def parse_csv_string(csv_string)

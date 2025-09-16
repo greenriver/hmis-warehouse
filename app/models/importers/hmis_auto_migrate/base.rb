@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -16,6 +18,10 @@ module Importers::HmisAutoMigrate
       return if @stale
 
       expand_upload
+
+      # Determine version after files are extracted but before creating loader
+      @current_version = Importers::HmisAutoMigrate.calculate_current_version(@local_path)
+      @loader_class = HmisCsvImporter::Loader::Loader
 
       @upload.update(percent_complete: 1)
 
@@ -52,13 +58,15 @@ module Importers::HmisAutoMigrate
         upload_id: upload.id,
         data_source_id: data_source_id,
       )
-      loader = ::HmisCsvImporter::Loader::Loader.new(
+      loader = @loader_class.new(
         file_path: file_path,
         data_source_id: data_source_id,
         deidentified: deidentified,
         limit_projects: @allowed_projects,
         post_processor: @post_processor,
         project_cleanup: @project_cleanup,
+        stop_version: @stop_version,
+        dry_run: @dry_run,
       )
 
       loader.import!(log)
@@ -97,11 +105,7 @@ module Importers::HmisAutoMigrate
     end
 
     private def add_content_to_upload_and_save(file_path:)
-      path = Pathname.new(file_path)
-      @upload.hmis_zip.attach(
-        io: path.open,
-        filename: path.basename,
-      )
+      @upload.hmis_zip = File.open(file_path)
       @upload.file = 'See S3' # Temporary until we remove the column
       @upload.save!
       @upload.id

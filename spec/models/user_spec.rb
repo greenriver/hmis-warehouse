@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
@@ -59,6 +61,42 @@ RSpec.describe User, type: :model do
           expect(@user.confirmed?).to be true
         end
       end
+    end
+  end
+
+  describe '.text_search' do
+    let!(:user1) { create(:user, first_name: 'Alice', last_name: 'Smith', email: 'alice.smith@example.com') }
+    let!(:user2) { create(:user, first_name: 'Alicea', last_name: 'Smythe', email: 'alicia.smythe@example.com') }
+    let!(:user3) { create(:user, first_name: 'Bob', last_name: 'Jones', email: 'bob.jones@example.com') }
+
+    it 'finds users by first name' do
+      results = User.text_search('Alice')
+      expect(results).to include(user1)
+      expect(results).not_to include(user3)
+    end
+
+    it 'finds users by last name' do
+      results = User.text_search('Jones')
+      expect(results).to include(user3)
+      expect(results).not_to include(user1)
+    end
+
+    it 'finds users by email' do
+      results = User.text_search('alice.smith@example.com')
+      expect(results).to include(user1)
+      expect(results).not_to include(user3)
+    end
+
+    it 'returns none for no match' do
+      results = User.text_search('Nonexistent')
+      expect(results).to be_empty
+    end
+
+    it 'orders results by best match when sort_by_best_match is true' do
+      results = User.text_search('Alice', sort_by_best_match: true)
+      expect(results.first).to eq(user1)
+      expect(results).to include(user2)
+      expect(results).not_to include(user3)
     end
   end
 end

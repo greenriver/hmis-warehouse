@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Validate that for any given importer_log_id there
 # are no entry dates after exit dates. This needs
 # the full data set in-place to check and should happen only once after the import is complete
@@ -12,10 +14,11 @@ class HmisCsvImporter::HmisCsvValidation::EntryAfterExit < HmisCsvImporter::Hmis
 
   def self.check_validity!(klass, importer_log)
     # FIXME: Very slow!!!
-    e_t = importable_file_class('Enrollment').arel_table
-    ex_t = importable_file_class('Exit').arel_table
+    e_t = klass.arel_table
+    ex_t = klass.reflect_on_association(:exit).klass.arel_table
+    project_class = klass.reflect_on_association(:project).klass
     incorrect_ids = klass.joins(:exit, :project).
-      merge(importable_file_class('Project').residential).
+      merge(project_class.residential).
       where(importer_log_id: importer_log.id).
       where(e_t[:EntryDate].gteq(ex_t[:ExitDate])).
       pluck(:EnrollmentID)

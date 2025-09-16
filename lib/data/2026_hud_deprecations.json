@@ -1,0 +1,112 @@
+[
+  {
+    "name": "FundingSource",
+    "code": "2.06.1",
+    "values": [
+      {
+        "key": 12,
+        "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
+      },
+      {
+        "key": 47,
+        "description": "HUD: ESG - CV [Deprecated]"
+      },
+      {
+        "key": 48,
+        "description": "HUD: HOPWA - CV [Deprecated]"
+      },
+      {
+        "key": 49,
+        "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
+      }
+    ]
+  },
+  {
+    "name": "Gender",
+    "code": "3.6.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "Woman (Girl, if child)"
+      },
+      {
+        "key": 1,
+        "description": "Man (Boy, if child)"
+      },
+      {
+        "key": 2,
+        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
+      },
+      {
+        "key": 4,
+        "description": "Non-Binary"
+      },
+      {
+        "key": 5,
+        "description": "Transgender"
+      },
+      {
+        "key": 6,
+        "description": "Questioning"
+      },
+      {
+        "key": 3,
+        "description": "Different Identity"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SexualOrientation",
+    "code": "R3.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Heterosexual"
+      },
+      {
+        "key": 2,
+        "description": "Gay"
+      },
+      {
+        "key": 3,
+        "description": "Lesbian"
+      },
+      {
+        "key": 4,
+        "description": "Bisexual"
+      },
+      {
+        "key": 5,
+        "description": "Questioning / unsure"
+      },
+      {
+        "key": 6,
+        "description": "Other"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  }
+]

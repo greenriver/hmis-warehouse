@@ -6,13 +6,9 @@
 
 # frozen_string_literal: false
 
-class ReportingBase < ApplicationRecord
+class ReportingBase < ActiveRecord::Base
+  include CustomApplicationRecord
+
   self.abstract_class = true
-  include ArelHelper
-
   connects_to database: { writing: :reporting, reading: :reporting }
-
-  def self.needs_migration?
-    ActiveRecord::MigrationContext.new('db/reporting/migrate', Reporting::SchemaMigration).needs_migration?
-  end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'digest/sha1'
 
 desc 'Update schema.graphql dump'
@@ -19,7 +21,8 @@ task dump_graphql_schema: [:environment, 'log:info_to_stdout'] do
 end
 
 desc 'Generate GraphQL Enums'
-task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
-  filename = HudCodeGen.generate_graphql_enums('2024')
+# bundle exec rails driver:hmis:generate_graphql_enums['2026']
+task :generate_graphql_enums, [:year] => [:environment, 'log:info_to_stdout'] do |_task, args|
+  filename = HudCodeGen.generate_graphql_enums(args.year)
   exec("bundle exec rubocop -A --format simple #{filename}")
 end

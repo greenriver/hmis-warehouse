@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class GrdaWarehouse::Utility
   def self.clear!
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
@@ -50,6 +52,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::IdentifyDuplicatesLog,
       GrdaWarehouse::GenerateServiceHistoryLog,
       GrdaWarehouse::Hud::Client,
+      GrdaWarehouse::Hud::CustomDataElementDefinition,
+      GrdaWarehouse::Hud::CustomDataElement,
       GrdaWarehouse::DataSource,
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
       GrdaWarehouse::WarehouseReports::Base,
@@ -99,6 +103,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Config,
       GrdaWarehouse::ImportThreshold,
       GrdaWarehouse::NotificationConfiguration,
+      Hmis::Hud::CustomDataElementDefinition,
+      Hmis::Hud::CustomDataElement,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -202,6 +208,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::Hud::Enrollment,
       GrdaWarehouse::Hud::User,
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,

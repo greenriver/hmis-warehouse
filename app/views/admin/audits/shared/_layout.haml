@@ -1,0 +1,10 @@
+= render 'admin/audits/shared/breadcrumbs', entity_type: entity_type, entity_path: entity_path
+- title = "#{entity_type} Audit History"
+- content_for :title, title
+= render_display_title "#{item&.name || entity_type} Audit History"
+.text-right.mb-3
+  = link_to "Export CSV", export_path, class: "btn btn-outline-primary btn-sm"
+- if item.present?
+  = render_paginated_list(scope: @history.wrap_display_versions(@versions), item_name: 'audit event', list_partial: 'admin/audits/shared/list')
+- else
+  = render_paginated_list(scope: @data, item_name: 'audit event', list_partial: 'admin/audits/shared/bulk_data_list')

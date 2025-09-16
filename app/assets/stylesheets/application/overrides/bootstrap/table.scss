@@ -12,13 +12,14 @@
 
 .table__detail-row-rollup {
   &.open td {
-    background: lighten($tab-bg, 30%);
+    background: #ffffff;
   }
 }
 
 .table__toggle-icon {
   color: $link-color;
   font-size: 20px;
+
   &.toggled {
     &::before {
       content: '\e908';
@@ -28,29 +29,34 @@
 
 .c-table--indicator {
   border-radius: $border-radius;
+
   td,
   th {
     background: white;
   }
+
   thead tr {
-    border-color: $white;
+    border-color: var(--white);
   }
+
   thead th {
-    background: darken(#f9f9f9, 5%);
+    background: #ebebeb;
     text-align: center;
     font-weight: bold;
     font-size: 20px;
-    border-color: $white;
-    border-right: 2px solid $white;
-    border-left: 2px solid $white;
-    border-left: 2px solid $white;
+    border-color: var(--white);
+    border-right: 2px solid var(--white);
+    border-left: 2px solid var(--white);
+
     &:last-of-type {
       border-right: 0;
     }
+
     &.blank {
       background: white
     }
   }
+
   table {
     margin-bottom: 0;
   }
@@ -58,12 +64,15 @@
 
 @for $i from 1 through length($indicator-colors) {
   $color: nth($indicator-colors, $i);
+
   .c-table__row--highlight-#{$i} {
     border: 0;
     border-bottom: 3px solid white;
+
     th {
       background: $color;
     }
+
     tr,
     td {
       border: 2px solid $color;

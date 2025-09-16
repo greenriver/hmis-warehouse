@@ -37,6 +37,6 @@ App.WarehouseReports.clientDemographicsRollupChart = (options) => {
       const category = options.categories[i];
       return `${category} (${d.data[category]} clients)`;
     })
-    .attr('data-toggle', 'tooltip')
+    .attr('data-bs-toggle', 'tooltip')
     .style('fill', (_, i) => z(i));
 };

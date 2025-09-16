@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,8 +8,8 @@
 
 require 'faker'
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
-  serialize :map, JSON
-  serialize :client_ids, JSON
+  serialize :map, coder: JSON
+  serialize :client_ids, coder: JSON
 
   # Fetch the appropriate faked value for a given field.
   # Return an existing match if one exists or create a new one,

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -248,6 +250,9 @@ RSpec.feature 'HMIS Form Builder', type: :system do
         assert_no_text 'Custom question 1'
 
         find("button[type='submit']").trigger('click')
+
+        # Wait for save to complete (button disappears) before reloading the model
+        assert_no_selector("button[type='submit']")
 
         draft.reload
         expect(draft.definition.dig('item', 0, 'item').size).to eq(1)

@@ -22,10 +22,6 @@ module Types
         end
       end
 
-      def resolve_inventories_with_loader(association_name = :inventories, **args)
-        load_ar_association(object, association_name, scope: scoped_inventories(Hmis::Hud::Inventory, **args))
-      end
-
       def resolve_inventories(scope = object.inventories, **args)
         scoped_inventories(scope, **args)
       end

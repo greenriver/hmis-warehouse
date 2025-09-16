@@ -19,6 +19,7 @@ module HudPit::Fy2022
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :client_id
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 
     delegate :PersonalID, to: :source_client, allow_nil: true
 

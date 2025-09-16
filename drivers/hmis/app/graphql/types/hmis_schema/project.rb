@@ -24,6 +24,8 @@ module Types
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -82,7 +84,12 @@ module Types
     field :residential_affiliation_projects, [HmisSchema::Project], null: false
     field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
-    field :staff_assignments_enabled, Boolean, null: false
+    field :staff_assignments_enabled, Boolean, null: false, description: 'Whether staff assignment is enabled in this project', method: :staff_assignments_enabled?
+    field :auto_enter_enabled, Boolean, null: false, description: 'Whether auto-enter is enabled in this project', method: :should_auto_enter?
+    field :auto_exit_enabled, Boolean, null: false, description: 'Whether auto-exit is enabled in this project', method: :auto_exit_enabled?
+    field :auto_exit_days_threshold, Integer, null: true, description: 'The number of days of inactivity after which a client will be auto-exited from this project'
+    field :coordinated_entry_enabled, Boolean, null: false, description: 'Whether Coordinated Entry is enabled in this project', method: :coordinated_entry_enabled?, deprecation_reason: 'Use coordinatedEntryFeatures'
+    field :coordinated_entry_features, HmisSchema::ProjectCoordinatedEntryFeatures, null: true, description: 'Coordinated Entry features that are enabled for this Project'
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
@@ -106,6 +113,14 @@ module Types
       can :manage_denied_referrals
       can :manage_external_form_submissions
       can :split_households
+      can :view_referrals
+      can :view_own_referrals
+      can :start_referrals
+      can :perform_any_referral_tasks
+      can :perform_own_referral_tasks
+      can :assign_referral_tasks
+      can :update_unit_availability
+      can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
@@ -113,6 +128,11 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
+    field :unit_groups, Types::HmisSchema::UnitGroup.page_type, null: false
+
+    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:on_current_task_since, :workflow_template, :origin], type_name: 'ProjectOutgoingCeReferral' })
 
     def hud_id
       object.project_id
@@ -122,6 +142,26 @@ module Types
       check_enrollment_details_access
 
       resolve_enrollments(object.enrollments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def coordinated_entry_features # Not for batch
+      return nil unless Hmis::Ce.configuration.enabled?
+
+      ce_config = Hmis::ProjectCeConfig.detect_best_config_for_project(object)
+      sends_referrals_config = Hmis::ProjectSendsDirectCeReferralsConfig.detect_best_config_for_project(object)
+
+      return nil unless ce_config.present? || sends_referrals_config.present?
+
+      supports_waitlist_referrals = ce_config&.supports_waitlist_referrals? || false
+      receives_direct_referrals = ce_config&.receives_direct_referrals? || false
+
+      OpenStruct.new(
+        id: object.id,
+        supports_referrals: supports_waitlist_referrals || receives_direct_referrals,
+        supports_waitlist_referrals: supports_waitlist_referrals,
+        receives_direct_referrals: receives_direct_referrals,
+        sends_direct_referrals: sends_referrals_config.present?,
+      )
     end
 
     def assessments(**args)
@@ -167,10 +207,10 @@ module Types
       return [] unless current_permission?(entity: object, permission: :can_view_units)
 
       project_units = object.units
-      capacity = project_units.group(:unit_type_id).count
-      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
+      capacity = project_units.group(:unit_type_id).count # Map unit type to number of units
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count # Map unit type to number of unoccupied units
 
-      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
+      Hmis::UnitType.where(id: capacity.keys).order(:id).distinct.map do |unit_type|
         OpenStruct.new(
           id: unit_type.id,
           unit_type: unit_type.description,
@@ -180,11 +220,16 @@ module Types
       end
     end
 
-    # TODO use dataloader
     def units(**args)
       return Hmis::Unit.none unless current_permission?(entity: object, permission: :can_view_units)
 
       resolve_units(**args)
+    end
+
+    def unit_groups
+      return Hmis::UnitGroup.none unless current_permission?(entity: object, permission: :can_view_units)
+
+      object.unit_groups.order(:name, :id)
     end
 
     def has_units # rubocop:disable Naming/PredicateName
@@ -216,11 +261,6 @@ module Types
       )
     end
 
-    def staff_assignments_enabled
-      # Should not be used in batch since it doesn't use the data loader
-      object.staff_assignments_enabled?
-    end
-
     def arel
       Hmis::ArelHelper.instance
     end
@@ -250,6 +290,21 @@ module Types
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
       resolve_external_form_submissions(scope, **args)
+    end
+
+    def ce_opportunities(**args) # Don't resolve in batch
+      resolve_ce_opportunities(object.ce_opportunities, **args)
+    end
+
+    def ce_referrals(**args) # Don't resolve in batch
+      resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def outgoing_direct_ce_referrals(**args)
+      access_denied! unless current_user.can_manage_outgoing_referrals_for?(object)
+
+      referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
+      resolve_ce_referrals(referral_scope, sort_order: :created_at, dangerous_skip_permission_check: true, **args)
     end
 
     private def check_enrollment_details_access

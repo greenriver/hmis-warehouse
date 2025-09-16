@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
 
@@ -18,11 +20,21 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     errors.add(:base, 'Specify exactly one of project, organization, and project type')
   end
 
-  AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'.freeze
-  AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'.freeze
-  STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'.freeze
-  TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG, STAFF_ASSIGNMENT_CONFIG].freeze
-  validates :type, inclusion: { in: TYPE_OPTIONS }
+  AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'
+  AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'
+  STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'
+  CE_CONFIG = 'Hmis::ProjectCeConfig'
+  SENDS_DIRECT_CE_REFERRALS_CONFIG = 'Hmis::ProjectSendsDirectCeReferralsConfig'
+
+  CONFIG_TYPE_FACTORIES = {
+    'AUTO_EXIT' => AUTO_EXIT_CONFIG,
+    'AUTO_ENTER' => AUTO_ENTER_CONFIG,
+    'STAFF_ASSIGNMENT' => STAFF_ASSIGNMENT_CONFIG,
+    'COORDINATED_ENTRY' => CE_CONFIG,
+    'SENDS_DIRECT_CE_REFERRALS' => SENDS_DIRECT_CE_REFERRALS_CONFIG,
+  }.freeze
+
+  validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
 
   validate :validate_config_options_json
 
@@ -47,6 +59,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     end
   end
 
+  # TODO(#7960) - update to store json blob instead of jsonified string; will require migrating existing data
   def options= hash
     self.config_options = hash.to_json
   end
@@ -66,7 +79,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   scope :for_projects, ->(projects) do
-    Hmis::ProjectStaffAssignmentConfig.where(
+    where(
       arel_table[:project_id].in(projects.map(&:id)).
         or(arel_table[:organization_id].in(projects.map { |p| p.organization.id })).
         or(arel_table[:project_type].in(projects.map(&:project_type).uniq)),
@@ -75,6 +88,22 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   scope :active, -> do
     where(enabled: true)
+  end
+
+  # Filter by GraphQL config type (eg 'AUTO_ENTER', 'AUTO_EXIT', etc.)
+  scope :with_config_type, ->(config_type) do
+    types = Array.wrap(config_type).map do |type|
+      CONFIG_TYPE_FACTORIES[type.to_s] || raise("Unknown config type: #{type}")
+    end
+    where(type: types)
+  end
+
+  def self.config_factory(config_type)
+    CONFIG_TYPE_FACTORIES.fetch(config_type).constantize.new
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ProjectConfigFilter.new(input).filter_scope(self)
   end
 
   def self.detect_best_config_for_project(project)
@@ -91,5 +120,13 @@ class Hmis::ProjectConfig < Hmis::HmisBase
       scope = configs.where.not(field => nil)
       return scope.first if scope.exists?
     end
+  end
+
+  private
+
+  def set_config_option(key, value)
+    new_options = { key => value }.stringify_keys
+    merged_options = options ? options.merge(new_options) : new_options
+    self.config_options = merged_options.to_json
   end
 end

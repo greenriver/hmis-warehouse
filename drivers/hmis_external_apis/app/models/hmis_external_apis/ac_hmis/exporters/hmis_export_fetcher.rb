@@ -29,6 +29,7 @@ module HmisExternalApis::AcHmis::Exporters
         version: version,
         user_id: user.id,
         start_date: start_date,
+        include_deleted: true,
       )
 
       Rails.logger.info 'Generating HMIS CSV Export'

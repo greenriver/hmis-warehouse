@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::CeApr::Fy2023
   class QuestionSeven < HudApr::Generators::Shared::Fy2023::QuestionSeven
     include HudApr::Generators::CeApr::Fy2023::QuestionConcern

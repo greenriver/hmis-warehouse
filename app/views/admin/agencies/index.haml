@@ -10,7 +10,7 @@
   - @prompt = "Search agencies..."
   .row.mb-4
     .col-8
-      = render 'search_form'
+      = render_generic_search_form prompt: @prompt
     .col-4.text-right
       = link_to new_admin_agency_path, class: 'btn btn-primary mb-2' do
         %span.icon-plus

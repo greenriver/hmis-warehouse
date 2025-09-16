@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::SystemCohorts
   class YouthHoh < CurrentlyHomeless
     include ArelHelper
@@ -56,7 +58,7 @@ module GrdaWarehouse::SystemCohorts
 
       @candidate_enrollments ||= enrollment_source.
         # homeless. # Not limiting to homeless since we're limiting by project group
-        ongoing(on_date: @processing_date). # who's enrollment is open today
+        ongoing(on_date: @processing_date). # whose enrollment is open today
         with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
         where.not( # who didn't receive a non-homeless (housed) service on the processing date
           client_id: service_history_source.

@@ -13,6 +13,8 @@
           %em ja sm.
         .o-page__search
           = render 'search_form', tooltip: 'Search with full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+          = render_generic_search_form prompt: @prompt, tooltip_title: 'Search with full or partial "first last" or "last, first" for more specific results'
+
   - if params[:q].present?
     = render 'new_case'
     - @results.each do |item|

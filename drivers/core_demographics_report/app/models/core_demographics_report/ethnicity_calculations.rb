@@ -10,6 +10,8 @@ module
   CoreDemographicsReport::EthnicityCalculations
   extend ActiveSupport::Concern
   included do
+    # Generates a hash of detail reports for ethnicity data
+    # @return [Hash] A hash containing report configurations for different ethnicity categories
     def ethnicity_detail_hash
       {}.tap do |hashes|
         ethnicity_buckets.each do |key, title|
@@ -23,14 +25,24 @@ module
       end
     end
 
+    # Defines the available ethnicity categories including special cases
+    # @return [Hash] A hash mapping ethnicity keys to their display titles
     def ethnicity_buckets
       @ethnicity_buckets ||= ::HudUtility2024.ethnicities.merge(dont_know: "Don't know", prefers_not_to_answer: 'Prefers not to answer', not_collected: 'Data not collected').except(:unknown)
     end
 
+    # Counts the number of clients with a specific ethnicity
+    # @param type [Symbol] The ethnicity type to count
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Integer] The count of clients with the specified ethnicity, masked if population is small
     def ethnicity_count(type, coc_code = base_count_sym)
       mask_small_population(client_ids_in_ethnicity(type, coc_code)&.count&.presence || 0)
     end
 
+    # Calculates the percentage of clients with a specific ethnicity
+    # @param type [Symbol] The ethnicity type to calculate percentage for
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Float] The percentage of clients with the specified ethnicity
     def ethnicity_percentage(type, coc_code = base_count_sym)
       total_count = mask_small_population(client_ethnicities[coc_code].count)
       return 0 if total_count.zero?
@@ -41,6 +53,9 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    # Prepares ethnicity data for export
+    # @param rows [Hash] The hash to store the export data
+    # @return [Hash] The updated rows hash with ethnicity data
     def ethnicity_data_for_export(rows)
       rows['_Ethnicity Break'] ||= []
       rows['*Ethnicity Overall'] ||= []
@@ -69,16 +84,25 @@ module
       rows
     end
 
+    # Groups clients by their ethnicity for a specific CoC code
+    # @param coc_code [Symbol] The CoC code to group by, defaults to base_count_sym
+    # @return [Hash] A hash mapping ethnicity types to sets of client IDs
     private def ethnicity_breakdowns(coc_code = base_count_sym)
       client_ethnicities[coc_code].group_by do |_, v|
         v
       end
     end
 
+    # Retrieves client IDs for a specific ethnicity and CoC code
+    # @param key [Symbol] The ethnicity type to filter by
+    # @param coc_code [Symbol] The CoC code to filter by, defaults to base_count_sym
+    # @return [Array] Array of client IDs with the specified ethnicity
     private def client_ids_in_ethnicity(key, coc_code = base_count_sym)
       ethnicity_breakdowns(coc_code)[key]&.map(&:first)
     end
 
+    # Retrieves and caches client ethnicity data
+    # @return [Hash] A hash mapping CoC codes to client ethnicity data
     private def client_ethnicities
       @client_ethnicities ||= Rails.cache.fetch(ethnicities_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
@@ -103,6 +127,8 @@ module
       end
     end
 
+    # Generates the cache key for ethnicity data
+    # @return [Array] An array containing the class name, cache slug, and 'client_ethnicities'
     private def ethnicities_cache_key
       [self.class.name, cache_slug, 'client_ethnicities']
     end

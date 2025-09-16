@@ -97,15 +97,15 @@ module PerformanceMeasurement::Details
     end
 
     def detail_calculation_description_for(key)
-      detail_for(key)[:calculation_description]
+      detail_for(key)&.[](:calculation_description)
     end
 
     def detail_measure_for(key)
-      detail_for(key)[:measure]
+      detail_for(key)&.[](:measure)
     end
 
     def detail_column_for(key)
-      detail_for(key)[:column]
+      detail_for(key)&.[](:column)
     end
 
     def detail_denominator_label_for(key)
@@ -441,6 +441,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_es_bed_in_period,
           detail_columns: [
             'days_in_es_bed_in_period',
+            'days_in_es_bed_details_in_period',
           ],
         },
         sh_average_bed_utilization: {
@@ -459,6 +460,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_sh_bed_in_period,
           detail_columns: [
             'days_in_sh_bed_in_period',
+            'days_in_sh_bed_details_in_period',
           ],
         },
         th_average_bed_utilization: {
@@ -477,6 +479,7 @@ module PerformanceMeasurement::Details
           calculation_column: :days_in_th_bed_in_period,
           detail_columns: [
             'days_in_th_bed_in_period',
+            'days_in_th_bed_details_in_period',
           ],
         },
         rrh_average_bed_utilization: {
@@ -819,15 +822,15 @@ module PerformanceMeasurement::Details
           sub_category: 'Recidivism',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People Who Returned to Homelessness Within Six Months',
-          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within six months of exit',
+          title: 'Percentage of People Who Returned to Homelessness in Less than Six Months',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO in less than 6 months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
           goal_unit: '%',
           goal_calculation: :recidivism_6_months,
           numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
-          calculation_description: 'The number of persons who returned to homelessness within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
+          calculation_description: 'The number of persons who returned to homelessness within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations in less than 6 months prior to the report end date.',
           calculation_column: :returned_in_six_months,
           measure: 'Measure 2',
           table: '2a and 2b',
@@ -843,15 +846,15 @@ module PerformanceMeasurement::Details
           sub_category: 'Recidivism',
           column: :both,
           year_over_year_change: false,
-          title: 'Percentage of People Who Returned to Homelessness Within Twelve Months',
-          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within one year of exit',
+          title: 'Percentage of People Who Returned to Homelessness from Six to Twelve Months',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within from 6 to 12 months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
           goal_unit: '%',
           goal_calculation: :recidivism_12_months,
           numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
-          calculation_description: 'The number of persons who returned to homelessness within 12 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
+          calculation_description: 'The number of persons who returned to homelessness within 12 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations from 6 to 12 months prior to the report end date.',
           calculation_column: :returned_in_one_year,
           measure: 'Measure 2',
           table: '2a and 2b',
@@ -868,19 +871,19 @@ module PerformanceMeasurement::Details
           column: :both,
           year_over_year_change: false,
           title: 'Percentage of People Who Returned to Homelessness Within Two Years',
-          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within two years of exit',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within from 0 to 24 months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
           goal_unit: '%',
           goal_calculation: :recidivism_24_months,
           numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
-          calculation_description: 'The number of persons who returned to homelessness within 2 years of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
+          calculation_description: 'The number of persons who returned to homelessness within 2 years of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations from 13 to 24 months prior to the report end date.',
           calculation_column: :returned_in_two_years,
           measure: 'Measure 2',
           table: '2a and 2b',
           cell_denominator: 'B7',
-          cell_numerator: 'G7',
+          cell_numerator: 'I7',
           detail_columns: [
             'days_to_return',
             'prior_destination',

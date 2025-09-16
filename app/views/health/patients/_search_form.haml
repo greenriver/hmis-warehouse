@@ -1,8 +1,0 @@
-.mt-5
-  = simple_form_for :search_form, url: url, method: :get do |f|
-    - if params[:entity_id]
-      = hidden_field_tag(:entity_id, params[:entity_id])
-    .input-group{style: 'margin-bottom: 20px;'}
-      = f.input :q, label: false, placeholder: 'Search patients...', class: 'form-control', input_html: { value: @search_string }
-      %span.input-group-append
-        %button.btn.btn-secondary{type: :submit} Search

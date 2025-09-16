@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module DisabilitySummary
   class DisabilitySummaryReport
     include Filter::ControlSections
@@ -139,6 +141,8 @@ module DisabilitySummary
           order(:CoCCode, d_t[:InformationDate].desc).
           pluck(*columns.values).each do |row|
             row = Hash[columns.keys.zip(row)]
+            next if row[:disability_type] == 8 && !filter.user.can_view_hiv_status? # HIV/AIDS
+
             client_id = row[:client_id]
             coc_code = row[:coc_code]
             disability_response = row[:disability_response]
@@ -211,7 +215,7 @@ module DisabilitySummary
       indefinite = params.dig(:indefinite)
 
       return unless disability.present?
-      return unless disability.in?(HudUtility2024.disability_types.values)
+      return unless disability.in?(filter.available_disabilities.keys)
       return if coc.present? && ! coc.in?(HudUtility2024.cocs.keys)
       return if indefinite.present? && ! indefinite.in?(HudUtility2024.no_yes_reasons_for_missing_data_options.values)
 
@@ -240,7 +244,7 @@ module DisabilitySummary
       disability = params.dig(:disability)
       indefinite = params.dig(:indefinite)
       return unless disability.present?
-      return unless disability.in?(HudUtility2024.disability_types.values)
+      return unless disability.in?(filter.available_disabilities.keys)
       return if coc.present? && ! coc.in?(HudUtility2024.cocs.keys)
       return if indefinite.present? && ! indefinite.in?(HudUtility2024.no_yes_reasons_for_missing_data_options.values)
 
@@ -254,7 +258,7 @@ module DisabilitySummary
     end
 
     private def disability_options(hash_or_set)
-      HudUtility2024.disability_types.values.map do |v|
+      filter.available_disabilities.keys.map do |v|
         value = if hash_or_set.is_a?(Class)
           hash_or_set.new
         else

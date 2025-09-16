@@ -65,8 +65,7 @@ module Filters
 
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
-
-      @effective_project_ids.uniq.reject(&:blank?)
+      @effective_project_ids = reject_excluded_project_ids(@effective_project_ids.uniq.reject(&:blank?))
     end
 
     # Limit the effective project ids to only those with enrollments that overlap the report range
@@ -96,7 +95,7 @@ module Filters
 
     # Caution: this overrides base class signature
     def apply(scope, except: [])
-      apply_criteria(scope, tags: [:hud], except: except)
+      apply_criteria(scope, report_scope_source: report_scope_source, tags: [:hud], except: except)
     end
 
     private def report_scope_source

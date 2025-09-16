@@ -15,6 +15,12 @@ wb.add_worksheet name: title[0..30] do |sheet|
   sheet.add_row(summary, style: title_style)
   sheet.add_row(@clients.headers_for_export, style: title_style)
   @clients.support_rows(export: true).each do |row|
-    sheet.add_row(row.values)
+    client_id = row['Warehouse Client ID']
+    project_id = row[@report.project_id_header]
+    row_values = []
+    row.each do |header, v|
+      row_values << @clients.display_value(header: header, value: v, project_id: project_id, client_id: client_id, user: current_user)
+    end
+    sheet.add_row(row_values)
   end
 end

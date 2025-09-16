@@ -1,20 +1,31 @@
+# Updating codebase for HUD specs
 
-## HUD Lists
+This is a guide for creating "list" and utility classes when HUD specs are released for a new year.
 
-For a new year, copy the previous year_hud_list.json file and the year_additional_lists directory and then rename them with the new year suffix. Update files in the the year_additional_lists with data from the new specs.
+## 1) Create data files
+* Review the HUD data dictionary change log
+* For a new year, copy the previous `[year]_hud_lists.json` file and modify it according to the data dictonary
+* Add any deprecated fields or values not present in the HUD spec to `[year]_hud_deprecations.json`.
 
-Run the json generator `code:generate_hud_list_json year file_path_to_machinde_readable_xlsx_file`
+## 2) Create HUDLists ruby module
+After changes to the JSON files have been completed, run the following tasks to generate a the hud lists ruby module
 
-e.g.
+```bash
+# example for 2026
+rails code:generate_hud_lists['2026']
 ```
-rails code:generate_hud_list_json\["2024","lib/data/CSV Specifications Machine-Readable_FY2024.xlsx"\]
+
+## 3) Create a new utility class
+* Manually create a `HudUtility[year]` class and modify it to include the new HudLists concern (`HudLists[year]`)
+* Create a new spec for the utility `spec/lib/util/hud_utility_[year].rb`
+* Update code base to use the new utility class, excluding previous year's HUD reporting code which should continue to use the prior year
+
+## 4) Update the HMIS GraphQL API
+
+```bash
+# example for 2026
+rails driver:hmis:generate_graphql_enums['2026']
+rails driver:hmis:dump_graphql_schema
 ```
 
-This will generate the JSON files. To account for some inconsistencies with the excel data, some names may be generated as "Unknown". These will need to be verified manually with the lists specified in the HUD HMIS CSV specifications. This generated file should then be manually adjusted for any special text formatting needs or other changes.
-
-After changes to the JSON files have been confirmed, please run the following tasks to re-generate dependent code:
-
-```
-rails code:generate_hud_lists
-rails driver:hmis:generate_graphql_enums
-```
+Using the updated schema.json, regenerate the front-end types on the HMIS front-end. See documentation in the hmis-frontend repository.

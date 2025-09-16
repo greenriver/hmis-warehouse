@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe 'HUD ExportDate Tests', type: :model do
@@ -19,6 +21,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
         version: 'AutoMigrate',
         data_source: @data_source,
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -35,6 +38,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
           version: 'AutoMigrate',
           data_source: @data_source,
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 
@@ -52,6 +56,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
           version: 'AutoMigrate',
           data_source: @data_source,
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 
@@ -69,6 +74,7 @@ RSpec.describe 'HUD ExportDate Tests', type: :model do
           version: 'AutoMigrate',
           data_source: @data_source,
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 

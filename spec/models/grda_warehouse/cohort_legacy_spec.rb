@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Cohort, type: :model do
@@ -83,6 +85,44 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     it 'user should not have access to other cohorts' do
       viewer.add_viewable(cohort_2)
       expect(GrdaWarehouse::Cohort.viewable_by(viewer).where(id: cohort.id).exists?).to be_falsey
+    end
+  end
+
+  describe 'when access is granted via different access group mechanisms' do
+    let(:general_access_group) { create(:access_group, name: 'General Cohort Access') }
+    let(:test_user) { create(:user) }
+
+    before do
+      # Give test_user the necessary role to view cohorts
+      test_user.legacy_roles = [cohort_viewer]
+    end
+
+    it 'user should have access via their personal access_group' do
+      test_user.access_group.add_viewable(cohort)
+      expect(GrdaWarehouse::Cohort.viewable_by(test_user).where(id: cohort.id).exists?).to be true
+    end
+
+    it 'user should have access via a general access_group they are a member of' do
+      general_access_group.add_viewable(cohort)
+      general_access_group.add(test_user)
+      expect(GrdaWarehouse::Cohort.viewable_by(test_user).where(id: cohort.id).exists?).to be true
+    end
+
+    it 'user should NOT have access to cohorts in general access_groups they are not a member of' do
+      general_access_group.add_viewable(cohort)
+      # Note: test_user is NOT added to general_access_group
+      expect(GrdaWarehouse::Cohort.viewable_by(test_user).where(id: cohort.id).exists?).to be false
+    end
+
+    it 'user.cohorts should include cohorts from their personal access_group' do
+      test_user.access_group.add_viewable(cohort)
+      expect(test_user.cohorts.pluck(:id)).to include(cohort.id)
+    end
+
+    it 'user.cohorts should include cohorts from general access_groups they belong to' do
+      general_access_group.add_viewable(cohort)
+      general_access_group.add(test_user)
+      expect(test_user.cohorts.pluck(:id)).to include(cohort.id)
     end
   end
 end

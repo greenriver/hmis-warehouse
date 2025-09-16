@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class SubmitForm < BaseMutation
     description 'Submit a form to create/update HUD record(s)'
@@ -76,7 +78,7 @@ module Mutations
       is_valid = record.valid?([:form_submission, "#{definition.role.to_s.downcase}_form".to_sym])
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = form_processor.collect_record_validations(user: current_user)
+      record_validations = form_processor.collect_processing_validations(user: current_user)
       errors.push(*record_validations)
 
       errors.drop_warnings! if input.confirmed

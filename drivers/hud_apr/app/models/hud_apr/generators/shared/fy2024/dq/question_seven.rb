@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2024::Dq::QuestionSeven
   extend ActiveSupport::Concern
 
@@ -14,7 +16,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionSeven
           'Data Element',
           '# of Records',
           '# of Inactive Records',
-          '# % of Inactive Records',
+          '% of Inactive Records',
         ],
         row_labels: [
           'Contact (Adults and Heads of Household in Street Outreach or ES - NBN)',

@@ -24,7 +24,7 @@
         {
           "question": "R17_1",
           "operator": "EQUAL",
-          "answer_code": "YOUTH_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT"
+          "answer_code": "CLIENT_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT"
         }
       ],
       "item": [

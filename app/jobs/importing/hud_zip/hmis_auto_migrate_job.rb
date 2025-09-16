@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Importing::HudZip
   class HmisAutoMigrateJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
@@ -13,7 +15,7 @@ module Importing::HudZip
     # obey they max_attempts for Delayed Job.  We'll adjust the attempts to give us what we want
     after_enqueue :enforce_max_attempts
 
-    def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false)
+    def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false)
       lock_obtained = nil
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(
@@ -21,6 +23,8 @@ module Importing::HudZip
           upload_id: upload_id,
           deidentified: deidentified,
           allowed_projects: allowed_projects,
+          stop_version: stop_version,
+          dry_run: dry_run,
         )
         importer.import!
         lock_obtained = true

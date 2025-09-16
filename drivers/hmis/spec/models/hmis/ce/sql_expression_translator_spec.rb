@@ -1,0 +1,178 @@
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe Hmis::Ce::Match::Expression::SqlExpressionTranslator do
+  let(:current_date) { Date.new(2024, 12, 26) }
+  let(:field_map) { Hmis::Ce::Match::Expression::FieldMap.new(current_date: current_date) }
+
+  describe '.call' do
+    it 'handles simple comparisons' do
+      result = described_class.call('current_age > 18', field_map)
+      expect(result.to_arel.to_sql).to include('DATE_PART')
+      expect(result.to_arel.to_sql).to include('> 18')
+    end
+
+    it 'handles all comparison operators' do
+      # Greater than
+      result = described_class.call('current_age > 18', field_map)
+      expect(result.to_arel.to_sql).to include('> 18')
+
+      # Less than
+      result = described_class.call('current_age < 65', field_map)
+      expect(result.to_arel.to_sql).to include('< 65')
+
+      # Greater than or equal
+      result = described_class.call('current_age >= 18', field_map)
+      expect(result.to_arel.to_sql).to include('>= 18')
+
+      # Less than or equal
+      result = described_class.call('current_age <= 65', field_map)
+      expect(result.to_arel.to_sql).to include('<= 65')
+
+      # Equal
+      result = described_class.call('veteran_status = 1', field_map)
+      expect(result.to_arel.to_sql).to include('= 1')
+
+      # Not equal
+      result = described_class.call('veteran_status != 1', field_map)
+      expect(result.to_arel.to_sql).to include('!=').or include('<>')
+    end
+
+    it 'handles AND conditions' do
+      result = described_class.call('current_age > 18 AND veteran_status = 1', field_map)
+      expect(result.to_arel.to_sql).to include('AND')
+      expect(result.to_arel.to_sql).to include('"Client"."VeteranStatus"')
+    end
+
+    it 'handles nested conditions' do
+      result = described_class.call(
+        '(current_age > 18 AND veteran_status = 1) OR current_age >= 65',
+        field_map,
+      )
+      sql = result.to_arel.to_sql
+      expect(sql).to include('OR')
+      expect(sql).to include('AND')
+      expect(sql.scan('DATE_PART').count).to eq(2) # Should appear twice for the two age comparisons
+    end
+
+    it 'handles unsupported fields gracefully' do
+      result = described_class.call(
+        'current_age > 18 AND unsupported_field = 1',
+        field_map,
+      )
+      expect(result.to_arel.to_sql).to include('DATE_PART')
+      expect(result.to_arel.to_sql).to include('> 18')
+      expect(result.to_arel.to_sql).to include('1 = 1') # ALWAYS_TRUE for unsupported field
+    end
+
+    it 'handles basic arithmetic operations' do
+      # Test basic operations
+      result = described_class.call('current_age = (5 + 5)', field_map)
+      expect(result.to_arel.to_sql).to include('= (5 + 5)')
+
+      # Test complex arithmetic with precedence
+      result = described_class.call('current_age = (10 * 2 + 5)', field_map)
+      expect(result.to_arel.to_sql).to include('= ((10 * 2) + 5)')
+
+      # Test division and modulo
+      result = described_class.call('current_age = (100 / 2)', field_map)
+      expect(result.to_arel.to_sql).to include('= (100 / 2)')
+
+      result = described_class.call('current_age = (7 % 2)', field_map)
+      expect(result.to_arel.to_sql).to include('% 2')
+    end
+
+    it 'handles exponentiation with POWER function' do
+      result = described_class.call('current_age = (2 ^ 3)', field_map)
+      expect(result.to_arel.to_sql).to include('POWER')
+    end
+
+    it 'handles error conditions with descriptive messages' do
+      expect do
+        described_class.call('current_age > ', field_map)
+      end.to raise_error(Dentaku::Error, /Error parsing expression 'current_age > '/)
+
+      expect do
+        described_class.call('invalid syntax )(', field_map)
+      end.to raise_error(Dentaku::Error, /Error parsing expression 'invalid syntax \)\('/)
+    end
+
+    it 'handles mixing math with field references' do
+      result = described_class.call('current_age = (veteran_status + 5)', field_map)
+      expect(result.to_arel.to_sql).to include('"Client"."VeteranStatus"')
+      expect(result.to_arel.to_sql).to include('+ 5')
+    end
+
+    it 'handles nested arithmetic expressions' do
+      result = described_class.call('current_age = ((10 + 5) * (2 + 3))', field_map)
+      expect(result.to_arel.to_sql).to include('((10 + 5) * (2 + 3))')
+    end
+
+    it 'collects joins for fields that require them' do
+      result = described_class.call('days_since_last_exit < 365', field_map)
+      joins = result.joins
+
+      expect(joins).to be_present
+      expect(joins.flatten).to eq([{ hmis_source_clients: { enrollments: :exit } }])
+    end
+
+    it 'does not collect joins for fields that do not require them' do
+      result = described_class.call('veteran_status = 1', field_map)
+      joins = result.joins
+
+      expect(joins).to be_empty
+    end
+
+    context 'with fields that cannot be resolved into SQL' do
+      it 'handles a simple comparison with an unresolvable field' do
+        result = described_class.call('unresolvable_field = 1', field_map)
+        expect(result.to_arel.to_sql).to eq('(1 = 1)')
+      end
+
+      it 'handles AND with an unresolvable field by preserving the known condition' do
+        result = described_class.call('unresolvable_field = 1 AND current_age > 18', field_map)
+        sql = result.to_arel.to_sql
+        expect(sql).to include('DATE_PART')
+        expect(sql).to include('> 18')
+        expect(sql).not_to include('1 = 1 = 1') # Should not have invalid SQL
+      end
+
+      it 'handles OR with an unresolvable field by making the expression always true' do
+        result = described_class.call('unresolvable_field = 1 OR current_age > 18', field_map)
+        sql = result.to_arel.to_sql
+        expect(sql).to include('(1 = 1) OR')
+        expect(sql).to include('DATE_PART')
+        expect(sql).to include('> 18')
+      end
+
+      it 'handles INCLUDES with unresolvable field by making the expression always true' do
+        result = described_class.call('INCLUDES(open_enrollment_project_types, 14)', field_map)
+        expect(result.to_arel.to_sql).to eq('1 = 1')
+      end
+    end
+
+    context 'with days_since_last_exit field' do
+      it 'translates days_since_last_exit comparison to SQL' do
+        result = described_class.call('days_since_last_exit < 365', field_map)
+        sql = result.to_arel.to_sql
+        # Should contain the current_date and ExitDate subtraction
+        expect(sql).to include('2024-12-26') # our test current_date
+        expect(sql).to include('< 365')
+        # Should contain some reference to the enrollment/exit logic (might be complex due to CASE statement)
+        expect(sql).to include('ExitDate').or include('CASE')
+      end
+
+      it 'handles a complex expression with mixed resolvable and unresolvable fields' do
+        result = described_class.call(
+          '(unresolvable_field = 1 AND current_age > 18) OR veteran_status = 1',
+          field_map,
+        )
+        sql = result.to_arel.to_sql
+        expect(sql).to include('"Client"."VeteranStatus"')
+        expect(sql).to include('= 1')
+        # Should contain the veteran_status condition since it's in an OR with a condition that includes unresolvable field
+      end
+    end
+  end
+end

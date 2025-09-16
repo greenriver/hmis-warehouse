@@ -1,4 +1,16 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 FactoryBot.define do
+  factory :hud_client, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 10)
+  end
   factory :grda_warehouse_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :grda_warehouse_data_source
     sequence(:PersonalID, 100)
@@ -70,5 +82,32 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
+  end
+
+  factory :client_with_revoked_consent, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    LastName { 'Ross' }
+    DOB { '1999-12-01' }
+    housing_release_status { Consent::Default.revoked_consent_string }
+  end
+
+  factory :client_with_expanded_consent, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    LastName { 'Ross' }
+    DOB { '1999-12-01' }
+    housing_release_status { Consent::Default.full_release_string }
+  end
+
+  factory :client_with_partial_consent, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :grda_warehouse_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    LastName { 'Ross' }
+    DOB { '1999-12-01' }
+    housing_release_status { Consent::Default.partial_release_string }
   end
 end

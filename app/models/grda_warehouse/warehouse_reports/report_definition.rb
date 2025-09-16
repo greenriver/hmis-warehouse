@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
     acts_as_paranoid
@@ -36,7 +38,8 @@ module GrdaWarehouse::WarehouseReports
           )
       else
         if user.can_view_all_reports? # rubocop:disable Style/IfInsideElse
-          current_scope
+          # If you can view all reports, regardless of who ran the report, for reports you have access to
+          where(id: user.reports.pluck(:id))
         elsif user.can_view_assigned_reports?
           joins(:group_viewable_entities).
             merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
@@ -356,7 +359,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/dob_entry_same',
             name: 'DOB = Entry date',
-            description: "List clients who's first entry date is on their birthdate.",
+            description: 'List clients whose first entry date is on their birthdate.',
             limitable: true,
             health: false,
           },
@@ -384,7 +387,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/non_alpha_names',
             name: 'Client with odd characters in their names',
-            description: "List clients who's first or last name starts with a non-alphabetic character.",
+            description: 'List clients whose first or last name starts with a non-alphabetic character.',
             limitable: false,
             health: false,
           },
@@ -442,7 +445,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/cas/chronic_reconciliation',
             name: 'Chronic Reconcilliation',
-            description: "See who is available in CAS but not on the chronic list, and who's not available in CAS, but is on the chronic list.",
+            description: 'See who is available in CAS but not on the chronic list, and who is not available in CAS, but is on the chronic list.',
             limitable: false,
             health: false,
           },

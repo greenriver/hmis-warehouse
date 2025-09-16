@@ -405,4 +405,26 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
     end
   end
+
+  describe 'active storage url updates' do
+    let(:initial_blob_url) { 'https://example.com/test.pdf' }
+    let(:file) { create :client_file, active_storage_url: initial_blob_url }
+
+    context 'with S3 storage' do
+      before do
+        allow(Rails.application.config.active_storage).to receive(:service).and_return(:amazon)
+      end
+
+      it 'clears the active_storage_url when client_file is attached' do
+        file.client_file.attach(
+          io: StringIO.new('test content'),
+          filename: 'test.pdf',
+          content_type: 'application/pdf',
+        )
+        file.save
+
+        expect(file.active_storage_url).to be_nil
+      end
+    end
+  end
 end

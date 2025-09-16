@@ -23,6 +23,7 @@ class Role < ApplicationRecord
   has_paper_trail
 
   include UserPermissionCache
+  include HistoryDescriptions
 
   # Keep for health roles
   has_many :user_roles
@@ -670,6 +671,12 @@ class Role < ApplicationRecord
         category: 'Cohorts',
         sub_category: 'Cohort Usage',
       },
+      can_receive_cohort_note_notifications: {
+        description: 'Can receive notifications from Client Notes and Notes in Cohorts',
+        administrative: false,
+        category: 'Cohorts',
+        sub_category: 'Cohort Usage',
+      },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',
         administrative: false,
@@ -708,7 +715,7 @@ class Role < ApplicationRecord
       },
       # DEPRECATED, superseded by can_view_assigned_reports in combination with access controls
       can_view_all_reports: {
-        description: 'Access to all reports, regardless the user who ran the report (Note: for Access Controls, this is superseded by "Can View Assigned Reports")',
+        description: 'Access to all reports, regardless the user who ran the report (Note: for Access Controls, this is superseded by "Can View Assigned Reports. Additionally, this does not grant access to reports, only allows a user to see reports previously run by other users.)',
         administrative: true,
         category: 'Reporting',
         sub_category: 'Report Access',

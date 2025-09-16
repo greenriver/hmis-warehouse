@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::Service
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
@@ -169,6 +171,86 @@ module HmisStructure::Service
           PersonalID: {
             type: :string,
             limit: 32,
+            null: false,
+          },
+          DateProvided: {
+            type: :date,
+            null: false,
+          },
+          RecordType: {
+            type: :integer,
+            null: false,
+          },
+          TypeProvided: {
+            type: :integer,
+            null: false,
+          },
+          OtherTypeProvided: {
+            type: :string,
+            limit: 50,
+          },
+          MovingOnOtherType: {
+            type: :string,
+            limit: 50,
+          },
+          SubTypeProvided: {
+            type: :integer,
+          },
+          FAAmount: {
+            type: :string,
+            limit: 50,
+            check: :money,
+          },
+          FAStartDate: {
+            type: :date,
+          },
+          FAEndDate: {
+            type: :date,
+          },
+          ReferralOutcome: {
+            type: :integer,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      when '2026'
+        {
+          ServicesID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          InformationDate: {
+            type: :date,
             null: false,
           },
           DateProvided: {

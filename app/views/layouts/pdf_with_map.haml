@@ -25,8 +25,7 @@
       .mr-4
         %h1= @title
       .ml-auto
-        - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
-        = image_tag(logo, width: 250) if logo.present?
+        = render 'layouts/print_seal'
 
     = yield
 

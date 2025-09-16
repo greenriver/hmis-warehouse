@@ -4,7 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 class Hmis::Hud::Project < Hmis::Hud::Base
+  self.table_name = :Project
+  self.sequence_name = "public.\"#{table_name}_id_seq\""
+
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
@@ -12,8 +17,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_paper_trail(meta: { project_id: :id })
 
-  self.table_name = :Project
-  self.sequence_name = "public.\"#{table_name}_id_seq\""
   CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -24,7 +27,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :affiliations, **hmis_relation(:ProjectID, 'Affiliation'), inverse_of: :project
   # Affiliations to SSO/RRH SSO projects. This should only be present if this project is residential.
   # NOTE: you can't use hmis_relation for residential project, the keys don't match
-  has_many :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
+  has_many :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], query_constraints: ['ResProjectID', :data_source_id]
 
   # Affiliated SSO/RRH SSO projects
   has_many :affiliated_projects, through: :residential_affiliations, source: :project
@@ -40,6 +43,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
+  has_many :unit_groups, dependent: :destroy, class_name: 'Hmis::UnitGroup'
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
 
   has_many :group_viewable_entity_projects
@@ -53,14 +57,20 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments
   has_many :current_living_situations, through: :enrollments
   has_many :project_staff_assignment_configs, class_name: 'Hmis::ProjectStaffAssignmentConfig'
+  has_many :ce_opportunities, class_name: 'Hmis::Ce::Opportunity', foreign_key: :project_id, dependent: :destroy, inverse_of: :project
+  has_many :ce_referrals, class_name: 'Hmis::Ce::Referral', through: :ce_opportunities, source: :referrals
+
+  # All referrals where the source enrollment is in this project. NOT only 'direct' referrals
+  has_many :outgoing_ce_referrals, class_name: 'Hmis::Ce::Referral', through: :enrollments, source: :outgoing_ce_referrals
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 
   has_and_belongs_to_many :project_groups,
-                          class_name: 'GrdaWarehouse::ProjectGroup',
-                          join_table: :project_project_groups
+                          class_name: 'Hmis::ProjectGroup',
+                          join_table: :hmis_project_project_groups,
+                          association_foreign_key: 'hmis_project_group_id'
 
   validates_with Hmis::Hud::Validators::ProjectValidator
 
@@ -69,18 +79,20 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
+    ids += user.viewable_project_groups.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
   # Includes any HMIS projects where the user has the specified permission(s)
-  # NOTE: Pass kwarg "mode: 'all'" if all permissions must be present. Default is 'any'.
+  # NOTE: Pass kwarg "mode: :all" if all permissions must be present. Default is 'any'.
   #
   # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
   scope :with_access, ->(user, *permissions, **kwargs) do
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
+    ids += user.entities_with_permissions(Hmis::ProjectGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
     ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
@@ -132,7 +144,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     )
   end
 
-  scope :receiving_referrals, -> do
+  scope :receiving_legacy_referrals, -> do
     # Find all active instances that enable the Referral functionality
     instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL).published
     # Find open projects that have an instance that match the criteria, which indicates that the
@@ -146,6 +158,17 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.map(&:id)
 
     where(id: referral_project_ids)
+  end
+
+  scope :with_ce_waitlists_enabled, -> do
+    configs = Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?)
+
+    conditions = [
+      arel_table[:project_type].in(configs.map(&:project_type)),
+      arel_table[:id].in(configs.map(&:project_id)),
+      Hmis::Hud::Organization.arel_table[:id].in(configs.map(&:organization_id)),
+    ]
+    joins(:organization).where(conditions.inject(&:or))
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
@@ -179,8 +202,22 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
   end
 
-  def receives_referrals?
+  def receives_legacy_referrals?
     Hmis::Form::Instance.active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
+  end
+
+  def receives_direct_ce_referrals?
+    config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
+
+    config&.receives_direct_referrals?
+  end
+
+  def receives_direct_ce_referrals_from?(source_project)
+    config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
+    return false unless config&.receives_direct_referrals?
+    return true unless config.receives_direct_referrals_from.present? # no projects specified, so accept from all
+
+    config.receives_direct_referrals_from.include?(source_project.id)
   end
 
   def services_only_rrh?
@@ -294,6 +331,22 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(self).present?
   end
 
+  def auto_exit_enabled?
+    Hmis::ProjectAutoExitConfig.detect_best_config_for_project(self).present?
+  end
+
+  def auto_exit_days_threshold
+    config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(self)
+    config&.length_of_absence_days
+  end
+
+  def coordinated_entry_enabled?
+    # Override to false if the system-wide AppConfigProperty is disabled
+    return false unless Hmis::Ce.configuration.enabled?
+
+    Hmis::ProjectCeConfig.detect_best_config_for_project(self).present?
+  end
+
   # Service types that are collected in this project. They are collected if they have an active form definition and instance.
   def available_service_types
     # Find form rules for services that are applicable to this project
@@ -317,6 +370,31 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def uniq_coc_codes
     @uniq_coc_codes ||= project_cocs.pluck(:CoCCode).uniq.compact_blank.sort
+  end
+
+  # Determine and validate CoC Code, which is needed for creating new Enrollments
+  def determine_coc_code(coc_code_arg:)
+    # If project has exactly 1 CoC code, always use that
+    return uniq_coc_codes.first if uniq_coc_codes.size == 1
+
+    raise 'CoC Code required for project' unless coc_code_arg
+    raise "Invalid CoC Code #{coc_code_arg} for project" unless uniq_coc_codes.include?(coc_code_arg)
+
+    coc_code_arg
+  end
+
+  def possible_unit_types
+    unit_type_scope = Hmis::UnitType.all
+
+    # Only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    unit_type_ids = unit_type_mappings.active.pluck(:unit_type_id)
+    if unit_type_ids.any?
+      unit_type_ids += units.distinct.pluck(:unit_type_id) # include unit types for existing units
+      unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+    end
+
+    unit_type_scope
   end
 
   include RailsDrivers::Extensions

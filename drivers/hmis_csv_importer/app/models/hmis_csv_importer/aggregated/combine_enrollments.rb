@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvImporter::Aggregated
   class CombineEnrollments < Base
     INSERT_BATCH_SIZE = 2_000
@@ -78,7 +80,7 @@ module HmisCsvImporter::Aggregated
     end
 
     def new_enrollment_from_enrollment(source)
-      source_data = source.slice(enrollment_source.hmis_structure.keys)
+      source_data = source.slice(enrollment_destination.hmis_structure.keys)
       new_enrollment = enrollment_destination.new(
         source_data.merge(
           source_type: source.class.name,
@@ -94,7 +96,7 @@ module HmisCsvImporter::Aggregated
     end
 
     def new_exit_for_enrollment(source, enrollment)
-      source_data = source.slice(exit_source.hmis_structure.keys)
+      source_data = source.slice(exit_destination.hmis_structure.keys)
       new_exit = exit_destination.new(
         source_data.merge(
           source_type: source.class.name,

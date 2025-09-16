@@ -1,4 +1,4 @@
-- content_for :title, title_for_show
+- content_for :title, "Client-Level System Use and Length of Time Homeless Report"
 = render 'clients/breadcrumbs'
 
 = render 'clients/aliases'
@@ -6,7 +6,7 @@
 
 .row
   .col-sm-8
-    %h1= content_for :title
+    = render_display_title(title_for_show)
 = render 'filter'
 
 .table-responsive

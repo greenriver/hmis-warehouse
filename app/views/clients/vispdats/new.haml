@@ -1,16 +1,15 @@
-- title = "New VISPDAT for #{@client.pii_provider(user: current_user).full_name}"
+- title = "New VISPDAT"
 - content_for :title, title
 .o-page
   = render 'clients/breadcrumbs'
   = render 'clients/aliases'
 
 .o-page__header
-  .o-page__title
-    %h1= title
+  = render_display_title("New VISPDAT for #{@client.pii_provider(user: current_user).full_name}") do
     %small VI-SPDAT
     = render 'type_warning'
   .o-page__action
-    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'Back', data: { toggle: 'tooltip' }
+    = link_to 'Back', polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', 'bs-title' => 'Back', data: { 'bs-toggle' => 'tooltip' }
 
   = render 'clients/tab_navigation', current: polymorphic_path(vispdats_path_generator, client_id: @client)
 

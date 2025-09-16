@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Apr::Fy2024
   class QuestionTwentySeven < HudApr::Generators::Shared::Fy2024::QuestionTwentySeven
     QUESTION_TABLE_NUMBERS = ['Q27a', 'Q27b', 'Q27c', 'Q27d', 'Q27e', 'Q27f1', 'Q27f2', 'Q27g', 'Q27h', 'Q27i', 'Q27j', 'Q27k', 'Q27l', 'Q27m'].freeze

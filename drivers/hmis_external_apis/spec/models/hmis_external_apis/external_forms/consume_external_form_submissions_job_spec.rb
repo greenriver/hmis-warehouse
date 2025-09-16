@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -6,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :model do
+RSpec.describe HmisExternalApis::ConsumeExternalFormSubmissionsJob, type: :model do
   let!(:data_source) { create :hmis_data_source }
 
   let(:form_definition) do

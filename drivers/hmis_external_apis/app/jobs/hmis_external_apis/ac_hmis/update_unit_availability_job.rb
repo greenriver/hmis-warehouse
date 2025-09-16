@@ -4,19 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   class UpdateUnitAvailabilityJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
-    include NotifierConfig
 
-    JOB_LOCK_NAME = 'hmis_external_update_unit_availability'.freeze
+    JOB_LOCK_NAME = 'hmis_external_update_unit_availability'
 
     # @param force [Boolean]
     def perform(force: false)
       return unless HmisExternalApis::AcHmis::LinkApi.enabled?
-
-      setup_notifier(self.class.name)
 
       data_source = HmisExternalApis::AcHmis.data_source
       projects = Hmis::Hud::Project.where(data_source: data_source)
@@ -50,7 +49,7 @@ module HmisExternalApis::AcHmis
 
     def handle_alert(message)
       Sentry.capture_message(message)
-      @notifier.ping(message)
+      Rails.logger.error(message)
     end
 
     def default_user

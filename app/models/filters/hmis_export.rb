@@ -4,18 +4,25 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+require 'memery'
 module Filters
   class HmisExport < FilterBase
     include ArelHelper
+    include Memery
+
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
     attribute :version, String, default: '2024'
+    attribute :source_type, Integer, default: 3 # data warehouse
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
     attribute :include_deleted, Boolean, default: false
     attribute :faked_pii, Boolean, default: false
     attribute :confidential, Boolean, default: false
+    attribute :enforce_project_date_scope, Boolean, default: false
 
     attribute :every_n_days, Integer, default: 0
     attribute :reporting_range, String, default: 'fixed'
@@ -31,6 +38,7 @@ module Filters
     attribute :zip_password, String
     attribute :encryption_type, String
     attribute :_aj_symbol_keys, String
+    attribute :custom_file_types, Array, default: []
 
     validates_presence_of :start_date, :end_date
 
@@ -47,13 +55,15 @@ module Filters
 
       self.start_date = filters.dig(:start_date)&.to_date || start_date
       self.end_date = filters.dig(:end_date)&.to_date || end_date
-      self.version = filters.dig(:version) if self.class.available_versions&.include?(filters.dig(:version))
+      self.version = filters.dig(:version) if self.class.available_versions&.map { |m| m[:version_str] }&.uniq&.include?(filters.dig(:version))
+      self.source_type = filters.dig(:source_type).to_i unless filters.dig(:source_type).nil?
       self.hash_status = filters.dig(:hash_status).to_i unless filters.dig(:hash_status).nil?
       self.period_type = filters.dig(:period_type).to_i unless filters.dig(:period_type).nil?
       self.directive = filters.dig(:directive).to_i unless filters.dig(:directive).nil?
       self.include_deleted = filters.dig(:include_deleted).in?(['1', 'true', true]) unless filters.dig(:include_deleted).nil?
       self.faked_pii = filters.dig(:faked_pii).in?(['1', 'true', true]) unless filters.dig(:faked_pii).nil?
       self.confidential = filters.dig(:confidential).in?(['1', 'true', true]) unless filters.dig(:confidential).nil?
+      self.enforce_project_date_scope = filters.dig(:enforce_project_date_scope).in?(['1', 'true', true]) unless filters.dig(:enforce_project_date_scope).nil?
       self.every_n_days = filters.dig(:every_n_days).to_i unless filters.dig(:every_n_days).nil?
       self.reporting_range = filters.dig(:reporting_range) unless filters.dig(:reporting_range).nil?
       self.reporting_range_days = filters.dig(:reporting_range_days).to_i unless filters.dig(:reporting_range_days).nil?
@@ -65,6 +75,7 @@ module Filters
       self.s3_prefix = filters.dig(:s3_prefix) unless filters.dig(:s3_prefix).nil?
       self.zip_password = filters.dig(:zip_password) unless filters.dig(:zip_password).nil?
       self.encryption_type = filters.dig(:encryption_type) unless filters.dig(:encryption_type).nil?
+      self.custom_file_types = filters.dig(:custom_file_types)&.compact_blank || []
 
       super(filters)
     end
@@ -75,12 +86,14 @@ module Filters
           start_date: start_date,
           end_date: end_date,
           version: version,
+          source_type: source_type,
           hash_status: hash_status,
           period_type: period_type,
           directive: directive,
           include_deleted: include_deleted,
           faked_pii: faked_pii,
           confidential: confidential,
+          enforce_project_date_scope: enforce_project_date_scope,
           every_n_days: every_n_days,
           reporting_range: reporting_range,
           reporting_range_days: reporting_range_days,
@@ -92,6 +105,7 @@ module Filters
           s3_prefix: s3_prefix,
           zip_password: zip_password,
           encryption_type: encryption_type,
+          custom_file_types: custom_file_types,
         },
       )
     end
@@ -106,6 +120,11 @@ module Filters
     def self.available_versions
       # this needs to be something that is not reloaded
       Rails.application.config.hmis_exporters ||= []
+    end
+
+    def self.available_source_types
+      # Note, source type hasn't changed, so using FY2026
+      HudUtility2026.source_types.invert
     end
 
     def self.job_classes
@@ -157,18 +176,37 @@ module Filters
         faked_pii: faked_pii,
         user_id: user_id,
         confidential: confidential,
+        enforce_project_date_scope: enforce_project_date_scope,
         recurring_hmis_export_id: recurring_hmis_export_id,
         options: to_h,
       }
     end
 
-    def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids = all_project_ids if @effective_project_ids.empty?
-      return @effective_project_ids.uniq
+    memoize def effective_project_ids
+      ids = effective_project_ids_from_projects
+      ids += effective_project_ids_from_project_groups
+      ids += effective_project_ids_from_organizations
+      ids += effective_project_ids_from_data_sources
+      ids = all_project_ids if ids.empty?
+
+      # Ensure all projects are active in the chosen date range
+      if enforce_project_date_scope
+        ids = GrdaWarehouse::Hud::Project.
+          where(id: ids).
+          active_during(start_date..end_date).
+          pluck(:id)
+      end
+
+      # Ensure all projects are active in the chosen CoCs
+      if coc_codes.any?
+        ids = GrdaWarehouse::Hud::Project.
+          where(id: ids).
+          joins(:project_cocs).
+          merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)).
+          pluck(:id)
+      end
+
+      return ids.uniq
     end
 
     def effective_project_ids_from_projects
@@ -226,6 +264,36 @@ module Filters
 
     def user
       User.find(user_id)
+    end
+
+    def describe(key, value = chosen(key), labels: {})
+      title = case key
+      when :enforce_project_date_scope
+        'Enforce Project Date Scope' if value.present?
+      else
+        return super
+      end
+
+      [title, value]
+    end
+
+    def chosen(key)
+      case key
+      when :enforce_project_date_scope
+        'Yes' if enforce_project_date_scope
+      else
+        return super
+      end
+    end
+
+    def available_custom_file_types
+      return {} unless version == '2026'
+
+      HmisCsvTwentyTwentySix.custom_files_config.definitions.map(&:for_select).to_h
+    end
+
+    def valid_custom_file_types
+      custom_file_types & available_custom_file_types.values
     end
   end
 end

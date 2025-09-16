@@ -351,10 +351,10 @@ module HmisDataQualityTool
     end
 
     def items_for(key)
-      return universe("#{key}__invalid").universe_members.map(&:universe_membership) unless key.to_s.in?(ch_keys)
+      return universe("#{key}__invalid").universe_members.preload(universe_membership: [:enrollment, :client, :data_source]).map(&:universe_membership) unless key.to_s.in?(ch_keys)
 
       # CH calculations are done live
-      case key.to_s
+      scope = case key.to_s
       when 'client_ch_most_recent'
         clients.where(ch_at_most_recent_entry: true)
       when 'client_ch_any'
@@ -370,6 +370,7 @@ module HmisDataQualityTool
       when 'destination_other'
         enrollments.where(destination: ::HudUtility2024.other_destinations)
       end
+      scope.preload(:enrollment, :client, :data_source)
     end
 
     def destination_percent(category)

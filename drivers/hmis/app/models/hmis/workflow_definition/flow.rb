@@ -1,0 +1,38 @@
+# frozen_string_literal: true
+
+# Represents connections between nodes in a workflow.
+# Flows define the possible paths through the workflow and may include conditions that determine which path is taken.
+module Hmis::WorkflowDefinition
+  class Flow < GrdaWarehouseBase
+    has_paper_trail
+    acts_as_paranoid
+
+    belongs_to :template, class_name: 'Hmis::WorkflowDefinition::Template'
+    belongs_to :source_node, class_name: 'Hmis::WorkflowDefinition::Node'
+    belongs_to :target_node, class_name: 'Hmis::WorkflowDefinition::Node'
+
+    def describe_as_string(source_only: false, target_only: false)
+      str = if source_only
+        source_node.name
+      elsif target_only
+        target_node.name
+      else
+        "#{source_node.name} -> #{target_node.name}"
+      end
+      str += " (IF #{condition})" if condition.present?
+      str += " (#{id})"
+      str
+    end
+
+    # Returns a string representation of the link (arrow) for Mermaid diagrams
+    def to_mermaid_link
+      source = source_node.to_mermaid_node_id
+      target = target_node.to_mermaid_node_id
+      if condition
+        "#{source}-- IF #{condition} --> #{target}"
+      else
+        "#{source}--> #{target}"
+      end
+    end
+  end
+end

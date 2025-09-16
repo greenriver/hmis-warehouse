@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Hud
   class HmisParticipation < Base
     include HudSharedScopes
@@ -20,5 +22,14 @@ module GrdaWarehouse::Hud
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :hmis_participations, optional: true
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :hmis_participations, optional: true
     belongs_to :data_source, optional: true
+
+    scope :within_range, ->(range) do
+      start_date = arel_table[:HMISParticipationStatusStartDate]
+      end_date = arel_table[:HMISParticipationStatusEndDate]
+      where(
+        end_date.gteq(range.first).or(end_date.eq(nil)).
+        and(start_date.lteq(range.last).or(start_date.eq(nil))),
+      )
+    end
   end
 end

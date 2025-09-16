@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_unit_type, class: 'Hmis::UnitType' do
     description { 'SRO' }
@@ -18,10 +20,15 @@ FactoryBot.define do
   end
 
   factory :hmis_unit, class: 'Hmis::Unit' do
-    name { 'Unit A' }
+    sequence(:name) { |n| "Unit #{n}" }
     user { association :hmis_user }
-    active_ranges { [association(:hmis_active_range)] }
     project { association :hmis_hud_project }
+
+    trait :in_unit_group do
+      unit_group { association :hmis_unit_group, project: project }
+    end
+
+    factory :hmis_unit_in_group, traits: [:in_unit_group]
   end
 
   factory :hmis_unit_occupancy, class: 'Hmis::UnitOccupancy' do
@@ -32,8 +39,9 @@ FactoryBot.define do
       start_date { 1.month.ago }
       end_date { nil }
     end
-    after(:create) do |uo, evaluator|
-      uo.occupancy_period.update(start_date: evaluator.start_date, end_date: evaluator.end_date)
+    after(:build) do |unit_occupancy, evaluator|
+      unit_occupancy.occupancy_period.start_date = evaluator.start_date
+      unit_occupancy.occupancy_period.end_date = evaluator.end_date
     end
   end
 end

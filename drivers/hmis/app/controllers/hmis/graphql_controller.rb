@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis
   class GraphqlController < Hmis::BaseController
     # If accessing from outside this domain, nullify the session
@@ -128,7 +130,10 @@ module Hmis
         user_id: true_hmis_user.id,
         data_source_id: current_hmis_user.hmis_data_source_id,
         ip_address: request.remote_ip&.to_s,
-        session_hash: session.id&.to_s,
+        session_hash: session.id&.to_s, # Maps to session_id on GrdaWarehouse::Version
+        # Maps to request_id on GrdaWarehouse::Version, if the request made any data changes.
+        # Also maps to X-Request-Id header in Sentry (though if the request crashed, it won't generate an ActivityLog)
+        request_id: request.uuid,
         variables: gql_param[:variables],
         # these are pulled from headers so they are not necessarily safe, could be tampered with
         referer: request.referer,

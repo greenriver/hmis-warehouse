@@ -6,18 +6,19 @@
           Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in a
           valid HMIS CSV format, and must include at a minimum valid
           %strong
-            Export.csv and Project.csv
-          files. If the files are not in the current HUD-specified format, an attempt will be made to convert
-          the files using the HUD data migration rules.
+            Export.csv, Organization.csv, and Project.csv
+          files. If the files are not in the current HUD-specified format, an attempt will be made to convert the files using the HUD data migration rules.
         = simple_form_for @upload, url: data_source_uploads_path(@data_source) do |f|
           = f.error_notification
           .form-inputs
             .mb-4
               = f.file_field :hmis_zip
+            .mb-4
+              = f.input :dry_run, as: :pretty_boolean, label: "Pause for review?", hint: "If checked, the import will pause before overwriting the existing warehouse data.  This is useful if you want to review the import for data quality."
             - if can_upload_deidentified_hud_hmis_files?
-              = f.input :deidentified, as: :boolean, label: "Are all of the Client Names in Client.csv blank?"
+              = f.input :deidentified, as: :pretty_boolean, label: "Are all of the Client Names in Client.csv blank?"
             - if can_upload_whitelisted_hud_hmis_files?
-              = f.input :project_whitelist, as: :boolean, label: "Limit clients to whitelisted projects?"
+              = f.input :project_whitelist, as: :pretty_boolean, label: "Limit clients to whitelisted projects?"
             = f.hidden_field :import_type, value: :hmis_migrate
           .form-actions
             = f.button :submit, value: 'Upload Zip'

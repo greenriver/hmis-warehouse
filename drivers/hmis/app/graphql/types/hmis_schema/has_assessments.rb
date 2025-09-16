@@ -27,10 +27,6 @@ module Types
         end
       end
 
-      def resolve_assessments_with_loader(association_name = :custom_assessments, **args)
-        load_ar_association(object, association_name, scope: scoped_assessments(Hmis::Hud::CustomAssessment, **args))
-      end
-
       def resolve_assessments(scope = object.custom_assessments, **args)
         scoped_assessments(scope, **args)
       end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Caper::CaperConcern
   extend ActiveSupport::Concern
 
@@ -65,6 +67,7 @@ module HudApr::Caper::CaperConcern
         fy2021: HudApr::Generators::Caper::Fy2021::Generator,
         fy2023: HudApr::Generators::Caper::Fy2023::Generator,
         fy2024: HudApr::Generators::Caper::Fy2024::Generator,
+        fy2026: HudApr::Generators::Caper::Fy2026::Generator,
       }
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -7,6 +9,11 @@
 module Admin
   class UsersController < ApplicationController
     include ViewableEntities # TODO: START_ACL remove when ACL transition complete
+
+    # Valid entity types for AJAX loading. Combines known AccessGroup entity types with coc_codes
+    # which is handled separately as it's stored as a JSON array rather than associations.
+    VALID_ENTITY_TYPES = (AccessGroup.known_entity_types.map(&:to_s) + ['coc_codes']).freeze
+
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
@@ -19,19 +26,12 @@ module Admin
     require 'active_support/core_ext/string/inflections'
 
     def index
-      # search
-      @users = if params[:q].present?
-        user_scope.text_search(params[:q])
-      else
-        user_scope
-      end
+      # TODO: START_ACL replace when ACL transition complete
+      # preload(:access_controls, :oauth_identities).
+      @users = user_scope.preload(:access_controls, :roles, :oauth_identities)
+      # END_ACL
 
-      @users = @users.
-        # TODO: START_ACL replace when ACL transition complete
-        # preload(:access_controls, :oauth_identities).
-        preload(:access_controls, :roles, :oauth_identities).
-        # END_ACL
-        order(sort_column => sort_direction)
+      @users = @users.order(sort_column => sort_direction) if manually_sorted?
 
       @pagy, @users = pagy(@users)
     end
@@ -140,6 +140,155 @@ module Admin
       respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
     end
 
+    def search
+      search_query = GrdaWarehouse::ClientSearchQuery.find_by(id: params[:id])
+      return handle_invalid_query('Search query not found') if search_query.nil?
+
+      search_query.touch
+      perform_search(search_query.query_params)
+    end
+
+    # Loads select options for entity type dropdowns in the user form via AJAX for lazy loading.
+    # This endpoint provides HTML option elements for large entity collections to improve
+    # initial page load performance by deferring data loading until needed.
+    #
+    # @param entity_type [String] The type of entity to load options for. Must be one of:
+    #   'data_sources', 'organizations', 'projects', 'project_access_groups',
+    #   'coc_codes', 'reports', 'project_groups', 'cohorts'
+    # @param base [String] The base parameter name for form inputs, defaults to 'user'
+    # @param id [String] Optional user ID when editing existing user to load current selections
+    #
+    # @return [String] Rendered partial containing HTML option/optgroup elements
+    # @return [JSON] Error response with appropriate HTTP status code on failure
+    #
+    # @example Load project options for new user
+    #   GET /admin/users/load_select_options?entity_type=projects&base=user
+    # @example Load organization options for existing user
+    #   GET /admin/users/load_select_options?entity_type=organizations&base=user&id=123
+    #
+    # @raise [JSON] 400 Bad Request for invalid/missing entity_type
+    # @raise [JSON] 404 Not Found if user ID provided but user doesn't exist
+    # @raise [JSON] 500 Internal Server Error for unexpected failures
+    #
+    # @note This endpoint is protected by require_can_edit_users! before_action
+    # @note We explicitly do not have an id as part of the url, it is passed as a param to support new and existing users
+    # @see ViewableEntities concern for entity building methods
+    def load_select_options
+      entity_type = validate_entity_type_param
+      return if performed? # Early return if validation failed and response was already rendered
+
+      base = validate_base_param
+      @user = load_user_for_entity_options
+
+      begin
+        entity = build_entity_options(entity_type, base)
+        render partial: 'users/select_options', locals: { entity: entity }
+      rescue StandardError => e
+        Rails.logger.error "Failed to load select options for #{entity_type}: #{e.message}"
+        render json: { error: 'Failed to load options' }, status: :internal_server_error
+      end
+    end
+
+    # Validates the entity_type parameter for load_select_options endpoint.
+    # Ensures the requested entity type is supported and prevents potential security issues
+    # from arbitrary entity type values.
+    #
+    # @return [String] The validated entity type if valid
+    # @return [nil] Returns nil and renders JSON error response if invalid
+    #
+    # @note Renders 400 Bad Request response for invalid/missing entity types
+    # @note Valid entity types are: data_sources, organizations, projects,
+    #   project_access_groups, coc_codes, reports, project_groups, cohorts
+    private def validate_entity_type_param
+      entity_type = params[:entity_type]
+      valid_entity_types = VALID_ENTITY_TYPES
+
+      unless entity_type.present? && valid_entity_types.include?(entity_type)
+        render json: { error: 'Invalid or missing entity type' }, status: :bad_request
+        return nil
+      end
+
+      entity_type
+    end
+
+    # Validates and sanitizes the base parameter for form input naming.
+    # The base parameter determines the prefix used for form field names
+    # (e.g., 'user[projects][]' vs 'invitation[projects][]').
+    #
+    # @return [String] The sanitized base parameter, defaults to 'user'
+    #
+    # @note Always returns a safe string value, never nil
+    # @note Strips whitespace and falls back to 'user' for empty values
+    private def validate_base_param
+      base = params[:base]
+      return 'user' unless base.present?
+
+      # Sanitize base parameter to prevent potential issues
+      base.to_s.strip.presence || 'user'
+    end
+
+    # Loads the appropriate User object for entity option building.
+    # For existing users, loads the user.
+    # For new users, creates a temporary User object for form building.
+    #
+    # @return [User] The user object (existing or new) for entity option building
+    # @return [nil] Returns nil and renders JSON error response if user not found
+    #
+    # @note For existing users (when params[:id] present), reloads associations
+    # @note For new users, returns a new User instance (not persisted)
+    # @note Renders 404 Not Found response if user ID provided but user doesn't exist
+    private def load_user_for_entity_options
+      return User.new if params[:id].blank?
+
+      begin
+        User.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'User not found' }, status: :not_found
+        return nil
+      end
+    end
+
+    # Builds entity options hash for the specified entity type and base parameter.
+    # Delegates to appropriate ViewableEntities concern methods to generate
+    # form field configurations with collections, selected values, and metadata.
+    #
+    # @param entity_type [String] The validated entity type to build options for
+    # @param base [String] The sanitized base parameter for form field naming
+    #
+    # @return [Hash] Entity options hash containing:
+    #   - :collection - The available items for selection
+    #   - :selected - Currently selected item IDs
+    #   - :input_html - HTML attributes for form inputs
+    #   - :as - Form field type (:select, :grouped_select, etc.)
+    #   - Other metadata specific to the entity type
+    #
+    # @raise [ArgumentError] If entity_type is not supported (should not happen with validation)
+    #
+    # @note Relies on ViewableEntities concern methods for actual option building
+    # @see ViewableEntities concern for individual entity building methods
+    private def build_entity_options(entity_type, base)
+      case entity_type
+      when 'data_sources'
+        data_source_viewability(base)
+      when 'organizations'
+        organization_viewability(base)
+      when 'projects'
+        project_viewability(base)
+      when 'project_access_groups'
+        project_access_group_viewability(base)
+      when 'coc_codes'
+        coc_viewability(base)
+      when 'reports'
+        user_reports_assignability(base)
+      when 'project_groups'
+        project_groups_editability(base)
+      when 'cohorts'
+        cohort_editability(base)
+      else
+        raise ArgumentError, "Unsupported entity type: #{entity_type}"
+      end
+    end
+
     private def copy_user_groups
       return unless @user
       return unless user_params[:copy_form_id].present?
@@ -162,9 +311,9 @@ module Admin
     def title_for_show
       @user.name
     end
-    alias title_for_edit title_for_show
-    alias title_for_destroy title_for_show
-    alias title_for_update title_for_show
+    alias_method :title_for_edit, :title_for_show
+    alias_method :title_for_destroy, :title_for_show
+    alias_method :title_for_update, :title_for_show
 
     def title_for_index
       'User List'
@@ -295,18 +444,40 @@ module Admin
       )
     end
 
+    private def manually_sorted?
+      params[:sort].present?
+    end
+
     private def sort_column
-      user_scope.column_names.include?(params[:sort]) ? params[:sort] : 'last_name'
+      params[:sort].presence_in(['email', 'first_name', 'last_name']) || 'last_name'
     end
 
     private def sort_direction
-      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
+      params[:direction].presence_in(['asc', 'desc']) || 'asc'
     end
 
     private def set_user
       @user = User.find(params[:id].to_i)
 
       @agencies = Agency.order(:name)
+    end
+
+    private def perform_search(search_params = {})
+      @query = search_params['q'].presence
+      if @query
+        @users = user_scope.text_search(@query, sort_by_best_match: !manually_sorted?)
+      else
+        @users = user_scope.none
+      end
+
+      @users = @users.order(sort_column => sort_direction) if manually_sorted?
+      @pagy, @users = pagy(@users)
+      render :index
+    end
+
+    private def handle_invalid_query(message)
+      flash[:error] = message
+      redirect_to admin_users_path
     end
   end
 end

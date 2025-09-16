@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -89,6 +91,17 @@ RSpec.describe 'User access summary query', type: :request do
           expect(records.size).to eq(1)
           expect(records.map { |h| h['clientId'] }).to contain_exactly(c2.id.to_s)
         end
+
+        context 'with deleted client' do
+          let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alice', last_name: 'Quinn', date_deleted: now - 1.day }
+
+          it 'includes deleted client' do
+            records = run_query(id: other_hmis_user.id)
+            expect(records.size).to eq(2)
+            expect(records.map { |h| h['clientId'] }).to contain_exactly(c1.id.to_s, c2.id.to_s)
+            expect(records.map { |h| h['clientName'] }).to contain_exactly(c1.brief_name, c2.brief_name)
+          end
+        end
       end
 
       context 'enrollment access summary' do
@@ -142,6 +155,21 @@ RSpec.describe 'User access summary query', type: :request do
           records = run_query(id: other_hmis_user.id, filters: { project: p1.id })
           expect(records.size).to eq(1)
           expect(records.map { |h| h['clientId'] }).to contain_exactly(c1.id.to_s)
+        end
+
+        context 'with deleted records' do
+          let(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, date_deleted: now - 1.day }
+          let(:e2) { create enrollment_factory, data_source: ds1, project: p2, client: c2, date_deleted: now - 1.day }
+          let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alice', last_name: 'Quinn', date_deleted: now - 1.day }
+
+          it 'returns all fields, even deleted ones' do
+            records = run_query(id: other_hmis_user.id)
+            expect(records.size).to eq(2)
+            expect(records.map { |h| h['clientName'] }).to contain_exactly(c1.brief_name, c2.brief_name)
+            expect(records.map { |h| h['clientId'] }).to contain_exactly(c1.id.to_s, c2.id.to_s)
+            expect(records.map { |h| h['enrollmentId'] }).to contain_exactly(e1.id.to_s, e2.id.to_s)
+            expect(records.map { |h| h['projectId'] }).to contain_exactly(p1.id.to_s, p2.id.to_s)
+          end
         end
       end
     end

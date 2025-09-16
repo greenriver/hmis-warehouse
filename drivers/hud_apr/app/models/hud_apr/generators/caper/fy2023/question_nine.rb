@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Caper::Fy2023
   class QuestionNine < HudApr::Generators::Shared::Fy2023::QuestionNine
     QUESTION_TABLE_NUMBERS = ['Q9a', 'Q9b'].freeze

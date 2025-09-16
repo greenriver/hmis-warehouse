@@ -35,7 +35,7 @@ class CohortsController < ApplicationController
 
     @search = search_setup(columns: [:name], scope: :cohort_search)
     # Enforce visibility on searches
-    @search = @search.where(id: cohort_scope.select(:id))
+    @search = @search.where(id: scope.select(:id))
     @cohorts = @search.active_user.reorder(sort_string)
     @inactive_cohorts = @search.inactive.reorder(sort_string)
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)

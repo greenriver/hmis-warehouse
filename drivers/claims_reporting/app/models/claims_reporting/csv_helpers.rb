@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -163,7 +165,8 @@ module ClaimsReporting::CsvHelpers
     end
 
     private def with_temp_table(base_name)
-      tmp_table_name = "#{base_name}_#{SecureRandom.hex}"
+      # truncate to not exceed max table name length of 63 chars
+      tmp_table_name = "#{base_name.slice(0, 30)}_#{SecureRandom.hex}"
       log_timing "with_temp_table(#{base_name})" do
         connection.create_table(tmp_table_name, id: false, temporary: true) do |t|
           schema_data.each do |row|
@@ -195,7 +198,6 @@ module ClaimsReporting::CsvHelpers
       msg += " #{(res.to_f / bm.real).round}/sec" if res.is_a?(Numeric)
 
       Rails.logger.info { msg }
-      res
     end
   end
 end

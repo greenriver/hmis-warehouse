@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouseBase < ApplicationRecord
-  include ArelHelper
-  include Efind
+class GrdaWarehouseBase < ActiveRecord::Base
+  include CustomApplicationRecord
 
   self.abstract_class = true
   connects_to database: { writing: :warehouse, reading: :warehouse }
@@ -17,15 +18,6 @@ class GrdaWarehouseBase < ApplicationRecord
 
   def self.postgres?
     connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
-  end
-
-  def self.reset_connection
-    connection.disconnect!
-    establish_connection DB_WAREHOUSE
-  end
-
-  def self.needs_migration?
-    ActiveRecord::MigrationContext.new('db/warehouse/migrate', GrdaWarehouse::SchemaMigration).needs_migration?
   end
 
   def self.partitioned?(table_name)

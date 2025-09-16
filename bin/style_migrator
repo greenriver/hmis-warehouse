@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# This script replaces Sass color variables with their CSS variable counterparts
+# across the application's stylesheets using Perl for robust regex replacement.
+
+# Directory to search for SCSS files
+SEARCH_DIR="app/assets/stylesheets"
+
+# Define replacements in order from most specific to least specific
+# to avoid partial replacements (e.g., replacing '$brand-primary' in '$brand-primary-l').
+# Format is 'sass-variable-name:css-variable-name'
+REPLACEMENTS=(
+  # Variants first
+  'brand-primary-ll:brand-primary-ll'
+  'brand-primary-l:brand-primary-l'
+  'brand-primary-d:brand-primary-d'
+  'brand-success-ll:brand-success-ll'
+  'brand-success-l:brand-success-l'
+  'brand-success-d:brand-success-d'
+  'brand-warning-l:brand-warning-l'
+  'brand-warning-d:brand-warning-d'
+  'brand-danger-l:brand-danger-l'
+  'brand-danger-d:brand-danger-d'
+  # Base theme colors
+  'brand-primary:bs-primary'
+  'primary:bs-primary'
+  'brand-success:bs-success'
+  'success:bs-success'
+  'brand-warning:bs-warning'
+  'warning:bs-warning'
+  'brand-danger:bs-danger'
+  'danger:bs-danger'
+  'brand-info:bs-info'
+  'info:bs-info'
+  # Secondary colors
+  'brand-secondary-l:brand-secondary-l'
+  'brand-secondary:bs-secondary'
+  'secondary:bs-secondary'
+)
+
+# Find all SCSS files, excluding vendor, custom themes, and settings directories.
+find "$SEARCH_DIR" -type f -name "*.scss" \
+  -not -path "*/vendor/*" \
+  -not -path "*/_custom/*" \
+  -not -path "*/_settings/*" \
+  | while read -r FILE; do
+  echo "Processing $FILE..."
+
+  # Construct a single Perl script with all replacement commands.
+  # This is more efficient than running a process for each replacement.
+  PERL_SCRIPT=""
+  for REP in "${REPLACEMENTS[@]}"; do
+    SASS_NAME=$(echo "$REP" | cut -d: -f1)
+    CSS_NAME=$(echo "$REP" | cut -d: -f2)
+
+    # This regex matches the SASS variable only when it's not followed by other variable characters.
+    # Appending a semicolon is a common Perl practice for multiple expressions.
+    PERL_SCRIPT+="s/\\\$${SASS_NAME}(?![a-zA-Z0-9-])/var(--${CSS_NAME})/g;"
+  done
+
+  # Add the generic replacements for other custom variable sets.
+  PERL_SCRIPT+='s/\$((cob|cas|dnd|bphc|nechv|ma-state|vi-spdat)[-a-zA-Z0-9_]+)/var(--$1)/g;'
+
+  # Use Perl for in-place editing.
+  # -i: edit in-place
+  # -p: create a loop around the script and print each line
+  # -e: execute the script
+  perl -i -pe "$PERL_SCRIPT" "$FILE"
+done
+
+echo "Variable replacement complete."

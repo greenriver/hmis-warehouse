@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -21,5 +23,24 @@ module ElapsedTimeHelper
     else
       format('%ss', s)
     end
+  end
+
+  def precise_distance_of_time(seconds)
+    return 'less than a minute' if seconds.to_f < 60
+
+    # Convert to integer for consistent division
+    seconds = seconds.to_i
+    parts = []
+
+    days, seconds = seconds.divmod(1.day.to_i)
+    parts << "#{days} #{'day'.pluralize(days)}" if days > 0
+
+    hours, seconds = seconds.divmod(1.hour.to_i)
+    parts << "#{hours} #{'hour'.pluralize(hours)}" if hours > 0
+
+    minutes = seconds / 1.minute.to_i
+    parts << "#{minutes} #{'minute'.pluralize(minutes)}" if minutes > 0
+
+    parts.join(', ')
   end
 end

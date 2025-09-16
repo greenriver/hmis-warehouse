@@ -10,13 +10,15 @@ module Types
   class HmisSchema::Unit < Types::BaseObject
     available_filter_options do
       arg :unit_type, [ID]
+      arg :unit_group, [ID]
+      arg :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus
       arg :status, [
         Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
           # FIXME standardize names "Assigned/Empty"
-          value 'AVAILABLE', description: 'Available'
-          value 'FILLED', description: 'Filled'
+          value 'AVAILABLE', description: 'Available' # Vacant
+          value 'FILLED', description: 'Filled' # Occupied
         end,
-      ]
+      ], deprecation_reason: 'Use `occupancyStatus` instead'
     end
 
     field :id, ID, null: false
@@ -28,9 +30,23 @@ module Types
     field :project, Types::HmisSchema::Project, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :occupancy_status, HmisSchema::Enums::UnitOccupancyStatus, null: false
     field :occupants, [HmisSchema::Enrollment], null: false
     field :user, Application::User, null: true
     field :unit_size, Integer, null: true
+    field :unit_group, HmisSchema::UnitGroup, null: true
+    field :deletable, Boolean, null: false
+    field :can_be_marked_available_today, Boolean, null: false, description: 'Whether the unit can be marked available for referrals now'
+    field :can_be_marked_available, Boolean, null: false, description: 'Whether the unit can be marked available for a future date'
+    field :can_be_marked_unavailable, Boolean, null: false
+
+    # CE fields
+    field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
+    field :workflow_template_name, String, null: true
+    field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
+    field :accepting_ce_referrals, Boolean, null: false
 
     def user
       user = load_ar_association(object, :user)
@@ -43,7 +59,43 @@ module Types
     def unit_size
       return object.unit_size if object.unit_size.present?
 
-      object.unit_type&.unit_size
+      unit_type&.unit_size
+    end
+
+    def occupancy_status
+      occupants.any? ? 'OCCUPIED' : 'VACANT'
+    end
+
+    def deletable
+      return false if occupants.any? # cannot delete unit with occupants
+      return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
+
+      true
+    end
+
+    def can_be_marked_available_today
+      return false unless can_be_marked_available
+      return false if occupants.any? # Must not have any current occupants.
+
+      true
+    end
+
+    def can_be_marked_available
+      return false unless Hmis::Ce.configuration.enabled? # CE must be enabled
+      return false unless workflow_template_name # Must have a workflow template
+      return false if latest_opportunity&.active? # Must not have an active opportunity
+
+      # MAY have current occupants; see #7537
+
+      true
+    end
+
+    def can_be_marked_unavailable
+      return false unless Hmis::Ce.configuration.enabled?
+      return false unless latest_opportunity&.active? # Must have an active opportunity
+      return false if load_ar_association(latest_opportunity, :active_referral).present? # Must not already have a referral in progress
+
+      true
     end
 
     def occupants
@@ -56,6 +108,75 @@ module Types
 
     def name
       Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
+    end
+
+    def unit_group
+      load_ar_association(object, :unit_group)
+    end
+
+    def workflow_template_name
+      return unless unit_group
+
+      load_ar_association(unit_group, :workflow_template)&.name
+    end
+
+    def latest_opportunity
+      # No additional permission check. If the user can view this unit, they can view the opportunity
+      load_ar_association(object, :latest_opportunity)
+    end
+
+    def accepting_ce_referrals
+      # No additional permission check. If the user can view this unit, they can view the opportunity.
+      # They may _not_ be able to view the referral; but the referral object is not actually resolved here,
+      # just used to determine whether the unit is currently accepting referrals.
+
+      # First check for an existing opportunity. If there is none, or it's already closed, then this unit isn't accepting referrals
+      latest_opportunity = load_ar_association(object, :latest_opportunity)
+      return false if latest_opportunity.nil? || latest_opportunity.closed?
+
+      # Otherwise, the unit is only accepting referrals if the opportunity doesn't already have an active referral.
+      # (The opportunity is open, so it shouldn't have an accepted referral. Possible referral statuses are either active or rejected.)
+      load_ar_association(object, :active_referral).nil?
+    end
+
+    def eligibility_requirements
+      # If the current opportunity is active and stale, return the eligibility requirements as they were
+      # when the opportunity was created.
+      return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
+      return [] unless unit_group
+
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
+    end
+
+    # TODO(#7957) - remove after deprecation period
+    def priority_scheme
+      priority_schemes.first
+    end
+
+    def priority_schemes
+      # If the current opportunity is active and stale, return the priority rules as they were
+      # when the opportunity was created, filtered to the most specific owner level and ordered by [priority_rank, id].
+      return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
+      return [] unless unit_group
+
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
+    end
+
+    private
+
+    # These rules are loaded from the state of the current Opportunity when it was assigned to its pool,
+    # ensuring historical accuracy. For "stale" Opportunities, these are the rules that are currently in effect
+    # for matching, so we display them on the Unit page (rather than displaying the current Unit Group rules.)
+    #
+    # Future UI improvement would be to resolve a flag indicating the the Unit's current Opportunity is stale,
+    # with an action to "refresh" it (destroy and recreate opportunity) if it doesn't have an open referral.
+    def revivified_rules
+      @revivified_rules ||= latest_opportunity.assignment_rules.map do |attrs|
+        record = Hmis::Ce::Match::Rule.new(attrs)
+        record.graphql_id = "#{object.id}.#{record.id}" # ensure graphql's client cache doesn't mix this up with the live record
+        record.freeze
+        record
+      end
     end
   end
 end

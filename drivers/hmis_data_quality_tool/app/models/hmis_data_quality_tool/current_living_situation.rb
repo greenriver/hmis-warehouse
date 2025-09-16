@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool
   class CurrentLivingSituation < ::HudReports::ReportClientBase
     self.table_name = 'hmis_dqt_current_living_situations'
@@ -19,6 +21,7 @@ module HmisDataQualityTool
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     belongs_to :current_living_situation, class_name: 'GrdaWarehouse::Hud::CurrentLivingSituation', optional: true
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 
     def self.detail_headers
       {

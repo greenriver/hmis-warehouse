@@ -31,10 +31,6 @@ module Types
         end
       end
 
-      def resolve_enrollments_with_loader(association_name = :enrollments, **args)
-        load_ar_association(object, association_name, scope: scoped_enrollments(Hmis::Hud::Enrollment, **args))
-      end
-
       def resolve_enrollments(scope = object.enrollments, **args)
         scoped_enrollments(scope, **args)
       end

@@ -4,26 +4,28 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Hmis::ProjectAutoExitConfig < Hmis::ProjectConfig
+  def config_type = 'AUTO_EXIT'
+
+  LENGTH_OF_ABSENCE_DAYS = 'length_of_absence_days'
+
   validates :config_options, presence: true
   validate :length_of_absence_days_ge_30
 
-  def config_type = 'AUTO_EXIT'
-
   def length_of_absence_days=(value)
-    new_options = { 'length_of_absence_days': value }.stringify_keys
-    merged_options = options ? options.merge(new_options) : new_options
-    self.config_options = merged_options.to_json
+    set_config_option(LENGTH_OF_ABSENCE_DAYS, value)
   end
 
   def length_of_absence_days
-    options['length_of_absence_days']
+    options[LENGTH_OF_ABSENCE_DAYS]
   end
 
   def length_of_absence_days_ge_30
     return unless options
 
-    length_of_absence_days = options['length_of_absence_days']
+    length_of_absence_days = options[LENGTH_OF_ABSENCE_DAYS]
 
     unless length_of_absence_days.is_a? Integer
       errors.add(:base, 'Length of Absence is required')

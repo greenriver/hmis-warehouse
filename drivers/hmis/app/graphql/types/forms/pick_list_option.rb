@@ -19,6 +19,7 @@ module Types
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
     field :numeric_value, Integer, 'Numeric value, such as a score', null: true
     field :helper_text, String, 'Helper text/html', null: true
+    field :disabled, Boolean, 'Whether the option should be disabled', null: true
 
     CODE_PATTERN = /^\(([0-9]*)\) /
 
@@ -84,6 +85,13 @@ module Types
         staff_assignment_relationships(project)
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
         eligible_staff_assignment_user_picklist(project)
+      when 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS'
+        eligible_referral_step_assignment_user_picklist(project)
+      when 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS'
+        projects_receiving_direct_ce_referrals(from_project: project)
+      when 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL'
+        # pass project_id, not project, since we *don't* want to enforce that the user must be able to view this project
+        unit_groups_for_project_direct_ce_referral(project_id: project_id, user: user)
       else
         raise "Unknown pick list type: #{pick_list_type}"
       end
@@ -161,18 +169,66 @@ module Types
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
           end
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS'
+        # Unique ce workflow template identifiers that are currently published.
+        # Used for configuring which template to use for a resource group
+        return [] unless Hmis::Ce.configuration.enabled?
+
+        Hmis::WorkflowDefinition::Template.published.ce.viewable_by(user).
+          map do |template|
+            { code: template.identifier, label: template.name }
+          end
+      when 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED'
+        # Unique CE workflow template identifiers, including retired workflows with no currently published version.
+        # Used for filtering on existing/historical referrals.
+        return [] unless Hmis::Ce.configuration.enabled?
+
+        base_scope = Hmis::WorkflowDefinition::Template.ce.viewable_by(user)
+        base_scope.published.or(base_scope.retired).group_by(&:identifier).map do |identifier, templates|
+          description = templates.find { |t| t.status.to_sym == :published }&.name || templates.max_by(&:version).name
+          { code: identifier, label: description }
+        end
+      when 'PROJECT_CONFIG_TYPES'
+        # Project config types for selection on the Admin Project Config page.
+        # Hide Coordinated Entry options if CE is not enabled in the installation.
+        Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
+          next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
+
+          {
+            code: key,
+            label: enum.description,
+          }
+        end.compact
+      when 'CE_REFERRAL_STATUSES'
+        # To avoid key collisions, we display only custom statuses in the picklist.
+        # In order to achieve the desired behavior, where both custom and default (state machine) statuses appear in the picklist,
+        # we need to also duplicate state machine statuses as custom statuses during workflow setup (ce_define_workflows.rake)
+        Hmis::Ce::CustomReferralStatus.viewable_by(user).map do |status|
+          next if status.key.to_s == 'initialized' # skip initialized, user-facing display for this state is just 'in progress'
+
+          { code: status.key, label: status.name }
+        end.compact
       end
     end
 
     def self.eligible_staff_assignment_user_picklist(project)
       return [] unless project&.staff_assignments_enabled?
 
-      Hmis::User.can_edit_enrollments_for(project).order(:last_name, :first_name, :id).map do |user|
-        {
-          code: user.id.to_s,
-          label: user.full_name,
-        }
-      end
+      Hmis::User.can_edit_enrollments_for(project).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_option)
+    end
+
+    def self.eligible_referral_step_assignment_user_picklist(project)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless project.present? # TODO(#7409) - when project-level CE configuration exists, check it here
+
+      user_scope = Hmis::User.active
+
+      user_scope.can_perform_any_referral_tasks_for(project).
+        or(user_scope.can_perform_own_referral_tasks_for(project)).
+        order(:last_name, :first_name, :id).
+        map(&:to_pick_list_option).uniq
     end
 
     def self.user_picklist(current_user)
@@ -247,19 +303,10 @@ module Types
         end
     end
 
-    # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
-    # no mappings it should return all unit types, which is the default behavior.
     def self.possible_unit_types_for_project(project)
       return [] unless project.present?
 
-      unit_type_scope = Hmis::UnitType.all
-      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
-      if unit_type_ids.any?
-        unit_type_ids += project.units.distinct.pluck(:unit_type_id) # include unit types for existing units
-        unit_type_scope = unit_type_scope.where(id: unit_type_ids)
-      end
-
-      unit_type_scope.
+      project.possible_unit_types.
         order(:description, :id).
         map(&:to_pick_list_option)
     end
@@ -277,27 +324,29 @@ module Types
     end
 
     def self.geocodes_picklist
-      # NOTE: HMIS currently only supports one state installations
-      state = GrdaWarehouse::Config.relevant_state_codes&.first
-      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
-        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
-      end.map do |obj|
-        {
-          code: obj['geocode'],
-          label: "#{obj['geocode']} - #{obj['name']}",
-        }
+      GrdaWarehouse::Config.relevant_state_codes.flat_map do |state|
+        Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+          JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+        end.map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+            group_label: state,
+          }
+        end
       end
     end
 
     def self.state_picklist
+      relevant_states = GrdaWarehouse::Config.relevant_state_codes
+
       Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
         JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
       end.map do |obj|
         {
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
-          # NOTE: HMIS currently only supports one state installations
-          initial_selected: obj['abbreviation'].in?(GrdaWarehouse::Config.relevant_state_codes&.first),
+          initial_selected: relevant_states&.size == 1 && obj['abbreviation'] == relevant_states.first,
         }
       end
     end
@@ -479,8 +528,11 @@ module Types
     def self.admin_available_units_for_enrollment(project, household_id: nil)
       return [] unless project
 
-      # Eligible units are unoccupied units, PLUS units occupied by household members
-      unoccupied_units = project.units.unoccupied_on.pluck(:id)
+      # Return units that are unoccupied/not receiving referrals, AND units already occupied by household members.
+
+      # IDs of units that are unoccupied and not receiving referrals
+      available = project.units.unoccupied_on.not_receiving_referrals.pluck(:id)
+
       # IDs of units that are currently assigned to members of this household
       hh_units = if household_id.present?
         hh_en_ids = project.enrollments.where(household_id: household_id).pluck(:id)
@@ -489,7 +541,7 @@ module Types
         []
       end
 
-      eligible_units = Hmis::Unit.where(id: unoccupied_units + hh_units)
+      eligible_units = Hmis::Unit.where(id: available + hh_units)
 
       eligible_units.preload(:unit_type).
         order(:unit_type_id, :id).
@@ -547,10 +599,49 @@ module Types
 
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.where(data_source_id: data_source_id).
-        receiving_referrals.
+        receiving_legacy_referrals.
         joins(:organization).preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
+    end
+
+    def self.projects_receiving_direct_ce_referrals(from_project:)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless Hmis::ProjectConfig.with_config_type('COORDINATED_ENTRY').any?
+
+      # Load all projects in the data source into memory and iterate through them to call detect_best_config_for_project.
+      project_scope = Hmis::Hud::Project.where(data_source: from_project.data_source).
+        where.not(id: from_project.id).
+        preload(:organization).
+        sort_by_option(:organization_and_name)
+
+      project_scope.preload(:unit_groups).filter_map do |project|
+        next unless project.receives_direct_ce_referrals_from?(from_project)
+        next unless project.unit_groups.any?
+
+        project.to_pick_list_option
+      end
+    end
+
+    def self.unit_groups_for_project_direct_ce_referral(project_id:, user:)
+      return [] unless Hmis::Ce.configuration.enabled?
+      return [] unless user.can_manage_outgoing_referrals? # at any project
+
+      project = Hmis::Hud::Project.find(project_id)
+      return [] unless project.data_source_id == user.hmis_data_source_id
+      return [] unless project.receives_direct_ce_referrals?
+
+      project.unit_groups.filter_map do |unit_group|
+        # this causes n+1, which is acceptable because the number of unit groups per project is expected to be small
+        available_count = unit_group.available_unit_count
+
+        {
+          code: unit_group.id,
+          label: unit_group.name,
+          secondary_label: "#{available_count} available",
+          disabled: available_count.zero?,
+        }
+      end
     end
   end
 end

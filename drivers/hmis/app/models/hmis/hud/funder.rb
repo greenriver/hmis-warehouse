@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -26,10 +28,9 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
     where(on_or_after_start.and(on_or_before_end))
   end
 
-  # Convert funder string to int #183572073
-  def Funder # rubocop:disable Naming/MethodName
-    super&.to_i
-  end
+  # Convert funder string to int #183572073, #1017
+  # casting as an integer because the spec lists the Funder column as an integer and we incorrectly store it as a string. Probably better to write a migration to fix the data type in the DB.
+  attribute :Funder, :integer
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
@@ -57,5 +58,5 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
 
     end_date.nil? || end_date >= date
   end
-  alias active? active_on?
+  alias_method :active?, :active_on?
 end

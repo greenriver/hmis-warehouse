@@ -34,6 +34,7 @@ docker-compose.override.yml
 !/.eslintrc.js
 !/.rspec.sample
 !/.trivyignore
+!/.claude_config.json
 
 # Ignore operational files
 package.box
@@ -68,6 +69,7 @@ untracked
 .vscode
 docker-compose.dev.yml
 yarn-error.log
+CLAUDE.local.md
 
 # docker deployment
 docker/deploy/REVISION
@@ -83,6 +85,7 @@ docker/deploy/.version
 # TODO Comment out these rules if you are OK with secrets being uploaded to the repo
 config/initializers/secret_token.rb
 config/secrets.yml
+config/master.key
 
 # if using bower-rails ignore default bower_components path bower.json files
 /vendor/assets/bower_components
@@ -138,6 +141,7 @@ config/claims_reporting/*
 # Never commit any fixpoints
 **/fixpoints/*.yml
 **/fixpoints/*.sql
+
 
 # Pre-cache version file
 !.pre-cache-version

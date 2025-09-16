@@ -1,0 +1,64 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module Types
+  class Application::UserDashboard < Types::BaseObject
+    # Type for resolving data needed on the HMIS user dashboard.
+    # Underlying object is Hmis::User, who should always be the currently logged-in user.
+    description 'Resolves everything that is needed on the user dashboard'
+
+    def self.authorized?(object, ctx)
+      raise 'user dashboard can only be resolved for current user' unless object == ctx[:current_user]
+
+      super
+    end
+
+    field :id, ID, null: false
+    field :user_dashboard_config, Types::Application::UserDashboardConfig, null: false
+    field :staff_assignments, HmisSchema::StaffAssignment.page_type, null: true
+    field :ce_referral_steps, HmisSchema::CeReferralStep.page_type, null: true
+
+    def user_dashboard_config
+      {
+        id: object.id,
+        show_staff_assignment: policy_for(Hmis::StaffAssignment, policy_type: :staff_assignment).can_index?,
+        show_referrals: policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?,
+      }
+    end
+
+    def staff_assignments
+      return Hmis::StaffAssignment.none unless policy_for(Hmis::StaffAssignment, policy_type: :staff_assignment).can_index?
+
+      object.staff_assignments.
+        viewable_by(current_user). # Only resolve assignments where the user has access to view the household
+        open_on_date. # This will include households that exited today
+        merge(Hmis::Hud::Household.sort_by_option(:most_recent))
+    end
+
+    def ce_referral_steps
+      return Hmis::WorkflowExecution::Step.none unless policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?
+
+      # Scope open steps that are assigned to the current user
+      step_scope = Hmis::WorkflowExecution::Step.open.
+        assigned_to(current_user.id)
+
+      # Join to referrals for
+      # - permission checking
+      # - ensuring we only resolve CE steps and not other workflow types
+      # For performance, rely on assumption that only active referrals have active steps.
+      referral_scope = Hmis::Ce::Referral.active.viewable_by(current_user)
+      current_user.policy_context.preload_referral_dependencies(referral_scope.pluck(:id))
+      viewable_instance_ids = referral_scope.pluck(:workflow_instance_id).uniq
+      step_scope = step_scope.where(instance_id: viewable_instance_ids)
+
+      steps = step_scope.order(available_at: :desc, id: :desc)
+
+      steps
+    end
+  end
+end

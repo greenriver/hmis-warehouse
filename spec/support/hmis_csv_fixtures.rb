@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 module HmisCsvFixtures
   def import_hmis_csv_fixture(
     file_path,
@@ -7,7 +15,9 @@ module HmisCsvFixtures
     user: User.setup_system_user,
     allowed_projects: nil,
     skip_location_cleanup: false,
-    deidentified: nil
+    deidentified: nil,
+    dry_run: false,
+    stop_version: nil # allow setting the stop version for testing a specific importer version
   )
     unless data_source
       data_source = GrdaWarehouse::DataSource.where(
@@ -44,6 +54,8 @@ module HmisCsvFixtures
           deidentified: deidentified,
           allowed_projects: allowed_projects,
           project_cleanup: false,
+          stop_version: stop_version,
+          dry_run: dry_run,
         )
       else
         raise "Unsupported CSV version #{version}"

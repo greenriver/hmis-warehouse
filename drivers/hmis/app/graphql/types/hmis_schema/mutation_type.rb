@@ -30,6 +30,10 @@ module Types
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits
     field :delete_units, mutation: Mutations::DeleteUnits
+    field :create_unit_group, mutation: Mutations::CreateUnitGroup
+    field :update_unit_group, mutation: Mutations::UpdateUnitGroup
+    # TODO(#7781) support deleting unit group
+    # field :delete_unit_group, mutation: Mutations::DeleteUnitGroup
 
     field :delete_service, mutation: Mutations::DeleteService
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
@@ -53,6 +57,9 @@ module Types
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
+    field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
+    field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
+    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
@@ -89,5 +96,17 @@ module Types
 
     field :assign_staff, mutation: Mutations::AssignStaff
     field :unassign_staff, mutation: Mutations::UnassignStaff
+
+    # CE
+    field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
+    field :create_direct_ce_referral, mutation: Mutations::Ce::CreateDirectCeReferral
+    field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
+    field :submit_ce_referral_step, mutation: Mutations::Ce::SubmitCeReferralStep
+    field :assign_referral_participants, mutation: Mutations::Ce::AssignReferralParticipants
+    field :create_ce_referral_note, mutation: Mutations::Ce::CreateCeReferralNote
+
+    # CE Unit management
+    field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable
+    field :mark_units_unavailable, mutation: Mutations::Ce::MarkUnitsUnavailable
   end
 end

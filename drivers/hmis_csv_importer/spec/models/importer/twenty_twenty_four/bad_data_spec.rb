@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter, type: :model do
@@ -15,6 +17,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/bad_data',
         version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -63,6 +66,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/bad_data',
           version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2024',
         )
       end
     end
@@ -104,6 +108,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/bad_data',
           version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2024',
         )
       end
     end

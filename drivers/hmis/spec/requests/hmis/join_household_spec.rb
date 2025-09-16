@@ -4,10 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#  Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-#  License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-#
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -154,6 +151,43 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  context 'when the donor household had a staff assignment' do
+    let!(:assignment) { create :hmis_staff_assignment, data_source: ds1, enrollment: donor_hoh }
+    let!(:assignee) { assignment.user }
+
+    it 'transfers the staff assignment to the receiving household' do
+      expect do
+        perform_mutation
+        assignment.reload
+        assignee.reload
+      end.to not_change(assignee.staff_assignments, :count).
+        and change(assignment, :household_id).from(donor_household_id).to(receiving_enrollment.household_id)
+    end
+
+    context 'and the receiving household had a duplicate staff assignment' do
+      let!(:receiving_assignment) do
+        create(
+          :hmis_staff_assignment,
+          staff_assignment_relationship: assignment.staff_assignment_relationship,
+          user: assignee,
+          data_source: ds1,
+          enrollment: receiving_enrollment,
+        )
+      end
+
+      it 'does not error' do
+        expect do
+          perform_mutation
+          assignee.reload
+        end.to change(assignee.staff_assignments, :count).by(-1)
+
+        expect do
+          assignment.reload
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
+  end
+
   describe 'unit assignment' do
     let!(:unit1) { create :hmis_unit, project: p1 }
 
@@ -211,7 +245,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       receiving_household_id: receiving_enrollment.household_id,
       joining_enrollment_inputs: [
         {
-          enrollment_id: 'fake-enrollment',
+          enrollment_id: '9999', # fake enrollment ID that doesn't match any enrollment in the database
           relationship_to_hoh: 'SPOUSE_OR_PARTNER',
         },
       ],

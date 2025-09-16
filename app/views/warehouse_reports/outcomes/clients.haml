@@ -22,14 +22,16 @@
       %tbody
         - @clients.support_rows.each do |row|
           - client_id = row['Warehouse Client ID']
+          - project_id = row[@report.project_id_header]
           %tr
             - row.each do |header, v|
+              - value = @clients.display_value(header: header, value: v, project_id: project_id, client_id: client_id, user: current_user)
               - if @clients.client_headers.include?(header)
                 - if current_user.can_access_some_version_of_clients?
                   - url = appropriate_client_path(id: client_id)
-                %td= link_to_if url.present?, v, url, target: '_blank'
+                %td= link_to_if url.present?, value, url, target: '_blank'
               - else
-                %td= v
+                %td= value
   - else
     %p No clients found.
 - else

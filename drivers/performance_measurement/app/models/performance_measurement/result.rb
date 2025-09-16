@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -11,7 +13,7 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :report
-    belongs_to :project, primary_key: [:project_id, :report_id], foreign_key: [:project_id, :report_id], optional: true
+    belongs_to :project, primary_key: [:project_id, :report_id], query_constraints: [:project_id, :report_id], optional: true
     has_one :hud_project, through: :project
 
     scope :for_field, ->(field) do
@@ -218,7 +220,7 @@ module PerformanceMeasurement
           count = result[:primary_value].round
           if count.positive?
             project_intermediate << [
-              "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})",
+              result.hud_project.name(user, include_project_type: true),
               count,
             ]
           end
@@ -230,7 +232,7 @@ module PerformanceMeasurement
           where(report_id: report_id).find_each do |result|
             count = result[:primary_value].round
             if count.positive?
-              project_name = "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})"
+              project_name = result.hud_project.name(user, include_project_type: true)
               median_intermediate[project_name] = count
             end
           end

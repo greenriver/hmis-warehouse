@@ -4,14 +4,27 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# The `Hmis::Unit` model represents a generic unit of capacity in a project.
+# A unit is a resource that can be provided to a household or individual being served by the program.
+# Units can represent physical or virtual resources.
+#
+# Note: The term "unit" is intentionally generic and does not exclusively refer to an "apartment unit."
+# It may represent a unit of housing, a shelter bed, a shelter room, a voucher, a unit of service capacity, etc.
+# Units can optionally belong to a `UnitGroup`, and may have an associated descriptive `UnitType`.
+# Since a Unit may represent physical housing, the same Unit can be occupied, released, and re-occupied over time. (Unlike CE Opportunity records which are "single-use")
 class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
+  acts_as_paranoid
   self.table_name = :hmis_units
 
   has_paper_trail(meta: { project_id: :project_id })
 
   belongs_to :project, class_name: 'Hmis::Hud::Project'
-  # Type of this unit
+  belongs_to :unit_group, class_name: 'Hmis::UnitGroup', optional: true, inverse_of: :units, foreign_key: :hmis_unit_group_id
+
+  # Descriptive "type" of this unit (e.g. "3 Bed Room", "Case Management", "Mass Shelter Single")
   belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
   # Periods when this unit has been active
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
@@ -23,8 +36,45 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 
+  # A unit may have many opportunities, representing current and historical instances of this unit being available.
+  # Deleting a unit does not delete associated opportunities; they remain to preserve the relationship to referrals.
+  has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
+  # But, a unit only has one "latest" opportunity, which could be either:
+  # - active and accepting referrals (open),
+  # - active with a referral in-progress (locked), or
+  # - closed. This would be prioritized last, after any active opportunity.
+  has_one :latest_opportunity, -> { actives_first }, class_name: 'Hmis::Ce::Opportunity', inverse_of: :unit
+
+  # Similarly, a unit may have many historical referrals,
+  has_many :referrals, through: :opportunities, class_name: 'Hmis::Ce::Referral'
+  # But only ONE active referral, which is enforced by the combination of
+  # - Hmis::Ce::Opportunity's `unique_opportunity_per_unit` validator, and
+  # - Hmis::Ce::Referral's `unique_referral_per_opportunity` validator.
+  has_one :active_referral, through: :latest_opportunity, class_name: 'Hmis::Ce::Referral', source: :active_referral
+
+  before_destroy :close_open_opportunities
+  before_destroy :ensure_no_locked_opportunities
+
+  validate :unit_group_has_one_unit_type # TODO(#8157) - remove
+
+  # close open opportunities before deleting unit
+  def close_open_opportunities
+    opportunities.open.each(&:close!)
+  end
+
+  def ensure_no_locked_opportunities
+    return unless opportunities.where(status: 'locked').exists?
+
+    errors.add(:base, 'Cannot delete Unit with locked Opportunities.')
+    throw(:abort) # Prevents the destruction of the Unit
+  end
+
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
+
+  scope :viewable_by, ->(user) do
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
+  end
 
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
 
@@ -55,6 +105,17 @@ class Hmis::Unit < Hmis::HmisBase
 
   # Filter scope
   scope :with_unit_type, ->(unit_type_ids) { where(unit_type_id: unit_type_ids) }
+
+  # unit is receiving referrals if it is unoccupied and has any opportunities that are receiving referrals
+  scope :receiving_referrals, -> do
+    active.unoccupied_on.joins(:opportunities).merge(Hmis::Ce::Opportunity.receiving_referrals)
+  end
+
+  scope :not_receiving_referrals, -> do
+    where.not(
+      id: joins(:opportunities).merge(Hmis::Ce::Opportunity.active).select(:id),
+    )
+  end
 
   def self.apply_filters(input)
     Hmis::Filter::UnitFilter.new(input).filter_scope(self)
@@ -98,5 +159,17 @@ class Hmis::Unit < Hmis::HmisBase
 
   def to_pick_list_option
     { code: id, label: display_name }
+  end
+
+  private
+
+  # TODO(#8157) - remove
+  def unit_group_has_one_unit_type
+    existing_unit_types = [*unit_group&.unit_types, unit_group&.unit_type].compact.uniq
+    return if existing_unit_types.nil?
+    return if existing_unit_types.empty?
+    return if existing_unit_types.include?(unit_type)
+
+    errors.add(:unit_type_id, "must be consistent with unit group's existing type")
   end
 end

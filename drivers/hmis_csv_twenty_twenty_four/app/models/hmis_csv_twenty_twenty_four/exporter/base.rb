@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'zip'
 require 'csv'
 require 'kiba-common/sources/enumerable'
@@ -26,6 +28,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       end_date:,
       projects:,
       coc_codes: [],
+      enforce_project_date_scope: false,
       period_type: nil,
       directive: nil,
       hash_status: nil,
@@ -35,6 +38,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       confidential: false,
       options: {},
       file_path: 'var/hmis_export',
+      custom_file_types: [], # rubocop:disable Lint/UnusedMethodArgument # This is ignored prior to FY2026
       debug: true
     )
       setup_notifier('HMIS Exporter 2024')
@@ -56,6 +60,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       @include_deleted = include_deleted
       @faked_environment = faked_environment
       @confidential = confidential
+      @enforce_project_date_scope = enforce_project_date_scope
       @selected_options = options
       # We also provide CoC Codes via options, make sure those are added to any CoC codes provided for backwards
       # compatibility with old code
@@ -145,14 +150,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       return 'Export.csv' if klass == HmisCsvTwentyTwentyFour::Exporter::Export
 
       hmis_class_for(klass).hud_csv_file_name(version: '2024')
-    end
-
-    def hmis_class_for(klass)
-      exportable_files[klass][:hmis_class]
-    end
-
-    def self.hmis_class_for(klass)
-      class_mappings[klass][:hmis_class]
     end
 
     def self.class_mappings

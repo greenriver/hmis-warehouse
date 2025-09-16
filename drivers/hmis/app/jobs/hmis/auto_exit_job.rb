@@ -8,15 +8,45 @@
 
 module Hmis
   class AutoExitJob < BaseJob
+    # Automatically exits inactive HMIS enrollments based on project-specific Auto-Exit configuration.
+    #
+    # Behavior
+    # - Runs against all HMIS projects by default; can be scoped by data_source or project_ids.
+    # - Operates on households: if ANY member has a recent contact within the configured window,
+    #   the entire household is skipped. Otherwise, ALL household members are exited together using
+    #   a shared exit_date equal to the most recent contact across the household.
+    # - Prevents auto-exit when any household member has an ACTIVE CE referral referencing that
+    #   member's enrollment via source_enrollment_id OR target_enrollment_id.
+    # - For ES Night-by-Night projects, the most recent contact is the latest bed night with a
+    #   non-nil date_provided; if missing/invalid, falls back to the enrollment entry.
+    # - For other project types, the most recent contact is the latest of:
+    #   Service.date_provided (present), CustomService.date_provided, CurrentLivingSituation.information_date,
+    #   CustomAssessment.assessment_date, or the Enrollment (entry).
+    #
+    # Exit Creation
+    # - Creates Hmis::Hud::Exit with destination "No exit interview completed" and timestamps auto_exited.
+    # - Creates a CustomAssessment at data collection stage 3 on the exit_date.
+    # - Releases any assigned unit and closes any external referral via enrollment hooks.
+    # - Skips enrollments that already have an exit record.
     include NotifierConfig
 
     def self.enabled?
       Hmis::ProjectAutoExitConfig.exists?
     end
 
-    def perform(project_ids: nil, data_source_id: nil)
+    def perform(**args)
       return unless self.class.enabled?
 
+      # don't track if there are arguments
+      return _perform(**args) if args.present?
+
+      instrument_as_maintenance_task do |run|
+        _perform(**args)
+        run.complete!
+      end
+    end
+
+    def _perform(project_ids: nil, data_source_id: nil)
       setup_notifier('HMIS Auto-Exit')
       auto_exit_projects = Set.new
       auto_exit_count = 0
@@ -36,6 +66,10 @@ module Hmis
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
         project.households.active.not_in_progress.preload(:enrollments).each do |household|
+          # Skip auto-exit if any household member has an active CE referral that references
+          # one of the household enrollments as either the source or target enrollment.
+          next if household_has_active_ce_referral?(household)
+
           # Get the most recent contact date for the whole household
           most_recent_contact = household.enrollments.
             map { |hhm| get_most_recent_contact(hhm, project) }.
@@ -61,6 +95,21 @@ module Hmis
     end
 
     private
+
+    def household_has_active_ce_referral?(household)
+      return false unless Hmis::Ce.configuration.enabled?
+
+      enrollment_ids = household.enrollments.map(&:id)
+      return false if enrollment_ids.blank?
+
+      rf_t = Hmis::Ce::Referral.arel_table
+      cond = [
+        rf_t[:source_enrollment_id].in(enrollment_ids),
+        rf_t[:target_enrollment_id].in(enrollment_ids),
+      ].reduce(:or)
+
+      Hmis::Ce::Referral.active.where(cond).exists?
+    end
 
     def get_most_recent_contact(enrollment, project)
       if project.es_nbn? # Night-by-night Emergency Shelter

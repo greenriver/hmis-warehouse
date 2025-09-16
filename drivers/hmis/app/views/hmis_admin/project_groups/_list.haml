@@ -1,0 +1,15 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project Group Name
+        %th Data Source
+        %th Project Count
+    %tbody
+      - list.each do |group|
+        %tr
+          %td
+            = link_to group.name, hmis_admin_project_group_path(group)
+          %td
+            .ds{class: "ds-color-#{group.data_source_id}"}= group.data_source.short_name
+          %td= group.projects.count

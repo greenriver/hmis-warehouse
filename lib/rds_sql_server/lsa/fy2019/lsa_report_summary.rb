@@ -1,3 +1,11 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 require_relative 'lsa_sql_server' unless ENV['NO_LSA_RDS'].present?
 module LsaSqlServer
@@ -50,8 +58,8 @@ module LsaSqlServer
         DisablingCond3: 'Invalid Disabling Conditions in 3 year cohort',
         LivingSituation1: 'Invalid Living Situations in 1 year cohort',
         LivingSituation3: 'Invalid Living Situations in 3 year cohort',
-        LengthOfStay1: 'Invalid Lenghts of Stay in 1 year cohort',
-        LengthOfStay3: 'Invalid Lenghts of Stay in 3 year cohort',
+        LengthOfStay1: 'Invalid Lengths of Stay in 1 year cohort',
+        LengthOfStay3: 'Invalid Lengths of Stay in 3 year cohort',
         HomelessDate1: 'Invalid Date to Street in 1 year cohort',
         HomelessDate3: 'Invalid Date to Street in 3 year cohort',
         TimesHomeless1: 'Invalid Times Homeless 1 year cohort',

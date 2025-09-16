@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -9,8 +11,14 @@ require 'net/http'
 module GrdaWarehouse
   class RemoteCredentials::S3 < GrdaWarehouse::RemoteCredential
     alias_attribute :s3_access_key_id, :username
-    alias_attribute :s3_secret_access_key, :password
     alias_attribute :s3_prefix, :path
+
+    # Can't use alias_attribute here due to RemoteCredential's use of attr_encrypted(:password)
+    def s3_secret_access_key = password
+
+    def s3_secret_access_key=(value)
+      self.password = value
+    end
 
     validates :region, presence: true
     validates :bucket, presence: true

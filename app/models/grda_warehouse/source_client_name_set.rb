@@ -47,5 +47,15 @@ module GrdaWarehouse
     def each(&block)
       @names.each(&block)
     end
+
+    def +(other)
+      set = dup
+      set.instance_variable_set(:@names, (@names + other.to_a).uniq)
+      set
+    end
+
+    def to_a
+      @names.dup
+    end
   end
 end

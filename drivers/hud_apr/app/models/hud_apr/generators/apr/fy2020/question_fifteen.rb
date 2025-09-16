@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Apr::Fy2020
   class QuestionFifteen < HudApr::Generators::Shared::Fy2020::QuestionFifteen
-    QUESTION_TABLE_NUMBER = 'Q15'.freeze
+    QUESTION_TABLE_NUMBER = 'Q15'
   end
 end

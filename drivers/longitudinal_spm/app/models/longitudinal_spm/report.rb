@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module LongitudinalSpm
   class Report < GrdaWarehouseBase
     self.table_name = :longitudinal_spms
@@ -139,8 +141,9 @@ module LongitudinalSpm
     def spm_describe(measure_or_table, cell = nil, row_col = :row)
       return spm_generator.describe_table(measure_or_table) if cell.blank?
 
-      # Don't break terribly if the SPM version has changed
-      return '' unless spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2024'
+      # Don't break terribly if loading a 2020 version.
+      # There were breaking changes moving from version 2020 to version 2023.
+      return '' if spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2020'
 
       @sample_spm ||= spms.first.hud_spm # Just find one of the SPMs so we can get metadata
       # Sometimes we get into a weird state where the SPMs didn't run, return so we don't throw errors
@@ -169,6 +172,8 @@ module LongitudinalSpm
     def spm_measures
       # if we're running the report, return the current version
       return spm_measures_2024 unless spms.present?
+      # If we're looking at the 2026 version
+      return spm_measures_2026 if HudSpmReport::Generators::Fy2026::Generator.title == spms.first.hud_spm.report_name
       # If we're looking at the 2024 version
       return spm_measures_2024 if HudSpmReport::Generators::Fy2024::Generator.title == spms.first.hud_spm.report_name
       # If we're looking at the 2023 version
@@ -177,6 +182,42 @@ module LongitudinalSpm
       return spm_measures_2020 if HudSpmReport::Generators::Fy2020::Generator.title == spms.first.hud_spm.report_name
 
       raise 'Unknown SPM VERSION'
+    end
+
+    private def spm_measures_2026
+      {
+        'Measure 1' => {
+          '1a' => [
+            'D2',
+            'D3',
+          ],
+          '1b' => [
+            'D2',
+            'D3',
+          ],
+        },
+        'Measure 2' => {
+          '2a and 2b' => [
+            'J2',
+            'J3',
+            'J4',
+            'J5',
+            'J6',
+            'J7',
+          ],
+        },
+        'Measure 7' => {
+          '7a.1' => [
+            'C5',
+          ],
+          '7b.1' => [
+            'C4',
+          ],
+          '7b.2' => [
+            'C4',
+          ],
+        },
+      }.freeze
     end
 
     private def spm_measures_2024

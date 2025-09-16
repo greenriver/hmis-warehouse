@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::Base
   extend ActiveSupport::Concern
 
@@ -16,6 +18,7 @@ module HmisStructure::Base
 
     def imported_item_type(importer_log_id)
       # NOTE: add additional years here as the spec changes, always the newest first for performance
+      return '2026' if RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty_six) && imported_items_2026.where(importer_log_id: importer_log_id).exists?
       return '2024' if RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty_four) && imported_items_2024.where(importer_log_id: importer_log_id).exists?
       # Handle classes that didn't exist previously
       return '2024' if self.class.in?([GrdaWarehouse::Hud::HmisParticipation, GrdaWarehouse::Hud::CeParticipation])
@@ -33,8 +36,30 @@ module HmisStructure::Base
       :DateDeleted
     end
 
+    # Set the default version
+    # NOTE: this needs to be updated with each FY change
     def hud_csv_version
-      @hud_csv_version ||= '2024'
+      # Move to 2026 in production after 2025-10-01
+      # Move to 2026 in staging after 2025-09-01
+      cutoff_date = if Rails.env.production?
+        Date.new(2025, 10, 1)
+      elsif Rails.env.staging? && ENV['CLIENT'] != 'qa' # Test remains pinned to 2024 until test kits are out
+        Date.new(2025, 9, 1)
+      else
+        Date.current
+      end
+      return '2024' if Date.current < cutoff_date
+
+      '2026'
+    end
+
+    def current_hud_utility
+      case hud_csv_version
+      when '2024'
+        HudUtility2024
+      else
+        HudUtility2026
+      end
     end
 
     # default name for a CSV file
@@ -60,7 +85,7 @@ module HmisStructure::Base
           :data_source_id,
           col,
         ],
-        foreign_key: [
+        query_constraints: [
           :data_source_id,
           col,
         ],
@@ -82,7 +107,7 @@ module HmisStructure::Base
           :PersonalID,
           :data_source_id,
         ],
-        foreign_key: [
+        query_constraints: [
           :EnrollmentID,
           :PersonalID,
           :data_source_id,
@@ -102,7 +127,7 @@ module HmisStructure::Base
     end
 
     def conflict_target
-      @conflict_target || [:data_source_id, "\"#{hud_key}\""]
+      @conflict_target || [:data_source_id, connection.quote_column_name(hud_key)]
     end
 
     def additional_upsert_columns=(names)
@@ -143,7 +168,7 @@ module HmisStructure::Base
       end
     end
 
-    def hmis_table_create_indices!(version: hud_csv_version)
+    def hmis_table_create_indices!(version: hud_csv_version, ignored_indexes: {})
       existing_indices = connection.indexes(table_name).map { |i| [i.name, i.columns] }
       hmis_indices(version: version).each do |columns, details|
         # enforce a short index name
@@ -151,7 +176,10 @@ module HmisStructure::Base
         # name = ([table_name[0..4]+table_name[-4..]] + cols).join('_')
         name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest(columns.join('_'))[0, 4]
         next if existing_indices.include?([name, columns.map(&:to_s)])
+        # these indexes that were deemed unnecessary and should no longer be created
+        next if ignored_indexes[columns.map(&:to_s)]&.include?(table_name)
 
+        puts "creating index on #{table_name} with #{columns.map(&:to_s).join(', ')} class: #{self.name}"
         if details.blank?
           connection.add_index table_name, columns, name: name
         elsif details[:include].present?
@@ -161,7 +189,9 @@ module HmisStructure::Base
       end
     end
 
-    def hmis_structure(version: hud_csv_version)
+    # Set the default version in the method to allow passing in nil to still use the default
+    def hmis_structure(version: nil)
+      version ||= hud_csv_version
       hmis_configuration(version: version).transform_values { |v| v.select { |k| k.in?(HMIS_STRUCTURE_KEYS) } }
     end
 

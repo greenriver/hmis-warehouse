@@ -1,0 +1,5 @@
+"AssessmentID","EnrollmentID","PersonalID","AssessmentDate","AssessmentLocation","AssessmentType","AssessmentLevel","PrioritizationStatus","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"VALID","VALID","VALID","2016-09-01","Somewhere safe","1","2","1","2016-09-02 15:46:17","2016-09-02 15:46:17","VALID","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","2015-09-01","Somewhere safe","9999","999","999","2015-09-02 15:46:17","2015-09-02 15:46:17","VALIDATION","","b6585c2320f69a2b920adb507cc9d82f"
+"ERROR","","","","","1","","","2015-09-02 15:46:17","2015-09-02 15:46:17","ERROR","","b6585c2320f69a2b920adb507cc9d82f"
+"FAILURE","FAILURE","FAILURE","2015-09-01","Somewhere safe","2015-09-02 15:46:17","2015-09-02 15:46:17","FAILURE","","b6585c2320f69a2b920adb507cc9d82f"

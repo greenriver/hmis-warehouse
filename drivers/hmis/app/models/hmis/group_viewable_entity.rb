@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # HMIS uses similar but separate permissions system from the warehouse
 # See drivers/hmis/doc/PERMISSIONS.md
 
@@ -14,7 +16,6 @@ module Hmis
 
     # TODO: rename AccessGroup class to `Collection`, update all references
     belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities
-    alias access_group collection
 
     belongs_to :entity, polymorphic: true
 
@@ -22,11 +23,16 @@ module Hmis
     has_many :projects, through: :group_viewable_entity_projects, source: :project
 
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
+    scope :project_groups, -> { where(entity_type: Hmis::ProjectGroup.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
 
     scope :includes_project, ->(project) do
       joins(:projects).where(p_t[:id].eq(project.id))
+    end
+
+    scope :includes_project_group, ->(project_group) do
+      where(entity: project_group)
     end
 
     scope :includes_organization, ->(organization) do
@@ -41,6 +47,8 @@ module Hmis
       case entity.class.name
       when Hmis::Hud::Project.name
         includes_project(entity)
+      when Hmis::ProjectGroup.name
+        includes_project_group(entity)
       when Hmis::Hud::Organization.name
         includes_organization(entity)
       when ::GrdaWarehouse::DataSource.name
@@ -57,10 +65,16 @@ module Hmis
     scope :includes_any_entity_in_data_source, ->(data_source) do
       project_ids = data_source.projects.select(:id)
       organization_ids = data_source.organizations.select(:id)
+      project_group_ids = data_source.hmis_project_groups.select(:id)
 
       where(entity: data_source).
         or(where(entity_type: Hmis::Hud::Project.sti_name, entity_id: project_ids)).
-        or(where(entity_type: Hmis::Hud::Organization.sti_name, entity_id: organization_ids))
+        or(where(entity_type: Hmis::Hud::Organization.sti_name, entity_id: organization_ids)).
+        or(where(entity_type: Hmis::ProjectGroup.sti_name, entity_id: project_group_ids))
+    end
+
+    def access_group
+      collection
     end
   end
 end

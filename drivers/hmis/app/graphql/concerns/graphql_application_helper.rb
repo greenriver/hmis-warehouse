@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Concern shared across query resolves (BaseObject) and mutations (BaseMutation/CleanBaseMutation)
 module GraphqlApplicationHelper
   extend ActiveSupport::Concern
@@ -24,6 +26,10 @@ module GraphqlApplicationHelper
     raise message
   end
 
+  def policy_for(resource, policy_type:)
+    current_user.policy_for(resource, policy_type: policy_type)
+  end
+
   # Does the current user have the given permission on entity?
   #
   # @param permission [Symbol] :can_do_foo
@@ -33,16 +39,13 @@ module GraphqlApplicationHelper
   end
 
   # Use data loader to load an ActiveRecord association.
-  # Note: 'scope' is intended for ordering or to modify the default
-  # association in a way that is constant with respect to the resolver,
-  # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
-  def load_ar_association(object, association_name, scope: nil)
-    raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
+  def load_ar_association(object, association_name)
+    raise "object must be a GrdaWarehouseBase, got #{object.class.name}" unless object.is_a?(ActiveRecord::Base)
 
     # if we already have preloaded association, just return it
-    return object.public_send(association_name) if scope.nil? && object.association(association_name).loaded?
+    return object.public_send(association_name) if object.association(association_name).loaded?
 
-    dataloader.with(Sources::ActiveRecordAssociation, association_name, scope).load(object)
+    dataloader.with(Sources::ActiveRecordAssociation, association_name).load(object)
   end
 
   def load_ar_scope(scope:, id:)
@@ -51,20 +54,29 @@ module GraphqlApplicationHelper
 
   # Helper to resolve the active enrollment for this client at the specified project on the specified date.
   # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
-  #
   # This is in this module because its shared between query and mutation code.
   def load_open_enrollment_for_client(client, project_id:, open_on_date:)
-    # Load all visible enrollments for the client
-    enrollments = load_ar_association(
-      client,
-      :enrollments,
-      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:exit),
-    )
+    # Load all enrollments for the client
+    enrollments = load_ar_association(client, :enrollments_with_exits)
 
-    # Filter down by project and date
+    # Filter to only enrollments the user has permission to see;
+    # Filter down to open enrollments in the specified project on the specified date
     enrollments.filter do |en|
-      en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
+      has_permission = current_permission?(permission: :can_view_enrollment_details, entity: en)
+      has_permission && en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
+  end
+
+  # Resolves the name of a destination client conservatively.
+  # It checks if the current user has permission to view the client name
+  # on any of the destination client's HMIS source clients (for the current HMIS data source).
+  # If no viewable name is found, it returns nil.
+  def load_destination_client_name(destination_client:)
+    source_clients = load_ar_association(destination_client, :hmis_source_clients)
+
+    source_clients.sort_by(&:id).find do |client|
+      current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+    end&.brief_name
   end
 
   def arel

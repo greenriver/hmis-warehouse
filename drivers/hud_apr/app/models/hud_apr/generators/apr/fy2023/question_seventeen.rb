@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Apr::Fy2023
   class QuestionSeventeen < HudApr::Generators::Shared::Fy2023::QuestionSeventeen
-    QUESTION_TABLE_NUMBER = 'Q17'.freeze
+    QUESTION_TABLE_NUMBER = 'Q17'
 
     def run_question!
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])

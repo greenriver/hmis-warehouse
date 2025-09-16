@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 # NOTE:
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3
@@ -12,7 +14,10 @@
 # u.user_group_members.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
+
 class Hmis::User < ApplicationRecord
+  include Memery
+
   include UserConcern
   include HasRecentItems
   self.table_name = :users
@@ -24,6 +29,8 @@ class Hmis::User < ApplicationRecord
   has_many :roles, through: :access_controls
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
   has_many :staff_assignments, class_name: 'Hmis::StaffAssignment'
+  has_many :workflow_step_assignments, class_name: 'Hmis::WorkflowExecution::StepAssignment'
+  has_many :ce_referral_participants, class_name: 'Hmis::Ce::ReferralParticipant'
 
   has_recent :clients, 'Hmis::Hud::Client'
   has_recent :projects, 'Hmis::Hud::Project'
@@ -100,19 +107,6 @@ class Hmis::User < ApplicationRecord
     end
   end
 
-  def can_view_my_dashboard?
-    key = [self.class.name, __method__, id]
-    Rails.cache.fetch(key, expires_in: 1.minutes) do
-      # This is a one-off custom logic permission for determining when to show "My Dashbord" in HMIS. It is resolved on the root access object.
-      # This logic may evolve as we add more capabilities to the dashboard.
-      # If we have more use-cases for this, we could make a helper in BaseAccess that accepts custom evaluation logic.
-      return false unless Hmis::ProjectStaffAssignmentConfig.exists? # micro optimization for installations without staff assignment
-
-      project_scope = Hmis::Hud::Project.with_access(self, :can_edit_enrollments).preload(:organization)
-      Hmis::ProjectStaffAssignmentConfig.for_projects(project_scope).exists?
-    end
-  end
-
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
   end
@@ -123,6 +117,8 @@ class Hmis::User < ApplicationRecord
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)
+    raise ArgumentError, "unknown mode #{mode.inspect}" unless mode&.in?([:all, :any])
+
     method_name = mode == :all ? :all? : :any?
     permissions.send(method_name) { |perm| yield(perm) }
   end
@@ -174,6 +170,10 @@ class Hmis::User < ApplicationRecord
 
   def viewable_organizations
     viewable Hmis::Hud::Organization
+  end
+
+  def viewable_project_groups
+    viewable Hmis::ProjectGroup
   end
 
   def viewable_projects
@@ -241,6 +241,13 @@ class Hmis::User < ApplicationRecord
     end
   end
 
+  def to_pick_list_option
+    {
+      code: id.to_s,
+      label: full_name,
+    }
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
@@ -260,5 +267,17 @@ class Hmis::User < ApplicationRecord
     @accessible_data_source_ids[data_source_id] = can_access_ds
 
     can_access_ds
+  end
+
+  memoize def policy_for(resource, policy_type:)
+    policy_name = "#{policy_type.to_s.camelize}Policy"
+    policy_class = "Hmis::AuthPolicies::#{policy_name}".safe_constantize
+    raise ArgumentError, "policy not found: #{policy_name}" unless policy_class
+
+    policy_class.new(resource: resource, context: policy_context)
+  end
+
+  memoize def policy_context
+    Hmis::AuthPolicies::UserContext.new(self)
   end
 end

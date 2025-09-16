@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CasClientData
   extend ActiveSupport::Concern
   included do
@@ -714,14 +716,20 @@ module CasClientData
         GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).
           ongoing.
           joins(:project).
-          pluck(:client_id, p_t[:id], GrdaWarehouse::ServiceHistoryEnrollment.project_type_column, :move_in_date).
-          each do |c_id, p_id, p_type, move_in_date|
+          pluck(:client_id, p_t[:id], p_t[:project_type], :move_in_date, p_t[:RRHSubType]).
+          each do |c_id, p_id, p_type, move_in_date, rrh_sub_type|
             ids[c_id] ||= []
-            ids[c_id] << OpenStruct.new(project_id: p_id, project_type: p_type, move_in_date: move_in_date)
+            ids[c_id] << OpenStruct.new(
+              project_id: p_id,
+              project_type: p_type,
+              move_in_date: move_in_date,
+              rrh_sub_type: rrh_sub_type,
+            )
           end
       end
     end
 
+    # Enrolled in RRH WITH a move-in date
     def enrolled_in_rrh(ongoing_enrollments)
       return false unless ongoing_enrollments
 
@@ -732,6 +740,7 @@ module CasClientData
       end.any?
     end
 
+    # Enrolled in PSH WITH a move-in date
     def enrolled_in_psh(ongoing_enrollments)
       return false unless ongoing_enrollments
 
@@ -742,6 +751,7 @@ module CasClientData
       end.any?
     end
 
+    # Enrolled in PH WITH a move-in date
     def enrolled_in_ph(ongoing_enrollments)
       return false unless ongoing_enrollments
 
@@ -752,16 +762,20 @@ module CasClientData
       end.any?
     end
 
+    # Enrolled in RRH WITHOUT a move-in date and not in services-only RRH
     def enrolled_in_rrh_pre_move_in(ongoing_enrollments)
       return false unless ongoing_enrollments
 
       project_type_codes = [13]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes) &&
-        en.move_in_date.blank?
+
+          en.move_in_date.blank? && # no move-in date
+          en.rrh_sub_type != HudUtility2024.rrh_sub_type_sso_only # not services only
       end.any?
     end
 
+    # Enrolled in PSH WITHOUT a move-in date
     def enrolled_in_psh_pre_move_in(ongoing_enrollments)
       return false unless ongoing_enrollments
 
@@ -772,6 +786,7 @@ module CasClientData
       end.any?
     end
 
+    # Enrolled in PH WITHOUT a move-in date
     def enrolled_in_ph_pre_move_in(ongoing_enrollments)
       return false unless ongoing_enrollments
 

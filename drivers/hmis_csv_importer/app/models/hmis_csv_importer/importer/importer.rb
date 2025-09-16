@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
 # The import is authoritative for the projects specified in the Project.csv file
@@ -45,7 +47,8 @@ module HmisCsvImporter::Importer
       data_source_id:,
       debug: true,
       deidentified: false,
-      project_cleanup: true
+      project_cleanup: true,
+      dry_run: false
     )
       setup_notifier('HMIS CSV Importer')
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
@@ -55,7 +58,11 @@ module HmisCsvImporter::Importer
 
       @deidentified = deidentified
       @project_cleanup = project_cleanup
+      @current_version = @loader_log.version
+      @dry_run = dry_run
       self.importer_log = setup_import
+      importer_log.version = @current_version
+
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -90,11 +97,13 @@ module HmisCsvImporter::Importer
 
       # refuse to proceed with the import if there are any errors and that setting is in effect
       return pause_import if should_pause?
+      # if this is a dry run, pause, but don't notify unless there are errors
+      return pause_import if @dry_run
 
       ingest!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
-      log_timing :post_process
+      post_process
     end
 
     def resume!
@@ -108,7 +117,7 @@ module HmisCsvImporter::Importer
       ingest!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
-      log_timing :post_process
+      post_process
     end
 
     ##
@@ -185,7 +194,7 @@ module HmisCsvImporter::Importer
     # @return [Hash{String => Integer}] A hash where keys are filenames and values are the total error counts for each file.
     #
     memoize private def error_counts
-      file_lookup = self.class.importable_files_map.invert
+      file_lookup = self.class.importable_files_map(@current_version).invert
 
       # Serialized hash of processing data persisted on the log model
       summary = @loader_log.summary
@@ -367,8 +376,6 @@ module HmisCsvImporter::Importer
           destination['importer_log_id'] = importer_log_id
           destination['pre_processed_at'] = pre_processed_at
 
-          # FIXME: are we sure this source_hash algo matches
-          # existing import logic. If not all records will be considered modified on the next run
           destination['source_hash'] = klass.new(destination).calculate_source_hash
 
           row_failures = run_row_validations(klass, destination, file_name, importer_log)
@@ -440,7 +447,11 @@ module HmisCsvImporter::Importer
 
         log("Rebuilding aggregated enrollments with #{klass.name}")
         aggregators.each do |aggregator_klass|
-          aggregator_klass.new(importer_log: @importer_log, date_range: date_range).rebuild_warehouse_data
+          aggregator_klass.new(
+            importer_log: @importer_log,
+            date_range: date_range,
+            version: @current_version,
+          ).rebuild_warehouse_data
         end
       end
     end
@@ -456,6 +467,7 @@ module HmisCsvImporter::Importer
           aggregator = aggregator_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
+            version: @current_version,
           )
           aggregator.remove_deleted_overlapping_data!
           aggregator.copy_incoming_data!
@@ -482,6 +494,7 @@ module HmisCsvImporter::Importer
           cleanup = cleanup_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
+            version: @current_version,
           )
           cleanup.cleanup!
         end
@@ -629,6 +642,11 @@ module HmisCsvImporter::Importer
 
     def add_new_data
       importable_files.each do |file_name, klass|
+        # Augmentation classes will always be updating existing records
+        next if custom_augmentation?(klass)
+
+        preload_custom_file_data(klass)
+
         destination_class = klass.reflect_on_association(:destination_record).klass
         # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
@@ -684,6 +702,13 @@ module HmisCsvImporter::Importer
       end
     end
 
+    # Cache ID lookups for custom files
+    def preload_custom_file_data(klass)
+      return unless custom_file?(klass)
+
+      klass.cache_mapped_attributes(importer_log_id: importer_log.id)
+    end
+
     def un_updateable_warehouse_classes
       [
         'GrdaWarehouse::Hud::Export',
@@ -694,6 +719,7 @@ module HmisCsvImporter::Importer
     def process_existing
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
+        preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
           mark_unchanged(klass, file_name)
           mark_incoming_older(klass, file_name)
@@ -706,6 +732,8 @@ module HmisCsvImporter::Importer
       importable_files.each do |file_name, klass|
         # Never delete Exports
         next if klass.hud_key == :ExportID
+        # Augmented data should never delete records since it should only update existing records
+        next if custom_augmentation?(klass)
 
         # If the klass does not allow deletions through the import process, remove the pending deletion flag from all klass records associated with this import.
         if klass.prevent_import_deletions?
@@ -772,11 +800,11 @@ module HmisCsvImporter::Importer
 
       destination_class = klass.reflect_on_association(:destination_record).klass
       # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
-
       # existing = existing_destination_data_scope(klass).distinct.pluck(klass.hud_key)
       bm = Benchmark.measure do
         batch = []
-        # existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+        upsert_columns = destination_class.upsert_column_names(version: importer_log.version)
+        upsert_columns = klass.upsert_column_names(version: importer_log.version) if custom_augmentation?(klass)
         existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
           hud_keys = relation.pluck(klass.hud_key)
           klass.should_import.where(
@@ -794,8 +822,10 @@ module HmisCsvImporter::Importer
               # These are tracked separately so we can bulk update them at the end
               track_dirty_enrollment(destination.EnrollmentID)
             end
+            # ensure we always have the right data_source_id
+            destination.data_source_id = data_source.id
             batch << destination
-            if batch.count == INSERT_BATCH_SIZE
+            if batch.count == INSERT_BATCH_SIZE && !custom_augmentation?(klass)
               # Client model doesn't have a uniqueness constraint because of the warehouse data source
               # so these must be processed more slowly
               if klass.hud_key == :PersonalID
@@ -803,29 +833,29 @@ module HmisCsvImporter::Importer
                   destination_class.where(
                     data_source_id: incoming.data_source_id,
                     PersonalID: incoming.PersonalID,
-                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names))
+                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
                   @updated_source_client_ids << incoming.PersonalID
                 end
                 note_processed(file_name, batch.count, 'updated')
               else
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
               end
               batch = []
             end
           end
         end
         if batch.present? # ensure we get the last batch
-          if klass.hud_key == :PersonalID
+          if klass.hud_key == :PersonalID && !custom_augmentation?(klass)
             batch.each do |incoming|
               destination_class.where(
                 data_source_id: incoming.data_source_id,
                 PersonalID: incoming.PersonalID,
-              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names))
+              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
               @updated_source_client_ids << incoming.id
             end
             note_processed(file_name, batch.count, 'updated')
           else
-            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns, update_only: custom_augmentation?(klass))
           end
         end
 
@@ -851,6 +881,8 @@ module HmisCsvImporter::Importer
     private def mark_unchanged(klass, file_name)
       # We always bring over Exports
       return if klass.hud_key == :ExportID
+      # Augmented data will always appear changed as the source hash won't match the destination source hash
+      return if custom_augmentation?(klass)
 
       existing = existing_destination_data_scope(klass).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
@@ -872,11 +904,14 @@ module HmisCsvImporter::Importer
     # if the incoming record is older than the existing record,
     # don't update the warehouse.
     # NOTE: there is one exception, if the import is the most recently
-    # exported for this data source, then we should assume the data is
+    # exported for this data source, then we can assume the data is
     # more correct than anything we have
     private def mark_incoming_older(klass, file_name)
       # Doesn't apply to Exports
       return if klass.hud_key == :ExportID
+      # Augmented data will always appear changed as the source hash won't match the destination source hash
+      return if custom_augmentation?(klass)
+
       return if most_recent_export_for_ds?
 
       existing = existing_destination_data_scope(klass).pluck(klass.hud_key, :DateUpdated).to_h
@@ -910,16 +945,27 @@ module HmisCsvImporter::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names)
+    private def import_options(klass, columns)
+      options = {
+        on_duplicate_key_update: {
+          conflict_target: klass.conflict_target,
+          columns: columns,
+        },
+      }
+      options[:on_duplicate_key_update][:index_predicate] = klass.index_predicate if klass.respond_to?(:index_predicate)
+
+      options
+    end
+
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: importer_log.version), update_only: false)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
-        if upsert
+        if update_only
+          bulk_update_batch!(klass, batch, columns)
+        elsif upsert
           klass.import(
             batch,
-            on_duplicate_key_update: {
-              conflict_target: klass.conflict_target,
-              columns: columns,
-            },
+            **import_options(klass, columns),
             validate: use_ar_model_validations,
           )
         else
@@ -932,13 +978,15 @@ module HmisCsvImporter::Importer
       log "batch failed: #{e.message}... processing records one at a time"
       errors = []
       batch.each do |row|
-        if upsert
+        if update_only
+          where_clause = { data_source_id: row.data_source_id }.merge(
+            Array.wrap(klass.conflict_target).to_h { |key| [key, row[key]] },
+          )
+          klass.where(where_clause).with_deleted.update_all(row.slice(columns))
+        elsif upsert
           klass.import(
             Array.wrap(row),
-            on_duplicate_key_update: {
-              conflict_target: klass.conflict_target,
-              columns: columns,
-            },
+            **import_options(klass, columns),
             validate: use_ar_model_validations,
             batch_size: 1,
           )
@@ -952,9 +1000,78 @@ module HmisCsvImporter::Importer
       @importer_log.import_errors.import(errors)
     end
 
+    # Use postgres bulk update for performance
+    # This will be used for data that is augmenting an existing warehouse class
+    # that never needs to add new rows.
+    # NOTE: data that augments the client table is handled differently
+    # as that table does not currently have a uniqueness constraint compatible
+    # with this method
+    private def bulk_update_batch!(klass, batch, columns)
+      conflict_keys = Array.wrap(klass.conflict_target)
+      update_cols = columns - conflict_keys + [:data_source_id]
+      value_rows = batch.map do |record|
+        values = update_cols.map do |col|
+          value = record.public_send(col.to_sym)
+          if value.nil?
+            # Cast NULL to the appropriate type based on the database column type
+            cast_null_for_column_type(klass, col)
+          else
+            klass.connection.quote(value)
+          end
+        end
+        "(#{values.join(', ')})"
+      end
+      sql_values = value_rows.join(",\n")
+      all_cols_for_values = update_cols.map do |c|
+        klass.connection.quote_column_name(c)
+      end.join(', ')
+      set_statements = update_cols.map do |c|
+        qc = klass.connection.quote_column_name(c)
+        "#{qc} = v.#{qc}"
+      end.join(', ')
+      table_name = klass.quoted_table_name
+      where_conditions = conflict_keys.map do |c|
+        # conflict keys are already quoted
+        "#{table_name}.#{c} = v.#{c}"
+      end.join(' AND ')
+      sql = <<~SQL
+        UPDATE #{table_name}
+        SET #{set_statements}
+        FROM (VALUES #{sql_values}) AS v(#{all_cols_for_values})
+        WHERE #{where_conditions}
+      SQL
+      klass.connection.execute(sql)
+    end
+
+    private def cast_null_for_column_type(klass, column_name)
+      column = klass.columns_hash[column_name.to_s]
+      return 'NULL' unless column
+
+      case column.type
+      when :integer, :bigint, :smallint
+        'NULL::integer'
+      when :decimal, :float, :numeric
+        'NULL::numeric'
+      when :boolean
+        'NULL::boolean'
+      when :date
+        'NULL::date'
+      when :datetime, :timestamp
+        'NULL::timestamp'
+      when :text, :string
+        'NULL::text'
+      else
+        'NULL'
+      end
+    end
+
     private def source_data_scope_for(file_name)
-      scope = HmisCsvImporter::Loader::Loader.loadable_files[file_name]
+      scope = loader_class.loadable_files(importer_log.version)[file_name]
       scope.unscoped.where(loader_id: @loader_log.id)
+    end
+
+    private def loader_class
+      HmisCsvImporter::Loader::Loader
     end
 
     private def date_range
@@ -1030,16 +1147,9 @@ module HmisCsvImporter::Importer
       }
     end
 
-    def importable_files
-      self.class.importable_files
-    end
-
-    def importable_file_class(name)
-      self.class.data_lake_file_class(name, 'Importer')
-    end
-
-    def self.soft_deletable_sources
-      importable_files_map.except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
+    # Note, only used for tests
+    def self.soft_deletable_sources(version)
+      importable_files_map(version).except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".safe_constantize }.compact
     end
 
     def setup_import
@@ -1076,26 +1186,42 @@ module HmisCsvImporter::Importer
     end
 
     private def post_process
-      # s_time = Time.current
+      log_timing :project_cleanup
+      log_timing :cleanup_dangling_enrollments
+      log_timing :identify_duplicates
+      log_timing :queue_enrollment_processing
+      log_timing :maintain_ch_enrollments
+    end
+
+    private def project_cleanup
       project_ids = GrdaWarehouse::Hud::Project.
         where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
         pluck(:id)
       GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run! if @project_cleanup
+    end
 
+    private def cleanup_dangling_enrollments
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.
         joins(:warehouse_client_source).
         where(PersonalID: @updated_source_client_ids, data_source_id: @data_source.id).
         pluck(wc_t[:destination_id])
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.ensure_there_are_no_extra_enrollments_in_service_history(updated_client_ids)
+    end
 
+    private def queue_enrollment_processing
       # Enrollment.processed_as is cleared if the enrollment changed
       # queue up a rebuild to keep things as in sync as possible
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+    end
+
+    private def maintain_ch_enrollments
       # These need to be updated any time the enrollment changes
       GrdaWarehouse::ChEnrollment.maintain!
-      # puts "Took #{Time.current - s_time} seconds - #{Time.current}"
+    end
+
+    private def identify_duplicates
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     end
 
     private def db_transaction(&block)
@@ -1111,6 +1237,18 @@ module HmisCsvImporter::Importer
         message: "Error importing #{klass}",
         details: message,
       )
+    end
+
+    # A helper to determine if the class is simply augmenting an existing warehouse class
+    # These classes add data to a subset of columns to an existing warehouse class
+    private def custom_augmentation?(klass)
+      klass.respond_to?(:augments?) && klass.augments?
+    end
+
+    # A helper to determine if the class is a custom file
+    # These classes need to preload mapping data before processing
+    private def custom_file?(klass)
+      klass.respond_to?(:custom_file?) && klass.custom_file?
     end
   end
 end

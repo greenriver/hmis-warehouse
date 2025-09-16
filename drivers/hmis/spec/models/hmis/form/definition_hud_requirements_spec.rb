@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -33,7 +35,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     it 'adds missing rule' do
       perform_and_reload
 
-      expected_rule = HmisUtil::HudAssessmentFormRules2024::HUD_LINK_ID_RULES[:q_3_917A][:rule]
+      expected_rule = HmisUtil::HudAssessmentFormRules2026::HUD_LINK_ID_RULES[:q_3_917A][:rule]
       expect(fd.definition['item'][0]['rule']).to eq(expected_rule.deep_stringify_keys)
     end
 
@@ -52,7 +54,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
       perform_and_reload
 
-      expected_rule = HmisUtil::HudAssessmentFormRules2024::HUD_LINK_ID_RULES[:q_3_917A][:rule]
+      expected_rule = HmisUtil::HudAssessmentFormRules2026::HUD_LINK_ID_RULES[:q_3_917A][:rule]
       expect(fd.definition['item'][0]['rule']).to eq(expected_rule.deep_stringify_keys)
     end
 

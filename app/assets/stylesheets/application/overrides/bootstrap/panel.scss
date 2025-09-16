@@ -3,6 +3,7 @@
 .panel-body {
   border-top: 2px solid $gray-200;
 }
+
 .minimal-collapse {
   .panel-body {
     border-top: 1px solid $gray-200;
@@ -11,6 +12,7 @@
 
 .panel-heading {
   min-height: 50px;
+
   @include media-breakpoint-up(sm) {
     min-height: auto;
   }
@@ -18,18 +20,22 @@
 
 .panel-heading[aria-expanded=true] {
   background: lighten($tab-bg, 30%);
+
   .panel-title {
-    color: $black;
+    color: var(--black);
   }
 }
+
 .minimal-collapse {
   .panel-heading {
-    border-bottom: 1px solid $gray-025;
-    color: $gray-darker;
+    border-bottom: 1px solid var(--gray-025);
+    color: var(--gray-090);
+
     .j-toggle-arrow {
       margin-bottom: 1rem;
     }
   }
+
   .panel-heading[aria-expanded=true] {
     background-color: transparent;
     border-bottom: 0;
@@ -58,6 +64,7 @@
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
+
 .panel-sibling--above .panel {
   border-top-left-radius: 0;
   border-top-right-radius: 0;

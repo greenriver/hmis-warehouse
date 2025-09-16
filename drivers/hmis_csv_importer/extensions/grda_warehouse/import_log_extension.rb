@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvImporter::GrdaWarehouse
   module ImportLogExtension
     extend ActiveSupport::Concern
@@ -16,7 +18,7 @@ module HmisCsvImporter::GrdaWarehouse
         return unless persisted?
 
         if completed_at.present?
-          return 'Paused for error review' if has_attribute?('importer_log_id') && importer_log&.paused?
+          return 'Paused for review' if has_attribute?('importer_log_id') && importer_log&.paused?
 
           seconds = ((completed_at - created_at) / 1.minute).round * 60
           "#{distance_of_time_in_words(seconds)} -#{created_at.strftime('%l:%M %P')} to #{completed_at.strftime('%l:%M %P')}"

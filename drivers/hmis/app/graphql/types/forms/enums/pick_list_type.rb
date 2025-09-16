@@ -16,6 +16,8 @@ module Types
     value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
     value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'
+    value 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', 'Projects that can receive CE referrals'
+    value 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', 'Unit groups for the given project that can receive CE referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'OTHER_FUNDERS', 'OtherFunder values for all Funders across the installation'
     value 'ASSESSMENT_NAMES', 'Assessment names, including custom assessments and assessments that are inactive. If a project is specified, the list is limited to assessments that exist in the project (both active and inactive).'
@@ -48,8 +50,13 @@ module Types
     value 'FORM_TYPES', 'Form Types'
     value 'STAFF_ASSIGNMENT_RELATIONSHIPS', 'Staff Assignment Relationships'
     value 'USERS', 'User accounts. Deprecated in favor of AUDITABLE_USERS'
-    value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Current users who are eligible for staff assignment'
+    value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Users who are eligible for staff assignment'
+    value 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', 'Users who can be assigned to referral steps in the specified project'
     value 'AUDITABLE_USERS', 'Current and historical user accounts'
     value 'CONTINUUM_PROJECTS', 'Continuum Projects'
+    value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS', 'Templates for CE workflow definitions'
+    value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED', 'Templates for CE workflow definitions, including fully retired workflows'
+    value 'CE_REFERRAL_STATUSES'
+    value 'PROJECT_CONFIG_TYPES'
   end
 end

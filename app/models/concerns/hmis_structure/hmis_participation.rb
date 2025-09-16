@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisStructure::HmisParticipation
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
@@ -20,7 +22,7 @@ module HmisStructure::HmisParticipation
 
     def hmis_configuration(version: nil)
       case version
-      when '2024'
+      when '2024', '2026'
         {
           HMISParticipationID: {
             type: :string,

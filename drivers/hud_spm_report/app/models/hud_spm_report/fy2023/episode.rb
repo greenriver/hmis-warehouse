@@ -26,6 +26,10 @@ module HudSpmReport::Fy2023
       enrollment.project_id
     end
 
+    def data_source_id
+      enrollment.data_source_id
+    end
+
     def self.detail_headers
       client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']
       hidden_columns = ['id', 'report_instance_id'] + client_columns

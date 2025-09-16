@@ -4,9 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   CoreDemographicsReport::Details
   extend ActiveSupport::Concern
+  include ::PiiDisplay
   included do
     def detail_link_base
       "#{section_subpath}details"
@@ -105,7 +108,7 @@ module
       end
     end
 
-    def detail_column_display(header:, column:)
+    def detail_column_display(header:, column:, project_id:)
       case header
       when 'Project Type'
         HudUtility2024.project_type(column)
@@ -118,7 +121,8 @@ module
       when 'Destination'
         HudUtility2024.destination(column)
       else
-        column
+        pii_policy = filter.user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+        pii_value(col: header, raw_value: column, pii_policy: pii_policy)
       end
     end
 

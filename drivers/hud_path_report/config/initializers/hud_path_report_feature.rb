@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The core app (or other drivers) can check the presence of the
 # HudPathReport driver with the following code snippet
 #
@@ -23,6 +25,11 @@ Rails.application.config.hud_reports['HudPathReport::Generators::Fy2021::Generat
 }
 
 Rails.application.config.hud_reports['HudPathReport::Generators::Fy2024::Generator'] = {
+  title: 'Annual PATH Report',
+  helper: 'hud_reports_paths_path',
+}
+
+Rails.application.config.hud_reports['HudPathReport::Generators::Fy2026::Generator'] = {
   title: 'Annual PATH Report',
   helper: 'hud_reports_paths_path',
 }

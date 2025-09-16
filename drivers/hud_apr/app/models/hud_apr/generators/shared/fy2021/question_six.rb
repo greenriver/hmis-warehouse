@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2021
   class QuestionSix < Base
-    QUESTION_NUMBER = 'Question 6'.freeze
+    QUESTION_NUMBER = 'Question 6'
 
     def self.table_descriptions
       {
@@ -819,7 +821,7 @@ module HudApr::Generators::Shared::Fy2021
           'Data Element',
           '# of Records',
           '# of Inactive Records',
-          '# % of Inactive Records',
+          '% of Inactive Records',
         ],
         row_labels: [
           'Contact (Adults and Heads of Household in Street Outreach or ES - NBN)',

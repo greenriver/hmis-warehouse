@@ -3,18 +3,12 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
+# frozen_string_literal: true
 
 module HmisSupplemental
   class FieldValue < GrdaWarehouseBase
     self.table_name = 'hmis_supplemental_field_values'
     belongs_to :data_set, class_name: 'HmisSupplemental::DataSet'
-    serialize :data, type: Hash
 
     # use a single key rather than a polymorphic association
     # * keeps class names out of the db

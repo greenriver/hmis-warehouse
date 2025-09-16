@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Cohorts
   class ColumnsController < ApplicationController
     include AjaxModalRails::Controller
@@ -16,7 +18,7 @@ module Cohorts
     end
 
     def update
-      columns = cohort_source.available_columns.deep_dup
+      columns = cohort_source.active_columns.deep_dup
       if params.include? :order
         order = params[:order].split(',')
         columns = columns.sort_by { |col| order.index(col.column.to_s) || 500 }

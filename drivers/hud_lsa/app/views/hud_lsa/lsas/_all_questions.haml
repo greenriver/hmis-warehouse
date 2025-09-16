@@ -11,15 +11,28 @@
       %li Provides the data for Stella, HUD's strategy and analysis tool for CoCs, available on HDX 2.0.
     = link_to 'https://www.hudexchange.info/resource/5726/lsa-report-specifications-and-tools/', target: :_blank do
       Official LSA report specifications and tools can be found on the HUD Exchange
-  %p.border-top.pt-4
-    = link_to history_hud_reports_lsas_path do
-      See the history of all report runs and download zip files
-  %p
-    = link_to hud_reports_historic_lsas_path do
-      Pre-FY 2023 LSAs
-  %p
-    = link_to new_hud_reports_lsa_path, class: 'btn btn-primary' do
-      Generate New LSA
-
-    = link_to new_hud_reports_lsa_hic_path, class: 'ml-4 btn btn-secondary' do
-      Generate New LSA for HIC
+.row
+  .col
+    %h2 LSA
+    .well
+      %p
+        = link_to history_hud_reports_lsas_path do
+          See the history of all LSA report runs and download zip files
+      %p
+        = link_to hud_reports_historic_lsas_path do
+          Pre-FY 2023 LSAs
+      %p
+        = link_to new_hud_reports_lsa_path, class: 'btn btn-primary' do
+          Generate New LSA
+  .col
+    %h2 HIC
+    .well
+      %p
+        = link_to history_hud_reports_lsa_hics_path do
+          See the history of all HIC report runs and download zip files
+      %p
+        = link_to history_hud_reports_hics_path do
+          Pre-FY 2023 HICs
+      %p
+        = link_to new_hud_reports_lsa_hic_path, class: 'ml-4 btn btn-primary' do
+          Generate New HIC

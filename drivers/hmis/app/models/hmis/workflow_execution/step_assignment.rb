@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+# Represents the assignment of a user to a step/task in a workflow
+module Hmis::WorkflowExecution
+  class StepAssignment < GrdaWarehouseBase
+    has_paper_trail
+    acts_as_paranoid
+
+    belongs_to :step, class_name: 'Hmis::WorkflowExecution::Step'
+    belongs_to :user, class_name: 'Hmis::User'
+  end
+end

@@ -4,10 +4,42 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # NOTE: To force a rebuild that includes data that isn't the dates involved, you need to
 # also set the processed_hash on the enrollment to nil
 
 module GrdaWarehouse::Tasks
+  # The ClientCleanup task is a maintenance utility for ensuring the  integrity and
+  # quality of client data within the warehouse. It performs several key functions:
+  #
+  # 1.  **Data Consolidation**: Merges demographic information from multiple source
+  #     client records into a single, unified destination client. It uses a set of
+  #     rules to determine the "best" attribute value (e.g., name, SSN, DOB) from
+  #     available sources.
+  #
+  # 2.  **Record Cleanup**: Identifies and removes orphaned or unused records,
+  #     including:
+  #     - Source clients with no enrollments.
+  #     - Destination clients that are no longer mapped from any source.
+  #     - Associated records in `ServiceHistoryEnrollment`, `WarehouseClientsProcessed`,
+  #       and `HmisClient` tables.
+  #
+  # 3.  **Data Quality Enforcement**: Corrects common data inconsistencies, such as:
+  #     - Fixing incorrect household IDs for heads of household.
+  #     - Invalidating enrollments incorrectly marked as individual or family.
+  #     - Correcting or backfilling client ages in their service history.
+  #
+  # 4.  **Service History Maintenance**: Triggers a rebuild of a client's service
+  #     history if critical data (like Date of Birth) changes during consolidation.
+  #
+  # ## Usage
+  #
+  # The task can be invoked for all clients or targeted to a specific set of
+  # destination client IDs. It includes a `dry_run` mode to preview changes
+  # without modifying the database. It is designed to be run periodically to
+  # maintain data hygiene. The `.run_for_clients` class method provides a
+  # convenient entry point for asynchronous processing.
   class ClientCleanup
     include NotifierConfig
     include ArelHelper
@@ -26,6 +58,12 @@ module GrdaWarehouse::Tasks
       @soft_delete_date = Time.now
       @dry_run = dry_run
       @destination_ids = Array.wrap(destination_ids)
+    end
+
+    # a helper method so client cleanup can be called with .delay
+    # ClientCleanupJob.set(priority: 10).perform_later(to_clean)
+    def self.run_for_clients(client_ids)
+      new(destination_ids: Array.wrap(client_ids)).run!
     end
 
     def run!
@@ -57,14 +95,16 @@ module GrdaWarehouse::Tasks
       fix_incorrect_ages_in_service_history
       add_missing_ages_to_service_history
       fix_incorrect_household_ids
-      fix_incorrect_enrollment_coc_household_ids
       rebuild_service_history_for_incorrect_clients
+      Rails.cache.write('client_cleanup_last_run', Time.current, expires_in: 30.minutes)
     end
 
     # Find any heads of households where the same client has a duplicate HouseholdID
     # Update all members of the household where the HoH enrollment is closed with a new HouseholdID
     # where the members enrollment date falls between the HoH Entry and Exit dates inclusive
     def fix_incorrect_household_ids
+      return if recently_ran?
+
       incorrect_households = GrdaWarehouse::Hud::Enrollment.heads_of_households.
         joins(:project).
         merge(
@@ -120,23 +160,6 @@ module GrdaWarehouse::Tasks
         log "Not updating #{to_update} enrollments (dry-run)"
       else
         log "Updated #{to_update} enrollments with incorrect HouseholdIDs"
-      end
-    end
-
-    # Set any EnrollmentCoC.HouseholdIDs that don't match their
-    # enrollments, to whatever is in their enrollment
-    private def fix_incorrect_enrollment_coc_household_ids
-      batch_size = 10_000
-      ids = GrdaWarehouse::Hud::EnrollmentCoc.joins(:enrollment).where(
-        ec_t[:HouseholdID].not_eq(e_t[:HouseholdID]).
-        or(ec_t[:HouseholdID].eq(nil).and(e_t[:HouseholdID].not_eq(nil))),
-      ).pluck(:id, e_t[:HouseholdID])
-      ids.each_slice(batch_size) do |batch|
-        GrdaWarehouse::Hud::EnrollmentCoc.import(
-          [:id, :HouseholdID],
-          batch,
-          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
-        )
       end
     end
 
@@ -201,7 +224,7 @@ module GrdaWarehouse::Tasks
       adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
       log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
       adder.run!
-      adder.class.wait_for_processing
+      adder.class.wait_for_processing(max_wait_seconds: 60)
     end
 
     # Find any clients at data sources that come from HMIS systems
@@ -468,12 +491,18 @@ module GrdaWarehouse::Tasks
       status = calculate_best_veteran_status(dest_attr[:verified_veteran_status], dest_attr[:va_verified_veteran], sorted_source_clients)
       dest_attr[:VeteranStatus] = status
 
+      # status is 1 if dest_attr[:va_verified_veteran] is true or if any source client has VeteranStatus == 1
       if status == 1
         most_recent_vet = sorted_source_clients.detect { |c| c[:VeteranStatus] == 1 }
-        veteran_related_columns.each do |col|
-          dest_attr[col] = most_recent_vet[col]
+        # if a source client has VeteranStatus == 1, set the veteran-related columns to the values from that source client.
+        # Otherwise, leave the destination client's veteran-related columns as is because the status is coming from the destination client.
+        if most_recent_vet.present?
+          veteran_related_columns.each do |col|
+            dest_attr[col] = most_recent_vet[col]
+          end
         end
       else
+        # if the veteran status is not 1, set the veteran-related columns to nil
         veteran_related_columns.each do |col|
           dest_attr[col] = nil
         end
@@ -701,6 +730,7 @@ module GrdaWarehouse::Tasks
         end
 
         update_destination_clients(changed_batch)
+        post_process_clients(client_ids: changed_batch.map(&:id))
         update_source_hashes(batch)
         changed_batch.each(&:clear_view_cache)
         processed += batch.count
@@ -793,7 +823,7 @@ module GrdaWarehouse::Tasks
     def clients_to_munge
       return @destination_ids if @destination_ids.present?
 
-      log "Check any client who's source has changed"
+      log 'Check any client whose source has changed'
       to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.distinct.pluck(:destination_id)
       log "...found #{to_update.size}."
       to_update
@@ -890,7 +920,21 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date, source_hash: nil)
     end
 
+    # Sometimes we end up with dozens of client cleanup jobs in the queue, some cleanup tasks
+    # don't need to run every time, if we've run in the past 30 minutes, we can skip
+    private def recently_ran?
+      last_run = Rails.cache.read('client_cleanup_last_run')
+
+      return false if last_run.nil?
+
+      recent = last_run > 30.minutes.ago
+      log("Client cleanup last run was #{last_run}, skipping") if recent
+      recent
+    end
+
     def fix_incorrect_ages_in_service_history
+      return if recently_ran?
+
       log 'Finding any clients with incorrect ages in the last 3 years of service history and invalidating them.'
       incorrect_age_clients = Set.new
       less_than_zero = Set.new
@@ -923,6 +967,8 @@ module GrdaWarehouse::Tasks
     end
 
     def add_missing_ages_to_service_history
+      return if recently_ran?
+
       log 'Finding any clients with DOBs with service histories missing ages...'
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
       without_dob = service_history_source.where.not(record_type: 'first').
@@ -942,6 +988,13 @@ module GrdaWarehouse::Tasks
         ).invalidate_processing!
         client.invalidate_service_history
       end
+    end
+
+    # Marks given clients as dirty for future re-processing for CE
+    private def post_process_clients(client_ids:)
+      return if @dry_run
+
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
     private def client_age_at date

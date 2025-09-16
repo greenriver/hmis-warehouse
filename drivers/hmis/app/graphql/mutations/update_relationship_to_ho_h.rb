@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -19,12 +21,16 @@ module Mutations
 
       enrollment.lock_version = enrollment_lock_version if enrollment_lock_version
 
+      validations = nil
       if relationship_to_ho_h == 1
         # Lock to avoid duplicate request collisions. with_lock also starts a transaction.
         enrollment.project.with_lock do
           hoh_changer = Hmis::HohChangeHandler.new(new_hoh_enrollment: enrollment, hud_user_id: hud_user.user_id)
           validations = hoh_changer.validate(include_warnings: !confirmed)
-          return { errors: validations } if validations.any?
+          if validations.any?
+            enrollment = nil
+            raise ActiveRecord::Rollback
+          end
 
           hoh_changer.apply_changes!
         end
@@ -36,7 +42,7 @@ module Mutations
         enrollment.save!
       end
 
-      { enrollment: enrollment }
+      { enrollment: enrollment, errors: validations }
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -14,8 +16,8 @@ module GrdaWarehouse::YouthIntake
 
     attr_accessor :other_language, :other_how_hear
 
-    # serialize :client_race, Array
-    # serialize :disabilities, Array
+    # serialize :client_race, type: Array
+    # serialize :disabilities, type: Array
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_intakes
     belongs_to :user, optional: true

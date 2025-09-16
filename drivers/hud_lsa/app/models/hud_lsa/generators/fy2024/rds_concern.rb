@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'memery'
 
 module HudLsa::Generators::Fy2024::RdsConcern
@@ -12,7 +14,10 @@ module HudLsa::Generators::Fy2024::RdsConcern
   include NotifierConfig
 
   def sql_server_identifier
-    "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{id}".downcase
+    identifier = "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{id}".downcase
+    # prepending the identifier with lsa when in development to align with the AWS developer role permissions
+    identifier = "lsa-#{identifier}" if Rails.env.development?
+    identifier
   end
 
   def sql_server_database

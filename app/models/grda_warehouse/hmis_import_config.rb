@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   has_paper_trail
   attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'][0..31]
@@ -32,14 +34,31 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
     @s3 ||= AwsS3.new(**s3_options)
   end
 
-  def possible_files
+  def relevant_object_list(limit = 25)
+    files = []
+    s3.list_objects(limit, prefix: s3_path).each do |entry|
+      files << entry if valid_file_name?(entry.key)
+    end
+    files
+  end
+
+  def relevant_file_list
     files = []
     # Returns oldest first
     s3.fetch_key_list(prefix: s3_path).each do |entry|
-      files << entry if entry.include?(s3_path)
+      files << entry if entry.include?(s3_path) && valid_file_name?(entry)
     end
+    files
+  end
+
+  def possible_files
+    files = relevant_file_list
     return files if files.empty?
 
     files.last(file_count).map { |f| File.basename(f) }
+  end
+
+  private def valid_file_name?(name)
+    name =~ /\.(zip|7z)\z/i
   end
 end

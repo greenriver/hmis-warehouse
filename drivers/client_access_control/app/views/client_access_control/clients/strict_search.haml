@@ -5,7 +5,7 @@
     - @prompt = t '.search_prompt'
   %p Results will be shown if three of the four options match exactly.
   .well.col-8
-    = simple_form_for @client, as: :client, url: clients_path, method: :get do |f|
+    = simple_form_for @client, as: :client, url: client_search_queries_path, method: :post do |f|
       .row
         .col-6
           = f.input :first_name, label: 'First Name'

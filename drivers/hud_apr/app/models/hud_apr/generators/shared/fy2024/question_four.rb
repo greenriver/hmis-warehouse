@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2024
   class QuestionFour < Base
-    QUESTION_NUMBER = 'Question 4'.freeze
+    QUESTION_NUMBER = 'Question 4'
 
     def table_header
       [
@@ -30,7 +32,7 @@ module HudApr::Generators::Shared::Fy2024
       ].freeze
     end
 
-    HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
+    HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'
 
     def self.table_descriptions
       {

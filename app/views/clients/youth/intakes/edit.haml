@@ -1,6 +1,5 @@
-- content_for :title, "Edit Youth Intake for #{@client.pii_provider(user: current_user).full_name}"
-
-%h1.page-title= content_for :title
+- content_for :title, "Edit Youth Intake"
+= render_display_title "Edit Youth Intake for #{@client.pii_provider(user: current_user).full_name}"
 
 = simple_form_for @intake, url: polymorphic_path(youth_intake_path_generator, id: @intake.id) do |f|
   = render 'intake_form', f: f, readonly: false

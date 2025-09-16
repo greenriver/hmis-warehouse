@@ -183,6 +183,35 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
     end
+
+    it 'raises when receiving a string value for a decimal col (regression #6868)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 'bad string',
+        'IncomeBenefit.otherIncomeAmount' => 100,
+        'IncomeBenefit.alimonyAmount' => nil,
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      expect do
+        assessment.form_processor.save!
+      end.to raise_error(ActiveRecord::RecordInvalid, /not a number/).
+        and not_change(Hmis::Hud::IncomeBenefit, :count)
+    end
+
+    it 'does not raise when receiving a string that can be converted to an int' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => '200',
+        'IncomeBenefit.otherIncomeAmount' => 100,
+        'IncomeBenefit.alimonyAmount' => nil,
+      }
+
+      assessment.form_processor.run!(user: hmis_user)
+      expect(assessment.form_processor.valid?(:form_submission)).to be true
+    end
   end
 
   describe 'HealthAndDV processor' do
@@ -469,6 +498,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
+    end
+
+    it 'raises when receiving an unrecognized string value for an enum col (regression #6868)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+
+      assessment.form_processor.hud_values = {
+        'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.viralLoadAvailable' => 'AVAILABLE',
+        'DisabilityGroup.viralLoadSource' => 'an unrecognized string',
+        'Enrollment.disablingCondition' => 'YES',
+      }
+
+      expect do
+        assessment.form_processor.run!(user: hmis_user)
+        assessment.save_not_in_progress
+      end.to raise_error(RuntimeError, /Unrecognized key/)
     end
   end
 
@@ -820,6 +865,42 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)
       expect { process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user, definition: definition) }.to raise_error(StandardError)
+    end
+
+    describe 'with unit opportunities' do
+      let!(:unit) { create(:hmis_unit, project: p1) }
+      let!(:hud_values) { complete_hud_values.merge('currentUnit' => unit.id) }
+
+      context 'with closed opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :closed) }
+
+        it 'assigns the unit as usual' do
+          expect do
+            process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+            e1.reload
+          end.to change(e1, :current_unit).from(nil).to(unit)
+        end
+      end
+
+      context 'with open opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :open) }
+
+        it 'raises an error' do
+          expect do
+            process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(RuntimeError, /Cannot assign directly to a unit receiving referrals/)
+        end
+      end
+
+      context 'with locked opportunity' do
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked) }
+
+        it 'raises an error' do
+          expect do
+            process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(RuntimeError, /Cannot assign directly to a unit receiving referrals/)
+        end
+      end
     end
   end
 
@@ -1958,6 +2039,15 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'faAmount' => 200,
       }
     end
+    let(:initialized_hud_service) do
+      Hmis::Hud::Service.new(
+        data_source: ds1,
+        enrollment_id: e1.enrollment_id,
+        personal_id: e1.personal_id,
+        record_type: hud_service.record_type,
+        type_provided: hud_service.type_provided,
+      )
+    end
 
     let(:custom_service_values) do
       {
@@ -1967,19 +2057,40 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'creates and updates all fields on a HUD Service' do
-      new_record = Hmis::Hud::Service.new(
-        data_source: ds1,
-        enrollment_id: e1.enrollment_id,
-        personal_id: e1.personal_id,
-        record_type: hud_service.record_type,
-        type_provided: hud_service.type_provided,
-      )
-
-      [hud_service, new_record].each do |record|
+      [hud_service, initialized_hud_service].each do |record|
         process_record(record: record, hud_values: hud_service_values, user: hmis_user, definition: definition)
 
         expect(record.fa_amount).to eq(200)
         expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+      end
+    end
+
+    # Test FY2024 behavior, where only FAStartDate is collected for SSVF (and processed onto DateProvided)
+    it 'processes FA Start Date onto Date Provided if missing' do
+      hud_values = {
+        'faStartDate' => '2024-01-01',
+        'faAmount' => 200,
+      }
+      [hud_service, initialized_hud_service].each do |record|
+        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+        expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2024-01-01')
+        expect(record.fa_start_date.strftime('%Y-%m-%d')).to eq('2024-01-01')
+      end
+    end
+
+    # Test FY2026 behavior, where both FAStartDate and DateProvided are collected for SSVF
+    it 'processes FA Start Date and Date Provided if both present' do
+      hud_values = {
+        'dateProvided' => '2024-01-01',
+        'faStartDate' => '2024-02-01',
+        'faAmount' => 200,
+      }
+      [hud_service, initialized_hud_service].each do |record|
+        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+        expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2024-01-01')
+        expect(record.fa_start_date.strftime('%Y-%m-%d')).to eq('2024-02-01')
       end
     end
 
@@ -2176,11 +2287,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end
 
         context 'when verified_by already exists, but verified_by_project_id is null' do
+          let(:migrated_in_project_name) { 'Some random value with no relation to a project that probably came from a migration' }
           let!(:cls) do
             create(
               :hmis_current_living_situation,
               client: c1, enrollment: e1, data_source: ds1, user: u1,
-              VerifiedBy: 'Some random value with no relation to a project that probably came from a migration'
+              VerifiedBy: migrated_in_project_name
             )
           end
 
@@ -2200,7 +2312,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           end
 
           it 'should not raise when verified_by_project_id is unrecognized' do
-            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => 'a random string that isnt an id' })
+            values = hud_values.merge({ 'CurrentLivingSituation.verifiedByProjectId' => migrated_in_project_name })
 
             expect do
               process_record(record: cls, hud_values: values, user: hmis_user, definition: definition)

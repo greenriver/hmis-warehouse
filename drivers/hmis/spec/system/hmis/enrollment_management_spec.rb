@@ -169,7 +169,8 @@ RSpec.feature 'Enrollment/household management', type: :system do
             user: u1,
           )
           # override garbage factory exit date
-          exit.update!(exit_date: today - 4.days)
+          exit.update_column(:exit_date, today - 4.days)
+          exit.reload
         end
       end
 

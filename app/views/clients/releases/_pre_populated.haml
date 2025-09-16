@@ -11,7 +11,7 @@
       %h2.mb-4= Translation.translate('Open Path ROI')
 
 
-      .d-flex.align-items-start
+      .d-flex
         .mr-4
           %table.table{style: 'width: 6in;'}
             %tbody
@@ -37,13 +37,12 @@
                     __ / __ / ____
                 %th SSN:
                 %td= masked_ssn(@client.SSN)
-        .ml-auto
-          - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
-          = image_tag(logo, width: 250) if logo.present?
+        .ml-auto.mb-4{style: 'max-width: 2in; max-height: 2in;'}
+          = render 'layouts/print_seal'
 
       = simple_format(Translation.translate('Open Path ROI content'))
 
-      %table.table.table-borderless
+      %table.table.table-borderless.w-100
         %tbody
           %tr
             %th.text-right Participant Signature
@@ -53,17 +52,22 @@
           %tr
             %th.text-right Print Name
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %td
+            %td
           %tr
             %th.text-right= Translation.translate('Homeless Service Provider Organization Name')
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %td
+            %td
           %tr
             %th.text-right= Translation.translate('Name of Staff Assisting with Form Completion')
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %td
+            %td
     .landscape
       .d-flex
-        .ml-auto.mb-4
-          - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
-          = image_tag(logo, width: 250) if logo.present?
+        .ml-auto.mb-4{style: 'max-width: 2.5in; max-height: 2.5in;'}
+          = render 'layouts/print_seal'
       .row
         .col-12
           .coc-map
@@ -86,5 +90,5 @@
                       .excluded Excluded
                   %td{style: 'width: 3em;'}
                     .color-box{style: "border-left: 2em solid #{coc.color};"}
-                      O
+                      &nbsp;
                   %td= coc.description_and_coc_code

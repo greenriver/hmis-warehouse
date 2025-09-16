@@ -14,7 +14,7 @@
       - indicator = @report.result_for(key)
       - if indicator
         .page-break-after
-          = render 'performance_measurement/warehouse_reports/reports/details', key: key
+          = render 'performance_measurement/warehouse_reports/reports/details', key: key, pdf: true
 :css
   .performance-measurement--highlight-light-1 {
     background-color: #decbe4 !important;

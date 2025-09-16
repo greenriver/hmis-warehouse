@@ -4,16 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'application_responder'
+require_relative '../../lib/util/git'
 
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
   impersonates :user
-
-  # Don't start in development if you have pending migrations
-  # moved to top for dockerization
-  prepend_before_action :check_all_db_migrations
 
   include ActivityLogger
   include LogRagePayloadBehavior
@@ -135,7 +134,7 @@ class ApplicationController < ActionController::Base
   def info_for_paper_trail
     {
       user_id: warden&.user&.id,
-      session_id: request.env['rack.session.record']&.session_id,
+      session_id: session&.id&.to_s,
       request_id: request.uuid,
     }
   end
@@ -170,6 +169,17 @@ class ApplicationController < ActionController::Base
   end
   helper_method :current_user_identity
 
+  def sentry_frontend_config
+    {
+      dsn: ENV['WAREHOUSE_SENTRY_DSN'],
+      environment: Rails.env,
+      release: Git.revision,
+      user: current_user&.id,
+      true_user_id: true_user&.id,
+    }.compact
+  end
+  helper_method :sentry_frontend_config
+
   protected
 
   def configure_permitted_parameters
@@ -194,8 +204,17 @@ class ApplicationController < ActionController::Base
     user = request.env['last_user']
     if user
       provider = cookies.signed[:active_provider]
-      identity = OauthIdentity.for_user(user).where(provider: provider).first if provider
-      identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
+      if provider
+        # If a provider exists, user is from Okta, due to the complexity of single log-out, we'll
+        # just log you out of okta in this case
+        identity = OauthIdentity.for_user(user).where(provider: provider).first
+        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
+      else
+        # If no provider exists, attempt to log the user out of superset (if they have access)
+        # this will redirect back to the warehouse
+        superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
+        superset_logout || root_url
+      end
     else
       root_url
     end
@@ -237,16 +256,6 @@ class ApplicationController < ActionController::Base
     return unless lms.any_training_required?
 
     redirect_to user_training_path
-  end
-
-  # NOTE: if this gets merged, this may not be necessary
-  # https://github.com/rails/rails/pull/39750/files
-  def check_all_db_migrations
-    return true unless Rails.env.development?
-    raise ActiveRecord::MigrationError, "App Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:primary RAILS_ENV=#{::Rails.env}" if ApplicationRecord.needs_migration?
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:warehouse RAILS_ENV=#{::Rails.env}" if GrdaWarehouseBase.needs_migration?
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:health RAILS_ENV=#{::Rails.env}" if HealthBase.needs_migration?
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rails db:migrate:reporting RAILS_ENV=#{::Rails.env}" if ReportingBase.needs_migration?
   end
 
   def health_emergency?

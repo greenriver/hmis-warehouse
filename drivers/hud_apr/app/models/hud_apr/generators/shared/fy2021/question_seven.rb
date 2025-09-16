@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2021
   class QuestionSeven < Base
-    QUESTION_NUMBER = 'Question 7'.freeze
+    QUESTION_NUMBER = 'Question 7'
 
     def self.table_descriptions
       {

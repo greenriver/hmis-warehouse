@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter, type: :model do
@@ -15,7 +17,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     it 'can import files with bom|UTF-8 encoding' do
       file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/bom_test'
-      import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false)
+      import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false, stop_version: '2024')
     end
 
     it 'can import files with bad line endings' do
@@ -23,7 +25,7 @@ RSpec.describe HmisCsvImporter, type: :model do
       # the files in this import have a incorrect (but seen in the wild) "\r\n" as
       # part of their final line while most lines end in "\n"
       file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/bad_ending'
-      import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false)
+      import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false, stop_version: '2024')
 
       # icky -- testing for side effects
       # Cleanup/transform passes may do this more than once, hence the 'at_least'
@@ -40,6 +42,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
         version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2024',
       )
     end
 
@@ -65,6 +68,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/user',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
 
@@ -93,6 +97,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/user',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
 
@@ -120,6 +125,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
         version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2024',
       )
     end
 
@@ -144,6 +150,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/organization',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
 
@@ -169,6 +176,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/organization',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
 
@@ -195,6 +203,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
         version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2024',
       )
     end
 
@@ -219,6 +228,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/project',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
 
@@ -240,7 +250,7 @@ RSpec.describe HmisCsvImporter, type: :model do
     describe 'after second import with allowing deletion' do
       # Projects are filtered to only those included in the import files. Due to this logic, no projects will be
       # deleted, regardless of the flag. At this point, the import test files with the project deleted will resolve
-      # the same regardless of the `prevent_import_deletions?` flag. These tests are included to catch any divergance
+      # the same regardless of the `prevent_import_deletions?` flag. These tests are included to catch any divergence
       # from this in the future.
       before(:each) do
         allow(HmisCsvTwentyTwentyFour::Importer::Project).to receive(:prevent_import_deletions?).and_return(false)
@@ -248,6 +258,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/project',
           version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2024',
         )
       end
 
@@ -275,6 +286,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_test_files',
         version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2024',
       )
     end
 
@@ -368,6 +380,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_change_files',
           version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 
@@ -393,6 +406,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_with_deletes_test_files',
         version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -413,7 +427,7 @@ RSpec.describe HmisCsvImporter, type: :model do
     end
 
     it 'will clean up the pending deletes' do
-      HmisCsvImporter::Importer::Importer.soft_deletable_sources.each do |source|
+      HmisCsvImporter::Importer::Importer.soft_deletable_sources('2024').each do |source|
         expect(source.where.not(pending_date_deleted: nil).count).to eq 0
       end
     end
@@ -480,6 +494,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/project_test_files',
         version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -541,6 +556,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_test_with_restores_initial_files',
         version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 
@@ -581,6 +597,7 @@ RSpec.describe HmisCsvImporter, type: :model do
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/enrollment_test_with_restores_update_files',
           version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2024',
         )
       end
 
@@ -614,6 +631,35 @@ RSpec.describe HmisCsvImporter, type: :model do
           expect(log.summary['Client.csv']['unchanged']).to eq(0)
         end
       end
+    end
+  end
+
+  describe 'When running with dry_run option' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+    end
+
+    it 'pauses the import when dry_run is true' do
+      loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        dry_run: true,
+        stop_version: '2024',
+      )
+      expect(loader.importer_log.status).to eq('paused')
+    end
+
+    it 'completes the import when dry_run is false' do
+      loader = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/mutable_test/baseline',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        dry_run: false,
+        stop_version: '2024',
+      )
+      expect(loader.importer_log.status).to eq('complete')
     end
   end
 end

@@ -1,5 +1,5 @@
 %h1= content_for :title
-.table-responsive
+.table-responsive{ data: { controller: 'forms' } }
   - if can_assign_users_to_clients?
     = simple_form_for @user, url: polymorphic_path(users_path_generator, client_id: @client) do |f|
       %table.table.table-striped
@@ -30,9 +30,9 @@
             %td
               = f.input :end_date, as: :date_picker, label: false
             %td.text-center
-              = f.input :client_notifications, label: false, input_html: { data: { toggle: 'tooltip' }, title: 'Check this box to have the user receive notifications when files or notes are added for this client.'}
+              = f.input :client_notifications, label: false, input_html: { data: { 'bs-toggle' => 'tooltip' , 'bs-title' => 'Check this box to have the user receive notifications when files or notes are added for this client.'}}
             %td.text-center
-              = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
+              = f.input :confidential, label: false, input_html: {data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Confidential relationships will not be displayed in the search results.'}}
             %td
               = f.submit value: 'Add Relationship', class: 'btn btn-primary'
   - @user_clients.each do |user_client|
@@ -63,25 +63,25 @@
           %td
             - if can_assign_users_to_clients?
               = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-                = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
+                = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, data: { action: 'change->forms#submitOnChange' } }
             - else
               = user_client.start_date
           %td
             - if can_assign_users_to_clients?
               = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-                = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
+                = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, data: { action: 'change->forms#submitOnChange' } }
             - else
               = user_client.end_date
           %td.text-center
             - if can_assign_users_to_clients?
               = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-                = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, class: 'submit-on-change' }
+                = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, data: { action: 'change->forms#submitOnChange' } }
             - else
               = checkmark_or_x user_client.client_notifications
           %td.text-center
             - if can_assign_users_to_clients?
               = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-                = f.input :confidential, label: false, input_html: { value: user_client.confidential, class: 'submit-on-change' }
+                = f.input :confidential, label: false, input_html: { value: user_client.confidential, data: { action: 'change->forms#submitOnChange' } }
             - else
               = checkmark_or_x user_client.confidential
           %td

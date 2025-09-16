@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa::Generators::Fy2024::ViewRelatedConcern
   extend ActiveSupport::Concern
   include Rails.application.routes.url_helpers
@@ -80,6 +82,10 @@ module HudLsa::Generators::Fy2024::ViewRelatedConcern
   end
 
   def url
-    hud_reports_lsa_url(self, { host: ENV['FQDN'], protocol: 'https' })
+    if hic?
+      hud_reports_lsa_hic_url(self, { host: ENV['FQDN'], protocol: 'https' })
+    else
+      hud_reports_lsa_url(self, { host: ENV['FQDN'], protocol: 'https' })
+    end
   end
 end

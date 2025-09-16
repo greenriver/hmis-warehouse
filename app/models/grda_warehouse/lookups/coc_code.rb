@@ -15,6 +15,10 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
     where(active: true)
   end
 
+  scope :with_deleted, -> do
+    current_scope
+  end
+
   ##
   # Returns all active CoC codes that the given user can view based on permissions.
   #

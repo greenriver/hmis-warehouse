@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisDataQualityTool
   class Inventory < ::HudReports::ReportClientBase
     self.table_name = 'hmis_dqt_inventories'
@@ -14,6 +16,7 @@ module HmisDataQualityTool
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :inventory, class_name: 'GrdaWarehouse::Hud::Inventory', optional: true
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 
     def self.detail_headers
       {

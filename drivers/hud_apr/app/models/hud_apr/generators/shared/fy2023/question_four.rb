@@ -4,9 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::Shared::Fy2023
   class QuestionFour < Base
-    QUESTION_NUMBER = 'Question 4'.freeze
+    QUESTION_NUMBER = 'Question 4'
 
     TABLE_HEADER = [
       'Organization Name',
@@ -27,7 +29,7 @@ module HudApr::Generators::Shared::Fy2023
       'Total Active Households',
     ].freeze
 
-    HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
+    HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'
 
     def self.table_descriptions
       {

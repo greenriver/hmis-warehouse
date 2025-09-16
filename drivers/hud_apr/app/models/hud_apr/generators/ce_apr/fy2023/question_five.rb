@@ -4,10 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudApr::Generators::CeApr::Fy2023
   class QuestionFive < HudApr::Generators::Shared::Fy2023::QuestionFive
     include HudApr::Generators::CeApr::Fy2023::QuestionConcern
-    QUESTION_TABLE_NUMBER = 'Q5a'.freeze
+    QUESTION_TABLE_NUMBER = 'Q5a'
 
     def needs_ce_assessments?
       true

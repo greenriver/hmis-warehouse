@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # AccessControl is part of the "new" permissions system
 #
 # An AccessControl includes:
@@ -15,6 +17,7 @@ class AccessControl < ApplicationRecord
   include ActionView::Helpers::TagHelper
   include UserPermissionCache
   include ArelHelper
+  include HistoryDescriptions
 
   acts_as_paranoid
   has_paper_trail
@@ -102,6 +105,10 @@ class AccessControl < ApplicationRecord
     where(id: ids)
   end
 
+  scope :visible_to, ->(_user) do
+    all
+  end
+
   # If all entities are system entities, this is a system Access Control
   def system?
     [user_group&.system?, role&.system?, collection&.system?].all?
@@ -113,9 +120,9 @@ class AccessControl < ApplicationRecord
 
   def name_as_html
     name_parts = [
-      content_tag(:span, role&.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, collection&.name, class: 'badge badge-info font-weight-normal'),
-      content_tag(:span, user_group&.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, role&.name, class: 'badge badge-info text-bg-info font-weight-normal'),
+      content_tag(:span, collection&.name, class: 'badge badge-info text-bg-info font-weight-normal'),
+      content_tag(:span, user_group&.name, class: 'badge badge-info text-bg-info font-weight-normal'),
     ]
 
     content_tag(

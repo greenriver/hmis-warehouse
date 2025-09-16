@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class HmisAdmin::GroupsController < ApplicationController
   include ViewableEntities
   include EnforceHmisEnabled
@@ -57,6 +59,8 @@ class HmisAdmin::GroupsController < ApplicationController
       @organizations
     when :projects
       @projects
+    when :project_groups
+      @project_groups
     end
   end
 
@@ -93,7 +97,7 @@ class HmisAdmin::GroupsController < ApplicationController
       data_sources: [],
       organizations: [],
       projects: [],
-      project_access_groups: [],
+      project_groups: [],
     )
   end
 
@@ -102,6 +106,7 @@ class HmisAdmin::GroupsController < ApplicationController
       data_sources: {},
       organizations: {},
       projects: {},
+      project_groups: {},
     )
   end
 
@@ -159,18 +164,18 @@ class HmisAdmin::GroupsController < ApplicationController
     }
 
     # Add back once we have support for HMIS Project Groups.
-    # @project_access_groups = {
-    #   selected: @group&.project_access_groups&.map(&:id) || [],
-    #   collection: GrdaWarehouse::ProjectAccessGroup.
-    #     order(:name).
-    #     pluck(:name, :id),
-    #   id: :project_access_groups,
-    #   placeholder: 'Project Group',
-    #   multiple: true,
-    #   input_html: {
-    #     class: 'jUserViewable jProjectAccessGroups',
-    #     name: 'access_group[project_access_groups][]',
-    #   },
-    # }
+    @project_groups = {
+      selected: @group&.project_groups&.map(&:id) || [],
+      collection: Hmis::ProjectGroup.
+        order(:name).
+        preload(:projects),
+      id: :project_groups,
+      placeholder: 'Project Group',
+      multiple: true,
+      input_html: {
+        class: 'jUserViewable jProjectAccessGroups',
+        name: 'access_group[project_groups][]',
+      },
+    }
   end
 end

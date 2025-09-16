@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis::GrdaWarehouse::Hud
   module ClientExtension
     extend ActiveSupport::Concern
@@ -14,6 +16,15 @@ module Hmis::GrdaWarehouse::Hud
       has_many :hmis_custom_assessments, through: :enrollments
       has_many :hmis_source_custom_assessments, through: :source_enrollments, source: :hmis_custom_assessments
       has_many :custom_services, through: :source_enrollments
+      has_one :ce_client_proxy, as: :client, class_name: 'Hmis::Ce::ClientProxy', dependent: :destroy
+      has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', through: :ce_client_proxy
+      has_many :destination_client_latest_assessments, class_name: 'Hmis::DestinationClientLatestAssessment', foreign_key: :destination_client_id
+
+      # WarehouseClient and Source Client(s) represented as Hmis:: models
+      # (Associations defined on GrdaWarehouse::Hud::Client are represented as GrdaWarehouse::WarehouseClient and GrdaWarehouse::Hud::Client respectively)
+      has_many :hmis_warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id
+      has_many :hmis_source_clients, -> { hmis }, class_name: 'Hmis::Hud::Client', through: :hmis_warehouse_client_destination, source: :source
+      has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy, foreign_key: :trackable_id
 
       def as_hmis
         Hmis::Hud::Client.find(id)

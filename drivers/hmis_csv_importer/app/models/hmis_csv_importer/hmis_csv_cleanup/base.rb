@@ -4,15 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisCsvImporter::HmisCsvCleanup
   class Base
     include HmisCsvImporter::HmisCsv
 
     attr_accessor :importer_log, :date_range
 
-    def initialize(importer_log:, date_range:)
+    def initialize(importer_log:, date_range:, version:)
       @importer_log = importer_log
       @date_range = date_range
+      @current_version = version
     end
 
     # If the table has been partitioned, it needs a compound key
@@ -24,10 +27,6 @@ module HmisCsvImporter::HmisCsvCleanup
 
     def cleanup!
       raise 'cleanup! must be implemented'
-    end
-
-    def importable_file_class(name)
-      self.class.importable_file_class(name)
     end
 
     def self.description

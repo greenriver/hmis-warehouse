@@ -8,6 +8,7 @@
 
 class BaseJob < ApplicationJob
   include NotifierConfig
+  include MaintenanceTaskInstrumentation
 
   attr_accessor :start_time
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -5,19 +7,14 @@
 ###
 
 if ENV['DATABASE_CAS_DB'].present?
-  class CasBase < ApplicationRecord
-    self.abstract_class = true
+  class CasBase < ActiveRecord::Base
+    include CustomApplicationRecord
 
+    self.abstract_class = true
     connects_to database: { writing: :cas, reading: :cas }
 
     def self.db_exists?
-      mem_cache.fetch('cas_db_exists', expires_in: 2.minutes) do
-        connection_pool.with_connection(&:active?) rescue false # rubocop:disable Style/RescueModifier
-      end
-    end
-
-    def self.mem_cache
-      @mem_cache ||= ActiveSupport::Cache::MemoryStore.new
+      true
     end
   end
 

@@ -764,7 +764,8 @@
                 "CHECKBOX",
                 "DROPDOWN",
                 "RADIO_BUTTONS",
-                "RADIO_BUTTONS_VERTICAL"
+                "RADIO_BUTTONS_VERTICAL",
+                "CLIENT_CE_ELIGIBILITY"
               ]
             }
           }
@@ -874,7 +875,8 @@
                 "INPUT_GROUP",
                 "TABLE",
                 "SIGNATURE_GROUP",
-                "SIGNATURE"
+                "SIGNATURE",
+                "AHA"
               ]
             },
             "item": {
@@ -914,7 +916,8 @@
           "properties": {
             "component": {
               "enum": [
-                "MINUTES_DURATION"
+                "MINUTES_DURATION",
+                "ALT_AHA"
               ]
             }
           }

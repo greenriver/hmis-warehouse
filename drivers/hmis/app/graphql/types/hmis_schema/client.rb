@@ -24,6 +24,9 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasScanCardCodes
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
+    include ::Hmis::Concerns::HmisArelHelper
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -73,6 +76,7 @@ module Types
     hud_field :other_theater, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
     hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
+    field :sex, HmisSchema::Enums::Hud::Sex, null: true
     field :pronouns, [String], null: false
     field :different_identity_text, String, null: true
     field :additional_race_ethnicity, String, null: true
@@ -83,6 +87,16 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
+
+    # TODO(#8005) replace this with `ceClient { eligibleUnitGroups { ... } }`
+    ce_opportunities_field(
+      :eligible_ce_opportunities,
+      filter_args: { omit: [:status, :available_on_date, :workflow_template], type_name: 'ClientEligibleCeOpportunity' },
+    )
+    ce_referrals_field(
+      :ce_referrals,
+      filter_args: { omit: [:workflow_template, :on_current_task_since], type_name: 'ClientCeReferral' },
+    )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
       argument :project_id, ID, required: true
@@ -168,6 +182,10 @@ module Types
       root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
       can :view_client_alerts
       can :manage_client_alerts
+      root_can :can_view_client_eligible_opportunities
+      root_can :can_view_referrals
+      root_can :can_view_own_referrals
+      can :print_client_case_notes
     end
 
     def external_ids
@@ -243,11 +261,10 @@ module Types
       selected_races
     end
 
-    def image
+    def image # Don't resolve in batch
       return unless current_permission?(permission: :can_view_client_photo, entity: object)
 
-      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
-      file = files.first&.client_file
+      file = object.client_files.client_photos.newest_first.first&.client_file
       file&.download ? file : nil
     end
 
@@ -334,7 +351,7 @@ module Types
     def alerts
       return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
 
-      load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
+      load_ar_association(object, :active_alerts).sort_by(&:created_at).reverse
     end
 
     # not optimized for batch queries, causes n+1 queries
@@ -405,6 +422,19 @@ module Types
         joins(:definition).
         where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
         pluck(:role).uniq
+    end
+
+    def eligible_ce_opportunities(**args) # Don't resolve in batch
+      # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
+      access_denied! unless current_user.can_view_client_eligible_opportunities?
+
+      # If so, we can skip the permission check inside resolve_ce_opportunities.
+      # The global permission gives the user permission to view all opportunities the client is eligible for, regardless of project-level access.
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.for_client(object), dangerous_skip_permission_check: true, **args)
+    end
+
+    def ce_referrals(**args)
+      resolve_ce_referrals(object.ce_referrals, **args)
     end
   end
 end

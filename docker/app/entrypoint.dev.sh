@@ -9,14 +9,16 @@ then
     # echo /app/node_modules is a symlink as desired
     echo ""
   else
-    echo Saving /app/node_modules with alternate name
-    mv /app/node_modules "/app/node_modules.`date +'%s'`" || echo "no node modules to save"
+    if [[ -d /app/node_modules ]]
+    then
+      echo "Saving /app/node_modules with alternate name"
+      mv /app/node_modules "/app/node_modules.`date +'%s'`" || echo "no node modules to save"
+    fi
 
-    echo Symlinking /app/node_modules to /node_modules
+    echo "Symlinking /app/node_modules to /node_modules"
     ln -s /node_modules /app/node_modules
   fi
 fi
-
 
 # Remove a potentially pre-existing server.pid for Rails.
 rm -f /app/tmp/pids/server.pid

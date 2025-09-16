@@ -60,7 +60,7 @@ module PerformanceMeasurement
     end
 
     def self.default_project_type_codes
-      HudUtility2024.spm_project_type_codes
+      HudUtility2026.spm_project_type_codes
     end
 
     def run_and_save!
@@ -196,7 +196,7 @@ module PerformanceMeasurement
     def title
       Translation.translate('CoC Performance Measurement Dashboard')
     end
-    alias instance_title title
+    alias_method :instance_title, :title
 
     private def public_s3_directory
       'performance_measurement'
@@ -215,7 +215,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      HudUtility2024.spm_project_type_codes
+      HudUtility2026.spm_project_type_codes
     end
 
     def report_path_array
@@ -264,24 +264,51 @@ module PerformanceMeasurement
         projects.preload(hud_project: :inventories).each do |project|
           next unless project.project_id
 
-          average_capacity = project.hud_project.inventories.within_range(range).map do |inventory|
-            inventory.average_daily_inventory(
+          # Get the counts of beds on each day in the range
+          # Throw out any days with a zero count
+          # Calculate the average of the remaining days
+          average_capacity = 0 # if we don't have any inventory records, return 0
+          days = {}
+          range.range.each do |date|
+            days[date] = 0
+          end
+          project.hud_project.inventories.within_range(range).map do |inventory|
+            inventory.inventory_by_date(
               range: range,
               field: :BedInventory,
-            )
-          end.sum
-          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity)
+            ).each do |date, count|
+              days[date] += count
+            end
+          end
+
+          # Remove any days where inventory isn't present.  This accounts for situations where a project
+          # only operates seasonally.
+          # Example:
+          #   A project is open for the months of December, January, and July but completely closed otherwise
+          #   The inventory is averaged over the ~90 days instead of the full year, so utilization is
+          #   still 100% if they are full for those 3 months, but empty the remainder of the year
+          #
+          #   A project that operates year-round with a seasonal burst in winter, would still have the
+          #   utilization calculated for the full-year, but the capacity would be spread over the year.
+          days.reject! { |_, count| count.zero? }
+          average_capacity = days.values.sum.to_f / days.size if days.any?
+
+          # puts "ProjectID: #{project.hud_project.ProjectID} inventory_count: #{project.hud_project.inventories.within_range(range).map { |i| [i.InventoryID, i.BedInventory, i.InventoryStartDate, i.InventoryEndDate] }.inspect} \n\n day_count: #{days.size} day_sum: #{days.values.sum} average_capacity: #{average_capacity} \n\n days: #{days.inspect}" if project.hud_project.ProjectID == 'P-1' && period == :reporting
+
+          # If we have an average of less than 1, count it as 1, anything else is rounded
+          average_capacity = 1 if average_capacity.positive? && average_capacity < 1
+          project.update("#{period}_ave_bed_capacity_per_night" => average_capacity.round)
         end
       end
     end
 
     private def spm_enrollments_from_answer_member(member)
       case member
-      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment
+      when HudSpmReport::Fy2023::SpmEnrollment, HudSpmReport::Fy2024::SpmEnrollment, HudSpmReport::Fy2026::SpmEnrollment
         [member]
-      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode
+      when HudSpmReport::Fy2023::Episode, HudSpmReport::Fy2024::Episode, HudSpmReport::Fy2026::Episode
         member.enrollments
-      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return
+      when HudSpmReport::Fy2023::Return, HudSpmReport::Fy2024::Return, HudSpmReport::Fy2026::Return
         [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"
@@ -310,7 +337,7 @@ module PerformanceMeasurement
               report_client[:dob] = hud_client.dob
               report_client[:veteran] = hud_client.veteran?
               # SpmEnrollment.client_id seems to be the destination client
-              report_client[:source_client_personal_ids] ||= spm_enrollments.map(&:client_id).sort.uniq.join('; ')
+              report_client[:source_client_personal_ids] ||= spm_enrollments.map(&:personal_id).sort.uniq.join('; ')
               report_client["#{variant_name}_age"] ||= spm_enrollments.map(&:age).compact&.max
               # HoH status may vary, just note if they were ever an HoH
               report_client["#{variant_name}_hoh"] ||= spm_enrollments.any? { |e| e.enrollment.head_of_household? }
@@ -465,11 +492,11 @@ module PerformanceMeasurement
       child = ages.any? { |age| age.present? && age.between?(0, 18) }
       unknown = ages.any?(&:blank?)
 
-      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return HudUtility2026.household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
-      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudUtility2026.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
 
-      HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+      HudUtility2026.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment
@@ -1038,10 +1065,10 @@ module PerformanceMeasurement
       child = ages.any? { |age| age.present? && age.between?(0, 18) }
       unknown = ages.any?(&:blank?)
 
-      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return HudUtility2026.household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
-      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
-      return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+      return HudUtility2026.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudUtility2026.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment
@@ -1117,7 +1144,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['5.1', 'C4']],
+          cells: [['5.1', 'C4']], # TODO: confirm if we want to pivot to 5.2
           title: 'First Time',
           measure: :m5,
           history_source: :m5_history,
@@ -1271,9 +1298,11 @@ module PerformanceMeasurement
             },
           ],
           # This needs to introspect on the number of days to re-entry and save off extra client_project records
+          # Note: we don't actually get the counts from the SPM Measure 2 fields, but we use the SPM Return records
+          # for the appropriate report and pull the clients based on the number of days to return
           client_project_rows: [
             ->(spm_return) {
-              return unless days_to_return_calculation.call(spm_return)&.between?(1, 180)
+              return unless days_to_return_calculation.call(spm_return)&.between?(0, 180) # Aligns with Measure 2 B7
 
               {
                 project_id: spm_return.exit_enrollment.enrollment.project.id,
@@ -1281,7 +1310,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_return) {
-              return unless days_to_return_calculation.call(spm_return)&.between?(1, 365)
+              return unless days_to_return_calculation.call(spm_return)&.between?(181, 365) # Aligns with Measure 2 E7
 
               {
                 project_id: spm_return.exit_enrollment.enrollment.project.id,
@@ -1289,7 +1318,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_return) {
-              return unless days_to_return_calculation.call(spm_return)&.between?(1, 730)
+              return unless days_to_return_calculation.call(spm_return)&.between?(0, 730) # Aligns with Measure 2 I7
 
               {
                 project_id: spm_return.exit_enrollment.enrollment.project.id,

@@ -67,9 +67,11 @@ FactoryBot.define do
       next unless instance.published? && evaluator.data_source
 
       # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
-      # Note: this is slightly different from the CDED generation process that happens on publish,
-      # which does not expect any `mapping` to be present on new items.
-      instance.introspect_custom_data_element_definitions(set_definition_identifier: true, data_source: evaluator.data_source).reject(&:persisted?).each(&:save!)
+      Hmis::Form::CustomDataElementGenerator.new(
+        definition: instance,
+        create_missing_mappings: false,
+        data_source: evaluator.data_source,
+      ).run.each(&:save!)
     end
   end
 
@@ -1116,6 +1118,52 @@ FactoryBot.define do
           },
         ],
       }.deep_stringify_keys
+    end
+  end
+
+  factory :ce_referral_step_form_definition, parent: :hmis_form_definition do
+    role { :CE_REFERRAL_STEP }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'GROUP',
+            'link_id': 'q1',
+            'item': [
+              {
+                'type': 'DATE',
+                'link_id': 'contact_date',
+                'required': true,
+                'warn_if_empty': false,
+                'text': 'Contact Date',
+                'mapping': {
+                  'custom_field_key': 'contact_date',
+                },
+              },
+              {
+                'text': 'Client Accepts Referral',
+                'type': 'CHOICE',
+                'link_id': 'client_accepted',
+                'mapping': {
+                  'custom_field_key': 'client_accepted',
+                },
+                'required': true,
+                'warn_if_empty': false,
+                'pick_list_options': [
+                  {
+                    'code': '1',
+                    'label': 'Yes, client accepts referral',
+                  },
+                  {
+                    'code': '0',
+                    'label': 'No, client does not accept referral or could not be contacted',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
     end
   end
 end

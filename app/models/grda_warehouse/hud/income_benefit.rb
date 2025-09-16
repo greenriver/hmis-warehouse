@@ -4,12 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+require 'memery'
 module GrdaWarehouse::Hud
   class IncomeBenefit < Base
     include ArelHelper
     include HudSharedScopes
     include ::HmisStructure::IncomeBenefit
     include ::HmisStructure::Shared
+    include Memery
     include RailsDrivers::Extensions
 
     attr_accessor :source_id
@@ -24,7 +28,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], query_constraints: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
 
     has_one :client, through: :enrollment, inverse_of: :income_benefits
     has_one :project, through: :enrollment
@@ -179,14 +183,15 @@ module GrdaWarehouse::Hud
       ]
     end
 
-    # This is the logic described in "Determining Total Income and Earned Income on a Specific Record"
-    # in the APR spec
-    # This has been removed from the FY2024 spec, should now rely on the glossary "Determining Total and Earned Income"
-    def hud_total_monthly_income
+    # Implements the Determining Total and Earned Income logic from the HMIS Glossary
+    # This will be changing subtly in 2027, but the gist is that we should rely on the values
+    # if they are present, and only use the response to IncomeFromAnySource if all values are missing
+    # Assumption: Total income is not auto calculated
+    memoize def hud_total_monthly_income
       # rows 1 & 2
-      return self.TotalMonthlyIncome if self.TotalMonthlyIncome&.zero? || self.TotalMonthlyIncome&.positive?
+      return self.TotalMonthlyIncome if self.TotalMonthlyIncome&.positive?
 
-      calculated = amounts&.compact&.sum
+      calculated = income_total_from_sources
       # row 3
       return calculated if amounts.any? && (calculated.zero? || calculated.positive?)
       # row 4
@@ -197,6 +202,31 @@ module GrdaWarehouse::Hud
       # row 6 & 7
       # return nil if self.IncomeFromAnySource.in?([8, 9, 99])
       nil
+    end
+
+    # Returns an equivalent to IncomeFromAnySource, but keeps it in sync with hud_total_monthly_income
+    memoize def hud_income_from_any_source
+      return 1 if hud_total_monthly_income&.positive?
+      return 0 if hud_total_monthly_income&.zero?
+      return self.IncomeFromAnySource if self.IncomeFromAnySource.in?([8, 9, 99])
+
+      99
+    end
+
+    # Total from income sources that are indicated as being collected AND have a value
+    private def income_total_from_sources
+      incomes = []
+      # Find any source that is indicated as being collected AND has a value, sum the values
+      SOURCES.each do |source, amount|
+        income_specified = send(source)
+        next unless income_specified == 1
+
+        income_amount = send(amount)
+        next unless income_amount.present? && income_amount.positive?
+
+        incomes << income_amount
+      end
+      incomes.sum(&:to_f)
     end
   end
 end

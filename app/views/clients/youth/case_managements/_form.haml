@@ -1,4 +1,3 @@
-
 = f.input :engaged_on, as: :date_picker, label: 'Engagement Date'
 = f.input :activity, label: 'Case Management Notes', as: :text, input_html: {rows: 10}
 = f.input :housing_status, collection: @entity.class.youth_housing_status_options, label: "Youth Housing Status Check Up", input_html: { class: ['jHousingStatus'] }, as: :select_two
@@ -16,7 +15,7 @@
         } else {
           $('.jOtherHousingStatus').hide()
         }
-        if ($('.jHousingStatus').val() == '#{GrdaWarehouse::Youth::YouthCaseManagement.stably_housed_string}') {
+        if ($('.jHousingStatus').val() == '#{j(GrdaWarehouse::Youth::YouthCaseManagement.stably_housed_string)}') {
           $('.jZipCode').show()
         } else {
           $('.jZipCode').hide()

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Types
   class Application::ClientAccessSummary < Types::BaseObject
     # maps to Hmis::ClientAccessSummary
@@ -19,7 +21,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :client, scope: Hmis::Hud::Client.with_deleted)
+      load_ar_association(object, :client)
     end
 
     available_filter_options do

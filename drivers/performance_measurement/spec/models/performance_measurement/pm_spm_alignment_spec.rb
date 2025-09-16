@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../../../hud_spm_report/spec/models/fy2024/shared_context'
+require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 
 RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
-  include_context 'SPM test setup'
+  include_context 'HUD enrollment builders'
 
   # Common variables
   let(:test_start_date) { '2022-10-01'.to_date }
@@ -516,7 +516,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'has the same first-time homeless count in both reports for ES, SH, TH' do
       # SPM report first-time homeless in ES, SH, TH
-      spm_count = @spm_report.answer(question: '5.1', cell: 'C4').summary
+      spm_count = @spm_report.answer(question: '5.1', cell: 'C4').summary # TODO: confirm if we want to pivot to 5.2
 
       # PM report first-time homeless
       pm_result = @pm_report.result_for(:first_time_homeless_clients)
@@ -528,7 +528,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
 
     it 'counts the same total entries in the reporting period' do
       # SPM report total universe
-      spm_count = @spm_report.answer(question: '5.1', cell: 'C2').summary
+      spm_count = @spm_report.answer(question: '5.1', cell: 'C2').summary # TODO: confirm if we want to pivot to 5.2
 
       # Count from PM report
       # This may need adjustment depending on exactly how PM tracks this
@@ -646,8 +646,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'result_calculation#client_sum method' do
-    include_context 'SPM test setup'
-
     before do
       # Create projects
       @es_project = create_project(project_type: 0) # ES-EE
@@ -724,8 +722,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'result_calculation#client_sum project-level calculation' do
-    include_context 'SPM test setup'
-
     before do
       # Create two projects
       @es_project = create_project(project_type: 0) # ES-EE
@@ -799,8 +795,6 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   end
 
   describe 'result_calculation#client_data method' do
-    include_context 'SPM test setup'
-
     before do
       # Create two projects
       @es_project = create_project(project_type: 0) # ES-EE

@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
+require_relative '../../../support/shared_examples/versioning_and_paranoia'
 
 RSpec.describe Hmis::Unit, type: :model do
   before(:all) do
@@ -17,7 +20,6 @@ RSpec.describe Hmis::Unit, type: :model do
 
   include_context 'hmis base setup'
   include_context 'hmis service setup'
-  let!(:project) { create :hmis_hud_project }
   let!(:unit_type) { create :hmis_unit_type }
   let!(:unit1) { create :hmis_unit, project: p1 }
 
@@ -104,5 +106,76 @@ RSpec.describe Hmis::Unit, type: :model do
       expect(uo1.hmis_service).to eq(hmis_service)
       expect(Hmis::UnitOccupancy.for_service_type(hmis_service.custom_service_type_id)).to contain_exactly(uo1)
     end
+  end
+
+  describe 'opportunity uniqueness validator' do
+    let!(:unit) { create(:hmis_unit, project: p1) }
+
+    context 'when there is an existing open opportunity' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :open) }
+
+      it 'disallows saving a new opportunity' do
+        new_opportunity = build(:hmis_ce_opportunity, unit: unit.reload, project: p1, data_source: ds1, status: :open)
+        expect(new_opportunity).not_to be_valid
+        expect(new_opportunity.errors[:unit]).to include('can only have one open or locked opportunity')
+      end
+    end
+
+    context 'when there is an existing locked opportunity' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress) }
+
+      it 'disallows saving a new opportunity' do
+        new_opportunity = build(:hmis_ce_opportunity, unit: unit.reload, project: p1, data_source: ds1, status: :open)
+        expect(new_opportunity).not_to be_valid
+        expect(new_opportunity.errors[:unit]).to include('can only have one open or locked opportunity')
+      end
+    end
+
+    context 'when there is an existing closed opportunity' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :closed) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :accepted) }
+
+      it 'allows saving a new opportunity' do
+        new_opportunity = build(:hmis_ce_opportunity, unit: unit.reload, project: p1, data_source: ds1, status: :open)
+        expect(new_opportunity).to be_valid
+      end
+    end
+  end
+
+  describe 'latest_opportunity and active_referral scopes' do
+    let!(:unit) { create(:hmis_unit, project: p1) }
+    let!(:today) { Date.current }
+    let!(:yesterday) { today - 1.day }
+
+    context 'when there are many opportunities' do
+      let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :locked, created_at: today - 3.days) }
+      let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :in_progress, created_at: today - 2.days) }
+
+      before do
+        3.times do
+          opportunity = create(:hmis_ce_opportunity, unit: unit, project: p1, data_source: ds1, status: :closed, created_at: yesterday)
+          create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: :rejected, created_at: yesterday)
+        end
+      end
+
+      it 'returns the latest opportunity and active referral, prioritizing open/locked over closed' do
+        expect(unit.latest_opportunity).to eq(opportunity)
+        expect(unit.active_referral).to eq(referral)
+      end
+    end
+  end
+
+  describe 'paranoia' do
+    let(:build_record) { -> { create(:hmis_unit, project: p1) } }
+
+    it_behaves_like 'paranoid model'
+  end
+
+  describe 'paper trail' do
+    let(:build_record) { -> { create(:hmis_unit, project: p1) } }
+    let(:update_attributes_for_versioning) { ->(record) { record.update!(name: "Updated #{record.name || 'Unit'}") } }
+
+    it_behaves_like 'versioned model'
   end
 end

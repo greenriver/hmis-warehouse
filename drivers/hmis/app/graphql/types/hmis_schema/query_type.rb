@@ -19,6 +19,8 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::HmisSchema::HasCeOpportunities
+    include Types::HmisSchema::HasCeReferrals
     include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -289,18 +291,28 @@ module Types
 
     field :current_user, Application::User, null: true
 
+    field :global_feature_flags, Types::HmisSchema::GlobalFeatureFlags, null: false
+    def global_feature_flags
+      {}
+    end
+
+    field :user_dashboard, Types::Application::UserDashboard, null: false
+    def user_dashboard
+      current_user
+    end
+
     access_field do
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
         root_can perm
       end
-      field :can_view_my_dashboard, Boolean, null: false
       field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
+      field :can_view_coordinated_entry, Boolean, null: false, deprecation_reason: 'Replaced with Project-level coordinatedEntryEnabled field and global feature flag'
     end
 
     def access
       {
-        can_view_my_dashboard: current_user.can_view_my_dashboard?,
         can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
+        can_view_coordinated_entry: Hmis::Ce.configuration.enabled?, # TODO(#7409) once we have project-level configuration, remove this
       }
     end
 
@@ -479,20 +491,27 @@ module Types
       Hmis::Form::Instance.find_by(id: id)
     end
 
-    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
-    def project_configs
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false do
+      filters_argument Types::HmisSchema::ProjectConfig
+    end
+    def project_configs(filters: nil)
+      access_denied! unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectConfig.viewable_by(current_user)
+      scope = Hmis::ProjectConfig.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters
+      scope.order(created_at: :desc, id: :asc)
     end
 
+    # Either legacy or coordinated entry referrals can use this query.
+    # Legacy is expected by default (for backwards compatibility); coordinated entry referrals must pass the referral_mode option
     field :project_can_accept_referral, Boolean, 'Whether the destination project is able to accept a referral for the client(s) belonging to the source enrollment', null: false do
       argument :destination_project_id, ID, required: true
       argument :source_enrollment_id, ID, required: true
+      argument :referral_mode, type: HmisSchema::Enums::ReferralMode, required: false, default_value: 'legacy'
     end
-    def project_can_accept_referral(destination_project_id:, source_enrollment_id:)
+    def project_can_accept_referral(destination_project_id:, source_enrollment_id:, referral_mode:)
       source_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(source_enrollment_id)
-      raise 'access denied' unless current_permission?(permission: :can_manage_outgoing_referrals, entity: source_enrollment.project)
+      access_denied! unless policy_for(source_enrollment.project, policy_type: :hmis_project).can_send_out_direct_referral?
 
       # This doesn't check viewable_by! Users are able to ask whether the project receiving referrals can accept
       # this client, even if they don't otherwise have permission to view the project or its enrollments.
@@ -501,13 +520,18 @@ module Types
       # - it is only available to users who can manage outgoing referrals
       # - it doesn't expose any info about the actual enrollment(s), just a yes/no
       project = Hmis::Hud::Project.find_by(id: destination_project_id)
-      raise 'access denied' unless project.receives_referrals?
+
+      access_denied! if referral_mode == 'legacy' && !project.receives_legacy_referrals?
+      access_denied! if referral_mode == 'coordinated_entry' && !project.receives_direct_ce_referrals_from?(source_enrollment.project)
 
       # Can't accept the referral if any client in the household has an existing open enrollment in the project.
       personal_ids = source_enrollment.household_members.pluck(:PersonalID)
 
-      # This doesn't check viewable_by either, see comment above
-      !project.enrollments.open_including_wip.where(personal_id: personal_ids).exists?
+      # These don't check viewable_by either, see comment above
+      return false if project.enrollments.open_including_wip.where(personal_id: personal_ids).exists?
+      return false if project.ce_referrals.active.joins(:client).where(client: { personal_id: personal_ids }).exists?
+
+      true
     end
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
@@ -522,6 +546,125 @@ module Types
           data_collected_about: instance.data_collected_about || 'ALL_CLIENTS',
         )
       end
+    end
+
+    field :ce_referral, Types::HmisSchema::CeReferral, null: true do
+      argument :id, ID, required: true
+    end
+
+    def ce_referral(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Referral.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :direct_referral_form_definition, Types::Forms::FormDefinition, null: true do
+      argument :target_unit_group_id, ID, required: true
+    end
+    def direct_referral_form_definition(target_unit_group_id:)
+      access_denied! unless Hmis::Ce.configuration.enabled?
+
+      unit_group = Hmis::UnitGroup.find(target_unit_group_id)
+      target_project = unit_group.project # does not need to be viewable by current user
+      access_denied! unless target_project.receives_direct_ce_referrals?
+
+      workflow_template = unit_group.workflow_template
+      raise "Workflow template invalid or not found. unit group id: #{target_unit_group_id}" unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
+
+      entrypoint_ids = workflow_template.nodes.entrypoints.pluck(:id)
+      # Walk the graph, passing the entrypoints as starting points so they aren't included in the results
+      walk = workflow_template.graph.walk(entrypoint_ids: entrypoint_ids, stop_when: lambda(&:user_task?))
+      # Expect that exactly one user task is returned
+      raise "Direct referral workflow template not valid. unit group id: #{target_unit_group_id}" unless walk.count == 1
+
+      # Expect that user task to have a form definition
+      definition = walk.sole.form_definition
+      raise "Direct referral initiation node has no form definition. unit group id: #{target_unit_group_id}" unless definition.present?
+
+      definition
+    end
+
+    field :ce_opportunity, HmisSchema::CeOpportunity, null: true do
+      argument :id, ID, required: true
+    end
+
+    def ce_opportunity(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Ce::Opportunity.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :ce_referral_step, HmisSchema::CeReferralStep, null: true do
+      argument :id, ID, required: true
+    end
+    def ce_referral_step(id:)
+      raise unless Hmis::Ce.configuration.enabled?
+
+      step = Hmis::WorkflowExecution::Step.find(id)
+
+      # Referral permission governs step viewing permission. If you can view a referral, you can view all its steps.
+      referral = Hmis::Ce::Referral.viewable_by(current_user).find_by(workflow_instance: step.instance)
+      access_denied! unless referral
+
+      step
+    end
+
+    # All CE opportunities the user can view, resolved on admin page
+    ce_opportunities_field
+    def ce_opportunities(**args)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
+    end
+
+    ce_referrals_field
+    def ce_referrals(**args)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      resolve_ce_referrals(Hmis::Ce::Referral.all, **args)
+    end
+
+    field :table_config_lookup, Types::TableConfigLookup, null: false
+    def table_config_lookup
+      {}
+    end
+
+    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+      filters_argument HmisSchema::CeClient
+    end
+    def ce_clients(filters: nil)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
+        joins(ce_match_candidates: :candidate_pool).
+        merge(Hmis::Ce::Match::CandidatePool.active).
+        distinct.order(:id)
+
+      scope = scope.apply_filters(filters) if filters
+      scope
+    end
+
+    field :ce_client, HmisSchema::CeClient, null: true do |field|
+      field.argument :id, ID, 'Client Proxy ID', required: true
+    end
+    def ce_client(id:)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      Hmis::Ce::ClientProxy.find_by(id: id)
+    end
+
+    field :unit_group, HmisSchema::UnitGroup, null: true do
+      argument :id, ID, required: true
+    end
+    def unit_group(id:)
+      Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :unit, HmisSchema::Unit, null: true do
+      argument :id, ID, required: true
+    end
+    def unit(id:)
+      Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
   end
 end
