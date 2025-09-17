@@ -53,18 +53,6 @@ namespace :warehouse do
         Rake::Task['db:schema:load'].invoke
       end
 
-      task :dump do
-        # Work-around for pg_dump 17.6, which adds \restrict and \unrestrict to the structure file
-        # Fixed in a future version of active record: https://github.com/rails/rails/pull/55531/files
-        Rake::Task['db:schema:dump'].enhance do
-          schema_file = Rails.root.join('db', 'warehouse_structure.sql')
-          schema = File.read(schema_file)
-          schema.gsub!(/^\\restrict/, '-- \restrict')
-          schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
-          File.write(schema_file, schema)
-        end
-      end
-
       desc 'Conditionally load the database schema'
       task :conditional_load, [] => [:environment] do |_t, _args|
         GrdaWarehouseBase.load_db_if_empty do
@@ -76,18 +64,6 @@ namespace :warehouse do
     namespace :structure do
       task :load do
         Rake::Task['db:structure:load'].invoke
-      end
-
-      task :dump do
-        # Work-around for pg_dump 17.6, which adds \restrict and \unrestrict to the structure file
-        # Fixed in a future version of active record: https://github.com/rails/rails/pull/55531/files
-        Rake::Task['db:structure:dump'].enhance do
-          schema_file = Rails.root.join('db', 'warehouse_structure.sql')
-          schema = File.read(schema_file)
-          schema.gsub!(/^\\restrict/, '-- \restrict')
-          schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
-          File.write(schema_file, schema)
-        end
       end
     end
 

@@ -1,5 +1,65 @@
 # frozen_string_literal: true
 
+# Start Monkey Patch for pg_dump 17.6
+# Helper method to fix pg_dump 17.6 \restrict and \unrestrict commands
+# Dynamically determines which structure file to fix based on the current database connection
+def fix_pg_dump_restrict_commands
+  return unless Rails.env.development? || Rails.env.test?
+
+  [
+    'structure.sql',
+    'warehouse_structure.sql',
+    'health_structure.sql',
+    'reporting_structure.sql',
+    'cas_structure.sql',
+  ].each do |file_name|
+    structure_file = Rails.root.join('db', file_name)
+    schema = File.read(structure_file)
+    next unless schema.match?(/^\\restrict|^\\unrestrict/)
+
+    schema.gsub!(/^\\restrict/, '-- \restrict')
+    schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
+    File.write(structure_file, schema)
+  end
+end
+
+Rake::Task['db:schema:dump'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:migrate:primary'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:schema:dump:primary'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:migrate:warehouse'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:schema:dump:warehouse'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:migrate:health'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:schema:dump:health'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:migrate:reporting'].enhance do
+  fix_pg_dump_restrict_commands
+end
+
+Rake::Task['db:schema:dump:reporting'].enhance do
+  fix_pg_dump_restrict_commands
+end
+# End Monkey Patch for pg_dump 17.6
+
 namespace :db do
   namespace :schema do
     desc 'Conditionally load the database schema'
@@ -8,33 +68,9 @@ namespace :db do
         Rake::Task['db:schema:load:primary'].invoke
       end
     end
-
-    task :dump do
-      # Work-around for pg_dump 17.6, which adds \restrict and \unrestrict to the structure file
-      # Fixed in a future version of active record: https://github.com/rails/rails/pull/55531/files
-      Rake::Task['db:schema:dump'].enhance do
-        schema_file = Rails.root.join('db', 'structure.sql')
-        schema = File.read(schema_file)
-        schema.gsub!(/^\\restrict/, '-- \restrict')
-        schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
-        File.write(schema_file, schema)
-      end
-    end
   end
 
   namespace :structure do
-    task :dump do
-      # Work-around for pg_dump 17.6, which adds \restrict and \unrestrict to the structure file
-      # Fixed in a future version of active record: https://github.com/rails/rails/pull/55531/files
-      Rake::Task['db:structure:dump'].enhance do
-        schema_file = Rails.root.join('db', 'structure.sql')
-        schema = File.read(schema_file)
-        schema.gsub!(/^\\restrict/, '-- \restrict')
-        schema.gsub!(/^\\unrestrict/, '-- \unrestrict')
-        File.write(schema_file, schema)
-      end
-    end
-
     namespace :conditional_load do
       desc 'Conditionally load the database structure (primary)'
       task :primary, [] => [:environment] do |_t, _args|
