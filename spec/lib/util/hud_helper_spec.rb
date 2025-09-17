@@ -10,7 +10,7 @@ require 'rails_helper'
 
 # Tests for the Hud module, specifically for the util method to prove it chooses the correct version
 # of the HUD utility, and returns expected results.
-RSpec.describe Hud do
+RSpec.describe HudHelper do
   describe 'version determination' do
     let(:production_cutoff) { Date.new(2025, 10, 1) }
     let(:staging_cutoff) { Date.new(2025, 9, 1) }
