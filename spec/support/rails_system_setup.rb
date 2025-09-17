@@ -8,28 +8,60 @@ rails_system_enabled = ENV['RUN_RAILS_SYSTEM_TESTS']
 
 if rails_system_enabled
   require 'capybara/cuprite'
+  require 'socket'
 
   # Configure Rails to serve assets properly in system tests
   ENV['RAILS_SERVE_STATIC_FILES'] = 'true'
 
   # Configure Capybara for standard Rails testing
   Capybara.configure do |config|
-    config.default_max_wait_time = ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 15).to_i # Configurable to match driver timeout
+    config.default_max_wait_time = ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i # Configurable to match driver timeout
     config.default_normalize_ws = true
     config.ignore_hidden_elements = true
     config.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
   end
 
-  # Register drivers for Rails tests - fallback to rack_test if Chrome not available
+  # Helper module for remote Chrome connection (similar to e2e_tests.rb)
+  module RailsRemoteChrome
+    def self.url
+      ENV['CHROME_URL']
+    end
+
+    def self.port
+      URI.parse(url).yield_self(&:port) if url
+    end
+
+    def self.host
+      URI.parse(url).yield_self(&:host) if url
+    end
+
+    def self.options
+      connected? ? { url: url } : {}
+    end
+
+    def self.connected?
+      if url.nil?
+        false
+      else
+        Socket.tcp(host, port, connect_timeout: 10).close
+        true
+      end
+    rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, SocketError
+      false
+    end
+  end
+
+  # Register drivers for Rails tests - use remote Chrome if available
+  remote_options = RailsRemoteChrome.options
+
   Capybara.register_driver :rails_cuprite do |app|
-    Capybara::Cuprite::Driver.new(
-      app,
+    driver_options = {
       window_size: [1200, 800],
       headless: ENV.fetch('CI', 'true') == 'true',
       js_errors: false, # More lenient for standard Rails apps
       # logger: STDOUT, # Uncomment this for more verbose logging of everything the browser is doing
-      timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 30).to_i,           # Configurable timeout for slow asset loading
-      process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 60).to_i,   # Configurable process timeout
+      timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,           # Configurable timeout for slow asset loading
+      process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,   # Configurable process timeout
       pending_connection_errors: false, # Ignore pending connection errors
       browser_options: {
         'no-sandbox' => nil,
@@ -39,12 +71,60 @@ if rails_system_enabled
         'disable-background-timer-throttling' => nil,
         'disable-backgrounding-occluded-windows' => nil,
         'disable-renderer-backgrounding' => nil,
+        'disable-features' => 'VizDisplayCompositor',
+        'disable-ipc-flooding-protection' => nil,
       },
-    )
+    }
+
+    # Merge remote Chrome options if available
+    driver_options.merge!(remote_options)
+
+    Capybara::Cuprite::Driver.new(app, **driver_options)
   end
 
   Capybara.default_driver = :rails_cuprite
   Capybara.javascript_driver = :rails_cuprite
+
+  # Add RSpec configuration for better error handling
+  RSpec.configure do |config|
+    config.before(:each, type: :system) do
+      # Reset driver before each test to ensure clean state
+      Capybara.reset_sessions!
+    end
+
+    config.after(:each, type: :system) do |example|
+      # Take screenshot on failure for debugging
+      if example.exception && page.driver.browser.present?
+        begin
+          page.save_screenshot # rubocop:disable Lint/Debugger
+        rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+          Rails.logger.warn "Could not take screenshot due to browser error: #{e.message}"
+        end
+      end
+    end
+
+    # Retry system tests that fail due to browser connection issues
+    config.around(:each, type: :system) do |example|
+      max_retries = ENV.fetch('SYSTEM_TEST_RETRIES', 2).to_i
+      retry_count = 0
+
+      begin
+        example.run
+      rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+        retry_count += 1
+        if retry_count <= max_retries
+          Rails.logger.warn "System test failed with browser error (attempt #{retry_count}/#{max_retries + 1}): #{e.message}"
+          # Reset everything and try again
+          Capybara.reset_sessions!
+          sleep(1) # Brief pause before retry
+          retry
+        else
+          Rails.logger.error "System test failed after #{max_retries} retries: #{e.message}"
+          raise
+        end
+      end
+    end
+  end
 end
 
 # Password from existing user factory

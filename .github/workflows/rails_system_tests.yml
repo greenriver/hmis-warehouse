@@ -116,8 +116,10 @@ jobs:
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
-      FERRUM_PROCESS_TIMEOUT: 45
-      FERRUM_DEFAULT_TIMEOUT: 45
+      FERRUM_PROCESS_TIMEOUT: 90
+      FERRUM_DEFAULT_TIMEOUT: 60
+      CHROME_URL: http://chrome:3333
+      SYSTEM_TEST_RETRIES: 2
 
     steps:
       - name: Checkout
@@ -149,6 +151,12 @@ jobs:
       - name: Precompile assets
         run: bundle exec rails assets:precompile
 
+      - name: 'Verify Chrome connectivity'
+        run: |
+          echo "Checking Chrome connectivity at $CHROME_URL"
+          timeout 30 bash -c 'until curl -f $CHROME_URL/json/version; do sleep 2; done'
+          echo "Chrome is ready"
+
       # Regenerate the graphql schema and fail if it has changed
       - name: 'Check HMIS GraphQL schema'
         run: |
@@ -174,7 +182,7 @@ jobs:
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           if-no-files-found: ignore
-          name: artifacts-${{ matrix.test_group.id}}
+          name: rails-system-test-artifacts
           path: |
             tmp/rspec_profiles/
             tmp/capybara/screenshots/
