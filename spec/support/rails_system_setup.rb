@@ -21,7 +21,7 @@ if rails_system_enabled
     config.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
   end
 
-  # Helper module for remote Chrome connection (similar to e2e_tests.rb)
+  # Helper module for remote Chrome connection (for HMIS system tests only)
   module RailsRemoteChrome
     def self.url
       ENV['CHROME_URL']
@@ -51,7 +51,7 @@ if rails_system_enabled
     end
   end
 
-  # Register drivers for Rails tests - use remote Chrome if available
+  # Register HMIS system test driver - uses remote Chrome if available (for type: :system)
   remote_options = RailsRemoteChrome.options
 
   Capybara.register_driver :rails_cuprite do |app|
@@ -63,6 +63,7 @@ if rails_system_enabled
       timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,           # Configurable timeout for slow asset loading
       process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,   # Configurable process timeout
       pending_connection_errors: false, # Ignore pending connection errors
+      slowmo: ENV['CI'] ? 0 : 0.05, # Slight delay between actions in CI to improve stability
       browser_options: {
         'no-sandbox' => nil,
         'disable-gpu' => nil,
@@ -73,19 +74,47 @@ if rails_system_enabled
         'disable-renderer-backgrounding' => nil,
         'disable-features' => 'VizDisplayCompositor',
         'disable-ipc-flooding-protection' => nil,
+        'disable-web-security' => nil,
+        'ignore-certificate-errors' => nil,
+        'ignore-ssl-errors' => nil,
+        'ignore-certificate-errors-spki-list' => nil,
+        'ignore-certificate-errors-ssl' => nil,
       },
     }
 
-    # Merge remote Chrome options if available
+    # Merge remote Chrome options if available (HMIS system tests only)
     driver_options.merge!(remote_options)
 
     Capybara::Cuprite::Driver.new(app, **driver_options)
   end
 
+  # Register Rails warehouse system test driver - local Chrome only (for type: :rails_system)
+  Capybara.register_driver :rails_warehouse_cuprite do |app|
+    Capybara::Cuprite::Driver.new(
+      app,
+      window_size: [1200, 800],
+      headless: ENV.fetch('CI', 'true') == 'true',
+      js_errors: false, # More lenient for standard Rails apps
+      timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
+      process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
+      pending_connection_errors: false, # Ignore pending connection errors
+      browser_options: {
+        'no-sandbox' => nil,
+        'disable-gpu' => nil,
+        'disable-dev-shm-usage' => nil,
+        'disable-extensions' => nil,
+        'disable-background-timer-throttling' => nil,
+        'disable-backgrounding-occluded-windows' => nil,
+        'disable-renderer-backgrounding' => nil,
+      },
+      # Explicitly do NOT use remote Chrome - force local browser
+    )
+  end
+
   Capybara.default_driver = :rails_cuprite
   Capybara.javascript_driver = :rails_cuprite
 
-  # Add RSpec configuration for better error handling
+  # Add RSpec configuration for better error handling - ONLY for HMIS system tests (type: :system)
   RSpec.configure do |config|
     config.before(:each, type: :system) do
       # Reset driver before each test to ensure clean state
@@ -130,7 +159,7 @@ end
 # Password from existing user factory
 RAILS_SYSTEM_DEFAULT_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
 
-# Standard Rails system test helpers
+# Standard Rails system test helpers (for warehouse tests using type: :rails_system)
 RSpec.shared_context 'RailsSystemHelper' do
   def sign_in_user(user, password: RAILS_SYSTEM_DEFAULT_PASSWORD)
     visit new_user_session_path
@@ -208,23 +237,32 @@ RSpec.shared_context 'RailsSystemHelper' do
   end
 end
 
+# Configure Rails warehouse system tests (type: :rails_system) to use local driver
 if rails_system_enabled
   RSpec.configure do |config|
-    # Include Capybara DSL and helpers for rails_system type
-    config.include Capybara::DSL, type: :rails_system
     config.include_context 'RailsSystemHelper', type: :rails_system
 
     config.before(:each, type: :rails_system) do
-      Capybara.current_driver = :rails_cuprite
+      # Use the warehouse cuprite driver (local Chrome only)
+      driven_by :rails_warehouse_cuprite
+      # Reset sessions for clean state
+      Capybara.reset_sessions!
     end
 
-    config.after(:each, type: :rails_system) do
-      Capybara.use_default_driver
+    config.after(:each, type: :rails_system) do |example|
+      # Take screenshot on failure for debugging
+      if example.exception
+        begin
+          page.save_screenshot # rubocop:disable Lint/Debugger
+        rescue StandardError => e
+          Rails.logger.warn "Could not take screenshot: #{e.message}"
+        end
+      end
     end
 
     # Create screenshots directory
     config.before(:suite) do
-      FileUtils.mkdir_p('tmp/capybara/screenshots/') if rails_system_enabled
+      FileUtils.mkdir_p('tmp/capybara/screenshots/')
     end
   end
 end
