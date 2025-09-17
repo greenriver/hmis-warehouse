@@ -91,12 +91,12 @@ RSpec.describe HudHelper do
 
     describe '#util' do
       it 'returns HudUtility2024 when version is 2024' do
-        allow(Hud).to receive(:current_version).and_return('2024')
+        allow(HudHelper).to receive(:current_version).and_return('2024')
         expect(HudHelper.util(force_recalculate: true)).to eq(HudUtility2024)
       end
 
       it 'returns HudUtility2026 when version is 2026' do
-        allow(Hud).to receive(:current_version).and_return('2026')
+        allow(HudHelper).to receive(:current_version).and_return('2026')
         expect(HudHelper.util(force_recalculate: true)).to eq(HudUtility2026)
       end
 
