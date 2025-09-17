@@ -79,7 +79,8 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     tuples << ['housing_needs_homeless_duration', 'A year or more'] if waitlist.chronically_homeless == 'Yes' # infer to keep chronicity true when opened for editing
 
     # Note: Assessment is present in the export file, so we can assume the client is Eligible, Posted to the waitlist, and authorized.
-    tuples << ['housing_needs_result_type', 'Eligible'] # TODO: may need to add/change depending on #8129
+    tuples << ['housing_needs_result_type', 'Eligible']
+    tuples << ['housing_needs_eligible_project_types', 'PH_RRH']
     tuples << ['housing_needs_post_referrals_to_waitlist', 'Yes']
 
     tuples << ['housing_needs_ami', waitlist.income_percentage_ami]
@@ -628,9 +629,9 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
         when 'SRO'
           'SRO'
         when 'Households without Children'
-          'Households Without Children' # match casing in assessment
+          'Households without Children' # match assessment pick_list_options
         when 'Households with Children'
-          'Households With Children' # match casing in assessment
+          'Households with Children' # match assessment pick_list_options
         end
         # Note: 0, 5, and x+crib are not supported, we do not store them
       end.compact.uniq.sort
