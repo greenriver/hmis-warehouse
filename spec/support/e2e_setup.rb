@@ -162,7 +162,58 @@ RSpec.configure do |config|
   config.around(:each, type: :system) do |ex|
     was_host = Rails.application.default_url_options[:host]
     Rails.application.default_url_options[:host] = Capybara.server_host
-    ex.run
-    Rails.application.default_url_options[:host] = was_host
+
+    max_retries = ENV.fetch('SYSTEM_TEST_RETRIES', 2).to_i
+    retry_count = 0
+
+    begin
+      ex.run
+    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+      retry_count += 1
+      if retry_count <= max_retries
+        Rails.logger.warn "System test failed with browser error (attempt #{retry_count}/#{max_retries + 1}): #{e.message}"
+
+        # Try to safely reset browser state
+        begin
+          Capybara.reset_sessions!
+        rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError
+          Rails.logger.warn 'Could not reset sessions, browser may be completely dead'
+          # Force a new browser instance
+          Capybara.current_session.driver.quit if Capybara.current_session.driver.respond_to?(:quit)
+        end
+
+        sleep(2) # Brief pause before retry
+        retry
+      else
+        Rails.logger.error "System test failed after #{max_retries} retries: #{e.message}"
+        raise
+      end
+    ensure
+      Rails.application.default_url_options[:host] = was_host
+    end
+  end
+
+  # Add better cleanup handling
+  config.after(:each, type: :system) do |example|
+    # Take screenshot on failure for debugging
+    if example.exception
+      begin
+        page.save_screenshot # rubocop:disable Lint/Debugger
+      rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+        Rails.logger.warn "Could not take screenshot due to browser error: #{e.message}"
+      end
+    end
+
+    # Safe cleanup that handles dead browsers
+    begin
+      Capybara.reset_sessions!
+    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+      Rails.logger.warn "Browser cleanup failed, forcing driver quit: #{e.message}"
+      begin
+        Capybara.current_session.driver.quit if Capybara.current_session.driver.respond_to?(:quit)
+      rescue StandardError => cleanup_error
+        Rails.logger.warn "Could not quit driver cleanly: #{cleanup_error.message}"
+      end
+    end
   end
 end

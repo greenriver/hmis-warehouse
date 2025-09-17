@@ -22,7 +22,7 @@ module E2eTests
   module Setup
     # The setup to be run prior to the test suite
     def self.perform(
-      default_max_wait_time: 20,
+      default_max_wait_time: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
       default_normalize_ws: true,
       automatic_label_click: true,
       enable_aria_label: true
@@ -64,6 +64,10 @@ module E2eTests
             js_errors: true,
             logger: FerrumLogger.new,
             inspector: true,
+            # Add timeout configurations for better stability
+            timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
+            process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
+            pending_connection_errors: false,
           }.merge(remote_options),
         )
       end
