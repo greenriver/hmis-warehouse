@@ -204,7 +204,12 @@ module Hmis::WorkflowExecution
       # Evaluate conditions against *all* submitted values. This is important because when we reach a gateway,
       # we need to evaluate which branch(es) to take based on the submitted values of the previous tasks;
       # the gateway itself doesn't have submitted values.
-      calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
+      begin
+        calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
+      rescue Dentaku::ArgumentError => e
+        err_with_context = "Error evaluating expression '#{expression}' on WorkflowInstance##{@instance.id}: #{e.message}"
+        raise e, err_with_context, e.backtrace
+      end
     end
 
     def all_submitted_values
