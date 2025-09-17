@@ -31,7 +31,7 @@ module
       @race_combination_buckets ||= {}.tap do |r|
         # from RaceCalculations
         race_buckets.each do |race, race_title|
-          ::Hud.util.ethnicities.each do |ethnicity, ethnicity_title|
+          ::HudHelper.util.ethnicities.each do |ethnicity, ethnicity_title|
             # Skip these impossibilities
             next if race == 'HispanicLatinaeo' && ethnicity == :non_hispanic_latinaeo
             next if race.in?(unknown_race_buckets.keys) && ethnicity.in?([:hispanic_latinaeo, :non_hispanic_latinaeo])

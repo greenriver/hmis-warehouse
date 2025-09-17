@@ -24,7 +24,7 @@ module Types
       { code: 'Age62Plus', description: '62+' },
       { code: 'Age65Plus', description: '65+' },
     ].map do |option|
-      value option[:code], option[:description], value: Hud.util.age_range[option[:description]]
+      value option[:code], option[:description], value: HudHelper.util.age_range[option[:description]]
     end
   end
 end

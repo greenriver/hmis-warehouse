@@ -41,15 +41,15 @@ module AllNeighborsSystemDashboard
     # end
 
     scope :moved_in, -> do
-      where.not(move_in_date: nil, project_type: Hud.util.project_types_with_move_in_dates)
+      where.not(move_in_date: nil, project_type: HudHelper.util.project_types_with_move_in_dates)
     end
 
     scope :moved_in_in_range, ->(range, filter:) do
-      where(move_in_date: range, project_type: Hud.util.project_types_with_move_in_dates, project_id: filter.effective_project_ids)
+      where(move_in_date: range, project_type: HudHelper.util.project_types_with_move_in_dates, project_id: filter.effective_project_ids)
     end
 
     scope :homeless, -> do
-      where(project_type: Hud.util.homeless_project_types)
+      where(project_type: HudHelper.util.homeless_project_types)
     end
 
     scope :returned, -> do

@@ -30,7 +30,7 @@ module Reporting
     end
 
     scope :rrh, -> do
-      where(project_type: ::Hud.util.performance_reporting[:rrh])
+      where(project_type: ::HudHelper.util.performance_reporting[:rrh])
     end
 
     scope :psh, -> do
@@ -38,15 +38,15 @@ module Reporting
     end
 
     scope :es, -> do
-      where(project_type: ::Hud.util.performance_reporting[:es])
+      where(project_type: ::HudHelper.util.performance_reporting[:es])
     end
 
     scope :th, -> do
-      where(project_type: ::Hud.util.performance_reporting[:th])
+      where(project_type: ::HudHelper.util.performance_reporting[:th])
     end
 
     scope :sh, -> do
-      where(project_type: ::Hud.util.performance_reporting[:sh])
+      where(project_type: ::HudHelper.util.performance_reporting[:sh])
     end
 
     scope :youth, -> do
@@ -86,7 +86,7 @@ module Reporting
     end
 
     scope :ph_destinations, -> do
-      where(destination: ::Hud.util.permanent_destinations)
+      where(destination: ::HudHelper.util.permanent_destinations)
     end
 
     # Pre-placement
@@ -199,15 +199,15 @@ module Reporting
     end
 
     def self.available_races
-      ::Hud.util.races(multi_racial: true)
+      ::HudHelper.util.races(multi_racial: true)
     end
 
     def self.available_genders
-      ::Hud.util.genders
+      ::HudHelper.util.genders
     end
 
     def self.available_veteran_stati
-      ::Hud.util.no_yes_reasons_for_missing_data_options
+      ::HudHelper.util.no_yes_reasons_for_missing_data_options
     end
 
     def self.available_age_ranges
@@ -258,7 +258,7 @@ module Reporting
             client.delete(:id)
             en.merge!(client)
             en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
-            if ::Hud.util.permanent_destinations.include?(en[:destination])
+            if ::HudHelper.util.permanent_destinations.include?(en[:destination])
               en[:ph_destination] = :ph
             else
               en[:ph_destination] = :not_ph
@@ -361,7 +361,7 @@ module Reporting
       service_data = two_project_service_data(client_id_batch)
       from_residential_enrollments = two_project_residential_data(client_id_batch).map do |residential_enrollment|
         case residential_enrollment[:project_type]
-        when *::Hud.util.residential_project_type_numbers_by_code[:ph]
+        when *::HudHelper.util.residential_project_type_numbers_by_code[:ph]
           key = [
             residential_enrollment[:client_id],
             residential_enrollment[:residential_project_id],
@@ -539,7 +539,7 @@ module Reporting
         map do |row|
           residential_enrollment = Hash[one_project_columns.keys.zip(row)]
           case residential_enrollment[:project_type]
-          when *::Hud.util.residential_project_type_numbers_by_code[:ph]
+          when *::HudHelper.util.residential_project_type_numbers_by_code[:ph]
             # if exit but no move-in-date, set search end to exit and blank exit, no stabilization, only pre-placement
             if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
               residential_enrollment[:search_end] = residential_enrollment[:housing_exit]

@@ -18,7 +18,7 @@ module Reporting::DataQualityReports
     end
 
     def calculate_funder project:
-      project.funders.map { |f| Hud.util.funding_source f.Funder&.to_i }.uniq.join(', ')
+      project.funders.map { |f| HudHelper.util.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
 
     def calculate_geocode project:
@@ -27,7 +27,7 @@ module Reporting::DataQualityReports
 
     def calculate_geography_type(project:)
       project.project_cocs.map do |m|
-        Hud.util.geography_type(m.GeographyType)
+        HudHelper.util.geography_type(m.GeographyType)
       end.uniq.join(', ')
     end
 

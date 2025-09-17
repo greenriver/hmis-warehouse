@@ -422,7 +422,7 @@ module PublicReports
               # Force any unknown genders to Unknown
               gender_id = nil unless gender_id.in?([0, 1, 2, 3, 4, 5, 6])
               [
-                ::Hud.util.gender(gender_id) || 'Unknown',
+                ::HudHelper.util.gender(gender_id) || 'Unknown',
                 count,
               ]
             end.to_h
@@ -527,9 +527,9 @@ module PublicReports
           data = {}
           census_data = {}
           # Add census info
-          ::Hud.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican').each do |race_code, label|
+          ::HudHelper.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican').each do |race_code, label|
             census_data[label] = 0
-            data[::Hud.util.race(race_code, multi_racial: true)] ||= Set.new
+            data[::HudHelper.util.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
             census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop&.positive?
@@ -542,9 +542,9 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              next unless data.key?(::Hud.util.race(race, multi_racial: true))
+              next unless data.key?(::HudHelper.util.race(race, multi_racial: true))
 
-              data[::Hud.util.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              data[::HudHelper.util.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum

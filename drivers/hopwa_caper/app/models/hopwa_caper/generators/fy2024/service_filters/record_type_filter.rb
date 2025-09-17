@@ -12,7 +12,7 @@ module HopwaCaper::Generators::Fy2024::ServiceFilters
 
     def codes
       types.map do |type|
-        Hud.util('2024').record_types.invert.fetch(type)
+        HudHelper.util('2024').record_types.invert.fetch(type)
       end
     end
 

@@ -36,7 +36,7 @@ module
               {
                 project_name: project.name(@filter.user),
                 organization_name: project.organization_name(@filter.user),
-                project_type: Hud.util.project_type_brief(project.project_type),
+                project_type: HudHelper.util.project_type_brief(project.project_type),
               },
             ]
           end.to_h

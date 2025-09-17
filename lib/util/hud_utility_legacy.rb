@@ -9,7 +9,7 @@
 # a general clearing house to translate HUD ids of various sorts into strings
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5
-# This utility has been replaced by year-specific versions.  Hud.util('legacy') covers FY2022, FY2020, 6.x and 5.x.
+# This utility has been replaced by year-specific versions.  HudHelper.util('legacy') covers FY2022, FY2020, 6.x and 5.x.
 # This utility is deprecated and should not be used for any new code.
 module HudUtilityLegacy
   include ::Concerns::HudValidationUtil

@@ -19,7 +19,7 @@ class ExitClientReport
   def clients
     @clients ||= begin
       client_batch = exits_from_homelessness
-      client_batch = client_batch.where(destination: ::Hud.util.permanent_destinations) if @filter.ph
+      client_batch = client_batch.where(destination: ::HudHelper.util.permanent_destinations) if @filter.ph
       client_batch.ended_between(start_date: @filter.start, end_date: @filter.end + 1.day).
         order(date: :asc)
     end
@@ -30,7 +30,7 @@ class ExitClientReport
       groups = Hash.new(0)
       clients.each do |row|
         destination = row[:destination]
-        destination = 99 unless Hud.util.valid_destinations.key?(row[:destination])
+        destination = 99 unless HudHelper.util.valid_destinations.key?(row[:destination])
         groups[destination] += 1
       end
       groups

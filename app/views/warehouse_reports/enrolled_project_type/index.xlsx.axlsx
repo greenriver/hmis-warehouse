@@ -13,16 +13,16 @@ wb.add_worksheet(name: 'Enrolled Clients') do |sheet|
     'Veteran Status',
     "Cumulative Days Homeless as of #{Date.current}",
     "Days Homeless in The Past Three Years as of #{Date.current}",
-  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| Hud.util.race(m).gsub('None', 'Race None') })
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') })
   @clients.each do |client|
     sheet.add_row([
       client.id,
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
-      Hud.util.veteran_status(client.VeteranStatus),
+      HudHelper.util.veteran_status(client.VeteranStatus),
       client.days_homeless,
       client.days_homeless_in_last_three_years,
-    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| Hud.util.no_yes_reasons_for_missing_data(m&.to_i) })
+    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| HudHelper.util.no_yes_reasons_for_missing_data(m&.to_i) })
   end
 end

@@ -6,9 +6,9 @@
 
   homeless = @filter.chosen_project_types_only_homeless?
   ctl_name = 'display_project_type_ctl'
-  homeless_types = Hud.util.homeless_project_types
-    .map { |s| Hud.util.project_type_brief(s) }
-  homless_codes = Hud.util.homeless_project_type_codes
+  homeless_types = HudHelper.util.homeless_project_types
+    .map { |s| HudHelper.util.project_type_brief(s) }
+  homless_codes = HudHelper.util.homeless_project_type_codes
 
 .form-group.form-group-valid
   .mb-1.h5-prs1= control.label
@@ -23,7 +23,7 @@
       %label.form-check-label(for='custom_project_type') Custom
 
   #j-custom-project-type{class: homeless && 'd-none', aria: {hidden: homeless}}
-    = f.input :project_type_codes, as: :select_two, collection: Hud.util.project_type_group_titles.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: 'Project Types'
+    = f.input :project_type_codes, as: :select_two, collection: HudHelper.util.project_type_group_titles.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: 'Project Types'
 
 - content_for :page_js do
   :javascript

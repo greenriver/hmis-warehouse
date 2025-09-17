@@ -125,7 +125,7 @@ module WarehouseReports
     end
 
     def homeless_source
-      project_types = Hud.util.residential_project_type_numbers_by_code[:so] + Hud.util.residential_project_type_numbers_by_code[:es]
+      project_types = HudHelper.util.residential_project_type_numbers_by_code[:so] + HudHelper.util.residential_project_type_numbers_by_code[:es]
       GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(project_types)
     end
 

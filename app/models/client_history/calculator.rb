@@ -23,7 +23,7 @@ class ClientHistory::Calculator
   # @param enrollment [Object] the specific enrollment being evaluated
   # @return [Boolean] true if the enrollment constitutes a new episode, otherwise false
   def new_episode?(residential_enrollments:, enrollment:)
-    return false unless Hud.util.chronic_project_types.include?(enrollment.project_type)
+    return false unless HudHelper.util.chronic_project_types.include?(enrollment.project_type)
 
     entry_date = enrollment.entry_date
     thirty_days_ago = entry_date - 30.days
@@ -45,7 +45,7 @@ class ClientHistory::Calculator
   # @param enrollments [Array] a list of enrollments related to the client
   # @return [Array<Date>] unique dates when the client was housed
   def residential_dates(enrollments:)
-    @non_homeless_types ||= Hud.util.residential_project_type_numbers_by_code[:ph]
+    @non_homeless_types ||= HudHelper.util.residential_project_type_numbers_by_code[:ph]
     @residential_dates ||= enrollments.select do |e|
       @non_homeless_types.include?(e.project_type)
     end.map do |e|
@@ -62,7 +62,7 @@ class ClientHistory::Calculator
   # @return [Array<Date>] unique dates when the client was in a homeless project
   private def homeless_dates(enrollments:)
     @homeless_dates ||= enrollments.select do |e|
-      e.project_type.in?(Hud.util.residential_project_type_ids)
+      e.project_type.in?(HudHelper.util.residential_project_type_ids)
     end.map do |e|
       # Use select to allow for preloading
       e.service_history_services.select do |s|

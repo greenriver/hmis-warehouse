@@ -7,9 +7,9 @@
 module ReportGenerators::DataQuality::Fy2017
   class Q7 < Base
     # ES = [1]
-    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SO = [4]
-    SO = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
+    SO = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
 
     def run!
       if start_report(Reports::DataQuality::Fy2017::Q7.first)

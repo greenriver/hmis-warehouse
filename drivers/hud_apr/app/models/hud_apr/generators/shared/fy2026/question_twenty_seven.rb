@@ -589,7 +589,7 @@ module HudApr::Generators::Shared::Fy2026
     private def q27l_lengths
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      move_in_projects = Hud.util('2026').residential_project_type_numbers_by_code[:ph]
+      move_in_projects = HudHelper.util('2026').residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).and(a_t[:pay_for_success].eq(false)).
         or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(a_t[:adjusted_move_in_date].lteq(@report.end_date)))
       {

@@ -9,7 +9,7 @@
 module Filters
   class PerformanceDashboard < FilterBase
     def default_project_type_codes
-      Hud.util.homeless_project_type_codes
+      HudHelper.util.homeless_project_type_codes
     end
   end
 end

@@ -37,7 +37,7 @@ module LongitudinalSpm
     end
 
     def self.default_project_type_codes
-      Hud.util.spm_project_type_codes
+      HudHelper.util.spm_project_type_codes
     end
 
     def run_and_save!

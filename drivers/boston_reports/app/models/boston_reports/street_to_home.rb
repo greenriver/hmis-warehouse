@@ -280,7 +280,7 @@ module BostonReports
       values = scope.pluck(*GrdaWarehouse::Hud::Client.race_fields)
       counts = {}
       GrdaWarehouse::Hud::Client.race_fields.each.with_index do |col, i|
-        race = Hud.util.race(col)
+        race = HudHelper.util.race(col)
         counts[race] ||= 0
         values.each do |row|
           val = row[i]
@@ -621,7 +621,7 @@ module BostonReports
     end
 
     private def races
-      ::Hud.util.races
+      ::HudHelper.util.races
     end
 
     def cohort_names

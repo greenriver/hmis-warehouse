@@ -20,7 +20,7 @@ class Filters::Criteria::FilterForProjectType < Filters::Criteria::Base
 
   def project_types
     result = config.project_types || input.project_type_ids
-    result += Hud.util.performance_reporting[:ce] if input.coordinated_assessment_living_situation_homeless || input.ce_cls_as_homeless
+    result += HudHelper.util.performance_reporting[:ce] if input.coordinated_assessment_living_situation_homeless || input.ce_cls_as_homeless
     result
   end
 end

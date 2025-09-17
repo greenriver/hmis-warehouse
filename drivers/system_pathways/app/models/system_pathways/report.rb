@@ -179,7 +179,7 @@ module SystemPathways
 
     def project_type_ids
       # any project type we know how to display plus CE
-      allowed_states[nil] + [Hud.util.project_type_number('CE')]
+      allowed_states[nil] + [HudHelper.util.project_type_number('CE')]
     end
 
     def default_project_type_codes
@@ -221,14 +221,14 @@ module SystemPathways
             races << race_col_lookup[k] if en.client[k]
           end
           races.map do |r|
-            Hud.util.race(r)
+            HudHelper.util.race(r)
           end.join(',')
         },
         'Disabling Condition' => ->(en) {
-          Hud.util.no_yes_reasons_for_missing_data(en.disabling_condition)
+          HudHelper.util.no_yes_reasons_for_missing_data(en.disabling_condition)
         },
         'Veteran Status' => ->(en) {
-          Hud.util.veteran_status(en.client.veteran_status)
+          HudHelper.util.veteran_status(en.client.veteran_status)
         },
         'Stay Length' => ->(en) {
           en.stay_length
@@ -256,7 +256,7 @@ module SystemPathways
     end
 
     def race_col_lookup
-      Hud.util.races.map { |k, _| [k.underscore, k] }.to_h
+      HudHelper.util.races.map { |k, _| [k.underscore, k] }.to_h
     end
 
     def chart_model(slug = 'pathways')
@@ -295,7 +295,7 @@ module SystemPathways
         # Push it into the accepted batch
         accepted_enrollments << enrollment
         # and return if it is a "final" enrollment
-        return accepted_enrollments if enrollment.exit_date.blank? || Hud.util.destination_type(enrollment.destination) == 'Permanent'
+        return accepted_enrollments if enrollment.exit_date.blank? || HudHelper.util.destination_type(enrollment.destination) == 'Permanent'
 
         # otherwise move on to the next
         accept_enrollments(subsequent_enrollments.drop(1), enrollment.project_type, accepted_enrollments)
@@ -339,7 +339,7 @@ module SystemPathways
             # If we're still enrolled, we can't return
             next false if final_enrollment.exit_date.blank?
             # If our final enrollment didn't exit to a permanent destination we can't return
-            next false unless Hud.util.destination_type(final_enrollment.destination) == 'Permanent'
+            next false unless HudHelper.util.destination_type(final_enrollment.destination) == 'Permanent'
             # If this enrollment starts before the end of the final enrollment, we can't have returned
             next false unless en.entry_date > final_enrollment.exit_date
 
@@ -376,11 +376,11 @@ module SystemPathways
             involves_ce: served_by_ce,
             ce_assessment: ce_assessment,
             destination: final_enrollment.destination,
-            destination_homeless: Hud.util.destination_type(final_enrollment.destination) == 'Homeless',
-            destination_temporary: Hud.util.destination_type(final_enrollment.destination) == 'Temporary',
-            destination_institutional: Hud.util.destination_type(final_enrollment.destination) == 'Institutional',
-            destination_other: Hud.util.destination_type(final_enrollment.destination) == 'Other',
-            destination_permanent: Hud.util.destination_type(final_enrollment.destination) == 'Permanent',
+            destination_homeless: HudHelper.util.destination_type(final_enrollment.destination) == 'Homeless',
+            destination_temporary: HudHelper.util.destination_type(final_enrollment.destination) == 'Temporary',
+            destination_institutional: HudHelper.util.destination_type(final_enrollment.destination) == 'Institutional',
+            destination_other: HudHelper.util.destination_type(final_enrollment.destination) == 'Other',
+            destination_permanent: HudHelper.util.destination_type(final_enrollment.destination) == 'Permanent',
             returned_project_type: returned_enrollment&.project_type,
             returned_project_name: returned_enrollment&.project&.name,
             returned_project_entry_date: returned_enrollment&.entry_date,
@@ -510,7 +510,7 @@ module SystemPathways
     end
 
     private def nbn_with_no_service?(enrollment)
-      enrollment.project_type.in?(Hud.util.project_type_number_from_code(:es_nbn)) &&
+      enrollment.project_type.in?(HudHelper.util.project_type_number_from_code(:es_nbn)) &&
         ! enrollment.service_history_services.
           bed_night.
           service_within_date_range(start_date: filter.start, end_date: filter.end).

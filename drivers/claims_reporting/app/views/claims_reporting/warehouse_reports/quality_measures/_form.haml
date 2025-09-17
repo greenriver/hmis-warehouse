@@ -4,9 +4,9 @@
     .row
       .col-6
         = f.input :acos, as: :select_two, collection: @filter.available_acos, input_html: { multiple: true }, label: 'ACO', placeholder: 'all ACOs', hint: 'Current assigned in the Care Hub'
-        = f.input :races, collection: Hud.util.races(multi_racial: true).invert.except('None'), required: false,  as: :select_two, input_html: { multiple: true}, label: 'Race', placeholder: 'all races', hint: 'As reported in HMIS'
+        = f.input :races, collection: HudHelper.util.races(multi_racial: true).invert.except('None'), required: false,  as: :select_two, input_html: { multiple: true}, label: 'Race', placeholder: 'all races', hint: 'As reported in HMIS'
       .col-6
-        = f.input :genders, collection: Hud.util.genders.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Gender', placeholder: 'all genders', hint: 'As reported in HMIS'
+        = f.input :genders, collection: HudHelper.util.genders.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Gender', placeholder: 'all genders', hint: 'As reported in HMIS'
         = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true}, placeholder: 'all ages', hint: 'As of report end date'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']

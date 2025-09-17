@@ -176,7 +176,7 @@ module HmisDataQualityTool::DocumentExports
         wb.add_worksheet(name: 'Project Types') do |sheet|
           sheet.add_row(['Project Types'] + report.categories)
           report.per_project_type.each do |project_type_id, data|
-            project_type = Hud.util.project_type(project_type_id.to_s.to_i)
+            project_type = HudHelper.util.project_type(project_type_id.to_s.to_i)
 
             row = [project_type]
             style = [nil]

@@ -150,14 +150,14 @@ module AllNeighborsSystemDashboard
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type,
             destination: enrollment.destination,
-            destination_text: Hud.util.destination(enrollment.destination),
+            destination_text: HudHelper.util.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
             relationship_to_hoh: source_enrollment.relationship_to_hoh,
             personal_id: source_enrollment.personal_id,
             age: enrollment.age,
             gender: gender(enrollment),
             race_list: enrollment.client.race_description(include_missing_reason: true),
-            # ethnicity: Hud.util.ethnicity(enrollment.client.ethnicity),
+            # ethnicity: HudHelper.util.ethnicity(enrollment.client.ethnicity),
             ce_entry_date: ce_info&.entry_date,
             ce_referral_date: max_event&.event_date,
             ce_referral_id: max_event&.event_id,
@@ -183,7 +183,7 @@ module AllNeighborsSystemDashboard
             source_enrollment_id: event.enrollment_id,
             event_id: event.event_id,
             event_date: event.event_date,
-            event: Hud.util.event(event.event),
+            event: HudHelper.util.event(event.event),
             location: event.location_crisis_or_ph_housing,
             project_name: event.enrollment.project.name,
             project_type: event.enrollment.project.project_type,
@@ -219,7 +219,7 @@ module AllNeighborsSystemDashboard
         pluck(*cols).
         group_by do |row|
           row = cols.zip(row).to_h
-          date = if row[:project_type].in?(Hud.util.project_types_with_move_in_dates)
+          date = if row[:project_type].in?(HudHelper.util.project_types_with_move_in_dates)
             row[:move_in_date]
           elsif row[:project_id].in?(filter.secondary_project_ids)
             row[:exit_date]

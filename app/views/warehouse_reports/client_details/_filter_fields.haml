@@ -30,6 +30,6 @@
     = f.input :hoh_only, as: :boolean, label: 'Limit to Heads of Household?'
 .row
   .col-4
-    = f.input :races, collection: Hud.util.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
+    = f.input :races, collection: HudHelper.util.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
   .col-4
-    = f.input :genders, collection: Hud.util.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
+    = f.input :genders, collection: HudHelper.util.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }

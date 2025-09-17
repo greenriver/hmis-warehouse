@@ -13,7 +13,7 @@ module HopwaCaperHelpers
       end: report_end_date,
       user_id: user.id,
       coc_codes: [coc_code],
-      funder_ids: Hud.util('2024').funder_components.fetch('HUD: HOPWA'),
+      funder_ids: HudHelper.util('2024').funder_components.fetch('HUD: HOPWA'),
     )
     ::HudReports::ReportInstance.from_filter(
       filter,

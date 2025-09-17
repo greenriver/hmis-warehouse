@@ -202,7 +202,7 @@ module BuiltForZeroReport
           joins(:enrollment).
           entry.
           where(client_id: housed.keys).
-          where(e_t[:LivingSituation].in(Hud.util.homeless_situations(as: :prior))).
+          where(e_t[:LivingSituation].in(HudHelper.util.homeless_situations(as: :prior))).
           pluck(:client_id, e_t[:DateToStreetESSH], e_t[:EntryDate]).
           group_by(&:shift).
           transform_values { |dates| dates.flatten.compact.min }
@@ -224,7 +224,7 @@ module BuiltForZeroReport
           joins(enrollment: :current_living_situations).
           entry.
           where(client_id: housed.keys).
-          where(cls_t[:CurrentLivingSituation].in(Hud.util.homeless_situations(as: :current))).
+          where(cls_t[:CurrentLivingSituation].in(HudHelper.util.homeless_situations(as: :current))).
           group(:client_id).
           minimum(cls_t[:InformationDate])
         first_enrollment_dates.merge!(homeless_contact_dates) { |_, old, new| [old, new].min }

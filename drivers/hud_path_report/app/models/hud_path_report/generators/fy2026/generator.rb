@@ -25,7 +25,7 @@ module HudPathReport::Generators::Fy2026
     end
 
     def self.default_project_type_codes
-      Hud.util('2026').path_project_type_codes
+      HudHelper.util('2026').path_project_type_codes
     end
 
     def url

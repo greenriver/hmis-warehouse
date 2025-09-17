@@ -25,7 +25,7 @@ class FixEnrollmentDates20240416
 
     normal_project_ids = Hmis::Hud::Project.hmis.
       where.not(project_id: special_treatment_project_id).
-      where(project_type: Hud.util.residential_project_type_ids).
+      where(project_type: HudHelper.util.residential_project_type_ids).
       pluck(:project_id)
 
     fix_dates_special(special_treatment_project_id)

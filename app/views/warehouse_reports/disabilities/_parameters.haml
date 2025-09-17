@@ -30,11 +30,11 @@
 - parameters['disabilities'].each do |id|
   - next if id.blank?
   %label.label.label-primary
-    = ::Hud.util.disability_types[id.to_i]
+    = ::HudHelper.util.disability_types[id.to_i]
   &nbsp;
 
 - parameters['project_types'].each do |id|
   - next if id.blank?
   %label.label.label-default
-    = ::Hud.util.project_types[id.to_i]
+    = ::HudHelper.util.project_types[id.to_i]
   &nbsp;

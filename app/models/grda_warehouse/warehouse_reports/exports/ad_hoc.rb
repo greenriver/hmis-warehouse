@@ -65,7 +65,7 @@ module GrdaWarehouse::WarehouseReports::Exports
       fields = client.race_fields
       return 'Multi-Racial' if fields.count > 1
 
-      fields.map { |f| ::Hud.util.race f }.join ', '
+      fields.map { |f| ::HudHelper.util.race f }.join ', '
     end
 
     def rows_for_export
@@ -82,17 +82,17 @@ module GrdaWarehouse::WarehouseReports::Exports
               race_for_client(client),
               client.gender,
               report_calculator.pregnancy_status_for(client),
-              Hud.util.veteran_status(client.VeteranStatus),
+              HudHelper.util.veteran_status(client.VeteranStatus),
               yes_no(report_calculator.disabled_and_impairing?(client)),
               report_calculator.episode_length_for(client),
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),
               report_calculator.episode_counts_past_3_years_for(client),
-              Hud.util.project_type(report_calculator.enrollment_for_client(client)&.project&.project_type),
-              Hud.util.destination(report_calculator.exit_for_client(client)&.Destination),
-              Hud.util.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
+              HudHelper.util.project_type(report_calculator.enrollment_for_client(client)&.project&.project_type),
+              HudHelper.util.destination(report_calculator.exit_for_client(client)&.Destination),
+              HudHelper.util.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
               yes_no(report_calculator.returned?(client)),
-              Hud.util.living_situation(report_calculator.enrollment_for_client(client)&.LivingSituation),
+              HudHelper.util.living_situation(report_calculator.enrollment_for_client(client)&.LivingSituation),
               report_calculator.vispdat_for_client(client)&.score,
               report_calculator.household_size_for(client),
             ]

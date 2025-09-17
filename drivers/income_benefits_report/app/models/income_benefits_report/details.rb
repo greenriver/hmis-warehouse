@@ -173,7 +173,7 @@ module
           :DataCollectionStage,
           {
             title: 'Data Collection Stage',
-            transformation: ->(v) { ::Hud.util.data_collection_stage(v) },
+            transformation: ->(v) { ::HudHelper.util.data_collection_stage(v) },
           },
         ],
       ]

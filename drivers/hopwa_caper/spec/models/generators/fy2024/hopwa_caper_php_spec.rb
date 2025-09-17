@@ -11,7 +11,7 @@ RSpec.describe 'HOPWA CAPER PHP', type: :model do
   include_context('HOPWA CAPER shared context')
 
   let(:funder) do
-    Hud.util('2024').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing Placement')
+    HudHelper.util('2024').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing Placement')
   end
 
   let(:project) do

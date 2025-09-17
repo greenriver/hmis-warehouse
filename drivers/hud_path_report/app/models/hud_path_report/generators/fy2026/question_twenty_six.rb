@@ -183,7 +183,7 @@ module HudPathReport::Generators::Fy2026
         query = a_t[:length_of_stay].eq(v)
         query = query.or(a_t[:length_of_stay].eq(nil)) if v == 99
         [
-          Hud.util('2026').length_of_stays[v],
+          HudHelper.util('2026').length_of_stays[v],
           a_t[:prior_living_situation].in([101, 116]).and(query),
         ]
       end.to_h

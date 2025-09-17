@@ -27,7 +27,7 @@ module CohortColumns
       return '' unless races
 
       races.map do |k|
-        ::Hud.util.races[k]
+        ::HudHelper.util.races[k]
       end.join('; ')
     end
   end

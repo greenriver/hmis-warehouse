@@ -128,7 +128,7 @@ module Dashboards
         return {
           start: default_start_date,
           end: default_end_date,
-          project_type_codes: Hud.util.homeless_project_type_codes,
+          project_type_codes: HudHelper.util.homeless_project_type_codes,
         }
       end
 

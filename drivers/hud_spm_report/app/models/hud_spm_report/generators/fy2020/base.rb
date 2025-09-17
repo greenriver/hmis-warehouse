@@ -32,11 +32,11 @@ module HudSpmReport::Generators::Fy2020
 
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
 
-    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1).freeze
-    SH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1).freeze
-    TH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1).freeze
-    PH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1).freeze
-    SO = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1).freeze
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1).freeze
+    SH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1).freeze
+    TH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1).freeze
+    PH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1).freeze
+    SO = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1).freeze
 
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
@@ -1451,8 +1451,8 @@ module HudSpmReport::Generators::Fy2020
     #
     # sh_enrollments: an Array(GrdaWarehouse::ServiceHistoryEnrollments) for a client with suitable preloads
     #   covering all dates that could contribute to this report
-    # project_types: Array(Hud.util('legacy').project_types.keys)
-    # stop_project_types: Array(Hud.util('legacy').project_types.keys)
+    # project_types: Array(HudHelper.util('legacy').project_types.keys)
+    # stop_project_types: Array(HudHelper.util('legacy').project_types.keys)
     # include_pre_entry: boolean true to include days before entry
     #
     # The flags are set like so

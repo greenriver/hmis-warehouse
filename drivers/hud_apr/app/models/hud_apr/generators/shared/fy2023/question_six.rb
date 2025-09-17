@@ -129,7 +129,7 @@ module HudApr::Generators::Shared::Fy2023
       dq_universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 ||
-          (member.ssn_quality == 1 && member.ssn.present? && !Hud.util('legacy').valid_social?(member.ssn))
+          (member.ssn_quality == 1 && member.ssn.present? && !HudHelper.util('legacy').valid_social?(member.ssn))
       end
       q_members = dq_universe_members.where(id: q_member_ids)
       answer.add_members(q_members)
@@ -336,7 +336,7 @@ module HudApr::Generators::Shared::Fy2023
         where(hoh_clause).
         where(
           a_t[:enrollment_coc].eq(nil).
-            or(a_t[:enrollment_coc].not_in(Hud.util('legacy').cocs.keys)),
+            or(a_t[:enrollment_coc].not_in(HudHelper.util('legacy').cocs.keys)),
         )
       answer.add_members(members)
       answer.update(summary: members.count)

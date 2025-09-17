@@ -53,7 +53,7 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.enforce_gender_none(row)
       # GenderNone should be 99 if it was blank and all other gender columns are blank or 0
-      gender_columns = Hud.util('2024').gender_fields - [:GenderNone]
+      gender_columns = HudHelper.util('2024').gender_fields - [:GenderNone]
       any_genders = gender_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
       row.GenderNone ||= 99 unless any_genders
 
@@ -62,7 +62,7 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.enforce_race_none(row)
       # RaceNone should be 99 if it was blank and all other gender columns are blank or 0
-      race_columns = Hud.util('2024').race_fields - [:RaceNone]
+      race_columns = HudHelper.util('2024').race_fields - [:RaceNone]
       any_races = race_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
       row.RaceNone ||= 99 unless any_races
 
@@ -80,8 +80,8 @@ module HmisCsvTwentyTwentyFour::Exporter
         row = replace_blank(row, hud_field: hud_field, default_value: 99)
       end
 
-      default_to_no = Hud.util('2024').gender_fields - [:GenderNone]
-      default_to_no += Hud.util('2024').race_fields - [:RaceNone]
+      default_to_no = HudHelper.util('2024').gender_fields - [:GenderNone]
+      default_to_no += HudHelper.util('2024').race_fields - [:RaceNone]
       default_to_no.each do |hud_field|
         row = replace_blank(row, hud_field: hud_field, default_value: 0)
       end

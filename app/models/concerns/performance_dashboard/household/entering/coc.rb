@@ -36,7 +36,7 @@ module PerformanceDashboard::Household::Entering::Coc
       categories = entering_by_coc.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, Hud.util.coc_name(s)] }.to_h,
+          labels: categories.map { |s| [s, HudHelper.util.coc_name(s)] }.to_h,
           chosen: @coc_codes,
           columns: columns,
           categories: categories,
@@ -58,7 +58,7 @@ module PerformanceDashboard::Household::Entering::Coc
     details = details.where(coc_query(sub_key)) if sub_key
     details.pluck(*detail_columns(options).values).
       map do |row|
-        row[-1] = "#{Hud.util.coc_name(row.last)} (#{row.last})"
+        row[-1] = "#{HudHelper.util.coc_name(row.last)} (#{row.last})"
         row
       end.
       index_by(&:first)

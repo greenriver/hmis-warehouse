@@ -8,15 +8,15 @@ module ReportGenerators::DataQuality::Fy2017
   class Q5 < Base
     ADULT = 18
     # PH = [3,9,10,13]
-    PH = Hud.util.residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
+    PH = HudHelper.util.residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = Hud.util.residential_project_type_numbers_by_code.values_at(:th).flatten(1)
+    TH = HudHelper.util.residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = Hud.util.residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = HudHelper.util.residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = Hud.util.residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
+    SH = HudHelper.util.residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
     # SO = [4]
-    SO = Hud.util.residential_project_type_numbers_by_code.values_at(:so).flatten(1)
+    SO = HudHelper.util.residential_project_type_numbers_by_code.values_at(:so).flatten(1)
 
     def run!
       if start_report(Reports::DataQuality::Fy2017::Q5.first)
@@ -224,7 +224,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
-            Hud.util('legacy').times_homeless_past_three_years(enrollment[:TimesHomelessPastThreeYears]),
+            HudHelper.util('legacy').times_homeless_past_three_years(enrollment[:TimesHomelessPastThreeYears]),
           ]
         end,
       )
@@ -241,7 +241,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
-            Hud.util('legacy').months_homeless_past_three_years(enrollment[:MonthsHomelessPastThreeYears]),
+            HudHelper.util('legacy').months_homeless_past_three_years(enrollment[:MonthsHomelessPastThreeYears]),
           ]
         end,
       )

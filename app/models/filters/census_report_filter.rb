@@ -60,7 +60,7 @@ module Filters
     end
 
     def project_type_code_options_for_select
-      Hud.util.residential_type_titles.freeze.invert
+      HudHelper.util.residential_type_titles.freeze.invert
     end
 
     # These are not presented in the UI, but need to be set to nothing or all homeless projects are returned

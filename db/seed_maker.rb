@@ -289,32 +289,32 @@ class SeedMaker
     GrdaWarehouse::Lookups::YesNoEtc.transaction do
       GrdaWarehouse::Lookups::YesNoEtc.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::YesNoEtc.import(columns, Hud.util.no_yes_reasons_for_missing_data_options.to_a)
+      GrdaWarehouse::Lookups::YesNoEtc.import(columns, HudHelper.util.no_yes_reasons_for_missing_data_options.to_a)
     end
     GrdaWarehouse::Lookups::LivingSituation.transaction do
       GrdaWarehouse::Lookups::LivingSituation.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::LivingSituation.import(columns, Hud.util.living_situations.to_a)
+      GrdaWarehouse::Lookups::LivingSituation.import(columns, HudHelper.util.living_situations.to_a)
     end
     GrdaWarehouse::Lookups::ProjectType.transaction do
       GrdaWarehouse::Lookups::ProjectType.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::ProjectType.import(columns, Hud.util.project_types.to_a)
+      GrdaWarehouse::Lookups::ProjectType.import(columns, HudHelper.util.project_types.to_a)
     end
     GrdaWarehouse::Lookups::FundingSource.transaction do
       GrdaWarehouse::Lookups::FundingSource.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::FundingSource.import(columns, Hud.util.funding_sources.to_a)
+      GrdaWarehouse::Lookups::FundingSource.import(columns, HudHelper.util.funding_sources.to_a)
     end
     GrdaWarehouse::Lookups::Gender.transaction do
       GrdaWarehouse::Lookups::Gender.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::Gender.import(columns, Hud.util.genders.to_a)
+      GrdaWarehouse::Lookups::Gender.import(columns, HudHelper.util.genders.to_a)
     end
     GrdaWarehouse::Lookups::Relationship.transaction do
       GrdaWarehouse::Lookups::Relationship.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::Relationship.import(columns, Hud.util.relationships_to_hoh.to_a)
+      GrdaWarehouse::Lookups::Relationship.import(columns, HudHelper.util.relationships_to_hoh.to_a)
     end
   end
 

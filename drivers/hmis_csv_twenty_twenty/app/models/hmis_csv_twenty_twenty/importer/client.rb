@@ -31,19 +31,19 @@ module HmisCsvTwentyTwenty::Importer
         NameDataQuality: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').name_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').name_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         SSNDataQuality: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').ssn_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').ssn_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         DOBDataQuality: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').dob_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').dob_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         Ethnicity: [
@@ -52,7 +52,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').ethnicities.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').ethnicities.keys.map(&:to_s).freeze },
           },
         ],
         Gender: [
@@ -61,7 +61,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').genders.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').genders.keys.map(&:to_s).freeze },
           },
         ],
         VeteranStatus: [
@@ -70,7 +70,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
       }

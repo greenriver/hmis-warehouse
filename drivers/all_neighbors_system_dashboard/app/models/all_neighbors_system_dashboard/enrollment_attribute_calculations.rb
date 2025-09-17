@@ -142,9 +142,9 @@ module AllNeighborsSystemDashboard
           'Unsheltered'
         when *SHELTERED_SITUATIONS
           'Sheltered'
-        when Hud.util::SITUATION_INSTITUTIONAL_RANGE
+        when HudHelper.util::SITUATION_INSTITUTIONAL_RANGE
           'Institutional'
-        when Hud.util::SITUATION_TEMPORARY_RANGE, Hud.util::SITUATION_PERMANENT_RANGE
+        when HudHelper.util::SITUATION_TEMPORARY_RANGE, HudHelper.util::SITUATION_PERMANENT_RANGE
           'Housed'
         when *DECEASED_SITUATIONS
           'Deceased'
@@ -180,7 +180,7 @@ module AllNeighborsSystemDashboard
         case enrollment.destination
         when nil
           nil
-        when Hud.util::SITUATION_PERMANENT_RANGE
+        when HudHelper.util::SITUATION_PERMANENT_RANGE
           'Permanent'
         when *EXCLUDEABLE_DESTINATIONS
           'Excludable'
@@ -207,7 +207,7 @@ module AllNeighborsSystemDashboard
       end
 
       def gender(enrollment)
-        Hud.util.gender(enrollment.client.gender_binary)
+        HudHelper.util.gender(enrollment.client.gender_binary)
       end
 
       def race_list(enrollment)
@@ -273,7 +273,7 @@ module AllNeighborsSystemDashboard
             # you have a move-in date (you are not homeless)
             enrollment.move_in_date.present? ||
             # or you exited to a permanent destination (no longer homeless)
-            enrollment.destination.in?(Hud.util::SITUATION_PERMANENT_RANGE) # From SPM M2
+            enrollment.destination.in?(HudHelper.util::SITUATION_PERMANENT_RANGE) # From SPM M2
           end.
           sort_by(&:exit_date).
           group_by(&:client_id)

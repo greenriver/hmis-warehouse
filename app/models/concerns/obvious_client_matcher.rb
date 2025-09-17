@@ -37,7 +37,7 @@ module ObviousClientMatcher
     end
 
     private def check_social(incoming_ssn, client_ssn)
-      return false unless ::Hud.util.valid_social?(incoming_ssn)
+      return false unless ::HudHelper.util.valid_social?(incoming_ssn)
 
       incoming_ssn == client_ssn
     end

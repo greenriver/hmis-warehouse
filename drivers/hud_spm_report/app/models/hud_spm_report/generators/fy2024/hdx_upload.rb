@@ -304,15 +304,15 @@ module HudSpmReport::Generators::Fy2024
 
       dq_report = case section
       when :essh
-        @reports[section] ||= generate_dq(Hud.util('2024').residential_project_type_numbers_by_codes(:es, :sh))
+        @reports[section] ||= generate_dq(HudHelper.util('2024').residential_project_type_numbers_by_codes(:es, :sh))
       when :th
-        @reports[section] ||= generate_dq(Hud.util('2024').residential_project_type_numbers_by_codes(:th))
+        @reports[section] ||= generate_dq(HudHelper.util('2024').residential_project_type_numbers_by_codes(:th))
       when :pshoph
-        @reports[section] ||= generate_dq(Hud.util('2024').residential_project_type_numbers_by_codes(:psh, :oph))
+        @reports[section] ||= generate_dq(HudHelper.util('2024').residential_project_type_numbers_by_codes(:psh, :oph))
       when :rrh
-        @reports[section] ||= generate_dq(Hud.util('2024').residential_project_type_numbers_by_codes(:rrh))
+        @reports[section] ||= generate_dq(HudHelper.util('2024').residential_project_type_numbers_by_codes(:rrh))
       when :so
-        @reports[section] ||= generate_dq(Hud.util('2024').residential_project_type_numbers_by_codes(:so))
+        @reports[section] ||= generate_dq(HudHelper.util('2024').residential_project_type_numbers_by_codes(:so))
       else
         raise ArgumentError, "Unknown DQ section: #{section.inspect}"
       end

@@ -124,7 +124,7 @@ module Filters
 
     def self.available_source_types
       # Note, source type hasn't changed, so using FY2026
-      Hud.util('2026').source_types.invert
+      HudHelper.util('2026').source_types.invert
     end
 
     def self.job_classes

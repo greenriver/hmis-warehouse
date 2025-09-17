@@ -292,10 +292,10 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).count,
           }
         end
-        Hud.util.gender_id_to_field_name.
+        HudHelper.util.gender_id_to_field_name.
           reject { |k, _| k.in?([8, 9, 99]) }.
           each do |gender_id, gender_column|
-            label = Hud.util.gender(gender_id)
+            label = HudHelper.util.gender(gender_id)
             key = ['Gender', gender_column]
             breakdowns["Gender: #{label}"] = {
               key: key,
@@ -314,21 +314,21 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).count,
           }
         end
-        Hud.util.valid_prior_living_situations.reject { |k, _| k.in?([8, 9, 99]) }.each do |k|
+        HudHelper.util.valid_prior_living_situations.reject { |k, _| k.in?([8, 9, 99]) }.each do |k|
           key = ['PriorLivingSituation', k]
-          breakdowns["Prior Living Situation: #{Hud.util.living_situation(k)}"] = {
+          breakdowns["Prior Living Situation: #{HudHelper.util.living_situation(k)}"] = {
             key: key,
             count: enrollments_for(*key).count,
           }
         end
-        Hud.util.times_homeless_options.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
+        HudHelper.util.times_homeless_options.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
           key = ['TimesHomeless', k]
           breakdowns["Times Homeless in the past three years: #{label}"] = {
             key: key,
             count: enrollments_for(*key).count,
           }
         end
-        Hud.util.month_categories.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
+        HudHelper.util.month_categories.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
           key = ['MonthsHomeless', k]
           breakdowns["Months homeless in the past 3 years: #{label}"] = {
             key: key,
@@ -348,7 +348,7 @@ module MaReports::MonthlyPerformance
 
         enrollments.where(id: race_ethnicities_breakdowns(enrollments)[race_ethnicity_combinations[sub_key.to_sym]].to_a)
       when 'Gender'
-        return enrollments.none unless Hud.util.gender_id_to_field_name.value?(sub_key)
+        return enrollments.none unless HudHelper.util.gender_id_to_field_name.value?(sub_key)
 
         enrollments.where(sub_key.to_s.underscore => true)
       when 'DisablingCondition'
@@ -358,15 +358,15 @@ module MaReports::MonthlyPerformance
 
         enrollments.where(reporting_age: ::Filters::FilterBase.age_range(sub_key.to_sym))
       when 'PriorLivingSituation'
-        return enrollments.none unless Hud.util.valid_prior_living_situations.include?(sub_key.to_i)
+        return enrollments.none unless HudHelper.util.valid_prior_living_situations.include?(sub_key.to_i)
 
         enrollments.where(prior_living_situation: sub_key)
       when 'TimesHomeless'
-        return enrollments.none unless Hud.util.times_homeless_options.key?(sub_key.to_i)
+        return enrollments.none unless HudHelper.util.times_homeless_options.key?(sub_key.to_i)
 
         enrollments.where(times_homeless_past_three_years: sub_key)
       when 'MonthsHomeless'
-        return enrollments.none unless Hud.util.month_categories.key?(sub_key.to_i)
+        return enrollments.none unless HudHelper.util.month_categories.key?(sub_key.to_i)
 
         enrollments.where(months_homeless_past_three_years: sub_key)
       else
@@ -382,7 +382,7 @@ module MaReports::MonthlyPerformance
         label = race_ethnicity_combinations[sub_key.to_sym]
         "#{key}: #{label}"
       when 'Gender'
-        label = Hud.util.gender(sub_key.to_i)
+        label = HudHelper.util.gender(sub_key.to_i)
         "#{key}: #{label}"
       when 'DisablingCondition'
         'Disabling Condition'
@@ -390,13 +390,13 @@ module MaReports::MonthlyPerformance
         label = ::Filters::FilterBase.new(user_id: user_id).available_age_ranges.invert[sub_key.to_sym]
         "#{key}: #{label}"
       when 'PriorLivingSituation'
-        label = Hud.util.living_situation(sub_key.to_i)
+        label = HudHelper.util.living_situation(sub_key.to_i)
         "#{key}: #{label}"
       when 'TimesHomeless'
-        label = Hud.util.times_homeless_past_three_years(sub_key.to_i)
+        label = HudHelper.util.times_homeless_past_three_years(sub_key.to_i)
         "#{key}: #{label}"
       when 'MonthsHomeless'
-        label = Hud.util.months_homeless_past_three_years(sub_key.to_i)
+        label = HudHelper.util.months_homeless_past_three_years(sub_key.to_i)
         "#{key}: #{label}"
       end
     end

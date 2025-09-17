@@ -16,8 +16,8 @@ class Filters::Criteria::FilterForCeHomeless < Filters::Criteria::Base
     scope = super(scope)
     p_types = config.project_types.presence || input.project_type_ids
     scope.joins(:enrollment).where(
-      arel.she_t[:project_type].in(Hud.util.performance_reporting[:ce]).
-      and(arel.e_t[:LivingSituation].in(Hud.util.homeless_situations(as: :prior))).
+      arel.she_t[:project_type].in(HudHelper.util.performance_reporting[:ce]).
+      and(arel.e_t[:LivingSituation].in(HudHelper.util.homeless_situations(as: :prior))).
       or(arel.she_t[:project_type].in(p_types)),
     )
   end

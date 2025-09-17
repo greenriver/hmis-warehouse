@@ -122,7 +122,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   def hud_assessment?
-    Hud.util.data_collection_stages.keys.include?(data_collection_stage)
+    HudHelper.util.data_collection_stages.keys.include?(data_collection_stage)
   end
 
   def intake?
@@ -146,7 +146,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   def title
-    title = Hud.util.assessment_name_by_data_collection_stage[data_collection_stage]
+    title = HudHelper.util.assessment_name_by_data_collection_stage[data_collection_stage]
     # TODO(#187248703): replace with `definition.title` via definition_identifier column once that relationship exists
     title ||= form_processor&.definition&.title
     title ||= 'Custom Assessment'

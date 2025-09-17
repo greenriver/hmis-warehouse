@@ -9,15 +9,15 @@ module ReportGenerators::SystemPerformance::Fy2019
     LOOKBACK_STOP_DATE = '2012-10-01'
 
     # PH = [3,9,10,13]
-    PH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
+    PH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
+    TH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
+    SH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
     # SO = [4]
-    SO = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
+    SO = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
     RRH = [13]
     PH_PSH = [3, 9, 10]
     PERMANENT_DESTINATIONS = [3, 10, 11, 19, 20, 21, 22, 23, 26, 28]
@@ -440,7 +440,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            Hud.util('legacy').destination(destination),
+            HudHelper.util('legacy').destination(destination),
           ]
         end,
       }
@@ -453,7 +453,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            Hud.util('legacy').destination(destination),
+            HudHelper.util('legacy').destination(destination),
           ]
         end,
       }
@@ -540,7 +540,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            Hud.util('legacy').destination(destination),
+            HudHelper.util('legacy').destination(destination),
           ]
         end,
       }
@@ -549,7 +549,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:sixc2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sixc2_c3][:support] = {
         headers: ['Client ID', 'Personal IDs', 'Destination'],
-        counts: permanent_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: permanent_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
       @answers[:sixc2_c4][:value] = ((@answers[:sixc2_c3][:value].to_f / @answers[:sixc2_c2][:value]) * 100).round(2)
       return @answers

@@ -19,4 +19,4 @@
               %tr
                 %th= k
                 - [[:comparison, comparison[type][k]], [:reporting, v]].each do |period, value|
-                  %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, number_with_delimiter(value), clients_ce_performance_warehouse_reports_report_path(@report, period: period, exit_type: ::Hud.util.destination(k, true), key: @key, category_name: @category_name)
+                  %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, number_with_delimiter(value), clients_ce_performance_warehouse_reports_report_path(@report, period: period, exit_type: ::HudHelper.util.destination(k, true), key: @key, category_name: @category_name)

@@ -154,7 +154,7 @@ module
           initialize_unsheltered_client_counts(clients)
 
           report_scope.distinct.
-            in_project_type(Hud.util.project_type_number('Street Outreach')).
+            in_project_type(HudHelper.util.project_type_number('Street Outreach')).
             # checks SHS which equates to CLS
             with_service_between(start_date: filter.start_date, end_date: filter.end_date).
             order(first_date_in_program: :desc).
@@ -166,7 +166,7 @@ module
             initialize_unsheltered_client_counts(clients, coc_code.to_sym)
 
             report_scope.distinct.in_enrollment_coc(coc_code: coc_code).
-              in_project_type(Hud.util.project_type_number('Street Outreach')).
+              in_project_type(HudHelper.util.project_type_number('Street Outreach')).
               # checks SHS which equates to CLS
               with_service_between(start_date: filter.start_date, end_date: filter.end_date).
               order(first_date_in_program: :desc).

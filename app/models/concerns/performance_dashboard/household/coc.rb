@@ -22,7 +22,7 @@ module PerformanceDashboard::Household::Coc
     coc_buckets.map do |key|
       [
         key,
-        Hud.util.coc_name(key),
+        HudHelper.util.coc_name(key),
       ]
     end.to_h
   end

@@ -15,15 +15,15 @@ module PerformanceDashboard::Overview::Exiting::Gender
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, *Hud.util.gender_fields.map { |g| c_t[g] }, :first_date_in_program).each do |row|
+        pluck(:client_id, *HudHelper.util.gender_fields.map { |g| c_t[g] }, :first_date_in_program).each do |row|
           id = row.first
           _entry_date = row.last
           row = row.slice(1..-1) # remove first and last elements from the row
-          genders = Hud.util.gender_fields.map.with_index do |k, i|
+          genders = HudHelper.util.gender_fields.map.with_index do |k, i|
             if k == :GenderNone
               row[i]
             elsif row[i] == 1
-              Hud.util.gender_id_to_field_name.invert[k]
+              HudHelper.util.gender_id_to_field_name.invert[k]
             end
           end.compact
           next unless genders.present?
@@ -45,7 +45,7 @@ module PerformanceDashboard::Overview::Exiting::Gender
       categories = exiting_by_gender.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, Hud.util.gender(s)] }.to_h,
+          labels: categories.map { |s| [s, HudHelper.util.gender(s)] }.to_h,
           chosen: @genders,
           columns: columns,
           categories: categories,

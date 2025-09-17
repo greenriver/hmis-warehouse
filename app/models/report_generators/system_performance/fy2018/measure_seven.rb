@@ -9,15 +9,15 @@ module ReportGenerators::SystemPerformance::Fy2018
     LOOKBACK_STOP_DATE = '2012-10-01'
 
     # PH = [3,9,10,13]
-    PH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
+    PH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
+    TH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
+    SH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
     # SO = [4]
-    SO = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
+    SO = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
 
     RRH = [13]
     PH_PSH = [3, 9, 10] # All PH except 13, Measure 7 doesn't count RRH
@@ -115,19 +115,19 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:sevena1_c2][:value] = remaining_leavers.size
       @support[:sevena1_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: remaining_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
       temporary_leavers = destinations.select { |id, destination| [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25].include?(destination.to_i) }
       @answers[:sevena1_c3][:value] = temporary_leavers.size
       @support[:sevena1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: temporary_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: temporary_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
-      permanent_leavers = destinations.select { |id, destination| (Hud.util('legacy').permanent_destinations - [24]).include?(destination.to_i) }
+      permanent_leavers = destinations.select { |id, destination| (HudHelper.util('legacy').permanent_destinations - [24]).include?(destination.to_i) }
       @answers[:sevena1_c4][:value] = permanent_leavers.size
       @support[:sevena1_c4][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: permanent_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
       top = (@answers[:sevena1_c3][:value].to_f + @answers[:sevena1_c4][:value].to_f)
       bottom = @answers[:sevena1_c2][:value]
@@ -193,13 +193,13 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:sevenb1_c2][:value] = remaining_leavers.size
       @support[:sevenb1_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: remaining_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
-      permanent_leavers = destinations.select { |id, destination| (Hud.util('legacy').permanent_destinations - [24]).include?(destination.to_i) }
+      permanent_leavers = destinations.select { |id, destination| (HudHelper.util('legacy').permanent_destinations - [24]).include?(destination.to_i) }
       @answers[:sevenb1_c3][:value] = permanent_leavers.size
       @support[:sevenb1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: permanent_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
       top = @answers[:sevenb1_c3][:value].to_f
       bottom = @answers[:sevenb1_c2][:value]
@@ -283,13 +283,13 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:sevenb2_c2][:value] = remaining_leavers.size + stayers.size
       @support[:sevenb2_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: remaining_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
-      permanent_leavers = destinations.select { |id, destination| (Hud.util('legacy').permanent_destinations - [24]).include?(destination.to_i) }
+      permanent_leavers = destinations.select { |id, destination| (HudHelper.util('legacy').permanent_destinations - [24]).include?(destination.to_i) }
       @answers[:sevenb2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sevenb2_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map { |id, destination| [id, Hud.util('legacy').destination(destination)] },
+        counts: permanent_leavers.map { |id, destination| [id, HudHelper.util('legacy').destination(destination)] },
       }
       top = @answers[:sevenb2_c3][:value].to_f
       bottom = @answers[:sevenb2_c2][:value]

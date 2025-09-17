@@ -42,7 +42,7 @@ module AllNeighborsSystemDashboard
       end
 
       def default_project_type_codes
-        Hud.util.performance_reporting.keys
+        HudHelper.util.performance_reporting.keys
       end
 
       def project_type_ids

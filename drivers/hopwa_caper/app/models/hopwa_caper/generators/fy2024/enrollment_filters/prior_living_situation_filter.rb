@@ -14,14 +14,14 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     def rental_subsidy_type_codes
-      lookup = Hud.util('2024').rental_subsidy_types.invert
+      lookup = HudHelper.util('2024').rental_subsidy_types.invert
       rental_subsidy_types.map do |type|
         lookup.fetch(type)
       end
     end
 
     def codes
-      lookup = Hud.util('2024').situations_for(:prior).invert
+      lookup = HudHelper.util('2024').situations_for(:prior).invert
       types.map do |type|
         lookup.fetch(type)
       end

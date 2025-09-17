@@ -23,7 +23,7 @@ module HudApr::Generators::Caper::Fy2021
     end
 
     def self.default_project_type_codes
-      Hud.util('2024').residential_project_type_numbers_by_code.keys + [:prevention]
+      HudHelper.util('2024').residential_project_type_numbers_by_code.keys + [:prevention]
     end
 
     def url

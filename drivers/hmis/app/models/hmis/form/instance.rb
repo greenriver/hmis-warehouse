@@ -24,8 +24,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
   validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }, allow_blank: true
-  validates :funder, inclusion: { in: Hud.util.funding_sources.keys }, allow_blank: true
-  validates :project_type, inclusion: { in: Hud.util.project_types.keys }, allow_blank: true
+  validates :funder, inclusion: { in: HudHelper.util.funding_sources.keys }, allow_blank: true
+  validates :project_type, inclusion: { in: HudHelper.util.project_types.keys }, allow_blank: true
   validate :validate_external_form_restrictions
 
   # 'system' instances can't be deleted

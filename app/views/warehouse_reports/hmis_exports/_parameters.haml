@@ -7,19 +7,19 @@
     %label.label.label-primary.parameter-value= report.end_date
   .report-parameters__parameter
     %label.label.label-default.parameter-label Source Type
-    %label.label.label-primary.parameter-value= Hud.util.source_type report.source_type
+    %label.label.label-primary.parameter-value= HudHelper.util.source_type report.source_type
 
   .report-parameters__parameter
     %label.label.label-default.parameter-label Hash Status
-    %label.label.label-primary.parameter-value= Hud.util.hash_status report.hash_status
+    %label.label.label-primary.parameter-value= HudHelper.util.hash_status report.hash_status
 
   .report-parameters__parameter
     %label.label.label-default.parameter-label Period Type
-    %label.label.label-primary.parameter-value= Hud.util.export_period_type report.period_type
+    %label.label.label-primary.parameter-value= HudHelper.util.export_period_type report.period_type
 
   .report-parameters__parameter
     %label.label.label-default.parameter-label Export Directive
-    %label.label.label-primary.parameter-value= Hud.util.export_directive report.directive
+    %label.label.label-primary.parameter-value= HudHelper.util.export_directive report.directive
   - if report.confidential
     .report-parameters__parameter
       %label.label.label-default.parameter-label Confidential

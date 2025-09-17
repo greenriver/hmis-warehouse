@@ -26,7 +26,7 @@ module HopwaCaper::Generators::Fy2024
 
     def self.default_project_type_codes
       # include ALL project types, we aren't sure which ones might be hopwa funded
-      Hud.util('2024').project_type_group_titles.keys
+      HudHelper.util('2024').project_type_group_titles.keys
     end
 
     def prepare_report(reset: Rails.env.development?)

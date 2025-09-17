@@ -40,7 +40,7 @@ class PerformanceDashboards::Base
     @genders = filter.genders
     @races = filter.races
     @veteran_statuses = filter.veteran_statuses
-    @project_types = filter.project_type_ids || Hud.util.homeless_project_types
+    @project_types = filter.project_type_ids || HudHelper.util.homeless_project_types
     @comparison_pattern = filter.comparison_pattern
     @sub_population = valid_sub_population(filter.sub_population)
   end

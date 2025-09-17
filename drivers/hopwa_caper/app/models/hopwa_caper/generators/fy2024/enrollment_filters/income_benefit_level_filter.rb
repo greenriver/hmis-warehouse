@@ -15,7 +15,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
     end
 
     def code
-      Hud.util('2024').percent_amis.invert.fetch(type)
+      HudHelper.util('2024').percent_amis.invert.fetch(type)
     end
 
     def self.all

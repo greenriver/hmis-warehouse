@@ -20,7 +20,7 @@ module WarehouseReports
       ).
         where(
           p_t[project_source.project_type_column].in(
-            Hud.util.residential_project_type_ids,
+            HudHelper.util.residential_project_type_ids,
           ),
         ).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).

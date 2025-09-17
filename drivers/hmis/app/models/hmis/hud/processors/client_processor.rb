@@ -179,12 +179,12 @@ module Hmis::Hud::Processors
 
     private def process_age_range(value)
       case value
-      when *Hud.util.age_range.keys
+      when *HudHelper.util.age_range.keys
         # value matches a known age range, so process it onto dob with low DQ
         { dob: approximate_dob(value), dob_data_quality: 2 }
-      when *Hud.util.dob_data_quality_options.values_at(8, 9, 99)
+      when *HudHelper.util.dob_data_quality_options.values_at(8, 9, 99)
         # value matches a known missing data reason, so store that. (not currently expected but future-proofing for desired pick lists)
-        { dob_data_quality: Hud.util.dob_data_quality(value, true, raise_on_missing: true) }
+        { dob_data_quality: HudHelper.util.dob_data_quality(value, true, raise_on_missing: true) }
       when /doesn't know|prefers not to answer|not collected/i
         # value string-matches a missing data reason (PIT form is an example), so don't raise and store 99
         { dob_data_quality: 99 }
@@ -195,7 +195,7 @@ module Hmis::Hud::Processors
     end
 
     private def approximate_dob(value)
-      dob_range = Hud.util.age_range[value]
+      dob_range = HudHelper.util.age_range[value]
 
       years_ago = if dob_range.end.infinite?
         # For an infinite range like 65+, just use the beginning of the range

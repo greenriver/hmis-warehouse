@@ -9,15 +9,15 @@ module ReportGenerators::SystemPerformance::Fy2018
     LOOKBACK_STOP_DATE = '2012-10-01'
 
     # PH = [3,9,10,13]
-    PH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
+    PH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
+    TH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
+    SH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
     # SO = [4]
-    SO = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
+    SO = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1)
     PERMANENT_DESTINATIONS = [3, 10, 11, 19, 20, 21, 22, 23, 26, 28, 31]
     TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25]
 
@@ -489,8 +489,8 @@ module ReportGenerators::SystemPerformance::Fy2018
             [
               m[:client_id],
               m[:project_name],
-              Hud.util('legacy').project_type(m[:project_type]),
-              Hud.util('legacy').destination(m[:destination]),
+              HudHelper.util('legacy').project_type(m[:project_type]),
+              HudHelper.util('legacy').destination(m[:destination]),
               m[:first_date_in_program],
               m[:last_date_in_program],
             ]

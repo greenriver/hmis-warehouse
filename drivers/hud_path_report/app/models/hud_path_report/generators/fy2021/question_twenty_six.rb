@@ -96,9 +96,9 @@ module HudPathReport::Generators::Fy2021
       {
         'Female' => a_t[:gender_multi].eq('[0]'),
         'Male' => a_t[:gender_multi].eq('[1]'),
-        'No Single Gender' => a_t[:gender_multi].in(::Hud.util('legacy').no_single_gender_queries.map { |q| "[#{q}]" }),
-        'Questioning' => a_t[:gender_multi].in(::Hud.util('legacy').questioning_gender_queries.map { |q| "[#{q}]" }),
-        'Transgender' => a_t[:gender_multi].in(::Hud.util('legacy').transgender_gender_queries.map { |q| "[#{q}]" }),
+        'No Single Gender' => a_t[:gender_multi].in(::HudHelper.util('legacy').no_single_gender_queries.map { |q| "[#{q}]" }),
+        'Questioning' => a_t[:gender_multi].in(::HudHelper.util('legacy').questioning_gender_queries.map { |q| "[#{q}]" }),
+        'Transgender' => a_t[:gender_multi].in(::HudHelper.util('legacy').transgender_gender_queries.map { |q| "[#{q}]" }),
         'Client doesn\'t know' => a_t[:gender_multi].eq('[8]'),
         'Client refused' => a_t[:gender_multi].eq('[9]'),
         'Data not collected' => a_t[:gender_multi].eq('[99]'),
@@ -138,7 +138,7 @@ module HudPathReport::Generators::Fy2021
       [8, 9, 99].each do |v|
         query = a_t[:race_none].eq(v)
         query = query.or(no_race) if v == 99
-        h[Hud.util('legacy').race_none(v)] = query
+        h[HudHelper.util('legacy').race_none(v)] = query
       end
       h['Total'] = nil
       h.freeze
@@ -216,7 +216,7 @@ module HudPathReport::Generators::Fy2021
           query = a_t[:prior_living_situation].eq(value)
           query = query.or(a_t[:prior_living_situation].eq(nil)) if value == 99
           [
-            Hud.util('legacy').available_situations[value],
+            HudHelper.util('legacy').available_situations[value],
             query,
           ]
         end
@@ -230,7 +230,7 @@ module HudPathReport::Generators::Fy2021
         query = a_t[:length_of_stay].eq(v)
         query = query.or(a_t[:length_of_stay].eq(nil)) if v == 99
         [
-          Hud.util('legacy').length_of_stays[v],
+          HudHelper.util('legacy').length_of_stays[v],
           a_t[:prior_living_situation].in([1, 16]).and(query),
         ]
       end.to_h

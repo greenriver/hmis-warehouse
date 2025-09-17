@@ -20,7 +20,7 @@ module HudPit::Fy2025
           'Multi-Racial (not Hispanic/Latina/e/o)'
         end
       elsif other_than_hispanic_latinaeo?(client)
-        race = ::Hud.util('2024').race(race_fields(client).first)
+        race = ::HudHelper.util('2024').race(race_fields(client).first)
         race += ' & Hispanic/Latina/e/o' if hispanic_latinaeo?(client)
         race
       else
@@ -29,7 +29,7 @@ module HudPit::Fy2025
     end
 
     private_class_method def self.race_fields(client, exclude: ['HispanicLatinaeo'])
-      race_field_keys = ::Hud.util('2024').races.keys - exclude
+      race_field_keys = ::HudHelper.util('2024').races.keys - exclude
       race_field_keys.select { |f| client.send(f).to_i == 1 }
     end
 

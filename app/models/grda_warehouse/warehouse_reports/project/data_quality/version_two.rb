@@ -63,10 +63,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       monitoring_date_range_present = false
       grant_ids = []
       coc_program_components = projects.map do |project|
-        ::Hud.util('legacy').project_type(project.ProjectType)
+        ::HudHelper.util('legacy').project_type(project.ProjectType)
       end
       target_populations = projects.map do |project|
-        ::Hud.util('legacy').target_population(project.TargetPopulation) || nil
+        ::HudHelper.util('legacy').target_population(project.TargetPopulation) || nil
       end.compact
 
       projects.flat_map(&:funders).each do |funder|
@@ -625,7 +625,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           dis[:disability_response].to_i == value
         end.map do |dis|
           base_colums_for_support(enrollment) + [
-            Hud.util('legacy').disability_type(dis[:disability_type]),
+            HudHelper.util('legacy').disability_type(dis[:disability_type]),
             dis[:disability_response],
           ]
         end
@@ -1291,7 +1291,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       ph_destinations = Set.new
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
-          ph_destinations << enrollment[:destination_id] if Hud.util('legacy').permanent_destinations.include?(enrollment[:destination].to_i)
+          ph_destinations << enrollment[:destination_id] if HudHelper.util('legacy').permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
       ph_destinations_percentage = begin

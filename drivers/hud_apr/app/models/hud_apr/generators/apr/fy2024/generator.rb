@@ -26,7 +26,7 @@ module HudApr::Generators::Apr::Fy2024
     end
 
     def self.default_project_type_codes
-      Hud.util('2024').performance_reporting.keys
+      HudHelper.util('2024').performance_reporting.keys
     end
 
     def url

@@ -45,7 +45,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('2024').data_collection_stages.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2024').data_collection_stages.keys.map(&:to_s).freeze },
           },
         ],
       }

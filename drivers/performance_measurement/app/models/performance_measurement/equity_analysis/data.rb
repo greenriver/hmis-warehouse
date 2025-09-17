@@ -11,11 +11,11 @@ module PerformanceMeasurement::EquityAnalysis
     include ArelHelper
     include GrdaWarehouse::UsCensusApi::Aggregates
 
-    RACES = Hud.util('2026').races.except('HispanicLatinaeo')
-    ETHNICITIES = Hud.util('2026').ethnicities.except(:unknown)
-    RACE_ETHNICITY_COMBINATIONS = Hud.util('2026').race_ethnicity_combinations
+    RACES = HudHelper.util('2026').races.except('HispanicLatinaeo')
+    ETHNICITIES = HudHelper.util('2026').ethnicities.except(:unknown)
+    RACE_ETHNICITY_COMBINATIONS = HudHelper.util('2026').race_ethnicity_combinations
     AGES = Filters::FilterBase.available_census_age_ranges
-    GENDERS = Hud.util('2026').genders
+    GENDERS = HudHelper.util('2026').genders
 
     GENDER_ID_TO_SCOPE = {
       0 => :gender_woman,
@@ -30,7 +30,7 @@ module PerformanceMeasurement::EquityAnalysis
       99 => :gender_unknown,
     }.freeze
 
-    HOUSEHOLD_TYPES = Hud.util('2026').household_types.merge(nil => 'Unknown household type')
+    HOUSEHOLD_TYPES = HudHelper.util('2026').household_types.merge(nil => 'Unknown household type')
 
     INVESTIGATE_BY = {
       race: RACES,

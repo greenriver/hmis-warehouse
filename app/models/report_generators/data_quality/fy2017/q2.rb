@@ -121,7 +121,7 @@ module ReportGenerators::DataQuality::Fy2017
           poor_quality_client = [8, 9].include?(enrollment[:SSNDataQuality].to_i)
           missing_client = enrollment[:SSN].blank? || enrollment[:SSNDataQuality].to_i == 99
           collection_issues = enrollment[:SSNDataQuality].to_i == 2
-          valid = ::Hud.util('legacy').valid_social?(enrollment[:SSN])
+          valid = ::HudHelper.util('legacy').valid_social?(enrollment[:SSN])
           data_quality_client = ! valid || collection_issues
 
           if poor_quality_client
@@ -289,7 +289,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            Hud.util('legacy').race_none(enrollment[:RaceNone]),
+            HudHelper.util('legacy').race_none(enrollment[:RaceNone]),
           ]
         end,
       )
@@ -301,7 +301,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            Hud.util('legacy').race_none(enrollment[:RaceNone]),
+            HudHelper.util('legacy').race_none(enrollment[:RaceNone]),
           ]
         end,
       )
@@ -340,7 +340,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            Hud.util('legacy').ethnicity(enrollment[:Ethnicity]),
+            HudHelper.util('legacy').ethnicity(enrollment[:Ethnicity]),
           ]
         end,
       )
@@ -352,7 +352,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            Hud.util('legacy').ethnicity(enrollment[:Ethnicity]),
+            HudHelper.util('legacy').ethnicity(enrollment[:Ethnicity]),
           ]
         end,
       )
@@ -391,7 +391,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            Hud.util('legacy').gender(enrollment[:Gender]),
+            HudHelper.util('legacy').gender(enrollment[:Gender]),
           ]
         end,
       )
@@ -403,7 +403,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            Hud.util('legacy').gender(enrollment[:Gender]),
+            HudHelper.util('legacy').gender(enrollment[:Gender]),
           ]
         end,
       )

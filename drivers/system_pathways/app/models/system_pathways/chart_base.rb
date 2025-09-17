@@ -53,8 +53,8 @@ module SystemPathways::ChartBase
     end
 
     def long_project_type(project_type_brief)
-      number = Hud.util.project_type_number(project_type_brief)
-      Hud.util.project_type(number)
+      number = HudHelper.util.project_type_number(project_type_brief)
+      HudHelper.util.project_type(number)
     end
 
     def filtered_clients
@@ -79,7 +79,7 @@ module SystemPathways::ChartBase
       return node if node.in?(['Returns to Homelessness', 'Served by Homeless System'])
 
       available = report.class.available_project_types.map do |p_type|
-        Hud.util.project_type_brief(p_type)
+        HudHelper.util.project_type_brief(p_type)
       end + destination_lookup.keys + ph_projects.values + ['ES'] # combined ES
 
       available.detect { |m| m == node }
@@ -358,7 +358,7 @@ module SystemPathways::ChartBase
           merge(filtered_clients.where(destination_category => true)).
           distinct
       elsif node.in?(ph_projects.values)
-        to_project_type = Hud.util.project_type_number(ph_projects.invert[node])
+        to_project_type = HudHelper.util.project_type_number(ph_projects.invert[node])
         SystemPathways::Enrollment.where(project_type: to_project_type).
           where.not(days_to_move_in: nil).
           joins(:client).
@@ -371,7 +371,7 @@ module SystemPathways::ChartBase
           merge(filtered_clients.where.not(returned_project_type: nil)).
           distinct
       else
-        to_project_type = Hud.util.project_type_number(node)
+        to_project_type = HudHelper.util.project_type_number(node)
         SystemPathways::Enrollment.where(project_type: to_project_type).
           joins(:client).
           merge(filtered_clients).
@@ -394,19 +394,19 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= Hud.util.races(multi_racial: true)
+      @races ||= HudHelper.util.races(multi_racial: true)
     end
 
     private def ethnicities
-      @ethnicities ||= Hud.util.ethnicities
+      @ethnicities ||= HudHelper.util.ethnicities
     end
 
     private def race_ethnicity_combinations
-      @race_ethnicity_combinations ||= Hud.util.race_ethnicity_combinations
+      @race_ethnicity_combinations ||= HudHelper.util.race_ethnicity_combinations
     end
 
     private def veteran_statuses
-      @veteran_statuses ||= Hud.util.no_yes_reasons_for_missing_data_options
+      @veteran_statuses ||= HudHelper.util.no_yes_reasons_for_missing_data_options
     end
 
     private def chronic_at_entries
@@ -418,7 +418,7 @@ module SystemPathways::ChartBase
     end
 
     private def disabling_conditions
-      @disabling_conditions ||= Hud.util.no_yes_reasons_for_missing_data_options
+      @disabling_conditions ||= HudHelper.util.no_yes_reasons_for_missing_data_options
     end
 
     private def as_table(data, headers)
@@ -452,7 +452,7 @@ module SystemPathways::ChartBase
     end
 
     private def race_columns
-      @report.race_col_lookup.map { |k, hud_k| [k, Hud.util.race(hud_k)] }.to_h
+      @report.race_col_lookup.map { |k, hud_k| [k, HudHelper.util.race(hud_k)] }.to_h
     end
 
     private def known_individual_race_columns

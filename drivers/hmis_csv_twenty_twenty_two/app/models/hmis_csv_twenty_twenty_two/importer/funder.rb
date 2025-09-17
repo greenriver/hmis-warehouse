@@ -33,7 +33,7 @@ module HmisCsvTwentyTwentyTwo::Importer
         Funder: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').funding_sources.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('legacy').funding_sources.keys.map(&:to_s).freeze },
           },
         ],
         GrantID: [

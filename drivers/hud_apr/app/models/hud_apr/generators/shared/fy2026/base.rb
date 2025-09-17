@@ -229,8 +229,8 @@ module HudApr::Generators::Shared::Fy2026
           destination_subsidy_type = exit_record&.exit&.DestinationSubsidyType
           # Filter out invalid destinations
           # requires valid rental subsidy type, this is a fix for bad data that the TUP checks
-          destination = 99 if destination == 435 && ! destination_subsidy_type.in?(Hud.util('2026').rental_subsidy_types.keys)
-          destination = 99 unless Hud.util('2026').valid_destinations.key?(destination)
+          destination = 99 if destination == 435 && ! destination_subsidy_type.in?(HudHelper.util('2026').rental_subsidy_types.keys)
+          destination = 99 unless HudHelper.util('2026').valid_destinations.key?(destination)
 
           ce_hash = {}
           options = {
@@ -617,7 +617,7 @@ module HudApr::Generators::Shared::Fy2026
         merge(
           GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @report.coc_codes).
           or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
-          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: Hud.util('2026').cocs.keys)),
+          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudHelper.util('2026').cocs.keys)),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope

@@ -22,7 +22,7 @@ class ClientHistory
   # Limit to Residential Homeless programs
   def dates
     @dates.transform_values do |data|
-      data.select { |en| ::Hud.util.residential_project_type_ids.include?(en[:project_type]) }
+      data.select { |en| ::HudHelper.util.residential_project_type_ids.include?(en[:project_type]) }
     end
     @dates
   end
@@ -40,11 +40,11 @@ class ClientHistory
   end
 
   def organization_counts
-    dates.values.flatten.group_by { |en| Hud.util.project_type en[:organization_name] }.transform_values(&:count)
+    dates.values.flatten.group_by { |en| HudHelper.util.project_type en[:organization_name] }.transform_values(&:count)
   end
 
   def project_type_counts
-    dates.values.flatten.group_by { |en| Hud.util.project_type en[:project_type] }.transform_values(&:count)
+    dates.values.flatten.group_by { |en| HudHelper.util.project_type en[:project_type] }.transform_values(&:count)
   end
 
   def generate_service_history_pdf

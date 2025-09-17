@@ -33,7 +33,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       set_date_range
 
       # build hashes suitable for chartjs
-      @labels = Hud.util.homeless_type_titles.sort_by(&:first)
+      @labels = HudHelper.util.homeless_type_titles.sort_by(&:first)
       @data = setup_data_structure(start_date: @range.start)
       @first_time_client_ids = Set.new
     end
@@ -43,13 +43,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
       # fetch active client counts
       @client_enrollment_totals_by_type = @labels.map do |key, _|
-        project_type = Hud.util.residential_project_type_numbers_by_code[key]
+        project_type = HudHelper.util.residential_project_type_numbers_by_code[key]
         [project_type.first, enrollment_counts(project_type).count]
       end.to_h
 
       # fetch counts of new entries
       @client_entry_totals_by_type = @labels.map do |key, _|
-        project_type = Hud.util.residential_project_type_numbers_by_code[key]
+        project_type = HudHelper.util.residential_project_type_numbers_by_code[key]
         [project_type.first, entry_counts(project_type).count]
       end.to_h
 
@@ -57,7 +57,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # This has a side-effect of saving off the client ids for those who this is the first time in the
       # project type
       @buckets = @labels.map do |key, _|
-        project_type = Hud.util.residential_project_type_numbers_by_code[key]
+        project_type = HudHelper.util.residential_project_type_numbers_by_code[key]
         entries = entry_dates_by_client(project_type)
         [project_type.first, bucket_clients(entries)]
       end.to_h
@@ -70,7 +70,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # ensure that the counts are in the same order as the labels
       @labels.each do |project_type_sym, _|
         @buckets.each do |project_type, bucket|
-          project_type_key = ::Hud.util.project_type_brief(project_type).downcase.to_sym
+          project_type_key = ::HudHelper.util.project_type_brief(project_type).downcase.to_sym
           next unless project_type_sym == project_type_key
 
           bucket.each do |group_key, client_count|

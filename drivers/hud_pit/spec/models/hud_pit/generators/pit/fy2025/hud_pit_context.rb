@@ -27,7 +27,7 @@ RSpec.shared_context 'HUD pit context', shared_context: :metadata do
       coc_codes: ['MA-500'],
       enforce_one_year_range: false,
       require_service_during_range: false,
-      project_type_codes: Hud.util('2024').homeless_project_type_codes,
+      project_type_codes: HudHelper.util('2024').homeless_project_type_codes,
     }
   end
 

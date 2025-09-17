@@ -21,18 +21,18 @@ RSpec.describe Hud do
 
         it 'returns 2024 before October 1, 2025' do
           travel_to(production_cutoff - 1.day) do
-            expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2024')
+            expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2024')
           end
         end
 
         it 'returns 2026 on or after October 1, 2025' do
           aggregate_failures 'production cutoff dates' do
             travel_to(production_cutoff) do
-              expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+              expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
             end
 
             travel_to(production_cutoff + 1.day) do
-              expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+              expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
             end
           end
         end
@@ -46,18 +46,18 @@ RSpec.describe Hud do
 
         it 'returns 2024 before September 1, 2025' do
           travel_to(staging_cutoff - 1.day) do
-            expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2024')
+            expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2024')
           end
         end
 
         it 'returns 2026 on or after September 1, 2025' do
           aggregate_failures 'staging cutoff dates' do
             travel_to(staging_cutoff) do
-              expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+              expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
             end
 
             travel_to(staging_cutoff + 1.day) do
-              expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+              expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
             end
           end
         end
@@ -71,18 +71,18 @@ RSpec.describe Hud do
 
         it 'returns 2026 before September 1, 2025' do
           travel_to(staging_cutoff - 1.day) do
-            expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+            expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
           end
         end
 
         it 'returns 2026 on or after September 1, 2025' do
           aggregate_failures 'staging cutoff dates' do
             travel_to(staging_cutoff) do
-              expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+              expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
             end
 
             travel_to(staging_cutoff + 1.day) do
-              expect(Hud.hud_csv_version(force_recalculate: true)).to eq('2026')
+              expect(HudHelper.hud_csv_version(force_recalculate: true)).to eq('2026')
             end
           end
         end
@@ -92,16 +92,16 @@ RSpec.describe Hud do
     describe '#util' do
       it 'returns HudUtility2024 when version is 2024' do
         allow(Hud).to receive(:current_version).and_return('2024')
-        expect(Hud.util(force_recalculate: true)).to eq(HudUtility2024)
+        expect(HudHelper.util(force_recalculate: true)).to eq(HudUtility2024)
       end
 
       it 'returns HudUtility2026 when version is 2026' do
         allow(Hud).to receive(:current_version).and_return('2026')
-        expect(Hud.util(force_recalculate: true)).to eq(HudUtility2026)
+        expect(HudHelper.util(force_recalculate: true)).to eq(HudUtility2026)
       end
 
       it 'raises error for unknown versions' do
-        expect { Hud.util('2099') }.to raise_error(RuntimeError, /Unknown HUD utility version: 2099/)
+        expect { HudHelper.util('2099') }.to raise_error(RuntimeError, /Unknown HUD utility version: 2099/)
       end
     end
 
@@ -114,56 +114,56 @@ RSpec.describe Hud do
           aggregate_failures 'delegation to HudUtility2024 before cutoff' do
             travel_to(production_cutoff - 1.day) do
               # Verify we get the 2024 utility class
-              expect(Hud.util(force_recalculate: true)).to eq(HudUtility2024)
+              expect(HudHelper.util(force_recalculate: true)).to eq(HudUtility2024)
 
               # Test race method delegation
-              result = Hud.util(force_recalculate: true).race('AmIndAKNative')
+              result = HudHelper.util(force_recalculate: true).race('AmIndAKNative')
               expect(result).to eq('American Indian, Alaska Native, or Indigenous')
               expect(result).to eq(HudUtility2024.race('AmIndAKNative'))
 
               # Funding sources get special treatment
-              result = Hud.util(force_recalculate: true).funding_source('HUD: Rural Special NOFO', true)
+              result = HudHelper.util(force_recalculate: true).funding_source('HUD: Rural Special NOFO', true)
               expect(result).to eq(55)
-              expect(result).to eq(Hud.util('2024').funding_source('HUD: Rural Special NOFO', true))
-              expect(result).to eq(Hud.util('2026').funding_source('HUD: Rural Special NOFO', true))
+              expect(result).to eq(HudHelper.util('2024').funding_source('HUD: Rural Special NOFO', true))
+              expect(result).to eq(HudHelper.util('2026').funding_source('HUD: Rural Special NOFO', true))
 
-              result = Hud.util(force_recalculate: true).funding_sources
-              expect(result).to eq(Hud.util('2024').funding_sources)
-              expect(result).to_not eq(Hud.util('2026').funding_sources)
+              result = HudHelper.util(force_recalculate: true).funding_sources
+              expect(result).to eq(HudHelper.util('2024').funding_sources)
+              expect(result).to_not eq(HudHelper.util('2026').funding_sources)
 
               # 2024 doesn't have funding_sources_current
-              expect { Hud.util('2024').funding_sources_current }.to raise_error(NoMethodError)
-              expect { Hud.util(force_recalculate: true).funding_sources_current }.to raise_error(NoMethodError)
+              expect { HudHelper.util('2024').funding_sources_current }.to raise_error(NoMethodError)
+              expect { HudHelper.util(force_recalculate: true).funding_sources_current }.to raise_error(NoMethodError)
             end
           end
 
           aggregate_failures 'delegation to HudUtility2026 after cutoff' do
             travel_to(production_cutoff) do
               # Verify we get the 2026 utility class
-              expect(Hud.util(force_recalculate: true)).to eq(HudUtility2026)
+              expect(HudHelper.util(force_recalculate: true)).to eq(HudUtility2026)
 
               # Test race method delegation
-              result = Hud.util(force_recalculate: true).race('AmIndAKNative')
+              result = HudHelper.util(force_recalculate: true).race('AmIndAKNative')
               expect(result).to eq('American Indian, Alaska Native, or Indigenous')
               expect(result).to eq(HudUtility2026.race('AmIndAKNative'))
 
               # Funding sources get special treatment
-              result = Hud.util(force_recalculate: true).funding_source('HUD: Rural Special NOFO', true)
+              result = HudHelper.util(force_recalculate: true).funding_source('HUD: Rural Special NOFO', true)
               expect(result).to eq(55)
-              expect(result).to eq(Hud.util('2024').funding_source('HUD: Rural Special NOFO', true))
-              expect(result).to eq(Hud.util('2026').funding_source('HUD: Rural Special NOFO', true))
+              expect(result).to eq(HudHelper.util('2024').funding_source('HUD: Rural Special NOFO', true))
+              expect(result).to eq(HudHelper.util('2026').funding_source('HUD: Rural Special NOFO', true))
 
-              result = Hud.util(force_recalculate: true).funding_sources
-              expect(result).to_not eq(Hud.util('2024').funding_sources)
-              expect(result).to eq(Hud.util('2026').funding_sources)
+              result = HudHelper.util(force_recalculate: true).funding_sources
+              expect(result).to_not eq(HudHelper.util('2024').funding_sources)
+              expect(result).to eq(HudHelper.util('2026').funding_sources)
 
               # 2026 has funding_sources_current method
-              expect(Hud.util('2026')).to respond_to(:funding_sources_current)
-              expect(Hud.util(force_recalculate: true)).to respond_to(:funding_sources_current)
-              expect(Hud.util(force_recalculate: true).funding_sources_current.keys).to include(56) # added in 2026
-              expect(Hud.util('2024').funding_sources.keys).to_not include(56)
-              expect(Hud.util('2026').funding_sources_current.keys).to include(56)
-              expect(Hud.util('2026').funding_sources.keys).to include(56)
+              expect(HudHelper.util('2026')).to respond_to(:funding_sources_current)
+              expect(HudHelper.util(force_recalculate: true)).to respond_to(:funding_sources_current)
+              expect(HudHelper.util(force_recalculate: true).funding_sources_current.keys).to include(56) # added in 2026
+              expect(HudHelper.util('2024').funding_sources.keys).to_not include(56)
+              expect(HudHelper.util('2026').funding_sources_current.keys).to include(56)
+              expect(HudHelper.util('2026').funding_sources.keys).to include(56)
             end
           end
         end
@@ -171,21 +171,21 @@ RSpec.describe Hud do
 
       it 'passes through keyword arguments correctly' do
         # Test with raise_on_missing: true - should raise error for invalid input
-        expect { Hud.util(force_recalculate: true).rrh_sub_type_brief('-AmIndAKNative-', raise_on_missing: true) }.to raise_error(RuntimeError)
+        expect { HudHelper.util(force_recalculate: true).rrh_sub_type_brief('-AmIndAKNative-', raise_on_missing: true) }.to raise_error(RuntimeError)
 
         # Test with raise_on_missing: false - should return original input for invalid input without raising
-        result = Hud.util(force_recalculate: true).rrh_sub_type_brief('-AmIndAKNative-', raise_on_missing: false)
+        result = HudHelper.util(force_recalculate: true).rrh_sub_type_brief('-AmIndAKNative-', raise_on_missing: false)
         expect(result).to eq('-AmIndAKNative-')
 
         # Test with valid input - should return translated value
-        result = Hud.util(force_recalculate: true).rrh_sub_type_brief(1, raise_on_missing: false)
+        result = HudHelper.util(force_recalculate: true).rrh_sub_type_brief(1, raise_on_missing: false)
         expect(result).to eq('SSO')
       end
     end
 
     describe 'method not found handling' do
       it 'raises NoMethodError when method does not exist on target utility' do
-        expect { Hud.util(force_recalculate: true).nonexistent_method }.to raise_error(NoMethodError)
+        expect { HudHelper.util(force_recalculate: true).nonexistent_method }.to raise_error(NoMethodError)
       end
     end
   end

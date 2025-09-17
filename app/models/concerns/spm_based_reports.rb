@@ -10,11 +10,11 @@ module SpmBasedReports
   extend ActiveSupport::Concern
   included do
     def spm_project_types
-      Hud.util.spm_project_type_codes
+      HudHelper.util.spm_project_type_codes
     end
 
     def project_type_ids
-      spm_project_types.map { |s| Hud.util.performance_reporting[s.to_sym] }.flatten
+      spm_project_types.map { |s| HudHelper.util.performance_reporting[s.to_sym] }.flatten
     end
 
     def project_options_for_select(user)

@@ -312,7 +312,7 @@ module GrdaWarehouse::Tasks
       SQL
       # return an array of ID pairs
       results.
-        select { |r| ::Hud.util.valid_social?(r['ssn']) }.
+        select { |r| ::HudHelper.util.valid_social?(r['ssn']) }.
         map { |r| [r['destination_one_id'], r['destination_two_id']] }.
         uniq
     end
@@ -449,7 +449,7 @@ module GrdaWarehouse::Tasks
       SQL
       # return an array of ID pairs
       results.
-        select { |r| ::Hud.util.valid_social?(r['ssn']) }.
+        select { |r| ::HudHelper.util.valid_social?(r['ssn']) }.
         map { |r| [r['destination_client_id'], r['source_client_id']] }.
         uniq
     end

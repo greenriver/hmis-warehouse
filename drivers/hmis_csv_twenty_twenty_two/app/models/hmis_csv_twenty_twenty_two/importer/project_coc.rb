@@ -36,7 +36,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: Hud.util('legacy').cocs.keys.freeze },
+            arguments: { valid_options: HudHelper.util('legacy').cocs.keys.freeze },
           },
         ],
         Geocode: [

@@ -37,11 +37,11 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionFive
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      es_sh_so_projects = Hud.util('2024').performance_reporting[:es] + Hud.util('2024').performance_reporting[:sh] + Hud.util('2024').performance_reporting[:so]
-      th_projects = Hud.util('2024').performance_reporting[:th]
-      ph_projects = Hud.util('2024').performance_reporting[:ph]
-      ce_projects = Hud.util('2024').performance_reporting[:ce]
-      sso_ds_hp_projects = Hud.util('2024').performance_reporting[:services_only] + Hud.util('2024').performance_reporting[:day_shelter] + Hud.util('2024').performance_reporting[:prevention]
+      es_sh_so_projects = HudHelper.util('2024').performance_reporting[:es] + HudHelper.util('2024').performance_reporting[:sh] + HudHelper.util('2024').performance_reporting[:so]
+      th_projects = HudHelper.util('2024').performance_reporting[:th]
+      ph_projects = HudHelper.util('2024').performance_reporting[:ph]
+      ce_projects = HudHelper.util('2024').performance_reporting[:ce]
+      sso_ds_hp_projects = HudHelper.util('2024').performance_reporting[:services_only] + HudHelper.util('2024').performance_reporting[:day_shelter] + HudHelper.util('2024').performance_reporting[:prevention]
       report_projects = es_sh_so_projects + th_projects + ph_projects + ce_projects + sso_ds_hp_projects
 
       adults_and_hohs = universe.members.where(engaged_clause).where(
@@ -77,7 +77,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionFive
     end
 
     private def es_sh_so(table_name, adults_and_hohs)
-      es_sh_so_projects = Hud.util('2024').performance_reporting[:es] + Hud.util('2024').performance_reporting[:sh] + Hud.util('2024').performance_reporting[:so]
+      es_sh_so_projects = HudHelper.util('2024').performance_reporting[:es] + HudHelper.util('2024').performance_reporting[:sh] + HudHelper.util('2024').performance_reporting[:so]
       es_sh_so = adults_and_hohs.where(a_t[:project_type].in(es_sh_so_projects))
 
       # count

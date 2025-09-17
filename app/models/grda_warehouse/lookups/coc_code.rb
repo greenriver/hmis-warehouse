@@ -51,7 +51,7 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   def self.maintain!
     existing = all.index_by(&:coc_code)
     batch = []
-    Hud.util.cocs.each do |code, name|
+    HudHelper.util.cocs.each do |code, name|
       coc = existing[code] || new
       coc.assign_attributes(coc_code: code, official_name: name)
       batch << coc if coc.changed?

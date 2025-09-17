@@ -187,7 +187,7 @@ module
     # Homeless project types that overlap chosen project types
     # @return [Array] Array of homeless project type codes
     private def homeless_project_type_codes
-      @homeless_project_type_codes ||= Hud.util.homeless_project_type_numbers & filter.project_type_ids
+      @homeless_project_type_codes ||= HudHelper.util.homeless_project_type_numbers & filter.project_type_ids
     end
 
     # Initializes the data structure for tracking outcome clients
@@ -213,11 +213,11 @@ module
     # @param coc_code [Symbol] The CoC code to update for (defaults to base_count_sym)
     private def set_outcome_exit_client_counts(clients, client_id, destination, coc_code = base_count_sym)
       clients[:exit_counted][coc_code] << client_id
-      clients[:exit_homeless][coc_code] << client_id if Hud.util.homeless_destinations.include?(destination)
-      clients[:exit_institutional][coc_code] << client_id if Hud.util.institutional_destinations.include?(destination)
-      clients[:exit_temporary][coc_code] << client_id if Hud.util.temporary_destinations.include?(destination)
-      clients[:exit_permanent][coc_code] << client_id if Hud.util.permanent_destinations.include?(destination)
-      clients[:exit_other][coc_code] << client_id if Hud.util.other_destinations.include?(destination)
+      clients[:exit_homeless][coc_code] << client_id if HudHelper.util.homeless_destinations.include?(destination)
+      clients[:exit_institutional][coc_code] << client_id if HudHelper.util.institutional_destinations.include?(destination)
+      clients[:exit_temporary][coc_code] << client_id if HudHelper.util.temporary_destinations.include?(destination)
+      clients[:exit_permanent][coc_code] << client_id if HudHelper.util.permanent_destinations.include?(destination)
+      clients[:exit_other][coc_code] << client_id if HudHelper.util.other_destinations.include?(destination)
     end
 
     # Updates the counts of outcome clients for returns

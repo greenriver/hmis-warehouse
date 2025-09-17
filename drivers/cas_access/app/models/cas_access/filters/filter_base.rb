@@ -165,7 +165,7 @@ module CasAccess::Filters
     end
 
     def gender_options_for_select
-      Hud.util.gender_field_name_label.transform_keys { |k| k.to_s.underscore.to_sym }.except(:gender_none).invert.freeze
+      HudHelper.util.gender_field_name_label.transform_keys { |k| k.to_s.underscore.to_sym }.except(:gender_none).invert.freeze
     end
 
     def age_range_options_for_select
@@ -183,7 +183,7 @@ module CasAccess::Filters
     end
 
     def race_options_for_select
-      Hud.util.races.transform_keys { |k| k.underscore.to_sym }.except(:race_none).invert.freeze
+      HudHelper.util.races.transform_keys { |k| k.underscore.to_sym }.except(:race_none).invert.freeze
     end
 
     def disability_options_for_select

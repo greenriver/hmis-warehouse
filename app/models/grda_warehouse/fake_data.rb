@@ -58,9 +58,9 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       CoCCode: ->(_value) do
         rc = GrdaWarehouse::Config.relevant_state_codes.first
         if rc
-          Hud.util.cocs.keys.select { |c| c.starts_with?(rc) }.sample
+          HudHelper.util.cocs.keys.select { |c| c.starts_with?(rc) }.sample
         else
-          Hud.util.cocs.keys.sample
+          HudHelper.util.cocs.keys.sample
         end
       end,
       ProjectName: ->(_value) { fake_location },

@@ -31,21 +31,21 @@
             %td= project&.name(current_user)
             %td.date-cell= disability.enrollment.EntryDate
             %td= disability.InformationDate
-            %td= Hud.util.disability_type disability.DisabilityType
+            %td= HudHelper.util.disability_type disability.DisabilityType
             %td
               - if disability.DisabilityType == 10
-                = Hud.util.disability_response disability.DisabilityResponse
+                = HudHelper.util.disability_response disability.DisabilityResponse
               - else
                 - if disability.DisabilityType == 8 && !can_view_hiv_status?
                   %i.light redacted
                 - else
-                  = Hud.util.no_yes_reasons_for_missing_data disability.DisabilityResponse
+                  = HudHelper.util.no_yes_reasons_for_missing_data disability.DisabilityResponse
             %td
               - if disability.DisabilityType == 8 && !can_view_hiv_status?
                 %i.light redacted
               - else
-                = Hud.util.no_yes_reasons_for_missing_data(disability.IndefiniteAndImpairs)
-            %td= Hud.util.data_collection_stage(disability.DataCollectionStage)
+                = HudHelper.util.no_yes_reasons_for_missing_data(disability.IndefiniteAndImpairs)
+            %td= HudHelper.util.data_collection_stage(disability.DataCollectionStage)
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 - if disability.DisabilityType == 8 && !can_view_hiv_status?

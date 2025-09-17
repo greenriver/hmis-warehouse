@@ -38,7 +38,7 @@ module CePerformance
     end
 
     def available_cocs
-      ::Hud.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).map do |code, name|
+      ::HudHelper.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).map do |code, name|
         [
           "#{name} (#{code})",
           code,
@@ -47,7 +47,7 @@ module CePerformance
     end
 
     def coc_name
-      name = ::Hud.util.coc_name(coc_code)
+      name = ::HudHelper.util.coc_name(coc_code)
       return "#{name} (#{coc_code})" unless name == coc_code
 
       coc_code

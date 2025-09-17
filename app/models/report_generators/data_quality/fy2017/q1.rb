@@ -229,7 +229,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             client_id,
             @client_personal_ids[client_id].join(', '),
-            Hud.util('legacy').no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
+            HudHelper.util('legacy').no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age],
           ]
         end,

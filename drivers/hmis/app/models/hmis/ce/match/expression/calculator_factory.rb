@@ -31,7 +31,7 @@ module Hmis::Ce::Match::Expression
         ->(identifier) do
           return nil if identifier.nil?
 
-          Hud.util.hmis_project_type_key(identifier, true)
+          HudHelper.util.hmis_project_type_key(identifier, true)
         end,
       )
       calculator.add_function(

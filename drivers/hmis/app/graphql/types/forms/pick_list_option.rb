@@ -50,7 +50,7 @@ module Types
           # TODO: replace with call to HudUtility once project type groupings are moved there.
           # FIXME: internally our definition of "residential" includes 4 (SO) and 9 (OPH) which
           # are not valid for Residential project affiliations.
-          where(project_type: Hud.util.residential_project_type_ids).
+          where(project_type: HudHelper.util.residential_project_type_ids).
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
@@ -165,7 +165,7 @@ module Types
           map(&:to_pick_list_option)
       when 'OTHER_FUNDERS'
         Hmis::Hud::Funder.where(data_source_id: user.hmis_data_source_id).
-          where(Funder: Hud.util.local_or_other_funding_source).where.not(OtherFunder: nil).
+          where(Funder: HudHelper.util.local_or_other_funding_source).where.not(OtherFunder: nil).
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
           end
@@ -313,9 +313,9 @@ module Types
 
     def self.coc_picklist(selected_project)
       available_codes = if selected_project.present?
-        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::Hud.util.cocs[code] || code] }
+        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudHelper.util.cocs[code] || code] }
       else
-        ::Hud.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes)
+        ::HudHelper.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes)
       end
 
       available_codes.sort.map do |code, name|
@@ -442,16 +442,16 @@ module Types
       end
 
       [
-        [Hud.util::SITUATION_HOMELESS_RANGE, :HOMELESS, 'Homeless Situations'],
-        [Hud.util::SITUATION_INSTITUTIONAL_RANGE, :INSTITUTIONAL, 'Institutional Situations'],
-        [Hud.util::SITUATION_TEMPORARY_RANGE, :TEMPORARY, 'Temporary Housing Situations'],
-        [Hud.util::SITUATION_PERMANENT_RANGE, :PERMANENT, 'Permanent Housing Situations'],
-        [Hud.util::SITUATION_OTHER_RANGE, :OTHER, 'Other'],
+        [HudHelper.util::SITUATION_HOMELESS_RANGE, :HOMELESS, 'Homeless Situations'],
+        [HudHelper.util::SITUATION_INSTITUTIONAL_RANGE, :INSTITUTIONAL, 'Institutional Situations'],
+        [HudHelper.util::SITUATION_TEMPORARY_RANGE, :TEMPORARY, 'Temporary Housing Situations'],
+        [HudHelper.util::SITUATION_PERMANENT_RANGE, :PERMANENT, 'Permanent Housing Situations'],
+        [HudHelper.util::SITUATION_OTHER_RANGE, :OTHER, 'Other'],
       ].map do |range, group_code, group_label|
         enum_value_definitions.select { |e| range.include? e.value }.map do |enum|
           {
             code: enum.graphql_name,
-            label: ::Hud.util.living_situation(enum.value),
+            label: ::HudHelper.util.living_situation(enum.value),
             group_code: group_code,
             group_label: group_label,
           }

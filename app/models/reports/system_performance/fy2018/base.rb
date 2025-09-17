@@ -131,7 +131,7 @@ module Reports::SystemPerformance::Fy2018
 
     def ethnicity options
       if options['ethnicity_code'].present?
-        ethnicity = Hud.util('legacy').ethnicity(options['ethnicity_code'].to_i)
+        ethnicity = HudHelper.util('legacy').ethnicity(options['ethnicity_code'].to_i)
         return "; Ethnicity: #{ethnicity}"
       else
         ''

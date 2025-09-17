@@ -41,14 +41,14 @@ module HmisExternalApis::AcHmis
 
     def self.mci_races(client)
       mci_races = []
-      Hud.util('legacy').races.keys.map(&:to_sym).each do |hud_race|
+      HudHelper.util('legacy').races.keys.map(&:to_sym).each do |hud_race|
         mci_races.push(HUD_RACE_TO_MCI_RACE[hud_race]) if client.send(hud_race) == 1
       end
       mci_races.compact.map { |s| "#{s}-," }.join('')
     end
 
     def self.hud_races(mci_race_codes)
-      race_fields = Hud.util('legacy').races.keys.map { |k| [k.to_sym, nil] }.to_h
+      race_fields = HudHelper.util('legacy').races.keys.map { |k| [k.to_sym, nil] }.to_h
 
       mci_race_codes.split('- ,').each do |mci_race|
         race_fields[MCI_RACE_TO_HUD_RACE[mci_race]] = 1 if MCI_RACE_TO_HUD_RACE.key?(mci_race)
@@ -75,7 +75,7 @@ module HmisExternalApis::AcHmis
     end
 
     def self.hud_gender_from_text(mci_gender_text)
-      gender_fields = Hud.util('legacy').gender_fields.map { |k| [k, nil] }.to_h
+      gender_fields = HudHelper.util('legacy').gender_fields.map { |k| [k, nil] }.to_h
       gender_fields[:Female] = 1 if mci_gender_text == 'Female'
       gender_fields[:Male] = 1 if mci_gender_text == 'Male'
       gender_fields

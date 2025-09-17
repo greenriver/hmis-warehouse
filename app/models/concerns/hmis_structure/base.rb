@@ -39,11 +39,11 @@ module HmisStructure::Base
     # Set the default version
     # NOTE: this needs to be updated with each FY change
     def hud_csv_version
-      Hud.hud_csv_version
+      HudHelper.hud_csv_version
     end
 
     def current_hud_utility
-      Hud.current_hud_utility
+      HudHelper.util
     end
 
     # default name for a CSV file

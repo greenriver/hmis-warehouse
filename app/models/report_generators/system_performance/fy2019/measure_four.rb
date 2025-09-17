@@ -9,13 +9,13 @@ module ReportGenerators::SystemPerformance::Fy2019
     LOOKBACK_STOP_DATE = '2012-10-01'
 
     # PH = [3,9,10,13]
-    PH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
+    PH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
+    TH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = Hud.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
+    SH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
 
     FUNDING_SOURCES = [2, 3, 4, 5, 43, 44]
 

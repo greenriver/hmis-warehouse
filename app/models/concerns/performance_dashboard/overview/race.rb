@@ -10,13 +10,13 @@ module PerformanceDashboard::Overview::Race
   extend ActiveSupport::Concern
 
   private def race_buckets
-    Hud.util.races.keys + ['Multiple']
+    HudHelper.util.races.keys + ['Multiple']
   end
 
   def race_title(key)
     return 'Multi-Racial' if key == 'Multiple'
 
-    Hud.util.race(key)
+    HudHelper.util.race(key)
   end
 
   def race_bucket_titles

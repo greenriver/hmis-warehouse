@@ -314,7 +314,7 @@ module HudApr::Generators::Shared::Fy2024
       move_in_field = a_t[:approximate_time_to_move_in]
       # PSH/RRH w/ move in date
       # OR project type 7 (other) with Funder 35 (Pay for Success)
-      move_in_projects = Hud.util('2024').residential_project_type_numbers_by_code[:ph]
+      move_in_projects = HudHelper.util('2024').residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).and(a_t[:pay_for_success].eq(false)).
         or(a_t[:project_type].in(move_in_projects).or(a_t[:pay_for_success].eq(true)).and(acase(move_in_date_condition, elsewise: a_t[:adjusted_move_in_date]).not_eq(nil)).and(a_t[:adjusted_move_in_date].lteq(@report.end_date)))
       lengths = lengths(field: move_in_field)

@@ -17,7 +17,7 @@
             %td= hmis_participation.HMISParticipationID
             %td= hmis_participation.HMISParticipationStatusStartDate
             %td= hmis_participation.HMISParticipationStatusEndDate
-            %td= Hud.util.hmis_participation_type(hmis_participation.HMISParticipationType)
+            %td= HudHelper.util.hmis_participation_type(hmis_participation.HMISParticipationType)
             %td
               = render 'add_override', data_source_id: hmis_participation.data_source.id, file_type: 'HMISParticipation.csv', hmis_value: hmis_participation.HMISParticipationID
             %td

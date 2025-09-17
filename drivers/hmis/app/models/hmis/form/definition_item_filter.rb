@@ -118,7 +118,7 @@ class Hmis::Form::DefinitionItemFilter
     when 'projectFunders'
       project_funders.map { |f| f.funder&.to_i }.compact_blank
     when 'projectFunderComponents'
-      project_funders.map { |f| Hud.util.funder_component(f.funder&.to_i) }.compact_blank
+      project_funders.map { |f| HudHelper.util.funder_component(f.funder&.to_i) }.compact_blank
     when 'projectOtherFunders'
       # ignore case for Funder.OtherFunder value which is a free text field
       project_funders.map(&:other_funder).compact.map(&:strip).map(&:downcase).compact_blank

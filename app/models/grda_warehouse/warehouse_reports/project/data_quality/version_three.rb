@@ -222,21 +222,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end.uniq
       geography_types = projects.flat_map do |project|
         project.geographies.map do |geography|
-          ::Hud.util('legacy').geography_type(geography.GeographyType)
+          ::HudHelper.util('legacy').geography_type(geography.GeographyType)
         end
       end.uniq
       housing_types = projects.flat_map do |project|
-        ::Hud.util('legacy').housing_type(project.HousingType)
+        ::HudHelper.util('legacy').housing_type(project.HousingType)
       end.uniq
       information_dates = projects.flat_map do |project|
         project.inventories.map(&:InformationDate)
       end.uniq
       start_dates = projects.map(&:OperatingStartDate).uniq
       coc_program_components = projects.map do |project|
-        ::Hud.util('legacy').project_type(project.ProjectType)
+        ::HudHelper.util('legacy').project_type(project.ProjectType)
       end
       target_populations = projects.map do |project|
-        ::Hud.util('legacy').target_population(project.TargetPopulation) || nil
+        ::HudHelper.util('legacy').target_population(project.TargetPopulation) || nil
       end.compact
 
       monitoring_ranges = []
@@ -991,7 +991,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       hohs.each do |hoh|
         dest = hoh[:destination].to_i
-        hoh[:destination_text] = "#{dest}: #{Hud.util('legacy').destination(dest)}" if dest != 0
+        hoh[:destination_text] = "#{dest}: #{HudHelper.util('legacy').destination(dest)}" if dest != 0
 
         hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]] || 'Before report start'
         hoh.delete(:enrollment_id)
@@ -1017,7 +1017,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       hohs.each do |hoh|
         dest = hoh[:destination].to_i
-        hoh[:destination_text] = "#{dest}: #{Hud.util('legacy').destination(dest)}" if dest != 0
+        hoh[:destination_text] = "#{dest}: #{HudHelper.util('legacy').destination(dest)}" if dest != 0
         hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]] || 'Before report start'
         hoh.delete(:enrollment_id)
       end
@@ -1100,7 +1100,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           dis[:disability_response].to_i == value
         end.map do |dis|
           base_colums_for_support(enrollment) + [
-            Hud.util('legacy').disability_type(dis[:disability_type]),
+            HudHelper.util('legacy').disability_type(dis[:disability_type]),
             dis[:disability_response],
           ]
         end
@@ -1712,7 +1712,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           m[:first_date_in_program],
           m[:last_date_in_program],
           m[:most_recent_service],
-          m[:destination].present? ? "#{m[:destination]}: #{Hud.util('legacy').destination(m[:destination].to_i)}" : '',
+          m[:destination].present? ? "#{m[:destination]}: #{HudHelper.util('legacy').destination(m[:destination].to_i)}" : '',
         ]
       end
     end
@@ -2233,7 +2233,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollments[client_id].each do |enrollment|
           # this fixes a bug in bad staging data
           ph_destinations[enrollment[:project_name]] ||= Set.new
-          ph_destinations[enrollment[:project_name]] << client_id if Hud.util('legacy').permanent_destinations.include?(enrollment[:destination].to_i)
+          ph_destinations[enrollment[:project_name]] << client_id if HudHelper.util('legacy').permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
       ph_destinations_percentage = begin
