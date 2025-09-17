@@ -155,6 +155,18 @@ RSpec.configure do |config|
   config.prepend_before(:each, type: :system) do
     # Use JS driver always
     driven_by E2eTests::DRIVER_NAME
+
+    # Debug initial browser state
+    Rails.logger.info '=== Starting new system test ==='
+    Rails.logger.info "Driver name: #{E2eTests::DRIVER_NAME}"
+    Rails.logger.info "Current session: #{Capybara.current_session.inspect}"
+    Rails.logger.info "Current driver: #{Capybara.current_session.driver.inspect}"
+
+    begin
+      Rails.logger.info "Browser object: #{Capybara.current_session.driver.browser.inspect}" if Capybara.current_session.driver.respond_to?(:browser)
+    rescue StandardError => e
+      Rails.logger.warn "Could not inspect browser: #{e.message}"
+    end
   end
 
   # Make urls in mailers contain the correct server host.
@@ -179,7 +191,7 @@ RSpec.configure do |config|
         Rails.logger.warn "System test failed with browser error (attempt #{retry_count}/#{max_retries + 1}): #{e.message}"
 
         # Force complete browser restart
-        RSpec.force_browser_restart
+        force_browser_restart
 
         sleep(3) # Longer pause before retry
         retry
@@ -193,34 +205,87 @@ RSpec.configure do |config|
   end
 
   # Helper method to force complete browser restart
-  def self.force_browser_restart
+  def force_browser_restart
     Rails.logger.warn 'Forcing complete browser restart'
+
+    # Debug current browser state
+    begin
+      Rails.logger.info "Current session: #{Capybara.current_session.inspect}"
+      Rails.logger.info "Current driver: #{Capybara.current_session.driver.inspect}"
+      Rails.logger.info "Browser object: #{Capybara.current_session.driver.browser.inspect}" if Capybara.current_session.driver.respond_to?(:browser)
+    rescue StandardError => e
+      Rails.logger.warn "Could not inspect current state: #{e.message}"
+    end
 
     begin
       # Try to quit the current driver cleanly
-      Capybara.current_session.driver.quit if Capybara.current_session&.driver.respond_to?(:quit)
+      if Capybara.current_session&.driver.respond_to?(:quit)
+        Rails.logger.info 'Attempting to quit current driver'
+        Capybara.current_session.driver.quit
+        Rails.logger.info 'Driver quit successfully'
+      end
     rescue StandardError => e
       Rails.logger.warn "Could not quit driver cleanly: #{e.message}"
     end
 
     begin
       # Clear all sessions
+      Rails.logger.info 'Attempting to reset sessions'
       Capybara.reset_sessions!
+      Rails.logger.info 'Sessions reset successfully'
     rescue StandardError => e
       Rails.logger.warn "Could not reset sessions: #{e.message}"
     end
 
     # Force garbage collection to clean up dead objects
+    Rails.logger.info 'Running garbage collection'
     GC.start
 
     # Recreate the session by visiting a simple page
     begin
+      Rails.logger.info 'Attempting to create new browser session'
       # This will force creation of a new browser instance
-      Capybara.visit('about:blank')
+      visit('about:blank')
       Rails.logger.info 'Successfully restarted browser'
+
+      # Debug new browser state
+      Rails.logger.info "New session: #{Capybara.current_session.inspect}"
+      Rails.logger.info "New driver: #{Capybara.current_session.driver.inspect}"
+      Rails.logger.info "New browser: #{Capybara.current_session.driver.browser.inspect}" if Capybara.current_session.driver.respond_to?(:browser)
     rescue StandardError => e
       Rails.logger.error "Failed to restart browser: #{e.message}"
-      raise
+      Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+
+      # Last resort: try to completely reinitialize Capybara
+      Rails.logger.warn 'Attempting last resort: complete Capybara reinitialization'
+      begin
+        # Force re-registration of the driver
+        Capybara.register_driver(E2eTests::DRIVER_NAME) do |app|
+          ::Capybara::Cuprite::Driver.new(
+            app,
+            **{
+              extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"],
+              window_size: [1200, 1600],
+              browser_options: { 'no-sandbox' => nil },
+              headless: ENV.fetch('CI', 'true') == 'true',
+              js_errors: true,
+              timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
+              process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
+              pending_connection_errors: false,
+            }.merge(E2eTests::RemoteChrome.options),
+          )
+        end
+
+        # Force switch to the driver
+        driven_by E2eTests::DRIVER_NAME
+
+        # Try visiting a simple page again
+        visit('about:blank')
+        Rails.logger.info 'Successfully recovered with complete reinitialization'
+      rescue StandardError => recovery_error
+        Rails.logger.error "Complete recovery failed: #{recovery_error.message}"
+        raise e # Raise the original error
+      end
     end
   end
 
