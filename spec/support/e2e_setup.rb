@@ -168,21 +168,20 @@ RSpec.configure do |config|
 
     begin
       ex.run
-    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError, NoMethodError => e
+      # Check if this is a browser-related NoMethodError
+      if e.is_a?(NoMethodError) && !e.message.include?('reset')
+        raise # Re-raise if it's not a browser reset issue
+      end
+
       retry_count += 1
       if retry_count <= max_retries
         Rails.logger.warn "System test failed with browser error (attempt #{retry_count}/#{max_retries + 1}): #{e.message}"
 
-        # Try to safely reset browser state
-        begin
-          Capybara.reset_sessions!
-        rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError
-          Rails.logger.warn 'Could not reset sessions, browser may be completely dead'
-          # Force a new browser instance
-          Capybara.current_session.driver.quit if Capybara.current_session.driver.respond_to?(:quit)
-        end
+        # Force complete browser restart
+        RSpec.force_browser_restart
 
-        sleep(2) # Brief pause before retry
+        sleep(3) # Longer pause before retry
         retry
       else
         Rails.logger.error "System test failed after #{max_retries} retries: #{e.message}"
@@ -193,13 +192,45 @@ RSpec.configure do |config|
     end
   end
 
+  # Helper method to force complete browser restart
+  def self.force_browser_restart
+    Rails.logger.warn 'Forcing complete browser restart'
+
+    begin
+      # Try to quit the current driver cleanly
+      Capybara.current_session.driver.quit if Capybara.current_session&.driver.respond_to?(:quit)
+    rescue StandardError => e
+      Rails.logger.warn "Could not quit driver cleanly: #{e.message}"
+    end
+
+    begin
+      # Clear all sessions
+      Capybara.reset_sessions!
+    rescue StandardError => e
+      Rails.logger.warn "Could not reset sessions: #{e.message}"
+    end
+
+    # Force garbage collection to clean up dead objects
+    GC.start
+
+    # Recreate the session by visiting a simple page
+    begin
+      # This will force creation of a new browser instance
+      Capybara.visit('about:blank')
+      Rails.logger.info 'Successfully restarted browser'
+    rescue StandardError => e
+      Rails.logger.error "Failed to restart browser: #{e.message}"
+      raise
+    end
+  end
+
   # Add better cleanup handling
   config.after(:each, type: :system) do |example|
     # Take screenshot on failure for debugging
     if example.exception
       begin
         page.save_screenshot # rubocop:disable Lint/Debugger
-      rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+      rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError, NoMethodError => e
         Rails.logger.warn "Could not take screenshot due to browser error: #{e.message}"
       end
     end
@@ -207,10 +238,10 @@ RSpec.configure do |config|
     # Safe cleanup that handles dead browsers
     begin
       Capybara.reset_sessions!
-    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
-      Rails.logger.warn "Browser cleanup failed, forcing driver quit: #{e.message}"
+    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError, NoMethodError => e
+      Rails.logger.warn "Browser cleanup failed: #{e.message}"
       begin
-        Capybara.current_session.driver.quit if Capybara.current_session.driver.respond_to?(:quit)
+        Capybara.current_session.driver.quit if Capybara.current_session&.driver.respond_to?(:quit)
       rescue StandardError => cleanup_error
         Rails.logger.warn "Could not quit driver cleanly: #{cleanup_error.message}"
       end
