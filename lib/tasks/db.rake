@@ -14,6 +14,8 @@ def fix_pg_dump_restrict_commands
     'cas_structure.sql',
   ].each do |file_name|
     structure_file = Rails.root.join('db', file_name)
+    next unless File.exist?(structure_file)
+
     schema = File.read(structure_file)
     next unless schema.match?(/^\\restrict|^\\unrestrict/)
 
