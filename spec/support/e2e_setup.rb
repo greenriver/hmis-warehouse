@@ -153,11 +153,30 @@ RSpec.configure do |config|
   config.include_context 'SystemSpecHelper', type: :system
 
   config.prepend_before(:each, type: :system) do
+    # Debug Chrome connection state BEFORE setting up driver
+    Rails.logger.info '=== Starting new system test ==='
+    Rails.logger.info "CHROME_URL: #{ENV['CHROME_URL']}"
+    Rails.logger.info "Remote Chrome connected: #{E2eTests::RemoteChrome.connected?}"
+    Rails.logger.info "Remote Chrome options: #{E2eTests::RemoteChrome.options}"
+
+    # Test Chrome connection manually
+    begin
+      if E2eTests::RemoteChrome.url
+        require 'net/http'
+        uri = URI("#{E2eTests::RemoteChrome.url}/json/version")
+        response = Net::HTTP.get_response(uri)
+        Rails.logger.info "Chrome API response: #{response.code} - #{response.body[0..200]}"
+      else
+        Rails.logger.warn 'No Chrome URL configured'
+      end
+    rescue StandardError => e
+      Rails.logger.error "Chrome API test failed: #{e.message}"
+    end
+
     # Use JS driver always
     driven_by E2eTests::DRIVER_NAME
 
     # Debug initial browser state
-    Rails.logger.info '=== Starting new system test ==='
     Rails.logger.info "Driver name: #{E2eTests::DRIVER_NAME}"
     Rails.logger.info "Current session: #{Capybara.current_session.inspect}"
     Rails.logger.info "Current driver: #{Capybara.current_session.driver.inspect}"
@@ -259,21 +278,38 @@ RSpec.configure do |config|
       # Last resort: try to completely reinitialize Capybara
       Rails.logger.warn 'Attempting last resort: complete Capybara reinitialization'
       begin
-        # Force re-registration of the driver
+        # Force re-registration of the driver with fallback to local Chrome
+        Rails.logger.warn 'Re-checking Chrome connection for recovery'
+        chrome_connected = E2eTests::RemoteChrome.connected?
+        Rails.logger.info "Chrome connected during recovery: #{chrome_connected}"
+
         Capybara.register_driver(E2eTests::DRIVER_NAME) do |app|
-          ::Capybara::Cuprite::Driver.new(
-            app,
-            **{
-              extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"],
-              window_size: [1200, 1600],
-              browser_options: { 'no-sandbox' => nil },
-              headless: ENV.fetch('CI', 'true') == 'true',
-              js_errors: true,
-              timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
-              process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
-              pending_connection_errors: false,
-            }.merge(E2eTests::RemoteChrome.options),
-          )
+          driver_options = {
+            extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"],
+            window_size: [1200, 1600],
+            browser_options: { 'no-sandbox' => nil },
+            headless: ENV.fetch('CI', 'true') == 'true',
+            js_errors: true,
+            timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
+            process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
+            pending_connection_errors: false,
+          }
+
+          # Only use remote Chrome if it's actually connected
+          if chrome_connected
+            Rails.logger.info 'Using remote Chrome for recovery'
+            driver_options.merge!(E2eTests::RemoteChrome.options)
+          else
+            Rails.logger.warn 'Remote Chrome unavailable, falling back to local Chrome'
+            # Add additional browser options for local Chrome stability
+            driver_options[:browser_options].merge!({
+                                                      'disable-dev-shm-usage' => nil,
+                                                      'disable-gpu' => nil,
+                                                      'disable-extensions' => nil,
+                                                    })
+          end
+
+          ::Capybara::Cuprite::Driver.new(app, **driver_options)
         end
 
         # Force switch to the driver
