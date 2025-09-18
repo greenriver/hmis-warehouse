@@ -615,4 +615,111 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response.body).to include('Sorry you are not authorized to do that.')
     end
   end
+
+  describe 'dashboard permission enforcement' do
+    let!(:can_view_full_client_dashboard) { create :role, can_view_full_client_dashboard: true, can_view_client_name: true }
+    let!(:can_view_limited_client_dashboard) { create :role, can_view_limited_client_dashboard: true, can_view_client_name: true }
+
+    context 'when user can view clients but has no dashboard permissions' do
+      # Remove can_view_limited_client_dashboard from can_view_clients role, we set it in the shared context
+      # to keep other tests working
+      let!(:can_view_clients_only) { create :role, can_view_clients: true, can_view_client_name: true, can_view_limited_client_dashboard: false }
+
+      before do
+        setup_access_control(user, can_view_clients_only, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        sign_in user
+      end
+
+      it 'blocks access to client show page' do
+        get client_path(window_destination_client)
+        expect(response).to redirect_to(user.my_root_path)
+      end
+
+      it 'blocks access to service_range' do
+        get service_range_client_path(window_destination_client, format: :json)
+        expect(response).to redirect_to(user.my_root_path)
+      end
+
+      it 'blocks access to rollup' do
+        get rollup_client_path(window_destination_client, partial: :residential_enrollments)
+        expect(response).to redirect_to(user.my_root_path)
+      end
+
+      it 'blocks access to image' do
+        get image_client_path(window_destination_client)
+        expect(response).to redirect_to(user.my_root_path)
+      end
+    end
+
+    context 'when user can view clients and has full dashboard permission' do
+      before do
+        setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_full_client_dashboard, Collection.system_collection(:window_data_sources))
+        sign_in user
+      end
+
+      it 'allows access to client show page' do
+        get client_path(window_destination_client)
+        expect(response).to render_template(:show)
+      end
+
+      it 'allows access to service_range' do
+        get service_range_client_path(window_destination_client, format: :json)
+        expect(response).to have_http_status(200)
+      end
+
+      it 'allows access to rollup' do
+        get rollup_client_path(window_destination_client, partial: :residential_enrollments)
+        expect(response).to render_template('clients/rollup/_residential_enrollments')
+      end
+
+      it 'allows access to image (test env always returns 403)' do
+        # Mock the pii provider to return an image, we're not testing the pii provider
+        mock_pii_provider = instance_double(GrdaWarehouse::PiiProvider)
+        allow(mock_pii_provider).to receive(:image?).and_return(true)
+        allow(mock_pii_provider).to receive(:image).and_return('test')
+        allow(window_destination_client).to receive(:pii_provider).and_return(mock_pii_provider)
+
+        get image_client_path(window_destination_client)
+        expect(response).to have_http_status(403)
+      end
+    end
+
+    context 'when user can view clients and has limited dashboard permission' do
+      before do
+        setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_limited_client_dashboard, Collection.system_collection(:window_data_sources))
+        sign_in user
+      end
+
+      it 'allows access to client show page' do
+        get client_path(window_destination_client)
+        expect(response).to render_template(:show)
+      end
+
+      it 'allows access to service_range' do
+        get service_range_client_path(window_destination_client, format: :json)
+        expect(response).to have_http_status(200)
+      end
+
+      it 'allows access to rollup' do
+        get rollup_client_path(window_destination_client, partial: :residential_enrollments)
+        expect(response).to render_template('clients/rollup/_residential_enrollments')
+      end
+
+      it 'allows access to image (test env always returns 403)' do
+        # Mock the pii provider to return an image, we're not testing the pii provider
+        mock_pii_provider = instance_double(GrdaWarehouse::PiiProvider)
+        allow(mock_pii_provider).to receive(:image?).and_return(true)
+        allow(mock_pii_provider).to receive(:image).and_return('test')
+        allow(window_destination_client).to receive(:pii_provider).and_return(mock_pii_provider)
+
+        get image_client_path(window_destination_client)
+        expect(response).to have_http_status(403)
+      end
+    end
+  end
 end
