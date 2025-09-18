@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -174,6 +176,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
     expect(result.dig('data', 'client', 'image')).not_to be_nil
     expect(result.dig('data', 'client', 'hudChronic')).to eq(false)
+
+    # File URLs should be same-origin paths to the authenticated endpoint
+    files = result.dig('data', 'client', 'files', 'nodes')
+    expect(files).to include(include('id' => f1.id.to_s, 'url' => hmis_client_file_path(client_id: c1.id, id: f1.id)))
+    expect(files).to include(include('id' => f2.id.to_s, 'url' => hmis_client_file_path(client_id: c1.id, id: f2.id)))
   end
 
   it 'should return client if can view clients and client is unenrolled' do
