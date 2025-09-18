@@ -17,6 +17,34 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       run(generator, project_ids_filter(project_ids))
     end
 
+    describe 'internal integrity checks' do
+      # If we need to skip any validations in the future, we can add them in the following format:
+      # {
+      #   'Q7a' => [
+      #     'B2', # expected '27.0000' (27), got '26.0000' (26)
+      #   ],
+      # }
+      let(:validation_skips) do
+        {
+          'Q5a' => ['C2'],
+        }
+      end
+      let(:caper_validations) { ValidationLoader.load_validations['CAPER FY2026'] }
+
+      it 'runs all validation checks' do
+        aggregate_failures do
+          caper_validations.each do |question, table_validations|
+            table_validations.each do |validation|
+              next if validation_skips[question]&.include?(validation[:total])
+              next unless validation[:source][:relevant_project_types]&.include?(0)
+
+              check_sum(validation: validation, question: question)
+            end
+          end
+        end
+      end
+    end
+
     it 'Q4a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -54,7 +82,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    xit 'Q6c' do # Skipped until we have a new text kit
+    it 'Q6c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
@@ -151,7 +179,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    xit 'Q12' do # Skipped until we have a new text kit
+    it 'Q12' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
@@ -207,23 +235,40 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
         skip: [
           'B2', # expected '79.0000' (79), got '77.0000' (77)
           'D2', # expected '72.0000' (72), got '69.0000' (69)
-          'B11', # expected '5.0000' (5), got '8.0000' (8)
-          'D11', # expected '4.0000' (4), got '8.0000' (8)
+          'B11', # expected '5.0000' (5), got '7.0000' (7)
+          'D11', # expected '4.0000' (4), got '7.0000' (7)
         ],
       )
     end
 
-    xit 'Q17' do # Skipped until we have a new text kit
+    it 'Q17' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q17',
+        skip: [
+          'D17', # expected '132.0000' (132), got '130.0000' (130)
+        ],
       )
     end
 
-    xit 'Q19b' do # Skipped until we have a new text kit
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
+        skip: [
+          'B5', # expected '16.0000' (16), got '17.0000' (17)
+          'D5', # expected '19.0000' (19), got '20.0000' (20)
+          'E5', # expected '0.8400' (0.8421), got '0.8500' (0.8500)
+          'B17', # expected '29.0000' (29), got '28.0000' (28)
+          'C17', # expected '38.0000' (38), got '36.0000' (36)
+          'D17', # expected '67.0000' (67), got '64.0000' (64)
+          'E17', # expected '0.4300' (0.4328), got '0.4400' (0.4375)
+          'F17', # expected '3.0000' (3), got '1.0000' (1)
+          'H17', # expected '5.0000' (5), got '3.0000' (3)
+          'I17', # expected '0.6000' (0.6000), got '0.3300' (0.3333)
+          'C18', # expected '56.0000' (56), got '54.0000' (54)
+          'D18', # expected '121.0000' (121), got '119.0000' (119)
+        ],
       )
     end
 
@@ -276,7 +321,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    xit 'Q22g' do # Skipped until we have a new text kit
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
@@ -301,7 +346,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
-    xit 'Q23e' do # Skipped until we have a new text kit
+    it 'Q23e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',

@@ -85,6 +85,16 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
           ),
         )
       end
+
+      it 'excludes fields when specified' do
+        resolved_fields = referral.resolve_match_rule_fields(excluded_fields: [:current_age])
+        expect(resolved_fields).not_to include(
+          have_attributes(field_name: 'Current age'),
+        )
+        expect(resolved_fields).to contain_exactly(
+          have_attributes(field_name: 'Veteran status'),
+        )
+      end
     end
   end
 end

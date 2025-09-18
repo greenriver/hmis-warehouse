@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module UserPermissions
   extend ActiveSupport::Concern
   include ArelHelper
@@ -39,6 +41,7 @@ module UserPermissions
         :has_patient_referral_review_access,
         :has_some_patient_access,
         :can_access_some_version_of_clients,
+        :can_view_some_client_dashboard,
         :has_some_edit_access_to_youth_intakes,
         :can_manage_an_agency,
         :can_view_hud_reports,
@@ -176,12 +179,18 @@ module UserPermissions
       can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
     end
 
+    # High level access to clients in any situation
     def can_access_some_version_of_clients
       if using_acls?
         can_view_clients? || can_edit_clients? || can_view_client_enrollments_with_roi?
       else
         can_view_clients? || can_edit_clients?
       end
+    end
+
+    # Scoped access to client dashboards
+    def can_view_some_client_dashboard
+      can_view_full_client_dashboard? || can_view_limited_client_dashboard?
     end
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName

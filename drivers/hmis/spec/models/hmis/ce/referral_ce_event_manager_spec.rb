@@ -233,6 +233,20 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
         end.to raise_error(RuntimeError, /Referral does not have a source enrollment/)
       end
     end
+
+    context 'when no CE Event Type can be determined' do
+      let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 4 } # 4 = SO, doesn't collect CE event
+
+      it 'reports to Sentry and returns without creating CE event' do
+        allow(Sentry).to receive(:capture_message)
+
+        submit_current_step
+
+        expect(referral.source_enrollment.events.count).to eq(0)
+        expect(referral.ce_event).to be_nil
+        expect(Sentry).to have_received(:capture_message).with(/Unable to determine CE Event Type/)
+      end
+    end
   end
 
   describe 'side effect that updates the event' do
@@ -247,39 +261,82 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
       end
     end
 
-    before(:each) do
-      submit_current_step # Submit the ce creation step
-      expect(referral.source_enrollment.events.count).to eq(1)
-    end
-
-    context 'when the client rejects the referral' do
-      include_examples 'updates the event with referral result', { client_accepted: 0 }, 2
-    end
-
-    context 'when the provider rejects the referral' do
-      before do
-        submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+    context 'when event exists' do
+      before(:each) do
+        submit_current_step # Submit the ce creation step
+        expect(referral.source_enrollment.events.count).to eq(1)
       end
 
-      include_examples 'updates the event with referral result', { provider_accepted: 0 }, 3
-    end
-
-    context 'when everybody accepts' do
-      before do
-        submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+      context 'when the client rejects the referral' do
+        include_examples 'updates the event with referral result', { client_accepted: 0 }, 2
       end
 
-      include_examples 'updates the event with referral result', { provider_accepted: 1 }, 1
-    end
+      context 'when the provider rejects the referral' do
+        before do
+          submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+        end
 
-    context 'with unit group ce_event_type configuration' do
-      let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: 18) }
-
-      before do
-        submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+        include_examples 'updates the event with referral result', { provider_accepted: 0 }, 3
       end
 
-      include_examples 'updates the event with referral result', { provider_accepted: 1 }, 1
+      context 'when everybody accepts' do
+        before do
+          submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+        end
+
+        include_examples 'updates the event with referral result', { provider_accepted: 1 }, 1
+      end
+
+      context 'with unit group ce_event_type configuration' do
+        let!(:unit_group) { create(:hmis_unit_group, project: project, ce_event_type: 18) }
+
+        before do
+          submit_current_step({ client_accepted: 1 }) # Client accepts the referral
+        end
+
+        include_examples 'updates the event with referral result', { provider_accepted: 1 }, 1
+      end
+    end
+
+    context 'when no CE Event Type can be determined' do
+      let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 4 }
+
+      it 'returns early without error when setting CE event result' do
+        # First step will not create CE event because event type cannot be determined
+        allow(Sentry).to receive(:capture_message)
+        submit_current_step
+
+        # Go to the next step that normally would update the CE event
+        current_step = engine.active_steps.sole
+        engine.start_step!(current_step, user: hmis_user)
+        # This returns early and does not raise an error because CE Event Type could not be determined
+        engine.complete_step!(current_step, user: hmis_user, submitted_values: { client_accepted: 0 })
+
+        expect(referral.source_enrollment.events.count).to eq(0)
+
+        # Sentry should only be called once (from create_ce_event, not set_ce_event_result)
+        expect(Sentry).to have_received(:capture_message).once.with(/Unable to determine CE Event Type/)
+      end
+    end
+
+    context 'when CE Event Type can be determined but CE Event is missing' do
+      let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1, project_type: 0 } # Project that should create event
+
+      before(:each) do
+        submit_current_step # Submit the CE creation step - should create an event
+        expect(referral.source_enrollment.events.count).to eq(1)
+        # Manually delete the CE event to simulate misconfigured workflow
+        referral.source_enrollment.events.destroy_all
+        referral.reload
+      end
+
+      it 'raises an error when setting CE event result' do
+        expect do
+          current_step = engine.active_steps.sole
+          engine.start_step!(current_step, user: hmis_user)
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: { client_accepted: 0 })
+        end.to raise_error(RuntimeError, /Expected to find CE event for referral/)
+      end
     end
   end
 end

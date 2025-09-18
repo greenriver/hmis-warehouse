@@ -14,6 +14,7 @@ module Types
     value 'EXISTS', 'Use with answerBoolean to specify if an answer should exist or not.'
     value 'IN', 'Whether the value is in the answerCodes array.'
     value 'INCLUDES', 'Whether the value includes the given item'
+    value 'EXCLUDES', 'Whether the value excludes the given item'
     value 'EQUAL'
     value 'NOT_EQUAL'
     value 'GREATER_THAN'

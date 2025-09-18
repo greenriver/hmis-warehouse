@@ -31,9 +31,10 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def current_hmis_host
-    raise 'cannot determine HMIS host because origin is missing' unless request.origin.present?
+    # Trust Rack/Rails host resolution (respects trusted proxies and allowed hosts)
+    return request.host if request.host.present?
 
-    URI.parse(request.origin).host
+    raise 'cannot determine HMIS host'
   end
 
   def attach_data_source_id

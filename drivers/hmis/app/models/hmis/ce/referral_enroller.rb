@@ -18,6 +18,8 @@ module Hmis::Ce
     end
 
     def create_enrollment(message)
+      raise "Referral #{referral.id} already has an enrollment. This indicates a misconfigured workflow" if referral.target_enrollment
+
       project = referral.target_project
 
       # Step form may specify CoC code. This is required if the Project serves multiple CoCs.

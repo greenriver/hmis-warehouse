@@ -17,6 +17,34 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       run(generator, project_ids_filter(project_ids))
     end
 
+    describe 'internal integrity checks' do
+      # If we need to skip any validations in the future, we can add them in the following format:
+      # {
+      #   'Q7a' => [
+      #     'B2', # expected '27.0000' (27), got '26.0000' (26)
+      #   ],
+      # }
+      let(:validation_skips) do
+        {
+          'Q5a' => ['C2'],
+        }
+      end
+      let(:apr_validations) { ValidationLoader.load_validations['APR FY2026'] }
+
+      it 'runs all validation checks' do
+        aggregate_failures do
+          apr_validations.each do |question, table_validations|
+            table_validations.each do |validation|
+              next if validation_skips[question]&.include?(validation[:total])
+              next unless validation[:source][:relevant_project_types]&.include?(13)
+
+              check_sum(validation: validation, question: question)
+            end
+          end
+        end
+      end
+    end
+
     it 'Q4a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -31,7 +59,7 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q6a' do # Skipped until we have a new text kit
+    it 'Q6a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
@@ -130,7 +158,7 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q12' do # Skipped until we have a new text kit
+    it 'Q12' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q12',
@@ -291,14 +319,14 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q22f' do # Skipped until we have a new text kit
+    it 'Q22f' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22f',
       )
     end
 
-    xit 'Q22g' do # Skipped until we have a new text kit
+    it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22g',
@@ -446,10 +474,6 @@ RSpec.shared_context 'datalab organization s rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27b',
-        skip: [
-          'C2', # expected '2.0000' (2), got '1.0000' (1)
-          'D2', # expected '3.0000' (3), got '2.0000' (2)
-        ],
       )
     end
 
