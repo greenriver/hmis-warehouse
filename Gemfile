@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 7.1.0'
+gem 'rails', '~> 7.2.0'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 gem 'rack'
 
@@ -30,7 +30,7 @@ gem 'rails-html-sanitizer'
 gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.1.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 gem 'pghero'
@@ -49,10 +49,10 @@ gem 'premailer'
 gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
-gem 'activerecord-postgis-adapter'
+gem 'activerecord-postgis-adapter', '~> 10.0'
 gem 'ffi'
 gem 'ffi-geos'
-gem 'rgeo', '~> 2.4.0'
+gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 

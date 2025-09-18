@@ -118,6 +118,8 @@ RUN apt-get update && apt-get upgrade -y \
   libxrender1 \
   libxslt1-dev \
   libyaml-dev \
+  libproj-dev \
+  proj-bin \
   locales-all \
   nodejs \
   p7zip-full \

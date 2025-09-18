@@ -51,6 +51,8 @@ Rails.application.configure do
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
 
+  # Disable caching for Action Mailer templates even if Action Controller
+  # caching is enabled.
   config.action_mailer.perform_caching = false
 
   # Tell Action Mailer not to deliver emails to the real world.
@@ -59,6 +61,11 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   config.active_job.queue_adapter = :test
+
+  # Unlike controllers, the mailer instance doesn't have any context about the
+  # incoming request so you'll need to provide the :host parameter yourself.
+  # config.action_mailer.default_url_options = { host: "www.example.com" }
+  config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   config.active_support.deprecation = :raise
 
@@ -81,9 +88,6 @@ Rails.application.configure do
   # FIXME: would be nice to enable this but we'd need to fix global before_actions in ApplicationController
   # config.action_controller.raise_on_missing_callback_actions = true
   config.action_controller.raise_on_missing_callback_actions = false
-
-  # Devise requires a default URL
-  config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   routes.default_url_options = { host: ENV['FQDN'] }
 
