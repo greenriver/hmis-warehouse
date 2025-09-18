@@ -6,6 +6,12 @@
 # Enable by passing RUN_RAILS_SYSTEM_TESTS
 rails_system_enabled = ENV['RUN_RAILS_SYSTEM_TESTS']
 
+# Debug Rails system setup
+puts '=== Rails System Setup Debug ==='
+puts "RUN_RAILS_SYSTEM_TESTS: #{ENV['RUN_RAILS_SYSTEM_TESTS'].inspect}"
+puts "RUN_SYSTEM_TESTS: #{ENV['RUN_SYSTEM_TESTS'].inspect}"
+puts "rails_system_enabled: #{rails_system_enabled.inspect}"
+
 if rails_system_enabled
   require 'capybara/cuprite'
   require 'socket'
@@ -265,4 +271,7 @@ if rails_system_enabled
       FileUtils.mkdir_p('tmp/capybara/screenshots/')
     end
   end
+else
+  puts '=== Rails System Setup SKIPPED - RUN_RAILS_SYSTEM_TESTS not set ==='
+  puts 'Warehouse system tests will fail without proper driver setup'
 end
