@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -11,13 +13,13 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::ImpersonationsController, type: :request do
   include_context 'hmis base setup'
 
+  let(:ds) { create :hmis_data_source }
   let(:headers) do
     {
-      'ORIGIN' => 'https://hmis.dev.test:5173/',
+      'HOST' => ds.hmis,
     }
   end
 
-  let(:ds) { create :hmis_data_source }
   let(:user_group) { create(:hmis_user_group) }
   let(:admin_user) do
     user = create(:hmis_user, data_source: ds)
