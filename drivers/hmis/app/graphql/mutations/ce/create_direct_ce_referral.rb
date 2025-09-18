@@ -47,6 +47,7 @@ module Mutations
           unless opportunity.open? # check inside lock for race condition
             errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
             return { errors: errors }
+            # FIXME: commit_transaction_on_non_local_return
           end
 
           instance = opportunity.workflow_template.instances.create!
