@@ -42,21 +42,19 @@ module Mutations
 
       referral = nil
 
-      Hmis::Ce::Referral.transaction do
-        opportunity.with_lock do
-          unless opportunity.open? # check inside lock for race condition
-            errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
-            return { errors: errors }
-          end
-
-          instance = opportunity.workflow_template.instances.create!
-          referral = opportunity.referrals.originated_from_direct_send.create!(
-            workflow_instance: instance,
-            referred_by: current_user,
-            client: source_enrollment.client,
-            source_enrollment: source_enrollment,
-          )
+      opportunity.with_lock do
+        unless opportunity.open? # check inside lock for race condition
+          errors.add(:base, :invalid, full_message: unavailable_error(unit_group, target_project))
+          return { errors: errors }
         end
+
+        instance = opportunity.workflow_template.instances.create!
+        referral = opportunity.referrals.originated_from_direct_send.create!(
+          workflow_instance: instance,
+          referred_by: current_user,
+          client: source_enrollment.client,
+          source_enrollment: source_enrollment,
+        )
 
         engine = referral.workflow_engine
         engine.start_workflow!(user: current_user)

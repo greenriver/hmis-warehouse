@@ -3891,6 +3891,11 @@ enum EnableOperator {
   EQUAL
 
   """
+  Whether the value excludes the given item
+  """
+  EXCLUDES
+
+  """
   Use with answerBoolean to specify if an answer should exist or not.
   """
   EXISTS

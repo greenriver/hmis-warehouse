@@ -43,7 +43,7 @@ RSpec.describe 'Datalab 2026', type: :model do
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    # include_context 'datalab multiple projects apr' # No Test Kit data files for "Organization X - RRH"
+    include_context 'datalab multiple projects apr'
     include_context 'datalab organization i psh apr'
     include_context 'datalab organization m rrh apr'
     include_context 'datalab organization s rrh apr'

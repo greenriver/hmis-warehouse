@@ -55,6 +55,12 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
         expect(result).to be_failed
         expect(result.priority_scores).to be_nil
       end
+
+      it 'raises if expression is unable to evaluate' do
+        destination_client1.update!(dob: nil)
+        # 'current_age > 65' expected to raise if current_age is nil
+        expect { evaluator.call(destination_client1) }.to raise_error(Dentaku::ArgumentError, /Error evaluating expression.*Dentaku::AST::GreaterThan/)
+      end
     end
 
     context 'when a client does not have values for prioritization' do
