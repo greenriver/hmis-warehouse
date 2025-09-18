@@ -17,8 +17,15 @@ module Importers::HmisAutoMigrate
     return nil if Date.current >= '2025-10-01'.to_date
     return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging? && ENV['CLIENT'] != 'qa'
 
+    year = if Rails.env.production?
+      '2024'
+    elsif Rails.env.staging?
+      '2026'
+    else
+      '2026'
+    end
     # Default to the current version, but allow for override in development
-    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
+    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', year)
   end
 
   # available_migrations is a hash of version strings seen in HUD exports to migration classes
