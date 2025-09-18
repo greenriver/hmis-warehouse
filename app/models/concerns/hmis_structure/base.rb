@@ -85,7 +85,7 @@ module HmisStructure::Base
           :data_source_id,
           col,
         ],
-        query_constraints: [
+        foreign_key: [
           :data_source_id,
           col,
         ],
@@ -107,7 +107,7 @@ module HmisStructure::Base
           :PersonalID,
           :data_source_id,
         ],
-        query_constraints: [
+        foreign_key: [
           :EnrollmentID,
           :PersonalID,
           :data_source_id,
