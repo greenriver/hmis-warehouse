@@ -13,7 +13,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include RailsDrivers::Extensions
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
-  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], query_constraints: [:assessment_id, :site_id, :data_source_id], optional: true
+  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id], optional: true
   serialize :api_response, type: Hash
   serialize :answers, type: Hash
 
@@ -582,7 +582,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     Health::QualifyingActivity.where(source_type: self.class.name, source_id: id)
   end
 
-  def has_eto_qualifying_activities? # rubocop:disable Naming/PredicateName
+  def has_eto_qualifying_activities?
     name.in?(['Case Management Daily Note']) && eto_qualifying_activities.any?
   end
 
