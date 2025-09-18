@@ -7,10 +7,12 @@
 # frozen_string_literal: false
 
 # Use puts for immediate output since Rails.logger might not be ready
-puts '=== E2E Setup Debug ==='
-puts "RUN_SYSTEM_TESTS: #{ENV['RUN_SYSTEM_TESTS'].inspect}"
-puts "RUN_RAILS_SYSTEM_TESTS: #{ENV['RUN_RAILS_SYSTEM_TESTS'].inspect}"
-puts "All ENV vars containing 'SYSTEM': #{ENV.select { |k, _v| k.include?('SYSTEM') }.inspect}"
+if ENV['RUN_SYSTEM_TESTS'] || ENV['RUN_RAILS_SYSTEM_TESTS']
+  puts '=== E2E Setup Debug ==='
+  puts "RUN_SYSTEM_TESTS: #{ENV['RUN_SYSTEM_TESTS'].inspect}"
+  puts "RUN_RAILS_SYSTEM_TESTS: #{ENV['RUN_RAILS_SYSTEM_TESTS'].inspect}"
+  puts "All ENV vars containing 'SYSTEM': #{ENV.select { |k, _v| k.include?('SYSTEM') }.inspect}"
+end
 
 if ENV['RUN_SYSTEM_TESTS']
   Rails.logger.info '=== Loading E2E Tests Setup ==='
