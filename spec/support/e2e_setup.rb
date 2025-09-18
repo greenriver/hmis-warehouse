@@ -412,10 +412,35 @@ RSpec.configure do |config|
     end
 
     begin
-      # Clear all sessions
+      # Clear all sessions and force driver re-creation
       Rails.logger.info 'Attempting to reset sessions'
       Capybara.reset_sessions!
-      Rails.logger.info 'Sessions reset successfully'
+
+      # Force complete driver re-creation by removing and re-registering
+      puts 'Force re-registering Cuprite driver to ensure clean connection...'
+      Capybara.drivers.delete(E2eTests::DRIVER_NAME)
+
+      # Re-register the driver
+      Capybara.register_driver(E2eTests::DRIVER_NAME) do |app|
+        driver_options = {
+          extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"],
+          window_size: [1200, 1600],
+          browser_options: { 'no-sandbox' => nil },
+          headless: ENV.fetch('CI', 'true') == 'true',
+          js_errors: true,
+          timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
+          process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
+          pending_connection_errors: false,
+        }
+
+        # Use remote Chrome options
+        driver_options.merge!(E2eTests::RemoteChrome.options)
+        puts "Re-registering driver with options: #{driver_options.inspect}"
+
+        ::Capybara::Cuprite::Driver.new(app, **driver_options)
+      end
+
+      Rails.logger.info 'Sessions reset and driver re-registered successfully'
     rescue StandardError => e
       Rails.logger.warn "Could not reset sessions: #{e.message}"
     end
@@ -441,8 +466,32 @@ RSpec.configure do |config|
         next
       end
 
-      # Try to create new browser session
+      # Try to create new browser session with connection verification
+      puts 'Attempting to visit about:blank and verify browser creation...'
+
+      # Force driver selection to ensure we're using the right one
+      driven_by E2eTests::DRIVER_NAME
+
       visit('about:blank')
+
+      # Additional verification that browser object was actually created
+      browser_obj = Capybara.current_session.driver.browser
+      puts "Browser object after visit: #{browser_obj.inspect}"
+      puts "Browser object class: #{browser_obj.class}" if browser_obj
+
+      if browser_obj.nil?
+        puts 'ERROR: Browser object is still nil after visit!'
+        puts "Current session: #{Capybara.current_session.inspect}"
+        puts "Current driver: #{Capybara.current_session.driver.inspect}"
+        raise StandardError, 'Browser object creation failed despite successful visit'
+      end
+
+      # Try a simple browser operation to verify it's really working
+      puts 'Testing browser responsiveness with simple evaluation...'
+      test_result = browser_obj.evaluate('1 + 1')
+      puts "Browser evaluation test result: #{test_result}"
+
+      raise StandardError, 'Browser evaluation test failed, browser not properly connected' if test_result != 2
 
       # Verify the browser is actually working
       if BrowserHealthManager.browser_health_check
