@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe ClientAccessControl::ClientsController, type: :request do
@@ -241,7 +243,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged in, and can view client window' do
     # implies 'can_see_this_client_demographics!'
-    let(:role) { create :vt_can_view_clients }
+    let(:role) { create :vt_can_view_clients, can_view_limited_client_dashboard: true }
     let(:role_search) { create :can_search_window }
     let(:user) { create :user }
 
@@ -327,7 +329,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   end
 
   describe 'logged in, and can edit clients' do
-    let(:role) { create :can_edit_clients }
+    let(:role) { create :can_edit_clients, can_view_limited_client_dashboard: true }
     let(:role2) { create :vt_can_view_clients }
     let(:role_search) { create :can_search_window }
     let(:user) { create :user }

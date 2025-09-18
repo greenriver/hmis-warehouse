@@ -34,10 +34,10 @@
               %td
                 = check_box_tag("client_#{client[:id]}", client[:id], false, {class: 'client jClient', 'data-client-id': client[:id]})
               %td
-                = link_to client_path(client[:id]) do
+                = link_to appropriate_client_path(client[:id]) do
                   = client[:LastName]
               %td
-                = link_to client_path(client[:id]) do
+                = link_to appropriate_client_path(client[:id]) do
                   = client[:FirstName]
               %td.nobr
                 - if client[:DOB].present?
