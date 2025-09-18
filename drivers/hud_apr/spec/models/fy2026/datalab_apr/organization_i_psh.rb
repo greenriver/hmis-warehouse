@@ -17,6 +17,34 @@ RSpec.shared_context 'datalab organization i psh apr', shared_context: :metadata
       run(generator, project_ids_filter(project_ids))
     end
 
+    describe 'internal integrity checks' do
+      # If we need to skip any validations in the future, we can add them in the following format:
+      # {
+      #   'Q7a' => [
+      #     'B2', # expected '27.0000' (27), got '26.0000' (26)
+      #   ],
+      # }
+      let(:validation_skips) do
+        {
+          'Q5a' => ['C2'],
+        }
+      end
+      let(:apr_validations) { ValidationLoader.load_validations['APR FY2026'] }
+
+      it 'runs all validation checks' do
+        aggregate_failures do
+          apr_validations.each do |question, table_validations|
+            table_validations.each do |validation|
+              next if validation_skips[question]&.include?(validation[:total])
+              next unless validation[:source][:relevant_project_types]&.include?(3)
+
+              check_sum(validation: validation, question: question)
+            end
+          end
+        end
+      end
+    end
+
     it 'Q4a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -213,18 +241,6 @@ RSpec.shared_context 'datalab organization i psh apr', shared_context: :metadata
       )
     end
 
-    ## Add internal integrity checks for Q16 from TUP observations
-    # Sum of B2-B11 should equal B14
-    # Sum of C2-C13 should equal C14
-    # Sum of D2-D11 should equal D14
-    it 'Q16 internal integrity checks' do
-      check_sum(
-        question: 'Q16',
-        source: ['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11'],
-        total: 'B14',
-      )
-    end
-
     it 'Q17' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -253,10 +269,15 @@ RSpec.shared_context 'datalab organization i psh apr', shared_context: :metadata
       )
     end
 
-    xit 'Q19b' do # Skipped until we have a new text kit
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
+        skip: [
+          'F17', # expected '1.0000' (1), got '0.0000' (0)
+          'H17', # expected '1.0000' (1), got '0.0000' (0)
+          'I17', # expected '1.0000' (1.0000), got '0.0000' (0.0000)
+        ],
       )
     end
 
@@ -331,47 +352,6 @@ RSpec.shared_context 'datalab organization i psh apr', shared_context: :metadata
         file_path: result_file_prefix + results_dir,
         question: 'Q23c',
       )
-    end
-
-    ## Add internal integrity checks for Q23c from TUP observations
-    it 'Q23c internal integrity checks' do
-      ['B', 'C', 'D', 'E', 'F'].each do |col|
-        check_sum(
-          question: 'Q23c',
-          source: (2..5).map { |i| "#{col}#{i}" },
-          total: "#{col}6",
-        )
-
-        check_sum(
-          question: 'Q23c',
-          source: (8..13).map { |i| "#{col}#{i}" },
-          total: "#{col}14",
-        )
-
-        check_sum(
-          question: 'Q23c',
-          source: (16..22).map { |i| "#{col}#{i}" },
-          total: "#{col}23",
-        )
-
-        check_sum(
-          question: 'Q23c',
-          source: (25..31).map { |i| "#{col}#{i}" },
-          total: "#{col}32",
-        )
-
-        check_sum(
-          question: 'Q23c',
-          source: (34..38).map { |i| "#{col}#{i}" },
-          total: "#{col}39",
-        )
-
-        check_sum(
-          question: 'Q23c',
-          source: [6, 14, 23, 32, 39].map { |i| "#{col}#{i}" },
-          total: "#{col}40",
-        )
-      end
     end
 
     it 'Q23d' do

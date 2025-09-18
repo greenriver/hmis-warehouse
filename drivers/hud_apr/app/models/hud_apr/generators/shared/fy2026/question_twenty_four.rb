@@ -130,9 +130,29 @@ module HudApr::Generators::Shared::Fy2026
         'Jail/prison' => a_t[:housing_assessment].eq(7),
         'Deceased' => a_t[:housing_assessment].eq(10),
         label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
-        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
-        'Total' => a_t[:housing_assessment].eq(99).or(leavers_clause),
+        'Data not collected (no exit interview completed)' => data_not_collected_clause.
+          # Bad data, as noted in the test kit goes in DNC
+          or(bad_data_subsidy_information_clause),
+        'Total' => Arel.sql('1=1'), # MUST match overall Q5a Leavers
       }.freeze
+    end
+
+    private def bad_data_subsidy_information_clause
+      # housing_assessment is 1 and subsidy_information is not in acceptable values (1, 2, 3, 4) or is NULL
+      a_t[:housing_assessment].eq(1).and(
+        a_t[:subsidy_information].not_in([1, 2, 3, 4]).or(a_t[:subsidy_information].eq(nil)),
+      ).
+        # housing_assessment is 2 and subsidy_information is not in acceptable values (11, 12) or is NULL
+        or(a_t[:housing_assessment].eq(2).and(
+             a_t[:subsidy_information].not_in([11, 12]).or(a_t[:subsidy_information].eq(nil)),
+           )).
+        # housing_assessment is not in other known values (3, 4, 5, 6, 7, 10) and not 8, 9, 99, or NULL
+        or(a_t[:housing_assessment].not_in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 99]).and(a_t[:housing_assessment].not_eq(nil)))
+    end
+
+    private def data_not_collected_clause
+      a_t[:housing_assessment].eq(99).
+        or(a_t[:housing_assessment].eq(nil))
     end
 
     private def intentionally_blank
