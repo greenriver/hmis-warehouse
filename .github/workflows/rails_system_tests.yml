@@ -173,7 +173,36 @@ jobs:
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROME_URL: http://chrome:3333
           TODO_OR_DIE_LOG_ONLY: true
-        run:
+        run: |
+          # Function to check Chrome service health
+          check_chrome_health() {
+            echo "Checking Chrome service health..."
+            if curl -f --max-time 10 $CHROME_URL/json/version; then
+              echo "Chrome service is responsive"
+              return 0
+            else
+              echo "Chrome service is not responsive"
+              return 1
+            fi
+          }
+
+          # Function to restart Chrome service if needed
+          restart_chrome_if_needed() {
+            if ! check_chrome_health; then
+              echo "=== Chrome service unhealthy, attempting restart ==="
+              docker compose restart chrome
+              echo "Waiting for Chrome service to restart..."
+              sleep 10
+
+              # Verify Chrome is back up
+              timeout 60 bash -c 'until curl -f $CHROME_URL/json/version; do echo "Waiting for Chrome..."; sleep 3; done'
+              echo "Chrome service restarted successfully"
+            fi
+          }
+
+          # Initial Chrome health check and restart if needed
+          restart_chrome_if_needed
+
           # Are you looking to run the system tests locally? See:
           # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
           bash ./bin/run_hmis_system_tests.sh

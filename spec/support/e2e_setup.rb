@@ -218,6 +218,39 @@ class BrowserHealthManager
       puts "Browser restarts so far: #{@browser_restarts}"
     end
 
+    def chrome_service_health_check
+      chrome_url = ENV.fetch('CHROME_URL', 'http://chrome:3333')
+
+      begin
+        require 'net/http'
+        require 'json'
+        require 'timeout'
+
+        uri = URI("#{chrome_url}/json/version")
+
+        # Use a 5-second timeout for Chrome service check
+        response = Timeout.timeout(5) do
+          Net::HTTP.get_response(uri)
+        end
+
+        if response.code == '200'
+          version_data = JSON.parse(response.body)
+          puts "Chrome service responsive: #{version_data['Browser']}" if version_data['Browser']
+          true
+        else
+          puts "Chrome service returned status: #{response.code}"
+          false
+        end
+      rescue Timeout::Error
+        puts 'Chrome service health check timed out'
+        false
+      rescue StandardError => e
+        puts "Chrome service health check failed: #{e.message}"
+        Rails.logger.warn "Chrome service health check failed: #{e.message}"
+        false
+      end
+    end
+
     def browser_health_check
       return false unless Capybara.current_session&.driver.respond_to?(:browser)
 
@@ -234,6 +267,23 @@ class BrowserHealthManager
         Rails.logger.warn "Browser health check failed: #{e.message}"
         false
       end
+    end
+
+    def comprehensive_health_check
+      chrome_ok = chrome_service_health_check
+      browser_ok = chrome_ok ? browser_health_check : false
+
+      unless chrome_ok
+        puts '=== CRITICAL: Chrome service is not responding ==='
+        return false
+      end
+
+      unless browser_ok
+        puts '=== WARNING: Browser object is not responsive ==='
+        return false
+      end
+
+      true
     end
   end
 end
@@ -270,14 +320,19 @@ RSpec.configure do |config|
       end
     end
 
-    # Health check before each test
-    unless BrowserHealthManager.browser_health_check
-      puts 'Browser health check failed, attempting restart before test'
+    # Comprehensive health check before each test
+    unless BrowserHealthManager.comprehensive_health_check
+      puts 'Comprehensive health check failed, attempting restart before test'
       begin
-        force_browser_restart
-        BrowserHealthManager.browser_restarts += 1
+        if force_browser_restart
+          BrowserHealthManager.browser_restarts += 1
+          puts "Browser restart successful (restart ##{BrowserHealthManager.browser_restarts})"
+        else
+          puts 'Browser restart failed - test may fail'
+        end
       rescue StandardError => e
         puts "Pre-test browser restart failed: #{e.message}"
+        Rails.logger.error "Pre-test browser restart failed: #{e.message}"
       end
     end
 
@@ -322,9 +377,17 @@ RSpec.configure do |config|
 
   # Helper method to force complete browser restart
   def force_browser_restart
+    puts 'Forcing complete browser restart...'
     Rails.logger.warn 'Forcing complete browser restart'
 
-    # Log memory info before restart
+    # Step 1: Check Chrome service health first
+    unless BrowserHealthManager.chrome_service_health_check
+      puts '=== CRITICAL: Chrome service unavailable, cannot restart browser ==='
+      Rails.logger.error 'Chrome service unavailable, browser restart aborted'
+      return false
+    end
+
+    # Step 2: Log memory info before restart
     memory_info = BrowserHealthManager.get_memory_info
     Rails.logger.info "Memory before restart - Available: #{memory_info['MemAvailable']}MB, Free: #{memory_info['MemFree']}MB" if memory_info.any?
 
@@ -361,72 +424,97 @@ RSpec.configure do |config|
     Rails.logger.info 'Running garbage collection'
     GC.start
 
-    # Recreate the session by visiting a simple page
-    begin
-      Rails.logger.info 'Attempting to create new browser session'
-      # This will force creation of a new browser instance
+    # Step 6: Wait for Chrome service to stabilize
+    puts 'Waiting for Chrome service to stabilize...'
+    sleep 2
+
+    # Step 7: Retry browser creation with intelligent fallback
+    max_retries = 3
+    max_retries.times do |attempt|
+      puts "Browser restart attempt #{attempt + 1}/#{max_retries}"
+      Rails.logger.info "Attempting browser restart #{attempt + 1}/#{max_retries}"
+
+      # Verify Chrome service is still responsive
+      unless BrowserHealthManager.chrome_service_health_check
+        puts "Chrome service check failed on attempt #{attempt + 1}"
+        sleep 3
+        next
+      end
+
+      # Try to create new browser session
       visit('about:blank')
-      Rails.logger.info 'Successfully restarted browser'
 
-      # Log memory info after restart
-      memory_info = BrowserHealthManager.get_memory_info
-      Rails.logger.info "Memory after restart - Available: #{memory_info['MemAvailable']}MB, Free: #{memory_info['MemFree']}MB" if memory_info.any?
+      # Verify the browser is actually working
+      if BrowserHealthManager.browser_health_check
+        puts "=== Browser restart successful on attempt #{attempt + 1} ==="
+        Rails.logger.info "Browser restart successful on attempt #{attempt + 1}"
 
-      # Debug new browser state
-      Rails.logger.info "New session: #{Capybara.current_session.inspect}"
-      Rails.logger.info "New driver: #{Capybara.current_session.driver.inspect}"
-      Rails.logger.info "New browser: #{Capybara.current_session.driver.browser.inspect}" if Capybara.current_session.driver.respond_to?(:browser)
+        # Log memory info after successful restart
+        memory_info = BrowserHealthManager.get_memory_info
+        Rails.logger.info "Memory after restart - Available: #{memory_info['MemAvailable']}MB, Free: #{memory_info['MemFree']}MB" if memory_info.any?
+
+        return true
+      else
+        puts "Browser health check failed on attempt #{attempt + 1}"
+      end
     rescue StandardError => e
-      Rails.logger.error "Failed to restart browser: #{e.message}"
-      Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+      puts "Browser restart attempt #{attempt + 1} failed: #{e.message}"
+      Rails.logger.warn "Browser restart attempt #{attempt + 1} failed: #{e.message}"
+      sleep 2**attempt # Exponential backoff: 2, 4, 8 seconds
+    end
 
-      # Last resort: try to completely reinitialize Capybara
-      Rails.logger.warn 'Attempting last resort: complete Capybara reinitialization'
-      begin
-        # Force re-registration of the driver with fallback to local Chrome
-        Rails.logger.warn 'Re-checking Chrome connection for recovery'
-        chrome_connected = E2eTests::RemoteChrome.connected?
-        Rails.logger.info "Chrome connected during recovery: #{chrome_connected}"
+    puts "=== Browser restart failed after #{max_retries} attempts ==="
+    Rails.logger.error "Browser restart failed after #{max_retries} attempts"
 
-        Capybara.register_driver(E2eTests::DRIVER_NAME) do |app|
-          driver_options = {
-            extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"],
-            window_size: [1200, 1600],
-            browser_options: { 'no-sandbox' => nil },
-            headless: ENV.fetch('CI', 'true') == 'true',
-            js_errors: true,
-            timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
-            process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
-            pending_connection_errors: false,
-          }
+    # Fallback recovery logic (only if simple restart fails)
+    puts 'Attempting fallback recovery with driver re-registration...'
+    Rails.logger.info 'Attempting fallback recovery'
 
-          # Only use remote Chrome if it's actually connected
-          if chrome_connected
-            Rails.logger.info 'Using remote Chrome for recovery'
-            driver_options.merge!(E2eTests::RemoteChrome.options)
-          else
-            Rails.logger.warn 'Remote Chrome unavailable, falling back to local Chrome'
-            # Add additional browser options for local Chrome stability
-            driver_options[:browser_options].merge!({
-                                                      'disable-dev-shm-usage' => nil,
-                                                      'disable-gpu' => nil,
-                                                      'disable-extensions' => nil,
-                                                    })
-          end
+    begin
+      # Force re-registration of the driver with fallback to local Chrome
+      Rails.logger.warn 'Re-checking Chrome connection for recovery'
+      chrome_connected = E2eTests::RemoteChrome.connected?
+      Rails.logger.info "Chrome connected during recovery: #{chrome_connected}"
 
-          ::Capybara::Cuprite::Driver.new(app, **driver_options)
+      Capybara.register_driver(E2eTests::DRIVER_NAME) do |app|
+        driver_options = {
+          extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"],
+          window_size: [1200, 1600],
+          browser_options: { 'no-sandbox' => nil },
+          headless: ENV.fetch('CI', 'true') == 'true',
+          js_errors: true,
+          timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 60).to_i,
+          process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 90).to_i,
+          pending_connection_errors: false,
+        }
+
+        # Only use remote Chrome if it's actually connected
+        if chrome_connected
+          Rails.logger.info 'Using remote Chrome for recovery'
+          driver_options.merge!(E2eTests::RemoteChrome.options)
+        else
+          Rails.logger.warn 'Remote Chrome unavailable, falling back to local Chrome'
+          # Add additional browser options for local Chrome stability
+          driver_options[:browser_options].merge!({
+                                                    'disable-dev-shm-usage' => nil,
+                                                    'disable-gpu' => nil,
+                                                    'disable-extensions' => nil,
+                                                  })
         end
 
-        # Force switch to the driver
-        driven_by E2eTests::DRIVER_NAME
-
-        # Try visiting a simple page again
-        visit('about:blank')
-        Rails.logger.info 'Successfully recovered with complete reinitialization'
-      rescue StandardError => recovery_error
-        Rails.logger.error "Complete recovery failed: #{recovery_error.message}"
-        raise e # Raise the original error
+        ::Capybara::Cuprite::Driver.new(app, **driver_options)
       end
+
+      # Force switch to the driver
+      driven_by E2eTests::DRIVER_NAME
+
+      # Try visiting a simple page again
+      visit('about:blank')
+      Rails.logger.info 'Successfully recovered with complete reinitialization'
+      return true
+    rescue StandardError => e
+      Rails.logger.error "Complete recovery failed: #{e.message}"
+      return false
     end
   end
 
