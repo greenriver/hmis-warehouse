@@ -17,6 +17,7 @@ module Hmis::Ce
     include SimpleStateMachine
 
     has_paper_trail
+    acts_as_paranoid
 
     belongs_to :opportunity, class_name: 'Hmis::Ce::Opportunity'
     has_one :data_source, through: :opportunity, class_name: 'GrdaWarehouse::DataSource'
@@ -33,13 +34,15 @@ module Hmis::Ce
     has_many :steps, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance
     has_many :audit_events, class_name: 'Hmis::WorkflowExecution::AuditEvent', through: :workflow_instance
     belongs_to :custom_status, class_name: 'Hmis::Ce::CustomReferralStatus', foreign_key: :custom_referral_status_id, optional: true
+    has_one :ce_event, class_name: 'Hmis::Hud::Event', foreign_key: :ce_referral_id, dependent: :nullify
 
     has_many :current_steps, -> { preload(:node) }, class_name: 'Hmis::WorkflowExecution::Step', through: :workflow_instance, source: :open_steps
 
     scope :viewable_by, ->(user) do
       # What makes a referral viewable by a user?
       # - If they have can_view_referrals at the target project, OR
-      # - If they have can_view_own_referrals, AND are assigned a step in the referral.
+      # - If they have can_view_own_referrals, AND are assigned a step in the referral, OR
+      # - If they have can_view_own_referrals, AND are assigned to a swimlane that has a completed step in the referral
 
       base_scope = joins(:target_project)
 
@@ -47,14 +50,19 @@ module Hmis::Ce
       access_through_project = base_scope.
         merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_referrals))
 
-      # Referrals that have a step assigned to this user, in projects in which the user can_view_own_referrals.
-      # Referral only becomes viewable once the assigned step becomes available.
-      # Note that the user does *not* need can_view_project in this case
+      # Referrals that have an available or completed step assigned to this user
       own_referral_ids = base_scope.with_available_step_assigned_to(user).
-        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals)).
         pluck(:id) # pluck to avoid duplicates in resulting scope (from the step join)
 
-      access_through_project.or(base_scope.where(id: own_referral_ids))
+      # Referrals that the user has access to because of swimlane membership (ReferralParticipant) even if they are not directly assigned to any task
+      own_referrals_via_swimlane = base_scope.where(id: referral_ids_for_user_with_completed_swimlane_steps(user))
+
+      # For "own" referrals, filter down to referrals with target projects where the user has can_view_own_referrals.
+      # Note that the user does *not* need to have can_view_project in this case.
+      own_referrals = base_scope.where(id: own_referral_ids).or(own_referrals_via_swimlane).
+        merge(Hmis::Hud::Project.with_access(user, :can_view_own_referrals))
+
+      access_through_project.or(own_referrals)
     end
 
     # Referrals that have a step assigned to the specified user. Excludes referrals if the assigned step(s) are unavailable.
@@ -135,6 +143,27 @@ module Hmis::Ce
 
     def self.apply_filters(input)
       Hmis::Filter::CeReferralFilter.new(input).filter_scope(self)
+    end
+
+    # Returns IDs of Referrals where there are completed steps assigned to
+    # a swimlane that the provided user participates in on that specific referral.
+    #
+    # These referrals are included in visibility for users with "can view own referrals" permission.
+    # This allows users to see referrals that they have been added to retroactively, even if the steps
+    # assigned to "their" swimlane have all been completed.
+    #
+    # @return [Array<Integer>] Array of referral IDs
+    def self.referral_ids_for_user_with_completed_swimlane_steps(user)
+      rp_t = Hmis::Ce::ReferralParticipant.arel_table
+      ut_t = Hmis::WorkflowDefinition::UserTask.arel_table
+
+      Hmis::Ce::ReferralParticipant.
+        joins(referral: { steps: :user_task }).
+        merge(Hmis::WorkflowExecution::Step.completed).
+        where(rp_t[:user_id].eq(user.id)).
+        where(ut_t[:swimlane_id].eq(rp_t[:swimlane_id])).
+        distinct.
+        pluck(:referral_id)
     end
 
     # Returns an array of fields referenced by Match Rules for this referral's opportunity,

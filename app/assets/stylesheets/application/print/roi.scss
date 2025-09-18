@@ -5,24 +5,27 @@
   page-break-after: always;
 }
 
-.landscape {
+.landscape {}
 
-}
 .shared {
   font-size: 1.4em;
   color: var(--bs-success);
 }
+
 .excluded {
   font-size: 1.4em;
   color: var(--bs-danger);
 }
+
 .color-box {
   color: transparent;
   height: 2em;
 }
+
 .coc-map {
   width: 100%;
 }
+
 .coc-map img {
   width: 100%;
 }
@@ -34,17 +37,23 @@
 
 .coc-roi {
   h1 {
-    font-size: .35in;
+    font-size: .24in;
     text-transform: uppercase;
     margin: 0;
   }
 
   h2 {
-    font-size: .3in;
+    font-size: .18in;
     border: 0;
     color: #457687;
   }
+
   p {
-    font-size: .18in;
+    font-size: .12in;
+  }
+
+  th,
+  td {
+    font-size: .1in;
   }
 }

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientAccessControl::ClientConcern
   extend ActiveSupport::Concern
   include ActionView::Helpers::TagHelper
@@ -19,12 +21,12 @@ module ClientAccessControl::ClientConcern
       id = params[:id].to_i
       @client = client_scope(id: id).find_by(id: id)
 
-      return if @client.present?
+      return true if @client.present?
 
       client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(id)
       if client_id
         redirect_to controller: controller_name, action: action_name, id: client_id
-        return
+        return false
       end
 
       # Throw a 404 by looking for a non-existent client

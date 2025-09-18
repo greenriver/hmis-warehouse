@@ -23,6 +23,8 @@
 module Hmis::Ce::Match
   class Rule < GrdaWarehouseBase
     self.table_name = 'ce_match_rules'
+    acts_as_paranoid
+    has_paper_trail
 
     # lower numbers have a higher priority
     OWNER_PRECEDENCE = {

@@ -43,8 +43,8 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionTwo
       # clients = clients.or(simple_quality(table_name: table_name, row: 6, attr: :ethnicity))
 
       count = clients.distinct.count
-      @report.answer(question: table_name, cell: 'E7').update(summary: count)
-      @report.answer(question: table_name, cell: 'F7').update(summary: percentage(count / universe_members.count.to_f))
+      @report.answer(question: table_name, cell: 'E6').update(summary: count)
+      @report.answer(question: table_name, cell: 'F6').update(summary: percentage(count / universe_members.count.to_f))
     end
 
     private def name_quality(table_name:, universe_members:)

@@ -27,6 +27,7 @@
 #
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
+    # Bulk-managed, does not log to paper_trail
     self.table_name = 'ce_match_candidate_pools'
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
@@ -35,6 +36,10 @@ module Hmis::Ce::Match
     has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :candidate_pool_id, dependent: :destroy
 
     attr_readonly :requirement_expression, :priority_expression
+
+    # Clean up the link from soft-deleted associations before deleting the pool. This avoids
+    # foreign key constraint violations
+    before_destroy :nullify_deleted_associations
 
     # pools for active opportunities
     scope :active, -> {
@@ -115,6 +120,17 @@ module Hmis::Ce::Match
     def lock_for_processing(timeout_seconds:, &block)
       lock_name = "hmis-ce_pool-#{id}"
       ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds, &block)
+    end
+
+    protected
+
+    def nullify_deleted_associations
+      [
+        Hmis::Ce::Opportunity,
+        Hmis::UnitGroup,
+      ].each do |model|
+        model.only_deleted.where(candidate_pool_id: id).update_all(candidate_pool_id: nil)
+      end
     end
   end
 end

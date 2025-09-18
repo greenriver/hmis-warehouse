@@ -4,14 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class Consent::Implied
   def initialize(client:)
     @client = client
   end
 
-  private def current_consent_type
+  def current_consent_type
     consent_type = no_release_string
     consent_type = full_release_string if @client.active_consent_form&.consent_type == full_release_string
+    consent_type = partial_release_string if @client.active_consent_form&.consent_type == partial_release_string
     consent_type = revoked_consent_string if @client.newest_consent_form&.revoked?
     consent_type
   end

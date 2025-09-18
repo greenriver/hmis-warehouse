@@ -5,4 +5,4 @@
         %i.icon-warning
         #{pluralize(client.alert_notes.count, 'active alert')}
     - if health_emergency? && client.health_emergency_ama_restriction_status.present? && can_see_health_emergency_medical_restriction?
-      = pill_badge labels: [GrdaWarehouse::HealthEmergency::AmaRestriction.new.pill_title, client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
+      = pill_badge labels: [GrdaWarehouse::HealthEmergency::AmaRestriction.new.pill_title, client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger text-bg-danger']
