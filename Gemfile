@@ -63,7 +63,7 @@ gem 'bcrypt'
 gem 'haml-rails'
 gem 'haml', '~> 6.0'
 gem 'sassc-rails'
-gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
+gem 'autoprefixer-rails'
 gem 'kaminari'
 gem 'pagy', '~> 8.2'
 gem 'with_advisory_lock'
