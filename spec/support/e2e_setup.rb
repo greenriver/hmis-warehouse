@@ -166,6 +166,78 @@ RSpec.shared_context 'SystemSpecHelper' do
   end
 end
 
+# Browser health monitoring and management
+class BrowserHealthManager
+  @test_count = 0
+  @browser_restarts = 0
+  @last_memory_check = Time.current
+
+  class << self
+    attr_accessor :test_count, :browser_restarts, :last_memory_check
+
+    def increment_test_count
+      @test_count += 1
+    end
+
+    def should_restart_browser?
+      # Restart every 25 tests to prevent memory buildup
+      restart_interval = ENV.fetch('BROWSER_RESTART_INTERVAL', 25).to_i
+      @test_count > 0 && (@test_count % restart_interval) == 0
+    end
+
+    def get_memory_info # rubocop:disable Naming/AccessorMethodName
+      return {} unless File.exist?('/proc/meminfo')
+
+      meminfo = {}
+      File.readlines('/proc/meminfo').each do |line|
+        key, value = line.split(':')
+        next unless value
+
+        # Convert to MB for readability
+        meminfo[key.strip] = value.strip.split.first.to_i / 1024 if value.include?('kB')
+      end
+      meminfo
+    rescue StandardError => e
+      Rails.logger.warn "Could not read memory info: #{e.message}"
+      {}
+    end
+
+    def log_system_stats
+      return unless (@test_count % 10) == 0 || (Time.current - @last_memory_check) > 60
+
+      @last_memory_check = Time.current
+      memory_info = get_memory_info
+
+      return unless memory_info.any?
+
+      Rails.logger.info "=== System Stats (Test #{@test_count}) ==="
+      Rails.logger.info "Memory Available: #{memory_info['MemAvailable']}MB" if memory_info['MemAvailable']
+      Rails.logger.info "Memory Free: #{memory_info['MemFree']}MB" if memory_info['MemFree']
+      Rails.logger.info "Buffers: #{memory_info['Buffers']}MB" if memory_info['Buffers']
+      Rails.logger.info "Cached: #{memory_info['Cached']}MB" if memory_info['Cached']
+      Rails.logger.info "Browser restarts so far: #{@browser_restarts}"
+    end
+
+    def browser_health_check
+      return false unless Capybara.current_session&.driver.respond_to?(:browser)
+
+      browser = Capybara.current_session.driver.browser
+      return false unless browser
+
+      # Try a simple command to test if browser is responsive
+      begin
+        browser.evaluate('true')
+        true
+      rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError
+        false
+      rescue StandardError => e
+        Rails.logger.warn "Browser health check failed: #{e.message}"
+        false
+      end
+    end
+  end
+end
+
 RSpec.configure do |config|
   if !ENV['RUN_SYSTEM_TESTS']
     config.before(:each, type: :system) do
@@ -242,78 +314,6 @@ RSpec.configure do |config|
       end
     ensure
       Rails.application.default_url_options[:host] = was_host
-    end
-  end
-
-  # Browser health monitoring and management
-  class BrowserHealthManager
-    @test_count = 0
-    @browser_restarts = 0
-    @last_memory_check = Time.current
-
-    class << self
-      attr_accessor :test_count, :browser_restarts, :last_memory_check
-
-      def increment_test_count
-        @test_count += 1
-      end
-
-      def should_restart_browser?
-        # Restart every 25 tests to prevent memory buildup
-        restart_interval = ENV.fetch('BROWSER_RESTART_INTERVAL', 25).to_i
-        @test_count > 0 && (@test_count % restart_interval) == 0
-      end
-
-      def get_memory_info # rubocop:disable Naming/AccessorMethodName
-        return {} unless File.exist?('/proc/meminfo')
-
-        meminfo = {}
-        File.readlines('/proc/meminfo').each do |line|
-          key, value = line.split(':')
-          next unless value
-
-          # Convert to MB for readability
-          meminfo[key.strip] = value.strip.split.first.to_i / 1024 if value.include?('kB')
-        end
-        meminfo
-      rescue StandardError => e
-        Rails.logger.warn "Could not read memory info: #{e.message}"
-        {}
-      end
-
-      def log_system_stats
-        return unless (@test_count % 10) == 0 || (Time.current - @last_memory_check) > 60
-
-        @last_memory_check = Time.current
-        memory_info = get_memory_info
-
-        return unless memory_info.any?
-
-        Rails.logger.info "=== System Stats (Test #{@test_count}) ==="
-        Rails.logger.info "Memory Available: #{memory_info['MemAvailable']}MB" if memory_info['MemAvailable']
-        Rails.logger.info "Memory Free: #{memory_info['MemFree']}MB" if memory_info['MemFree']
-        Rails.logger.info "Buffers: #{memory_info['Buffers']}MB" if memory_info['Buffers']
-        Rails.logger.info "Cached: #{memory_info['Cached']}MB" if memory_info['Cached']
-        Rails.logger.info "Browser restarts so far: #{@browser_restarts}"
-      end
-
-      def browser_health_check
-        return false unless Capybara.current_session&.driver.respond_to?(:browser)
-
-        browser = Capybara.current_session.driver.browser
-        return false unless browser
-
-        # Try a simple command to test if browser is responsive
-        begin
-          browser.evaluate('true')
-          true
-        rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError
-          false
-        rescue StandardError => e
-          Rails.logger.warn "Browser health check failed: #{e.message}"
-          false
-        end
-      end
     end
   end
 
