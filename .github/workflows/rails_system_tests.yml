@@ -120,6 +120,7 @@ jobs:
       FERRUM_DEFAULT_TIMEOUT: 60
       CHROME_URL: http://chrome:3333
       SYSTEM_TEST_RETRIES: 2
+      BROWSER_RESTART_INTERVAL: 20
 
     steps:
       - name: Checkout

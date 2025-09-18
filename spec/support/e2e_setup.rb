@@ -178,39 +178,36 @@ RSpec.configure do |config|
   config.include_context 'SystemSpecHelper', type: :system
 
   config.prepend_before(:each, type: :system) do
-    # Debug Chrome connection state BEFORE setting up driver
-    Rails.logger.info '=== Starting new system test ==='
-    Rails.logger.info "CHROME_URL: #{ENV['CHROME_URL']}"
-    Rails.logger.info "Remote Chrome connected: #{E2eTests::RemoteChrome.connected?}"
-    Rails.logger.info "Remote Chrome options: #{E2eTests::RemoteChrome.options}"
+    # Increment test counter and check system health
+    BrowserHealthManager.increment_test_count
+    BrowserHealthManager.log_system_stats
 
-    # Test Chrome connection manually
-    begin
-      if E2eTests::RemoteChrome.url
-        require 'net/http'
-        uri = URI("#{E2eTests::RemoteChrome.url}/json/version")
-        response = Net::HTTP.get_response(uri)
-        Rails.logger.info "Chrome API response: #{response.code} - #{response.body[0..200]}"
-      else
-        Rails.logger.warn 'No Chrome URL configured'
+    # Check if we should proactively restart the browser
+    if BrowserHealthManager.should_restart_browser?
+      Rails.logger.warn "=== Proactive browser restart after #{BrowserHealthManager.test_count} tests ==="
+      begin
+        force_browser_restart
+        BrowserHealthManager.browser_restarts += 1
+        Rails.logger.info 'Proactive browser restart completed successfully'
+      rescue StandardError => e
+        Rails.logger.error "Proactive browser restart failed: #{e.message}"
+        # Continue with test anyway - the retry mechanism will handle failures
       end
-    rescue StandardError => e
-      Rails.logger.error "Chrome API test failed: #{e.message}"
+    end
+
+    # Health check before each test
+    unless BrowserHealthManager.browser_health_check
+      Rails.logger.warn 'Browser health check failed, attempting restart before test'
+      begin
+        force_browser_restart
+        BrowserHealthManager.browser_restarts += 1
+      rescue StandardError => e
+        Rails.logger.error "Pre-test browser restart failed: #{e.message}"
+      end
     end
 
     # Use JS driver always
     driven_by E2eTests::DRIVER_NAME
-
-    # Debug initial browser state
-    Rails.logger.info "Driver name: #{E2eTests::DRIVER_NAME}"
-    Rails.logger.info "Current session: #{Capybara.current_session.inspect}"
-    Rails.logger.info "Current driver: #{Capybara.current_session.driver.inspect}"
-
-    begin
-      Rails.logger.info "Browser object: #{Capybara.current_session.driver.browser.inspect}" if Capybara.current_session.driver.respond_to?(:browser)
-    rescue StandardError => e
-      Rails.logger.warn "Could not inspect browser: #{e.message}"
-    end
   end
 
   # Make urls in mailers contain the correct server host.
@@ -248,9 +245,85 @@ RSpec.configure do |config|
     end
   end
 
+  # Browser health monitoring and management
+  class BrowserHealthManager
+    @test_count = 0
+    @browser_restarts = 0
+    @last_memory_check = Time.current
+
+    class << self
+      attr_accessor :test_count, :browser_restarts, :last_memory_check
+
+      def increment_test_count
+        @test_count += 1
+      end
+
+      def should_restart_browser?
+        # Restart every 25 tests to prevent memory buildup
+        restart_interval = ENV.fetch('BROWSER_RESTART_INTERVAL', 25).to_i
+        @test_count > 0 && (@test_count % restart_interval) == 0
+      end
+
+      def get_memory_info # rubocop:disable Naming/AccessorMethodName
+        return {} unless File.exist?('/proc/meminfo')
+
+        meminfo = {}
+        File.readlines('/proc/meminfo').each do |line|
+          key, value = line.split(':')
+          next unless value
+
+          # Convert to MB for readability
+          meminfo[key.strip] = value.strip.split.first.to_i / 1024 if value.include?('kB')
+        end
+        meminfo
+      rescue StandardError => e
+        Rails.logger.warn "Could not read memory info: #{e.message}"
+        {}
+      end
+
+      def log_system_stats
+        return unless (@test_count % 10) == 0 || (Time.current - @last_memory_check) > 60
+
+        @last_memory_check = Time.current
+        memory_info = get_memory_info
+
+        return unless memory_info.any?
+
+        Rails.logger.info "=== System Stats (Test #{@test_count}) ==="
+        Rails.logger.info "Memory Available: #{memory_info['MemAvailable']}MB" if memory_info['MemAvailable']
+        Rails.logger.info "Memory Free: #{memory_info['MemFree']}MB" if memory_info['MemFree']
+        Rails.logger.info "Buffers: #{memory_info['Buffers']}MB" if memory_info['Buffers']
+        Rails.logger.info "Cached: #{memory_info['Cached']}MB" if memory_info['Cached']
+        Rails.logger.info "Browser restarts so far: #{@browser_restarts}"
+      end
+
+      def browser_health_check
+        return false unless Capybara.current_session&.driver.respond_to?(:browser)
+
+        browser = Capybara.current_session.driver.browser
+        return false unless browser
+
+        # Try a simple command to test if browser is responsive
+        begin
+          browser.evaluate('true')
+          true
+        rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError
+          false
+        rescue StandardError => e
+          Rails.logger.warn "Browser health check failed: #{e.message}"
+          false
+        end
+      end
+    end
+  end
+
   # Helper method to force complete browser restart
   def force_browser_restart
     Rails.logger.warn 'Forcing complete browser restart'
+
+    # Log memory info before restart
+    memory_info = BrowserHealthManager.get_memory_info
+    Rails.logger.info "Memory before restart - Available: #{memory_info['MemAvailable']}MB, Free: #{memory_info['MemFree']}MB" if memory_info.any?
 
     # Debug current browser state
     begin
@@ -291,6 +364,10 @@ RSpec.configure do |config|
       # This will force creation of a new browser instance
       visit('about:blank')
       Rails.logger.info 'Successfully restarted browser'
+
+      # Log memory info after restart
+      memory_info = BrowserHealthManager.get_memory_info
+      Rails.logger.info "Memory after restart - Available: #{memory_info['MemAvailable']}MB, Free: #{memory_info['MemFree']}MB" if memory_info.any?
 
       # Debug new browser state
       Rails.logger.info "New session: #{Capybara.current_session.inspect}"
