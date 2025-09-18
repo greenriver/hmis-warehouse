@@ -7,9 +7,23 @@
 # frozen_string_literal: false
 
 if ENV['RUN_SYSTEM_TESTS']
+  Rails.logger.info '=== Loading E2E Tests Setup ==='
+  Rails.logger.info "CHROME_URL: #{ENV['CHROME_URL']}"
+
   require_relative './e2e_tests'
-  E2eTests::Setup.perform
+
+  begin
+    Rails.logger.info '=== Performing E2E Setup ==='
+    E2eTests::Setup.perform
+    Rails.logger.info '=== E2E Setup completed successfully ==='
+  rescue StandardError => e
+    Rails.logger.error "=== E2E Setup failed: #{e.message} ==="
+    Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+    raise
+  end
+
   Capybara.default_driver = E2eTests::DRIVER_NAME
+  Rails.logger.info "=== Set default driver to #{E2eTests::DRIVER_NAME} ==="
 end
 
 # from user factory

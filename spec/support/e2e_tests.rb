@@ -50,9 +50,21 @@ module E2eTests
       # It could be useful to be able to configure this path from the outside (e.g., on CI).
       ::Capybara.save_path = ENV.fetch('CAPYBARA_ARTIFACTS', './tmp/capybara')
 
-      raise "can't connect to chrome on #{ENV['CHROME_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
+      Rails.logger.info '=== Checking Chrome connection ==='
+      chrome_connected = RemoteChrome.connected?
+      Rails.logger.info "Chrome connected: #{chrome_connected}"
+      Rails.logger.info "Chrome URL: #{ENV['CHROME_URL']}"
 
+      unless chrome_connected
+        Rails.logger.error "Cannot connect to Chrome at #{ENV['CHROME_URL']}. Run `docker-compose up -d chrome`"
+        raise "can't connect to chrome on #{ENV['CHROME_URL']} run `docker-compose up -d chrome`"
+      end
+
+      Rails.logger.info '=== Getting remote Chrome options ==='
       remote_options = RemoteChrome.options
+      Rails.logger.info "Remote options: #{remote_options.inspect}"
+
+      Rails.logger.info "=== Registering Capybara driver #{DRIVER_NAME} ==="
       ::Capybara.register_driver(DRIVER_NAME) do |app|
         ::Capybara::Cuprite::Driver.new(
           app,
@@ -71,6 +83,8 @@ module E2eTests
           }.merge(remote_options),
         )
       end
+
+      Rails.logger.info "=== Driver #{DRIVER_NAME} registered successfully ==="
     end
   end
 
