@@ -173,6 +173,62 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "103b3655964f91065b2243504a58c8fe833ec9c4e5ade96b08c9f0d004f92d49",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/project_scorecard/app/views/project_scorecard/warehouse_reports/scorecards/show.haml",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", ProjectScorecard::DocumentExports::ScorecardExport.new(:query_string => { :report_id => reports_scope.find(params[:id].to_i).id }.to_query, :user => current_user).pdf_data)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ProjectScorecard::WarehouseReports::ScorecardsController",
+          "method": "show",
+          "line": 39,
+          "file": "drivers/project_scorecard/app/controllers/project_scorecard/warehouse_reports/scorecards_controller.rb",
+          "rendered": {
+            "name": "project_scorecard/warehouse_reports/scorecards/show",
+            "file": "drivers/project_scorecard/app/views/project_scorecard/warehouse_reports/scorecards/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "project_scorecard/warehouse_reports/scorecards/show"
+      },
+      "user_input": "ProjectScorecard::DocumentExports::ScorecardExport.new(:query_string => { :report_id => reports_scope.find(params[:id].to_i).id }.to_query, :user => current_user).pdf_data",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "11e612be96c2a70a32517cc8f0acdddcc18a1ba89b7c9041d4587e51536e25cd",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/project_groups/_form.haml",
+      "line": 36,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "project_groups/_form"
+      },
+      "user_input": "(not User.anyone_using_acls?)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Denial of Service",
       "warning_code": 76,
       "fingerprint": "12d54f9786ea1b87aaff0a84ef939d760a3eac5d1e4c213b702b67a0f9b7905e",
@@ -354,6 +410,50 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "217092d3eec595c296438f636ff533e83f6bc2170c5351fffd7e641739c85ce9",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/client_access_control/app/views/client_access_control/history/_month.haml",
+      "line": 9,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", :controller => \"client-history\", :\"client-history-weeks-value\" => ClientAccessControl::ClientHistoryMonth.new((params[:year].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).year), (params[:month].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).month), :project_types => (params[:project_types] or \"\").split(\",\"), :projects => (params[:projects] or \"\").split(\",\"), :contact_types => (params[:contact_types] or \"\").split(\",\")).weeks_data(:month => ((params[:month].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).month)), :year => ((params[:year].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).year)), :client => destination_searchable_client_scope.find(params[:client_id].to_i), :user => current_user).to_json, :\"client-history-events-value\" => ClientAccessControl::ClientHistoryMonth.new((params[:year].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).year), (params[:month].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).month), :project_types => (params[:project_types] or \"\").split(\",\"), :projects => (params[:projects] or \"\").split(\",\"), :contact_types => (params[:contact_types] or \"\").split(\",\")).contact_types.to_json, :\"client-history-year-value\" => ((params[:year].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).year)), :\"client-history-month-value\" => ((params[:month].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).month)), :\"client-history-min-date-value\" => ClientAccessControl::ClientHistoryMonth.new((params[:year].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).year), (params[:month].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).month), :project_types => (params[:project_types] or \"\").split(\",\"), :projects => (params[:projects] or \"\").split(\",\"), :contact_types => (params[:contact_types] or \"\").split(\",\")).min_date(destination_searchable_client_scope.find(params[:client_id].to_i)).strftime(\"%Y-%m-%d\"), :\"client-history-max-date-value\" => ClientAccessControl::ClientHistoryMonth.new((params[:year].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).year), (params[:month].to_i or ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).month), :project_types => (params[:project_types] or \"\").split(\",\"), :projects => (params[:projects] or \"\").split(\",\"), :contact_types => (params[:contact_types] or \"\").split(\",\")).max_date(destination_searchable_client_scope.find(params[:client_id].to_i)).strftime(\"%Y-%m-%d\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ClientAccessControl::HistoryController",
+          "method": "show",
+          "line": 45,
+          "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
+          "rendered": {
+            "name": "client_access_control/history/show",
+            "file": "drivers/client_access_control/app/views/client_access_control/history/show.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "client_access_control/history/show",
+          "line": 6,
+          "file": "drivers/client_access_control/app/views/client_access_control/history/show.haml",
+          "rendered": {
+            "name": "client_access_control/history/_month",
+            "file": "drivers/client_access_control/app/views/client_access_control/history/_month.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "client_access_control/history/_month"
+      },
+      "user_input": "ClientAccessControl::ClientHistoryMonth.new.max_date(destination_searchable_client_scope.find(params[:client_id].to_i))",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -610,6 +710,40 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "37a6f2f9d083a855cc841eff93d027282a6aa78eaf12910f3f0bfa0d38071827",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/admin/audits/show.haml",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", \"bs-toggle\" => :tooltip, \"bs-title\" => (\"Method: #{(Unresolved Model).new.method}\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::AuditsController",
+          "method": "show",
+          "line": 15,
+          "file": "app/controllers/admin/audits_controller.rb",
+          "rendered": {
+            "name": "admin/audits/show",
+            "file": "app/views/admin/audits/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/audits/show"
+      },
+      "user_input": "(Unresolved Model).new.method",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "3ae7e132235db79de3138be77514c13366cf6e7df673025b772c6c5483b11064",
@@ -652,6 +786,60 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "3e636e70d49ecf3213726f9e7ff6da99b597a8724967c1be77567905f8383362",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/careplans/_current_team.haml",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(member.member_type_name))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::CareplansController",
+          "method": "index",
+          "line": 36,
+          "file": "app/controllers/health/careplans_controller.rb",
+          "rendered": {
+            "name": "health/careplans/index",
+            "file": "app/views/health/careplans/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "health/careplans/index",
+          "line": 9,
+          "file": "app/views/health/careplans/index.haml",
+          "rendered": {
+            "name": "health/careplans/_index",
+            "file": "app/views/health/careplans/_index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "health/careplans/_index",
+          "line": 10,
+          "file": "app/views/health/careplans/_index.haml",
+          "rendered": {
+            "name": "health/careplans/_current_team",
+            "file": "app/views/health/careplans/_current_team.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/careplans/_current_team"
+      },
+      "user_input": "Health::Team::Member.icon_for(member.member_type_name)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -802,6 +990,40 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "49810d010cfa79dc72e96028f4d5f620f35c2b542a14f0e529ea3cec5a5a4c2b",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/style_guides/system_colors.haml",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, \"mb-4 p-4\", \"#{section}-#{(Unresolved Model).new}\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "StyleGuidesController",
+          "method": "system_colors",
+          "line": 141,
+          "file": "app/controllers/style_guides_controller.rb",
+          "rendered": {
+            "name": "style_guides/system_colors",
+            "file": "app/views/style_guides/system_colors.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "style_guides/system_colors"
+      },
+      "user_input": "(Unresolved Model).new",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "4dbef2124ce5f88d9517b90cfd0933fa92ca9a4353331c92fca66c397e476a6f",
@@ -915,6 +1137,39 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "53be4bbabac9313cff3af4c94b8de0786ce0caec55b67816c11fa2ccdc48198a",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/team_members/_team_member.haml",
+      "line": 16,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(member.member_type_name))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "health/careplans/_team",
+          "line": 13,
+          "file": "app/views/health/careplans/_team.haml",
+          "rendered": {
+            "name": "health/team_members/_team_member",
+            "file": "app/views/health/team_members/_team_member.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/team_members/_team_member"
+      },
+      "user_input": "Health::Team::Member.icon_for(member.member_type_name)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
@@ -957,6 +1212,84 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "5ace747aadfc3a74dcef82e9c2a22a11650b3eb11858870067ac45f32696eafa",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/clients/audits/index.haml",
+      "line": 27,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", \"bs-toggle\" => :tooltip, \"bs-title\" => (\"Method: #{(Unresolved Model).new.method}\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Clients::AuditsController",
+          "method": "index",
+          "line": 22,
+          "file": "app/controllers/clients/audits_controller.rb",
+          "rendered": {
+            "name": "clients/audits/index",
+            "file": "app/views/clients/audits/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "clients/audits/index"
+      },
+      "user_input": "(Unresolved Model).new.method",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "5ae32046b106751da1d6f0ca9e0f114f01c5081e63ce3173ee4f0ed3bc3d1ebd",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/warehouse_reports/outflow/_table.haml",
+      "line": 17,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", \"bs-toggle\" => :tooltip, \"bs-title\" => (\"Limited to exits from #{GrdaWarehouse::WarehouseReports::OutflowReport.new(::Filters::OutflowReport.new(:user_id => current_user.id).set_from_params(filter_options), current_user).project_types_limiting_exit_scope.join(\", \")}\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "WarehouseReports::OutflowController",
+          "method": "index",
+          "line": 17,
+          "file": "app/controllers/warehouse_reports/outflow_controller.rb",
+          "rendered": {
+            "name": "warehouse_reports/outflow/index",
+            "file": "app/views/warehouse_reports/outflow/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "warehouse_reports/outflow/index",
+          "line": 10,
+          "file": "app/views/warehouse_reports/outflow/index.haml",
+          "rendered": {
+            "name": "warehouse_reports/outflow/_table",
+            "file": "app/views/warehouse_reports/outflow/_table.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/outflow/_table"
+      },
+      "user_input": "GrdaWarehouse::WarehouseReports::OutflowReport.new(::Filters::OutflowReport.new(:user_id => current_user.id).set_from_params(filter_options), current_user).project_types_limiting_exit_scope",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -1141,6 +1474,74 @@
       "confidence": "Weak",
       "cwe_id": [
         601
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "705b63542aaaf5aa79d5981e370b09871d74084d283f09b3d0aa0fc8cd449518",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/health_comprehensive_assessment/app/views/health_comprehensive_assessment/assessments/show.haml",
+      "line": 20,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", :type => ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.type, :query_string => { \"client_id\" => params[\"client_id\"], \"id\" => Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).comprehensive_assessments.find(params[:id]).id }.to_query, \"url\" => ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.data_url)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "HealthComprehensiveAssessment::AssessmentsController",
+          "method": "show",
+          "line": 45,
+          "file": "drivers/health_comprehensive_assessment/app/controllers/health_comprehensive_assessment/assessments_controller.rb",
+          "rendered": {
+            "name": "health_comprehensive_assessment/assessments/show",
+            "file": "drivers/health_comprehensive_assessment/app/views/health_comprehensive_assessment/assessments/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health_comprehensive_assessment/assessments/show"
+      },
+      "user_input": "::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.type",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "705b63542aaaf5aa79d5981e370b09871d74084d283f09b3d0aa0fc8cd449518",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/health_comprehensive_assessment/app/views/health_comprehensive_assessment/assessments/show.haml",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", :type => ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.type, :query_string => { \"client_id\" => params[\"client_id\"], \"id\" => Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).comprehensive_assessments.find(params[:id]).id }.to_query, \"url\" => ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.data_url)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "HealthComprehensiveAssessment::AssessmentsController",
+          "method": "show",
+          "line": 45,
+          "file": "drivers/health_comprehensive_assessment/app/controllers/health_comprehensive_assessment/assessments_controller.rb",
+          "rendered": {
+            "name": "health_comprehensive_assessment/assessments/show",
+            "file": "drivers/health_comprehensive_assessment/app/views/health_comprehensive_assessment/assessments/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health_comprehensive_assessment/assessments/show"
+      },
+      "user_input": "::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.type",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -1496,6 +1897,40 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "845731c6e4ed6bf04582fc1ad01c426ff872c7e2c6cff959d50413ff9203e0f9",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/health_comprehensive_assessment/app/views/health_comprehensive_assessment/assessments/edit.haml",
+      "line": 9,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", :type => ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.type, :query_string => { \"client_id\" => params[\"client_id\"], \"id\" => Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).comprehensive_assessments.find(params[:id]).id }.to_query, \"url\" => ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.data_url)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "HealthComprehensiveAssessment::AssessmentsController",
+          "method": "edit",
+          "line": 30,
+          "file": "drivers/health_comprehensive_assessment/app/controllers/health_comprehensive_assessment/assessments_controller.rb",
+          "rendered": {
+            "name": "health_comprehensive_assessment/assessments/edit",
+            "file": "drivers/health_comprehensive_assessment/app/views/health_comprehensive_assessment/assessments/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health_comprehensive_assessment/assessments/edit"
+      },
+      "user_input": "::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new.type",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -1679,13 +2114,46 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "9749bf413b3ba09b35f81ddfd6459b1b31b28a19432d22cfb0daacf0db6e151e",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/cohorts/_client_table.haml",
+      "line": 15,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, \"cohort-client__table ag-theme-balham datatable\", (:md or params[:size].to_sym))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "cohorts/show",
+          "line": 44,
+          "file": "app/views/cohorts/show.haml",
+          "rendered": {
+            "name": "cohorts/_client_table",
+            "file": "app/views/cohorts/_client_table.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "cohorts/_client_table"
+      },
+      "user_input": "params[:size].to_sym",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Unmaintained Dependency",
       "warning_code": 122,
       "fingerprint": "98b26f60d776fd41ee6f088c833725145be9aac2d7c5b33780241c273622db42",
       "check_name": "EOLRails",
       "message": "Support for Rails 7.1.5.2 ends on 2025-10-01",
       "file": "Gemfile.lock",
-      "line": 1651,
+      "line": 1662,
       "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
       "code": null,
       "render_path": null,
@@ -1750,7 +2218,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/layouts/application.html.haml",
-      "line": 26,
+      "line": 22,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "GrdaWarehouse::Theme.css_file_contents",
       "render_path": [
@@ -1778,6 +2246,40 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "a3cf7112e750e0b30ab79707cdceb64f667610aad2b9576b8e2563fd69528df1",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/cohorts/edit.haml",
+      "line": 32,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "CohortsController",
+          "method": "edit",
+          "line": 134,
+          "file": "app/controllers/cohorts_controller.rb",
+          "rendered": {
+            "name": "cohorts/edit",
+            "file": "app/views/cohorts/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "cohorts/edit"
+      },
+      "user_input": "(not User.anyone_using_acls?)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "a5ae0e19f1c215e30af6286dee8a557c5215860d59a3a4c4ca3a914e2aadb58e",
@@ -1797,6 +2299,40 @@
       "confidence": "Medium",
       "cwe_id": [
         77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "ab96bf0506750b2f8ea47b359219ce7e1bb4ca223319e7137e525a8e2c1be1af",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/boston_project_scorecard/app/views/boston_project_scorecard/warehouse_reports/scorecards/show.haml",
+      "line": 16,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", BostonProjectScorecard::DocumentExports::ScorecardExport.new(:query_string => { :report_id => reports_scope.find(params[:id].to_i).id }.to_query, :user => current_user).pdf_data)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "BostonProjectScorecard::WarehouseReports::ScorecardsController",
+          "method": "show",
+          "line": 40,
+          "file": "drivers/boston_project_scorecard/app/controllers/boston_project_scorecard/warehouse_reports/scorecards_controller.rb",
+          "rendered": {
+            "name": "boston_project_scorecard/warehouse_reports/scorecards/show",
+            "file": "drivers/boston_project_scorecard/app/views/boston_project_scorecard/warehouse_reports/scorecards/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "boston_project_scorecard/warehouse_reports/scorecards/show"
+      },
+      "user_input": "BostonProjectScorecard::DocumentExports::ScorecardExport.new(:query_string => { :report_id => reports_scope.find(params[:id].to_i).id }.to_query, :user => current_user).pdf_data",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -1900,6 +2436,84 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "b1ee44801ba7e57bbc6a62f8791532c14b98078e76dee9b0b4a1682977e86bb8",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/cohorts/_nav.haml",
+      "line": 56,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", :type => GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new.type, :query_string => link_params.to_query)",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Cohorts::ReportsController",
+          "method": "show",
+          "line": 21,
+          "file": "app/controllers/cohorts/reports_controller.rb",
+          "rendered": {
+            "name": "cohorts/reports/show",
+            "file": "app/views/cohorts/reports/show.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "cohorts/reports/show",
+          "line": 4,
+          "file": "app/views/cohorts/reports/show.haml",
+          "rendered": {
+            "name": "cohorts/_nav",
+            "file": "app/views/cohorts/_nav.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "cohorts/_nav"
+      },
+      "user_input": "GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new.type",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "b26d79759503899327e67460d0895a28dd50f872b994703733b684a5974c5c73",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/admin/audits/show.haml",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", \"bs-toggle\" => :tooltip, \"bs-title\" => (\"Class: #{(Unresolved Model).new.item_model}\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::AuditsController",
+          "method": "show",
+          "line": 15,
+          "file": "app/controllers/admin/audits_controller.rb",
+          "rendered": {
+            "name": "admin/audits/show",
+            "file": "app/views/admin/audits/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/audits/show"
+      },
+      "user_input": "(Unresolved Model).new.item_model",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2029,6 +2643,61 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "bc97f624010dc57cf94f78e3f9d16d7e2d016f2c77435c5124c07125bac6b01c",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/team_members/_group.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(group))",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "health/team_members/_group"
+      },
+      "user_input": "Health::Team::Member.icon_for(group)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "bed4cd225be0bb57377c6783a3406f509eb654d6e79c8cdb9c39757452bf9c9a",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/careplan/team/members/_current_members.haml",
+      "line": 30,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(group))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "health/careplan/team/members/index",
+          "line": 10,
+          "file": "app/views/health/careplan/team/members/index.haml",
+          "rendered": {
+            "name": "health/careplan/team/members/_current_members",
+            "file": "app/views/health/careplan/team/members/_current_members.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/careplan/team/members/_current_members"
+      },
+      "user_input": "Health::Team::Member.icon_for(group)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "c001b77515db71c33c42f71ebb9f55b97fc3fa1dc0f7c8bc3c6255abcf416607",
@@ -2071,6 +2740,39 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "c62c9ed9d0a5941aa377f5cd59535ab40b9dc40c21a2bce5abda3ed210a7c56e",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/patient_team_members/_team_member.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(member.member_type_name))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "health/patient_team_members/index",
+          "line": 30,
+          "file": "app/views/health/patient_team_members/index.haml",
+          "rendered": {
+            "name": "health/patient_team_members/_team_member",
+            "file": "app/views/health/patient_team_members/_team_member.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/patient_team_members/_team_member"
+      },
+      "user_input": "Health::Team::Member.icon_for(member.member_type_name)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2127,6 +2829,39 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "c9b9edc3452f436d29c8c17ae156ab2f345f6dc2e3d977069a461ee5b316c5dd",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/team_members/_current_members.haml",
+      "line": 30,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(group))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "health/team_members/index",
+          "line": 10,
+          "file": "app/views/health/team_members/index.haml",
+          "rendered": {
+            "name": "health/team_members/_current_members",
+            "file": "app/views/health/team_members/_current_members.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/team_members/_current_members"
+      },
+      "user_input": "Health::Team::Member.icon_for(group)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2430,6 +3165,50 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "eaa7b82c3f1cf0a428fac4d78db86b4476f783fdb9935da07952ce7ace76e1bd",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/claims_reporting/app/views/claims_reporting/warehouse_reports/engagement_trends/_report.haml",
+      "line": 116,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "::Haml::AttributeBuilder.build_data(true, \"'\", \"bs-toggle\" => :tooltip, \"bs-title\" => ((\"Based on #{ClaimsReporting::Formatter.new.format_i(report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"n_claims\"])} #{((report.cos_description(row[\"cde_cos_category\"]) or \"\") or (report.cos_rollup(row[\"cde_cos_rollup\"]) or \"All Claims\")).downcase.gsub(/all claims/, \"total claims\")} claims from #{ClaimsReporting::Formatter.new.format_i(report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"n_members\"])} #{(\"members\" or \"members #{report.cohorts[cohort_id][:title].downcase}\")}.\" + \"\\nTotal Paid: #{ClaimsReporting::Formatter.new.format_c(report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"paid_amount_sum\"])}.\") + \"\\n#{if (((if idx.present? and (report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"].present? and (20.present? and ((idx > 0) and (report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"] > 20)))) then\n  baseline_cohort_id = report.cohorts.keys[(idx - 1)]\n  b = report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])\n  baseline_cohort = report.cohorts[report.cohorts.keys[(idx - 1)]][:title].downcase\n  base_utilization = report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"]\n  if report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"].present? and (report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"] > 20) then\n    (100 * ((report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"] / report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"]) - 1)).round\n  end\nend) > 0)) then\n  \"Up\"\nelse\n  \"Down\"\nend} #{(if idx.present? and (report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"].present? and (20.present? and ((idx > 0) and (report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"] > 20)))) then\n  baseline_cohort_id = report.cohorts.keys[(idx - 1)]\n  b = report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])\n  baseline_cohort = report.cohorts[report.cohorts.keys[(idx - 1)]][:title].downcase\n  base_utilization = report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"]\n  if report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"].present? and (report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"] > 20) then\n    (100 * ((report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"] / report.result_for(report.cohorts.keys[(idx - 1)], row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"utilization\"]) - 1)).round\n  end\nend).abs}% vs. #{report.cohorts[report.cohorts.keys[(idx - 1)]][:title].downcase}.\"))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ClaimsReporting::WarehouseReports::EngagementTrendsController",
+          "method": "show",
+          "line": 42,
+          "file": "drivers/claims_reporting/app/controllers/claims_reporting/warehouse_reports/engagement_trends_controller.rb",
+          "rendered": {
+            "name": "claims_reporting/warehouse_reports/engagement_trends/show",
+            "file": "drivers/claims_reporting/app/views/claims_reporting/warehouse_reports/engagement_trends/show.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "claims_reporting/warehouse_reports/engagement_trends/show",
+          "line": 20,
+          "file": "drivers/claims_reporting/app/views/claims_reporting/warehouse_reports/engagement_trends/show.haml",
+          "rendered": {
+            "name": "claims_reporting/warehouse_reports/engagement_trends/_report",
+            "file": "drivers/claims_reporting/app/views/claims_reporting/warehouse_reports/engagement_trends/_report.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "claims_reporting/warehouse_reports/engagement_trends/_report"
+      },
+      "user_input": "ClaimsReporting::Formatter.new.format_i(report.result_for(cohort_id, row[\"cde_cos_rollup\"], row[\"cde_cos_category\"])[\"n_claims\"])",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "ec2a88a0a4dbf17f841d1ed086b8c4e0132b485f2ceea48c39e2fa1715aa2c9a",
@@ -2591,5 +3370,5 @@
       "note": ""
     }
   ],
-  "brakeman_version": "7.0.2"
+  "brakeman_version": "7.1.0"
 }
