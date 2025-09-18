@@ -82,6 +82,8 @@ runs:
           libxml2-dev \
           libxslt1-dev \
           libyaml-dev \
+          libproj-dev \
+          proj-bin \
           nodejs \
           poppler-utils \
           postgresql-client-16 \
