@@ -210,12 +210,12 @@ class BrowserHealthManager
 
       return unless memory_info.any?
 
-      Rails.logger.info "=== System Stats (Test #{@test_count}) ==="
-      Rails.logger.info "Memory Available: #{memory_info['MemAvailable']}MB" if memory_info['MemAvailable']
-      Rails.logger.info "Memory Free: #{memory_info['MemFree']}MB" if memory_info['MemFree']
-      Rails.logger.info "Buffers: #{memory_info['Buffers']}MB" if memory_info['Buffers']
-      Rails.logger.info "Cached: #{memory_info['Cached']}MB" if memory_info['Cached']
-      Rails.logger.info "Browser restarts so far: #{@browser_restarts}"
+      puts "=== System Stats (Test #{@test_count}) ==="
+      puts "Memory Available: #{memory_info['MemAvailable']}MB" if memory_info['MemAvailable']
+      puts "Memory Free: #{memory_info['MemFree']}MB" if memory_info['MemFree']
+      puts "Buffers: #{memory_info['Buffers']}MB" if memory_info['Buffers']
+      puts "Cached: #{memory_info['Cached']}MB" if memory_info['Cached']
+      puts "Browser restarts so far: #{@browser_restarts}"
     end
 
     def browser_health_check
@@ -250,31 +250,34 @@ RSpec.configure do |config|
   config.include_context 'SystemSpecHelper', type: :system
 
   config.prepend_before(:each, type: :system) do
+    # Debug: confirm this block is running
+    puts "=== MONITORING: Test #{BrowserHealthManager.test_count + 1} starting ==="
+
     # Increment test counter and check system health
     BrowserHealthManager.increment_test_count
     BrowserHealthManager.log_system_stats
 
     # Check if we should proactively restart the browser
     if BrowserHealthManager.should_restart_browser?
-      Rails.logger.warn "=== Proactive browser restart after #{BrowserHealthManager.test_count} tests ==="
+      puts "=== Proactive browser restart after #{BrowserHealthManager.test_count} tests ==="
       begin
         force_browser_restart
         BrowserHealthManager.browser_restarts += 1
-        Rails.logger.info 'Proactive browser restart completed successfully'
+        puts 'Proactive browser restart completed successfully'
       rescue StandardError => e
-        Rails.logger.error "Proactive browser restart failed: #{e.message}"
+        puts "Proactive browser restart failed: #{e.message}"
         # Continue with test anyway - the retry mechanism will handle failures
       end
     end
 
     # Health check before each test
     unless BrowserHealthManager.browser_health_check
-      Rails.logger.warn 'Browser health check failed, attempting restart before test'
+      puts 'Browser health check failed, attempting restart before test'
       begin
         force_browser_restart
         BrowserHealthManager.browser_restarts += 1
       rescue StandardError => e
-        Rails.logger.error "Pre-test browser restart failed: #{e.message}"
+        puts "Pre-test browser restart failed: #{e.message}"
       end
     end
 
