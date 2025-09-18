@@ -23,11 +23,14 @@ module HudApr::Generators::Shared::Fy2026
     end
 
     def q23c_destination
-      sub_populations_by_destination_question(question: 'Q23c', members: universe.members.where(leavers_clause))
+      members = universe.members.where(leavers_clause)
+      sub_populations_by_destination_question(question: 'Q23c', members: members)
     end
 
     def q23d_subsidy_type
-      sub_populations_by_subsidy_type_question(question: 'Q23d', members: universe.members.where(leavers_clause))
+      # Q23d is not relevant to Homelessness Prevention Projects
+      members = universe.members.where(leavers_clause).where(a_t[:project_type].not_eq(12))
+      sub_populations_by_subsidy_type_question(question: 'Q23d', members: members)
     end
 
     def q23e_destination_type_by_race_and_ethnicity

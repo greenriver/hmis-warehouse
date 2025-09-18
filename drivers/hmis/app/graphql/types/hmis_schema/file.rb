@@ -49,11 +49,16 @@ module Types
     def url
       unless_redacted do
         return unless object.client_file.attached?
-        # Use service url in dev to avoid CORS issues
-        return object.client_file.blob.url if Rails.env.development?
 
-        # TODO(#8123) Re-enable File previews and download URLs
-        nil
+        Rails.application.routes.url_helpers.hmis_client_file_path(client_id: object.client_id, id: object.id)
+      end
+    end
+
+    # Log url access only when a non-nil value was actually resolved
+    def activity_log_field_name(field_name, value = nil)
+      case field_name
+      when 'url'
+        value.present? ? 'url' : nil
       end
     end
 
