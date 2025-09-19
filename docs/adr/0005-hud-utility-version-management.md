@@ -62,7 +62,7 @@ Implement a factory pattern using `HudHelper` as the primary interface for HUD u
 3. **Long-Running Job Stability**: Jobs maintain consistent version context throughout execution
 4. **Clear Version Management**: Explicit factory pattern makes version usage transparent
 5. **Flexible Override**: Supports both automatic and explicit version selection
-6. **Maintainable**: Centralized version logic reduces maintenance burden
+6. **Maintainable**: Centralized version logic reduces maintenance burden. Supports future changes, such as replacing class methods with a singleton instance.
 7. **Backward Compatible**: Existing utility modules remain available
 
 ### Challenges
