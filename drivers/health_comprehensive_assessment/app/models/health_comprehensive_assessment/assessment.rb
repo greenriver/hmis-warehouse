@@ -458,7 +458,7 @@ module HealthComprehensiveAssessment
       }
     end
 
-    enum physical_abuse_frequency: {
+    enum :physical_abuse_frequency, {
       never: 1,
       rarely: 2,
       sometimes: 3,
@@ -466,7 +466,7 @@ module HealthComprehensiveAssessment
       frequently: 5,
     }, _prefix: true
 
-    enum verbal_abuse: {
+    enum :verbal_abuse, {
       never: 1,
       rarely: 2,
       sometimes: 3,
@@ -474,7 +474,7 @@ module HealthComprehensiveAssessment
       frequently: 5,
     }, _prefix: true
 
-    enum threat_frequency: {
+    enum :threat_frequency, {
       never: 1,
       rarely: 2,
       sometimes: 3,
@@ -482,7 +482,7 @@ module HealthComprehensiveAssessment
       frequently: 5,
     }, _prefix: true
 
-    enum scream_or_curse_frequency: {
+    enum :scream_or_curse_frequency, {
       never: 1,
       rarely: 2,
       sometimes: 3,

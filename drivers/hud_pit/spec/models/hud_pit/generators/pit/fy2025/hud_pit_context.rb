@@ -93,14 +93,14 @@ RSpec.shared_context 'HUD pit context', shared_context: :metadata do
       total_persons: '3',
       total_veterans: '4',
     },
-  }.freeze
+  }.freeze unless const_defined?(:PIT_ROW_DEFINITIONS_FY2025)
 
   # currently we only test ES
   PROJECT_TYPE_COLUMNS = {
     es: 'B', # Emergency Shelter (ES, ES-EE)
     # th: 'C', # Transitional Housing
     # sh: 'D', # Safe Haven
-  }.freeze
+  }.freeze unless const_defined?(:PROJECT_TYPE_COLUMNS)
 
   def report_value(report, question:, row:, project_type_key: :es)
     question_map = PIT_ROW_DEFINITIONS_FY2025.fetch(question)

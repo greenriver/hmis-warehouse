@@ -895,7 +895,7 @@ module Health
     has_one :health_file, class_name: 'Health::ComprehensiveHealthAssessmentFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
-    enum status: { not_started: 0, in_progress: 1, complete: 2 }
+    enum :status, { not_started: 0, in_progress: 1, complete: 2 }
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }

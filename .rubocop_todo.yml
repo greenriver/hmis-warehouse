@@ -846,8 +846,6 @@ Style/MutableConstant:
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/vispdat/family.rb'
-    - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/similarity_metric/base.rb'
     - 'app/models/similarity_metric/boolean.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
@@ -1032,8 +1030,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/vispdat/family.rb'
-    - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/agency_patient_referral.rb'
@@ -1106,8 +1102,6 @@ Style/TrailingCommaInArguments:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInArrayLiteral:
   Exclude:
-    - 'app/models/grda_warehouse/vispdat/family.rb'
-    - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
 
 # Offense count: 296
@@ -1118,7 +1112,6 @@ Style/TrailingCommaInHashLiteral:
   Exclude:
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/health/soap/file_list.rb'
     - 'app/models/health_base.rb'
     - 'app/models/reporting/d3_charts.rb'

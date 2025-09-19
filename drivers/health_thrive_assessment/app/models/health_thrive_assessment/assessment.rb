@@ -90,7 +90,7 @@ module HealthThriveAssessment
       user&.name || external_name
     end
 
-    enum reporter: {
+    enum :reporter, {
       patient: 10,
       caregiver: 20,
     }
@@ -102,7 +102,7 @@ module HealthThriveAssessment
       }.invert
     end
 
-    enum housing_status: {
+    enum :housing_status, {
       steady: 10,
       at_risk: 20,
       homeless: 30,
@@ -116,7 +116,7 @@ module HealthThriveAssessment
       }.invert
     end
 
-    enum food_insecurity: {
+    enum :food_insecurity, {
       never: 10,
       sometimes: 20,
       often: 30,
@@ -130,7 +130,7 @@ module HealthThriveAssessment
       }.invert
     end
 
-    enum food_worries: {
+    enum :food_worries, {
       never: 10,
       sometimes: 20,
       often: 30,

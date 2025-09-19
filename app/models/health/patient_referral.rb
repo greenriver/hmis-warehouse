@@ -88,7 +88,7 @@ module Health
 
     # rejected_reason_none: 0 always needs to be there
     # this is the default and means that the patient referral is not rejected
-    enum rejected_reason: {
+    enum :rejected_reason, {
       Remove_Removal: 0,
       Declined: 1,
       Unreachable: 2,
