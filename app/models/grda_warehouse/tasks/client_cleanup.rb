@@ -909,11 +909,15 @@ module GrdaWarehouse::Tasks
       # Delete associated ClientProxies and CE Candidates
       client_proxies = Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: @clients)
       ce_candidates = Hmis::Ce::Match::Candidate.where(client_proxy_id: client_proxies.select(:id))
+      ce_candidate_events = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxies.select(:id))
 
-      log "Deleting CE Candidates for #{@clients.size} clients comprising #{ce_candidates.size} records"
+      log "Deleting CE Match Candidates for #{@clients.size} clients comprising #{ce_candidates.count} records"
       ce_candidates.delete_all unless @dry_run
 
-      log "Deleting CE Client Proxies for #{@clients.size} clients comprising #{client_proxies.size} records"
+      log "Deleting CE Match Candidate Events for #{@clients.size} clients comprising #{ce_candidate_events.count} records"
+      ce_candidate_events.delete_all unless @dry_run
+
+      log "Deleting CE Client Proxies for #{@clients.size} clients comprising #{client_proxies.count} records"
       client_proxies.delete_all unless @dry_run
     end
 
