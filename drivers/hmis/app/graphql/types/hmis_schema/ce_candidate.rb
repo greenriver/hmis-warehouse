@@ -34,6 +34,11 @@ module Types
     end
 
     def enrollments # not for batch
+      # Quick fix for #8196: Prevent errors when ClientProxy has no associated HMIS Source Clients.
+      # This situation arises because the Destination client persists temporarily even after the source client is deleted.
+      # Ideally, such clients should be removed from the Candidate Pool immediately upon deletion.
+      # This fix ensures that no enrollments are returned, which results in the candidate being visible to the end-user
+      # but they cannot create a referral for them.
       return [] if source_clients.empty?
 
       # Find any "relevant" Forms, meaning forms that collect Custom Data Elements that are used for eligibility or prioritization of this candidate pool. There may not be any associated forms, if eligibility is determined by other factors.
