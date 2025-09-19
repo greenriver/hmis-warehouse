@@ -124,10 +124,7 @@ module HudReports
     # @return [Symbol] The default report version (:fy2024 or :fy2026)
     # Override as necessary in subclasses
     def default_report_version
-      return :fy2024 if Rails.env.production? && Date.current <= '2025-10-01'.to_date
-      return :fy2024 if Rails.env.staging? || Rails.env.test? && Date.current <= '2025-09-01'.to_date
-
-      :fy2026
+      "fy#{::GrdaWarehouse::Hud::Export.hud_csv_version}".to_sym
     end
 
     protected def filter_class

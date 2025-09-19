@@ -20,7 +20,7 @@ module Mutations
       raise 'Cannot manage units across projects' if project_ids.size > 1
 
       project = Hmis::Hud::Project.find_by(id: project_ids.first)
-      access_denied! unless policy_for(project, policy_type: :hmis_project).can_manage_units?
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_update_unit_availability?
 
       opportunities = Hmis::Ce::Opportunity.active.
         where(unit_id: unit_ids).
@@ -30,7 +30,7 @@ module Mutations
       raise 'Cannot mark opportunity unavailable if it has an active referral' if opportunities.any?(&:active_referral)
 
       Hmis::Ce::Opportunity.transaction do
-        opportunities.each(&:destroy!)
+        opportunities.each(&:close!)
       end
 
       { units: Hmis::Unit.where(id: unit_ids) }

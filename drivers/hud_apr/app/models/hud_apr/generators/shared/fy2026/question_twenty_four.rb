@@ -15,7 +15,6 @@ module HudApr::Generators::Shared::Fy2026
         'Question 24' => '',
         'Q24a' => 'Homelessness Prevention Housing Assessment at Exit',
         'Q24b' => 'Moving On Assistance Provided to Households in PSH',
-        'Q24d' => 'Language of Persons Requiring Translation Assistance',
         'Q24e' => 'Sex',
       }.freeze
     end
@@ -80,49 +79,9 @@ module HudApr::Generators::Shared::Fy2026
       end
     end
 
-    def q24d_language_of_persons_requiring_translation_assistance
-      relevant_members = universe.members.
-        where(hoh_clause).
-        where(a_t[:translation_needed].eq(true)).
-        where(a_t[:preferred_language].not_eq(nil).or(a_t[:preferred_language_different].not_eq(nil)))
-
-      different_language_members = []
-      language_rows = []
-      grouped_members = relevant_members.preload(:universe_membership).group_by { |m| m.universe_membership.preferred_language }
-      grouped_members.each_pair do |code, members|
-        if code.present? && code != 21
-          language_rows << [code.to_i, members]
-        else
-          different_language_members = members
-        end
-      end
-
-      # top 20 sorted by count with code as tie breaker
-      language_rows = language_rows.sort_by { |code, members| [members.size, code] }.take(20)
-
-      question_sheet(question: 'Q24d') do |sheet|
-        sheet.add_header(col: 'A', label: 'Language Response (Top 20 Languages Selected)')
-        sheet.add_header(col: 'B', label: 'Total Persons Requiring Translation Assistance')
-
-        language_rows.each do |code, members|
-          # label = HudUtility2026.preferred_languages.fetch(code.to_i)
-          label = code.to_s
-          sheet.append_row(label: label) do |row|
-            row.append_cell_members(members: members)
-          end
-        end
-        sheet.append_row(label: 'Different Preferred Language') do |row|
-          row.append_cell_members(members: different_language_members)
-        end
-        sheet.append_row(label: 'Total') do |row|
-          row.append_cell_members(members: relevant_members)
-        end
-      end
-    end
-
     def q24e_sex
       # Active clients in the report date range
-      relevant_members = universe.members.where(hoh_clause).where(a_t[:project_type].eq(3))
+      relevant_members = universe.members
       question_sheet(question: 'Q24e') do  |sheet|
         sub_populations.keys.each do |label|
           sheet.add_header(label: label)
@@ -134,6 +93,7 @@ module HudApr::Generators::Shared::Fy2026
           ['Male', sex_col.eq(1)],
           ['Client Doesn’t Know/Prefers Not to Answer', sex_col.in([8, 9])],
           ['Data not collected', sex_col.eq(99)],
+          ['Total', sex_col.in([0, 1, 8, 9, 99])],
         ].each do |label, sex_cond|
           scope = relevant_members.where(sex_cond)
           sheet.append_row(label: label) do |row|
@@ -170,9 +130,29 @@ module HudApr::Generators::Shared::Fy2026
         'Jail/prison' => a_t[:housing_assessment].eq(7),
         'Deceased' => a_t[:housing_assessment].eq(10),
         label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
-        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
-        'Total' => a_t[:housing_assessment].eq(99).or(leavers_clause),
+        'Data not collected (no exit interview completed)' => data_not_collected_clause.
+          # Bad data, as noted in the test kit goes in DNC
+          or(bad_data_subsidy_information_clause),
+        'Total' => Arel.sql('1=1'), # MUST match overall Q5a Leavers
       }.freeze
+    end
+
+    private def bad_data_subsidy_information_clause
+      # housing_assessment is 1 and subsidy_information is not in acceptable values (1, 2, 3, 4) or is NULL
+      a_t[:housing_assessment].eq(1).and(
+        a_t[:subsidy_information].not_in([1, 2, 3, 4]).or(a_t[:subsidy_information].eq(nil)),
+      ).
+        # housing_assessment is 2 and subsidy_information is not in acceptable values (11, 12) or is NULL
+        or(a_t[:housing_assessment].eq(2).and(
+             a_t[:subsidy_information].not_in([11, 12]).or(a_t[:subsidy_information].eq(nil)),
+           )).
+        # housing_assessment is not in other known values (3, 4, 5, 6, 7, 10) and not 8, 9, 99, or NULL
+        or(a_t[:housing_assessment].not_in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 99]).and(a_t[:housing_assessment].not_eq(nil)))
+    end
+
+    private def data_not_collected_clause
+      a_t[:housing_assessment].eq(99).
+        or(a_t[:housing_assessment].eq(nil))
     end
 
     private def intentionally_blank

@@ -1,3 +1,8 @@
+-- \restrict 1Us54o1RKHncE7I0gYnRui2yRViWUiEdOuCkVlQbcfdJbxqfJcwuz237H0K3VGp
+
+-- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -662,6 +667,38 @@ CREATE VIEW analytics.cas_referral_contacts AS
 
 
 --
+-- Name: cas_analytics_referral_timeline_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_referral_timeline_events (
+    id bigint NOT NULL,
+    referral_id bigint,
+    contact_id bigint,
+    name character varying NOT NULL,
+    event_date date NOT NULL,
+    step character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_referral_timeline_events; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_referral_timeline_events AS
+ SELECT id,
+    name,
+    event_date,
+    step,
+    referral_id,
+    contact_id,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_referral_timeline_events;
+
+
+--
 -- Name: cas_analytics_referral_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -725,6 +762,32 @@ CREATE VIEW analytics.cas_referrals AS
     created_at,
     updated_at
    FROM public.cas_analytics_referrals;
+
+
+--
+-- Name: cas_analytics_rejection_reasons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cas_analytics_rejection_reasons (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    referral_result character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: cas_rejection_reasons; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.cas_rejection_reasons AS
+ SELECT id,
+    name,
+    referral_result,
+    created_at,
+    updated_at
+   FROM public.cas_analytics_rejection_reasons;
 
 
 --
@@ -2965,7 +3028,8 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    ce_referral_id integer
 );
 
 
@@ -6336,6 +6400,25 @@ ALTER SEQUENCE public.cas_analytics_referral_contacts_id_seq OWNED BY public.cas
 
 
 --
+-- Name: cas_analytics_referral_timeline_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_referral_timeline_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_referral_timeline_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_referral_timeline_events_id_seq OWNED BY public.cas_analytics_referral_timeline_events.id;
+
+
+--
 -- Name: cas_analytics_referral_users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -6371,6 +6454,25 @@ CREATE SEQUENCE public.cas_analytics_referrals_id_seq
 --
 
 ALTER SEQUENCE public.cas_analytics_referrals_id_seq OWNED BY public.cas_analytics_referrals.id;
+
+
+--
+-- Name: cas_analytics_rejection_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cas_analytics_rejection_reasons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cas_analytics_rejection_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cas_analytics_rejection_reasons_id_seq OWNED BY public.cas_analytics_rejection_reasons.id;
 
 
 --
@@ -6887,7 +6989,8 @@ CREATE TABLE public.ce_custom_referral_statuses (
     treatment character varying,
     data_source_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -6983,10 +7086,10 @@ ALTER SEQUENCE public.ce_match_candidate_pools_id_seq OWNED BY public.ce_match_c
 CREATE TABLE public.ce_match_candidates (
     id bigint NOT NULL,
     candidate_pool_id bigint NOT NULL,
-    priority_score integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    client_proxy_id bigint NOT NULL
+    client_proxy_id bigint NOT NULL,
+    priority_scores integer[]
 );
 
 
@@ -7022,7 +7125,9 @@ CREATE TABLE public.ce_match_rules (
     owner_id bigint NOT NULL,
     expression character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    priority_rank integer,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7061,7 +7166,8 @@ CREATE TABLE public.ce_opportunities (
     updated_at timestamp(6) without time zone NOT NULL,
     unit_id bigint NOT NULL,
     stale boolean DEFAULT false NOT NULL,
-    assignment_rules json DEFAULT '[]'::json NOT NULL
+    assignment_rules json DEFAULT '[]'::json NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7357,7 +7463,8 @@ CREATE TABLE public.ce_referral_notes (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     note text,
-    wfe_step_id bigint
+    wfe_step_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7390,7 +7497,8 @@ CREATE TABLE public.ce_referral_participants (
     user_id bigint NOT NULL,
     swimlane_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -7430,7 +7538,8 @@ CREATE TABLE public.ce_referrals (
     updated_at timestamp(6) without time zone NOT NULL,
     source_enrollment_id bigint,
     custom_referral_status_id bigint,
-    referral_origin character varying NOT NULL
+    referral_origin character varying NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -24109,6 +24218,78 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 
 
 --
+-- Name: hmis_scoring_calculation_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_calculation_logs (
+    id bigint NOT NULL,
+    namespace character varying NOT NULL,
+    final_score numeric(14,12) NOT NULL,
+    calculation_details json NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_calculation_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_calculation_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_calculation_logs_id_seq OWNED BY public.hmis_scoring_calculation_logs.id;
+
+
+--
+-- Name: hmis_scoring_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scoring_rules (
+    id bigint NOT NULL,
+    link_id character varying NOT NULL,
+    form_definition_identifier character varying NOT NULL,
+    algorithm character varying NOT NULL,
+    criteria_type character varying NOT NULL,
+    criteria_config json DEFAULT '{}'::json NOT NULL,
+    weight numeric(14,12) NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scoring_rules_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scoring_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rules.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24328,6 +24509,42 @@ ALTER SEQUENCE public.hmis_supplemental_field_values_id_seq OWNED BY public.hmis
 
 
 --
+-- Name: hmis_table_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_table_configurations (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    table_key character varying NOT NULL,
+    owner_type character varying,
+    owner_id bigint,
+    columns jsonb DEFAULT '[]'::jsonb NOT NULL,
+    filters jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_table_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_table_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_table_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_table_configurations_id_seq OWNED BY public.hmis_table_configurations.id;
+
+
+--
 -- Name: hmis_unit_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24339,7 +24556,9 @@ CREATE TABLE public.hmis_unit_groups (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    candidate_pool_id bigint
+    candidate_pool_id bigint,
+    ce_event_type integer,
+    unit_type_id bigint
 );
 
 
@@ -24370,7 +24589,8 @@ CREATE TABLE public.hmis_unit_occupancy (
     id bigint NOT NULL,
     unit_id bigint NOT NULL,
     enrollment_id bigint NOT NULL,
-    hmis_service_id bigint
+    hmis_service_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -24403,7 +24623,8 @@ CREATE TABLE public.hmis_unit_types (
     updated_at timestamp(6) without time zone NOT NULL,
     description character varying,
     bed_type integer,
-    unit_size integer
+    unit_size integer,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -25270,7 +25491,10 @@ CREATE TABLE public.hud_report_apr_clients (
     race_multi_include_race_none jsonb,
     hoh_move_in_date date,
     adjusted_move_in_date date,
-    sex integer
+    sex integer,
+    income_from_any_source_at_annual_assessment_raw integer,
+    income_from_any_source_at_exit_raw integer,
+    income_from_any_source_at_start_raw integer
 );
 
 
@@ -32583,7 +32807,8 @@ CREATE TABLE public.wfd_flows (
     condition character varying,
     "position" integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32620,7 +32845,8 @@ CREATE TABLE public.wfd_nodes (
     form_definition_identifier character varying,
     gateway_type character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32652,7 +32878,8 @@ CREATE TABLE public.wfd_swimlanes (
     template_id bigint NOT NULL,
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32691,7 +32918,8 @@ CREATE TABLE public.wfd_templates (
     owner_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint NOT NULL
+    data_source_id bigint NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32757,7 +32985,8 @@ CREATE TABLE public.wfe_instances (
     id bigint NOT NULL,
     template_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32789,7 +33018,8 @@ CREATE TABLE public.wfe_step_assignments (
     step_id bigint NOT NULL,
     user_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -32829,7 +33059,8 @@ CREATE TABLE public.wfe_steps (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     available_at timestamp(6) without time zone NOT NULL,
-    updated_by_id bigint
+    updated_by_id bigint,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -33874,6 +34105,13 @@ ALTER TABLE ONLY public.cas_analytics_referral_contacts ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: cas_analytics_referral_timeline_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_timeline_events ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referral_timeline_events_id_seq'::regclass);
+
+
+--
 -- Name: cas_analytics_referral_users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33885,6 +34123,13 @@ ALTER TABLE ONLY public.cas_analytics_referral_users ALTER COLUMN id SET DEFAULT
 --
 
 ALTER TABLE ONLY public.cas_analytics_referrals ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_referrals_id_seq'::regclass);
+
+
+--
+-- Name: cas_analytics_rejection_reasons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_rejection_reasons ALTER COLUMN id SET DEFAULT nextval('public.cas_analytics_rejection_reasons_id_seq'::regclass);
 
 
 --
@@ -36380,6 +36625,20 @@ ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_scoring_calculation_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_calculation_logs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_scoring_rules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_rules_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -36419,6 +36678,13 @@ ALTER TABLE ONLY public.hmis_supplemental_data_sets ALTER COLUMN id SET DEFAULT 
 --
 
 ALTER TABLE ONLY public.hmis_supplemental_field_values ALTER COLUMN id SET DEFAULT nextval('public.hmis_supplemental_field_values_id_seq'::regclass);
+
+
+--
+-- Name: hmis_table_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_table_configurations ALTER COLUMN id SET DEFAULT nextval('public.hmis_table_configurations_id_seq'::regclass);
 
 
 --
@@ -37958,6 +38224,14 @@ ALTER TABLE ONLY public.cas_analytics_referral_contacts
 
 
 --
+-- Name: cas_analytics_referral_timeline_events cas_analytics_referral_timeline_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_referral_timeline_events
+    ADD CONSTRAINT cas_analytics_referral_timeline_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cas_analytics_referral_users cas_analytics_referral_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -37971,6 +38245,14 @@ ALTER TABLE ONLY public.cas_analytics_referral_users
 
 ALTER TABLE ONLY public.cas_analytics_referrals
     ADD CONSTRAINT cas_analytics_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cas_analytics_rejection_reasons cas_analytics_rejection_reasons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cas_analytics_rejection_reasons
+    ADD CONSTRAINT cas_analytics_rejection_reasons_pkey PRIMARY KEY (id);
 
 
 --
@@ -40830,6 +41112,22 @@ ALTER TABLE ONLY public.hmis_scan_card_codes
 
 
 --
+-- Name: hmis_scoring_calculation_logs hmis_scoring_calculation_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_calculation_logs
+    ADD CONSTRAINT hmis_scoring_calculation_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scoring_rules hmis_scoring_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scoring_rules
+    ADD CONSTRAINT hmis_scoring_rules_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_staff_assignment_relationships hmis_staff_assignment_relationships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -40875,6 +41173,14 @@ ALTER TABLE ONLY public.hmis_supplemental_data_sets
 
 ALTER TABLE ONLY public.hmis_supplemental_field_values
     ADD CONSTRAINT hmis_supplemental_field_values_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_table_configurations hmis_table_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_table_configurations
+    ADD CONSTRAINT hmis_table_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -61041,6 +61347,13 @@ CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."
 
 
 --
+-- Name: index_Event_on_ce_referral_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
+
+
+--
 -- Name: index_Event_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61856,7 +62169,7 @@ CREATE INDEX index_ce_custom_referral_statuses_on_data_source_id ON public.ce_cu
 -- Name: index_ce_custom_referral_statuses_on_key_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id);
+CREATE UNIQUE INDEX index_ce_custom_referral_statuses_on_key_and_data_source_id ON public.ce_custom_referral_statuses USING btree (key, data_source_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -61888,6 +62201,13 @@ CREATE INDEX index_ce_match_candidates_on_client_proxy_id ON public.ce_match_can
 
 
 --
+-- Name: index_ce_match_candidates_on_priority_scores; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_match_candidates_on_priority_scores ON public.ce_match_candidates USING btree (priority_scores);
+
+
+--
 -- Name: index_ce_match_candidates_proxy_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61899,6 +62219,13 @@ CREATE UNIQUE INDEX index_ce_match_candidates_proxy_uniq ON public.ce_match_cand
 --
 
 CREATE INDEX index_ce_match_rules_on_owner ON public.ce_match_rules USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_ce_match_rules_owner_priority_rank_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ce_match_rules_owner_priority_rank_unique ON public.ce_match_rules USING btree (owner_type, owner_id, priority_rank) WHERE (((rule_type)::text = 'priority_scheme'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -66200,6 +66527,13 @@ CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card
 
 
 --
+-- Name: index_hmis_scoring_calculation_logs_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scoring_calculation_logs_on_owner ON public.hmis_scoring_calculation_logs USING btree (owner_type, owner_id);
+
+
+--
 -- Name: index_hmis_staff_assignment_relationships_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66235,6 +66569,20 @@ CREATE INDEX index_hmis_supplemental_data_sets_on_remote_credential_id ON public
 
 
 --
+-- Name: index_hmis_table_configurations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_table_configurations_on_data_source_id ON public.hmis_table_configurations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_table_configurations_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_table_configurations_on_owner ON public.hmis_table_configurations USING btree (owner_type, owner_id);
+
+
+--
 -- Name: index_hmis_unit_groups_on_candidate_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -66246,6 +66594,13 @@ CREATE INDEX index_hmis_unit_groups_on_candidate_pool_id ON public.hmis_unit_gro
 --
 
 CREATE INDEX index_hmis_unit_groups_on_project_id ON public.hmis_unit_groups USING btree (project_id);
+
+
+--
+-- Name: index_hmis_unit_groups_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_groups_on_unit_type_id ON public.hmis_unit_groups USING btree (unit_type_id);
 
 
 --
@@ -71229,7 +71584,7 @@ CREATE INDEX index_talentlms_logins_on_user_id ON public.talentlms_logins USING 
 -- Name: index_templates_on_identifier_published; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE ((status)::text = 'published'::text);
+CREATE UNIQUE INDEX index_templates_on_identifier_published ON public.wfd_templates USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -71558,7 +71913,7 @@ CREATE INDEX index_weather_on_url ON public.weather USING btree (url);
 -- Name: index_wfd_flows_on_source_node_id_and_target_node_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id);
+CREATE UNIQUE INDEX index_wfd_flows_on_source_node_id_and_target_node_id ON public.wfd_flows USING btree (source_node_id, target_node_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -71642,7 +71997,7 @@ CREATE INDEX index_wfe_step_assignments_on_step_id ON public.wfe_step_assignment
 -- Name: index_wfe_step_assignments_on_user_id_and_step_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id);
+CREATE UNIQUE INDEX index_wfe_step_assignments_on_user_id_and_step_id ON public.wfe_step_assignments USING btree (user_id, step_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -71663,7 +72018,7 @@ CREATE INDEX index_wfe_steps_on_instance_id ON public.wfe_steps USING btree (ins
 -- Name: index_wfe_steps_on_instance_id_and_node_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id);
+CREATE UNIQUE INDEX index_wfe_steps_on_instance_id_and_node_id ON public.wfe_steps USING btree (instance_id, node_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -72182,6 +72537,20 @@ CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USI
 --
 
 CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uniq_hmis_table_configs_global; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_hmis_table_configs_global ON public.hmis_table_configurations USING btree (table_key, data_source_id) WHERE ((owner_type IS NULL) AND (owner_id IS NULL));
+
+
+--
+-- Name: uniq_hmis_table_configs_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uniq_hmis_table_configs_owner ON public.hmis_table_configurations USING btree (table_key, owner_type, owner_id, data_source_id) WHERE ((owner_type IS NOT NULL) AND (owner_id IS NOT NULL));
 
 
 --
@@ -74463,6 +74832,14 @@ ALTER TABLE ONLY public.wfe_step_assignments
 
 
 --
+-- Name: hmis_unit_groups fk_rails_4af3f4cb4a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_groups
+    ADD CONSTRAINT fk_rails_4af3f4cb4a FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: wfd_swimlanes fk_rails_4de79171d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -75202,9 +75579,21 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
+-- \unrestrict 1Us54o1RKHncE7I0gYnRui2yRViWUiEdOuCkVlQbcfdJbxqfJcwuz237H0K3VGp
+
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250904184751'),
+('20250904183709'),
+('20250904181252'),
+('20250904175920'),
+('20250904130155'),
+('20250828205652'),
+('20250821194338'),
+('20250821182429'),
+('20250820220743'),
+('20250818183500'),
 ('20250818171810'),
 ('20250807182745'),
 ('20250807112429'),
@@ -75212,6 +75601,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250804124243'),
 ('20250804122929'),
 ('20250803183312'),
+('20250731134651'),
+('20250730173200'),
 ('20250730004713'),
 ('20250729183312'),
 ('20250716131246'),

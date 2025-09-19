@@ -5,6 +5,8 @@ require 'rails_helper'
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
   let!(:organization) { create(:hmis_hud_organization) }
   let!(:project) { create(:hmis_hud_project, organization: organization) }
+  let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
+  let!(:other_project) { create(:hmis_hud_project, organization: organization) } # project without waitlists enabled
 
   before do
     allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:rebuild_candidate_pools) # prevent automatic rebuilds
@@ -18,6 +20,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       let!(:unit_group_1) { create(:hmis_unit_group, project: project) }
       let!(:unit_group_2) { create(:hmis_unit_group, project: project) }
       let!(:unit_group_no_rules) { create(:hmis_unit_group, project: project) }
+      let!(:unit_group_waitlists_not_enabled) { create(:hmis_unit_group, project: other_project) }
 
       before do
         # These rules create two distinct keys, resulting in two pools
@@ -36,7 +39,7 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
       it 'assigns unit groups to the appropriate pools' do
         described_class.call
-        pool1 = Hmis::Ce::Match::CandidatePool.find_by(priority_expression: 'score_1')
+        pool1 = Hmis::Ce::Match::CandidatePool.find_by(priority_expression: '{score_1}')
         pool2 = Hmis::Ce::Match::CandidatePool.find_by(requirement_expression: 'b = 2')
 
         expect(unit_group_1.reload.candidate_pool).to eq(pool1)
@@ -46,6 +49,11 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
       it 'leaves candidate_pool_id nil for unit groups with no rules' do
         described_class.call
         expect(unit_group_no_rules.reload.candidate_pool_id).to be_nil
+      end
+
+      it 'leaves candidate_pool_id nil for unit groups without waitlists enabled' do
+        described_class.call
+        expect(unit_group_waitlists_not_enabled.reload.candidate_pool_id).to be_nil
       end
 
       it 'can be scoped to specific unit groups' do
@@ -160,6 +168,86 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     it 'does not open a top-level transaction (callers own transactional semantics)' do
       expect(Hmis::Ce::Match::CandidatePool).not_to receive(:transaction)
       described_class.call
+    end
+  end
+
+  describe 'rule specificity and ranking' do
+    let!(:data_source) { project.data_source }
+    let!(:unit_group_1) { create(:hmis_unit_group, project: project) }
+    # we must have at least one eligibility rule to generate pools
+    let!(:project_eligibility) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'project_eligible = 1') }
+
+    before do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+    end
+
+    context 'when priority schemes exist at different specificity levels' do
+      let!(:data_source_rule) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'data_source_score', priority_rank: 1) }
+      let!(:organization_rule) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_score', priority_rank: 1) }
+      let!(:project_rule) { create(:hmis_ce_priority_scheme, owner: project, expression: 'project_score', priority_rank: 1) }
+
+      it 'uses only the most specific rule (project level)' do
+        described_class.call
+        pool = Hmis::Ce::Match::CandidatePool.last
+        expect(pool.priority_expression).to eq('{project_score}')
+      end
+    end
+
+    context 'when multiple priority schemes exist at the same specificity level' do
+      let!(:project_rule_1) { create(:hmis_ce_priority_scheme, owner: project, expression: 'first_score', priority_rank: 2) }
+      let!(:project_rule_2) { create(:hmis_ce_priority_scheme, owner: project, expression: 'second_score', priority_rank: 1) }
+      let!(:project_rule_3) { create(:hmis_ce_priority_scheme, owner: project, expression: 'third_score', priority_rank: 3) }
+
+      it 'uses all rules at that level, ordered by rank' do
+        described_class.call
+        pool = Hmis::Ce::Match::CandidatePool.last
+        expect(pool.priority_expression).to eq('{second_score, first_score, third_score}')
+      end
+    end
+
+    context 'when only organization-level rules exist' do
+      let!(:org_rule_1) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_first', priority_rank: 2) }
+      let!(:org_rule_2) { create(:hmis_ce_priority_scheme, owner: organization, expression: 'org_second', priority_rank: 1) }
+      let!(:data_source_rule) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'data_source_score', priority_rank: 1) }
+
+      it 'uses organization-level rules in rank order, ignoring data source rules' do
+        described_class.call
+        pool = Hmis::Ce::Match::CandidatePool.last
+        expect(pool.priority_expression).to eq('{org_second, org_first}')
+      end
+    end
+
+    context 'when eligibility requirements exist at different specificity levels' do
+      let!(:data_source_eligibility) { create(:hmis_ce_eligibility_requirement, owner: data_source, expression: 'data_source_eligible = 1') }
+      let!(:organization_eligibility) { create(:hmis_ce_eligibility_requirement, owner: organization, expression: 'org_eligible = 1') }
+      let!(:project_eligibility) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'project_eligible = 1') }
+      let!(:project_priority) { create(:hmis_ce_priority_scheme, owner: project, expression: 'project_score', priority_rank: 1) }
+
+      it 'uses all eligibility requirements regardless of specificity' do
+        described_class.call
+        pool = Hmis::Ce::Match::CandidatePool.last
+        # Order may vary, so check that all requirements are included
+        requirements = pool.requirement_expression.split(' AND ')
+        expect(requirements).to contain_exactly('data_source_eligible = 1', 'org_eligible = 1', 'project_eligible = 1')
+      end
+    end
+
+    context 'mixed scenario with priority schemes and eligibility requirements' do
+      let!(:data_source_priority) { create(:hmis_ce_priority_scheme, owner: data_source, expression: 'ds_priority', priority_rank: 1) }
+      let!(:project_priority) { create(:hmis_ce_priority_scheme, owner: project, expression: 'proj_priority', priority_rank: 1) }
+      let!(:data_source_eligibility) { create(:hmis_ce_eligibility_requirement, owner: data_source, expression: 'ds_eligible = 1') }
+      let!(:project_eligibility) { create(:hmis_ce_eligibility_requirement, owner: project, expression: 'proj_eligible = 1') }
+
+      it 'uses most specific priority scheme but all eligibility requirements' do
+        described_class.call
+        pool = Hmis::Ce::Match::CandidatePool.last
+
+        expect(pool.priority_expression).to eq('{proj_priority}')
+
+        requirements = pool.requirement_expression.split(' AND ')
+        expect(requirements).to contain_exactly('ds_eligible = 1', 'proj_eligible = 1')
+      end
     end
   end
 end

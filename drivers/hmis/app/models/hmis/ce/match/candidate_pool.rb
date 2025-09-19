@@ -27,6 +27,7 @@
 #
 module Hmis::Ce::Match
   class CandidatePool < GrdaWarehouseBase
+    # Bulk-managed, does not log to paper_trail
     self.table_name = 'ce_match_candidate_pools'
     has_one :change_marker, as: :trackable, class_name: 'Hmis::Ce::ChangeMarker', dependent: :destroy
     has_many :candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :candidate_pool_id, dependent: :destroy
@@ -36,13 +37,25 @@ module Hmis::Ce::Match
 
     attr_readonly :requirement_expression, :priority_expression
 
-    # pools for active opportunities
+    # Clean up the link from soft-deleted associations before deleting the pool. This avoids
+    # foreign key constraint violations
+    before_destroy :nullify_deleted_associations
+
     scope :active, -> {
-      active_ids = ::Hmis::Ce::Opportunity.active.pluck(:candidate_pool_id).compact.uniq
-      where(id: active_ids)
+      # Pool is active if there are any active Opportunities that reference it
+      active_ids_for_opportunities = ::Hmis::Ce::Opportunity.active.distinct.pluck(:candidate_pool_id).compact
+      # Pool is active if there are any UnitGroups that reference it
+      active_ids_for_unit_groups = Hmis::UnitGroup.with_ce_waitlists_enabled.distinct.pluck(:candidate_pool_id).compact
+      all_active_ids = (active_ids_for_opportunities + active_ids_for_unit_groups).sort.uniq
+      where(id: all_active_ids)
     }
 
-    # orphan pools can be safely deleted after a period if inactivity
+    # orphan pools can be safely deleted after a period if inactivity.
+    # currently we consider a pool orphaned if it is not tied to any opportunities or unit groups.
+    #
+    # Note this could be expanded to allow deleting additional pools if needed, including:
+    # 1) Pools that are exclusively tied to closed opportunities. (Would require modification to opportunities relation :restrict_with_exception).
+    # 2) Pools that are tied to Unit Groups that are no longer configured to have waitlists enabled (see Hmis::Hud::Project.with_ce_waitlists_enabled)
     scope :orphaned, -> {
       referenced_ids = [
         ::Hmis::Ce::Opportunity,
@@ -62,7 +75,7 @@ module Hmis::Ce::Match
     end
 
     def active?
-      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id)
+      ::Hmis::Ce::Opportunity.active.exists?(candidate_pool_id: id) || Hmis::UnitGroup.with_ce_waitlists_enabled.exists?(candidate_pool_id: id)
     end
 
     def warehouse_clients
@@ -115,6 +128,17 @@ module Hmis::Ce::Match
     def lock_for_processing(timeout_seconds:, &block)
       lock_name = "hmis-ce_pool-#{id}"
       ::GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: timeout_seconds, &block)
+    end
+
+    protected
+
+    def nullify_deleted_associations
+      [
+        Hmis::Ce::Opportunity,
+        Hmis::UnitGroup,
+      ].each do |model|
+        model.only_deleted.where(candidate_pool_id: id).update_all(candidate_pool_id: nil)
+      end
     end
   end
 end

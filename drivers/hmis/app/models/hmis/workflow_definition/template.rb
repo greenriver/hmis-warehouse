@@ -6,6 +6,9 @@
 module Hmis::WorkflowDefinition
   class Template < GrdaWarehouseBase
     include SimpleStateMachine
+    # override the paper trails `version` method as it conflicts with the `version` col on this table
+    has_paper_trail(version: :paper_trail_version)
+    acts_as_paranoid
 
     has_many :nodes, class_name: 'Hmis::WorkflowDefinition::Node', dependent: :destroy
     has_many :flows, class_name: 'Hmis::WorkflowDefinition::Flow', dependent: :destroy

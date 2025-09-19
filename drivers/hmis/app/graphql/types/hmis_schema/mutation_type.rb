@@ -31,8 +31,7 @@ module Types
     field :update_units, mutation: Mutations::UpdateUnits
     field :delete_units, mutation: Mutations::DeleteUnits
     field :create_unit_group, mutation: Mutations::CreateUnitGroup
-    # TODO support renaming/updating unit group
-    # field :update_unit_group, mutation: Mutations::UpdateUnitGroup
+    field :update_unit_group, mutation: Mutations::UpdateUnitGroup
     # TODO(#7781) support deleting unit group
     # field :delete_unit_group, mutation: Mutations::DeleteUnitGroup
 
@@ -59,6 +58,8 @@ module Types
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
     field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
+    field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
+    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients

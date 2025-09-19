@@ -756,6 +756,8 @@ Rails.application.routes.draw do
         # User search queries
         resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
         get '/searches/:id', to: 'users#search', as: 'user_search_query'
+        get :load_select_options
+        post :stop_impersonating
       end
       member do
         post :unlock
@@ -763,9 +765,6 @@ Rails.application.routes.draw do
         post :confirm
         post :impersonate
         patch :expire_password
-      end
-      collection do
-        post :stop_impersonating
       end
     end
 
@@ -934,6 +933,7 @@ Rails.application.routes.draw do
       get :careplan
       get :client_dashboard
       get :colors
+      get :datepicker
       get :form
       get :health_dashboard
       get :icon_font

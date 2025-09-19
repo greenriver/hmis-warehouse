@@ -12,23 +12,25 @@ module Types
     field :id, ID, null: false
     field :destination_client_id, ID, null: false
     field :client_name, String, null: false, description: 'Masked as "Candidate 123" unless the user has permission to view'
-    field :priority_score, Integer, null: false, default_value: 0
+    field :priority_scores, [Integer], null: false, default_value: [0]
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
+    field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Most recent snapshot of client attributes', default_value: {}
 
     def destination_client_id
       destination_client.id
     end
 
     def client_name
-      # For this destination client, are there any source clients whose names you can view? If so, return the first viewable name.
-      # In the future, we want to check permissions more broadly across data sources. (viewable_by scope only accounts for permissions in current data source.)
+      load_destination_client_name(destination_client: destination_client).presence || "Candidate #{object.id}"
+    end
 
-      # Iterate through source clients avoids n+1 issues with viewable_by scope
-      first_viewable_name = source_clients.sort_by(&:id).find do |client|
-        current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
-      end&.brief_name
-
-      first_viewable_name || "Candidate #{object.id}"
+    # Find most recent snapshot of this candidate's eligibility/prioritization attributes from Candidate Events table.
+    # Efficiency could be improved here, maybe by creating a Candidate Event resolver or adding a multi key relation from Candidate to CandidateEvent
+    def client_attributes
+      client_proxy = load_ar_scope(scope: Hmis::Ce::ClientProxy, id: object.client_proxy_id)
+      load_ar_association(client_proxy, :ce_match_candidate_events).
+        filter { |event| event.candidate_pool_id == object.candidate_pool_id }.
+        max_by(&:created_at)&.snapshot
     end
 
     def enrollments # not for batch

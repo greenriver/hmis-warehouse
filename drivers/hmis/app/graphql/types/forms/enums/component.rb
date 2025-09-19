@@ -34,11 +34,13 @@ module Types
     # Specialized input components
     value 'MCI', 'MCI linking component'
     value 'AHA', 'AHA component'
+    value 'ALT_AHA', 'Alt AHA component'
     value 'NAME', 'Client Name input'
     value 'ADDRESS', 'Client Address input'
     value 'PHONE', 'Phone number input for ContactPoint'
     value 'EMAIL', 'Email address input for ContactPoint'
     value 'SIGNATURE_GROUP', 'Signature input component'
     value 'SIGNATURE', 'Signature input component'
+    value 'CLIENT_CE_ELIGIBILITY', 'Button to fetch information about client eligibility, based on current form values'
   end
 end

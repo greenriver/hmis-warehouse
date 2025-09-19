@@ -426,6 +426,7 @@
             "ENABLED",
             "IN",
             "INCLUDES",
+            "EXCLUDES",
             "GREATER_THAN",
             "GREATER_THAN_EQUAL",
             "LESS_THAN",
@@ -764,7 +765,8 @@
                 "CHECKBOX",
                 "DROPDOWN",
                 "RADIO_BUTTONS",
-                "RADIO_BUTTONS_VERTICAL"
+                "RADIO_BUTTONS_VERTICAL",
+                "CLIENT_CE_ELIGIBILITY"
               ]
             }
           }
@@ -915,7 +917,8 @@
           "properties": {
             "component": {
               "enum": [
-                "MINUTES_DURATION"
+                "MINUTES_DURATION",
+                "ALT_AHA"
               ]
             }
           }

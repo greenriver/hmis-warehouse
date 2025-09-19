@@ -91,6 +91,8 @@ module BostonHmis
 
     config.active_storage.variant_processor = :mini_magick
     config.active_storage.variable_content_types = ['image/png', 'image/gif', 'image/jpeg', 'image/tiff', 'image/bmp', 'image/webp', 'image/avif', 'image/heic', 'image/heif']
+    # Disable Active Storage routes
+    config.active_storage.draw_routes = false
 
     # GraphQL config
     config.graphql.parser_cache = true
@@ -127,7 +129,6 @@ module BostonHmis
     config.census = {}
     config.monthly_reports = {}
     config.hud_reports = {}
-    config.hmis_importers = []
     config.hmis_exporters = []
     config.synthetic_event_types = []
     config.synthetic_assessment_types = []
@@ -135,6 +136,7 @@ module BostonHmis
     config.patient_dashboards = []
     config.hmis_migrations = {}
     config.hmis_data_lakes = {}
+
     config.custom_imports = []
     config.supplemental_enrollment_importers = {}
     config.help_links = []

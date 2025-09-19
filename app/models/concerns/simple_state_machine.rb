@@ -39,7 +39,7 @@ module SimpleStateMachine
 
           # Find a valid transition
           transition_to = transition_map[current_state]
-          return false unless transition_to
+          raise ArgumentError, "Invalid transition: cannot perform transition '#{event_name}' from state '#{current_state}'" unless transition_to
 
           self[ssm_column] = transition_to
           save!

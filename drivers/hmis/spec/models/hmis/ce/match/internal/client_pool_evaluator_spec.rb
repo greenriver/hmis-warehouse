@@ -10,7 +10,7 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
     create(
       :hmis_ce_match_candidate_pool,
       requirement_expression: 'current_age > 65 AND veteran_status = 1',
-      priority_expression: 'current_age',
+      priority_expression: '{current_age}',
     )
   end
 
@@ -33,7 +33,7 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
         result = evaluator.call(destination_client3) # age 68, vet -> should pass
 
         expect(result).not_to be_failed
-        expect(result.priority_score).to eq(68)
+        expect(result.priority_scores).to eq([68])
         expect(result.client_values).to include(
           'current_age' => 68,
           'veteran_status' => 1,
@@ -46,14 +46,39 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
         result = evaluator.call(destination_client1) # age 25 -> fails age check
 
         expect(result).to be_failed
-        expect(result.priority_score).to be_nil
+        expect(result.priority_scores).to be_nil
       end
 
       it 'returns a failed result for a client that is not a veteran' do
         result = evaluator.call(destination_client2) # not vet -> fails vet status check
 
         expect(result).to be_failed
-        expect(result.priority_score).to be_nil
+        expect(result.priority_scores).to be_nil
+      end
+
+      it 'raises if expression is unable to evaluate' do
+        destination_client1.update!(dob: nil)
+        # 'current_age > 65' expected to raise if current_age is nil
+        expect { evaluator.call(destination_client1) }.to raise_error(Dentaku::ArgumentError, /Error evaluating expression.*Dentaku::AST::GreaterThan/)
+      end
+    end
+
+    context 'when a client does not have values for prioritization' do
+      # simplified pool, prioritized by age. client should be excluded if age is missing.
+      let(:pool) do
+        create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: 'veteran_status = 1',
+          priority_expression: '{current_age}',
+        )
+      end
+      let!(:client_vet_missing_dob) { create(:hmis_hud_client_with_warehouse_client, dob: nil, veteran_status: 1) }
+      let!(:destination_client1) { client_vet_missing_dob.destination_client }
+
+      it 'returns a failed result' do
+        result = evaluator.call(destination_client1)
+
+        expect(result).to be_failed
       end
     end
 

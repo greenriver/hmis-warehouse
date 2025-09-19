@@ -17,6 +17,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/duplicate_primary_keys',
         version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2024',
       )
     end
 

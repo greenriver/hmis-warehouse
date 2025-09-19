@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :model do
@@ -41,8 +43,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(Hmis::Hud::CustomDataElement.count).to eq(1)
     expect(Hmis::Hud::CustomDataElement.first.value_boolean).to be(false)
     expect(Hmis::ProjectUnitTypeMapping.count).to eq(2)
+    expect(Hmis::UnitGroup.count).to eq(1)
     expect(Hmis::Unit.count).to eq(10)
     expect(Hmis::Unit.where(unit_type: active_unit_type).count).to eq(10)
+    expect(Hmis::Unit.where.missing(:unit_group)).to be_empty
 
     # fixes incorrect hmis format
     expect(GrdaWarehouse::Hud::ProjectCoc.first.zip).to eq('11111')

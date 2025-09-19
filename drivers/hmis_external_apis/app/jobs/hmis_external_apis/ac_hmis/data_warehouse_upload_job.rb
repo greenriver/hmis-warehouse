@@ -72,6 +72,13 @@ module HmisExternalApis::AcHmis
         'custom_fields_export',
         'pathways_export',
         'case_note_export',
+        'unit_export',
+        'custom_assessments_export',
+        # FIXME: these exporters are to be enabled manually
+        # 'ce_referrals',
+        # 'ce_referral_tasks',
+        # 'waitlist_events_export',
+        # 'current_waitlists_export',
       ].freeze
     end
 
@@ -229,6 +236,114 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'CaseNotes.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def unit_export
+      export = HmisExternalApis::AcHmis::Exporters::UnitExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-units.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'Units.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def waitlist_events_export
+      export = HmisExternalApis::AcHmis::Exporters::WaitlistEventsExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-waitlist-events.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'WaitlistEvents.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def ce_referrals
+      export = HmisExternalApis::AcHmis::Exporters::CeReferralExport.new
+      export.run!
+      # File.open('CeReferrals.csv', 'w') do |file|
+      #   file.write(export.output.string)
+      # end
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-ce-referrals.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CeReferrals.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def ce_referral_tasks
+      export = HmisExternalApis::AcHmis::Exporters::CeReferralTaskExport.new
+      export.run!
+      # File.open('CeReferralTasks.csv', 'w') do |file|
+      #   file.write(export.output.string)
+      # end
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-ce-referral-tasks.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CeReferralTasks.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def custom_assessments_export
+      export = HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-custom-assessments.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CustomAssessments.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def current_waitlists_export
+      export = HmisExternalApis::AcHmis::Exporters::CurrentWaitlistsExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-current-waitlists.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CurrentWaitlists.csv',
             io: export.output,
           ),
         ],

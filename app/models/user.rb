@@ -224,7 +224,8 @@ class User < ApplicationRecord
     @ids_for_relations[relation] = if using_acls?
       collections.flat_map(&relation)
     else
-      access_groups.flat_map(&relation)
+      # access granted via groups + access granted via the user's own access group
+      access_groups.flat_map(&relation) + [access_group.send(relation)]
     end
     # END_ACL
     @ids_for_relations[relation]

@@ -88,6 +88,7 @@ module Types
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true, description: 'Meets the definition for HUD chronically homeless as of today (time of API request)'
 
+    # TODO(#8005) replace this with `ceClient { eligibleUnitGroups { ... } }`
     ce_opportunities_field(
       :eligible_ce_opportunities,
       filter_args: { omit: [:status, :available_on_date, :workflow_template], type_name: 'ClientEligibleCeOpportunity' },
@@ -271,7 +272,7 @@ module Types
       load_last_user_from_versions(object)
     end
 
-    def activity_log_field_name(field_name)
+    def activity_log_field_name(field_name, _value = nil)
       case field_name
       when 'ssn', 'dob'
         field_name

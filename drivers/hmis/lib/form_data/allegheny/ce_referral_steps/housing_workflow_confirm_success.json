@@ -17,64 +17,6 @@
         "custom_field_key": "housing_workflow_confirm_success_note"
       },
       "required": false
-    },
-    {
-      "text": "Decision",
-      "type": "CHOICE",
-      "link_id": "move_forward",
-      "mapping": {
-        "custom_field_key": "housing_workflow_confirm_success_move_forward"
-      },
-      "required": true,
-      "component": "RADIO_BUTTONS",
-      "pick_list_options": [
-        {
-          "code": "1",
-          "label": "Confirm - Individual or Household Successfully Enrolled"
-        },
-        {
-          "code": "0",
-          "label": "Decline Referral"
-        }
-      ]
-    },
-    {
-      "text": "Decline Reason",
-      "type": "CHOICE",
-      "link_id": "admin_decline_reason",
-      "mapping": {
-        "custom_field_key": "housing_workflow_confirm_success_decline_reason"
-      },
-      "required": true,
-      "component": "RADIO_BUTTONS",
-      "enable_when": [
-        {
-          "operator": "EQUAL",
-          "question": "move_forward",
-          "answer_code": "0"
-        }
-      ],
-      "enable_behavior": "ALL",
-      "pick_list_options": [
-        {
-          "code": "HMIS user error"
-        },
-        {
-          "code": "Client needs to be reassessed"
-        },
-        {
-          "code": "Does not meet eligibility criteria"
-        },
-        {
-          "code": "No longer interested in this program"
-        },
-        {
-          "code": "No longer experiencing homelessness"
-        },
-        {
-          "code": "Vacancy no longer available"
-        }
-      ]
     }
   ]
 }

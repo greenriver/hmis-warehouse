@@ -17,7 +17,7 @@
 # - Do not move existing opportunities between pools on rule change; mark as `stale` instead.
 # - A `nil` key represents the default case where no specific rules apply; do not create a pool for this key.
 #   UnitGroups with a `nil` key will have `candidate_pool_id = NULL`.
-# - Bulk creation relies on a DB unique index over (priority_expression, requirement_expression) and is idempotent.
+# - Bulk creation relies on a DB unique index over (priority_expressions, requirement_expression) and is idempotent.
 # - Concurrency/transactions are handled by callers. This class performs pure operations without
 #   acquiring locks or opening transactions.
 # - Triggered automatically by Rule and UnitGroup callbacks. Can be called manually via `CeBuilder`
@@ -32,7 +32,7 @@ module Hmis::Ce::Match
     def self.call(...) = new.call(...)
 
     def call(unit_group_ids: nil, force_reprocessing: false)
-      unit_group_scope = Hmis::UnitGroup.all
+      unit_group_scope = Hmis::UnitGroup.with_ce_waitlists_enabled
       unit_group_scope = unit_group_scope.where(id: unit_group_ids) if unit_group_ids
 
       created_pool_ids, updated_unit_group_count = upsert_unit_group_pools!(unit_group_scope)

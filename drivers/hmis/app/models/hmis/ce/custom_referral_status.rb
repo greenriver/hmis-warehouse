@@ -25,6 +25,8 @@
 
 module Hmis::Ce
   class CustomReferralStatus < GrdaWarehouseBase
+    acts_as_paranoid
+    has_paper_trail
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     scope :viewable_by, ->(user) do

@@ -42,7 +42,7 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
         key = resolver.key_for_unit_group(unit_group)
         # Eligibility requirements are ordered by owner precedence (UnitGroup > Project > Organization) then by id
         # and joined with AND. The first priority scheme is used.
-        expect(key).to eq(['days_homeless', 'days_homeless >= 7 AND current_age >= 18'])
+        expect(key).to eq(['{days_homeless}', 'days_homeless >= 7 AND current_age >= 18'])
       end
     end
   end
@@ -67,9 +67,9 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
       expect(map).to be_a(Hash)
       # Project-level requirement applies to all unit groups, so all three should appear
       expect(map.keys).to contain_exactly(unit_group.id, unit_group_2.id, unit_group_3_no_rules.id)
-      expect(map[unit_group.id]).to eq(['score_a', 'current_age >= 18'])
-      expect(map[unit_group_2.id]).to eq(['0', 'veteran = TRUE AND current_age >= 18'])
-      expect(map[unit_group_3_no_rules.id]).to eq(['0', 'current_age >= 18'])
+      expect(map[unit_group.id]).to eq(['{score_a}', 'current_age >= 18'])
+      expect(map[unit_group_2.id]).to eq(['{0}', 'veteran = TRUE AND current_age >= 18'])
+      expect(map[unit_group_3_no_rules.id]).to eq(['{0}', 'current_age >= 18'])
     end
 
     it 'can be scoped to a subset of unit groups' do
@@ -96,6 +96,18 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
       rules = resolver.rules_for_unit_group(unit_group)
       expect(rules.map(&:owner).map(&:class)).to eq([Hmis::UnitGroup, Hmis::Hud::Project, Hmis::Hud::Organization])
       expect(rules.map(&:id)).to eq([ug_priority.id, proj_req.id, org_req.id])
+    end
+  end
+
+  describe '#compose_requirement_expression' do
+    it 'parenthesizes expressions containing OR before ANDing' do
+      rule1 = double('Rule', expression: 'current_age > 18 OR score > 8', eligibility_requirement?: true)
+      rule2 = double('Rule', expression: 'current_age < 65', eligibility_requirement?: true)
+      rules = [rule1, rule2]
+
+      result = resolver.send(:compose_requirement_expression, rules)
+
+      expect(result).to eq('(current_age > 18 OR score > 8) AND current_age < 65')
     end
   end
 end

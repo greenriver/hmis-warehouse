@@ -42,7 +42,8 @@ module Types
 
     # CE fields
     field :eligibility_requirements, [HmisSchema::CeMatchRule], null: true
-    field :priority_scheme, HmisSchema::CeMatchRule, null: true
+    field :priority_scheme, HmisSchema::CeMatchRule, null: true, deprecation_reason: 'Replaced by prioritySchemes'
+    field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :workflow_template_name, String, null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
@@ -58,7 +59,7 @@ module Types
     def unit_size
       return object.unit_size if object.unit_size.present?
 
-      object.unit_type&.unit_size
+      unit_type&.unit_size
     end
 
     def occupancy_status
@@ -67,7 +68,7 @@ module Types
 
     def deletable
       return false if occupants.any? # cannot delete unit with occupants
-      return false if load_ar_association(object, :referrals).any? # cannot delete unit with any referrals (past or present)
+      return false if load_ar_association(object, :active_referral).present? # cannot delete unit with active referral
 
       true
     end
@@ -92,7 +93,7 @@ module Types
     def can_be_marked_unavailable
       return false unless Hmis::Ce.configuration.enabled?
       return false unless latest_opportunity&.active? # Must have an active opportunity
-      return false if load_ar_association(latest_opportunity, :active_referral).present? # If there is already a referral, trying to mark unavailable will fail
+      return false if load_ar_association(latest_opportunity, :active_referral).present? # Must not already have a referral in progress
 
       true
     end
@@ -144,16 +145,21 @@ module Types
       return revivified_rules.filter(&:eligibility_requirement?) if latest_opportunity&.active? && latest_opportunity.stale
       return [] unless unit_group
 
-      Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(unit_group)
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(unit_group)
     end
 
+    # TODO(#7957) - remove after deprecation period
     def priority_scheme
-      # If the current opportunity is active and stale, return the priority scheme as it was
-      # when the opportunity was created.
-      return revivified_rules.filter(&:priority_scheme?).first if latest_opportunity&.active? && latest_opportunity.stale
-      return unless unit_group
+      priority_schemes.first
+    end
 
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(unit_group).first
+    def priority_schemes
+      # If the current opportunity is active and stale, return the priority rules as they were
+      # when the opportunity was created, filtered to the most specific owner level and ordered by [priority_rank, id].
+      return Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(revivified_rules) if latest_opportunity&.active? && latest_opportunity.stale
+      return [] unless unit_group
+
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(unit_group)
     end
 
     private

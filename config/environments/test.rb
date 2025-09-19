@@ -50,6 +50,8 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
+  # Re-enable ActiveStorage routes in test so Disk service URL helpers exist
+  config.active_storage.draw_routes = true
 
   config.action_mailer.perform_caching = false
 
@@ -88,4 +90,11 @@ Rails.application.configure do
   routes.default_url_options = { host: ENV['FQDN'] }
 
   config.force_ssl = false
+
+  # Enable asset compilation for system tests
+  if ENV['RUN_RAILS_SYSTEM_TESTS'] == 'true'
+    config.assets.compile = true
+    config.assets.check_precompiled_asset = false
+    config.assets.digest = false
+  end
 end

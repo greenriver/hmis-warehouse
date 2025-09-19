@@ -60,6 +60,7 @@ module Types
       field :can_view_referral_details, Boolean, null: false
       field :can_view_target_project, Boolean, null: false
       field :can_view_source_enrollment_details, Boolean, null: false
+      field :can_assign_referral_tasks, Boolean, null: false
     end
 
     # Detailed fields that only those with full view access should see. Must be nullable
@@ -77,7 +78,7 @@ module Types
     field :audit_events, HmisSchema::CeReferralAuditEvent.page_type, null: true
     field :notes, HmisSchema::CeReferralNote.page_type, null: true
     # generically resolve current values for any fields referenced by Match Rule expressions
-    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.', method: :resolve_match_rule_fields
+    field :current_match_values, [HmisSchema::CeMatchValue], null: true, description: 'Eligibility-related field values. May expose data beyond normal permissions.'
 
     available_filter_options do
       arg :referral_status, [String]
@@ -87,6 +88,19 @@ module Types
       arg :organization, [ID]
       arg :on_current_task_since, GraphQL::Types::ISO8601Date # TODO - we will discuss this with design and probably make updates
       arg :origin, [HmisSchema::Enums::CeReferralOrigin]
+    end
+
+    def current_match_values
+      # Exclude certain fields from the "Referral Details" section because they are duplicative or unnecessary.
+      # We may want to add configuration later on to specify whether fields should display.
+      excluded_fields = [
+        :current_age, # Already shown
+        :days_since_last_exit,
+        :open_enrollment_project_types,
+        :open_enrollment_project_types_excluding_incomplete,
+        :open_referral_project_types,
+      ]
+      object.resolve_match_rule_fields(excluded_fields: excluded_fields)
     end
 
     def custom_status
@@ -241,6 +255,7 @@ module Types
       {
         can_view_referral_details: policy_for(object, policy_type: :ce_referral).can_view?,
         can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
+        can_assign_referral_tasks: policy_for(object, policy_type: :ce_referral).can_assign_referral_tasks?,
         can_view_source_enrollment_details: source_enrollment.present?,
       }
     end

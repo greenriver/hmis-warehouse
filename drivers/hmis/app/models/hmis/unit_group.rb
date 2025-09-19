@@ -15,11 +15,14 @@
 #     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
 module Hmis
   class UnitGroup < HmisBase
+    acts_as_paranoid
     has_paper_trail(meta: { project_id: :project_id })
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
+    belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
+    has_many :unit_types, through: :units # TODO(#8157) - Unit should have at most 1 unit type. Remove when no longer used
     has_many :opportunities, class_name: 'Hmis::Ce::Opportunity', through: :units
 
     # The workflow template to use to fill CE Opportunities for Units belonging to this Unit Group
@@ -30,9 +33,11 @@ module Hmis
                class_name: 'Hmis::WorkflowDefinition::Template',
                optional: true
 
-    validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false }
+    validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false, message: 'must be unique in the project' }
     validate :workflow_template_is_valid
+    validate :workflow_template_is_stable
     validate :project_is_not_changed, on: :update
+    validate :unit_type_is_stable, on: :update
 
     after_create :rebuild_candidate_pool
 
@@ -40,12 +45,16 @@ module Hmis
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
     end
 
-    def eligibility_requirements
-      Hmis::Ce::Match::Rule.eligibility_requirement.for_entity(self)
+    scope :with_ce_waitlists_enabled, -> do
+      joins(:project).merge(Hmis::Hud::Project.with_ce_waitlists_enabled)
     end
 
-    def priority_scheme
-      Hmis::Ce::Match::Rule.priority_scheme.for_entity(self).first # TODO enforce 1 priority scheme?
+    def eligibility_requirements
+      Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(self)
+    end
+
+    def priority_schemes
+      Hmis::Ce::Match::Rule.priority_schemes_for_entity(self)
     end
 
     def available_unit_count
@@ -70,6 +79,20 @@ module Hmis
       errors.add(:workflow_template_identifier, 'must be published') unless workflow_template.published?
       errors.add(:workflow_template_identifier, 'must belong to the same data source') if workflow_template.data_source_id != project.data_source_id
       errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') unless workflow_template.template_type&.to_s == 'ce_referral'
+    end
+
+    def workflow_template_is_stable
+      return unless workflow_template_identifier_changed?
+      return if workflow_template_identifier_was.nil?
+
+      errors.add(:workflow_template_identifier, 'cannot be changed once set')
+    end
+
+    def unit_type_is_stable
+      return unless unit_type_id_changed?
+      return if unit_type_id_was.nil?
+
+      errors.add(:unit_type_id, 'cannot be changed once set')
     end
   end
 end

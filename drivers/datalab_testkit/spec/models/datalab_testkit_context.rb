@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require_relative './table_comparisons'
 
 RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
@@ -13,8 +15,8 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
 
   def shared_filter_spec
     {
-      start: Date.parse('2021-10-01'),
-      end: Date.parse('2022-09-30'),
+      start: Date.parse('2023-10-01'),
+      end: Date.parse('2024-09-30'),
       user_id: User.setup_system_user.id,
       coc_codes: ['XX-500', 'XX-501'],
     }.freeze
@@ -74,6 +76,39 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
   def report_result
     # NOTE: SPM runs subsequent DQ reports, but sets @report_result, so we'll use that if available
     @report_result || ::HudReports::ReportInstance.last
+  end
+
+  # Generates a validations hash in the following format:
+  # {
+  #   'APR FY2026': {
+  #     'Q7a' => [
+  #       # Internal sum (note question for total is also Q7a)
+  #       { total: 'B10', source: { question: 'Q7a', expression: 'C2+C3+C4+C5' }},
+  #       # Equality to constant
+  #       { total: 'B10', source: { question: 'Q7b', expression: 0 }},
+  #       # Cross table comparison
+  #       { total: 'B10', source: { question: 'Q4', expression: 'B7' }},
+  #     ],
+  #   },
+  # }
+  def validations
+    validation_source_file = 'drivers/datalab_testkit/spec/fixtures/internal_consistency_validations/tup_validations.csv'
+    validations = {}
+    return validations unless File.exist?(validation_source_file)
+
+    CSV.foreach(validation_source_file, headers: true) do |row|
+      validations[row['Report']] ||= {}
+      validations[row['Report']][row['Filename'].gsub('.csv', '')] ||= []
+      validations[row['Report']][row['Filename'].gsub('.csv', '')] << {
+        total: row['Field to validate'],
+        source: {
+          # NOTE: this will be getting a new column soon
+          question: row['Filename'].gsub('.csv', ''),
+          expression: row['Values to check against'],
+        },
+      }
+    end
+    validations
   end
 end
 

@@ -196,7 +196,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -212,7 +212,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixpoints/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -223,7 +223,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -234,7 +234,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}/merged/source
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
           destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -257,9 +257,9 @@ jobs:
           # capture rspec profiling information
           # see lib/tasks/ci.rake for more details
           # mkdir -p tmp/rspec_profiles
-          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          # bundle exec rspec --format json --out "tmp/rspec_profiles/rspec_results.json" --profile 100000 --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
 
-          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system
+          bundle exec rspec -fd --fail-fast=$MAX_FAILURES --color --pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb" --tag ${{ matrix.test_group.tag }} --tag ~type:system --tag ~type:rails_system
 
       - name: Run okta tests
         if: matrix.test_group.okta_tests

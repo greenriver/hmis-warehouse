@@ -21,7 +21,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
 
   # Override in specific tests
   let(:requirement_expression) { 'TRUE' }
-  let(:priority_expression) { '0' }
+  let(:priority_expression) { '{0}' }
 
   def generate_candidates(pool, clients: nil)
     described_class.call(pool, clients: clients)
@@ -154,6 +154,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           UserID: 'fake',
         )
       end
+      return assessment
     end
   end
 
@@ -355,6 +356,26 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           expect(results).not_to include(client_enrolled_in_ph.destination_client.id)
         end
       end
+
+      describe 'null-safety for calc functions' do
+        describe 'INCLUDES with NULL needle' do
+          let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, NULL)' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
+        end
+
+        describe 'PROJECT_TYPE with NULL identifier' do
+          let(:requirement_expression) { 'INCLUDES(open_enrollment_project_types, PROJECT_TYPE(NULL))' }
+
+          it 'evaluates to false for all clients without raising' do
+            results = generate_candidates(pool)
+            expect(results).to be_empty
+          end
+        end
+      end
     end
   end
 
@@ -477,7 +498,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     include_context 'with demographic test clients'
 
     let(:requirement_expression) { 'current_age > 18' }
-    let(:priority_expression) { 'current_age' }
+    let(:priority_expression) { '{current_age}' }
     let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
 
     def find_events_for_client(client_id)
@@ -490,7 +511,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       it 'creates update events with new snapshot when client data changes but they remain eligible' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
         generate_candidates(pool) # Initial run
-        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(adult_client.age)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([adult_client.age])
 
         # Change data that affects priority score but not eligibility
         adult_client.update!(DOB: 30.years.ago) # current_age changes from 20 to 30
@@ -502,7 +523,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
           candidate_pool: pool,
         )
         expect(events.last.snapshot).to include('current_age' => 30)
-        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_score).to eq(30)
+        expect(adult_client.ce_client_proxy.ce_match_candidates.first.priority_scores).to eq([30])
       end
     end
 
@@ -531,7 +552,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'when client fails priority evaluation' do
-      let(:priority_expression) { 'IF(current_age > 18, current_age, NULL)' }
+      let(:priority_expression) { '{IF(current_age > 18, current_age, NULL)}' }
 
       it 'creates remove events for clients with nil priority scores' do
         adult_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
@@ -580,7 +601,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
 
     context 'event snapshot content' do
-      let(:priority_expression) { 'current_age + veteran_status' }
+      let(:priority_expression) { '{current_age, veteran_status}' }
 
       it 'includes relevant field values in the snapshot' do
         veteran_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
@@ -632,6 +653,114 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
         # Veteran client should still have only 1 event: add (no change, so no new event)
         expect(veteran_events_after_update.size).to eq(1)
         expect(veteran_events_after_update.first.event_name).to eq('add')
+      end
+    end
+  end
+
+  describe 'multiple priority expressions' do
+    include_context 'with demographic test clients'
+
+    let(:requirement_expression) { 'current_age > 18' }
+    let(:priority_expression) { '{current_age, veteran_status}' }
+    let(:pool) { create(:hmis_ce_match_candidate_pool, requirement_expression: requirement_expression, priority_expression: priority_expression) }
+
+    it 'evaluates multiple priority expressions and stores them as an array' do
+      generate_candidates(pool)
+
+      # Get destination clients for easier access
+      senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
+      adult_veteran_dest_client = destination_clients.find { |c| c.id == client_adult_veteran.destination_client.id }
+      adult_non_veteran_dest_client = destination_clients.find { |c| c.id == client_adult_non_veteran.destination_client.id }
+
+      # Check senior veteran client (68 years old, veteran)
+      senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(senior_veteran_candidate.priority_scores).to eq([68, 1])
+
+      # Check adult veteran client (20 years old, veteran)
+      adult_veteran_candidate = adult_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(adult_veteran_candidate.priority_scores).to eq([20, 1])
+
+      # Check adult non-veteran client (20 years old, non-veteran)
+      adult_non_veteran_candidate = adult_non_veteran_dest_client.ce_client_proxy.ce_match_candidates.first
+      expect(adult_non_veteran_candidate.priority_scores).to eq([20, 0])
+    end
+
+    it 'handles expressions with commas correctly' do
+      # Test that expressions containing commas don't break the parsing
+      pool_with_comma_expr = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: 'current_age > 18',
+        priority_expression: '{IF(current_age > 50, 100, 0), current_age, veteran_status}',
+      )
+
+      generate_candidates(pool_with_comma_expr)
+
+      senior_veteran_dest_client = destination_clients.find { |c| c.id == client_senior_veteran.destination_client.id }
+      senior_veteran_candidate = senior_veteran_dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_with_comma_expr)
+      expect(senior_veteran_candidate.priority_scores).to eq([100, 68, 1])
+    end
+  end
+
+  describe 'priority expression functions' do
+    include_context 'with CDE assessment setup'
+
+    let(:cde_key) { 'test' }
+    it 'supports EPOCH_SECONDS on custom assessment date fields' do
+      client = create(:hmis_hud_client, data_source: data_source)
+      assessment = create_assessment_with_cde(client, 'yes')
+      timestamp = Time.zone.parse('2025-01-01 12:00:00')
+      assessment_date = Date.new(2025, 2, 3)
+      assessment.update!(DateUpdated: timestamp, AssessmentDate: assessment_date)
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+      pool = create(
+        :hmis_ce_match_candidate_pool,
+        requirement_expression: '1=1',
+        priority_expression: "{EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.date_updated`), EPOCH_SECONDS(`custom_assessment.#{fd.identifier}.assessment_date`)}",
+      )
+
+      generate_candidates(pool, clients: destination_clients_for([client]))
+
+      dest_client = destination_clients_for([client]).sole
+      candidate = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool)
+      expect(candidate.priority_scores).to eq([timestamp.to_i, Time.zone.local(2025, 2, 3).to_i])
+    end
+
+    it 'interprets naive and date-only strings in the application Time.zone' do
+      Time.use_zone('America/Chicago') do
+        client = create(:hmis_hud_client, data_source: data_source)
+        create_assessment_with_cde(client, 'yes')
+
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+        naive = '2025-02-03 15:04:05'
+        pool_naive = create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: '1=1',
+          priority_expression: "{EPOCH_SECONDS('#{naive}')}",
+        )
+
+        date_only = '2025-02-03'
+        pool_date = create(
+          :hmis_ce_match_candidate_pool,
+          requirement_expression: '1=1',
+          priority_expression: "{EPOCH_SECONDS('#{date_only}')}",
+        )
+
+        generate_candidates(pool_naive, clients: destination_clients_for([client]))
+        generate_candidates(pool_date, clients: destination_clients_for([client]))
+
+        dest_client = destination_clients_for([client]).sole
+        cand_naive = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_naive)
+        cand_date = dest_client.ce_client_proxy.ce_match_candidates.find_by(candidate_pool: pool_date)
+
+        expected_local = Time.zone.parse(naive).to_i
+        expected_utc = ActiveSupport::TimeZone['UTC'].parse(naive).to_i
+        expected_local_midnight = Time.zone.local(2025, 2, 3).to_i
+
+        expect(cand_naive.priority_scores).to eq([expected_local])
+        expect(cand_naive.priority_scores.first).not_to eq(expected_utc)
+        expect(cand_date.priority_scores).to eq([expected_local_midnight])
       end
     end
   end

@@ -53,10 +53,6 @@ namespace :warehouse do
         Rake::Task['db:schema:load'].invoke
       end
 
-      task :dump do
-        Rake::Task['db:schema:dump'].invoke
-      end
-
       desc 'Conditionally load the database schema'
       task :conditional_load, [] => [:environment] do |_t, _args|
         GrdaWarehouseBase.load_db_if_empty do
@@ -68,17 +64,6 @@ namespace :warehouse do
     namespace :structure do
       task :load do
         Rake::Task['db:structure:load'].invoke
-      end
-
-      task :dump do
-        Rake::Task['db:structure:dump'].invoke
-      end
-
-      desc 'Conditionally load the database structure'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        GrdaWarehouseBase.load_db_if_empty do
-          GrdaWarehouseBase.connection.execute(File.read('db/warehouse_structure.sql'))
-        end
       end
     end
 

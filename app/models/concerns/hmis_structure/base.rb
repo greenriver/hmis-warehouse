@@ -41,10 +41,25 @@ module HmisStructure::Base
     def hud_csv_version
       # Move to 2026 in production after 2025-10-01
       # Move to 2026 in staging after 2025-09-01
-      cutoff_date = Rails.env.production? ? Date.new(2025, 10, 1) : Date.new(2025, 9, 1)
+      cutoff_date = if Rails.env.production?
+        Date.new(2025, 10, 1)
+      elsif Rails.env.staging? && ENV['CLIENT'] != 'qa' # Test remains pinned to 2024 until test kits are out
+        Date.new(2025, 9, 1)
+      else
+        Date.current
+      end
       return '2024' if Date.current < cutoff_date
 
       '2026'
+    end
+
+    def current_hud_utility
+      case hud_csv_version
+      when '2024'
+        HudUtility2024
+      else
+        HudUtility2026
+      end
     end
 
     # default name for a CSV file
@@ -112,7 +127,7 @@ module HmisStructure::Base
     end
 
     def conflict_target
-      @conflict_target || [:data_source_id, "\"#{hud_key}\""]
+      @conflict_target || [:data_source_id, connection.quote_column_name(hud_key)]
     end
 
     def additional_upsert_columns=(names)

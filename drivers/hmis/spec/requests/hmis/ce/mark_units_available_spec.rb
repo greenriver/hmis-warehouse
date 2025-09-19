@@ -13,7 +13,7 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
   include_context 'hmis base setup'
 
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_units, :can_update_unit_availability]) }
   let!(:project) { create :hmis_hud_project, data_source: ds1 }
   let!(:template) { create :hmis_workflow_definition_template, status: 'published', data_source: ds1 }
   let!(:unit_type) { create :hmis_unit_type, description: '1 Bedroom Apartment' }
@@ -39,7 +39,7 @@ RSpec.describe Mutations::Ce::MarkUnitsAvailable, type: :request do
                   id
                   expression
                 }
-                priorityScheme {
+                prioritySchemes {
                   id
                   expression
                 }

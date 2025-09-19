@@ -78,6 +78,12 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       end
     end
 
+    # Converts join_tables hash to proper preload arguments
+    def self.enrollment_related_preloads(export)
+      join_tables = enrollment_related_join_tables(export)
+      [:user, join_tables]
+    end
+
     def self.project_exists_for_model(project_scope, hmis_class)
       project_scope.where(
         p_t[:ProjectID].eq(hmis_class.arel_table[:ProjectID]).
@@ -162,14 +168,28 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
     end
 
     def length_limited_columns
-      @length_limited_columns ||= HmisCsvTwentyTwentySix::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2026').select do |col, m|
+      @length_limited_columns ||= hmis_configuration_for_class.select do |col, m|
         m.key?(:limit) && ! hashed_column?(col)
       end
     end
 
     def rounded_columns
-      @rounded_columns ||= HmisCsvTwentyTwentySix::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2026').select do |_, m|
+      @rounded_columns ||= hmis_configuration_for_class.select do |_, m|
         m[:check].in?([:money, :integer])
+      end
+    end
+
+    # Helper method to get hmis_configuration for both standard and custom exporters
+    def hmis_configuration_for_class
+      if self.class.ancestors.include?(HmisCsvTwentyTwentySix::Exporter::Custom::Base)
+        # For custom exporters, call hmis_configuration directly
+        self.class.hmis_configuration(version: '2026')
+      else
+        # For standard exporters, use the existing pattern
+        hmis_class = HmisCsvTwentyTwentySix::Exporter::Base.hmis_class_for(self.class)
+        return {} if hmis_class.nil?
+
+        hmis_class.hmis_configuration(version: '2026')
       end
     end
 

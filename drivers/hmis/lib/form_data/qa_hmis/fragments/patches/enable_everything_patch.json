@@ -264,6 +264,14 @@
     }
   },
   {
+    "link_id": "V10",
+    "custom_rule": {
+      "variable": "projectId",
+      "operator": "NOT_EQUAL",
+      "value": "non-existent-project-id"
+    }
+  },
+  {
     "link_id": "medical_assistance",
     "custom_rule": {
       "variable": "projectId",

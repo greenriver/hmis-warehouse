@@ -227,7 +227,7 @@ module HmisCsvImporter::Loader
         return # cannot continue clean_header_row logged its reason
       end
 
-      col_list = pg_cols.map { |c| klass.connection.quote_column_name c }.join(',')
+      col_list = pg_cols.map { |c| klass.connection.quote_column_name(klass.column_name_for_import(c)) }.join(',')
       expect_col_count = pg_cols.size
       copy_sql = <<~SQL.strip
         COPY #{klass.quoted_table_name} (#{col_list})
@@ -273,6 +273,13 @@ module HmisCsvImporter::Loader
                   details: "Line number: #{parser.lineno}",
                   source: row.to_csv,
                 }
+              elsif values.first.blank?
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Primary key is blank',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
               else
                 csv_data = values.to_csv
                 pg_conn.put_copy_data csv_data
@@ -306,7 +313,7 @@ module HmisCsvImporter::Loader
           stat['rps'] = (lines_loaded / bm.real).round
         end
         Rails.logger.debug do
-          # line_loaded comes from pg directly, if we dont trust it we can go back for a count
+          # line_loaded comes from pg directly, if we don't trust it we can go back for a count
           # if lines_loaded > 1
           #   scope = klass.where(data_source_id: data_source.id, loader_id: @loader_log.id)
           #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
@@ -339,7 +346,7 @@ module HmisCsvImporter::Loader
         add_error(file_path: file_path, message: 'No header row found', line: 1)
         return [:missing]
       end
-      csv_header_names = klass.hud_csv_headers
+      csv_header_names = klass.hud_csv_headers(version: @stop_version)
       valid_headers = source_headers.map(&HEADER_NORMALIZER) == csv_header_names.map(&HEADER_NORMALIZER)
 
       return [:ok, csv_header_names.map(&:to_s)] if valid_headers
@@ -373,6 +380,7 @@ module HmisCsvImporter::Loader
         data_source_id: data_source.id,
         started_at: Time.current,
         status: :started,
+        summary: {}, # Initialize empty summary hash
       )
     end
 

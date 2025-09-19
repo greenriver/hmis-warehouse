@@ -40,13 +40,14 @@ module Hmis::WorkflowExecution
         raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
       end
 
+      return step if step.open? # If the step is already available, no action needed
+
       step.available_at = Time.current
       step.enable!
       step
     end
 
     def start_step!(step, user:)
-      step.assignments.find_or_create_by!(user: user)
       step.started_at = Time.current
       step.start!
       # We don't populate the step's updated_by id here, because from the user's perspective, starting the step is just clicking a button, but not updating anything
@@ -93,9 +94,16 @@ module Hmis::WorkflowExecution
     # TODO(#7080) When we add notifications, we may need to add notification from within this method,
     # even though it's called outside of process_triggers, so that users are notified of assignment.
     def assign_task!(step)
-      assignment_handler.call(step.node).each do |user|
+      # Get the new assignments from the handler
+      assigned_users = assignment_handler.call(step.node)
+
+      # Create or find assignments for new users
+      assigned_users.each do |user|
         step.assignments.find_or_create_by!(user: user)
       end
+
+      # Remove assignments for users that are no longer assigned
+      step.assignments.where.not(user: assigned_users).each(&:destroy!)
     end
 
     protected
@@ -196,7 +204,12 @@ module Hmis::WorkflowExecution
       # Evaluate conditions against *all* submitted values. This is important because when we reach a gateway,
       # we need to evaluate which branch(es) to take based on the submitted values of the previous tasks;
       # the gateway itself doesn't have submitted values.
-      calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
+      begin
+        calculator.evaluate!(expression, **defaults.merge(all_submitted_values.transform_keys(&:to_sym)))
+      rescue Dentaku::ArgumentError => e
+        err_with_context = "Error evaluating expression '#{expression}' on WorkflowInstance##{@instance.id}: #{e.message}"
+        raise e, err_with_context, e.backtrace
+      end
     end
 
     def all_submitted_values

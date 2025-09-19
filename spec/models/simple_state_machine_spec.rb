@@ -159,11 +159,11 @@ RSpec.describe SimpleStateMachine do
       expect { record.close! }.to change { record.status }.from('locked').to('closed')
     end
 
-    it 'returns false for invalid transitions' do
+    it 'raises an error for invalid transitions' do
       record.close!
       expect(record.closed?).to be true
-      expect(record.reserve!).to be false
-      expect(record.release!).to be false
+      expect { record.reserve! }.to raise_error(ArgumentError, /Invalid transition/)
+      expect { record.release! }.to raise_error(ArgumentError, /Invalid transition/)
     end
 
     it 'handles multiple from states and persists changes' do
