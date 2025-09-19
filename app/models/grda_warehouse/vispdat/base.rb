@@ -13,7 +13,7 @@ module GrdaWarehouse::Vispdat
     ####################
     # Constants
     ####################
-    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/
+    US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/ unless const_defined?(:US_PHONE_NUMBERS)
 
     ####################
     # enums

@@ -9,12 +9,12 @@
 require 'rails_helper'
 
 RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :model do
-  FIXTURES = 'drivers/hud_twenty_twenty_four_to_twenty_twenty_six/spec/fixtures'
-  FIXTURES_IN = File.join(FIXTURES, 'in').freeze
-  FIXTURES_OUT = File.join(FIXTURES, 'out').freeze
-  TEST_DIR = 'tmp/test'
-  SOURCE_DIR = File.join(TEST_DIR, 'in/merged/source').freeze
-  DEST_DIR = File.join(TEST_DIR, 'out').freeze
+  FIXTURES = 'drivers/hud_twenty_twenty_four_to_twenty_twenty_six/spec/fixtures' unless const_defined?(:FIXTURES)
+  FIXTURES_IN = File.join(FIXTURES, 'in').freeze unless const_defined?(:FIXTURES_IN)
+  FIXTURES_OUT = File.join(FIXTURES, 'out').freeze unless const_defined?(:FIXTURES_OUT)
+  TEST_DIR = 'tmp/test' unless const_defined?(:TEST_DIR)
+  SOURCE_DIR = File.join(TEST_DIR, 'in/merged/source').freeze unless const_defined?(:SOURCE_DIR)
+  DEST_DIR = File.join(TEST_DIR, 'out').freeze unless const_defined?(:DEST_DIR)
 
   before(:each) do
     create_test_dir
