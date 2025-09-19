@@ -37,6 +37,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               householdSize
               householdMembers {
                 id
+                clientId
                 clientName
                 relationshipToHoH
                 access {
@@ -179,12 +180,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
               'clientName' => client.brief_name,
               'access' => { 'canViewClients' => true },
+              'clientId' => client.id.to_s,
             ),
             a_hash_including(
               'id' => household_enrollment_2.id.to_s,
               'relationshipToHoH' => 'CHILD',
               'clientName' => household_client_2.brief_name,
               'access' => { 'canViewClients' => true },
+              'clientId' => household_client_2.id.to_s,
             ),
           )
         end
