@@ -905,7 +905,7 @@ module GrdaWarehouse::Tasks
     private def clean_coordinated_entry_records
       return unless @clients.any?
       return if @dry_run
-      return unless HmisEnforcement.hmis_enabled?
+      return unless HmisEnforcement.hmis_enabled? && Hmis::Ce.configuration.enabled?
 
       # Clean up ClientProxies, and CE Candidates via cascading destroy.
       Hmis::Ce::ClientProxy.where(
