@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # ChEnrolment persist the HUD calculation for chronic homelessness at the enrollment level
 #
 # Details:
@@ -182,7 +184,7 @@ module GrdaWarehouse
       return :missing if [nil, 99].include?(value)
     end
 
-    def self.is_no?(value) # rubocop:disable Naming/PredicateName
+    def self.is_no?(value) # rubocop:disable Naming/PredicatePrefix
       return :no if value&.zero?
     end
 

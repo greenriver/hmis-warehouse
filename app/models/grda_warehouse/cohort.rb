@@ -236,7 +236,7 @@ module GrdaWarehouse
     # paginated/preloaded scope for the last `client_search`
     attr_reader :client_search_result
 
-    def self.has_some_cohort_access user # rubocop:disable  Naming/PredicateName
+    def self.has_some_cohort_access user # rubocop:disable  Naming/PredicatePrefix
       user.can_access_some_cohorts
     end
 
