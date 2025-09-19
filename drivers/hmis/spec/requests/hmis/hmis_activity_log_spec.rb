@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
+  include_context 'file upload setup'
 
   let(:headers) do
     {
@@ -124,6 +125,60 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       log = Hmis::ActivityLog.order(:id).last
       check_log(log, user: user, operation_name: operation_name, headers: headers)
+    end
+  end
+
+  describe 'file resolver (conditional url logging)' do
+    let(:operation_name) { 'getFile' }
+    let(:e1) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p1 }
+    let(:file_query) do
+      <<~GRAPHQL
+        query #{operation_name}($id: ID!) {
+          file(id: $id) { id url __typename }
+        }
+      GRAPHQL
+    end
+
+    before(:each) do
+      hmis_login(user)
+      create_access_control(
+        hmis_user,
+        p1,
+        with_permission: [
+          :can_view_clients,
+          :can_view_project,
+          :can_view_enrollment_details,
+          :can_view_any_nonconfidential_client_files,
+        ],
+      )
+    end
+
+    it 'logs File/url when url is non-nil' do
+      file = create(:file, client: c1, enrollment: e1, blob: blob)
+
+      expect do
+        response, result = post_graphql_single(variables: { 'id' => file.id.to_s }, headers: headers, operation_name: operation_name, query: file_query)
+        expect(response.status).to eq 200
+        expect(result.dig('data', 'file', 'url')).to be_present
+      end.to change(Hmis::ActivityLog, :count).by(1)
+
+      log = Hmis::ActivityLog.order(:id).last
+      expect(log.resolved_fields).to include("File/#{file.id}" => array_including('url'))
+    end
+
+    it 'does not log File/url when url is nil' do
+      file = build(:file, client: c1, enrollment: e1, blob: nil)
+      file.save!(validate: false)
+
+      expect do
+        response, result = post_graphql_single(variables: { 'id' => file.id.to_s }, headers: headers, operation_name: operation_name, query: file_query)
+        expect(response.status).to eq 200
+        expect(result.dig('data', 'file', 'url')).to be_nil
+      end.to change(Hmis::ActivityLog, :count).by(1)
+
+      log = Hmis::ActivityLog.order(:id).last
+      # For nil url, the File key may be present due to other requested fields (e.g., id), but must not include 'url'
+      expect(log.resolved_fields["File/#{file.id}"] || []).not_to include('url')
     end
   end
 

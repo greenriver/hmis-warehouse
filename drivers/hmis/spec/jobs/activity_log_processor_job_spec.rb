@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
@@ -17,7 +19,7 @@ RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
 
   record_permutations = [
     ['with non-deleted', nil],
-    ['with deleted', ->(record) { record.destroy! }],
+    ['with deleted', lambda(&:destroy!)],
   ]
   enrollment_types = [
     ['Enrollment', :hmis_hud_enrollment],
@@ -69,6 +71,31 @@ RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
           and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
 
         # also check for idempotent behavior
+        expect do
+          job.perform_now
+        end.to not_change(Hmis::EnrollmentAccessSummary, :count).
+          and not_change(Hmis::ClientAccessSummary, :count).
+          and not_change(Hmis::ActivityLog.unprocessed, :count)
+      end
+    end
+  end
+
+  # Ensure processor ignores values and only uses keys, matching controller logs like ['files']
+  record_permutations.each do |label, transformer|
+    describe "#{label} client-related access log with field list" do
+      before(:each) do
+        create :hmis_activity_log, resolved_fields: { "Client/#{c1.id}" => ['files'] }
+        transformer&.call(c1)
+      end
+
+      it 'should link to client even when values are present' do
+        expect do
+          job.perform_now
+        end.to not_change(Hmis::EnrollmentAccessSummary, :count).
+          and change(Hmis::ClientAccessSummary.where(client_id: c1.id), :count).by(1).
+          and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
+
+        # idempotency
         expect do
           job.perform_now
         end.to not_change(Hmis::EnrollmentAccessSummary, :count).
