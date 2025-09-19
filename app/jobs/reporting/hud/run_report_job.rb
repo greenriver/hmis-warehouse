@@ -53,7 +53,7 @@ module Reporting::Hud
 
         if running_reports_count > 1
           puts "Found #{running_reports_count} running reports, for #{generator_class_name} (#{report.report_name}), postponing run of #{report.id}"
-          requeue_job(class_name)
+          requeue_job(generator_class_name)
           return true
         end
       end
