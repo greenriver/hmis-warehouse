@@ -1080,6 +1080,31 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
   end
 
+  describe 'clean_coordinated_entry_records' do
+    let(:dry_run) { false }
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new(dry_run: dry_run) }
+    let!(:destination_client) { create(:grda_warehouse_hud_client) }
+
+    before do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+      cleanup.instance_variable_set(:@clients, [destination_client.id])
+    end
+
+    it 'destroys CE ClientProxies for destination clients when HMIS is enabled' do
+      Hmis::Ce::ClientProxy.create!(client: destination_client)
+
+      expect do
+        cleanup.send(:clean_coordinated_entry_records)
+      end.to change {
+        Hmis::Ce::ClientProxy.where(
+          client_id: destination_client.id,
+          client_type: GrdaWarehouse::Hud::Client.sti_name,
+        ).count
+      }.from(1).to(0)
+    end
+  end
+
   def cleanup_columns
     @cleanup.client_columns.values.map { |c| Arel.sql(c) }
   end
