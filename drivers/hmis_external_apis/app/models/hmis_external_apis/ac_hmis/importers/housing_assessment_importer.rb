@@ -236,7 +236,6 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     ActiveRecord::Base.record_timestamps = true
   end
 
-  # TODO: if not found by MCI Unique ID, should we try to look up by MCI ID?
   def find_and_update_hmis_client(waitlist)
     # client_id is the MCI Unique ID
     mci_scope = HmisExternalApis::ExternalId.
@@ -244,9 +243,23 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
       where(value: waitlist.client_id)
 
     client = Hmis::Hud::Client.joins(:ac_hmis_mci_unique_id).merge(mci_scope).first
-    return nil unless client
+    if client
+      log_info("Found client with MCI Unique ID #{waitlist.client_id}: #{client.id}")
+      return client
+    end
 
-    log_info("Found client with MCI Unique ID #{waitlist.client_id}: #{client.id}")
+    # If not found by MCI Unique ID, look up by MCI ID. This would be needed if the client exists in HMIS
+    # because they were referred from LINK, but they don't have an MCI Unique ID. When Link sends a referral
+    # "posting" for a new client, we generate a new Client record with an MCI ID. We don't create an MCI Unique ID at that time,
+    # and the MCI Unique ID won't get created until/unless the client has any enrollments. (Unenrolled clients
+    # are not exported in HMIS export, so Data Warehouse API won't provide MCI Unique IDs for those clients.)
+    found_mci_ids = HmisExternalApis::ExternalId.mci_ids.where(value: waitlist.client_mci_id)
+    return nil unless found_mci_ids.size == 1 # if multiple, can't be sure which one to update, don't use
+
+    client = found_mci_ids.first.source
+    return nil unless client.ac_hmis_mci_unique_id.nil? # if they already have an MCI Unique ID, don't use, something is off
+
+    log_info("Found client with MCI ID #{waitlist.client_mci_id}: #{client.id}")
     client
   end
 
