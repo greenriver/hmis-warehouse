@@ -904,14 +904,17 @@ module GrdaWarehouse::Tasks
 
     private def clean_coordinated_entry_records
       return unless @clients.any?
-      return if @dry_run
       return unless HmisEnforcement.hmis_enabled? && Hmis::Ce.configuration.enabled?
 
-      # Clean up ClientProxies, and CE Candidates via cascading destroy.
-      Hmis::Ce::ClientProxy.where(
-        client_id: @clients, # Manual join to handle polymorphic relationship
-        client_type: GrdaWarehouse::Hud::Client.sti_name,
-      ).destroy_all
+      # Delete associated ClientProxies and CE Candidates
+      client_proxies = Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: @clients)
+      ce_candidates = Hmis::Ce::Match::Candidate.where(client_proxy_id: client_proxies.select(:id))
+
+      log "Deleting CE Candidates for #{@clients.size} clients comprising #{ce_candidates.size} records"
+      ce_candidates.delete_all unless @dry_run
+
+      log "Deleting CE Client Proxies for #{@clients.size} clients comprising #{client_proxies.size} records"
+      client_proxies.delete_all unless @dry_run
     end
 
     private def add_destination_created_dates

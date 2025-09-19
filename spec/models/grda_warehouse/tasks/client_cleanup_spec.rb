@@ -1084,6 +1084,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     let(:dry_run) { false }
     let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new(dry_run: dry_run) }
     let!(:destination_client) { create(:grda_warehouse_hud_client) }
+    let!(:ce_client_proxy) { create(:hmis_ce_client_proxy, client: destination_client) }
+    let!(:ce_candidate) { create(:hmis_ce_match_candidate, client_proxy: ce_client_proxy) }
 
     before do
       allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
@@ -1092,16 +1094,32 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it 'destroys CE ClientProxies for destination clients when HMIS is enabled' do
-      Hmis::Ce::ClientProxy.create!(client: destination_client)
-
       expect do
         cleanup.send(:clean_coordinated_entry_records)
-      end.to change {
-        Hmis::Ce::ClientProxy.where(
-          client_id: destination_client.id,
-          client_type: GrdaWarehouse::Hud::Client.sti_name,
-        ).count
-      }.from(1).to(0)
+      end.to change(
+        Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
+      ).from(1).to(0)
+    end
+
+    it 'destroys CE Candidates for destination clients when HMIS is enabled' do
+      expect do
+        cleanup.send(:clean_coordinated_entry_records)
+      end.to change(
+        Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
+      ).from(1).to(0)
+    end
+
+    context 'when dry_run is true' do
+      let(:dry_run) { true }
+      it 'does not delete records' do
+        expect do
+          cleanup.send(:clean_coordinated_entry_records)
+        end.to not_change(
+          Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
+        ).from(1).and not_change(
+          Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
+        ).from(1)
+      end
     end
   end
 
