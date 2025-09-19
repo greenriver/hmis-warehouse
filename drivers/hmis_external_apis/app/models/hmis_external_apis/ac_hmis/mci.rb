@@ -184,7 +184,7 @@ module HmisExternalApis::AcHmis
     # Flexible route-building to support old approach (hard-coded MCI route, credential only contains base URL) and new approach (credential contains some of route).
     # The new approach was implemented to allow for changing the API endpoint without a code change.
     def build_route(endpoint)
-      base_url = creds.base_url
+      base_url = creds.base_url.chomp('/') + '/' # ensure trailing slash is present
       if base_url.match?(/\/api\//) # expectation is that if base_url contains /api/ then the endpoint is relative to the base url
         URI.join(base_url, endpoint).to_s
       else
