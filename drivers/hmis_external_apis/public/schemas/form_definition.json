@@ -426,6 +426,7 @@
             "ENABLED",
             "IN",
             "INCLUDES",
+            "EXCLUDES",
             "GREATER_THAN",
             "GREATER_THAN_EQUAL",
             "LESS_THAN",

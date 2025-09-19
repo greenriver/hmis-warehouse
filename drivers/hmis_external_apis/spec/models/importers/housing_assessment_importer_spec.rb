@@ -117,7 +117,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
       # Household composition translated
       expect(cde_value_for(cdes, 'housing_needs_household_composition')).to eq('Individual')
       # Bedroom sizes normalized (0 -> literal, 1 -> 1 Bed)
-      expect(cde_value_for(cdes, 'housing_needs_preferred_bedroom_size')).to match_array(['1 Bed', 'Households Without Children', 'SRO'])
+      expect(cde_value_for(cdes, 'housing_needs_preferred_bedroom_size')).to match_array(['1 Bed', 'Households without Children', 'SRO'])
 
       # Pair fields set for household and aggregate
       expect(cde_value_for(cdes, 'housing_needs_military_service')).to eq('Yes')
@@ -189,7 +189,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
       expect(waitlist.date_created).to be_a(DateTime)
       expect(waitlist.client_dob).to be_a(Date)
       expect(waitlist.household_type).to eq('Household with minors')
-      expect(waitlist.referred_bedroom_sizes).to match_array(['2 Bed', 'Households With Children', 'SRO'])
+      expect(waitlist.referred_bedroom_sizes).to match_array(['2 Bed', 'Households with Children', 'SRO'])
     end
   end
 

@@ -15,22 +15,22 @@
         .row
           .col-md-2.col-md-offset-4.col-sm-4
             .mt-3.slab__base-dates
-              = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}
-              = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
+              = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
+              = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
           .col-md-4.col-sm-4
             .slab__header
               Self-Sufficiency Assessment
             .row
               .col-md-6
 
-                = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker}}
+                = f.input :self_sufficiency_baseline_due_date, label: 'Baseline Due', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
 
-                = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker}}
+                = f.input :self_sufficiency_final_due_date, label: 'Baseline Completed', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
               .col-md-6
 
-                = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker}}
+                = f.input :self_sufficiency_baseline_completed_date, label: 'Final Due', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
 
-                = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker}}
+                = f.input :self_sufficiency_final_completed_date, label: 'Final Completed', as: :string, input_html: {data: {provide: :datepicker, controller: 'datepicker' }}
         .row
           .col-md-6.col-md-offset-4.col-sm-3
             .form-actions.text-right
