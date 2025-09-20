@@ -107,23 +107,44 @@ module MaYyaReport
           },
         },
         'D' => {
-          section_label: 'D. Demographics',
+          section_label: 'D. Prevention Demographics',
           subsections: {
             'D1' => {
               subsection_label: '1. Age and Gender',
-              cells: section_d1_cells,
+              cells: section_d1_e1_cells(section: 'D', clause: prevention_clause),
             },
             'D2' => {
               subsection_label: '2. Race, Ethnicity, and Language',
-              cells: section_d2_cells,
+              cells: section_d2_e2_cells(section: 'D', clause: prevention_clause),
             },
             'D3' => {
               subsection_label: '3. Disability',
-              cells: section_d3_cells,
+              cells: section_d3_e3_cells(section: 'D', clause: prevention_clause),
             },
             'D4' => {
               subsection_label: '4. Other',
-              cells: section_d4_cells,
+              cells: section_d4_e4_cells(section: 'D', clause: prevention_clause),
+            },
+          },
+        },
+        'E' => {
+          section_label: 'E. Homeless/rehousing Demographics',
+          subsections: {
+            'E1' => {
+              subsection_label: '1. Age and Gender',
+              cells: section_d1_e1_cells(section: 'E', clause: homeless_clause),
+            },
+            'E2' => {
+              subsection_label: '2. Race, Ethnicity, and Language',
+              cells: section_d2_e2_cells(section: 'E', clause: homeless_clause),
+            },
+            'E3' => {
+              subsection_label: '3. Disability',
+              cells: section_d3_e3_cells(section: 'E', clause: homeless_clause),
+            },
+            'E4' => {
+              subsection_label: '4. Other',
+              cells: section_d4_e4_cells(section: 'E', clause: homeless_clause),
             },
           },
         },
@@ -209,151 +230,201 @@ module MaYyaReport
     end
 
     private def section_a_total_cells
-      # TODO: we need to define these calculations more appropriately now that the above calculations are more complex
       {
         TotalYYAServedPrevention: {
-          calculation: a_t[:at_risk_of_homelessness].eq(true),
+          calculation: prevention_clause,
           label: 'Number of unduplicated YYA served (update each quarter)',
         },
         TotalYYAServedHomeless: {
-          calculation: a_t[:currently_homeless].eq(true),
+          # Currently homeless based on CLS or ongoing homeless enrollment
+          calculation: homeless_clause,
           label: 'Number of unduplicated YYA served (update each quarter)',
         },
       }
     end
 
-    private def section_d1_cells
+    private def prevention_clause
+      a_t[:at_risk_of_homelessness].eq(true)
+    end
+
+    private def homeless_clause
+      a_t[:currently_homeless].eq(true).
+        or(a_t[:homeless_enrollment_started_during_range].eq(true)). # A4a
+        or(a_t[:homeless_enrollment_started_prior_to_range].eq(true)) # A4b
+    end
+
+    private def section_d1_e1_cells(section:, clause:)
       {
-        D1a: {
-          calculation: a_t[:age].lt(18).and(a_t[:head_of_household].eq(true)),
+        "#{section}1a": {
+          calculation: a_t[:age].lt(18).and(clause),
           label: 'Number of YYA served who were Under 18',
         },
-        D1b: {
-          calculation: a_t[:gender].eq(1).and(a_t[:head_of_household].eq(true)),
+        "#{section}1b": {
+          calculation: a_t[:gender].eq(1).and(clause),
           label: 'Number of YYA served who identified as Man',
         },
-        D1c: {
-          calculation: a_t[:gender].eq(0).and(a_t[:head_of_household].eq(true)),
+        "#{section}1c": {
+          calculation: a_t[:gender].eq(0).and(clause),
           label: 'Number of YYA served who identified as Woman',
         },
-        D1d: {
-          calculation: a_t[:gender].eq(5).and(a_t[:head_of_household].eq(true)),
+        "#{section}1d": {
+          calculation: a_t[:gender].eq(5).and(clause),
           label: 'Number of YYA served who identified as Transgender',
         },
-        D1e: {
-          calculation: a_t[:gender].eq(4).and(a_t[:head_of_household].eq(true)),
+        "#{section}1e": {
+          calculation: a_t[:gender].eq(4).and(clause),
           label: 'Number of YYA served who identified as Non-Binary',
         },
-        D1f: {
-          calculation: a_t[:gender].in([8, 9]).and(a_t[:head_of_household].eq(true)),
+        "#{section}1f": {
+          calculation: a_t[:gender].in([8, 9]).and(clause),
           label: 'Number of YYA served who  are questioning gender/Client doesn\'t know/Client prefers not to answer.',
         },
-        D1g: {
-          calculation: a_t[:gender].eq(99).and(a_t[:head_of_household].eq(true)),
+        "#{section}1g": {
+          calculation: a_t[:gender].eq(99).and(clause),
           label: 'Number of YYA served with no Gender Data collected',
         },
       }
     end
 
-    private def section_d2_cells
+    private def section_d2_e2_cells(section:, clause:)
       {
-        D2a: {
-          calculation: a_t[:race].eq(5).and(a_t[:head_of_household].eq(true)),
+        "#{section}2a": {
+          calculation: a_t[:race].eq(5).and(clause),
           label: 'Number of YYA served who identified as White (race)',
         },
-        D2b: {
-          calculation: a_t[:race].eq(3).and(a_t[:head_of_household].eq(true)),
+        "#{section}2b": {
+          calculation: a_t[:race].eq(3).and(clause),
           label: 'Number of YYA served who identified as African American (race)',
         },
-        D2c: {
-          calculation: a_t[:race].eq(2).and(a_t[:head_of_household].eq(true)),
+        "#{section}2c": {
+          calculation: a_t[:race].eq(2).and(clause),
           label: 'Number of YYA served who identified as Asian (race)',
         },
-        D2d: {
-          calculation: a_t[:race].eq(1).and(a_t[:head_of_household].eq(true)),
+        "#{section}2d": {
+          calculation: a_t[:race].eq(1).and(clause),
           label: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
         },
-        D2e: {
-          calculation: a_t[:race].eq(4).and(a_t[:head_of_household].eq(true)),
+        "#{section}2e": {
+          calculation: a_t[:race].eq(4).and(clause),
           label: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
         },
-        D2f: {
-          calculation: a_t[:race].eq(7).and(a_t[:head_of_household].eq(true)),
+        "#{section}2f": {
+          calculation: a_t[:race].eq(7).and(clause),
           label: 'Number of YYA served who identified as Middle Eastern or North African',
         },
-        D2g: {
-          calculation: a_t[:ethnicity].eq(1).and(a_t[:head_of_household].eq(true)),
+        "#{section}2g": {
+          calculation: a_t[:ethnicity].eq(1).and(clause),
           label: 'Number of YYA served who identified as Hispanic/Latina/e/o',
         },
-        D2h: {
-          calculation: a_t[:race].eq(10).and(a_t[:head_of_household].eq(true)),
+        "#{section}2h": {
+          calculation: a_t[:race].eq(10).and(clause),
           label: 'Number of YYA served who identified as Other/Multi-racial (race)',
         },
-        D2i: {
-          calculation: a_t[:language].eq('English').and(a_t[:head_of_household].eq(true)),
+        "#{section}2i": {
+          calculation: a_t[:language].eq('English').and(clause),
           label: 'Number of YYA served whose primary language was English (language)',
         },
-        D2j: {
-          calculation: a_t[:language].eq('Spanish').and(a_t[:head_of_household].eq(true)),
+        "#{section}2j": {
+          calculation: a_t[:language].eq('Spanish').and(clause),
           label: 'Number of YYA served whose primary language was Spanish (language)',
         },
-        D2k: {
-          calculation: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))).and(a_t[:head_of_household].eq(true)),
+        "#{section}2k": {
+          calculation: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))).and(clause),
           label: 'Number of YYA served whose primary language was Other (language)',
         },
       }
     end
 
-    private def section_d3_cells
+    private def section_d3_e3_cells(section:, clause:)
       {
-        D3a: {
-          calculation: a_t[:mental_health_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
+        "#{section}3a": {
+          calculation: a_t[:mental_health_disorder].eq(true).and(clause),
           label: 'Number of YYA served who reported having a Mental Health Disorder',
         },
-        D3b: {
-          calculation: a_t[:substance_use_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
+        "#{section}3b": {
+          calculation: a_t[:substance_use_disorder].eq(true).and(clause),
           label: 'Number of YYA served who reported having a Substance Use Disorder',
         },
-        D3c: {
-          calculation: a_t[:physical_disability].eq(true).and(a_t[:head_of_household].eq(true)),
+        "#{section}3c": {
+          calculation: a_t[:physical_disability].eq(true).and(clause),
           label: 'Number of YYA served who reported having a Medical/Physical Disability (disability)',
         },
-        D3d: {
-          calculation: a_t[:developmental_disability].eq(true).and(a_t[:head_of_household].eq(true)),
+        "#{section}3d": {
+          calculation: a_t[:developmental_disability].eq(true).and(clause),
           label: 'Number of YYA served who reported having a Developmental Disability (disability)',
         },
       }
     end
 
-    private def section_d4_cells
+    private def section_d4_e4_cells(section:, clause:)
       {
-        D4a: {
-          calculation: a_t[:pregnant].eq(1).and(a_t[:due_date].gt(filter.start)).or(Arel.sql(custodial_parent_query)).and(a_t[:head_of_household].eq(true)),
+        "#{section}4a": {
+          calculation: a_t[:pregnant].eq(1).
+            and(a_t[:due_date].gt(filter.start)).
+            or(Arel.sql(custodial_parent_query)).
+            and(clause),
           label: 'Number of YYA served who were Pregnant or Custodial Parenting',
         },
-        D4b: {
-          calculation: lgbtq_query.and(a_t[:head_of_household].eq(true)),
+        "#{section}4b": {
+          calculation: lgbtq_query.
+            and(clause),
           label: 'Number of YYA served who were LGBTQ+',
         },
-        D4c: {
-          calculation: a_t[:education_status_date].lteq(filter.end).and(a_t[:current_school_attendance].eq(0)).and(a_t[:most_recent_education_status].in([0, 1])).and(a_t[:head_of_household].eq(true)),
+        "#{section}4c": {
+          calculation: a_t[:education_status_date].lteq(filter.end).
+            and(a_t[:current_school_attendance].eq(0)).
+            and(a_t[:most_recent_education_status].in([0, 1])).
+            and(clause),
           label: 'Number of YYA served who had Completed high school or GED/HiSET',
         },
-        D4d: {
-          calculation: a_t[:education_status_date].lteq(filter.end).and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2])).and(a_t[:head_of_household].eq(true)),
+        "#{section}4d": {
+          calculation: a_t[:education_status_date].lteq(filter.end).
+            and(a_t[:current_school_attendance].in([1, 2])).
+            and(a_t[:current_educational_status].in([1, 2])).
+            and(clause),
           label: 'Number of YYA served who were enrolled (full or part time) in a 2 or 4 year college',
         },
-        D4e: {
-          calculation: a_t[:education_status_date].lteq(filter.end).and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].eq(4)).and(a_t[:head_of_household].eq(true)),
+        "#{section}4e": {
+          calculation: a_t[:education_status_date].lteq(filter.end).
+            and(a_t[:current_school_attendance].in([1, 2])).
+            and(a_t[:current_educational_status].eq(4)).
+            and(clause),
           label: 'Number of YYA served who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program)',
         },
-        D4f: {
-          calculation: a_t[:health_insurance].eq(true).and(a_t[:head_of_household].eq(true)),
+        "#{section}4f": {
+          calculation: a_t[:health_insurance].eq(true).
+            and(clause),
           label: 'Number of YYA served who had Health insurance at intake',
         },
-        D4g: {
-          calculation: a_t[:employed].eq(true).and(a_t[:head_of_household].eq(true)),
+        "#{section}4g": {
+          calculation: a_t[:employed].eq(true).
+            and(clause),
           label: 'Number of YYA served who are working a full or part time time job (Employment Status)',
+        },
+        "#{section}4h": {
+          calculation: a_t[:former_foster_ward].eq(true).
+            and(clause),
+          label: 'Number of YYA served who were Formerly a Ward of Child Welfare/Foster Care Agency',
+        },
+        "#{section}4i": {
+          calculation: a_t[:former_juvenile_justice_ward].eq(true).
+            and(clause),
+          label: 'Number of YYA served who are currently in voluntary services with DCF',
+        },
+        "#{section}4j": {
+          calculation: a_t[:voluntary_dcf_service].eq(true).
+            and(clause),
+          label: 'Number of YYA served who were Formerly a Ward of Juvenile Justice System',
+        },
+        "#{section}4k": {
+          calculation: a_t[:voluntary_dys_yes_service].eq(true).
+            and(clause),
+          label: 'Number of YYA served who are currently in voluntary services with DYS/YES program',
+        },
+        "#{section}4l": {
+          calculation: a_t[:exchange_for_sex].eq(true).
+            and(clause),
+          label: 'Number of YYA who have ever received anything in exchange for sex (ESN/Commercial Sexual Exploitation/Sex Trafficking)',
         },
       }
     end
@@ -484,8 +555,8 @@ module MaYyaReport
     private def lgbtq_query
       # Report defines LGBTQ as:
       #   SexualOrientation = gay(2), lesbian(3), bisexual(4), questioning(5), OR
-      #   Gender = transgender(5)
-      a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].eq(5))
+      #   Gender = transgender(5), questioning(6)
+      a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].in([5, 6]))
     end
 
     # More than one person in the household,

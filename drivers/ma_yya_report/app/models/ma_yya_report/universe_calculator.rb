@@ -36,7 +36,9 @@ module MaYyaReport
           enrollment = ongoing_enrollments.last
           next if enrollment.blank? || enrollment.enrollment.blank?
 
-          age = enrollment.client.age_on([filter.start_date, enrollment.first_date_in_program].max)
+          # Spec indicates we should use age at report start, which differs from standard HUD reports
+          # age = enrollment.client.age_on([filter.start_date, enrollment.first_date_in_program].max)
+          age = enrollment.client.age_on(ilter.start_date)
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           employment_status = enrollment.enrollment.employment_educations.max_by(&:InformationDate)
