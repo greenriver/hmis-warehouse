@@ -31,8 +31,9 @@ module MaYyaReport
         batch.each do |client|
           client_id = client.id
           # For enrollment specific calculations we'll use the most recent enrollment
-          # that overlaps the reporting period and universe
-          enrollment = enrollments_by_client_id[client_id].last
+          # that overlaps the reporting period and universe, as calculated by entry date and id
+          ongoing_enrollments = enrollments_by_client_id[client_id]
+          enrollment = ongoing_enrollments.last
           next if enrollment.blank? || enrollment.enrollment.blank?
 
           age = enrollment.client.age_on([filter.start_date, enrollment.first_date_in_program].max)
@@ -40,6 +41,25 @@ module MaYyaReport
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           employment_status = enrollment.enrollment.employment_educations.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
+          enrolled_in_street_outreach = ongoing_enrollments.any? { |en| en.enrollment.project.project_type == 4 }
+          all_cls_in_range = ongoing_enrollments.flat_map do |en|
+            en.current_living_situations.select do |cls|
+              cls.InformationDate.between?(filter.start_date, filter.end_date)
+            end
+          end.sort_by(&:InformationDate)
+
+          homeless_cls_in_range = all_cls_in_range.select { |cls| homeless_cls?(cls) }
+          non_homeless_cls_in_range = all_cls_in_range.reject { |cls| homeless_cls?(cls) }
+
+          homeless_enrollment_started_during_range = ongoing_enrollments.any? do |en|
+            en.project_type.in?(HudUtility2026.homeless_project_types) &&
+            en.first_date_in_program.between?(filter.start_date, filter.end_date)
+          end
+
+          homeless_enrollment_started_prior_to_range = ongoing_enrollments.any? do |en|
+            en.project_type.in?(HudUtility2026.homeless_project_types) &&
+            en.first_date_in_program < filter.start_date
+          end
 
           clients[client] = ::MaYyaReport::Client.new(
             client_id: client_id,
@@ -47,6 +67,10 @@ module MaYyaReport
             entry_date: enrollment.first_date_in_program,
             referral_source: enrollment.enrollment.ReferralSource,
             currently_homeless: currently_homeless?(enrollment_cls), # on entry date
+            earliest_homeless_cls_in_range: homeless_cls_in_range.first,
+            latest_homeless_cls_in_range: homeless_cls_in_range.last,
+            earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first,
+            latest_non_homeless_cls_in_range: non_homeless_cls_in_range.last,
             at_risk_of_homelessness: at_risk_of_homelessness?(enrollment_cls),
             initial_contact: initial_contact(enrollments_by_client_id[client_id]),
             direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]),
@@ -81,6 +105,9 @@ module MaYyaReport
             exchange_for_sex: enrollment.enrollment.exit&.ExchangeForSex == 1,
             permanent_exit_date: permanent_exit_date(client_id),
             days_to_return: days_to_return(client_id),
+            enrolled_in_street_outreach: enrolled_in_street_outreach,
+            homeless_enrollment_started_during_range: homeless_enrollment_started_during_range,
+            homeless_enrollment_started_prior_to_range: homeless_enrollment_started_prior_to_range,
           )
         end
       end
@@ -96,7 +123,7 @@ module MaYyaReport
     private def clients_with_enrollments(batch)
       enrollment_scope_with_preloads.
         where(client_id: batch.map(&:id)).
-        order(first_date_in_program: :asc).
+        order(first_date_in_program: :asc, id: :asc).
         group_by(&:client_id)
     end
 
@@ -266,12 +293,17 @@ module MaYyaReport
           end
       end
     end
+
+    private def homeless_cls?(cls)
+      cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
+    end
+
     private def currently_homeless?(cls)
-      cls.present? && cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
+      cls.present? && homeless_cls?(cls)
     end
 
     private def at_risk_of_homelessness?(cls)
-      cls.present? && ! cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
+      cls.present? && ! homeless_cls?(cls)
     end
 
     private def initial_contact(enrollments)
@@ -318,7 +350,7 @@ module MaYyaReport
     end
 
     private def race_code
-      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert.stringify_keys
+      HudUtility2026.race_id_to_field_name.excluding(8, 9, 99).invert.stringify_keys
     end
 
     private def ethnicity(client)

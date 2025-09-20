@@ -159,7 +159,7 @@ module MaYyaReport
     private def section_a1_cells
       {
         A1a: {
-          calculation: a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true)),
+          calculation: a_t[:enrolled_in_street_outreach].eq(true).or(a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true))),
           label: 'Unduplicated number of outreach contacts with YYA experiencing homelessness',
         },
         A1b: {
@@ -189,7 +189,7 @@ module MaYyaReport
           label: 'Number of YYA completing new intake: YYA considered "at-risk" of homelessness',
         },
         A3b: {
-          calculation: a_t[:entry_date].lt(filter.start).and(a_t[:at_risk_of_homelessness].eq(true)),
+          calculation: a_t[:entry_date].lt(filter.start).and(a_t[:latest_non_homeless_cls_in_range].gt(a_t[:entry_date])),
           label: 'Number of YYA continuing in case management',
         },
       }
@@ -198,17 +198,18 @@ module MaYyaReport
     private def section_a4_cells
       {
         A4a: {
-          calculation: a_t[:entry_date].gteq(filter.start).and(a_t[:currently_homeless].eq(true)),
+          calculation: a_t[:entry_date].gteq(filter.start).and(a_t[:currently_homeless].eq(true)).or(a_t[:homeless_enrollment_started_during_range].eq(true)),
           label: 'Number of YYA completing new intake: YYA experiencing homelessness',
         },
         A4b: {
-          calculation: a_t[:entry_date].lt(filter.start).and(a_t[:currently_homeless].eq(true)),
+          calculation: a_t[:entry_date].lt(filter.start).and(a_t[:currently_homeless].eq(true)).or(a_t[:homeless_enrollment_started_prior_to_range].eq(true)),
           label: 'Number of YYA continuing in case management',
         },
       }
     end
 
     private def section_a_total_cells
+      # TODO: we need to define these calculations more appropriately now that the above calculations are more complex
       {
         TotalYYAServedPrevention: {
           calculation: a_t[:at_risk_of_homelessness].eq(true),
