@@ -23,7 +23,7 @@ module Types
     end
 
     def client_id
-      client&.id
+      client.id
     end
 
     def client_name
