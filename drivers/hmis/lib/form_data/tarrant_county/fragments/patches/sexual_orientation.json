@@ -6,6 +6,7 @@
         "type": "CHOICE",
         "link_id": "sexual_orientation",
         "text": "Sexual Orientation",
+        "warn_if_empty": false,
         "mapping": {
           "record_type": "CLIENT",
           "custom_field_key": "sexual_orientation"

@@ -7,6 +7,42 @@
 ###
 
 module HmisUtil
+  # Purpose
+  #   Source of truth for HUD 2026 assessment requirements. Encodes, per link ID:
+  #   - Which assessment stages collect the element (INTAKE, UPDATE, ANNUAL, EXIT, POST_EXIT)
+  #   - Who the element is collected about (ALL_CLIENTS, HOH, HOH_AND_ADULTS)
+  #   - The project-based rule that determines whether the element is shown (by funders/components, project type, etc.)
+  #
+  # How it is used
+  #   - During form seeding/loading, `Hmis::Form::Definition#set_hud_requirements` reads from this class to:
+  #     - Write the HUD rule onto each item (item['rule'])
+  #     - Set or relax item['data_collected_about'] to the HUD-required value
+  #   - At runtime, `Hmis::Form::DefinitionItemFilter` evaluates the stored item['rule'] against a project
+  #     to show/hide items for a specific assessment instance.
+  #   - Validation: `Hmis::Form::DefinitionValidator#check_hud_requirements` uses `required_link_ids_for_role`
+  #     to assert required link IDs are present for each assessment role.
+  #
+  # Public API
+  #   - hud_data_element?(form_role, link_id) -> Boolean
+  #   - hud_data_element_rule(form_role, link_id) -> Hash|nil
+  #   - hud_data_element_data_collected_about(form_role, link_id) -> String|nil
+  #   - required_link_ids_for_role(role) -> Set<String>
+  #
+  # Rule format and variables
+  #   - Rules are Hashes with 'operator' and optional 'parts' or (variable, operator, value)
+  #   - Supported variables are evaluated by `DefinitionItemFilter`:
+  #       'projectType' (Integer), 'projectFunders' (Array<Integer>),
+  #       'projectFunderComponents' (Array<String>), 'projectOtherFunders' (Array<String>)
+  #
+  # Maintenance
+  #   - Keys in HUD_LINK_ID_RULES must match Link IDs in the default HUD assessment JSON.
+  #   - Update when HUD changes required elements or collection logic.
+  #   - Keep variables/operators in sync with `Hmis::Form::DefinitionItemFilter`.
+  #
+  # Developer workflow (important)
+  #   - After changing these rules, reseed form definitions:
+  #       rails driver:hmis:seed_definitions
+  #   - Then restart your local Rails server to ensure the updated rules are loaded. ⚠️
   class HudAssessmentFormRules2026
     # Keys match Link IDs in our default HUD Assessments.
 
@@ -140,6 +176,8 @@ module HmisUtil
       # 3.08 disabling condition
       disability: { stages: ['INTAKE'], data_collected_about: 'ALL_CLIENTS', rule: nil },
       # 4.08 hiv aids (note: requiring at annual even though HUD doesn't because of hopwa_disability questions)
+      #
+      # Similar to `disability_table` but this HIV/AIDS-specific element applies to narrower set projects than the general table
       disability_table_r4: { stages: ['INTAKE', 'UPDATE', 'EXIT', 'ANNUAL'],
                              data_collected_about: 'ALL_CLIENTS',
                              rule: { 'operator' => 'ANY',
@@ -189,10 +227,7 @@ module HmisUtil
               { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
               { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
             ] },
-          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
-            'variable' => 'projectFunders',
-            'operator' => 'INCLUDE',
-            'value' => 20 },
+
           { 'operator' => 'ALL',
             '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
             'parts' =>
@@ -207,15 +242,12 @@ module HmisUtil
                   { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
                 ] },
             ] },
-          { '_comment' => 'VA: GPD – Collection required for all components',
-            'variable' => 'projectFunderComponents',
-            'operator' => 'INCLUDE',
-            'value' => 'VA: GPD' },
-          { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
-          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+
           { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       # disability table (note: requiring at annual even though HUD doesn't because of hopwa_disability questions)
+      #
+      # Note, see also `disability_table_4` which is the  HIV/AIDS-specific element
       disability_table: { stages: ['INTAKE', 'UPDATE', 'EXIT', 'ANNUAL'],
                           data_collected_about: 'ALL_CLIENTS',
                           rule: { 'operator' => 'ANY',
@@ -265,10 +297,7 @@ module HmisUtil
               { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
               { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
             ] },
-          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
-            'variable' => 'projectFunderComponents',
-            'operator' => 'INCLUDE',
-            'value' => 'HUD: HUD-VASH' },
+
           { 'operator' => 'ALL',
             '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
             'parts' =>
@@ -291,15 +320,7 @@ module HmisUtil
             'variable' => 'projectFunderComponents',
             'operator' => 'INCLUDE',
             'value' => 'HHS: RHY' },
-          { '_comment' => 'VA: GPD – Collection required for all components',
-            'variable' => 'projectFunderComponents',
-            'operator' => 'INCLUDE',
-            'value' => 'VA: GPD' },
-          { '_comment' => 'VA: Community Contract Safe Haven',
-            'variable' => 'projectFunderComponents',
-            'operator' => 'INCLUDE',
-            'value' => 'VA: Community Contract Safe Haven' },
-          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+
           { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
         ] } },
       # enrollment coc
