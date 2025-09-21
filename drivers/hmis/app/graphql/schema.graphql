@@ -1234,6 +1234,7 @@ type CeReferralSourceEnrollmentsPaginated {
 
 type CeReferralSourceHouseholdMember {
   access: CeReferralSourceHouseholdMemberAccess!
+  clientId: ID!
 
   """
   The name of the client. Returns masked name if the user does not have permission to view the client name.
