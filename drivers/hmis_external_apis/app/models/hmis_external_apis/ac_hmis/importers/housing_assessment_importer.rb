@@ -198,7 +198,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def create_ce_enrollment(waitlist)
-    hmis_client = find_and_update_hmis_client(waitlist) || create_hmis_client(waitlist)
+    hmis_client = find_hmis_client(waitlist) || create_hmis_client(waitlist)
     deterministic_id = waitlist.hud_id
 
     # remove existing enrollment if it exists
@@ -236,7 +236,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     ActiveRecord::Base.record_timestamps = true
   end
 
-  def find_and_update_hmis_client(waitlist)
+  def find_hmis_client(waitlist)
     # client_id is the MCI Unique ID
     mci_scope = HmisExternalApis::ExternalId.
       where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE).
@@ -253,7 +253,7 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
     # "posting" for a new client, we generate a new Client record with an MCI ID. We don't create an MCI Unique ID at that time,
     # and the MCI Unique ID won't get created until/unless the client has any enrollments. (Unenrolled clients
     # are not exported in HMIS export, so Data Warehouse API won't provide MCI Unique IDs for those clients.)
-    found_mci_ids = HmisExternalApis::ExternalId.mci_ids.where(value: waitlist.client_mci_id)
+    found_mci_ids = HmisExternalApis::ExternalId.mci_ids.where(value: waitlist.client_mci_id).to_a
     return nil unless found_mci_ids.size == 1 # if multiple, can't be sure which one to update, don't use
 
     client = found_mci_ids.first.source
