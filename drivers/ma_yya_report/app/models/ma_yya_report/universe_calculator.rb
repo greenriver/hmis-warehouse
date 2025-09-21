@@ -103,6 +103,7 @@ module MaYyaReport
             initial_contact: initial_contact?(all_enrollments),
 
             first_prevention_date: first_prevention_date(all_enrollments),
+            first_prevention_date_in_last_year: first_prevention_date(all_enrollments.select { |en| en.first_date_in_program.between?(filter.start_date - 1.year, filter.start_date) }),
             latest_homeless_entry_date: latest_homeless_entry_date(all_enrollments),
 
             # new_intake_in_range: new_intake_in_range?(ongoing_enrollments),

@@ -467,19 +467,35 @@ module MaYyaReport
               or(a_t[:latest_homeless_cls].lt(a_t[:first_prevention_date]))),
           label: 'Number of YYA who remain housed 2 years after receiving prevention services',
         },
-        # TODO: F1d, F1e
+        F1d: {
+          calculation: a_t[:first_prevention_date_in_last_year].lteq(filter.start).
+            and(a_t[:latest_homeless_entry_date].eq(nil).
+              or(a_t[:latest_homeless_entry_date].lt(a_t[:first_prevention_date_in_last_year]))).
+            and(a_t[:latest_homeless_cls].eq(nil).
+              or(a_t[:latest_homeless_cls].lt(a_t[:first_prevention_date_in_last_year]))),
+          label: 'Number of YYA who received prevention services in the last year',
+        },
+        F1e: {
+          calculation: a_t[:first_prevention_date_in_last_year].lteq(filter.start).
+            and(a_t[:latest_homeless_entry_date].eq(nil).
+              or(a_t[:latest_homeless_entry_date].lt(a_t[:first_prevention_date_in_last_year]))).
+            and(a_t[:latest_homeless_cls].eq(nil).
+              or(a_t[:latest_homeless_cls].lt(a_t[:first_prevention_date_in_last_year]))),
+          label: 'Number of YYA who remain housed 1 year after receiving prevention services',
+        },
       }
     end
 
     private def section_f2_cells
       {
         F2a: {
-          calculation: g_population,
-          label: 'The number of  YYA who transition into stabilized housing',
+          calculation: homeless_clause.
+            and(a_t[:latest_homeless_entry_date].lt(a_t[:permanent_exit_date])),
+          label: 'The number of  YYA who transition into stabilized housing during reporting period',
         },
         F2b: {
-          calculation: g_population.and(a_t[:days_to_return].lteq(730)),
-          label: 'Returned to homeless (within 2 years of being housed)',
+          calculation: '', # TODO
+          label: 'Number of YYA served who exited to a permanent housing situation in the past 2 years',
         },
       }
     end
