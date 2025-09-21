@@ -15,5 +15,7 @@ class AddEnrolledInSo < ActiveRecord::Migration[7.1]
     add_column :ma_yya_report_clients, :latest_non_homeless_cls_in_range, :date
     add_column :ma_yya_report_clients, :homeless_enrollment_started_during_range, :boolean, null: false, default: false
     add_column :ma_yya_report_clients, :homeless_enrollment_started_prior_to_range, :boolean, null: false, default: false
+    add_column :ma_yya_report_clients, :new_intake_in_range, :boolean, null: false, default: false
+    add_column :ma_yya_report_clients, :continuing_in_case_management, :boolean, null: false, default: false
   end
 end

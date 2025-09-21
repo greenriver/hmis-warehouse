@@ -1,4 +1,4 @@
--- \restrict 1Us54o1RKHncE7I0gYnRui2yRViWUiEdOuCkVlQbcfdJbxqfJcwuz237H0K3VGp
+-- \restrict 1foA9c8vdB03CfLsAIQJ6ZhOHysfXiDxSnkTRbCzhG9HmlBi3Hyp3qX9rATFUdU
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -27563,7 +27563,16 @@ CREATE TABLE public.ma_yya_report_clients (
     voluntary_dys_yes_service boolean DEFAULT false,
     exchange_for_sex boolean DEFAULT false,
     permanent_exit_date date,
-    days_to_return integer
+    days_to_return integer,
+    enrolled_in_street_outreach boolean DEFAULT false NOT NULL,
+    earliest_homeless_cls_in_range date,
+    latest_homeless_cls_in_range date,
+    earliest_non_homeless_cls_in_range date,
+    latest_non_homeless_cls_in_range date,
+    homeless_enrollment_started_during_range boolean DEFAULT false NOT NULL,
+    homeless_enrollment_started_prior_to_range boolean DEFAULT false NOT NULL,
+    new_intake_in_range boolean DEFAULT false NOT NULL,
+    continuing_in_case_management boolean DEFAULT false NOT NULL
 );
 
 
@@ -75579,11 +75588,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict 1Us54o1RKHncE7I0gYnRui2yRViWUiEdOuCkVlQbcfdJbxqfJcwuz237H0K3VGp
+-- \unrestrict 1foA9c8vdB03CfLsAIQJ6ZhOHysfXiDxSnkTRbCzhG9HmlBi3Hyp3qX9rATFUdU
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250920182921'),
 ('20250904184751'),
 ('20250904183709'),
 ('20250904181252'),

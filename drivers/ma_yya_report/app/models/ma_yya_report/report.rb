@@ -151,6 +151,10 @@ module MaYyaReport
         'F' => {
           section_label: 'F. Outcomes',
           subsections: {
+            'F1' => {
+              subsection_label: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)',
+              cells: section_f1_cells,
+            },
             'F2' => {
               subsection_label: '2. Rehousing Outcomes',
               cells: section_f2_cells,
@@ -429,6 +433,18 @@ module MaYyaReport
       }
     end
 
+    private def section_f1_cells
+      {
+        F1a: {
+          calculation: prevention_clause,
+          label: 'The number of  YYA who transition into stabilized housing',
+        },
+        F1b: {
+          calculation: g_population.and(a_t[:days_to_return].lteq(730)),
+          label: 'Returned to homeless (within 2 years of being housed)',
+        },
+      }
+    end
     private def section_f2_cells
       {
         F2a: {

@@ -6,6 +6,30 @@
 
 # frozen_string_literal: true
 
+# Definitions:
+# YYA experiencing homelessness:
+# Youth with an ongoing enrollment in ES, SH, SO, or TH during the report period
+# OR
+# who had a homeless CurrentLivingSituation at entry (116, 101, 118, 302, 336, or 335)
+#
+# YYA considered “at-risk” of homelessness:
+# Youth with an ongoing enrollment with a non-homeless CurrentLivingSituation at entry (not: 116, 101, 118, 302, 336, or 335)
+# AND are not included in the YYA experiencing homelessness definition
+#
+# YYA in Street Outreach / Collaborations
+# Youth with an ongoing enrollment in SO during the report period
+# OR
+# who received a referral to an ongoing project with a ReferralSource of Outreach Project (7)
+#
+# Initial contact:
+# Youth who had an entry into a project in the universe, who did not have another entry into a project in the universe within the 24 months prior to the report start date
+#
+# YYA completing new intake:
+# Youth with an enrollment in the universe that started during the reporting period
+#
+# YYA continuing in case management:
+# Youth with an ongoing enrollment, but no enrollment starting in the universe during the reporting period
+
 require 'memery'
 module MaYyaReport
   class UniverseCalculator
@@ -30,20 +54,20 @@ module MaYyaReport
       {}.tap do |clients|
         batch.each do |client|
           client_id = client.id
-          # For enrollment specific calculations we'll use the most recent enrollment
-          # that overlaps the reporting period and universe, as calculated by entry date and id
-          ongoing_enrollments = enrollments_by_client_id[client_id]
+          all_enrollments = enrollments_by_client_id[client_id]
+          ongoing_enrollments = all_enrollments.select { |en| enrollment_overlaps_range?(en) }
+
           enrollment = ongoing_enrollments.last
           next if enrollment.blank? || enrollment.enrollment.blank?
 
           # Spec indicates we should use age at report start, which differs from standard HUD reports
           # age = enrollment.client.age_on([filter.start_date, enrollment.first_date_in_program].max)
           age = enrollment.client.age_on(ilter.start_date)
-          enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
+          # enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           employment_status = enrollment.enrollment.employment_educations.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
-          enrolled_in_street_outreach = ongoing_enrollments.any? { |en| en.enrollment.project.project_type == 4 }
+
           all_cls_in_range = ongoing_enrollments.flat_map do |en|
             en.current_living_situations.select do |cls|
               cls.InformationDate.between?(filter.start_date, filter.end_date)
@@ -68,13 +92,20 @@ module MaYyaReport
             service_history_enrollment_id: enrollment.id,
             entry_date: enrollment.first_date_in_program,
             referral_source: enrollment.enrollment.ReferralSource,
-            currently_homeless: currently_homeless?(enrollment_cls), # on entry date
+            currently_homeless: currently_homeless?(ongoing_enrollments), # represents YYA experiencing homelessness
+            at_risk_of_homelessness: at_risk_of_homelessness?(ongoing_enrollments), # represents YYA considered "at-risk" of homelessness
+
+            enrolled_in_street_outreach: enrolled_in_street_outreach?(ongoing_enrollments),
+            initial_contact: initial_contact?(all_enrollments),
+
+            new_intake_in_range: new_intake_in_range?(ongoing_enrollments),
+            continuing_in_case_management: continuing_in_case_management?(ongoing_enrollments),
+
             earliest_homeless_cls_in_range: homeless_cls_in_range.first,
             latest_homeless_cls_in_range: homeless_cls_in_range.last,
             earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first,
             latest_non_homeless_cls_in_range: non_homeless_cls_in_range.last,
-            at_risk_of_homelessness: at_risk_of_homelessness?(enrollment_cls),
-            initial_contact: initial_contact(enrollments_by_client_id[client_id]),
+
             direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]),
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
@@ -107,7 +138,7 @@ module MaYyaReport
             exchange_for_sex: enrollment.enrollment.exit&.ExchangeForSex == 1,
             permanent_exit_date: permanent_exit_date(client_id),
             days_to_return: days_to_return(client_id),
-            enrolled_in_street_outreach: enrolled_in_street_outreach,
+
             homeless_enrollment_started_during_range: homeless_enrollment_started_during_range,
             homeless_enrollment_started_prior_to_range: homeless_enrollment_started_prior_to_range,
           )
@@ -115,6 +146,7 @@ module MaYyaReport
       end
     end
 
+    # Any client with an enrollment that overlaps the universe
     private def client_scope
       ::GrdaWarehouse::Hud::Client.
         distinct.
@@ -122,6 +154,7 @@ module MaYyaReport
         merge(enrollment_scope)
     end
 
+    # Enrollments by client_id without regard to date range
     private def clients_with_enrollments(batch)
       enrollment_scope_with_preloads.
         where(client_id: batch.map(&:id)).
@@ -135,6 +168,7 @@ module MaYyaReport
         open_between(start_date: filter.start_date, end_date: filter.end_date)
     end
 
+    # Any enrollment that overlaps with the universe without regard to date range
     private def enrollment_scope_without_date_range
       scope = ::GrdaWarehouse::ServiceHistoryEnrollment.
         entry
@@ -142,7 +176,7 @@ module MaYyaReport
     end
 
     private def enrollment_scope_with_preloads
-      enrollment_scope.
+      enrollment_scope_without_date_range.
         preload(
           client: [:custom_client_addresses],
           enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry, custom_services: [:custom_data_elements]],
@@ -300,18 +334,73 @@ module MaYyaReport
       cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
     end
 
-    private def currently_homeless?(cls)
-      cls.present? && homeless_cls?(cls)
+    # YYA experiencing homelessness:
+    # Youth with an ongoing enrollment in ES, SH, SO, or TH during the report period
+    # OR
+    # who had a homeless CurrentLivingSituation at entry (116, 101, 118, 302, 336, or 335)
+    private def currently_homeless?(enrollments)
+      enrollments.any? { |en| homeless_enrollment?(en) } ||
+      enrollments.any? { |en| homeless_cls?(cls_at_entry(en)) }
     end
 
-    private def at_risk_of_homelessness?(cls)
-      cls.present? && ! homeless_cls?(cls)
+    # YYA considered “at-risk” of homelessness:
+    # Youth with an ongoing enrollment with a non-homeless CurrentLivingSituation at entry (not: 116, 101, 118, 302, 336, or 335)
+    # AND are not included in the YYA experiencing homelessness definition
+    private def at_risk_of_homelessness?(enrollments)
+      return false if currently_homeless?(enrollments)
+
+      enrollments.any? { |en| cls_at_entry(en).present? && ! homeless_cls?(cls_at_entry(en)) }
     end
 
-    private def initial_contact(enrollments)
-      enrollment = enrollments.last
-      enrollment.enrollment.ReferralSource.in?([1, 2, 11, 18, 28, 30, 34, 45, 37, 38, 39]) &&
-        enrollments[0...-1].detect { |en| en.first_date_in_program >= filter.start_date - 24.months }.blank?
+    # YYA in Street Outreach / Collaborations
+    # Youth with an ongoing enrollment in SO during the report period
+    # OR
+    # who received a referral to an ongoing project with a ReferralSource of Outreach Project (7)
+    private def enrolled_in_street_outreach?(enrollments)
+      enrollments.any? { |en| en.enrollment.project.project_type == 4 } ||
+      enrollments.any? { |en| en.enrollment.ReferralSource == 7 }
+    end
+
+    # Enrollment overlaps reporting period
+    private def enrollment_overlaps_range?(enrollment)
+      enrollment.first_date_in_program < filter.end_date &&
+      enrollment.last_date_in_program.blank? ||
+      enrollment.last_date_in_program > filter.start_date
+    end
+
+    private def enrollment_started_during_range?(enrollment)
+      enrollment.first_date_in_program.between?(filter.start_date, filter.end_date)
+    end
+
+    private def homeless_enrollment?(enrollment)
+      enrollment.project_type.in?(HudUtility2026.homeless_project_types)
+    end
+
+    private def cls_at_entry(enrollment)
+      enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
+    end
+
+    # Initial contact:
+    # Youth who had an entry into a project in the universe, who did not have another entry into a project in the universe within the 24 months prior to the report start date
+    private def initial_contact?(enrollments)
+      entry_during_range = enrollments.any? { |en| enrollment_started_during_range?(en) }
+      no_entry_prior_to_range = enrollments.none? { |en| en.first_date_in_program.between?(filter.start_date - 24.months, filter.start_date) }
+
+      entry_during_range && no_entry_prior_to_range
+    end
+
+    # YYA completing new intake:
+    # Youth with an enrollment in the universe that started during the reporting period
+    private def new_intake_in_range?(enrollments)
+      enrollments.any? { |en| enrollment_started_during_range?(en) }
+    end
+
+    # YYA continuing in case management:
+    # Youth with an ongoing enrollment, but no enrollment starting in the universe during the reporting period
+    private def continuing_in_case_management?(enrollments)
+      return false if enrollments.empty?
+
+      enrollments.none? { |en| enrollment_started_during_range?(en) }
     end
 
     # True if client was referred to flex funds OR if they received flex funds
