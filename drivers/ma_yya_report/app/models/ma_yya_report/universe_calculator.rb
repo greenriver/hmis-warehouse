@@ -29,6 +29,8 @@
 #
 # YYA continuing in case management:
 # Youth with an ongoing enrollment, but no enrollment starting in the universe during the reporting period
+#
+# For data that looks at a single enrollment (ReferralSource, CurrentLivingSituation, Disability information, education, etc.), we use the most-recently started enrollment that overlaps the reporting period based on the first_date_in_program, and id.
 
 require 'memery'
 module MaYyaReport
@@ -77,6 +79,8 @@ module MaYyaReport
           homeless_cls_in_range = all_cls_in_range.select { |cls| homeless_cls?(cls) }
           non_homeless_cls_in_range = all_cls_in_range.reject { |cls| homeless_cls?(cls) }
 
+          latest_homeless_cls = all_cls_in_range.select { |cls| homeless_cls?(cls) }.max_by(&:InformationDate)
+
           homeless_enrollment_started_during_range = ongoing_enrollments.any? do |en|
             en.project_type.in?(HudUtility2026.homeless_project_types) &&
             en.first_date_in_program.between?(filter.start_date, filter.end_date)
@@ -98,13 +102,18 @@ module MaYyaReport
             enrolled_in_street_outreach: enrolled_in_street_outreach?(ongoing_enrollments),
             initial_contact: initial_contact?(all_enrollments),
 
-            new_intake_in_range: new_intake_in_range?(ongoing_enrollments),
-            continuing_in_case_management: continuing_in_case_management?(ongoing_enrollments),
+            first_prevention_date: first_prevention_date(all_enrollments),
+            latest_homeless_entry_date: latest_homeless_entry_date(all_enrollments),
 
-            earliest_homeless_cls_in_range: homeless_cls_in_range.first,
-            latest_homeless_cls_in_range: homeless_cls_in_range.last,
-            earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first,
-            latest_non_homeless_cls_in_range: non_homeless_cls_in_range.last,
+            # new_intake_in_range: new_intake_in_range?(ongoing_enrollments),
+            # continuing_in_case_management: continuing_in_case_management?(ongoing_enrollments),
+
+            earliest_homeless_cls_in_range: homeless_cls_in_range.first&.InformationDate,
+            latest_homeless_cls_in_range: homeless_cls_in_range.last&.InformationDate,
+            earliest_non_homeless_cls_in_range: non_homeless_cls_in_range.first&.InformationDate,
+            latest_non_homeless_cls_in_range: non_homeless_cls_in_range.last&.InformationDate,
+
+            latest_homeless_cls: latest_homeless_cls&.InformationDate,
 
             direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]),
             education_status_date: education_status&.InformationDate,
@@ -350,6 +359,25 @@ module MaYyaReport
       return false if currently_homeless?(enrollments)
 
       enrollments.any? { |en| cls_at_entry(en).present? && ! homeless_cls?(cls_at_entry(en)) }
+    end
+
+    # Returns the earliest date within the 2 years prior to the report start where the enrollment
+    # was not in a homeless project, and the current living situation was not homeless
+    private def first_prevention_date(enrollments)
+      enrollments.select do |en|
+        en.first_date_in_program.between?(filter.start_date - 24.months, filter.start_date) &&
+        ! homeless_enrollment?(en) &&
+        cls_at_entry(en).present? &&
+        ! homeless_cls?(cls_at_entry(en))
+      end.map(&:first_date_in_program).min
+    end
+
+    # Returns the latest date the client entered a homeless project in the universe
+    private def latest_homeless_entry_date(enrollments)
+      enrollments.select do |en|
+        en.first_date_in_program.between?(filter.start_date - 24.months, filter.end_date) &&
+        homeless_enrollment?(en)
+      end.map(&:first_date_in_program).max
     end
 
     # YYA in Street Outreach / Collaborations
