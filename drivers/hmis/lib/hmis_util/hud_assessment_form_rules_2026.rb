@@ -247,7 +247,7 @@ module HmisUtil
         ] } },
       # disability table (note: requiring at annual even though HUD doesn't because of hopwa_disability questions)
       #
-      # Note, see also `disability_table_4` which is the  HIV/AIDS-specific element
+      # Note, see also `disability_table_r4` which is the HIV/AIDS-specific element
       disability_table: { stages: ['INTAKE', 'UPDATE', 'EXIT', 'ANNUAL'],
                           data_collected_about: 'ALL_CLIENTS',
                           rule: { 'operator' => 'ANY',
