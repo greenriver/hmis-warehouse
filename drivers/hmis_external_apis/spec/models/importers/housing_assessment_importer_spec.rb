@@ -297,7 +297,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
       project = instance_double('Hmis::Hud::Project', enrollments: enrollments, project_id: 'mocked_project_id')
 
       allow(importer).to receive(:hmis_ce_project).and_return(project)
-      allow(importer).to receive(:find_and_update_hmis_client).with(waitlist).and_return(existing_client)
+      allow(importer).to receive(:find_hmis_client).with(waitlist).and_return(existing_client)
       expect(importer).not_to receive(:create_hmis_client)
 
       enrollment = importer.send(:create_ce_enrollment, waitlist)
@@ -318,7 +318,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
       project = instance_double('Hmis::Hud::Project', enrollments: enrollments, project_id: 'mocked_project_id')
 
       allow(importer).to receive(:hmis_ce_project).and_return(project)
-      allow(importer).to receive(:find_and_update_hmis_client).with(waitlist).and_return(nil)
+      allow(importer).to receive(:find_hmis_client).with(waitlist).and_return(nil)
       expect(importer).to receive(:create_hmis_client).with(waitlist).and_return(new_client)
 
       importer.send(:create_ce_enrollment, waitlist)
@@ -334,7 +334,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter do
       project = instance_double('Hmis::Hud::Project', enrollments: enrollments, project_id: 'mocked_project_id')
 
       allow(importer).to receive(:hmis_ce_project).and_return(project)
-      allow(importer).to receive(:find_and_update_hmis_client).with(waitlist).and_return(existing_client)
+      allow(importer).to receive(:find_hmis_client).with(waitlist).and_return(existing_client)
 
       importer.send(:create_ce_enrollment, waitlist)
 
