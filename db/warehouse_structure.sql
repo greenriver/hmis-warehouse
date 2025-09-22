@@ -3567,7 +3567,8 @@ CREATE TABLE public.hmis_form_definitions (
     deleted_at timestamp without time zone,
     external_form_object_key character varying,
     backup_definition jsonb,
-    managed_in_version_control boolean DEFAULT false
+    managed_in_version_control boolean DEFAULT false,
+    admin_editable_only boolean DEFAULT false
 );
 
 
@@ -75584,6 +75585,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250921222539'),
 ('20250904184751'),
 ('20250904183709'),
 ('20250904181252'),
