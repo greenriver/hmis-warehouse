@@ -6,15 +6,17 @@ class Filters::Criteria::FilterForRaceEthnicityCombinations < Filters::Criteria:
   def apply(scope)
     scope = super(scope).joins(config.join_clients_method)
 
-    race_ethnicity_queries = input.race_ethnicity_combinations.map do |combination|
+    return scope if input.race_ethnicity_combinations.empty?
+
+    # Convert combinations to race selections with individual Hispanic status
+    race_selections = input.race_ethnicity_combinations.map do |combination|
       hispanic_latinaeo = combination.to_s.ends_with?('_hispanic_latinaeo')
-      race_column = HudUtility2024.race_column_name(combination.to_s.gsub('_hispanic_latinaeo', ''))
-      scope.race_ethnicity_alternative(race_column, hispanic_latinaeo)
+      race_column = HudUtility2026.race_column_name(combination.to_s.gsub('_hispanic_latinaeo', ''))
+
+      { race: race_column.to_sym, hispanic: hispanic_latinaeo }
     end
 
-    return scope if race_ethnicity_queries.empty?
-
-    combined_query = race_ethnicity_queries.reduce(:or)
-    scope.merge(combined_query)
+    builder = RaceEthnicityQueryBuilder.new(race_selections)
+    builder.apply_to_scope(scope, arel.c_t)
   end
 end
