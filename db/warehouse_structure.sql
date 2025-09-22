@@ -1,4 +1,4 @@
--- \restrict 1foA9c8vdB03CfLsAIQJ6ZhOHysfXiDxSnkTRbCzhG9HmlBi3Hyp3qX9rATFUdU
+-- \restrict Xdq2hDTEKipPO4QGbBwFfE00gp1hfe1UePFpLKJqUWPRpPkqc7Wnlwa3BVwh3JO
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -27567,12 +27567,18 @@ CREATE TABLE public.ma_yya_report_clients (
     enrolled_in_street_outreach boolean DEFAULT false NOT NULL,
     earliest_homeless_cls_in_range date,
     latest_homeless_cls_in_range date,
+    latest_homeless_cls date,
     earliest_non_homeless_cls_in_range date,
     latest_non_homeless_cls_in_range date,
     homeless_enrollment_started_during_range boolean DEFAULT false NOT NULL,
     homeless_enrollment_started_prior_to_range boolean DEFAULT false NOT NULL,
     new_intake_in_range boolean DEFAULT false NOT NULL,
-    continuing_in_case_management boolean DEFAULT false NOT NULL
+    continuing_in_case_management boolean DEFAULT false NOT NULL,
+    first_prevention_date date,
+    first_prevention_date_in_last_year date,
+    first_homeless_date date,
+    first_homeless_date_in_last_year date,
+    latest_homeless_entry_date date
 );
 
 
@@ -75588,7 +75594,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict 1foA9c8vdB03CfLsAIQJ6ZhOHysfXiDxSnkTRbCzhG9HmlBi3Hyp3qX9rATFUdU
+-- \unrestrict Xdq2hDTEKipPO4QGbBwFfE00gp1hfe1UePFpLKJqUWPRpPkqc7Wnlwa3BVwh3JO
 
 SET search_path TO "$user", public;
 

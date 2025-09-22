@@ -30,7 +30,7 @@
 # YYA continuing in case management:
 # Youth with an ongoing enrollment, but no enrollment starting in the universe during the reporting period
 #
-# For data that looks at a single enrollment (ReferralSource, CurrentLivingSituation, Disability information, education, etc.), we use the most-recently started enrollment that overlaps the reporting period based on the first_date_in_program, and id.
+# For data that looks at a single enrollment (ReferralSource, CurrentLivingSituation, Disability information, education, etc.), we use the most-recently started enrollment that overlaps the reporting period based on the entry_date, and id.
 
 require 'memery'
 module MaYyaReport
@@ -63,15 +63,15 @@ module MaYyaReport
           next if enrollment.blank? || enrollment.enrollment.blank?
 
           # Spec indicates we should use age at report start, which differs from standard HUD reports
-          # age = enrollment.client.age_on([filter.start_date, enrollment.first_date_in_program].max)
-          age = enrollment.client.age_on(ilter.start_date)
-          # enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
+          # age = enrollment.client.age_on([filter.start_date, enrollment.entry_date].max)
+          age = enrollment.client.age_on(filter.start_date)
+          # enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.entry_date }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           employment_status = enrollment.enrollment.employment_educations.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
 
           all_cls_in_range = ongoing_enrollments.flat_map do |en|
-            en.current_living_situations.select do |cls|
+            en.enrollment.current_living_situations.select do |cls|
               cls.InformationDate.between?(filter.start_date, filter.end_date)
             end
           end.sort_by(&:InformationDate)
@@ -83,21 +83,21 @@ module MaYyaReport
 
           homeless_enrollment_started_during_range = ongoing_enrollments.any? do |en|
             en.project_type.in?(HudUtility2026.homeless_project_types) &&
-            en.first_date_in_program.between?(filter.start_date, filter.end_date)
+            en.entry_date.between?(filter.start_date, filter.end_date)
           end
 
           homeless_enrollment_started_prior_to_range = ongoing_enrollments.any? do |en|
             en.project_type.in?(HudUtility2026.homeless_project_types) &&
-            en.first_date_in_program < filter.start_date
+            en.entry_date < filter.start_date
           end
 
-          enrollments_two_years_prior = all_enrollments.select { |en| en.first_date_in_program.between?(filter.start_date - 2.years, filter.start_date) }
-          enrollments_one_year_prior = all_enrollments.select { |en| en.first_date_in_program.between?(filter.start_date - 1.year, filter.start_date) }
+          enrollments_two_years_prior = all_enrollments.select { |en| en.entry_date.between?(filter.start_date - 2.years, filter.start_date) }
+          enrollments_one_year_prior = all_enrollments.select { |en| en.entry_date.between?(filter.start_date - 1.year, filter.start_date) }
 
           clients[client] = ::MaYyaReport::Client.new(
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
-            entry_date: enrollment.first_date_in_program,
+            entry_date: enrollment.entry_date,
             referral_source: enrollment.enrollment.ReferralSource,
             currently_homeless: currently_homeless?(ongoing_enrollments), # represents YYA experiencing homelessness
             at_risk_of_homelessness: at_risk_of_homelessness?(ongoing_enrollments), # represents YYA considered "at-risk" of homelessness
@@ -112,9 +112,6 @@ module MaYyaReport
             first_homeless_date_in_last_year: first_homeless_date(enrollments_one_year_prior),
 
             latest_homeless_entry_date: latest_homeless_entry_date(all_enrollments),
-
-            # new_intake_in_range: new_intake_in_range?(ongoing_enrollments),
-            # continuing_in_case_management: continuing_in_case_management?(ongoing_enrollments),
 
             earliest_homeless_cls_in_range: homeless_cls_in_range.first&.InformationDate,
             latest_homeless_cls_in_range: homeless_cls_in_range.last&.InformationDate,
@@ -154,7 +151,8 @@ module MaYyaReport
             voluntary_dys_yes_service: enrollment.enrollment.ReferralSource == 34,
             exchange_for_sex: enrollment.enrollment.exit&.ExchangeForSex == 1,
             permanent_exit_date: permanent_exit_date(client_id),
-            days_to_return: days_to_return(client_id),
+            # Unused at the moment, leaving for now
+            # days_to_return: days_to_return(client_id),
 
             homeless_enrollment_started_during_range: homeless_enrollment_started_during_range,
             homeless_enrollment_started_prior_to_range: homeless_enrollment_started_prior_to_range,
@@ -175,7 +173,7 @@ module MaYyaReport
     private def clients_with_enrollments(batch)
       enrollment_scope_with_preloads.
         where(client_id: batch.map(&:id)).
-        order(first_date_in_program: :asc, id: :asc).
+        order(entry_date: :asc, id: :asc).
         group_by(&:client_id)
     end
 
@@ -232,7 +230,7 @@ module MaYyaReport
     # Identifies clients enrolled in homeless projects during the reporting period and memoizes their earliest enrollment date.
     #
     # This method queries the enrollment scope for homeless projects within the specified date range
-    # and returns a hash mapping client IDs to their earliest first_date_in_program during the period.
+    # and returns a hash mapping client IDs to their earliest entry_date during the period.
     # If a client has multiple enrollments, only the earliest date is retained.
     #
     # @return [Hash<Integer, Date>] A hash mapping client IDs to their earliest enrollment date in a homeless project
@@ -241,9 +239,9 @@ module MaYyaReport
       {}.tap do |h|
         enrollment_scope.homeless.
           open_between(start_date: filter.start_date, end_date: filter.end_date).
-          pluck(:client_id, :first_date_in_program).
-          each do |client_id, first_date_in_program|
-            h[client_id] = first_date_in_program if h[client_id].blank? || first_date_in_program < h[client_id]
+          pluck(:client_id, :entry_date).
+          each do |client_id, entry_date|
+            h[client_id] = entry_date if h[client_id].blank? || entry_date < h[client_id]
           end
       end
     end
@@ -266,7 +264,7 @@ module MaYyaReport
           where(CurrentLivingSituation: [116, 101, 118, 302, 336, 335]).
           joins(enrollment: :service_history_enrollment).
           merge(enrollment_scope).
-          select(she_t[:client_id], she_t[:first_date_in_program], :InformationDate).
+          select(she_t[:client_id], she_t[:entry_date], :InformationDate).
           each do |client_id, entry_date, information_date|
             next if entry_date != information_date
 
@@ -377,7 +375,7 @@ module MaYyaReport
         ! homeless_enrollment?(en) &&
         cls_at_entry(en).present? &&
         ! homeless_cls?(cls_at_entry(en))
-      end.map(&:first_date_in_program).min
+      end.map(&:entry_date).min
     end
 
     # Returns the earliest date within the given enrollment set where the enrollment
@@ -385,15 +383,15 @@ module MaYyaReport
     private def first_homeless_date(enrollments)
       enrollments.select do |en|
         homeless_enrollment?(en)
-      end.map(&:first_date_in_program).min
+      end.map(&:entry_date).min
     end
 
     # Returns the latest date the client entered a homeless project in the universe
     private def latest_homeless_entry_date(enrollments)
       enrollments.select do |en|
-        en.first_date_in_program.between?(filter.start_date - 24.months, filter.end_date) &&
+        en.entry_date.between?(filter.start_date - 24.months, filter.end_date) &&
         homeless_enrollment?(en)
-      end.map(&:first_date_in_program).max
+      end.map(&:entry_date).max
     end
 
     # YYA in Street Outreach / Collaborations
@@ -407,13 +405,15 @@ module MaYyaReport
 
     # Enrollment overlaps reporting period
     private def enrollment_overlaps_range?(enrollment)
-      enrollment.first_date_in_program < filter.end_date &&
-      enrollment.last_date_in_program.blank? ||
-      enrollment.last_date_in_program > filter.start_date
+      enrollment.entry_date < filter.end_date &&
+      (
+        enrollment.exit_date.blank? ||
+        enrollment.exit_date > filter.start_date
+      )
     end
 
     private def enrollment_started_during_range?(enrollment)
-      enrollment.first_date_in_program.between?(filter.start_date, filter.end_date)
+      enrollment.entry_date.between?(filter.start_date, filter.end_date)
     end
 
     private def homeless_enrollment?(enrollment)
@@ -421,14 +421,14 @@ module MaYyaReport
     end
 
     private def cls_at_entry(enrollment)
-      enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
+      enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.entry_date }
     end
 
     # Initial contact:
     # Youth who had an entry into a project in the universe, who did not have another entry into a project in the universe within the 24 months prior to the report start date
     private def initial_contact?(enrollments)
       entry_during_range = enrollments.any? { |en| enrollment_started_during_range?(en) }
-      no_entry_prior_to_range = enrollments.none? { |en| en.first_date_in_program.between?(filter.start_date - 24.months, filter.start_date) }
+      no_entry_prior_to_range = enrollments.none? { |en| en.entry_date.between?(filter.start_date - 24.months, filter.start_date) }
 
       entry_during_range && no_entry_prior_to_range
     end

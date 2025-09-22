@@ -624,12 +624,6 @@ module MaYyaReport
       }
     end
 
-    # H. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)
-    private def h_population
-      @h_population ||= a_t[:currently_homeless].eq(true).
-        and(a_t[:rehoused_on].between(filter.start..filter.end))
-    end
-
     private def calculators
       @calculators ||= nested_cell_definitions.flat_map do |_, section|
         section[:subsections].flat_map do |_, subsection|
@@ -662,15 +656,6 @@ module MaYyaReport
       query = ' jsonb_array_length(household_ages) > 1 '
       query += " AND ma_yya_report_clients.id in ( SELECT ages.id FROM ( SELECT id, translate(household_ages::text, '[]', '{}')::integer [] AS h_ages FROM ma_yya_report_clients) ages WHERE 18 > ANY (h_ages) )"
       query
-    end
-
-    private def json_contains(field, contents)
-      "(#{contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')})"
-    end
-
-    # Check whether an array of strings contains a given text value (case insensitive)
-    private def json_contains_text(field, text)
-      "lower(#{field}::text)::jsonb ? '#{text.downcase}'"
     end
 
     private def report_results

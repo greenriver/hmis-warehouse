@@ -18,7 +18,7 @@ RSpec.describe MaYyaReport::Report do
 
       it 'returns a properly structured hash with all required sections' do
         expect(nested_definitions).to be_a(Hash)
-        expect(nested_definitions.keys).to contain_exactly('A', 'D', 'F', 'G')
+        expect(nested_definitions.keys).to contain_exactly('A', 'D', 'E', 'F', 'G', 'H')
       end
 
       it 'contains section labels for each section' do
@@ -67,14 +67,16 @@ RSpec.describe MaYyaReport::Report do
       let(:section_labels) { report.send(:section_labels) }
 
       it 'returns labels for all sections' do
-        expect(section_labels.keys).to contain_exactly('A', 'D', 'F', 'G')
+        expect(section_labels.keys).to contain_exactly('A', 'D', 'E', 'F', 'G', 'H')
       end
 
       it 'returns correct section labels' do
         expect(section_labels['A']).to eq('A. Core Services')
-        expect(section_labels['D']).to eq('D. Demographics')
+        expect(section_labels['D']).to eq('D. Prevention Demographics')
+        expect(section_labels['E']).to eq('E. Homeless/rehousing Demographics')
         expect(section_labels['F']).to eq('F. Outcomes')
         expect(section_labels['G']).to include('G. Demographics of Rehousing Outcomes')
+        expect(section_labels['H']).to include('H. Demographics of Rehousing Outcomes')
       end
     end
 
@@ -82,14 +84,17 @@ RSpec.describe MaYyaReport::Report do
       let(:subsection_labels) { report.send(:subsection_labels) }
 
       it 'returns labels for all subsections' do
-        expected_subsections = ['A1', 'A2', 'A3', 'A4', 'A_Total', 'D1', 'D2', 'D3', 'D4', 'F2', 'G1', 'G2', 'G3']
+        expected_subsections = ['A1', 'A2', 'A3', 'A4', 'A_Total', 'D1', 'D2', 'D3', 'D4', 'E1', 'E2', 'E3', 'E4', 'F1', 'F2', 'G1', 'G2', 'G3', 'H1', 'H2', 'H3']
         expect(subsection_labels.keys).to contain_exactly(*expected_subsections)
       end
 
       it 'returns properly formatted subsection labels' do
         expect(subsection_labels['A1']).to eq({ text: '1. Street Outreach/Colaboration' })
         expect(subsection_labels['D1']).to eq({ text: '1. Age and Gender' })
+        expect(subsection_labels['E1']).to eq({ text: '1. Age and Gender' })
+        expect(subsection_labels['F1']).to eq({ text: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)' })
         expect(subsection_labels['F2']).to eq({ text: '2. Rehousing Outcomes' })
+        expect(subsection_labels['H1']).to eq({ text: '1. Age and Gender' })
       end
     end
 
@@ -98,16 +103,19 @@ RSpec.describe MaYyaReport::Report do
 
       it 'returns calculation objects for all cells' do
         expect(calculators).to be_a(Hash)
-        expect(calculators.keys.count).to eq(57)
+        expect(calculators.keys.count).to eq(122)
       end
 
       it 'includes expected cell keys' do
-        expect(calculators.keys).to include(:A1a, :A1b, :D1a, :F2a, :G1a)
+        expect(calculators.keys).to include(:A1a, :A1b, :D1a, :E1a, :F1a, :F2a, :G1a, :H1a)
       end
 
       it 'preserves the correct order' do
         keys = calculators.keys
         expect(keys.first(5)).to eq([:A1a, :A1b, :A2a, :A2b, :A3a])
+        expect(keys).to include(:F1a, :F1b, :F1c, :F1d, :F1e) # F1 cells
+        expect(keys).to include(:E1a, :E2a, :E3a, :E4a) # E section cells
+        expect(keys).to include(:H1a, :H2a, :H3a) # H section cells
       end
     end
 
@@ -116,21 +124,24 @@ RSpec.describe MaYyaReport::Report do
 
       it 'returns labels for all cells' do
         expect(cell_labels).to be_a(Hash)
-        expect(cell_labels.keys.count).to eq(57)
+        expect(cell_labels.keys.count).to eq(122)
       end
 
       it 'includes expected cell keys' do
-        expect(cell_labels.keys).to include(:A1a, :A1b, :D1a, :F2a, :G1a)
+        expect(cell_labels.keys).to include(:A1a, :A1b, :D1a, :E1a, :F1a, :F2a, :G1a, :H1a)
       end
 
       it 'contains meaningful labels' do
         expect(cell_labels[:A1a]).to eq('Unduplicated number of outreach contacts with YYA experiencing homelessness')
         expect(cell_labels[:D1a]).to eq('Number of YYA served who were Under 18')
+        expect(cell_labels[:F1a]).to eq('Number of YYA served in prevention who remained housed during reporting period')
+        expect(cell_labels[:E1a]).to eq('Number of YYA served who were Under 18')
       end
 
       it 'preserves the correct order' do
         keys = cell_labels.keys
         expect(keys.first(5)).to eq([:A1a, :A1b, :A2a, :A2b, :A3a])
+        expect(keys).to include(:F1a, :F1b, :F1c, :F1d, :F1e) # F1 cells
       end
     end
 
@@ -159,7 +170,7 @@ RSpec.describe MaYyaReport::Report do
     end
 
     it 'maintains consistent cell count across all methods' do
-      expected_count = 57
+      expected_count = 122
 
       expect(report.send(:calculators).keys.count).to eq(expected_count)
       expect(report.send(:cell_labels).keys.count).to eq(expected_count)
@@ -171,7 +182,8 @@ RSpec.describe MaYyaReport::Report do
     describe '#section_label' do
       it 'returns correct section labels' do
         expect(report.section_label('A')).to eq('A. Core Services')
-        expect(report.section_label('D')).to eq('D. Demographics')
+        expect(report.section_label('D')).to eq('D. Prevention Demographics')
+        expect(report.section_label('E')).to eq('E. Homeless/rehousing Demographics')
         expect(report.section_label('F')).to eq('F. Outcomes')
       end
 
@@ -184,6 +196,7 @@ RSpec.describe MaYyaReport::Report do
       it 'returns correct subsection labels' do
         expect(report.subsection_label('A1')).to eq({ text: '1. Street Outreach/Colaboration' })
         expect(report.subsection_label('D1')).to eq({ text: '1. Age and Gender' })
+        expect(report.subsection_label('F1')).to eq({ text: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)' })
       end
 
       it 'returns default for non-existent subsections' do
@@ -194,6 +207,7 @@ RSpec.describe MaYyaReport::Report do
     describe '#cell_label' do
       it 'returns correct cell labels' do
         expect(report.cell_label(:A1a)).to eq('Unduplicated number of outreach contacts with YYA experiencing homelessness')
+        expect(report.cell_label(:F1a)).to eq('Number of YYA served in prevention who remained housed during reporting period')
       end
 
       it 'returns nil for non-existent cells' do
@@ -230,7 +244,7 @@ RSpec.describe MaYyaReport::Report do
         expect(section_d[:subsections]['D1'][:cells].keys.count).to eq(7) # D1a-D1g
         expect(section_d[:subsections]['D2'][:cells].keys.count).to eq(11) # D2a-D2k
         expect(section_d[:subsections]['D3'][:cells].keys.count).to eq(4) # D3a-D3d
-        expect(section_d[:subsections]['D4'][:cells].keys.count).to eq(7) # D4a-D4g
+        expect(section_d[:subsections]['D4'][:cells].keys.count).to eq(12) # D4a-D4l
       end
     end
 
@@ -238,11 +252,30 @@ RSpec.describe MaYyaReport::Report do
       let(:section_f) { report.send(:nested_cell_definitions)['F'] }
 
       it 'contains expected subsections' do
-        expect(section_f[:subsections].keys).to contain_exactly('F2')
+        expect(section_f[:subsections].keys).to contain_exactly('F1', 'F2')
+      end
+
+      it 'contains expected cells in F1 subsection' do
+        expect(section_f[:subsections]['F1'][:cells].keys).to contain_exactly(:F1a, :F1b, :F1c, :F1d, :F1e)
       end
 
       it 'contains expected cells in F2 subsection' do
-        expect(section_f[:subsections]['F2'][:cells].keys).to contain_exactly(:F2a, :F2b)
+        expect(section_f[:subsections]['F2'][:cells].keys).to contain_exactly(:F2a, :F2b, :F2c, :F2d, :F2e)
+      end
+    end
+
+    describe 'Section E (Homeless/rehousing Demographics)' do
+      let(:section_e) { report.send(:nested_cell_definitions)['E'] }
+
+      it 'contains all expected subsections' do
+        expect(section_e[:subsections].keys).to contain_exactly('E1', 'E2', 'E3', 'E4')
+      end
+
+      it 'contains expected number of cells in each subsection' do
+        expect(section_e[:subsections]['E1'][:cells].keys.count).to eq(7) # E1a-E1g
+        expect(section_e[:subsections]['E2'][:cells].keys.count).to eq(11) # E2a-E2k
+        expect(section_e[:subsections]['E3'][:cells].keys.count).to eq(4) # E3a-E3d
+        expect(section_e[:subsections]['E4'][:cells].keys.count).to eq(12) # E4a-E4l
       end
     end
 
@@ -255,8 +288,22 @@ RSpec.describe MaYyaReport::Report do
 
       it 'contains expected number of cells in each subsection' do
         expect(section_g[:subsections]['G1'][:cells].keys.count).to eq(7) # G1a-G1g
-        expect(section_g[:subsections]['G2'][:cells].keys.count).to eq(8) # G2a-G2h
+        expect(section_g[:subsections]['G2'][:cells].keys.count).to eq(9) # G2a-G2i (updated from 8)
         expect(section_g[:subsections]['G3'][:cells].keys.count).to eq(1) # G3a
+      end
+    end
+
+    describe 'Section H (Demographics of Rehousing Outcomes)' do
+      let(:section_h) { report.send(:nested_cell_definitions)['H'] }
+
+      it 'contains all expected subsections' do
+        expect(section_h[:subsections].keys).to contain_exactly('H1', 'H2', 'H3')
+      end
+
+      it 'contains expected number of cells in each subsection' do
+        expect(section_h[:subsections]['H1'][:cells].keys.count).to eq(7) # H1a-H1g
+        expect(section_h[:subsections]['H2'][:cells].keys.count).to eq(9) # H2a-H2i
+        expect(section_h[:subsections]['H3'][:cells].keys.count).to eq(1) # H3a
       end
     end
   end
