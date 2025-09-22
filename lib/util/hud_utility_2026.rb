@@ -248,7 +248,7 @@ module HudUtility2026
 
   def residential_project_type_numbers_by_codes(*codes)
     codes = codes.flatten # Take either array, or multiple parameters
-    codes.map { |code| HudHelper.util('2026').residential_project_type_numbers_by_code[code] }.
+    codes.map { |code| HudUtility2026.residential_project_type_numbers_by_code[code] }.
       flatten.
       uniq.
       sort.

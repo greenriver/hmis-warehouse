@@ -30,7 +30,7 @@
 # @see HudUtilityLegacy
 module HudHelper
   class Current < ActiveSupport::CurrentAttributes
-    attribute :current_fy
+    attribute :hud_csv_version
   end
 
   class << self
@@ -65,7 +65,7 @@ module HudHelper
     # Move to 2026 in test and development now
     def current_version(force_recalculate: false)
       # If we've already chosen a version in this request/job/thread, use it
-      pinned = HudHelper::Current.current_fy
+      pinned = HudHelper::Current.hud_csv_version
       return pinned if pinned && !force_recalculate
 
       # Update as necessary.  During transition periods, this section may become more complex with additional
@@ -81,7 +81,7 @@ module HudHelper
       end
 
       # pin version for this request/job/thread so it stays consistent
-      HudHelper::Current.current_fy = result
+      HudHelper::Current.hud_csv_version = result
 
       result
     end

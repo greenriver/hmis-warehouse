@@ -22,8 +22,8 @@ RSpec.describe HudUtility2026 do
 
       it 'translates between race_none codes and descriptions' do
         race_none_list['values'].each do |value|
-          expect(HudHelper.util('2026').race_none(value['key'])).to eq(value['description'])
-          expect(HudHelper.util('2026').race_none(value['description'], true)).to eq(value['key'])
+          expect(HudUtility2026.race_none(value['key'])).to eq(value['description'])
+          expect(HudUtility2026.race_none(value['description'], true)).to eq(value['key'])
         end
       end
     end
