@@ -140,6 +140,26 @@ RSpec.describe Mutations::Ce::StartCeReferralStep, type: :request do
         expect(audit_event.user).to eq(hmis_user)
         expect(audit_event.step).to eq(step)
       end
+
+      context 'and the step has already been started' do
+        before(:each) do
+          referral.workflow_engine.start_step!(step, user: hmis_user)
+        end
+
+        it 'returns the started step' do
+          expect do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+
+            step_data = result.dig('data', 'startCeReferralStep', 'step')
+            expect(step_data['status']).to eq('in_progress')
+            expect(step_data['name']).to eq('Client Acceptance')
+
+            step.reload
+          end.to not_change(step, :status).from('in_progress').
+            and not_change(Hmis::WorkflowExecution::AuditEvent, :count)
+        end
+      end
     end
 
     context 'when the user does not have access' do
