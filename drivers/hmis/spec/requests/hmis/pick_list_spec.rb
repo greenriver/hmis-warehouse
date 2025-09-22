@@ -532,6 +532,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(options.first['label']).to eq(receiving_project.project_name)
     end
 
+    context 'when project is closed' do
+      let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1, operating_end_date: 1.week.ago) }
+
+      it 'excludes closed project' do
+        response, result = post_graphql(pick_list_type: 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', project_id: sending_project.id.to_s) { query }
+        expect(response.status).to eq 200
+        options = result.dig('data', 'pickList')
+        expect(options.size).to eq(0)
+      end
+    end
     context 'when the sending project also receives' do
       let!(:sending_config) { create(:hmis_project_ce_config, project: sending_project, receives_direct_referrals: true) }
       let!(:sending_unit_group) { create(:hmis_unit_group, project: sending_project, name: 'Another Group') }

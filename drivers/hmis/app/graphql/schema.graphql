@@ -1197,10 +1197,11 @@ type CeReferralSourceEnrollment {
   dataSource: DataSource!
   entryDate: ISO8601Date!
   exitDate: ISO8601Date
+  householdMembers: [CeReferralSourceHouseholdMember!]!
   householdSize: Int!
   id: ID!
   inProgress: Boolean!
-  otherHouseholdMemberNames: [String!]!
+  otherHouseholdMemberNames: [String!]! @deprecated(reason: "Use household_members field instead")
   projectName: String!
   projectType: ProjectType!
   relationshipToHoH: RelationshipToHoH!
@@ -1229,6 +1230,23 @@ type CeReferralSourceEnrollmentsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+type CeReferralSourceHouseholdMember {
+  access: CeReferralSourceHouseholdMemberAccess!
+  clientId: ID!
+
+  """
+  The name of the client. Returns masked name if the user does not have permission to view the client name.
+  """
+  clientName: String!
+  id: ID!
+  relationshipToHoH: RelationshipToHoH!
+}
+
+type CeReferralSourceHouseholdMemberAccess {
+  canViewClients: Boolean!
+  id: ID!
 }
 
 enum CeReferralStatus {

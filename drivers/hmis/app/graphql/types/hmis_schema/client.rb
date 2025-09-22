@@ -272,7 +272,7 @@ module Types
       load_last_user_from_versions(object)
     end
 
-    def activity_log_field_name(field_name)
+    def activity_log_field_name(field_name, _value = nil)
       case field_name
       when 'ssn', 'dob'
         field_name
