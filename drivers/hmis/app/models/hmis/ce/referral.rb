@@ -171,7 +171,7 @@ module Hmis::Ce
     #
     # NOTE: This field intentionally does not check viewable_by scopes on the associated data;
     # it is resolved in the GraphQL API to expose pertinent data that the current user may not otherwise have permission to view.
-    def resolve_match_rule_fields
+    def resolve_match_rule_fields(excluded_fields: [])
       destination_client = client.destination_client&.as_warehouse
       return [] unless destination_client # if for whatever reason the client doesn't have a destination client, we cannot resolve the fields
 
@@ -185,6 +185,7 @@ module Hmis::Ce
       match_rules = opportunity.assignment_rules.map { |attrs| Hmis::Ce::Match::Rule.new(attrs).freeze }
       match_rules.sort_by(&:id).map do |rule|
         calculator.dependencies(rule.expression).map do |field|
+          next if excluded_fields.map(&:to_s).include?(field.to_s)
           # Skip if Field has already been processed, for example expression "household_size = 1 OR household_size = 2"
           next if seen_field_names.include?(field)
 

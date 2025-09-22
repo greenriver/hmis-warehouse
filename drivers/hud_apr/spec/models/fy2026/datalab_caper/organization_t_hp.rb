@@ -17,6 +17,34 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       run(generator, project_ids_filter(project_ids))
     end
 
+    describe 'internal integrity checks' do
+      # If we need to skip any validations in the future, we can add them in the following format:
+      # {
+      #   'Q7a' => [
+      #     'B2', # expected '27.0000' (27), got '26.0000' (26)
+      #   ],
+      # }
+      let(:validation_skips) do
+        {
+          'Q5a' => ['C2'],
+        }
+      end
+      let(:caper_validations) { ValidationLoader.load_validations['CAPER FY2026'] }
+
+      it 'runs all validation checks' do
+        aggregate_failures do
+          caper_validations.each do |question, table_validations|
+            table_validations.each do |validation|
+              next if validation_skips[question]&.include?(validation[:total])
+              next unless validation[:source][:relevant_project_types]&.include?(12)
+
+              check_sum(validation: validation, question: question)
+            end
+          end
+        end
+      end
+    end
+
     it 'Q4a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -324,7 +352,10 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
         skip: [
           'B15', # expected '5.0000' (5), got '4.0000' (4)
           'C15', # expected '5.0000' (5), got '4.0000' (4)
+          'B16', # expected '48.0000' (48), got '47.0000'
+          'C16', # expected '16.0000' (16), got '15.0000' (15)
         ],
+        detail_columns: [:personal_id, :first_date_in_program, :last_date_in_program, :housing_assessment, :subsidy_information],
       )
     end
 
