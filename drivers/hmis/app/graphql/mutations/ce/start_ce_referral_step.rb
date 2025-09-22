@@ -22,7 +22,8 @@ module Mutations
         step = engine.active_steps.find(step_id)
         access_denied! unless policy_for(referral, policy_type: :ce_referral).can_perform?(step: step)
 
-        engine.start_step!(step, user: current_user)
+        # Start step. Skip if step is in progress, which indicates that someone has already started this step.
+        engine.start_step!(step, user: current_user) unless step.in_progress?
       end
 
       {

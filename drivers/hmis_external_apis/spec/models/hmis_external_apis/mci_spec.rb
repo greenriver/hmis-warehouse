@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # CAUTION: This is not part of the normal test suite. It runs against a live remote endpoint
@@ -44,6 +46,30 @@ RSpec.describe 'MCI API', type: :model do
       result = subject.post('clients/v1/api/Clients/clearance', { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
       expect(result.http_status).to eq(200)
       expect(result.parsed_body.length).to be >= 450
+    end
+  end
+
+  describe 'mci routes' do
+    let(:mci) { HmisExternalApis::AcHmis::Mci.new }
+
+    it 'builds route when cred has full base url' do
+      create(:ac_hmis_mci_credential, base_url: 'https://example.com/clients-custom/api/clients/')
+      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients-custom/api/clients/clearance')
+    end
+
+    it 'builds route when cred has full base url without trailing slash' do
+      create(:ac_hmis_mci_credential, base_url: 'https://example.com/clients-custom/api/clients')
+      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients-custom/api/clients/clearance')
+    end
+
+    it 'builds default route when cred has partial base url' do
+      create(:ac_hmis_mci_credential, base_url: 'https://example.com/')
+      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients/v1/api/clients/clearance')
+    end
+
+    it 'builds default route when cred has partial base url without trailing slash' do
+      create(:ac_hmis_mci_credential, base_url: 'https://example.com')
+      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients/v1/api/clients/clearance')
     end
   end
 end
