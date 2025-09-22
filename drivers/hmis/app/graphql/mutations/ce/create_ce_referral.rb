@@ -11,7 +11,7 @@ module Mutations
     argument :opportunity_id, ID, required: true
     argument :client_id, ID, required: false
     argument :source_enrollment_id, ID, required: false
-    field :referral, Types::HmisSchema::CeReferral, null: false
+    field :referral, Types::HmisSchema::CeReferral, null: true # nullable in case of errors
 
     def resolve(opportunity_id:, client_id: nil, source_enrollment_id: nil)
       raise unless Hmis::Ce.configuration.enabled?
@@ -32,8 +32,13 @@ module Mutations
 
       referral = nil
       opportunity.with_lock do
-        # check for in-progress inside of lock for race cond
-        raise HmisErrors::ApiError, 'This unit is not available. Refresh the page to view the latest availability.' unless opportunity.open?
+        errors = HmisErrors::Errors.new
+
+        # check for in-progress inside of lock to avoid race condition
+        unless opportunity.open?
+          errors.add :base, :invalid, full_message: 'This unit is not available. Refresh the page to view the latest availability.'
+          return { errors: errors }
+        end
 
         instance = opportunity.workflow_template.instances.create!
         referral = opportunity.referrals.originated_from_waitlist.create!(
