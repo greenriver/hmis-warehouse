@@ -33,8 +33,7 @@ module Mutations
       referral = nil
       opportunity.with_lock do
         # check for in-progress inside of lock for race cond
-        # needs better error handling
-        raise 'not available' unless opportunity.open?
+        raise HmisErrors::ApiError, 'This unit is not available. Refresh the page to view the latest availability.' unless opportunity.open?
 
         instance = opportunity.workflow_template.instances.create!
         referral = opportunity.referrals.originated_from_waitlist.create!(
