@@ -89,6 +89,17 @@ module MaYyaReport
         or(a_t[:homeless_enrollment_started_prior_to_range].eq(true)) # A4b
     end
 
+    # This is the value for F1a and the universe for G
+    private def prevention_remained_housed_clause
+      prevention_clause.and(a_t[:entry_date].gt(a_t[:latest_homeless_cls_in_range]))
+    end
+
+    # This is the value for F2a and the universe for H
+    private def became_housed_clause
+      homeless_clause.
+        and(a_t[:latest_homeless_entry_date].lt(a_t[:permanent_exit_date]))
+    end
+
     private def nested_cell_definitions
       @nested_cell_definitions ||= {
         'A' => {
@@ -172,19 +183,36 @@ module MaYyaReport
           },
         },
         'G' => {
-          section_label: 'G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)',
+          section_label: 'G. Demographics of Rehousing Outcomes: youth served in prevention who remained housed during the reporting period (YTD should be unduplicated and match F-1a.))',
           subsections: {
             'G1' => {
               subsection_label: '1. Age and Gender',
-              cells: section_g1_cells,
+              cells: section_g1_h1_cells(section: 'G', clause: prevention_remained_housed_clause),
             },
             'G2' => {
               subsection_label: '2. Race, Ethnicity, and Language',
-              cells: section_g2_cells,
+              cells: section_g2_h2_cells(section: 'G', clause: prevention_remained_housed_clause),
             },
             'G3' => {
               subsection_label: '3. Other',
-              cells: section_g3_cells,
+              cells: section_g3_h3_cells(section: 'G', clause: prevention_remained_housed_clause),
+            },
+          },
+        },
+        'H' => {
+          section_label: 'H. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing during the reporting period (YTD should be unduplicated and match F-2a.)))',
+          subsections: {
+            'H1' => {
+              subsection_label: '1. Age and Gender',
+              cells: section_g1_h1_cells(section: 'H', clause: became_housed_clause),
+            },
+            'H2' => {
+              subsection_label: '2. Race, Ethnicity, and Language',
+              cells: section_g2_h2_cells(section: 'H', clause: became_housed_clause),
+            },
+            'H3' => {
+              subsection_label: '3. Other',
+              cells: section_g3_h3_cells(section: 'H', clause: became_housed_clause),
             },
           },
         },
@@ -452,7 +480,7 @@ module MaYyaReport
       {
         # in prevention, and haven't been homeless since
         F1a: {
-          calculation: prevention_clause.and(a_t[:entry_date].gt(a_t[:latest_homeless_cls_in_range])),
+          calculation: prevention_remained_housed_clause,
           label: 'Number of YYA served in prevention who remained housed during reporting period',
         },
         F1b: {
@@ -489,100 +517,111 @@ module MaYyaReport
     private def section_f2_cells
       {
         F2a: {
-          calculation: homeless_clause.
-            and(a_t[:latest_homeless_entry_date].lt(a_t[:permanent_exit_date])),
+          calculation: became_housed_clause,
           label: 'The number of  YYA who transition into stabilized housing during reporting period',
         },
         F2b: {
-          calculation: '', # TODO
+          calculation: a_t[:first_homeless_date].lt(a_t[:permanent_exit_date]),
           label: 'Number of YYA served who exited to a permanent housing situation in the past 2 years',
+        },
+        F2c: {
+          calculation: a_t[:first_homeless_date].lt(a_t[:permanent_exit_date]).
+            and(a_t[:latest_homeless_entry_date].gt(a_t[:permanent_exit_date])),
+          label: 'Number of YYA served who returned to homeless within 2 years of being housed',
+        },
+        F2d: {
+          calculation: a_t[:first_homeless_date_in_last_year].lt(a_t[:permanent_exit_date]),
+          label: 'Number of YYA served who exited to a permanent housing situation in the past year',
+        },
+        F2e: {
+          calculation: a_t[:first_homeless_date_in_last_year].lt(a_t[:permanent_exit_date]).
+            and(a_t[:latest_homeless_entry_date].gt(a_t[:permanent_exit_date])),
+          label: 'Number of YYA returned to homeless within 1 year of being housed',
         },
       }
     end
 
-    private def section_g1_cells
+    private def section_g1_h1_cells(section:, clause:)
       {
-        G1a: {
-          calculation: g_population.and(a_t[:age].lt(18)),
+        "#{section}1a": {
+          calculation: clause.and(a_t[:age].lt(18)),
           label: 'Number of YYA served who were Under 18',
         },
-        G1b: {
-          calculation: g_population.and(a_t[:gender].eq(1)),
+        "#{section}1b": {
+          calculation: clause.and(a_t[:gender].eq(1)),
           label: 'Number of YYA served who identified as Man',
         },
-        G1c: {
-          calculation: g_population.and(a_t[:gender].eq(0)),
+        "#{section}1c": {
+          calculation: clause.and(a_t[:gender].eq(0)),
           label: 'Number of YYA served who identified as Woman',
         },
-        G1d: {
-          calculation: g_population.and(a_t[:gender].eq(5)),
+        "#{section}1d": {
+          calculation: clause.and(a_t[:gender].eq(5)),
           label: 'Number of YYA served who identified as Transgender',
         },
-        G1e: {
-          calculation: g_population.and(a_t[:gender].eq(4)),
+        "#{section}1e": {
+          calculation: clause.and(a_t[:gender].eq(4)),
           label: 'Number of YYA served who identified as Non-Binary',
         },
-        G1f: {
-          calculation: g_population.and(a_t[:gender].in([8, 9])),
+        "#{section}1f": {
+          calculation: clause.and(a_t[:gender].in([6, 8, 9])),
           label: 'Number of YYA served who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
         },
-        G1g: {
-          calculation: g_population.and(a_t[:gender].eq(99)),
+        "#{section}1g": {
+          calculation: clause.and(a_t[:gender].eq(99)),
           label: 'Number of YYA served with no Gender Data collected',
         },
       }
     end
 
-    private def section_g2_cells
+    private def section_g2_h2_cells(section:, clause:)
       {
-        G2a: {
-          calculation: g_population.and(a_t[:race].eq(5)),
+        "#{section}2a": {
+          calculation: clause.and(a_t[:race].eq(5)),
           label: 'Number of YYA served who identified as White (race)',
         },
-        G2b: {
-          calculation: g_population.and(a_t[:race].eq(3)),
+        "#{section}2b": {
+          calculation: clause.and(a_t[:race].eq(3)),
           label: 'Number of YYA served who identified as African American (race)',
         },
-        G2c: {
-          calculation: g_population.and(a_t[:race].eq(2)),
+        "#{section}2c": {
+          calculation: clause.and(a_t[:race].eq(2)),
           label: 'Number of YYA served who identified as Asian (race)',
         },
-        G2d: {
-          calculation: g_population.and(a_t[:race].eq(1)),
+        "#{section}2d": {
+          calculation: clause.and(a_t[:race].eq(1)),
           label: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
         },
-        G2e: {
-          calculation: g_population.and(a_t[:race].eq(4)),
+        "#{section}2e": {
+          calculation: clause.and(a_t[:race].eq(4)),
           label: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
         },
-        G2f: {
-          calculation: g_population.and(a_t[:race].eq(7)),
+        "#{section}2f": {
+          calculation: clause.and(a_t[:race].eq(7)),
+          label: 'Number of YYA served who identified as Middle Eastern or North African',
+        },
+        "#{section}2g": {
+          calculation: clause.and(a_t[:race].eq(6)),
           label: 'Number of YYA served who identified as Hispanic/Latina/e/o',
         },
-        G2g: {
-          calculation: g_population.and(a_t[:race].eq(6)),
+        "#{section}2h": {
+          calculation: clause.and(a_t[:race].eq(6)),
           label: 'Number of YYA served who identified as Other/ Multi-racial',
         },
-        G2h: {
-          calculation: g_population.and(a_t[:race].eq(10)),
-          label: 'Number of YYA served who identified as Other/ Multi-racial',
+        "#{section}2i": {
+          calculation: clause.and(a_t[:race].in([8, 9, 99])),
+          label: 'Number of YYA served who answered don\'t know/prefer not to answer/data not collected (race)',
         },
       }
     end
 
-    private def section_g3_cells
+    private def section_g3_h3_cells(section:, clause:)
       {
-        G3a: {
-          calculation: g_population.and(lgbtq_query),
+        "#{section}3a": {
+          calculation: clause.and(lgbtq_query),
           label: 'Number of YYA served who were LGBTQ+',
         },
       }
-    end
-
-    # G. Demographics of Rehousing Outcomes: youth served in prevention who remained housed during the reporting period (YTD should be unduplicated and match F-1a.)
-    private def g_population
-      @g_population ||= a_t[:currently_homeless].eq(true).
-        and(a_t[:rehoused_on].between(filter.start..filter.end))
     end
 
     # H. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)

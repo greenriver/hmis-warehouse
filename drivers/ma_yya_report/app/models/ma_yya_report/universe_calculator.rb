@@ -91,6 +91,9 @@ module MaYyaReport
             en.first_date_in_program < filter.start_date
           end
 
+          enrollments_two_years_prior = all_enrollments.select { |en| en.first_date_in_program.between?(filter.start_date - 2.years, filter.start_date) }
+          enrollments_one_year_prior = all_enrollments.select { |en| en.first_date_in_program.between?(filter.start_date - 1.year, filter.start_date) }
+
           clients[client] = ::MaYyaReport::Client.new(
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
@@ -102,8 +105,12 @@ module MaYyaReport
             enrolled_in_street_outreach: enrolled_in_street_outreach?(ongoing_enrollments),
             initial_contact: initial_contact?(all_enrollments),
 
-            first_prevention_date: first_prevention_date(all_enrollments),
-            first_prevention_date_in_last_year: first_prevention_date(all_enrollments.select { |en| en.first_date_in_program.between?(filter.start_date - 1.year, filter.start_date) }),
+            first_prevention_date: first_prevention_date(enrollments_two_years_prior),
+            first_prevention_date_in_last_year: first_prevention_date(enrollments_one_year_prior),
+
+            first_homeless_date: first_homeless_date(enrollments_two_years_prior),
+            first_homeless_date_in_last_year: first_homeless_date(enrollments_one_year_prior),
+
             latest_homeless_entry_date: latest_homeless_entry_date(all_enrollments),
 
             # new_intake_in_range: new_intake_in_range?(ongoing_enrollments),
@@ -214,6 +221,7 @@ module MaYyaReport
       ].compact.min
     end
 
+    # Date of the most recent permanent CurrentLivingSituation or Exit to a permanent destination
     memoize private def permanent_exit_date(client_id)
       [
         permanent_destinations_by_client_id[client_id],
@@ -362,14 +370,21 @@ module MaYyaReport
       enrollments.any? { |en| cls_at_entry(en).present? && ! homeless_cls?(cls_at_entry(en)) }
     end
 
-    # Returns the earliest date within the 2 years prior to the report start where the enrollment
+    # Returns the earliest date within the given enrollment set where the enrollment
     # was not in a homeless project, and the current living situation was not homeless
     private def first_prevention_date(enrollments)
       enrollments.select do |en|
-        en.first_date_in_program.between?(filter.start_date - 24.months, filter.start_date) &&
         ! homeless_enrollment?(en) &&
         cls_at_entry(en).present? &&
         ! homeless_cls?(cls_at_entry(en))
+      end.map(&:first_date_in_program).min
+    end
+
+    # Returns the earliest date within the given enrollment set where the enrollment
+    # was in a homeless project, or the current living situation was homeless
+    private def first_homeless_date(enrollments)
+      enrollments.select do |en|
+        homeless_enrollment?(en)
       end.map(&:first_date_in_program).min
     end
 
@@ -461,8 +476,9 @@ module MaYyaReport
 
     private def race(client)
       return client.RaceNone if client.RaceNone.in?([8, 9, 99])
+      return 6 if client.race_fields.include?('HispanicLatinaeo') # report HispanicLatinaeo as Hispanic/Latina/e/o
 
-      race_fields = client.race_fields.excluding(6) # Exclude HispanicLatinaeo from race value
+      race_fields = client.race_fields.excluding(6) # Exclude HispanicLatinaeo from multi-racial calculation
       return 99 if race_fields.empty?
       return 10 if race_fields.size > 1 # Multi-racial
 
