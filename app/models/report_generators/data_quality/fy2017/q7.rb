@@ -66,10 +66,10 @@ module ReportGenerators::DataQuality::Fy2017
         data: inactive.map do |id, enrollment|
           [
             id,
-            client_personal_ids[id], join(', '),
+            client_personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program]
+            enrollment[:last_date_in_program],
           ]
         end,
       )

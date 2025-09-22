@@ -386,7 +386,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           universe_of_stayers[index][:earliest_income] = amounts.sum
           universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
           universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-        elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] = 8 || earliest_group[:IncomeFromAnySource] = 9
+        elsif [99, 8, 9].include?(earliest_group[:IncomeFromAnySource])
           universe_of_stayers[index][:earliest_income] = nil
           universe_of_stayers[index][:earliest_earned_income] = nil
           universe_of_stayers[index][:earliest_non_earned_income] = nil
