@@ -16,7 +16,7 @@ module Mutations
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
 
-      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_manage_form?
 
       raise 'only draft forms can be published' unless definition.draft?
 

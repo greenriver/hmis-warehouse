@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Mutations
   class UpdateFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
@@ -16,11 +18,10 @@ module Mutations
       raise 'not found' unless definition
       raise 'not allowed' if definition.managed_in_version_control?
 
-      # The UI currently does allow changing the form role, so we make this permission check twice:
-      # - to confirm the user has permission to manage the role from the input (in case it's changing)
-      # - to confirm the user has permission to manage forms for the original role (from the definition)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_manage_form?
+
+      # If the form role has been changed, confirm the user also has permission for the new role.
       access_denied! if input.role && !current_user.can_manage_forms_for_role?(input.role)
-      access_denied! unless current_user.can_manage_forms_for_role?(definition.role)
 
       raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier

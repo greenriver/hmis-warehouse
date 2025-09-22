@@ -4848,6 +4848,12 @@ type FormDefinitionsPaginated {
 Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier
 """
 type FormIdentifier {
+  access: FormIdentifierAccess!
+
+  """
+  todo
+  """
+  adminEditableOnly: Boolean!
   allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
 
   """
@@ -4863,6 +4869,11 @@ type FormIdentifier {
   """
   managedInVersionControl: Boolean!
   publishedVersion: FormDefinition
+}
+
+type FormIdentifierAccess {
+  canManageForm: Boolean!
+  id: ID!
 }
 
 input FormIdentifierFilterOptions {
