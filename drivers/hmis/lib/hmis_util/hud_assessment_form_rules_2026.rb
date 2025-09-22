@@ -39,10 +39,10 @@ module HmisUtil
   #   - Update when HUD changes required elements or collection logic.
   #   - Keep variables/operators in sync with `Hmis::Form::DefinitionItemFilter`.
   #
-  # Developer workflow (important)
+  # Developer workflow ⚠️
   #   - After changing these rules, reseed form definitions:
   #       rails driver:hmis:seed_definitions
-  #   - Then restart your local Rails server to ensure the updated rules are loaded. ⚠️
+  #   - You may need to restart your local Rails server to ensure the updated rules are loaded.
   class HudAssessmentFormRules2026
     # Keys match Link IDs in our default HUD Assessments.
 
