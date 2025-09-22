@@ -68,7 +68,7 @@ module Hmis::Ce::Match::Expression
     def veteran_status_field
       {
         query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
-        format_for_display: ->(v) { HudHelper.util('2026').veteran_status(v) },
+        format_for_display: ->(v) { HudHelper.util.veteran_status(v) },
         arel_field: arel.c_t['VeteranStatus'],
       }
     end

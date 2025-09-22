@@ -317,7 +317,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
-  use_enum(:gender_enum_map, ::HudHelper.util('2026').genders) do |hash|
+  use_enum(:gender_enum_map, ::HudHelper.util.genders) do |hash|
     hash.map do |value, desc|
       {
         key: [8, 9, 99].include?(value) ? desc : ::HudHelper.util('2026').gender_id_to_field_name[value],
