@@ -579,6 +579,12 @@ module HudUtility2026
   SITUATION_TEMPORARY_RANGE = (300..399)
   SITUATION_PERMANENT_RANGE = (400..499)
 
+  def situation_other_range = self.SITUATION_OTHER_RANGE
+  def situation_homeless_range = self.SITUATION_HOMELESS_RANGE
+  def situation_institutional_range = self.SITUATION_INSTITUTIONAL_RANGE
+  def situation_temporary_range = self.SITUATION_TEMPORARY_RANGE
+  def situation_permanent_range = self.SITUATION_PERMANENT_RANGE
+
   private def situations_for(as)
     case as
     when :prior

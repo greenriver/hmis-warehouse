@@ -442,11 +442,11 @@ module Types
       end
 
       [
-        [HudHelper.util::SITUATION_HOMELESS_RANGE, :HOMELESS, 'Homeless Situations'],
-        [HudHelper.util::SITUATION_INSTITUTIONAL_RANGE, :INSTITUTIONAL, 'Institutional Situations'],
-        [HudHelper.util::SITUATION_TEMPORARY_RANGE, :TEMPORARY, 'Temporary Housing Situations'],
-        [HudHelper.util::SITUATION_PERMANENT_RANGE, :PERMANENT, 'Permanent Housing Situations'],
-        [HudHelper.util::SITUATION_OTHER_RANGE, :OTHER, 'Other'],
+        [HudHelper.util.situation_homeless_range, :HOMELESS, 'Homeless Situations'],
+        [HudHelper.util.situation_institutional_range, :INSTITUTIONAL, 'Institutional Situations'],
+        [HudHelper.util.situation_temporary_range, :TEMPORARY, 'Temporary Housing Situations'],
+        [HudHelper.util.situation_permanent_range, :PERMANENT, 'Permanent Housing Situations'],
+        [HudHelper.util.situation_other_range, :OTHER, 'Other'],
       ].map do |range, group_code, group_label|
         enum_value_definitions.select { |e| range.include? e.value }.map do |enum|
           {

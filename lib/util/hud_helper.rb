@@ -87,6 +87,10 @@ module HudHelper
     end
     alias_method :hud_csv_version, :current_version
 
+    def ssn_rgx
+      /(\w{3})[^\w]?(\w{2})[^\w]?(\w{4})/
+    end
+
     def production_cutoff
       Date.new(2025, 10, 1)
     end
