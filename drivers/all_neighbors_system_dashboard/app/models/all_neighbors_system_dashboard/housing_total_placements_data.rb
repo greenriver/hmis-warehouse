@@ -95,7 +95,7 @@ module AllNeighborsSystemDashboard
           project_type: project_type,
           config: {
             keys: keys,
-            names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+            names: keys.map.with_index { |key, i| [key, options[:types][i]] }.to_h,
             colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
             label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
           },
@@ -252,7 +252,7 @@ module AllNeighborsSystemDashboard
           name: bar,
           series: date_range.map do |date|
             counts = options[:types].map do |race_name|
-              # race_code = HudUtility2024.race(race_name, true)
+              # race_code = HudHelper.util.race(race_name, true)
               scope = housed_total_scope.select(:destination_client_id)
               scope = filter_for_count_level(scope, options[:count_level])
               scope = scope.where(Enrollment.arel_table[:race_list].matches("%#{race_name}%"))

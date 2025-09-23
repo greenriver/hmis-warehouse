@@ -39,7 +39,8 @@ module Types
 
     field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     field :household_size, Integer, null: false
-    field :other_household_member_names, [String], null: false
+    field :household_members, [Types::HmisSchema::CeReferralSourceHouseholdMember], null: false
+    field :other_household_member_names, [String], null: false, deprecation_reason: 'Use household_members field instead'
 
     field :assessments, [Types::HmisSchema::AssessmentSummary], null: false
 
@@ -101,18 +102,19 @@ module Types
       object.enrollment.relationship_to_ho_h
     end
 
-    def household_size
+    def household_members
       household = load_ar_association(object.enrollment, :household)
       household_members = load_ar_association(household, :enrollments)
+      household_members
+    end
+
+    def household_size
       household_members.map(&:personal_id).uniq.size
     end
 
     def other_household_member_names
       # Only resolve household member names if this user has permission to view full enrollment details.
       return [] unless can_view_enrollment_details
-
-      household = load_ar_association(object.enrollment, :household)
-      household_members = load_ar_association(household, :enrollments)
 
       household_members.filter do |enrollment|
         enrollment.id != object.enrollment.id

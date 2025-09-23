@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module
   Filter::ControlSections
   extend ActiveSupport::Concern
@@ -42,13 +44,13 @@ module
           id: 'coordinated_assessment_living_situation_homeless',
           label: labels[:coordinated_assessment_living_situation_homeless] || 'Including CE homeless at entry?',
           value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
-          hint: hints[:coordinated_assessment_living_situation_homeless] || "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudUtility2024.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
+          hint: hints[:coordinated_assessment_living_situation_homeless] || "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudHelper.util.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
           id: 'ce_cls_as_homeless',
           label: labels[:ce_cls_as_homeless] || 'Including CE Current Living Situation Homeless',
           value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
-          hint: hints[:ce_cls_as_homeless] || "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility2024.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
+          hint: hints[:ce_cls_as_homeless] || "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudHelper.util.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
         if selected[:include_inactivity_days]
           section.add_control(
@@ -105,7 +107,7 @@ module
     protected def describe_project_type_control_section
       if @filter.chosen_project_types_only_homeless?
         'Only Homeless'
-      elsif filter.project_type_codes.sort == HudUtility2024.project_type_group_titles.keys.map(&:to_s).sort
+      elsif filter.project_type_codes.sort == HudHelper.util.project_type_group_titles.keys.map(&:to_s).sort
         'All'
       else
         @filter.chosen_project_types

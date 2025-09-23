@@ -1,6 +1,6 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+wb.add_worksheet(name: 'Clients with Disabilities') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse Client ID',
@@ -13,7 +13,8 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
       'Veteran',
       'Disability & Response',
     ],
-    :style => title)
+    style: title,
+  )
   @clients.each do |client|
     disabilities = client['disabilities'].join(', ')
     enrollment = client['enrollment']
@@ -25,8 +26,8 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
       yes_no(enrollment&.[]('unaccompanied_youth')),
       yes_no(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile')),
       yes_no(enrollment&.[]('head_of_household')),
-      HudUtility2024.veteran_status(client['VeteranStatus']),
-      disabilities
+      HudHelper.util.veteran_status(client['VeteranStatus']),
+      disabilities,
     ]
   end
 end

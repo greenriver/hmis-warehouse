@@ -1,7 +1,6 @@
-
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]}"[0..30]) do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row([
     'Warehouse Client ID',
     'First Name',
@@ -12,7 +11,7 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
     'Organization',
     'Project Type',
     'Group',
-  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility2024.race(m).gsub('None', 'Race None') }, style: title)
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') }, style: title)
   @report.buckets.each do |group, clients|
     section = @report.data[group][:label]
     clients.each do |client_id|
@@ -28,9 +27,9 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
           enrollment.last_date_in_program,
           project.name(current_user),
           project.organization_name(current_user),
-          HudUtility2024.project_type(enrollment.project_type),
+          HudHelper.util.project_type(enrollment.project_type),
           section,
-        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility2024.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
+        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
         sheet.add_row(row)
       end
     end
