@@ -16,12 +16,8 @@ module Mutations
     def resolve(id:, input:)
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
-      raise 'not allowed' if definition.managed_in_version_control?
 
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_manage_form?
-
-      # If the form role has been changed, confirm the user also has permission for the new role.
-      access_denied! if input.role && !current_user.can_manage_forms_for_role?(input.role)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_update_form?(new_role: input.role)
 
       raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier

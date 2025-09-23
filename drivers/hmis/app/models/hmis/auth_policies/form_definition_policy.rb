@@ -16,6 +16,14 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::BasePolicy
     context.user.can_manage_forms_for_role?(resource.role)
   end
 
+  def can_update_form?(new_role: nil)
+    # If the form role has been changed, confirm the user also has permission for the new role.
+    return false unless can_manage_form?
+    return true if new_role.blank?
+
+    user.can_manage_forms_for_role?(new_role)
+  end
+
   # TODO: incorporate other policies and permissions. For example, can_index? policy should be based on permission can_configure_data_collection?
 
   protected
