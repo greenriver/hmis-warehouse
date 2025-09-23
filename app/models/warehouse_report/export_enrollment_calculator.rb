@@ -41,7 +41,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         find_each do |client_record|
           first_exit = client_record.source_exits.min_by(&:ExitDate)
           first_permanent_exit = client_record.source_exits.
-            select { |e| HudUtility2024.permanent_destinations.include?(e.Destination) }.
+            select { |e| HudHelper.util.permanent_destinations.include?(e.Destination) }.
             min_by(&:ExitDate)
           exits[client_record.id] = (first_permanent_exit || first_exit)
         end
@@ -256,14 +256,13 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   end
 
   def days_homeless(client)
-    @days_homeless ||= begin
-      clients.joins(:processed_service_history).pluck(wcp_t[:client_id], wcp_t[:days_homeless_last_three_years]).to_h
-    end
+    @days_homeless ||= clients.joins(:processed_service_history).pluck(wcp_t[:client_id], wcp_t[:days_homeless_last_three_years]).to_h
+
     @days_homeless[client.id] || 0
   end
 
   def pregnancy_status_for(client)
-    HudUtility2024.no_yes_reasons_for_missing_data(health_and_dv_for(client)&.PregnancyStatus)
+    HudHelper.util.no_yes_reasons_for_missing_data(health_and_dv_for(client)&.PregnancyStatus)
   end
 
   def health_and_dv_for(client)
@@ -281,9 +280,8 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   end
 
   def disabled_and_impairing?(client)
-    @disabled_and_impairing ||= begin
-      clients.chronically_disabled(filter.end).pluck(:id)
-    end
+    @disabled_and_impairing ||= clients.chronically_disabled(filter.end).pluck(:id)
+
     @disabled_and_impairing.include?(client.id)
   end
 
@@ -325,29 +323,27 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   end
 
   def residential_enrollments_for(client)
-    @residential_enrollments_for ||= begin
-      GrdaWarehouse::ServiceHistoryEnrollment.residential.
-        entry.
-        preload(:service_history_services).
-        open_between(start_date: filter.start, end_date: filter.end).
-        where(client_id: clients.select(:id)).
-        order(first_date_in_program: :asc).
-        group_by(&:client_id)
-    end
+    @residential_enrollments_for ||= GrdaWarehouse::ServiceHistoryEnrollment.residential.
+      entry.
+      preload(:service_history_services).
+      open_between(start_date: filter.start, end_date: filter.end).
+      where(client_id: clients.select(:id)).
+      order(first_date_in_program: :asc).
+      group_by(&:client_id)
+
     @residential_enrollments_for[client.id]
   end
 
   def chronic_enrollments_for(client)
-    @chronic_enrollments_for ||= begin
-      GrdaWarehouse::ServiceHistoryEnrollment.
-        hud_homeless(chronic_types_only: true).
-        entry.
-        preload(:service_history_services).
-        open_between(start_date: filter.start, end_date: filter.end).
-        where(client_id: clients.select(:id)).
-        order(first_date_in_program: :asc).
-        group_by(&:client_id)
-    end
+    @chronic_enrollments_for ||= GrdaWarehouse::ServiceHistoryEnrollment.
+      hud_homeless(chronic_types_only: true).
+      entry.
+      preload(:service_history_services).
+      open_between(start_date: filter.start, end_date: filter.end).
+      where(client_id: clients.select(:id)).
+      order(first_date_in_program: :asc).
+      group_by(&:client_id)
+
     @chronic_enrollments_for[client.id]
   end
 
@@ -371,7 +367,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def returned?(client)
     exit_enrollment = exit_for_client(client)
     return false unless exit_enrollment
-    return false unless HudUtility2024.permanent_destinations.include?(exit_enrollment.Destination)
+    return false unless HudHelper.util.permanent_destinations.include?(exit_enrollment.Destination)
 
     chronic_enrollments = chronic_enrollments_for(client)
     return false unless chronic_enrollments.present?

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module PerformanceDashboard::Overview::Coc
   extend ActiveSupport::Concern
@@ -20,7 +20,7 @@ module PerformanceDashboard::Overview::Coc
     coc_buckets.map do |key|
       [
         key,
-        HudUtility2024.coc_name(key),
+        HudHelper.util.coc_name(key),
       ]
     end.to_h
   end

@@ -141,9 +141,9 @@ module TxClientReports
           row[:income],
           '', # % AMI
           # TODO: this needs to be updated in the receiving system before we update here
-          row[:genders].map { |k| ::HudUtility2024.gender(k) }.join(', '),
+          row[:genders].map { |k| ::HudHelper.util.gender(k) }.join(', '),
           ethnicity,
-          row[:races].map { |f| ::HudUtility2024.race(f) }.join(', '),
+          row[:races].map { |f| ::HudHelper.util.race(f) }.join(', '),
           (if row[:any_veterans] then 'Yes' else 'No' end),
           (if row[:over_62_in_household] then 'Yes' else 'No' end),
           (if row[:child_in_household] then 'Yes' else 'No' end),

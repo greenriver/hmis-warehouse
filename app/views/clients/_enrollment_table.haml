@@ -51,8 +51,8 @@
         %td.nobr
           .ds.jClickToCopy{class: "ds-color-#{e[:data_source_id]}", data: { 'bs-toggle' => :tooltip, 'bs-html' => 'true', 'bs-title' => ds_tooltip_content(e[:client_source_id], e[:data_source_id]).html_safe }}= ds_short_name_for(e[:client_source_id])
           .enrollment__project_type{class: e[:class]}
-            %span.service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudUtility2024.project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])}}
-              = HudUtility2024.brief_project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])
+            %span.service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudHelper.util.project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])}}
+              = HudHelper.util.brief_project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])
           - if e[:confidential_project] && can_view_confidential_project_names?
             .confidential_project{data: { 'bs-toggle' => :tooltip, 'bs-title' => GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
@@ -66,7 +66,7 @@
               = e[:project_name]
 
         %td
-          - living_situation = HudUtility2024.living_situation(e[:living_situation])
+          - living_situation = HudHelper.util.living_situation(e[:living_situation])
           - if living_situation == e[:living_situation]
             - living_situation = 'Unknown'
           - title = "<b>Prior Living Situation:</b> #{living_situation}"
@@ -75,7 +75,7 @@
             - title += ";<br /><b>Move-in Date:</b> #{move_in_date}"
             - if e[:move_in_date_inherited]
               - title += '<br />(inherited from HoH)'
-          - elsif e[:project_type_id].in?(HudUtility2024.project_types_with_move_in_dates)
+          - elsif e[:project_type_id].in?(HudHelper.util.project_types_with_move_in_dates)
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => title.html_safe, 'bs-html' => 'true' }}
             - include_link = current_user.can_view_enrollment_details?
@@ -88,7 +88,7 @@
               - title += '<br />(inherited from HoH)'
             %i.icon-house{data: { 'bs-toggle' => :tooltip, 'bs-title' => title.html_safe, 'bs-html' => 'true' }}
         %td
-          - destination = HudUtility2024.destination(e[:destination])
+          - destination = HudHelper.util.destination(e[:destination])
           - if destination == e[:destination]
             - destination = 'Unknown'
           %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Destination: #{destination}"}}

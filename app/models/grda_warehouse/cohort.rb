@@ -449,7 +449,7 @@ module GrdaWarehouse
       client.permanent_source_exits_from_homelessness.
         where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
         pluck(:ExitDate, :Destination).map do |exit_date, destination|
-          "<span class='hidden'>#{exit_date.to_fs(:db)}</span>#{exit_date} to #{HudUtility2024.destination(destination)}"
+          "<span class='hidden'>#{exit_date.to_fs(:db)}</span>#{exit_date} to #{HudHelper.util.destination(destination)}"
         end.join('; ')
     end
 
@@ -568,7 +568,7 @@ module GrdaWarehouse
       # Ignore any unknown values
       return unless item.months_homeless_past_three_years > 100
 
-      "#{HudUtility2024.months_homeless_past_three_years(item.months_homeless_past_three_years)} on #{item.entry_date} at #{item.project.name}"
+      "#{HudHelper.util.months_homeless_past_three_years(item.months_homeless_past_three_years)} on #{item.entry_date} at #{item.project.name}"
     end
 
     # Returns the most recent value for DisablingCondition based on EntryDate desc, DateUpdated desc
@@ -583,7 +583,7 @@ module GrdaWarehouse
       end
       return unless item&.disabling_condition
 
-      "#{HudUtility2024.no_yes_reasons_for_missing_data(item.disabling_condition)} on #{item.entry_date} at #{item.project.name}"
+      "#{HudHelper.util.no_yes_reasons_for_missing_data(item.disabling_condition)} on #{item.entry_date} at #{item.project.name}"
     end
 
     private def maintain_system_group

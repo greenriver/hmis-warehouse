@@ -299,8 +299,8 @@ class WarehouseReport::Outcomes::Base
         destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
         destinations[destination][:client_ids] << row[:client_id]
         destinations[destination][:detailed_destinations] ||= {}
-        destinations[destination][:detailed_destinations][HudUtility2024.destination(row[:destination])] ||= 0
-        destinations[destination][:detailed_destinations][HudUtility2024.destination(row[:destination])] += 1
+        destinations[destination][:detailed_destinations][HudHelper.util.destination(row[:destination])] ||= 0
+        destinations[destination][:detailed_destinations][HudHelper.util.destination(row[:destination])] += 1
 
         # Support for later
         destinations[destination][:support] ||= []
@@ -315,9 +315,9 @@ class WarehouseReport::Outcomes::Base
   end
 
   def destination_bucket(dest_id)
-    return 'exited to other institution' if HudUtility2024.institutional_destinations.include?(dest_id)
-    return 'successful exit to PH' if HudUtility2024.permanent_destinations.include?(dest_id)
-    return 'exited to temporary destination' if HudUtility2024.temporary_destinations.include?(dest_id)
+    return 'exited to other institution' if HudHelper.util.institutional_destinations.include?(dest_id)
+    return 'successful exit to PH' if HudHelper.util.permanent_destinations.include?(dest_id)
+    return 'exited to temporary destination' if HudHelper.util.temporary_destinations.include?(dest_id)
 
     'other or unknown outcome'
   end
@@ -364,7 +364,7 @@ class WarehouseReport::Outcomes::Base
           client_id: id,
           race: returner_demographics[id][1],
           gender: returner_demographics[id][2],
-          destination: HudUtility2024.destination(destination),
+          destination: HudHelper.util.destination(destination),
         }
       end
       returns
@@ -670,7 +670,7 @@ class WarehouseReport::Outcomes::Base
 
         clients[project_name].each do |row|
           # Only count clients who exited in this month to a permanent destination
-          next unless HudUtility2024.permanent_destinations.include?(row[:destination])
+          next unless HudHelper.util.permanent_destinations.include?(row[:destination])
           next unless (beginning_of_month..end_of_month).include?(row[:housing_exit])
 
           month_data[month_year]['All']['data'] << row
@@ -1073,7 +1073,7 @@ class WarehouseReport::Outcomes::Base
         [
           row[:client_id],
           row[:residential_project],
-          HudUtility2024.destination(row[:destination]),
+          HudHelper.util.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
           row[:project_id],
@@ -1088,7 +1088,7 @@ class WarehouseReport::Outcomes::Base
         [
           row[:client_id],
           row[:residential_project],
-          HudUtility2024.destination(row[:destination]),
+          HudHelper.util.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
           row[:project_id],
@@ -1155,14 +1155,14 @@ class WarehouseReport::Outcomes::Base
     scope = scope.where(race: @races) if @races.present? && @races != :current_scope
     if @genders.present? && @genders != :current_scope
       gender = @genders.first
-      column = HudUtility2024.gender_id_to_field_name[gender].downcase
+      column = HudHelper.util.gender_id_to_field_name[gender].downcase
       a_t = scope.arel_table
       value = 1
       value = gender if column == :gendernone
       gender_query = a_t[column].eq(value)
 
       @genders.drop(1).each do |gender_number|
-        column = HudUtility2024.gender_id_to_field_name[gender_number].downcase
+        column = HudHelper.util.gender_id_to_field_name[gender_number].downcase
         value = 1
         value = gender_number if column == :gendernone
         gender_query = gender_query.or(a_t[column].eq(value))
@@ -1301,9 +1301,9 @@ class WarehouseReport::Outcomes::Base
       row.each do |header, value|
         case header
         when 'Race'
-          row[header] = HudUtility2024.race(value)
+          row[header] = HudHelper.util.race(value)
         when 'Gender'
-          row[header] = HudUtility2024.gender(value)
+          row[header] = HudHelper.util.gender(value)
         else
           value
         end
