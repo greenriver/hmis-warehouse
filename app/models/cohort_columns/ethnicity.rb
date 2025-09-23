@@ -21,7 +21,7 @@ module CohortColumns
 
     def value(cohort_client)
       ethnicities = cohort_client.client.source_clients.map(&:Ethnicity)&.select { |v| v.in?([0, 1]) }&.map do |v|
-        ::HudUtility.ethnicity(v)
+        ::HudHelper.util('legacy').ethnicity(v)
       end
       ethnicities.uniq&.sort
     end

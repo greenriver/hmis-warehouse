@@ -31,29 +31,29 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         first_name: { title: 'First Name' },
         last_name: { title: 'Last Name' },
-        name_data_quality: { title: 'Name Data Quality', translator: ->(v) { "#{HudUtility2024.name_data_quality(v)} (#{v})" } },
+        name_data_quality: { title: 'Name Data Quality', translator: ->(v) { "#{HudHelper.util.name_data_quality(v)} (#{v})" } },
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
-        dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudUtility2024.dob_data_quality(v)} (#{v})" } },
-        man: { title: 'Man', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        woman: { title: 'Woman', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        culturally_specific: { title: 'Culturally Specific', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        different_identity: { title: 'DifferentIdentity', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        transgender: { title: 'Transgender', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        questioning: { title: 'Questioning', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
-        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility2024.gender_none(v)} (#{v})" } },
-        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        white: { title: 'White', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        mid_east_n_african: { title: 'Middle Eastern or North African', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        hispanic_latinaeo: { title: 'Hispanic/Latina/e/o', translator: ->(v) { "#{HudUtility2024.no_yes(v&.to_i)} (#{v})" } },
-        race_none: { title: 'Race None', translator: ->(v) { "#{HudUtility2024.race_none(v)} (#{v})" } },
-        veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudHelper.util.dob_data_quality(v)} (#{v})" } },
+        man: { title: 'Man', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        woman: { title: 'Woman', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        culturally_specific: { title: 'Culturally Specific', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        different_identity: { title: 'DifferentIdentity', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        transgender: { title: 'Transgender', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        questioning: { title: 'Questioning', translator: ->(v) { "#{HudHelper.util.no_yes(v)} (#{v})" } },
+        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudHelper.util.gender_none(v)} (#{v})" } },
+        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        white: { title: 'White', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        mid_east_n_african: { title: 'Middle Eastern or North African', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        hispanic_latinaeo: { title: 'Hispanic/Latina/e/o', translator: ->(v) { "#{HudHelper.util.no_yes(v&.to_i)} (#{v})" } },
+        race_none: { title: 'Race None', translator: ->(v) { "#{HudHelper.util.race_none(v)} (#{v})" } },
+        veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
-        ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudUtility2024.ssn_data_quality(v)} (#{v})" } },
+        ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudHelper.util.ssn_data_quality(v)} (#{v})" } },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
         overlapping_entry_exit_details: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH Details' },
         overlapping_nbn: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH' },
@@ -70,7 +70,7 @@ module HmisDataQualityTool
     def self.masked_ssn(number)
       # pad with leading 0s if we don't have enough characters
       number = number.to_s.rjust(9, '0') if number.present?
-      number.to_s.gsub(HudUtility2024::SSN_RGX, 'XXX-XX-\3')
+      number.to_s.gsub(HudHelper.ssn_rgx, 'XXX-XX-\3')
     end
 
     def self.detail_headers_for_export
@@ -387,7 +387,7 @@ module HmisDataQualityTool
               item.transgender,
               item.questioning,
             ]
-            return true if (values - HudUtility2024.no_yes_options.keys).any?
+            return true if (values - HudHelper.util.no_yes_options.keys).any?
 
             # any are yes and GenderNone is present and not 99
             return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
@@ -431,7 +431,7 @@ module HmisDataQualityTool
               item.mid_east_n_african,
               item.hispanic_latinaeo,
             ]
-            return true if (values - HudUtility2024.no_yes_options.keys).any?
+            return true if (values - HudHelper.util.no_yes_options.keys).any?
 
             # any are yes and RaceNone is present and isn't "not collected"
             return true if values.include?(1) && item.race_none.present? && item.race_none != 99

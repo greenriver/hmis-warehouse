@@ -208,7 +208,7 @@ module MaYyaReport
         F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
         F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
-                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth)
+                json_contains(:subsequent_current_living_situations, HudHelper.util.permanent_situations(as: :current) + HudHelper.util.temporary_situations(as: :current) + HudHelper.util.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth)
               )),
 
         F2a: g_population, # "Report Once" should handled because reporting periods don't overlap
@@ -218,7 +218,7 @@ module MaYyaReport
         F2c: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].not_eq(nil)).
           and(a_t[:followup_previous_period].eq(false)).
-          and(Arel.sql(json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current)))),
+          and(Arel.sql(json_contains(:subsequent_current_living_situations, HudHelper.util.permanent_situations(as: :current)))),
         F2d: nil, # Handled as a special case in
 
         G1a: g_population.and(a_t[:age].lt(18)),
