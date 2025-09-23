@@ -140,7 +140,9 @@ module AcHmis
     # Keys match Pick List Options in Housing Needs Assessment.
     # Values match UnitType description in AC HMIS. (see drivers/hmis_external_apis/lib/data/ac_hmis/unit_types.json)
     ASSESSMENT_RESPONSE_TO_UNIT_TYPES = {
+      # To be eligible for SRO/SRO Chronic Homeless/Accessible, must be referred to "SRO"
       'SRO' => ['SRO', 'SRO Chronic Homeless', 'SRO Accessible'],
+      # To be eligible for 1BR/1BR Chronic Homeless/Accessible, must be referred to "1 Bed"
       '1 Bed' => ['1 Bed Room', '1 Bed Room Chronic Homeless', '1 Bed Room Accessible'],
       '2 Bed' => ['2 Bed Room', '2 Bed Room Chronic Homeless', '2 Bed Room Accessible'],
       '3 Bed' => ['3 Bed Room', '3 Bed Room Chronic Homeless', '3 Bed Room Accessible'],
