@@ -186,9 +186,9 @@ module HmisExternalApis::AcHmis
     def build_route(endpoint)
       base_url = creds.base_url.chomp('/') + '/' # ensure trailing slash is present
       if base_url.match?(/\/api\//) # expectation is that if base_url contains /api/ then the endpoint is relative to the base url
-        URI.join(base_url, endpoint).to_s
+        endpoint
       else
-        URI.join(base_url, 'clients/v1/api/clients/', endpoint).to_s
+        "clients/v1/api/clients/#{endpoint}"
       end
     end
 
