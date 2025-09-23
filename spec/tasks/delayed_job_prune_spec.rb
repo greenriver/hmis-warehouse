@@ -104,4 +104,125 @@ RSpec.describe 'delayed_job:prune', type: :task do
     expect(job.failed_at).to be_nil
     expect(job.locked_by).to include('host:live-pod-1')
   end
+
+  it 'scopes by queue when PRUNE_DJ_QUEUE is set' do
+    stub_k8s_pods([])
+    ENV['PRUNE_DJ_QUEUE'] = 'default'
+
+    travel_to(Time.zone.parse('2025-01-01 12:00:00 UTC')) do
+      default_job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'default',
+        run_at: Time.current,
+        locked_at: 2.minutes.ago,
+        locked_by: 'delayed_job.0 host:dead-pod-123 pid:9',
+      )
+
+      other_job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'other',
+        run_at: Time.current,
+        locked_at: 2.minutes.ago,
+        locked_by: 'delayed_job.0 host:dead-pod-456 pid:10',
+      )
+
+      Rake::Task[task_name].invoke
+
+      expect(default_job.reload.failed_at).to be_present
+      expect(other_job.reload.failed_at).to be_nil
+      expect(other_job.locked_by).to be_present
+    end
+  end
+
+  it 'acts only on locks strictly older than the cutoff' do
+    stub_k8s_pods([])
+
+    travel_to(Time.zone.parse('2025-01-01 12:00:00 UTC')) do
+      stale_job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'default',
+        run_at: Time.current,
+        locked_at: 61.seconds.ago,
+        locked_by: 'delayed_job.0 host:dead-pod-1 pid:9',
+      )
+
+      fresh_job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'default',
+        run_at: Time.current,
+        locked_at: 59.seconds.ago,
+        locked_by: 'delayed_job.0 host:dead-pod-2 pid:9',
+      )
+
+      Rake::Task[task_name].invoke
+
+      expect(stale_job.reload.failed_at).to be_present
+      expect(fresh_job.reload.failed_at).to be_nil
+      expect(fresh_job.locked_by).to be_present
+    end
+  end
+
+  it 'skips jobs with nil locked_at' do
+    stub_k8s_pods([])
+
+    travel_to(Time.zone.parse('2025-01-01 12:00:00 UTC')) do
+      job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'default',
+        run_at: Time.current,
+        locked_at: nil,
+        locked_by: 'delayed_job.0 host:dead-pod-123 pid:9',
+      )
+
+      Rake::Task[task_name].invoke
+
+      job.reload
+      expect(job.failed_at).to be_nil
+      expect(job.locked_by).to be_present
+    end
+  end
+
+  it 'exits with error on unsupported action and makes no changes' do
+    stub_k8s_pods([])
+    ENV['PRUNE_DJ_ACTION'] = 'bogus'
+
+    travel_to(Time.zone.parse('2025-01-01 12:00:00 UTC')) do
+      job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'default',
+        run_at: Time.current,
+        locked_at: 2.minutes.ago,
+        locked_by: 'delayed_job.0 host:dead-pod-123 pid:9',
+      )
+
+      expect { Rake::Task[task_name].invoke }.to raise_error(SystemExit)
+
+      job.reload
+      expect(job.failed_at).to be_nil
+      expect(job.locked_by).to be_present
+    end
+  end
+
+  it 'prefers ENV vars over rake args for action' do
+    stub_k8s_pods([])
+    ENV['PRUNE_DJ_ACTION'] = 'unlock'
+
+    travel_to(Time.zone.parse('2025-01-01 12:00:00 UTC')) do
+      job = Delayed::Job.create!(
+        handler: "--- {}\n",
+        queue: 'default',
+        run_at: Time.current,
+        locked_at: 2.minutes.ago,
+        locked_by: 'delayed_job.0 host:dead-pod-123 pid:9',
+      )
+
+      # Pass a conflicting rake arg; ENV should take precedence and unlock
+      Rake::Task[task_name].invoke('fail', nil, nil)
+
+      job.reload
+      expect(job.locked_by).to be_nil
+      expect(job.locked_at).to be_nil
+      expect(job.failed_at).to be_nil
+    end
+  end
 end
