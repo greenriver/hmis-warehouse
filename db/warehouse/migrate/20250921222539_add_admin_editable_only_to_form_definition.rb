@@ -8,6 +8,6 @@
 
 class AddAdminEditableOnlyToFormDefinition < ActiveRecord::Migration[7.0]
   def change
-    add_column :hmis_form_definitions, :admin_editable_only, :boolean, default: false
+    add_column :hmis_form_definitions, :admin_editable_only, :boolean, default: false, null: false
   end
 end
