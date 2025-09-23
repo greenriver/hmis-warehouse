@@ -24,7 +24,7 @@ module Types
     end
 
     def external_referrals_enabled
-      HmisExternalApis::AcHmis::Mper.enabled?
+      HmisExternalApis::AcHmis::LinkApi.enabled?
     end
 
     def mci_id_enabled

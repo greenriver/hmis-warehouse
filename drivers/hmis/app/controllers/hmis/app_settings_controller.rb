@@ -43,7 +43,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
         # Whether to show MCI ID in client search results
         mciId: HmisExternalApis::AcHmis::Mci.enabled?,
         # Whether to show Referral and Denial screens
-        externalReferrals: HmisExternalApis::AcHmis::Mper.enabled?,
+        externalReferrals: HmisExternalApis::AcHmis::LinkApi.enabled?,
       },
     }
   end
