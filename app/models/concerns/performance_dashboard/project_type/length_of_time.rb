@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::ProjectType::LengthOfTime
   extend ActiveSupport::Concern
 
@@ -15,7 +17,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   end
 
   # Note Handle PH differently
-  # return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
+  # return false if HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
   #       (self.MoveInDate.present? && date > self.MoveInDate)
   #     return nil
 

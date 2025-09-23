@@ -273,7 +273,7 @@ module BostonReports
       @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group(grouping_column).count.map do |coc_num, count|
         percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
         {
-          name: HudUtility2024.coc_codes(coc_num),
+          name: HudHelper.util.coc_codes(coc_num),
           count: count,
           total: count_enrolled_with_community_of_origin,
           percent: percentage,
