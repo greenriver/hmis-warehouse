@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::Entering::Race
   extend ActiveSupport::Concern
 
@@ -34,7 +36,7 @@ module PerformanceDashboard::Overview::Entering::Race
       categories = entering_by_race.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtility2024.race(s)] }.to_h,
+          labels: categories.map { |s| [s, HudHelper.util.race(s)] }.to_h,
           chosen: @races,
           columns: columns,
           categories: categories.map { |s| race_title(s) },

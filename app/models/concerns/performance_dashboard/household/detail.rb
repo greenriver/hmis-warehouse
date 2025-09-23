@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module PerformanceDashboard::Household::Detail
   extend ActiveSupport::Concern
@@ -40,9 +40,9 @@ module PerformanceDashboard::Household::Detail
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HudUtility2024.project_type(column)
+      HudHelper.util.project_type(column)
     when 'CoC'
-      HudUtility2024.coc_name(column)
+      HudHelper.util.coc_name(column)
     else
       column
     end

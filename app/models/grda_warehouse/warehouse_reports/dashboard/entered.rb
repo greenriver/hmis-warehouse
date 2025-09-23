@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Entered < GrdaWarehouse::WarehouseReports::Dashboard::Base
     include ArelHelper
@@ -23,31 +25,31 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def set_date_range
       start_date = parameters.with_indifferent_access[:start]
       end_date = parameters.with_indifferent_access[:end]
-      @range = ::Filters::DateRange.new({start: start_date, end: end_date})
+      @range = ::Filters::DateRange.new({ start: start_date, end: end_date })
       @month_name = @range.start.to_time.strftime('%B')
     end
 
     def init
-      set_date_range()
+      set_date_range
 
       # build hashes suitable for chartjs
-      @labels = HudUtility2024.homeless_type_titles.sort_by(&:first)
+      @labels = HudHelper.util.homeless_type_titles.sort_by(&:first)
       @data = setup_data_structure(start_date: @range.start)
       @first_time_client_ids = Set.new
     end
 
     def run!
-      init()
+      init
 
       # fetch active client counts
       @client_enrollment_totals_by_type = @labels.map do |key, _|
-        project_type = HudUtility2024.residential_project_type_numbers_by_code[key]
+        project_type = HudHelper.util.residential_project_type_numbers_by_code[key]
         [project_type.first, enrollment_counts(project_type).count]
       end.to_h
 
       # fetch counts of new entries
       @client_entry_totals_by_type = @labels.map do |key, _|
-        project_type = HudUtility2024.residential_project_type_numbers_by_code[key]
+        project_type = HudHelper.util.residential_project_type_numbers_by_code[key]
         [project_type.first, entry_counts(project_type).count]
       end.to_h
 
@@ -55,7 +57,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # This has a side-effect of saving off the client ids for those who this is the first time in the
       # project type
       @buckets = @labels.map do |key, _|
-        project_type = HudUtility2024.residential_project_type_numbers_by_code[key]
+        project_type = HudHelper.util.residential_project_type_numbers_by_code[key]
         entries = entry_dates_by_client(project_type)
         [project_type.first, bucket_clients(entries)]
       end.to_h
@@ -68,16 +70,16 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # ensure that the counts are in the same order as the labels
       @labels.each do |project_type_sym, _|
         @buckets.each do |project_type, bucket|
-          project_type_key = ::HudUtility2024.project_type_brief(project_type).downcase.to_sym
-          if project_type_sym == project_type_key
-            bucket.each do |group_key, client_count|
-              @data[group_key][:data] << client_count
-            end
+          project_type_key = ::HudHelper.util.project_type_brief(project_type).downcase.to_sym
+          next unless project_type_sym == project_type_key
+
+          bucket.each do |group_key, client_count|
+            @data[group_key][:data] << client_count
           end
         end
       end
 
-      data = {
+      {
         client_enrollment_totals_by_type: @client_enrollment_totals_by_type,
         client_entry_totals_by_type: @client_entry_totals_by_type,
         first_time_total_deduplicated: @first_time_client_ids.count,
@@ -89,8 +91,6 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
     end
 
-
-
     def bucket_clients clients
       buckets = {
         sixty_plus: 0,
@@ -100,7 +100,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
 
       clients.each do |client_id, entry_dates|
-        if entry_dates.map{|date| @range.range.include?(date)}.all?
+        if entry_dates.map { |date| @range.range.include?(date) }.all?
           buckets[:first_time] += 1
           @first_time_client_ids << client_id
         else
@@ -121,7 +121,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       entry_dates.first(2).reduce(:-).abs
     end
 
-    def setup_data_structure start_date:
+    def setup_data_structure start_date: # rubocop:disable Lint/UnusedMethodArgument
       {
         first_time: {
           label: 'First time clients in the project type',
@@ -145,6 +145,5 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         },
       }
     end
-
   end
 end

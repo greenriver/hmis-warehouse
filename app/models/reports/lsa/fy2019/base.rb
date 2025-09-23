@@ -72,7 +72,7 @@ module Reports::Lsa::Fy2019
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
             str = "; Projects: #{options['project_id'].map do |m|
-              GrdaWarehouse::Hud::Project.find_by_id(m.to_i)&.name || m if m.present? # rubocop:disable Metrics/BlockNesting
+              GrdaWarehouse::Hud::Project.find_by_id(m.to_i)&.name || m if m.present?
             end.compact.join(', ')}"
           end
         else
@@ -94,6 +94,7 @@ module Reports::Lsa::Fy2019
       if (sub_population = options['sub_population']) && sub_population.present?
         return "; Sub Population: #{sub_population.humanize.titleize}"
       end
+
       ''
     end
 
@@ -199,7 +200,7 @@ module Reports::Lsa::Fy2019
         distinct.
         # merge(GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
-        where(f_t[:Funder].not_in(::HudUtility.funding_sources.keys)),
+        where(f_t[:Funder].not_in(::HudHelper.util('legacy').funding_sources.keys)),
       )
     end
 

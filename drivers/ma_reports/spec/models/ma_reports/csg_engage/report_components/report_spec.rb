@@ -77,7 +77,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
         [{}, 'U'],
       ].each do |attrs, expected|
         it "should have the right value (#{expected}) for values: #{attrs}" do
-          c1.update!(**HudUtility2024.gender_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs)
+          c1.update!(**HudHelper.util.gender_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs)
           result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
           expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Gender')).to eq(expected)
         end
@@ -103,7 +103,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
           [99, expected_unknown_latino],
         ].each do |latino_val, expected|
           it "should have the right value (#{expected}) for ethnicity #{latino_val} and race: #{attrs}" do
-            c1.update!(**HudUtility2024.race_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs, HispanicLatinaeo: latino_val)
+            c1.update!(**HudHelper.util.race_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs, HispanicLatinaeo: latino_val)
             result = MaReports::CsgEngage::ReportComponents::Report.new(p).serialize
             expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Race 1/Ethnicity 1')).to eq(expected)
           end
