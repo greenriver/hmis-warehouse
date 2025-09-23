@@ -4851,7 +4851,7 @@ type FormIdentifier {
   access: FormIdentifierAccess!
 
   """
-  todo
+  Whether this form is locked for editing by non-admins
   """
   adminEditableOnly: Boolean!
   allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
