@@ -2,8 +2,8 @@
 
 ## Status
 
-- Current Status: Proposed
-- Date of last update: 2025-09-18
+- Current Status: Accepted
+- Date of last update: 2025-09-23
 - Decision-makers: OP Engineering team
 
 ## Context
