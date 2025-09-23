@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+# Legacy type for External Referrals. This type will be deprecated with #8142
 module Types
   class HmisSchema::ReferralHouseholdMember < Types::BaseObject
     description 'HUD Client within a Referral Household'

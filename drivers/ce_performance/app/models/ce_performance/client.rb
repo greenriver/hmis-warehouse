@@ -177,7 +177,7 @@ module CePerformance
         GrdaWarehouse::Hud::Client.
         joins(source_enrollments: :exit).
         distinct.
-        where(ex_t[:Destination].in(HudUtility2024.valid_destinations.keys)),
+        where(ex_t[:Destination].in(HudHelper.util.valid_destinations.keys)),
       )
     end
     scope :in_exit_destination, ->(destination_id) do
@@ -190,23 +190,23 @@ module CePerformance
     end
 
     scope :homeless_exit_destination, -> do
-      in_exit_destination(HudUtility2024.homeless_destinations)
+      in_exit_destination(HudHelper.util.homeless_destinations)
     end
 
     scope :institutional_exit_destination, -> do
-      in_exit_destination(HudUtility2024.institutional_destinations)
+      in_exit_destination(HudHelper.util.institutional_destinations)
     end
 
     scope :temporary_exit_destination, -> do
-      in_exit_destination(HudUtility2024.temporary_destinations)
+      in_exit_destination(HudHelper.util.temporary_destinations)
     end
 
     scope :permanent_exit_destination, -> do
-      in_exit_destination(HudUtility2024.permanent_destinations)
+      in_exit_destination(HudHelper.util.permanent_destinations)
     end
 
     scope :other_exit_destination, -> do
-      in_exit_destination(HudUtility2024.other_destinations)
+      in_exit_destination(HudHelper.util.other_destinations)
     end
 
     # FIXME eventually.  This would be much better if we could figure out how to query the events column
@@ -216,7 +216,7 @@ module CePerformance
     end
 
     def self.literally_homeless_at_entry_query
-      arel_table[:prior_living_situation].in(::HudUtility2024.homeless_situations(as: :prior)).
+      arel_table[:prior_living_situation].in(::HudHelper.util.homeless_situations(as: :prior)).
         or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1)))
     end
 
@@ -243,8 +243,8 @@ module CePerformance
         pops['LGBTQ'] = :client_lgbtq
         pops['Household LGBTQ'] = :lgbtq_household_members
       end
-      race_pops = HudUtility2024.races(multi_racial: true).except('RaceNone').transform_keys { |k| "race_#{k.underscore}".to_sym }.invert.freeze
-      gender_pops = HudUtility2024.gender_field_name_label.except(:GenderNone).transform_keys { |k| "gender_#{k.to_s.underscore}".to_sym }.invert.freeze
+      race_pops = HudHelper.util.races(multi_racial: true).except('RaceNone').transform_keys { |k| "race_#{k.underscore}".to_sym }.invert.freeze
+      gender_pops = HudHelper.util.gender_field_name_label.except(:GenderNone).transform_keys { |k| "gender_#{k.to_s.underscore}".to_sym }.invert.freeze
 
       pops = pops.merge(race_pops)
       pops = pops.merge(gender_pops)

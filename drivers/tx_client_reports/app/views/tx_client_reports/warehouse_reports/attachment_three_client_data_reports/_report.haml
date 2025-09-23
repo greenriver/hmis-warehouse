@@ -24,8 +24,8 @@
             %td= row[:street_address]
             %td= row[:age]
             -# TODO: This needs to be updated in the receiving system before we update here
-            %td= row[:genders].map { |id| if id == 1 then 'Male' elsif id == 0 then 'Female' end }.uniq.join(' and ') # See HudUtility.genders
-            %td= row[:races].map { |r| HudUtility2024.race(r) }.join(', ')
+            %td= row[:genders].map { |id| if id == 1 then 'Male' elsif id == 0 then 'Female' end }.uniq.join(' and ') # See HudHelper.util('legacy').genders
+            %td= row[:races].map { |r| HudHelper.util.race(r) }.join(', ')
             %td= checkmark(row[:disabled])
             %td= row[:hh_size]
             %td= number_to_currency(row[:income])

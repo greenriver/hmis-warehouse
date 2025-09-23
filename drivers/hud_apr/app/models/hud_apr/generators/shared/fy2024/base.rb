@@ -569,7 +569,7 @@ module HudApr::Generators::Shared::Fy2024
         merge(
           GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @report.coc_codes).
           or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
-          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtility2024.cocs.keys)),
+          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudHelper.util('2024').cocs.keys)),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
