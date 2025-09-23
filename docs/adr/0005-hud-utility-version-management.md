@@ -22,7 +22,7 @@ In identifying a solution, we would like to:
 1. **Decrease Maintenance Time**: The time it takes to upgrade each year should not grow significantly over time.  We know these changes are coming, we should prioritize making the switch as efficient as possible
 2. **Decrease Code Churn**: While we need parts of the application pinned to a specific fiscal year, much of the application can operate in the "current" fiscal year.  As long as there aren't breaking changes, we shouldn't need to update all of the usage of the utility
 3. **Long-running Job Consistency**: Jobs that span fiscal year transitions (October 1st) should consistently reference the same fiscal year information throughout
-4. **Thread Safety**: There shouldn't be a way to accidentally switch between current fiscal years
+4. **Thread Safety**: There shouldn't be a way to accidentally switch between current fiscal years. This might occur due to time-based roll over (current HUD standard changes independent of a deployment).
 5. **Utility Naming**: It should be easy to find all instances of the utility's use and the class loader should not confuse the utility with other classes or modules
 
 ### Constraints
@@ -62,7 +62,7 @@ Implement a factory pattern using `HudHelper` as the primary interface for HUD u
 3. **Long-Running Job Stability**: Jobs maintain consistent version context throughout execution
 4. **Clear Version Management**: Explicit factory pattern makes version usage transparent
 5. **Flexible Override**: Supports both automatic and explicit version selection
-6. **Maintainable**: Centralized version logic reduces maintenance burden
+6. **Maintainable**: Centralized version logic reduces maintenance burden. Supports future changes, such as replacing class methods with a singleton instance.
 7. **Backward Compatible**: Existing utility modules remain available
 
 ### Challenges
