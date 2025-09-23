@@ -28,7 +28,7 @@ module HudApr::Generators::CeApr::Fy2021
     end
 
     def self.default_project_type_codes
-      HudUtility2024.performance_reporting.keys
+      HudHelper.util('2024').performance_reporting.keys
     end
 
     def self.filter_class

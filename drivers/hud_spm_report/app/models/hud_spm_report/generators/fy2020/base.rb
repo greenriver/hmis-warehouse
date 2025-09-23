@@ -32,11 +32,11 @@ module HudSpmReport::Generators::Fy2020
 
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
 
-    ES = HudUtility2024.residential_project_type_numbers_by_code.values_at(:es).flatten(1).freeze
-    SH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:sh).flatten(1).freeze
-    TH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:th).flatten(1).freeze
-    PH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten(1).freeze
-    SO = HudUtility2024.residential_project_type_numbers_by_code.values_at(:so).flatten(1).freeze
+    ES = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:es).flatten(1).freeze
+    SH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:sh).flatten(1).freeze
+    TH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:th).flatten(1).freeze
+    PH = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:ph).flatten(1).freeze
+    SO = HudHelper.util('2024').residential_project_type_numbers_by_code.values_at(:so).flatten(1).freeze
 
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
@@ -50,7 +50,7 @@ module HudSpmReport::Generators::Fy2020
     ES_SH_PH = ES + SH + PH
     ES_SH_TH_PH = ES + SH + TH + PH
     ES_SH_TH_PH_SO = ES + SH + TH + PH + SO
-    PH_TH =  PH + TH
+    PH_TH = PH + TH
 
     RRH = [13].freeze
     PH_PSH = [3, 9, 10].freeze
@@ -547,9 +547,8 @@ module HudSpmReport::Generators::Fy2020
         active_enrollments = client_enrollments.select do |e|
           (
             e[:project_type].in? ES_SH_TH_PH
-          ) && (
+          ) &&
             e[:first_date_in_program] >= @report.start_date && e[:first_date_in_program] <= @report.end_date
-          )
         end
         # We might not have any since we are fetching all clients with recent history
         next if active_enrollments.none?
@@ -578,10 +577,9 @@ module HudSpmReport::Generators::Fy2020
         prior_enrollments = client_enrollments.select do |e|
           (
             e[:project_type].in? ES_SH_TH_PH
-          ) && (
+          ) &&
             e[:first_date_in_program] < client_start &&
             (e[:last_date_in_program].nil? || e[:last_date_in_program] >= last_date_cutoff)
-          )
         end
 
         # 5. Because each client may be counted no more than once in cells
@@ -1453,8 +1451,8 @@ module HudSpmReport::Generators::Fy2020
     #
     # sh_enrollments: an Array(GrdaWarehouse::ServiceHistoryEnrollments) for a client with suitable preloads
     #   covering all dates that could contribute to this report
-    # project_types: Array(HudUtility.project_types.keys)
-    # stop_project_types: Array(HudUtility.project_types.keys)
+    # project_types: Array(HudHelper.util('legacy').project_types.keys)
+    # stop_project_types: Array(HudHelper.util('legacy').project_types.keys)
     # include_pre_entry: boolean true to include days before entry
     #
     # The flags are set like so
