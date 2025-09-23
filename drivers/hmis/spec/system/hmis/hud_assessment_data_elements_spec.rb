@@ -272,6 +272,8 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
     end
 
     context 'with project that collects granular disability info' do
+      let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 3, with_coc: true }
+      let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
       it 'renders full disability component and processes all rows' do
         assert_text 'Overall Disabling Condition'
         assert_text 'HIV/AIDS'

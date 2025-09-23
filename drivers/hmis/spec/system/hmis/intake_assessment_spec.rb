@@ -57,7 +57,12 @@ RSpec.feature 'Intake assessment', type: :system do
       mui_radio_choose default_option, from: 'Income from Any Source'
       mui_radio_choose default_option, from: 'Non-Cash Benefits from Any Source'
       mui_radio_choose default_option, from: 'Covered by Health Insurance'
-      mui_table_select default_option, row: 'Overall Disabling Condition', column: 'Status'
+      # Disabling condition can be a single select or part of the granular table
+      if page.has_text?('Overall Disabling Condition')
+        mui_table_select default_option, row: 'Overall Disabling Condition', column: 'Status'
+      else
+        mui_select default_option, from: 'Disabling Condition'
+      end
       mui_select default_option, from: 'Survivor of Domestic Violence'
       click_button 'Save Assessment'
       assert_text(/Last saved [0-9] seconds? ago/)
