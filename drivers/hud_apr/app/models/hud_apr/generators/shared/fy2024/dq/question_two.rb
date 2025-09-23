@@ -112,7 +112,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionTwo
       universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 ||
-          (member.ssn_quality == 1 && member.ssn.present? && !HudUtility2024.valid_social?(member.ssn))
+          (member.ssn_quality == 1 && member.ssn.present? && !HudHelper.util('2024').valid_social?(member.ssn))
       end
       q_members = universe_members.where(id: q_member_ids)
       answer.add_members(q_members)

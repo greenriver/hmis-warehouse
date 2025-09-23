@@ -21,7 +21,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment
 
           key = row['HouseholdID'].presence || "en_#{row['EnrollmentID']}"
           key += "_ds_#{row['data_source_id']}"
-          h[key] ||= row['CoCCode'] if HudUtility2024.valid_coc?(row['CoCCode'])
+          h[key] ||= row['CoCCode'] if HudHelper.util('2024').valid_coc?(row['CoCCode'])
         end
       end
       key = enrollment_row['HouseholdID'].presence || "en_#{enrollment_row['EnrollmentID']}"

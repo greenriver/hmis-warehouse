@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::Exiting::Ethnicity
   extend ActiveSupport::Concern
 
@@ -42,7 +44,7 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
       categories = exiting_by_ethnicity.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HudUtility2024.ethnicity(s.to_sym)] }.to_h,
+          labels: categories.map { |s| [s, HudHelper.util.ethnicity(s.to_sym)] }.to_h,
           chosen: @ethnicities,
           columns: columns,
           categories: categories,

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # provides validation for date ranges
 module Filters
   class CensusReportFilter < HudFilterBase
@@ -20,7 +22,7 @@ module Filters
       self.limit_es_to_nbn = filters.dig(:limit_es_to_nbn).in?(['1', 'true', true]) unless filters.dig(:limit_es_to_nbn).nil?
       self
     end
-    alias set_from_params update
+    alias_method :set_from_params, :update
 
     def known_params
       super << [
@@ -58,7 +60,7 @@ module Filters
     end
 
     def project_type_code_options_for_select
-      HudUtility2024.residential_type_titles.freeze.invert
+      HudHelper.util.residential_type_titles.freeze.invert
     end
 
     # These are not presented in the UI, but need to be set to nothing or all homeless projects are returned

@@ -134,7 +134,7 @@ module Reporting::DataQualityReports
     end
 
     scope :ph, -> do
-      where project_type: HudUtility2024.residential_project_type_numbers_by_code[:ph]
+      where project_type: HudHelper.util.residential_project_type_numbers_by_code[:ph]
     end
 
     scope :should_calculate_income_annual_completeness, -> do
@@ -308,7 +308,7 @@ module Reporting::DataQualityReports
     end
 
     def calculate_ssn_missing ssn:
-      ssn.blank? || ! ::HudUtility2024.valid_social?(ssn)
+      ssn.blank? || ! ::HudHelper.util.valid_social?(ssn)
     end
 
     def calculate_ssn_partial ssn_quality:
@@ -993,7 +993,7 @@ module Reporting::DataQualityReports
     end
 
     def calculate_days_in_ph_before_move_in_date project_type:, entry_date:, move_in_date:, report_end:
-      return nil unless project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
+      return nil unless project_type.in?(HudHelper.util.residential_project_type_numbers_by_code[:ph])
 
       # if we don't have a move-in-date use the earlier of report_end and today.
       # if the report_end is before the move-in-date use the report end
