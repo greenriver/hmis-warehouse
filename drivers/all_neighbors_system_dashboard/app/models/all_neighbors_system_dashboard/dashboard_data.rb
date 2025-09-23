@@ -115,7 +115,7 @@ module AllNeighborsSystemDashboard
 
     def demographic_race
       # Sorted alphabetically, with not collected at the end
-      HudUtility2024.races(multi_racial: true).except(*ignored_races).values.sort + [HudUtility2024.races(multi_racial: true)['RaceNone']]
+      HudHelper.util.races(multi_racial: true).except(*ignored_races).values.sort + [HudHelper.util.races(multi_racial: true)['RaceNone']]
     end
 
     # Note, the census doesn't contain MidEastNAfrican and HispanicLatinaeo is represented as ethnicity
@@ -167,7 +167,7 @@ module AllNeighborsSystemDashboard
     end
 
     def demographic_gender
-      HudUtility2024.genders.values - unknown_genders + ['Unknown Gender']
+      HudHelper.util.genders.values - unknown_genders + ['Unknown Gender']
     end
 
     def demographic_gender_colors
@@ -279,11 +279,11 @@ module AllNeighborsSystemDashboard
           # Prioritize counting clients in diversion over by project type
           where.not(project_id: @report.filter.secondary_project_ids)
       when 'Unsheltered', 'Unhoused Population'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
+        scope.where(project_type: HudHelper.util.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
           # Prioritize counting clients in diversion over by project type
           where.not(project_id: @report.filter.secondary_project_ids)
       when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
+        scope.where.not(project_type: HudHelper.util.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids).
           # Prioritize counting clients in diversion over by project type
           where.not(project_id: @report.filter.secondary_project_ids)
       when *household_types
@@ -302,11 +302,11 @@ module AllNeighborsSystemDashboard
         scope.where(age: 63..)
       when 'Unknown Age'
         scope.where(age: nil).or(scope.where(age: ...0))
-      when *HudUtility2024.gender_known_values
+      when *HudHelper.util.gender_known_values
         scope.where(gender: type)
       when 'Unknown Gender'
-        scope.where.not(gender: HudUtility2024.gender_known_values)
-      when *HudUtility2024.races(multi_racial: false).values
+        scope.where.not(gender: HudHelper.util.gender_known_values)
+      when *HudHelper.util.races(multi_racial: false).values
         scope.where(Enrollment.arel_table[:race_list].matches("%#{type}%"))
       else
         raise "Unknown type: #{type}"

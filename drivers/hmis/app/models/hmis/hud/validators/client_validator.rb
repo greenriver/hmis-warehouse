@@ -27,8 +27,8 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
 
   def validate(record)
     super(record) do
-      record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HudUtility2024.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
-      record.errors.add :race, :required if !skipped_attributes(record).include?(:race) && ::HudUtility2024.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
+      record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HudHelper.util.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
+      record.errors.add :race, :required if !skipped_attributes(record).include?(:race) && ::HudHelper.util.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
 
       if record.dob.present?
         record.errors.add :dob, :out_of_range, message: self.class.future_message if record.dob.future?

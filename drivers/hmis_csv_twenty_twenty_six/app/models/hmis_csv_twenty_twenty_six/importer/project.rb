@@ -16,7 +16,7 @@ module HmisCsvTwentyTwentySix::Importer
 
     has_one :destination_record, **hud_assoc(:ProjectID, 'Project')
 
-    HudUtility2026.residential_project_type_numbers_by_code.each do |k, v|
+    HudHelper.util('2026').residential_project_type_numbers_by_code.each do |k, v|
       scope k, -> { where(ProjectType: v) }
       define_method "#{k}?" do
         v.include? self[ProjectType]
@@ -25,7 +25,7 @@ module HmisCsvTwentyTwentySix::Importer
 
     scope :residential, -> do
       where(
-        arel_table[:ProjectType].in(HudUtility2026.residential_project_type_ids - [13]).
+        arel_table[:ProjectType].in(HudHelper.util('2026').residential_project_type_ids - [13]).
         or(
           arel_table[:ProjectType].eq(13).
           # NOTE: officially, only RRHSubType 2 count as residential, but old data won't always have
@@ -71,13 +71,13 @@ module HmisCsvTwentyTwentySix::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2026').yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         ProjectType: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.project_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2026').project_types.keys.map(&:to_s).freeze },
           },
           # ProjectType can only be blank if ContinuumProject is not 1
           {
@@ -88,25 +88,25 @@ module HmisCsvTwentyTwentySix::Importer
         HousingType: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.housing_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2026').housing_types.keys.map(&:to_s).freeze },
           },
         ],
         ResidentialAffiliation: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2026').yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         TargetPopulation: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.target_populations.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2026').target_populations.keys.map(&:to_s).freeze },
           },
         ],
         HOPWAMedAssistedLivingFac: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2026.hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudHelper.util('2026').hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
           },
         ],
       }

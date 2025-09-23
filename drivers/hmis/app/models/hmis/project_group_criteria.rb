@@ -114,7 +114,7 @@ module Hmis
 
       # Add Project Types
       if project_type_numbers.any?
-        project_type_names = project_type_numbers.uniq.map { |pt| HudUtility2024.project_type(pt.to_i) }
+        project_type_names = project_type_numbers.uniq.map { |pt| HudHelper.util.project_type(pt.to_i) }
         criteria << { label: 'Project Types', values: project_type_names }
       end
 
@@ -142,7 +142,7 @@ module Hmis
     end
 
     def self.available_project_type_numbers
-      ::HudUtility2024.project_types.invert
+      ::HudHelper.util.project_types.invert
     end
 
     private

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module PerformanceDashboard::Overview::Detail
   extend ActiveSupport::Concern
@@ -38,17 +38,17 @@ module PerformanceDashboard::Overview::Detail
   def detail_column_display(header:, column:)
     case header
     when 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
-      HudUtility2024.no_yes_reasons_for_missing_data(column)
-    when HudUtility2024.race('AmIndAKNative'), HudUtility2024.race('Asian'), HudUtility2024.race('BlackAfAmerican'), HudUtility2024.race('NativeHIPacific'), HudUtility2024.race('White'), HudUtility2024.race('RaceNone'), HudUtility2024.race('HispanicLatinaeo'), HudUtility2024.race('MidEastNAfrican'), HudUtility2024.ethnicity(:unknown), HudUtility2024.ethnicity(:hispanic_latinaeo), HudUtility2024.ethnicity(:non_hispanic_latinaeo)
-      HudUtility2024.no_yes_reasons_for_missing_data(column)
+      HudHelper.util.no_yes_reasons_for_missing_data(column)
+    when HudHelper.util.race('AmIndAKNative'), HudHelper.util.race('Asian'), HudHelper.util.race('BlackAfAmerican'), HudHelper.util.race('NativeHIPacific'), HudHelper.util.race('White'), HudHelper.util.race('RaceNone'), HudHelper.util.race('HispanicLatinaeo'), HudHelper.util.race('MidEastNAfrican'), HudHelper.util.ethnicity(:unknown), HudHelper.util.ethnicity(:hispanic_latinaeo), HudHelper.util.ethnicity(:non_hispanic_latinaeo), HudHelper.util.ethnicity(:hispanic_latinaeo), HudHelper.util.ethnicity(:non_hispanic_latinaeo)
+      HudHelper.util.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
-      HudUtility2024.veteran_status(column)
+      HudHelper.util.veteran_status(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HudUtility2024.project_type(column)
+      HudHelper.util.project_type(column)
     when 'CoC'
-      HudUtility2024.coc_name(column)
+      HudHelper.util.coc_name(column)
     else
       column
     end
@@ -122,7 +122,7 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     if options[:race] || options[:ethnicity] || options[:race_and_ethnicity]
-      HudUtility2024.races.each do |k, title|
+      HudHelper.util.races.each do |k, title|
         columns[title] = c_t[k.to_sym]
       end
     end
