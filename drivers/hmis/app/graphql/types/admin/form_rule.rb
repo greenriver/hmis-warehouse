@@ -33,7 +33,8 @@ module Types
     field :organization_id, ID, null: true
     field :organization, HmisSchema::Organization, null: true
     field :project_id, ID, null: true
-    field :project, HmisSchema::Project, null: true
+    field :project_name, String, null: true # Resolve project name, regardless of whether the current user has permission to view the project
+    field :project, HmisSchema::Project, null: true, deprecation_reason: 'Use projectName instead'
     field :service_category, HmisSchema::ServiceCategory, null: true, method: :custom_service_category
     field :service_type, HmisSchema::ServiceType, null: true, method: :custom_service_type
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: true
@@ -68,6 +69,12 @@ module Types
       return unless object.entity_type == Hmis::Hud::Project.sti_name
 
       object.entity
+    end
+
+    def project_name
+      return unless object.entity_type == Hmis::Hud::Project.sti_name
+
+      object.entity.project_name
     end
 
     def organization_id
