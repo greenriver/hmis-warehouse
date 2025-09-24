@@ -93,7 +93,7 @@ module HealthThriveAssessment
     enum :reporter, {
       patient: 10,
       caregiver: 20,
-    }
+    }, prefix: true
 
     def reporter_options
       {
@@ -120,7 +120,7 @@ module HealthThriveAssessment
       never: 10,
       sometimes: 20,
       often: 30,
-    }, _prefix: true
+    }, prefix: true
 
     def food_insecurity_responses
       {
@@ -134,7 +134,7 @@ module HealthThriveAssessment
       never: 10,
       sometimes: 20,
       often: 30,
-    }, _prefix: true
+    }, prefix: true
 
     def food_worries_responses
       {
