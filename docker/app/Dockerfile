@@ -145,7 +145,9 @@ RUN apt-get update && apt-get upgrade -y \
 
 WORKDIR /app
 
+# CVE-2025-58767, note rexml is bundled with ruby, and must be explicitly pinned
 RUN gem update --system \
+  && gem update rexml \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
