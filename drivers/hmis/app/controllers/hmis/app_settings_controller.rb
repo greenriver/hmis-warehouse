@@ -38,13 +38,6 @@ class Hmis::AppSettingsController < Hmis::BaseController
       revision: Git.revision,
       branch: Git.branch,
       theme: theme&.hmis_value,
-      # deprecated, use globalFeatureFlags on the GraphQL API instead
-      globalFeatureFlags: {
-        # Whether to show MCI ID in client search results
-        mciId: HmisExternalApis::AcHmis::Mci.enabled?,
-        # Whether to show Referral and Denial screens
-        externalReferrals: HmisExternalApis::AcHmis::Mper.enabled?,
-      },
     }
   end
 end
