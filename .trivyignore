@@ -10,3 +10,6 @@ CVE-2025-22874
 
 # This go vuln is not exploitable. The esbuild package is not yet updated
 CVE-2025-47907
+
+# Go stdlib vuln in esbuild binary - not exploitable in our context
+CVE-2025-47906
