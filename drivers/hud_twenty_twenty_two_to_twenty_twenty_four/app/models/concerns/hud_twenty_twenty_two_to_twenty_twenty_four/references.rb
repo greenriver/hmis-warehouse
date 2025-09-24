@@ -15,6 +15,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
 
       private def reference(reference_name, &block)
         reference = @references[reference_name]
+        return unless reference
 
         if reference[:file].present?
           content = File.read(reference[:file])
