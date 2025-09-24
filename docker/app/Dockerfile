@@ -32,6 +32,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG USER_ID=10000
 ARG GROUP_ID=10000
 ARG BUNDLER_VERSION=2.6.3
+ARG PG_MAJOR=17
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=3.3.8
@@ -46,7 +47,7 @@ ENV BUNDLE_RETRY=3
 ENV BUNDLE_PATH $GEM_HOME
 ENV BUNDLE_APP_CONFIG=$BUNDLE_PATH
 ENV BUNDLE_BIN=$BUNDLE_PATH/bin
-ENV PATH /app/bin:$BUNDLE_BIN:$PATH
+ENV PATH /app/bin:$BUNDLE_BIN:/usr/lib/postgresql/17/bin:$PATH
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
 # core dumps during precompile on github when using the pre-cache image pulled
 # from ECR
@@ -112,12 +113,15 @@ RUN apt-get update && apt-get upgrade -y \
   libmagic-dev \
   libmagic1 \
   libpq-dev \
+  libreadline-dev \
   libx11-6 \
   libxext6 \
   libxml2-dev \
   libxrender1 \
   libxslt1-dev \
   libyaml-dev \
+  libzstd-dev \
+  liblz4-dev \
   locales-all \
   nodejs \
   p7zip-full \
@@ -126,12 +130,15 @@ RUN apt-get update && apt-get upgrade -y \
   policykit-1 \
   poppler-utils \
   postgresql-client \
+  postgresql-server-dev-all \
   shared-mime-info \
   software-properties-common \
   tar \
   tini \
   tzdata \
+  unzip \
   vim \
+  wget \
   zip \
   && rm -rf /var/lib/apt/lists/* \
   && if [ "$(uname -m)" = "aarch64" ]; then \
@@ -140,6 +147,13 @@ RUN apt-get update && apt-get upgrade -y \
        ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
      fi \
   && npm install -g yarn@1.22.19
+
+# Install custom pg_repack versions
+COPY docker/app/install_pg_repack.sh /usr/local/bin/install_pg_repack.sh
+RUN chmod +x /usr/local/bin/install_pg_repack.sh \
+  && /usr/local/bin/install_pg_repack.sh \
+  && PG_BIN_DIR=$(pg_config --bindir) \
+  && echo "export PATH=$PG_BIN_DIR:\$PATH" >> /etc/bash.bashrc
 
 WORKDIR /app
 

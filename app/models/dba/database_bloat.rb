@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Reduces bloat in tables and indexes
 #
 # Test with this:
@@ -30,11 +32,10 @@ class Dba::DatabaseBloat
   # minimum percentage of non-analyzed rows to trigger adjusting autovaccuum
   MIN_PCT_NOT_ANALZYED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
 
-  SERVER_PG_REPACK_VERSION = '1.4.7'.freeze
-
   def initialize(ar_base_class:, dry_run: false)
     self.ar_base_class = ar_base_class
     self.dry_run = dry_run
+    ensure_matching_pg_repack_versions!
   end
 
   def self.all_databases!(meth, dry_run: false)
@@ -117,8 +118,8 @@ class Dba::DatabaseBloat
     run(sql)
   end
 
-  # This is like a vacuum full, but orchastrated by pg_repack which doesn't
-  # aquire exlusive locks on the table
+  # This is like a vacuum full, but orchestrated by pg_repack which doesn't
+  # acquire exclusive locks on the table
   def repack!
     catch(:enough) do
       port = ar_base_class.connection_db_config.configuration_hash[:port].presence || '5432'
@@ -130,11 +131,13 @@ class Dba::DatabaseBloat
       bloated_tables.each.with_index do |row, i|
         # puts row
 
-        # need pg_repack to match match database extension. That's why we have
-        # the containerized pg_repack image in our deployed environments
+        # Get the appropriate pg_repack binary for this database version
+        db_version = pg_repack_db_version
+        binary = pg_repack_binary(db_version)
         options = "--no-superuser-check -U #{username} -d #{database} -h #{host} -p #{port} -t #{row['schemaname']}.#{row['tblname']}"
 
-        cmd = "pg_repack #{options}"
+        # In order to support multiple versions of pg_repack, we need to use the version-specific binary
+        cmd = "#{binary} #{options}"
 
         raise 'version of pg_repack needs to match that in the database'
 
@@ -151,6 +154,55 @@ class Dba::DatabaseBloat
   end
 
   private
+
+  # Map of supported pg_repack versions to their binary names. This allows us to use version-specific binaries for pg_repack.
+  SUPPORTED_VERSIONS = {
+    '1.5.1' => 'pg_repack-1.5.1',
+    '1.5.2' => 'pg_repack-1.5.2',
+  }.freeze
+
+  # Ensure the pg_repack extension is installed in the database and the version of the pg_repack extension matches the version of the pg_repack binary.
+  # This will raise an error if the pg_repack extension is not installed or the version of the pg_repack extension does not match the version of the pg_repack binary.
+  def ensure_matching_pg_repack_versions!
+    db_version = pg_repack_db_version
+    raise "pg_repack extension is not installed in this database (#{ar_base_class}). Run CREATE EXTENSION pg_repack;" if db_version.nil?
+
+    binary = pg_repack_binary(db_version)
+    raise "No pg_repack binary available for version #{db_version}" if binary.nil?
+
+    Rails.logger.info "Using pg_repack binary: #{binary} for database version: #{db_version}"
+  end
+
+  # Get the version-specific binary for the given database version
+  # @param version [String] The version of the database (e.g. '1.5.2')
+  # @return [String] The version-specific binary (e.g. 'pg_repack-1.5.2')
+  def pg_repack_binary(version)
+    return unless SUPPORTED_VERSIONS.key?(version)
+
+    binary = SUPPORTED_VERSIONS[version]
+    if binary_available_on_container?(binary)
+      Rails.logger.info "Using version-specific binary: #{binary}"
+      return binary
+    end
+
+    nil
+  end
+
+  # Check if the given binary name is available in the container PATH
+  # @param binary_name [String] The binary name (e.g. 'pg_repack-1.5.2')
+  # @return [Boolean] True if the binary is available, false otherwise
+  def binary_available_on_container?(binary_name)
+    system("which #{binary_name} > /dev/null 2>&1")
+  end
+
+  # Get the version of the pg_repack extension in the database
+  # @return [String] The version of the pg_repack extension (e.g. '1.5.2')
+  def pg_repack_db_version
+    sql = "SELECT extversion FROM pg_extension WHERE extname = 'pg_repack'"
+    result = always_run(sql)
+    row = result.first
+    row && row['extversion']
+  end
 
   # for finding bloat, etc. Harmless things only
   def always_run(sql)
