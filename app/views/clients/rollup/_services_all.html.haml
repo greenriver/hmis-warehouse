@@ -36,8 +36,8 @@
                   = project&.name(current_user) || 'Unable to determine project name'
               %td= service.enrollment.EntryDate
               %td= service.DateProvided
-              %td= HudUtility2024.record_type(service.record_type)
-              %td= HudUtility2024.service_type_provided(service.record_type, service.type_provided)
+              %td= HudHelper.util.record_type(service.record_type)
+              %td= HudHelper.util.service_type_provided(service.record_type, service.type_provided)
               %td
                 .text-right
                   - if @client.hmis_source_visible_by?(current_user)

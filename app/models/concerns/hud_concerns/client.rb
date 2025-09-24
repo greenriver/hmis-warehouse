@@ -4,12 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudConcerns::Client
   extend ActiveSupport::Concern
   included do
     def self.race_fields
-      # TODO: update when we start updating HUD reports
-      ::HudUtility2024.races.keys
+      ::HudHelper.util.races.keys
     end
 
     # those race fields which are marked as pertinent to the client
@@ -19,7 +20,7 @@ module HudConcerns::Client
 
     # those gender fields which are marked as pertinent to the client
     def gender_fields
-      ::HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
+      ::HudHelper.util.gender_fields.select { |f| send(f).to_i == 1 }
     end
 
     def adult?(on_date = Date.current)
@@ -41,7 +42,7 @@ module HudConcerns::Client
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
     def gender_multi
       @gender_multi ||= [].tap do |gm|
-        HudUtility2024.gender_field_name_to_id.except(:GenderNone).each do |k, v|
+        HudHelper.util.gender_field_name_to_id.except(:GenderNone).each do |k, v|
           gm << v if self[k] == 1
         end
         # Per the data standards, only look to GenderNone if we don't have a more specific response
@@ -53,14 +54,14 @@ module HudConcerns::Client
     # @return [Array<Integer>] An array of integers representing the client's race where the race field is `1`, excluding any values for `RaceNone`
     def race_multi
       @race_multi ||= [].tap do |gm|
-        HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
+        ::HudHelper.util.race_field_name_to_id.except(:RaceNone).each do |k, v|
           gm << v if self[k] == 1
         end
         # Per the data standards, only look to RaceNone if we don't have a more specific response
         gm << self.RaceNone if gm.empty? && self.RaceNone.in?([8, 9, 99])
         # set to '99' (Data not collected). This should only occur if the field is missing or we have data that doesn't
         # match a known race code, including codes for Client doesn't know, Prefers not to answer, and Data not collected
-        gm << HudUtility2024.race_field_name_to_id[:RaceNone] if gm.empty?
+        gm << ::HudHelper.util.race_field_name_to_id[:RaceNone] if gm.empty?
       end
     end
 
@@ -68,14 +69,14 @@ module HudConcerns::Client
     # @return [Array<Integer>] An array of integers representing the client's race where the race field is `1` with any valid values of `RaceNone`
     def race_multi_include_race_none
       @race_multi_include_race_none ||= [].tap do |gm|
-        HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
+        ::HudHelper.util.race_field_name_to_id.except(:RaceNone).each do |k, v|
           gm << v if self[k] == 1
         end
         # Always include RaceNone data
         gm << self.RaceNone if self.RaceNone.in?([8, 9, 99])
         # set to '99' (Data not collected). This should only occur if the field is missing or we have data that doesn't
         # match a known race code, including codes for Client doesn't know, Prefers not to answer, and Data not collected
-        gm << HudUtility2024.race_field_name_to_id[:RaceNone] if gm.empty?
+        gm << ::HudHelper.util.race_field_name_to_id[:RaceNone] if gm.empty?
       end
     end
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Reporting::ProjectDataQualityReports::VersionFour::Display
   extend ActiveSupport::Concern
   include ActionView::Helpers
@@ -69,7 +71,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
     def hide_beds_and_units
       project_types = report_projects.pluck(:project_type).uniq
-      project_types.all? { |type| HudUtility2024.project_types_without_inventory.include?(type) }
+      project_types.all? { |type| HudHelper.util.project_types_without_inventory.include?(type) }
     end
 
     def enrolled_clients
@@ -246,7 +248,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         issues = []
         report_projects.each do |report_project|
           # some of these are only valid for residential project types
-          next unless report_project.project_type.in?(HudUtility2024.residential_project_type_ids)
+          next unless report_project.project_type.in?(HudHelper.util.residential_project_type_ids)
 
           project_name = report_project.safe_project_name(user)
           if report_project.bed_inventory.blank? || report_project.bed_inventory.zero?
@@ -965,7 +967,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = exiting_clients.where(project_id: project.project_id).count
           count = exiting_clients.where(
             project_id: project.project_id,
-            destination_id: HudUtility2024.permanent_destinations,
+            destination_id: HudHelper.util.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round
@@ -990,7 +992,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = exiting_clients.where(project_id: project.project_id).count
           count = exiting_clients.where(
             project_id: project.project_id,
-            destination_id: HudUtility2024.permanent_destinations,
+            destination_id: HudHelper.util.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round
@@ -1008,7 +1010,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         if report_type == :project_group
           denominator = exiting_clients.count
           count = exiting_clients.where(
-            destination_id: HudUtility2024.permanent_destinations,
+            destination_id: HudHelper.util.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round

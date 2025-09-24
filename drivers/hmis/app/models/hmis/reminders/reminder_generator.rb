@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Hmis
   module Reminders
     class ReminderGenerator
@@ -57,7 +59,7 @@ module Hmis
       end
 
       def data_stages(keys)
-        @mapped ||= HudUtility2024.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
+        @mapped ||= ::HudHelper.util.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
         @mapped.fetch_values(*keys.map(&:to_sym))
       end
 
