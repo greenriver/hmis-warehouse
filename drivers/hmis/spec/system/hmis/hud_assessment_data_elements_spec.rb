@@ -275,10 +275,10 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
       let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 3, with_coc: true }
       let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
       it 'renders full disability component and processes all rows' do
+        click_link 'Disability' # ensure section is rendered and in view
         assert_text 'Overall Disabling Condition'
         assert_text 'HIV/AIDS'
         assert_text 'Physical Disability' # etc.
-        click_link 'Disability' # scrolls Disability into view
         overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
         expect(overall_element.value).to eq('Data not collected')
 
@@ -326,6 +326,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
       end
 
       it 'updates overall Disabling Condition when you select Yes' do
+        click_link 'Disability'
         mui_table_select('Yes', row: 'Physical Disability', column: 'Status')
 
         overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
@@ -343,6 +344,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
       end
 
       it 'updates overall Disabling Condition when you select an always-disabling condition' do
+        click_link 'Disability'
         overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
         expect(overall_element.disabled?).to be_falsy # Field is interactable
 
@@ -367,6 +369,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
         let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, disabling_condition: 9 }
 
         it 'pre-fills the field, but still allows interaction' do
+          click_link 'Disability'
           overall_element = mui_table_element_for(row: 'Overall Disabling Condition', column: 'Status')
           expect(overall_element.value).to eq('Client prefers not to answer')
           expect(overall_element.disabled?).to be_falsy # Field is interactable
