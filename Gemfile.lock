@@ -380,7 +380,7 @@ GEM
     cuprite (0.15)
       capybara (~> 3.0)
       ferrum (~> 0.14.0)
-    curb (1.2.1)
+    curb (1.0.9)
     daemons (1.4.1)
     date (3.4.1)
     db-query-matchers (0.14.0)
@@ -1186,7 +1186,7 @@ DEPENDENCIES
   coffee-rails
   csv
   cuprite (= 0.15)
-  curb
+  curb (~> 1.0.9)
   daemons
   db-query-matchers
   delayed_job
@@ -1470,7 +1470,7 @@ CHECKSUMS
   css_parser (1.21.1) sha256=6cfd3ffc0a97333b39d2b1b49c95397b05e0e3b684d68f77ec471ba4ec2ef7c7
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
   cuprite (0.15) sha256=2ba78333e61add63ecf4eb0041bb39cf25786824e386fa1d086a7670060638de
-  curb (1.2.1) sha256=32771a1a16992ea038d432a5fae5c8f21748f7457743a8b583c4a71c1708dc0d
+  curb (1.0.9) sha256=07e5b74a4836103ce186827528f76a22d3991a9b7c45f5c10ee18ee7b03feb0d
   daemons (1.4.1) sha256=8fc76d76faec669feb5e455d72f35bd4c46dc6735e28c420afb822fac1fa9a1d
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f
   db-query-matchers (0.14.0) sha256=7de66e03923e8dd956e26092c8b518c6c256ef3bd7097a9de050683b2a5e6249
