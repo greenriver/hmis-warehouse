@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 class Filters::Criteria::FilterForRaceEthnicityCombinations < Filters::Criteria::Base
@@ -8,7 +14,7 @@ class Filters::Criteria::FilterForRaceEthnicityCombinations < Filters::Criteria:
 
     race_ethnicity_queries = input.race_ethnicity_combinations.map do |combination|
       hispanic_latinaeo = combination.to_s.ends_with?('_hispanic_latinaeo')
-      race_column = HudUtility2024.race_column_name(combination.to_s.gsub('_hispanic_latinaeo', ''))
+      race_column = HudHelper.util.race_column_name(combination.to_s.gsub('_hispanic_latinaeo', ''))
       scope.race_ethnicity_alternative(race_column, hispanic_latinaeo)
     end
 

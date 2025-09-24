@@ -45,7 +45,7 @@ module Hmis::Ce
       raise "Expected to find CE event for referral #{referral.id}" unless event
 
       referral_result = message.params['referral_result']&.to_i
-      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudUtility2024.referral_results.keys.include?(referral_result)
+      raise "Invalid referral result #{referral_result} submitted for referral #{referral.id} probably indicates misconfigured workflow or form definition" unless HudHelper.util.referral_results.keys.include?(referral_result)
 
       event.update!(
         result_date: Date.current,
@@ -62,13 +62,11 @@ module Hmis::Ce
 
       # Fall back to determining the event type based on the referral target project
       project = referral.target_project
-      event_type = HudUtility2026.project_to_ce_event_type(project)
-
+      event_type = HudHelper.util('2026').project_to_ce_event_type(project)
       if capture_to_sentry && !event_type
         # Log to Sentry without raising. This is expected for projects that reuse a workflow from another project, but don't need to generate a CE event.
         Sentry.capture_message("Unable to determine CE Event Type for project type #{project.project_type} on project #{project.id} for referral #{referral.id}")
       end
-
       event_type
     end
   end

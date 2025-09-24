@@ -35,11 +35,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :homeless, -> do
-      where(CurrentLivingSituation: HudUtility2024.homeless_situations(as: :current))
+      where(CurrentLivingSituation: HudHelper.util.homeless_situations(as: :current))
     end
 
     def situation_label
-      HudUtility2024.living_situation(current_living_situation)
+      HudHelper.util.living_situation(current_living_situation)
     end
   end
 end

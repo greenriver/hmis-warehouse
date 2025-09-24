@@ -153,7 +153,7 @@ module MaYyaReport
     end
 
     private def race_code
-      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert.stringify_keys
+      HudHelper.util.race_id_to_field_name.excluding(8, 9, 99).invert.stringify_keys
     end
 
     private def ethnicity(client)
