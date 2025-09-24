@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis
   module Hmis
     module UnitTypeExtension
@@ -22,7 +24,7 @@ module HmisExternalApis
       # @param project_id [Integer] Hmis::Hud::Project.id
       # @param user_id [Integer] Hmis::User.id
       def track_availability(project_id:, user_id:)
-        return unless HmisEnforcement.hmis_enabled? && HmisExternalApis::AcHmis::Mper.enabled? && mper_id
+        return unless HmisEnforcement.hmis_enabled? && HmisExternalApis::AcHmis::LinkApi.enabled? && mper_id
 
         # Skip if ProjectID is UUID, which means that this was a project created within the HMIS.
         return if ::Hmis::Hud::Project.find(project_id).project_id.size == 32

@@ -4,10 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
+## MPER (to be removed)
+#
+# If the MPER credential is active, the ImportProjectsJob imports batch files from MPER nightly.
+# The files update the Project table and some related tables, including initial unit capacity.
+#
+# Note: this class may still be used for external ID lookups even if the MPER credential is no longer active.
+# See issues #8143 and #8142 for plan to sunset MPER and LINK integrations.
 module HmisExternalApis::AcHmis
   # Utility class for MPER
   class Mper
-    SYSTEM_ID = 'ac_hmis_mper'.freeze
+    SYSTEM_ID = 'ac_hmis_mper'
 
     # @param mper_id [String]
     # @return [Hmis::Hud::Project, nil]
@@ -16,6 +25,7 @@ module HmisExternalApis::AcHmis
       project_scope.where(ProjectID: mper_id).first
     end
 
+    # Whether the MPER Projects Importer integration is enabled
     def self.enabled?
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).any?
     end
@@ -44,6 +54,7 @@ module HmisExternalApis::AcHmis
     # @param source [Hmis::UnitType]
     # @param value [String]
     # @return [HmisExternalApis::ExternalId]
+    # only used for testing
     def create_external_id(source:, value:, **attrs)
       case source
       when Hmis::UnitType
