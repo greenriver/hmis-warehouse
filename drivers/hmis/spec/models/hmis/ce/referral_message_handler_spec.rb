@@ -11,18 +11,6 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
   include_context 'ce spec helper'
 
-  let!(:destination_data_source) { create :destination_data_source }
-  let(:destination_client) do
-    GrdaWarehouse::Hud::Client.find(client.destination_client.id)
-  end
-
-  before do
-    # Create warehouse clients to enable dirty marking
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    # Mark everything clean
-    Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
-  end
-
   describe 'workflow with effects that update client eligibility' do
     it 'marks client dirty' do
       expect do
