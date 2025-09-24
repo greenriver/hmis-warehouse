@@ -31,7 +31,7 @@ module AcHmis
       # raise if any of the ProjectIDs are not found:
       all_expected_project_ids = [*PSH_EXCLUDE_IDS, *PSH_DIRECT_ONLY_IDS, *RRH_EXCLUDE_IDS, *TH_BOTH_IDS, *TH_DIRECT_ONLY_IDS, *HP_BOTH_IDS, *HP_DIRECT_ONLY_IDS, *EE_PROJECT_IDS, *SSO_PROJECT_IDS]
       found_project_ids = Hmis::Hud::Project.hmis.where(project_id: all_expected_project_ids).pluck(:project_id)
-      missing_ids = all_expected_project_ids - found_project_ids
+      missing_ids = all_expected_project_ids.map(&:to_s) - found_project_ids
       raise "Missing expected ProjectIDs: #{missing_ids.sort.join(', ')}" unless missing_ids.empty?
 
       Hmis::Hud::Base.transaction do
@@ -95,6 +95,7 @@ module AcHmis
         warn "[#{label}] Skipped: Must support waitlists or direct referrals."
         return
       end
+      # Create or update ProjectCeConfig for the projects in scope
       scope.each do |project|
         record = Hmis::ProjectCeConfig.find_or_initialize_by(project_id: project.id)
         record.supports_waitlist_referrals = waitlists
@@ -112,6 +113,28 @@ module AcHmis
 
         puts "[#{label}] Updating project ##{project.id} (#{project.project_name})"
         record.save!
+      end
+
+      # Ensure UnitGroups are set to the correct workflows based on whether the project
+      # supports waitlists or not. Projects with waitlists always use the "housing workflow".
+      workflow_template = waitlists ? :housing_workflow_v1 : :admin_assign_workflow
+      scope.preload(:unit_groups).each do |project|
+        unit_groups = project.unit_groups
+        next unless unit_groups.any?
+
+        unit_groups.each { |ug| ug.workflow_template_identifier = workflow_template }
+
+        if unit_groups.any?(&:changed?)
+          if dry_run
+            puts "[DRY RUN][#{label}] Would set unit groups to use #{workflow_template} for project ##{project.id} (#{project.project_name})"
+            next
+          end
+
+          puts "[#{label}] Updating unit groups to use #{workflow_template} for project ##{project.id} (#{project.project_name})"
+          unit_groups.each { |ug| ug.save(validate: false) }
+        else
+          puts "[#{label}] No change to unit groups for project ##{project.id} (#{project.project_name})"
+        end
       end
     end
   end
