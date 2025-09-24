@@ -74,7 +74,7 @@ module Types
     def project_name
       return unless object.entity_type == Hmis::Hud::Project.sti_name
 
-      object.entity.project_name
+      load_ar_association(object, :entity)&.project_name
     end
 
     def organization_id
@@ -86,7 +86,7 @@ module Types
     def organization
       return unless object.entity_type == Hmis::Hud::Organization.sti_name
 
-      object.entity
+      load_ar_association(object, :entity)
     end
 
     def active_status
