@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'rails_helper'
 require_relative '../../requests/hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -17,9 +19,11 @@ RSpec.feature 'Intake assessment', type: :system do
   let!(:unit1) { create :hmis_unit, project: p1, user: user, name: 'unit 1' }
   let!(:unit2) { create :hmis_unit, project: p1, user: user, name: 'unit 2' }
   let!(:access_control) { create_access_control(hmis_user, p1) }
+
+  # Set up Rapid Re-Housing project (13) with funder 'HUD: CoC - Rapid Re-Housing' (3)
+  # which should collect all fields (Income, Health Insurance, all disability fields, etc.)
   # need with_coc so enrollment isn't blocked by CoC prompt
-  # need funder so that certain form fields (Income, Health Insurance, etc.) show up for intakes in this project
-  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true, funders: [20] }
+  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 13, funders: [3], with_coc: true }
 
   let(:today) { Date.current }
 
@@ -57,12 +61,7 @@ RSpec.feature 'Intake assessment', type: :system do
       mui_radio_choose default_option, from: 'Income from Any Source'
       mui_radio_choose default_option, from: 'Non-Cash Benefits from Any Source'
       mui_radio_choose default_option, from: 'Covered by Health Insurance'
-      # Disabling condition can be a single select or part of the granular table
-      if page.has_text?('Overall Disabling Condition')
-        mui_table_select default_option, row: 'Overall Disabling Condition', column: 'Status'
-      else
-        mui_select default_option, from: 'Disabling Condition'
-      end
+      mui_table_select default_option, row: 'Overall Disabling Condition', column: 'Status'
       mui_select default_option, from: 'Survivor of Domestic Violence'
       click_button 'Save Assessment'
       assert_text(/Last saved [0-9] seconds? ago/)
