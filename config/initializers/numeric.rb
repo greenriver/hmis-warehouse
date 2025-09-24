@@ -4,14 +4,14 @@
 # frozen_string_literal: false
 
 class Numeric
-  Alphabet = ('a'..'z').to_a
+  ALPHABET = ('a'..'z').to_a
 
   def to_csv_column
     column_name = ''
     number = self
     while number.positive?
       number, remainder = (number - 1).divmod(26)
-      column_name.prepend(Alphabet[remainder])
+      column_name.prepend(ALPHABET[remainder])
     end
     column_name.upcase
   end
