@@ -47,6 +47,9 @@ module Mutations
 
         # Complete the step. This saves the step which will save associated CustomDataElements
         engine.complete_step!(step, user: current_user, submitted_values: values_by_link_id)
+
+        # Clear assignment cache since completing this step may have enabled new steps that the user is assigned to
+        current_user.policy_context.clear_referral_assignment_cache!
       end
 
       {
