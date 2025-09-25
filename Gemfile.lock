@@ -868,7 +868,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.4.1)
+    rexml (3.4.4)
     rgeo (2.4.0)
     rgeo-activerecord (7.0.1)
       activerecord (>= 5.0)
@@ -1672,7 +1672,7 @@ CHECKSUMS
   request_store (1.7.0) sha256=e1b75d5346a315f452242a68c937ef8e48b215b9453a77a6c0acdca2934c88cb
   responders (3.1.1) sha256=92f2a87e09028347368639cfb468f5fefa745cb0dc2377ef060db1cdd79a341a
   rest-client (2.1.0) sha256=35a6400bdb14fae28596618e312776c158f7ebbb0ccad752ff4fa142bf2747e3
-  rexml (3.4.1) sha256=c74527a9a0a04b4ec31dbe0dc4ed6004b960af943d8db42e539edde3a871abca
+  rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
   rgeo (2.4.0) sha256=a21d8999d5fe8df62d0f62107a9c430a1d39a1165aec6f8876339a88ce87f570
   rgeo-activerecord (7.0.1) sha256=ee27b2e271dab03205231adfaf4ff94c3de09a269bcae400106ffe9853986bc3
   rgeo-geojson (2.1.1) sha256=d01cf8393d87cbb98901ce4a0e12a7c5d59a313d81bb79f3c0b335061009d980
@@ -1779,4 +1779,4 @@ CHECKSUMS
   zeitwerk (2.7.2) sha256=842e067cb11eb923d747249badfb5fcdc9652d6f20a1f06453317920fdcd4673
 
 BUNDLED WITH
-   2.6.9
+   2.7.1
