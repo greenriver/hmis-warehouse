@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudPathReport::DocumentExports
   class HudPathReportExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -18,11 +20,7 @@ module HudPathReport::DocumentExports
     end
 
     private def possible_generator_classes
-      [
-        HudPathReport::Generators::Fy2020::Generator,
-        HudPathReport::Generators::Fy2021::Generator,
-        HudPathReport::Generators::Fy2024::Generator,
-      ]
+      HudPathReport::BaseController.new.possible_generator_classes.values
     end
   end
 end
