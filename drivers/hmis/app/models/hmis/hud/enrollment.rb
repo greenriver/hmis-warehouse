@@ -477,8 +477,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
     opportunity = unit.latest_opportunity
-    if opportunity&.locked? || opportunity&.open?
-      raise 'Cannot assign directly to a unit receiving referrals' unless opportunity.active_referral&.client == client
+    raise 'Cannot assign directly to a unit receiving referrals' if opportunity&.open?
+
+    if opportunity&.locked?
+      # Check if the enrollment being assigned is for the same client that is actively referred to this unit
+      is_same_client = opportunity.active_referral&.client == client
+      # Check if the enrollment being assigned belongs to the same household as the active referral's target enrollment
+      is_same_household = opportunity.active_referral&.target_enrollment&.household_id == household_id
+      raise 'Cannot assign to a unit with locked opportunity' unless is_same_client || is_same_household
     end
 
     # include project id here since it may not be available during after_save hooks due to WIP

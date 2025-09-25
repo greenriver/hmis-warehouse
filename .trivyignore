@@ -1,7 +1,7 @@
 CVE-2024-49761
 
 # this version of net-imap is included with the default ruby in the container, but not used
-# as we install a newer version for the application
+# as we install a newer version for the application (fixed in net-imap 0.2.5, 0.3.9, 0.4.20, 0.5.7 or later)
 CVE-2025-43857
 
 # owner of esbuild indicates this is a false-positive; esbuild doesn't use crypto/x509
@@ -9,7 +9,9 @@ CVE-2025-43857
 CVE-2025-22874
 
 # This go vuln is not exploitable. The esbuild package is not yet updated
+CVE-2025-47906
 CVE-2025-47907
 
-# Go stdlib vuln in esbuild binary - not exploitable in our context
-CVE-2025-47906
+# this version of rexml is included with the default ruby in the container, but not used
+# as we install a newer version for the application (fixed in rexml 3.4.2 or later)
+CVE-2025-58767

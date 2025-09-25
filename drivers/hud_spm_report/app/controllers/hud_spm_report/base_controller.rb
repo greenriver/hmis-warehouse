@@ -88,7 +88,7 @@ module HudSpmReport
     end
     helper_method :available_report_versions
 
-    private def possible_generator_classes
+    def possible_generator_classes
       {
         fy2020: HudSpmReport::Generators::Fy2020::Generator,
         fy2023: HudSpmReport::Generators::Fy2023::Generator,
