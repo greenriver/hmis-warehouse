@@ -9,10 +9,10 @@
   %body{data: { controller: 'stimulus-select' }}
     - @show_census = true
     - chart_options = { size: { height: 300, width: 1200 } }
-    %section.d-flex.align-items-start
-      .mr-4
-        %h1= @title
-      .ml-auto
+    %section.header-with-seal.d-flex.align-items-start
+      .title-container
+        %h1= @title.to_s
+      .ms-auto.seal-container
         = render 'layouts/print_seal'
 
     = yield
@@ -33,6 +33,9 @@
       .perf-overview-breakdown {
         page-break-inside: avoid;
       }
+      h1 {
+        font-size: 30px !important;
+      }
       h2 {
         font-size: 20px !important;
       }
@@ -49,4 +52,8 @@
       }
       .summary-tables td, .summary-tables th {
         font-size: 0.8rem;
+      }
+      .seal-container {
+        max-width: 2.5in;
+        vertical-align: top;
       }
