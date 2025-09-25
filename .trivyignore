@@ -9,6 +9,7 @@ CVE-2025-43857
 CVE-2025-22874
 
 # This go vuln is not exploitable. The esbuild package is not yet updated
+CVE-2025-47906
 CVE-2025-47907
 
 # this version of rexml is included with the default ruby in the container, but not used
