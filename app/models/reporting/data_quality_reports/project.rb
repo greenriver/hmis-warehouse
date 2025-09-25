@@ -18,7 +18,7 @@ module Reporting::DataQualityReports
     end
 
     def calculate_funder project:
-      project.funders.map { |f| HudUtility2024.funding_source f.Funder&.to_i }.uniq.join(', ')
+      project.funders.map { |f| HudHelper.util.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
 
     def calculate_geocode project:
@@ -27,7 +27,7 @@ module Reporting::DataQualityReports
 
     def calculate_geography_type(project:)
       project.project_cocs.map do |m|
-        HudUtility2024.geography_type(m.GeographyType)
+        HudHelper.util.geography_type(m.GeographyType)
       end.uniq.join(', ')
     end
 
@@ -93,19 +93,27 @@ module Reporting::DataQualityReports
 
     # these rely on previously calculated values
     def calculate_average_nightly_clients report_range:
-      (self.nightly_client_census.values.sum.to_f / report_range.range.count).round rescue 0
+      (nightly_client_census.values.sum.to_f / report_range.range.count).round
+    rescue StandardError
+      0
     end
 
     def calculate_average_nightly_households report_range:
-      (self.nightly_household_census.values.sum.to_f / report_range.range.count).round rescue 0
+      (nightly_household_census.values.sum.to_f / report_range.range.count).round
+    rescue StandardError
+      0
     end
 
     def calculate_average_bed_utilization
-      ((self.average_nightly_clients / self.bed_inventory.to_f ) * 100).round rescue 0
+      ((average_nightly_clients / bed_inventory.to_f) * 100).round
+    rescue StandardError
+      0
     end
 
     def calculate_average_unit_utilization
-      ((self.average_nightly_households / self.unit_inventory.to_f) * 100).round rescue 0
+      ((average_nightly_households / unit_inventory.to_f) * 100).round
+    rescue StandardError
+      0
     end
 
     def safe_project_name(user)

@@ -127,7 +127,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :hud_residential, -> do
-      _residential_for_project_type_ids(HudUtility2024.residential_project_type_ids)
+      _residential_for_project_type_ids(HudHelper.util.residential_project_type_ids)
     end
 
     scope :non_residential, -> do
@@ -136,31 +136,31 @@ module GrdaWarehouse::Hud
 
     scope :hud_non_residential, -> do
       # all non-residential project types, but re-add 13 for RRH SSO
-      _non_residential_for_project_type_ids(HudUtility2024.all_project_types - HudUtility2024.residential_project_type_ids + [13])
+      _non_residential_for_project_type_ids(HudHelper.util.all_project_types - HudHelper.util.residential_project_type_ids + [13])
     end
 
     scope :chronic, -> do
-      where(project_type: HudUtility2024.chronic_project_types)
+      where(project_type: HudHelper.util.chronic_project_types)
     end
 
     scope :hud_chronic, -> do
-      where(project_type: HudUtility2024.chronic_project_types)
+      where(project_type: HudHelper.util.chronic_project_types)
     end
 
     scope :homeless, -> do
-      where(project_type: HudUtility2024.homeless_project_types)
+      where(project_type: HudHelper.util.homeless_project_types)
     end
 
     scope :hud_homeless, -> do
-      where(project_type: HudUtility2024.chronic_project_types)
+      where(project_type: HudHelper.util.chronic_project_types)
     end
 
     scope :homeless_sheltered, -> do
-      where(project_type: HudUtility2024.homeless_sheltered_project_types)
+      where(project_type: HudHelper.util.homeless_sheltered_project_types)
     end
 
     scope :homeless_unsheltered, -> do
-      where(project_type: HudUtility2024.homeless_unsheltered_project_types)
+      where(project_type: HudHelper.util.homeless_unsheltered_project_types)
     end
 
     scope :residential_non_homeless, -> do
@@ -168,7 +168,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
+      r_non_homeless = HudHelper.util.residential_project_type_ids - HudHelper.util.chronic_project_types
       _residential_for_project_type_ids(r_non_homeless)
     end
 
@@ -629,7 +629,7 @@ module GrdaWarehouse::Hud
     end
 
     # make a scope for every project type and a type? method for instances
-    HudUtility2024.performance_reporting.each do |k, v|
+    HudHelper.util.performance_reporting.each do |k, v|
       scope k, -> { where(project_type_column => v) }
       define_method "#{k}?" do
         v.include? project_type_to_use
@@ -641,7 +641,7 @@ module GrdaWarehouse::Hud
     end
 
     def rrh?
-      project_type_to_use.in?(HudUtility2024.performance_reporting[:rrh])
+      project_type_to_use.in?(HudHelper.util.performance_reporting[:rrh])
     end
 
     def rrh_sso_only?
@@ -653,15 +653,15 @@ module GrdaWarehouse::Hud
     end
 
     def rrh_sso_sub_type_code
-      HudUtility2024.rrh_sub_type('RRH: Services Only', true)
+      HudHelper.util.rrh_sub_type('RRH: Services Only', true)
     end
 
     def psh?
-      project_type_to_use.in?(HudUtility2024.performance_reporting[:psh])
+      project_type_to_use.in?(HudHelper.util.performance_reporting[:psh])
     end
 
     def homeless?
-      project_type_to_use.in?(HudUtility2024.homeless_project_type_numbers)
+      project_type_to_use.in?(HudHelper.util.homeless_project_type_numbers)
     end
 
     def self.related_item_keys
@@ -717,7 +717,7 @@ module GrdaWarehouse::Hud
       else
         safe_project_name
       end
-      project_name += " (#{HudUtility2024.brief_project_type_with_sub_type(project_type, rrh_sub_type)})" if include_project_type && project_type.present?
+      project_name += " (#{HudHelper.util.brief_project_type_with_sub_type(project_type, rrh_sub_type)})" if include_project_type && project_type.present?
 
       project_name
     end
@@ -825,9 +825,9 @@ module GrdaWarehouse::Hud
               d = project[h.to_s].presence
               d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
             when :current_continuum_project
-              ::HudUtility2024.ad_hoc_yes_no project[h.to_s].presence&.to_i
+              ::HudHelper.util.ad_hoc_yes_no project[h.to_s].presence&.to_i
             when :fed_partner_program
-              ::HudUtility2024.funding_source project[h.to_s].presence&.to_i
+              ::HudHelper.util.funding_source project[h.to_s].presence&.to_i
             else
               project[h.to_s]
             end
@@ -907,13 +907,13 @@ module GrdaWarehouse::Hud
 
     # NOTE: preload funders before calling this
     def pay_for_success?
-      return false unless HudUtility2024.performance_reporting[:other].include?(project_type)
+      return false unless HudHelper.util.performance_reporting[:other].include?(project_type)
 
       funders.map(&:pay_for_success?).any?
     end
 
     def human_readable_project_type
-      HudUtility2024.project_type(project_type_to_use)
+      HudHelper.util.project_type(project_type_to_use)
     end
 
     def main_population

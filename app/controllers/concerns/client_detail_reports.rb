@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientDetailReports
   extend ActiveSupport::Concern
 
@@ -19,7 +21,7 @@ module ClientDetailReports
 
     private def filter_params
       # default to homeless project types, but don't set it if we have any sort of filter set
-      return { project_type_codes: HudUtility2024.homeless_project_type_codes } unless params[:filter].present?
+      return { project_type_codes: HudHelper.util.homeless_project_type_codes } unless params[:filter].present?
 
       params.require(:filter).permit(
         :start,

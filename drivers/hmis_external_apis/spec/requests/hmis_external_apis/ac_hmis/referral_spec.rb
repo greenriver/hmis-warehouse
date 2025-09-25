@@ -13,13 +13,6 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
   describe 'send referral' do
     include_context 'hmis base setup'
 
-    before(:all) do
-      cleanup_test_environment
-    end
-    after(:all) do
-      cleanup_test_environment
-    end
-
     def random_id
       @start ||= rand(0...1_000).round
       @start += 1
@@ -47,7 +40,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         {
           mci_id: mci_id,
           # make the first client the hoh
-          relationship_to_hoh: ::HudUtility2024.hud_list_map_as_enumerable(:relationships_to_hoh).fetch(relationship_to_hoh),
+          relationship_to_hoh: ::HudHelper.util.hud_list_map_as_enumerable(:relationships_to_hoh).fetch(relationship_to_hoh),
           first_name: client.first_name,
           middle_name: client.middle_name,
           last_name: client.last_name,
@@ -133,6 +126,11 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals))
       { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
     end
+
+    # Turn off the MPER integration before testing to ensure that all actions work
+    # as expected even if the MPER credential is inactive. MPER integration is being deprecated
+    # while LINK Referral integrations remain active for a while longer. See #8143 / #8142
+    before(:each) { mper.send(:remote_credential).update!(active: false) }
 
     context 'with existing household' do
       let(:household) do

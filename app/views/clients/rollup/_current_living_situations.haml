@@ -29,7 +29,7 @@
             %td= project&.name(current_user)
             %td.date-cell= situation.enrollment.EntryDate
             %td= situation.InformationDate
-            %td= HudUtility2024.living_situation situation.CurrentLivingSituation
+            %td= HudHelper.util.living_situation situation.CurrentLivingSituation
             %td= situation.LocationDetails
             %td= situation.user&.name
             %td.text-right

@@ -731,7 +731,7 @@ module MaYyaReport
     end
 
     def format_value(value, key)
-      return HudUtility2026.gender(value) if key == 'gender'
+      return HudHelper.util.gender(value) if key == 'gender'
       return format_race(value) if key == 'race'
 
       case value
@@ -745,13 +745,13 @@ module MaYyaReport
     end
 
     private def format_race(value)
-      if value.in?(HudUtility2026.race_known_ids)
-        field = HudUtility2024.race_id_to_field_name[value]
-        return HudUtility2026.race(field)
+      if value.in?(HudHelper.util.race_known_ids)
+        field = HudHelper.util.race_id_to_field_name[value]
+        return HudHelper.util.race(field)
       elsif value == 10
         return 'Multi-racial'
-      elsif value.in?(HudUtility2026.race_nones.keys)
-        return HudUtility2026.race_none(value)
+      elsif value.in?(HudHelper.util.race_nones.keys)
+        return HudHelper.util.race_none(value)
       end
 
       value

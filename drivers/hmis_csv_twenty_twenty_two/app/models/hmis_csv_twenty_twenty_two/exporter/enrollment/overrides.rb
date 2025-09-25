@@ -77,7 +77,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def self.project_type_overridden_as_ph?(row)
       # NOTE: this exporter should never be called, and 2022 and 2024 PH codes are the same, but the HudUtility doesn't include this method
-      psh_types = HudUtility2024.residential_project_type_numbers_by_code[:ph]
+      psh_types = HudHelper.util('2024').residential_project_type_numbers_by_code[:ph]
       existing_project_type = row.project.ProjectType
       # Not PH, no need to change
       return false unless existing_project_type.in?(psh_types)
