@@ -605,12 +605,8 @@ module MaYyaReport
           label: 'Number of YYA served who identified as Hispanic/Latina/e/o',
         },
         "#{section}2h": {
-          calculation: clause.and(a_t[:race].eq(6)),
+          calculation: clause.and(a_t[:race].eq(10)),
           label: 'Number of YYA served who identified as Other/ Multi-racial',
-        },
-        "#{section}2i": {
-          calculation: clause.and(a_t[:race].in([8, 9, 99])),
-          label: 'Number of YYA served who answered don\'t know/prefer not to answer/data not collected (race)',
         },
       }
     end

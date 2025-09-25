@@ -474,6 +474,10 @@ module MaYyaReport
       return client.GenderNone
     end
 
+    # Race calculations:
+    # If the client has only one race specified, they are counted in that race category
+    # If the client has only one race and HispanicLatinaeo, they are counted in the race category and HispanicLatinaeo
+    # If the client has multiple races that are not HispanicLatinaeo, they are counted in the Multi-racial category
     private def race(client)
       return client.RaceNone if client.RaceNone.in?([8, 9, 99])
       return 6 if client.race_fields.include?('HispanicLatinaeo') # report HispanicLatinaeo as Hispanic/Latina/e/o
