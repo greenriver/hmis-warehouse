@@ -103,7 +103,7 @@ RSpec.describe MaYyaReport::Report do
 
       it 'returns calculation objects for all cells' do
         expect(calculators).to be_a(Hash)
-        expect(calculators.keys.count).to eq(122)
+        expect(calculators.keys.count).to eq(120)
       end
 
       it 'includes expected cell keys' do
@@ -124,7 +124,7 @@ RSpec.describe MaYyaReport::Report do
 
       it 'returns labels for all cells' do
         expect(cell_labels).to be_a(Hash)
-        expect(cell_labels.keys.count).to eq(122)
+        expect(cell_labels.keys.count).to eq(120)
       end
 
       it 'includes expected cell keys' do
@@ -170,7 +170,7 @@ RSpec.describe MaYyaReport::Report do
     end
 
     it 'maintains consistent cell count across all methods' do
-      expected_count = 122
+      expected_count = 120
 
       expect(report.send(:calculators).keys.count).to eq(expected_count)
       expect(report.send(:cell_labels).keys.count).to eq(expected_count)
@@ -288,7 +288,7 @@ RSpec.describe MaYyaReport::Report do
 
       it 'contains expected number of cells in each subsection' do
         expect(section_g[:subsections]['G1'][:cells].keys.count).to eq(7) # G1a-G1g
-        expect(section_g[:subsections]['G2'][:cells].keys.count).to eq(9) # G2a-G2i (updated from 8)
+        expect(section_g[:subsections]['G2'][:cells].keys.count).to eq(8) # G2a-G2h
         expect(section_g[:subsections]['G3'][:cells].keys.count).to eq(1) # G3a
       end
     end
@@ -302,7 +302,7 @@ RSpec.describe MaYyaReport::Report do
 
       it 'contains expected number of cells in each subsection' do
         expect(section_h[:subsections]['H1'][:cells].keys.count).to eq(7) # H1a-H1g
-        expect(section_h[:subsections]['H2'][:cells].keys.count).to eq(9) # H2a-H2i
+        expect(section_h[:subsections]['H2'][:cells].keys.count).to eq(8) # H2a-H2h
         expect(section_h[:subsections]['H3'][:cells].keys.count).to eq(1) # H3a
       end
     end

@@ -139,16 +139,16 @@ RSpec.describe MaYyaReport::Report, 'integration' do
           :F1a, :F1b, :F1c, :F1d, :F1e,
           :F2a, :F2b, :F2c, :F2d, :F2e,
           :G1a, :G1b, :G1c, :G1d, :G1e, :G1f, :G1g,
-          :G2a, :G2b, :G2c, :G2d, :G2e, :G2f, :G2g, :G2h, :G2i,
+          :G2a, :G2b, :G2c, :G2d, :G2e, :G2f, :G2g, :G2h,
           :G3a,
           :H1a, :H1b, :H1c, :H1d, :H1e, :H1f, :H1g,
-          :H2a, :H2b, :H2c, :H2d, :H2e, :H2f, :H2g, :H2h, :H2i,
+          :H2a, :H2b, :H2c, :H2d, :H2e, :H2f, :H2g, :H2h,
           :H3a
         ]
 
         actual_cells = report.send(:calculators).keys
         expect(actual_cells).to eq(expected_cells)
-        expect(actual_cells.count).to eq(122)
+        expect(actual_cells.count).to eq(120)
       end
 
       it 'maintains consistent section structure' do
@@ -167,9 +167,9 @@ RSpec.describe MaYyaReport::Report, 'integration' do
         expect(section_d_cells).to eq(34) # D1(7) + D2(11) + D3(4) + D4(12)
         expect(section_e_cells).to eq(34) # E1(7) + E2(11) + E3(4) + E4(12)
         expect(section_f_cells).to eq(10) # F1(5) + F2(5)
-        expect(section_g_cells).to eq(17) # G1(7) + G2(9) + G3(1)
-        expect(section_h_cells).to eq(17) # H1(7) + H2(9) + H3(1)
-        expect(section_a_cells + section_d_cells + section_e_cells + section_f_cells + section_g_cells + section_h_cells).to eq(122)
+        expect(section_g_cells).to eq(16) # G1(7) + G2(8) + G3(1)
+        expect(section_h_cells).to eq(16) # H1(7) + H2(8) + H3(1)
+        expect(section_a_cells + section_d_cells + section_e_cells + section_f_cells + section_g_cells + section_h_cells).to eq(120)
       end
     end
   end
