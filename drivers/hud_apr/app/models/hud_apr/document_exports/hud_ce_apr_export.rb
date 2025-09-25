@@ -20,12 +20,7 @@ module HudApr::DocumentExports
     end
 
     private def possible_generator_classes
-      [
-        HudApr::Generators::CeApr::Fy2020::Generator,
-        HudApr::Generators::CeApr::Fy2021::Generator,
-        HudApr::Generators::CeApr::Fy2023::Generator,
-        HudApr::Generators::CeApr::Fy2024::Generator,
-      ]
+      HudApr::CeAprsController.new.possible_generator_classes.values
     end
   end
 end

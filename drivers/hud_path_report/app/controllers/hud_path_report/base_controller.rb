@@ -133,7 +133,7 @@ module HudPathReport
       @pdf_export = HudPathReport::DocumentExports::HudPathReportExport.new
     end
 
-    private def possible_generator_classes
+    def possible_generator_classes
       {
         fy2020: HudPathReport::Generators::Fy2020::Generator,
         fy2021: HudPathReport::Generators::Fy2021::Generator,
