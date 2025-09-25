@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport::DocumentExports
   class HudSpmReportExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -18,11 +20,7 @@ module HudSpmReport::DocumentExports
     end
 
     private def possible_generator_classes
-      [
-        HudSpmReport::Generators::Fy2020::Generator,
-        HudSpmReport::Generators::Fy2023::Generator,
-        HudSpmReport::Generators::Fy2024::Generator,
-      ]
+      HudSpmReport::BaseController.new.possible_generator_classes.values
     end
   end
 end

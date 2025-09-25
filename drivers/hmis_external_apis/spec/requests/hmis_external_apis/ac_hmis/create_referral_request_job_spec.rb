@@ -34,6 +34,10 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
       # setup external ids
       unit_type_mper_id = SecureRandom.uuid
       mper.create_external_id(source: referral_request.unit_type, value: unit_type_mper_id)
+      # Turn off the MPER integration before testing to ensure that all actions work
+      # as expected even if the MPER credential is inactive. MPER integration is being deprecated
+      # while LINK Referral integrations remain active for a while longer. See #8143 / #8142
+      mper.send(:remote_credential).update!(active: false)
 
       result = HmisExternalApis::ExternalApiResult.new(
         parsed_body: { 'referralRequestID' => referral_request_id },

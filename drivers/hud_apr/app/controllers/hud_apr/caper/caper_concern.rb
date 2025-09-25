@@ -61,7 +61,7 @@ module HudApr::Caper::CaperConcern
       @pdf_export = HudApr::DocumentExports::HudCaperExport.new
     end
 
-    private def possible_generator_classes
+    def possible_generator_classes
       {
         fy2020: HudApr::Generators::Caper::Fy2020::Generator,
         fy2021: HudApr::Generators::Caper::Fy2021::Generator,
