@@ -4,15 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module PerformanceDashboard::Overview::Ethnicity
   extend ActiveSupport::Concern
 
   private def ethnicity_buckets
-    HudUtility2024.ethnicities.keys
+    HudHelper.util.ethnicities.keys
   end
 
   def ethnicity_title(key)
-    HudUtility2024.ethnicity(key)
+    HudHelper.util.ethnicity(key)
   end
 
   def ethnicity_bucket_titles

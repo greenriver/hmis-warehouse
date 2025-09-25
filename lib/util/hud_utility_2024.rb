@@ -181,6 +181,33 @@ module HudUtility2024
     }.freeze
   end
 
+  # Backported from 2026
+  # Project Type keys used in HMIS GraphQL API and CE Match expressions
+  def hmis_project_type_keys
+    {
+      0 => 'ES_ENTRY_EXIT',
+      1 => 'ES_NBN',
+      2 => 'TH',
+      3 => 'PH_PSH',
+      4 => 'SO',
+      6 => 'SSO',
+      7 => 'OTHER',
+      8 => 'SH',
+      9 => 'PH_PH',
+      10 => 'PH_OPH',
+      11 => 'DAY_SHELTER',
+      12 => 'HP',
+      13 => 'PH_RRH',
+      14 => 'CE',
+    }
+  end
+
+  def hmis_project_type_key(field, reverse = false)
+    field = field.to_s.upcase if reverse
+    map = hmis_project_type_keys
+    _translate(map, field, reverse, raise_on_missing: true)
+  end
+
   def project_types_without_inventory
     [4, 6, 7, 11, 12, 14].freeze
   end
@@ -489,6 +516,12 @@ module HudUtility2024
   SITUATION_TEMPORARY_RANGE = (300..399)
   SITUATION_PERMANENT_RANGE = (400..499)
 
+  def situation_other_range = self::SITUATION_OTHER_RANGE
+  def situation_homeless_range = self::SITUATION_HOMELESS_RANGE
+  def situation_institutional_range = self::SITUATION_INSTITUTIONAL_RANGE
+  def situation_temporary_range = self::SITUATION_TEMPORARY_RANGE
+  def situation_permanent_range = self::SITUATION_PERMANENT_RANGE
+
   private def situations_for(as)
     case as
     when :prior
@@ -679,7 +712,7 @@ module HudUtility2024
       'HUD: Unsheltered Special NOFO' => [54],
       'HUD: Rural Special NOFO' => [55],
       'HUD: HUD-VASH' => [20],
-      'HUD: PFS' => [HudUtility2024.funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
+      'HUD: PFS' => [HudHelper.util('2024').funding_source('HUD: Pay for Success', true, raise_on_missing: true)], # Pay for Success
       'HUD: HOME' => [50, 51],
     }
   end
@@ -721,43 +754,43 @@ module HudUtility2024
   def service_types_provided_map
     {
       141 => {
-        list: ::HudUtility2024.path_services_options,
+        list: ::HudHelper.util('2024').path_services_options,
         label_method: :path_services,
       },
       142 => {
-        list: ::HudUtility2024.rhy_services_options,
+        list: ::HudHelper.util('2024').rhy_services_options,
         label_method: :rhy_services,
       },
       143 => {
-        list: ::HudUtility2024.hopwa_services_options,
+        list: ::HudHelper.util('2024').hopwa_services_options,
         label_method: :hopwa_services,
       },
       144 => {
-        list: ::HudUtility2024.ssvf_services_options,
+        list: ::HudHelper.util('2024').ssvf_services_options,
         label_method: :ssvf_services,
       },
       151 => {
-        list: ::HudUtility2024.hopwa_financial_assistance_options,
+        list: ::HudHelper.util('2024').hopwa_financial_assistance_options,
         label_method: :hopwa_financial_assistance,
       },
       152 => {
-        list: ::HudUtility2024.ssvf_financial_assistance_options,
+        list: ::HudHelper.util('2024').ssvf_financial_assistance_options,
         label_method: :ssvf_financial_assistance,
       },
       161 => {
-        list: ::HudUtility2024.path_referral_options,
+        list: ::HudHelper.util('2024').path_referral_options,
         label_method: :path_referral,
       },
       200 => {
-        list: ::HudUtility2024.bed_night_options,
+        list: ::HudHelper.util('2024').bed_night_options,
         label_method: :bed_night,
       },
       210 => {
-        list: ::HudUtility2024.voucher_tracking_options,
+        list: ::HudHelper.util('2024').voucher_tracking_options,
         label_method: :voucher_tracking,
       },
       300 => {
-        list: ::HudUtility2024.moving_on_assistance_options,
+        list: ::HudHelper.util('2024').moving_on_assistance_options,
         label_method: :moving_on_assistance,
       },
     }.freeze
@@ -773,15 +806,15 @@ module HudUtility2024
   def service_sub_types_provided_map
     {
       3 => {
-        list: ::HudUtility2024.ssvf_sub_type3s,
+        list: ::HudHelper.util('2024').ssvf_sub_type3s,
         label_method: :ssvf_sub_type3,
       },
       4 => {
-        list: ::HudUtility2024.ssvf_sub_type4s,
+        list: ::HudHelper.util('2024').ssvf_sub_type4s,
         label_method: :ssvf_sub_type4,
       },
       5 => {
-        list: ::HudUtility2024.ssvf_sub_type5s,
+        list: ::HudHelper.util('2024').ssvf_sub_type5s,
         label_method: :ssvf_sub_type5,
       },
     }

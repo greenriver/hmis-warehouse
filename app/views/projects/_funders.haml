@@ -19,7 +19,7 @@
         - funders.each do |funder|
           %tr
             %td= funder.FunderID
-            %td= HudUtility2024.funding_source funder.Funder.to_i
+            %td= HudHelper.util.funding_source funder.Funder.to_i
             %td= funder.GrantID
             %td
               - if funder.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)

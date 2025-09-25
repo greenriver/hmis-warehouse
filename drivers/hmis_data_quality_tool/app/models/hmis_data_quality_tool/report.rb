@@ -187,11 +187,11 @@ module HmisDataQualityTool
     end
 
     def project_type_ids
-      HudUtility2024.performance_reporting.values.flatten
+      HudHelper.util.performance_reporting.values.flatten
     end
 
     def default_project_type_codes
-      HudUtility2024.performance_reporting.keys
+      HudHelper.util.performance_reporting.keys
     end
 
     private def build_control_sections
@@ -364,11 +364,11 @@ module HmisDataQualityTool
       when 'average_days_before_entry'
         enrollments.where.not(days_before_entry: nil)
       when 'destination_temporary'
-        enrollments.where(destination: ::HudUtility2024.temporary_destinations)
+        enrollments.where(destination: ::HudHelper.util.temporary_destinations)
       when 'destination_permanent'
-        enrollments.where(destination: ::HudUtility2024.permanent_destinations)
+        enrollments.where(destination: ::HudHelper.util.permanent_destinations)
       when 'destination_other'
-        enrollments.where(destination: ::HudUtility2024.other_destinations)
+        enrollments.where(destination: ::HudHelper.util.other_destinations)
       end
       scope.preload(:enrollment, :client, :data_source)
     end
@@ -479,12 +479,12 @@ module HmisDataQualityTool
     end
 
     def any_enrollments_in_type?(project_type_slug)
-      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      project_types = HudHelper.util.residential_project_type_numbers_by_code[project_type_slug]
       enrollments.where(project_type: project_types).exists?
     end
 
     def average_time_in_project_type(project_type_slug)
-      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      project_types = HudHelper.util.residential_project_type_numbers_by_code[project_type_slug]
       scope = enrollments.where(project_type: project_types)
       scope = scope.where(move_in_date: nil) if project_type_slug == :ph
       count = scope.count
@@ -496,7 +496,7 @@ module HmisDataQualityTool
 
     def percent_enrollments_over_one_year(project_type_slug)
       numerator = enrollments_of_length(365.., project_type_slug)
-      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      project_types = HudHelper.util.residential_project_type_numbers_by_code[project_type_slug]
       scope = enrollments.where(project_type: project_types)
       scope = scope.where(move_in_date: nil) if project_type_slug == :ph
       denominator = scope.count
@@ -506,7 +506,7 @@ module HmisDataQualityTool
     end
 
     private def enrollments_of_length(range, project_type_slug)
-      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      project_types = HudHelper.util.residential_project_type_numbers_by_code[project_type_slug]
       scope = enrollments.where(lot: range, project_type: project_types)
       scope = scope.where(move_in_date: nil) if project_type_slug == :ph
       scope.count

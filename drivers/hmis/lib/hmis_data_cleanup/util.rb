@@ -120,14 +120,14 @@ module HmisDataCleanup
           clients,
           category: 'Race',
           none_field: 'RaceNone',
-          fields: HudUtility2024.races.keys.excluding('RaceNone'),
+          fields: HudHelper.util.races.keys.excluding('RaceNone'),
         )
 
         fix_99s_for_category!(
           clients,
           category: 'Gender',
           none_field: 'GenderNone',
-          fields: HudUtility2024.gender_fields.excluding(:GenderNone),
+          fields: HudHelper.util.gender_fields.excluding(:GenderNone),
         )
       end
     end
@@ -321,7 +321,7 @@ module HmisDataCleanup
           OrganizationName: project.organization.OrganizationName,
           ProjectID: project.ProjectID,
           ProjectName: project.ProjectName,
-          ProjectType: HudUtility2024.project_type_briefs[project.project_type],
+          ProjectType: HudHelper.util.project_type_briefs[project.project_type],
           ProjectStatus: open_projects.include?(project.id) ? 'open' : 'closed', # project status
           HMISParticipationStatus: project.hmis_participations.where(HMISParticipationType: 1).exists? ? 'participating' : 'non-participating / unknown',
           TotalEnrollmentCount: project.enrollments.count, # num enrollments
@@ -421,7 +421,7 @@ module HmisDataCleanup
             name: name_parts.compact_blank.map(&:strip).join(' ').downcase,
             dob: client.dob&.strftime('%Y-%m-%d'),
             ssn: client.ssn,
-            genders: client.gender_multi.excluding(8, 9, 99).sort.map { |k| ::HudUtility2024.gender(k) }.join(', ').presence,
+            genders: client.gender_multi.excluding(8, 9, 99).sort.map { |k| ::HudHelper.util.gender(k) }.join(', ').presence,
           }
           [client.id, comparison_attrs]
         end.to_h

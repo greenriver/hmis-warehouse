@@ -18,10 +18,8 @@ module GrdaWarehouse::WarehouseReports::Exports
 
     # Don't limit by user visibility, end results are de-identified
     private def clients_within_projects
-      @clients_within_projects ||= begin
-        GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
-          merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
-      end
+      @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
     end
 
     def rows_for_export
@@ -35,17 +33,17 @@ module GrdaWarehouse::WarehouseReports::Exports
               race_for_client(client),
               client.gender,
               report_calculator.pregnancy_status_for(client),
-              HudUtility2024.veteran_status(client.VeteranStatus),
+              HudHelper.util.veteran_status(client.VeteranStatus),
               yes_no(report_calculator.disabled_and_impairing?(client)),
               report_calculator.episode_length_for(client),
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),
               report_calculator.episode_counts_past_3_years_for(client),
-              HudUtility2024.project_type(report_calculator.enrollment_for_client(client)&.project&.project_type),
-              HudUtility2024.destination(report_calculator.exit_for_client(client)&.Destination),
-              HudUtility2024.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
+              HudHelper.util.project_type(report_calculator.enrollment_for_client(client)&.project&.project_type),
+              HudHelper.util.destination(report_calculator.exit_for_client(client)&.Destination),
+              HudHelper.util.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
               yes_no(report_calculator.returned?(client)),
-              HudUtility2024.living_situation(report_calculator.enrollment_for_client(client)&.LivingSituation),
+              HudHelper.util.living_situation(report_calculator.enrollment_for_client(client)&.LivingSituation),
               report_calculator.vispdat_for_client(client)&.score,
               report_calculator.household_size_for(client),
             ]
