@@ -54,7 +54,15 @@ module MaYyaReport::WarehouseReports
       text = @report.cell_label(cell)
       @cell = "#{@cell}: #{text}" if text.present?
 
-      @members = @report.cell(params[:cell]).members
+      @members = @report.cell(params[:cell]).members.preload(universe_membership: { service_history_enrollment: [:project] })
+
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.title} #{@cell}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def report_class

@@ -10,6 +10,10 @@
     .input-group
       %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
       %button.btn.btn-secondary Search
+  .ml-auto
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon.icon-download2
+      Download Excel
 
 %p Showing #{pluralize(number_with_delimiter(@members.count), 'client')}.
 .card.overflow-x-scroll{style: "height: 800px"}
@@ -21,13 +25,18 @@
           %th= name.humanize
     %tbody
       - @members.each do |member|
+        - client = member.universe_membership
+        - project = client.service_history_enrollment.project
+        - next unless project
+
+        - pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :browse)
         %tr
-          %td= member[:first_name]
-          %td= member[:last_name]
+          %td= client.display_value(header: :first_name, value: member[:first_name], pii_policy: pii_policy)
+          %td= client.display_value(header: :last_name, value: member[:last_name], pii_policy: pii_policy)
           - client_details = member.universe_membership
           - attributes.each do |attribute|
             - if attribute == 'client_id'
-              %td= link_to client_details[attribute], client_path(client_details[attribute]), target: '_blank'
+              %td= link_to client.display_value(header: attribute, value: client_details[attribute], pii_policy: pii_policy), client_path(client_details[attribute]), target: '_blank'
             - else
               %td= @report.format_value(client_details[attribute], attribute)
 

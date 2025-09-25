@@ -279,8 +279,8 @@ module MaYyaReport
         },
         A4b: {
           calculation: a_t[:entry_date].lt(filter.start).
-            and(a_t[:latest_homeless_cls_in_range].gt(filter.start)).
-            and(a_t[:currently_homeless].eq(true)),
+            and(a_t[:currently_homeless].eq(true)).
+            and(a_t[:latest_homeless_cls_in_range].gt(filter.start).or(a_t[:homeless_enrollment_started_prior_to_range].eq(true))),
           label: 'Number of YYA continuing in case management',
         },
       }
