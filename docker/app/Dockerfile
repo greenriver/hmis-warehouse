@@ -47,7 +47,7 @@ ENV BUNDLE_RETRY=3
 ENV BUNDLE_PATH $GEM_HOME
 ENV BUNDLE_APP_CONFIG=$BUNDLE_PATH
 ENV BUNDLE_BIN=$BUNDLE_PATH/bin
-ENV PATH /app/bin:$BUNDLE_BIN:/usr/lib/postgresql/17/bin:$PATH
+ENV PATH /app/bin:$BUNDLE_BIN:/usr/lib/postgresql/${PG_MAJOR}/bin:$PATH
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
 # core dumps during precompile on github when using the pre-cache image pulled
 # from ECR
@@ -138,7 +138,6 @@ RUN apt-get update && apt-get upgrade -y \
   tzdata \
   unzip \
   vim \
-  wget \
   zip \
   && rm -rf /var/lib/apt/lists/* \
   && if [ "$(uname -m)" = "aarch64" ]; then \

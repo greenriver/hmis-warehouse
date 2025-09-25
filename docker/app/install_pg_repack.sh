@@ -26,7 +26,7 @@ for VERSION in "${VERSIONS[@]}"; do
     echo "Installing pg_repack version $VERSION..."
     
     # Download and extract
-    wget "https://api.pgxn.org/dist/pg_repack/${VERSION}/pg_repack-${VERSION}.zip"
+    curl -L -o "pg_repack-${VERSION}.zip" "https://api.pgxn.org/dist/pg_repack/${VERSION}/pg_repack-${VERSION}.zip"
     unzip "pg_repack-${VERSION}.zip"
     cd "pg_repack-${VERSION}"
     
