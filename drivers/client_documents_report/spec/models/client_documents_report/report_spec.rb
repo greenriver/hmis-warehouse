@@ -3,44 +3,63 @@
 require 'rails_helper'
 
 RSpec.describe ClientDocumentsReport::Report, type: :model do
-  let(:filter_double) do
-    double(
-      'ReportFilter',
+  let(:user) { create(:user) }
+  let(:start_date) { Date.new(2024, 1, 1) }
+  let(:end_date) { Date.new(2024, 12, 31) }
+  let(:filter) do
+    ::Filters::FilterBase.new(
+      user_id: user.id,
+      start: start_date,
+      end: end_date,
+      # keep reports simple for this spec
       required_files: [],
       optional_files: [],
-      chosen_secondary_cohorts: [],
-      apply: ->(scope, _) { scope },
     )
   end
 
-  subject(:report) { described_class.new(filter_double) }
+  subject(:report) { described_class.new(filter) }
 
   describe '#additional_client_data' do
     it 'handles nil information_date' do
-      client = instance_double('GrdaWarehouse::Hud::Client', id: 1)
+      client = create(:grda_warehouse_hud_client)
 
-      income_with_nil_date = instance_double('IncomeBenefit', information_date: nil, income_from_any_source: 1, total_monthly_income: 100)
-      income_with_date = instance_double('IncomeBenefit', information_date: Date.new(2024, 1, 1), income_from_any_source: 1, total_monthly_income: 200)
-
-      enrollment_record = instance_double('GrdaWarehouse::Hud::Enrollment', income_benefits: [income_with_nil_date, income_with_date])
-
-      enrollment = instance_double(
-        'GrdaWarehouse::ServiceHistoryEnrollment',
-        client_id: client.id,
-        client: client,
-        entry_date: Date.new(2024, 1, 1),
-        enrollment: enrollment_record,
+      entry_date = Date.new(2024, 1, 1)
+      hud_enrollment = create(
+        :grda_warehouse_hud_enrollment,
+        PersonalID: client.PersonalID,
+        data_source_id: client.data_source_id,
+        EntryDate: entry_date,
       )
 
-      relation_double = double('Relation')
-      allow(relation_double).to receive(:preload).and_return(relation_double)
-      allow(relation_double).to receive(:find_each).and_yield(enrollment)
-      allow(report).to receive(:enrollments).and_return(relation_double)
+      create(
+        :grda_warehouse_service_history,
+        client: client,
+        enrollment: hud_enrollment,
+        first_date_in_program: entry_date,
+        record_type: 'entry',
+      )
 
-      expect do
-        data = report.additional_client_data(client)
-        expect(data).to be_a(Hash)
-      end.not_to raise_error
+      create(
+        :hud_income_benefit,
+        EnrollmentID: hud_enrollment.EnrollmentID,
+        PersonalID: client.PersonalID,
+        data_source: client.data_source,
+        InformationDate: nil,
+        IncomeFromAnySource: 1,
+        TotalMonthlyIncome: 100,
+      )
+
+      create(
+        :hud_income_benefit,
+        EnrollmentID: hud_enrollment.EnrollmentID,
+        PersonalID: client.PersonalID,
+        data_source: client.data_source,
+        InformationDate: entry_date,
+        IncomeFromAnySource: 1,
+        TotalMonthlyIncome: 200,
+      )
+
+      expect { report.additional_client_data(client) }.not_to raise_error
     end
   end
 end
