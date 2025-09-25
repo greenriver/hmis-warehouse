@@ -4,11 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -34,22 +30,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       <<~GRAPHQL
         query GetFormRules(
           $filters: FormRuleFilterOptions
+          $limit: Int
         ) {
           formRules(
             filters: $filters
+            limit: $limit
           ) {
             nodesCount
             nodes {
               id
+              definitionId
               definitionRole
+              definitionTitle
+              projectId
+              projectName
+              organizationId
+              organization {
+                id
+                organizationName
+              }
             }
           }
         }
       GRAPHQL
     end
 
-    def query_form_rules(filters: nil)
-      response, result = post_graphql(filters: filters) { query }
+    def query_form_rules(filters: nil, limit: 25)
+      response, result = post_graphql(filters: filters, limit: limit) { query }
       expect(response.status).to eq(200), result.inspect
       result.dig('data', 'formRules', 'nodes')
     end
@@ -73,6 +80,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       rules = query_form_rules(filters: { form_type: [:INTAKE] })
       expect(rules.count).to eq(0)
+    end
+
+    context 'when there are many form rules' do
+      before do
+        Hmis::Form::Instance.destroy_all # clear existing rules
+        50.times do
+          project = create(:hmis_hud_project, data_source: ds1, organization: o1)
+          create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: project, active: true)
+        end
+        50.times do
+          organization = create(:hmis_hud_organization, data_source: ds1)
+          create(:hmis_form_instance, definition_identifier: 'test-custom-assessment', entity: organization, active: true)
+        end
+      end
+
+      it 'avoids n+1' do
+        expect do
+          rules = query_form_rules(limit: 100)
+          expect(rules.count).to eq(100)
+        end.to make_database_queries(count: 5..10)
+      end
     end
   end
 end
