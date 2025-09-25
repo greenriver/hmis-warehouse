@@ -162,7 +162,7 @@ Clients with Race and Ethnicity of Middle Eastern or North African (7).
 Clients with Race and Ethnicity of Hispanic/Latina/e/o (6).
 
 ##### h. Number of YYA served who identified as Other/Multi-racial (race)
-Clients with Race and Ethnicity of Client doesn't know (8), Client refused (9), or Data not collected (99).
+Clients with Race and Ethnicity of any two of the above, not counting Hispanic/Latina/e/o.
 
 ##### i. Number of YYA served whose primary language was English (language)
 Clients with Translation Assistance Needed of No (0).
@@ -276,7 +276,7 @@ Clients with Race and Ethnicity of Middle Eastern or North African (7).
 Clients with Race and Ethnicity of Hispanic/Latina/e/o (6).
 
 ##### h. Number of YYA served who identified as Other/Multi-racial (race)
-Clients with Race and Ethnicity of Client doesn't know (8), Client refused (9), or Data not collected (99).
+Clients with Race and Ethnicity of any two of the above, not counting Hispanic/Latina/e/o.
 
 ##### i. Number of YYA served whose primary language was English (language)
 Clients with Translation Assistance Needed of No (0).
@@ -439,7 +439,7 @@ YYA with Race and Ethnicity of Middle Eastern or North African (7).
 YYA with Race and Ethnicity of Hispanic/Latina/e/o (6).
 
 ##### h. Number of YYA served who identified as Other/Multi-racial (race)
-YYA with Race and Ethnicity of Client doesn't know (8), Client refused (9), or Data not collected (99).
+Clients with Race and Ethnicity of any two of the above, not counting Hispanic/Latina/e/o.
 
 #### 3. Other
 ##### a. Number of YYA served who were LGBTQ+
@@ -492,7 +492,7 @@ YYA with Race and Ethnicity of Middle Eastern or North African (7).
 YYA with Race and Ethnicity of Hispanic/Latina/e/o (6).
 
 ##### h. Number of YYA served who identified as Other/Multi-racial (race)
-YYA with Race and Ethnicity of Client doesn't know (8), Client refused (9), or Data not collected (99).
+Clients with Race and Ethnicity of any two of the above, not counting Hispanic/Latina/e/o.
 
 #### 3. Other
 ##### a. Number of YYA served who were LGBTQ+
