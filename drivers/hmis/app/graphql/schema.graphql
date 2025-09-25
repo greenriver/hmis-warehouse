@@ -5243,8 +5243,9 @@ type FormRule {
   organization: Organization
   organizationId: ID
   otherFunder: String
-  project: Project
+  project: Project @deprecated(reason: "Use projectName instead")
   projectId: ID
+  projectName: String
   projectType: ProjectType
   serviceCategory: ServiceCategory
   serviceType: ServiceType
