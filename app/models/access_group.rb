@@ -77,6 +77,18 @@ class AccessGroup < ApplicationRecord
     where("#{quoted_table_name}.coc_codes @> #{quoted}")
   end
 
+  def self.known_entity_types
+    [
+      :data_sources,
+      :organizations,
+      :projects,
+      :project_access_groups,
+      :reports,
+      :cohorts,
+      :project_groups,
+    ].freeze
+  end
+
   def name
     if user_id.blank?
       super
@@ -186,15 +198,7 @@ class AccessGroup < ApplicationRecord
     return unless persisted?
 
     GrdaWarehouse::GroupViewableEntity.transaction do
-      [
-        :data_sources,
-        :organizations,
-        :projects,
-        :project_access_groups,
-        :reports,
-        :cohorts,
-        :project_groups,
-      ].each do |type|
+      self.class.known_entity_types.each do |type|
         ids = (viewables[type] || []).map(&:to_i)
         scope = GrdaWarehouse::GroupViewableEntity.where(
           access_group_id: id,

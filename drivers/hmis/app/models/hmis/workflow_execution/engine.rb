@@ -40,6 +40,8 @@ module Hmis::WorkflowExecution
         raise "Failed to reopen step #{step.id} because it had an irreversible side effect. This indicates a misconfigured workflow."
       end
 
+      return step if step.open? # If the step is already available, no action needed
+
       step.available_at = Time.current
       step.enable!
       step

@@ -24,11 +24,11 @@ module HudSpmReport::HudReports
       belongs_to(
         :enrollment,
         -> do
-          TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-09-01')
-          TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::SpmEnrollment'", by: '2025-10-01')
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
+          active_version = ::HudReports::BaseController.new.default_report_version
+          enrollment_class_name = "HudSpmReport::#{active_version.to_s.camelize}::SpmEnrollment"
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq(enrollment_class_name))
         end,
-        class_name: 'HudSpmReport::Fy2024::SpmEnrollment',
+        class_name: 'HudSpmReport::Fy2024::SpmEnrollment', # NOTE: this doesn't match, but the SPM enrollments all use the same table, so should be safe
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,
@@ -36,11 +36,11 @@ module HudSpmReport::HudReports
       belongs_to(
         :return,
         -> do
-          TodoOrDie("Set SPM Default Generator on Staging to 'HudSpmReport::Fy2026::Return'", by: '2025-09-01')
-          TodoOrDie("Set SPM Default Generator to 'HudSpmReport::Fy2026::Return'", by: '2025-10-01')
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::Return'))
+          active_version = ::HudReports::BaseController.new.default_report_version
+          return_class_name = "HudSpmReport::#{active_version.to_s.camelize}::Return"
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq(return_class_name))
         end,
-        class_name: 'HudSpmReport::Fy2024::Return',
+        class_name: 'HudSpmReport::Fy2024::Return', # NOTE: this doesn't match, but the SPM returns all use the same table, so should be safe
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,

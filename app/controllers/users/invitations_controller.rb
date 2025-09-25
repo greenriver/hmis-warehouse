@@ -44,7 +44,7 @@ class Users::InvitationsController < Devise::InvitationsController
     # handle errors from devise
     if @user.errors.empty?
       set_flash_message :notice, :send_instructions, email: @user.email if is_flashing_format? && @user.invitation_sent_at
-      redirect_to admin_users_path
+      redirect_to edit_admin_user_path(@user)
     else
       @agencies = Agency.order(:name)
       render :new
@@ -67,9 +67,10 @@ class Users::InvitationsController < Devise::InvitationsController
 
     # Roles need to be added as a second pass since devise invitable doesn't know how to handle them
     user.update!(invite_params)
-    user.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
+    user.set_viewables(viewable_params.to_h.symbolize_keys) # TODO: START_ACL remove when ACL transition complete
     # if we have a user to copy user groups from, add them
     copy_user_groups(user: user) if user.using_acls?
+
     return user
   end
 
@@ -144,6 +145,7 @@ class Users::InvitationsController < Devise::InvitationsController
       reports: [],
       cohorts: [],
       project_groups: [],
+      project_access_groups: [],
     )
   end
   # END_ACL

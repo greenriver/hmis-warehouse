@@ -303,19 +303,10 @@ module Types
         end
     end
 
-    # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
-    # no mappings it should return all unit types, which is the default behavior.
     def self.possible_unit_types_for_project(project)
       return [] unless project.present?
 
-      unit_type_scope = Hmis::UnitType.all
-      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
-      if unit_type_ids.any?
-        unit_type_ids += project.units.distinct.pluck(:unit_type_id) # include unit types for existing units
-        unit_type_scope = unit_type_scope.where(id: unit_type_ids)
-      end
-
-      unit_type_scope.
+      project.possible_unit_types.
         order(:description, :id).
         map(&:to_pick_list_option)
     end

@@ -17,7 +17,7 @@ RSpec.describe HmisCsvImporter, type: :model do
 
     it 'can import files with bom|UTF-8 encoding' do
       file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/bom_test'
-      import_hmis_csv_fixture(file_path, version: '2026', run_jobs: false)
+      import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
     end
 
     it 'can import files with bad line endings' do
@@ -25,7 +25,7 @@ RSpec.describe HmisCsvImporter, type: :model do
       # the files in this import have a incorrect (but seen in the wild) "\r\n" as
       # part of their final line while most lines end in "\n"
       file_path = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/bad_ending'
-      import_hmis_csv_fixture(file_path, version: '2026', run_jobs: false)
+      import_hmis_csv_fixture(file_path, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
 
       # icky -- testing for side effects
       # Cleanup/transform passes may do this more than once, hence the 'at_least'
@@ -40,8 +40,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/baseline',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2026',
       )
     end
 
@@ -65,8 +66,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         allow(HmisCsvTwentyTwentySix::Importer::User).to receive(:prevent_import_deletions?).and_return(true)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/user',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
 
@@ -93,8 +95,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         allow(HmisCsvTwentyTwentySix::Importer::User).to receive(:prevent_import_deletions?).and_return(false)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/user',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
 
@@ -120,8 +123,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/baseline',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2026',
       )
     end
 
@@ -144,8 +148,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         allow(HmisCsvTwentyTwentySix::Importer::Organization).to receive(:prevent_import_deletions?).and_return(true)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/organization',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
 
@@ -169,8 +174,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         allow(HmisCsvTwentyTwentySix::Importer::Organization).to receive(:prevent_import_deletions?).and_return(false)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/organization',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
 
@@ -195,8 +201,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/baseline',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2026',
       )
     end
 
@@ -219,8 +226,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         allow(HmisCsvTwentyTwentySix::Importer::Project).to receive(:prevent_import_deletions?).and_return(true)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/project',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
 
@@ -248,8 +256,9 @@ RSpec.describe HmisCsvImporter, type: :model do
         allow(HmisCsvTwentyTwentySix::Importer::Project).to receive(:prevent_import_deletions?).and_return(false)
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/project',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: true,
+          stop_version: '2026',
         )
       end
 
@@ -275,8 +284,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_test_files',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: true,
+        stop_version: '2026',
       )
     end
 
@@ -368,8 +378,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       before(:all) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_change_files',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2026',
         )
       end
 
@@ -393,8 +404,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_with_deletes_test_files',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 
@@ -480,8 +492,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       GrdaWarehouse::Utility.clear!
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/project_test_files',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 
@@ -541,8 +554,9 @@ RSpec.describe HmisCsvImporter, type: :model do
 
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_test_with_restores_initial_files',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
+        stop_version: '2026',
       )
     end
 
@@ -581,8 +595,9 @@ RSpec.describe HmisCsvImporter, type: :model do
       before(:all) do
         import_hmis_csv_fixture(
           'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/enrollment_test_with_restores_update_files',
-          version: '2026',
+          version: 'AutoMigrate',
           run_jobs: false,
+          stop_version: '2026',
         )
       end
 
@@ -628,9 +643,10 @@ RSpec.describe HmisCsvImporter, type: :model do
     it 'pauses the import when dry_run is true' do
       loader = import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/baseline',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
         dry_run: true,
+        stop_version: '2026',
       )
       expect(loader.importer_log.status).to eq('paused')
     end
@@ -638,9 +654,10 @@ RSpec.describe HmisCsvImporter, type: :model do
     it 'completes the import when dry_run is false' do
       loader = import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/mutable_test/baseline',
-        version: '2026',
+        version: 'AutoMigrate',
         run_jobs: false,
         dry_run: false,
+        stop_version: '2026',
       )
       expect(loader.importer_log.status).to eq('complete')
     end

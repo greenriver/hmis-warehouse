@@ -268,7 +268,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
-      ccn_query = ccn_t[:last].matches("#{input.first_name}%")
+      ccn_query = ccn_t[:last].matches("#{input.last_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
       client_id_query = scope.left_outer_joins(:names).
@@ -317,10 +317,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
-  use_enum(:gender_enum_map, ::HudUtility2024.genders) do |hash|
+  use_enum(:gender_enum_map, ::HudUtility2026.genders) do |hash|
     hash.map do |value, desc|
       {
-        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2024.gender_id_to_field_name[value],
+        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2026.gender_id_to_field_name[value],
         value: value,
         desc: desc,
         null: [8, 9, 99].include?(value),
@@ -328,7 +328,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  use_enum(:race_enum_map, ::HudUtility2024.races.except('RaceNone'), include_base_null: true) do |hash|
+  use_enum(:race_enum_map, ::HudUtility2026.races.except('RaceNone'), include_base_null: true) do |hash|
     hash.map do |value, desc|
       {
         key: value,

@@ -28,6 +28,7 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
             data_source: @data_source,
             version: 'AutoMigrate',
             run_jobs: false,
+            stop_version: '2024',
           )
         end
       end
@@ -58,6 +59,7 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
             data_source: @data_source,
             version: 'AutoMigrate',
             run_jobs: false,
+            stop_version: '2024',
           )
         end
       end
