@@ -130,7 +130,7 @@ RSpec.describe MaYyaReport::UniverseCalculator do
       it 'identifies homeless project types correctly' do
         aggregate_failures 'homeless project type identification' do
           # Homeless project types
-          HudUtility2026.homeless_project_types.each do |project_type|
+          HudHelper.util.homeless_project_types.each do |project_type|
             enrollment = OpenStruct.new(project_type: project_type)
             expect(calculator.send(:homeless_enrollment?, enrollment)).to be true
           end
@@ -211,7 +211,6 @@ RSpec.describe MaYyaReport::UniverseCalculator do
       end
 
       it 'returns specific race code for single race' do
-        # Test with actual HudUtility2026 race codes (no mocking needed!)
         client = OpenStruct.new(RaceNone: nil, race_fields: ['AmIndAKNative'])
         expect(calculator.send(:race, client)).to eq(1)
 

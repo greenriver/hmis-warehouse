@@ -14,8 +14,8 @@ RSpec.describe MaYyaReport::Report, 'unit tests' do
 
   describe 'helper methods' do
     describe '#format_value' do
-      it 'formats gender values using HudUtility2026' do
-        expect(HudUtility2026).to receive(:gender).with(1).and_return('Man')
+      it 'formats gender values using HudHelper.util' do
+        expect(HudHelper.util).to receive(:gender).with(1).and_return('Man')
         result = report.format_value(1, 'gender')
         expect(result).to eq('Man')
       end
@@ -52,14 +52,14 @@ RSpec.describe MaYyaReport::Report, 'unit tests' do
 
     describe '#format_race' do
       before do
-        allow(HudUtility2026).to receive(:race_known_ids).and_return([1, 2, 3, 4, 5, 7])
-        allow(HudUtility2024).to receive(:race_id_to_field_name).and_return({ 5 => 'White' })
-        allow(HudUtility2026).to receive(:race).with('White').and_return('White')
-        allow(HudUtility2026).to receive(:race_nones).and_return({ 8 => 'Client doesn\'t know', 9 => 'Client prefers not to answer', 99 => 'Data not collected' })
-        allow(HudUtility2026).to receive(:race_none).with(8).and_return('Client doesn\'t know')
+        allow(HudHelper.util).to receive(:race_known_ids).and_return([1, 2, 3, 4, 5, 7])
+        allow(HudHelper.util).to receive(:race_id_to_field_name).and_return({ 5 => 'White' })
+        allow(HudHelper.util).to receive(:race).with('White').and_return('White')
+        allow(HudHelper.util).to receive(:race_nones).and_return({ 8 => 'Client doesn\'t know', 9 => 'Client prefers not to answer', 99 => 'Data not collected' })
+        allow(HudHelper.util).to receive(:race_none).with(8).and_return('Client doesn\'t know')
       end
 
-      it 'formats known race IDs using HudUtility2026' do
+      it 'formats known race IDs using HudHelper.util' do
         result = report.send(:format_race, 5)
         expect(result).to eq('White')
       end

@@ -82,12 +82,12 @@ module MaYyaReport
           latest_homeless_cls = all_cls_in_range.select { |cls| homeless_cls?(cls) }.max_by(&:InformationDate)
 
           homeless_enrollment_started_during_range = ongoing_enrollments.any? do |en|
-            en.project_type.in?(HudUtility2026.homeless_project_types) &&
+            en.project_type.in?(HudHelper.util.homeless_project_types) &&
             en.entry_date.between?(filter.start_date, filter.end_date)
           end
 
           homeless_enrollment_started_prior_to_range = ongoing_enrollments.any? do |en|
-            en.project_type.in?(HudUtility2026.homeless_project_types) &&
+            en.project_type.in?(HudHelper.util.homeless_project_types) &&
             en.entry_date < filter.start_date
           end
 
@@ -417,7 +417,7 @@ module MaYyaReport
     end
 
     private def homeless_enrollment?(enrollment)
-      enrollment.project_type.in?(HudUtility2026.homeless_project_types)
+      enrollment.project_type.in?(HudHelper.util.homeless_project_types)
     end
 
     private def cls_at_entry(enrollment)
