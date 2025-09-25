@@ -29,6 +29,18 @@ RSpec.shared_context 'ce spec helper' do
   end
 
   let!(:client) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
+
+  let!(:destination_data_source) { create :destination_data_source }
+  let(:destination_client) do
+    GrdaWarehouse::Hud::Client.find(client.destination_client.id)
+  end
+  before do
+    # Create warehouse clients to enable dirty marking
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+    # Mark everything clean
+    Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+  end
+
   let!(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
   let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
   let!(:state_machine_statuses) { CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1) }
