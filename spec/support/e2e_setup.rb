@@ -165,4 +165,17 @@ RSpec.configure do |config|
     ex.run
     Rails.application.default_url_options[:host] = was_host
   end
+
+  # Cleanup browser resources after each system test to prevent memory leaks
+  config.after(:each, type: :system) do
+    # Reset all Capybara sessions
+    Capybara.reset_sessions!
+
+    # Explicitly reset the browser if using Cuprite driver
+    if page.driver.is_a?(Capybara::Cuprite::Driver)
+      page.driver.browser.reset
+      # Clear browser logs to prevent accumulation
+      page.driver.browser.logger.truncate if page.driver.browser.logger.respond_to?(:truncate)
+    end
+  end
 end
