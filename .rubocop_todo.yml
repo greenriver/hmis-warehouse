@@ -3553,8 +3553,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/spec/system/hmis/bulk_services_spec.rb'
     - 'drivers/hmis/spec/system/hmis/data_collection_features_spec.rb'
     - 'drivers/hmis/spec/system/hmis/form_spec.rb'
-    - 'drivers/hmis/spec/system/hmis/hud_assessment_data_elements_spec.rb'
-    - 'drivers/hmis/spec/system/hmis/intake_assessment_spec.rb'
     - 'drivers/hmis/spec/system/hmis/legacy_services_spec.rb'
     - 'drivers/hmis/spec/system/hmis/sign_in_spec.rb'
     - 'drivers/hmis_csv_importer/app/controllers/hmis_csv_importer/import_overrides_controller.rb'
