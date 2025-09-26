@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa
   class LsaHicsController < LsasController
     include AjaxModalRails::Controller
@@ -61,13 +63,14 @@ module HudLsa
     def available_report_versions
       {
         'FY 2023' => { slug: :fy2023, active: false },
-        'FY 2024' => { slug: :fy2024, active: true },
+        'FY 2024' => { slug: :fy2024, active: false },
+        'FY 2026' => { slug: :fy2026, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2024
+      :fy2026
     end
 
     private def filter_class
@@ -78,6 +81,7 @@ module HudLsa
       {
         fy2023: HudLsa::Generators::Fy2023::Lsa,
         fy2024: HudLsa::Generators::Fy2024::Lsa,
+        fy2026: HudLsa::Generators::Fy2026::Lsa,
       }
     end
 
