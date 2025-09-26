@@ -247,7 +247,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it 'only updates SSN from clients with a value' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
+      source_1.update(SSN: @ssn1, SSNDataQuality: 2)
       source_2.update(SSN: nil, SSNDataQuality: 9)
 
       @cleanup.update_client_demographics_based_on_sources
@@ -256,8 +256,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it 'chooses the highest quality SSN' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
-      source_2.update(SSN: @ssn2, SSNDataQuality: 9)
+      source_1.update(SSN: @ssn1, SSNDataQuality: 2)
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1)
 
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
@@ -265,8 +265,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it "chooses the oldest record's SSN if all have equivalent quality" do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
 
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
@@ -803,8 +803,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it 'only updates SSN from clients with a value' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
+      source_1.update(SSN: @ssn1, SSNDataQuality: 2)
+      source_2.update(SSN: nil, SSNDataQuality: 1)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
         Hash[@cleanup.client_columns.keys.zip(row)]
       end
@@ -813,8 +813,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it 'chooses the highest quality SSN' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
-      source_2.update(SSN: @ssn2, SSNDataQuality: 9)
+      source_1.update(SSN: @ssn1, SSNDataQuality: 2)
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
         Hash[@cleanup.client_columns.keys.zip(row)]
       end
@@ -824,8 +824,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it "chooses the oldest record's SSN if all have equivalent quality" do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
         Hash[@cleanup.client_columns.keys.zip(row)]
       end

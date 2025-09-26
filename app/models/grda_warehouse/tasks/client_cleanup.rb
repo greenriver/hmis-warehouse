@@ -464,22 +464,48 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
+    # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
+    # note, source clients might be just an array of hashes
+    SSN_DQS = [1, 2, 8, 9, 99].to_set.freeze
     def choose_best_ssn dest_attr, source_clients
-      # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
-      non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
-      if non_blank_ssn.any?
-        best = nil
-        [1, 2, 8, 9, 99].each do |dq_value|
-          best = non_blank_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
-          break if best.present?
-        end
-        best = non_blank_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
+      items = source_clients.
+        filter { |sc| sc[:SSNDataQuality].in?(SSN_DQS) }.
+        map do |sc|
+          dq = sc[:SSNDataQuality]
+          value = sc[:SSN]&.strip.presence
 
-        dest_attr[:SSN] = best[:SSN]
-        dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
-      elsif dest_attr[:SSN].present?
-        dest_attr[:SSN] = nil
-        dest_attr[:SSNDataQuality] = 99
+          # normalization pass
+          if dq.between?(1, 2)
+            numeric = value&.gsub(/\D/, '').presence
+            if numeric.nil?
+              dq = 99
+              value = nil
+            elsif numeric.length != 9
+              dq = 2
+            elsif dq == 1
+              value = numeric
+            end
+          else
+            value = nil
+          end
+
+          [dq, value, sc]
+        end.
+        sort_by { |dq, _, sc| [dq, sc[:DateCreated], sc[:id]] } # sort after normalize as dq may change
+
+      values_by_dq = { 99 => nil }
+      items.each do |dq, value, _sc|
+        # conditional assignment to take the first ssn (oldest)
+        values_by_dq[dq] ||= value
+      end
+
+      # use the best match
+      SSN_DQS.each do |dq|
+        next unless values_by_dq.key?(dq)
+
+        dest_attr[:SSN] = values_by_dq[dq]
+        dest_attr[:SSNDataQuality] = dq
+        break
       end
       dest_attr
     end
