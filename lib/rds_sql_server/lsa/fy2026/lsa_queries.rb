@@ -42,7 +42,7 @@ module LsaSqlServer
     def setup_test_report(type: :lsa)
       case type
       when :lsa
-        run_query('lib/rds_sql_server/lsa/fy2026/sample_code/03_01a LSA Parameters and Metadata.sql')
+        run_query('lib/rds_sql_server/lsa/fy2026/sample_code/03_01a LSA Parameters and Metadata-Annual Systemwide.sql')
       when :hic
         run_query('lib/rds_sql_server/lsa/fy2026/sample_code/03_01b LSA Parameters and Metadata for HIC.sql')
       end

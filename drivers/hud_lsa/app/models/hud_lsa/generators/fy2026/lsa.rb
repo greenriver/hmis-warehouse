@@ -246,7 +246,7 @@ module HudLsa::Generators::Fy2026
         end
       end
 
-      exporter = HmisCsvTwentyTwentyFour::Exporter::Base.new(
+      exporter = HmisCsvTwentyTwentySix::Exporter::Base.new(
         version: '2026',
         start_date: export_date_range.first,
         end_date: export_date_range.last,
@@ -470,10 +470,6 @@ module HudLsa::Generators::Fy2026
       # WorkplaceViolenceThreats -> WorkPlaceViolenceThreats
       workplace_index = headers.index('WorkplaceViolenceThreats')
       headers[workplace_index] = 'WorkPlaceViolenceThreats' if workplace_index.present?
-
-      # HispanicLatinaeo -> HispanicLatinao
-      hispanic_index = headers.index('HispanicLatinaeo')
-      headers[hispanic_index] = 'HispanicLatinao' if hispanic_index.present?
 
       headers
     end

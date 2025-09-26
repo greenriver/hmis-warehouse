@@ -22,13 +22,13 @@ Relevant Sections:
 			v7 Update
 			- Delete logic associated with Gender  (Step 5.3/5.4)
 			- HMIS Client.csv column name change from Latinaeo to Latinao
-	5.5.	Time Spent in ES/SH or on the Street – LSAPerson
+	5.5.	Time Spent in ES/SH or on the Street â€“ LSAPerson
 	5.6.	Enrollments Relevant to Counting ES/SH/Street Dates
 	5.7.	Get Dates to Exclude from Counts of ES/SH/Street Days (ch_Exclude)
 	5.8.	Get Dates to Include in Counts of ES/SH/Street Days (ch_Include)
 	5.9.	Get ES/SH/Street Episodes (ch_Episodes)
-	5.10.	CHTime and CHTimeStatus – LSAPerson
-	5.11.	EST/RRH/PSH/RRHSOAgeMin and EST/RRH/PSH/RRHSOAgeMax – LSAPerson
+	5.10.	CHTime and CHTimeStatus â€“ LSAPerson
+	5.11.	EST/RRH/PSH/RRHSOAgeMin and EST/RRH/PSH/RRHSOAgeMax â€“ LSAPerson
 
 
 
