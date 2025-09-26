@@ -96,12 +96,6 @@ RSpec.configure do |config|
     TestRecovery.mark_test_completed(example) if example.execution_result.status == :passed
   end
 
-  config.around(:each, type: :system) do |example|
-    example.run
-  rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError, Ferrum::PendingConnectionsError => e
-    TestRecovery.handle_browser_crash(example, e)
-  end
-
   config.after(:suite, type: :system) do
     # Clean up on successful completion
     TestRecovery.cleanup_progress_files if RSpec.world.filtered_examples.values.flatten.all? { |ex| ex.execution_result.status == :passed }

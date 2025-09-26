@@ -160,11 +160,18 @@ RSpec.configure do |config|
 
   # Make urls in mailers contain the correct server host.
   # It's required for testing links in emails (e.g., via capybara-email).
-  config.around(:each, type: :system) do |ex|
+  # Note: This around hook is combined with test_recovery.rb logic
+  config.around(:each, type: :system) do |example|
     was_host = Rails.application.default_url_options[:host]
     Rails.application.default_url_options[:host] = Capybara.server_host
-    ex.run
-    Rails.application.default_url_options[:host] = was_host
+
+    begin
+      example.run
+    rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError, Ferrum::PendingConnectionsError => e
+      TestRecovery.handle_browser_crash(example, e)
+    ensure
+      Rails.application.default_url_options[:host] = was_host
+    end
   end
 
   # Cleanup browser resources after each system test to prevent memory leaks
