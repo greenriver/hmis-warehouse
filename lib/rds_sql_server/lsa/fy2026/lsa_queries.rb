@@ -23,10 +23,9 @@ module LsaSqlServer
         'lib/rds_sql_server/lsa/fy2026/sample_code/06 LSAHousehold.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/07 LSAExit.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/08 LSACalculated Averages for LSAHousehold and LSAExit.sql',
-        'lib/rds_sql_server/lsa/fy2026/sample_code/09 LSACalculated AHAR Counts.sql',
+        'lib/rds_sql_server/lsa/fy2026/sample_code/09 LSACalculated AIR Counts.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/10 LSACalculated Data Quality.sql',
         'lib/rds_sql_server/lsa/fy2026/sample_code/11 LSAReport DQ and ReportDate.sql',
-
       ]
     end
 
