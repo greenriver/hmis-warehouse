@@ -893,12 +893,44 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
 
       context 'with locked opportunity' do
-        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked) }
+        let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, status: :locked, data_source: ds1) }
 
         it 'raises an error' do
           expect do
             process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
-          end.to raise_error(RuntimeError, /Cannot assign directly to a unit receiving referrals/)
+          end.to raise_error(RuntimeError, /Cannot assign to a unit with locked opportunity/)
+        end
+
+        context 'and active referral for a different client' do
+          let(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
+          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: c2) }
+          it 'raises an error' do
+            expect do
+              process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+            end.to raise_error(RuntimeError, /Cannot assign to a unit with locked opportunity/)
+          end
+        end
+
+        context 'and active referral for the same client' do
+          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: e1.client) }
+
+          it 'allows assignment' do
+            expect do
+              process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+            end.not_to raise_error
+          end
+        end
+
+        context 'and active referral for a client in same household' do
+          let(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
+          let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, household_id: e1.household_id }
+          let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: c2, target_enrollment: e2) }
+
+          it 'allows assignment' do
+            expect do
+              process_record(record: e1, hud_values: hud_values, user: hmis_user, definition: definition)
+            end.not_to raise_error
+          end
         end
       end
     end

@@ -3527,7 +3527,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/spec/requests/hmis/form_definition_lookup_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/form_definition_rules_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/form_identifier_spec.rb'
-    - 'drivers/hmis/spec/requests/hmis/form_rules_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/get_project_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/get_projects_spec.rb'
     - 'drivers/hmis/spec/requests/hmis/graphql_controller_spec.rb'
