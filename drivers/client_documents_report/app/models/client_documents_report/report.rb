@@ -160,7 +160,7 @@ module ClientDocumentsReport
           if enrollment.entry_date == client_data[enrollment.client_id]['Newest Entry Date']
             income_record = enrollment.enrollment&.income_benefits&.
               to_a&.
-              filter { |ib| ib.information_date }.
+              filter(&:information_date)&.
               max_by(&:information_date)
 
             client_data[enrollment.client_id]['Newest Income from Any Source'] = HudHelper.util.no_yes_reasons_for_missing_data(income_record&.income_from_any_source)
