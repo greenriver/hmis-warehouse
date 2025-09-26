@@ -189,7 +189,9 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
           it 'resolves the next available step' do
             response, result = post_graphql(**variables) { mutation }
             expect(response.status).to eq(200), result.inspect
-            next_step = result.dig('data', 'submitCeReferralStep', 'referral', 'steps', 1)
+            steps = result.dig('data', 'submitCeReferralStep', 'referral', 'steps')
+            expect(steps.count).to eq(2) # The previously completed step + the newly available step
+            next_step = steps[1]
             expect(next_step.dig('status')).to eq('available')
             expect(next_step.dig('swimlane')).to eq('Providers')
             expect(next_step.dig('assignees', 0, 'id')).to eq(hmis_user.id.to_s)
