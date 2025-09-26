@@ -11,6 +11,24 @@ require_relative '../../../support/ce_spec_helper'
 RSpec.describe Hmis::Ce::ReferralMessageHandler, type: :model do
   include_context 'ce spec helper'
 
+  describe 'workflow with effects that update client eligibility' do
+    it 'marks client dirty' do
+      expect do
+        engine.start_workflow!(user: hmis_user)
+      end.to change { Hmis::Ce::ChangeMarker.where(trackable: destination_client).dirty.count }.from(0).to(1)
+
+      Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+
+      expect do
+        2.times do # complete the Client Acceptance and then Provider Acceptance steps
+          current_step = engine.active_steps.sole
+          engine.start_step!(current_step, user: hmis_user)
+          engine.complete_step!(current_step, user: hmis_user, submitted_values: {}) # referral will be rejected
+        end
+      end.to change { Hmis::Ce::ChangeMarker.where(trackable: destination_client).dirty.count }.from(0).to(1)
+    end
+  end
+
   describe 'workflow with side effect that adds a custom status' do
     let!(:custom_status) { create(:hmis_ce_custom_referral_status, data_source: ds1) }
 
