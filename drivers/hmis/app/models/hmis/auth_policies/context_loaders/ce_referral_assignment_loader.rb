@@ -26,7 +26,6 @@ module Hmis::AuthPolicies::ContextLoaders
     # Clear memery cache when step assignments may have changed during a request (e.g., after completing a step in a mutation).
     def clear_cache!
       clear_memery_cache!
-      self
     end
 
     private
