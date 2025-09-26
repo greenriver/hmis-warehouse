@@ -59,32 +59,32 @@ module AcHmis
       )
       # Some TH support both waitlist and direct
       update_configs(
-        Hmis::Hud::Project.hmis.open_on_date.where(project_type: 2).where(project_id: TH_BOTH_IDS),
+        Hmis::Hud::Project.hmis.open_on_date.where(project_id: TH_BOTH_IDS),
         waitlists: true, direct_referrals: true, label: 'TH (both)', dry_run: dry_run,
       )
       # Some TH support direct only
       update_configs(
-        Hmis::Hud::Project.hmis.open_on_date.where(project_type: 2).where(project_id: TH_DIRECT_ONLY_IDS),
+        Hmis::Hud::Project.hmis.open_on_date.where(project_id: TH_DIRECT_ONLY_IDS),
         waitlists: false, direct_referrals: true, label: 'TH (direct only)', dry_run: dry_run,
       )
       # Some HP support both waitlist and direct
       update_configs(
-        Hmis::Hud::Project.hmis.open_on_date.where(project_type: 12).where(project_id: HP_BOTH_IDS),
+        Hmis::Hud::Project.hmis.open_on_date.where(project_id: HP_BOTH_IDS),
         waitlists: true, direct_referrals: true, label: 'HP (both)', dry_run: dry_run,
       )
       # Some HP support direct only
       update_configs(
-        Hmis::Hud::Project.hmis.open_on_date.where(project_type: 12).where(project_id: HP_DIRECT_ONLY_IDS),
+        Hmis::Hud::Project.hmis.open_on_date.where(project_id: HP_DIRECT_ONLY_IDS),
         waitlists: false, direct_referrals: true, label: 'HP (direct only)', dry_run: dry_run,
       )
       # Some ES Entry/Exit support direct referrals
       update_configs(
-        Hmis::Hud::Project.hmis.open_on_date.where(project_type: 0).where(project_id: EE_PROJECT_IDS),
+        Hmis::Hud::Project.hmis.open_on_date.where(project_id: EE_PROJECT_IDS),
         waitlists: false, direct_referrals: true, label: 'Entry/Exit', dry_run: dry_run,
       )
       # Some Services Only support direct referrals
       update_configs(
-        Hmis::Hud::Project.hmis.open_on_date.where(project_type: 8).where(project_id: SSO_PROJECT_IDS),
+        Hmis::Hud::Project.hmis.open_on_date.where(project_id: SSO_PROJECT_IDS),
         waitlists: false, direct_referrals: true, label: 'Services Only', dry_run: dry_run,
       )
     end
