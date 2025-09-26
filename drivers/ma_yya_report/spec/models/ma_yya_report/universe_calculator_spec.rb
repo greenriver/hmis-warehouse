@@ -311,9 +311,8 @@ RSpec.describe MaYyaReport::UniverseCalculator do
             entry_date: different_entry_date, # Different date, so cls_at_entry returns nil
             enrollment: enrollment_record,
           )
-          # This will fail with NoMethodError because homeless_cls? doesn't handle nil
-          # This reveals a bug in the actual code
-          expect { calculator.send(:at_risk_of_homelessness?, [enrollment]) }.to raise_error(NoMethodError, /undefined method.*CurrentLivingSituation.*for nil/)
+
+          expect(calculator.send(:at_risk_of_homelessness?, [enrollment])).to be false
         end
       end
     end

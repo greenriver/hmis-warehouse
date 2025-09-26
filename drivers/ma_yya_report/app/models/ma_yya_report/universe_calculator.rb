@@ -347,6 +347,8 @@ module MaYyaReport
     end
 
     private def homeless_cls?(cls)
+      return false unless cls&.CurrentLivingSituation.present?
+
       cls.CurrentLivingSituation.in?([116, 101, 118, 302, 336, 335])
     end
 
