@@ -1846,7 +1846,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/concerns/youth/intake.rb'
     - 'app/models/concerns/youth_export.rb'
     - 'app/models/consent_limit.rb'
-    - 'app/models/dba/database_bloat.rb'
     - 'app/models/dba/partition_maker.rb'
     - 'app/models/dj_metrics.rb'
     - 'app/models/entry_client_report.rb'

@@ -1,4 +1,4 @@
--- \restrict Xdq2hDTEKipPO4QGbBwFfE00gp1hfe1UePFpLKJqUWPRpPkqc7Wnlwa3BVwh3JO
+-- \restrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -6955,7 +6955,8 @@ CREATE TABLE public.ce_client_proxies (
     client_type character varying NOT NULL,
     client_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -15895,6 +15896,55 @@ ALTER SEQUENCE public.hmis_2026_custom_data_elements_id_seq OWNED BY public.hmis
 
 
 --
+-- Name: hmis_2026_custom_enrollment_fy26_deprecations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_2026_custom_enrollment_fy26_deprecations (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "SexualOrientation" integer,
+    "SexualOrientationOther" character varying,
+    "TranslationNeeded" integer,
+    "PreferredLanguage" integer,
+    "PreferredLanguageDifferent" character varying,
+    "DateCreated" timestamp(6) without time zone,
+    "DateUpdated" timestamp(6) without time zone,
+    "UserID" character varying,
+    "DateDeleted" timestamp(6) without time zone,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    importer_log_id bigint NOT NULL,
+    pre_processed_at timestamp(6) without time zone NOT NULL,
+    source_hash character varying,
+    source_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    dirty_at timestamp without time zone,
+    clean_at timestamp without time zone,
+    should_import boolean DEFAULT true
+);
+
+
+--
+-- Name: hmis_2026_custom_enrollment_fy26_deprecations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_2026_custom_enrollment_fy26_deprecations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_2026_custom_enrollment_fy26_deprecations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_2026_custom_enrollment_fy26_deprecations_id_seq OWNED BY public.hmis_2026_custom_enrollment_fy26_deprecations.id;
+
+
+--
 -- Name: hmis_2026_custom_genders; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21737,6 +21787,49 @@ CREATE SEQUENCE public.hmis_csv_2026_custom_data_elements_id_seq
 --
 
 ALTER SEQUENCE public.hmis_csv_2026_custom_data_elements_id_seq OWNED BY public.hmis_csv_2026_custom_data_elements.id;
+
+
+--
+-- Name: hmis_csv_2026_custom_enrollment_fy26_deprecations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_2026_custom_enrollment_fy26_deprecations (
+    id bigint NOT NULL,
+    "EnrollmentID" character varying,
+    "PersonalID" character varying,
+    "SexualOrientation" character varying,
+    "SexualOrientationOther" character varying,
+    "TranslationNeeded" character varying,
+    "PreferredLanguage" character varying,
+    "PreferredLanguageDifferent" character varying,
+    "DateCreated" character varying,
+    "DateUpdated" character varying,
+    "UserID" character varying,
+    "DateDeleted" character varying,
+    "ExportID" character varying,
+    data_source_id bigint NOT NULL,
+    loaded_at timestamp(6) without time zone NOT NULL,
+    loader_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_csv_2026_custom_enrollment_fy26_deprecations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_2026_custom_enrollment_fy26_deprecations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_2026_custom_enrollment_fy26_deprecations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_2026_custom_enrollment_fy26_deprecations_id_seq OWNED BY public.hmis_csv_2026_custom_enrollment_fy26_deprecations.id;
 
 
 --
@@ -35520,6 +35613,13 @@ ALTER TABLE ONLY public.hmis_2026_custom_data_elements ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: hmis_2026_custom_enrollment_fy26_deprecations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_enrollment_fy26_deprecations ALTER COLUMN id SET DEFAULT nextval('public.hmis_2026_custom_enrollment_fy26_deprecations_id_seq'::regclass);
+
+
+--
 -- Name: hmis_2026_custom_genders id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -36287,6 +36387,13 @@ ALTER TABLE ONLY public.hmis_csv_2026_custom_data_element_definitions ALTER COLU
 --
 
 ALTER TABLE ONLY public.hmis_csv_2026_custom_data_elements ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_data_elements_id_seq'::regclass);
+
+
+--
+-- Name: hmis_csv_2026_custom_enrollment_fy26_deprecations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_enrollment_fy26_deprecations ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_2026_custom_enrollment_fy26_deprecations_id_seq'::regclass);
 
 
 --
@@ -39847,6 +39954,14 @@ ALTER TABLE ONLY public.hmis_2026_custom_data_elements
 
 
 --
+-- Name: hmis_2026_custom_enrollment_fy26_deprecations hmis_2026_custom_enrollment_fy26_deprecations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_2026_custom_enrollment_fy26_deprecations
+    ADD CONSTRAINT hmis_2026_custom_enrollment_fy26_deprecations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_2026_custom_genders hmis_2026_custom_genders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -40724,6 +40839,14 @@ ALTER TABLE ONLY public.hmis_csv_2026_custom_data_element_definitions
 
 ALTER TABLE ONLY public.hmis_csv_2026_custom_data_elements
     ADD CONSTRAINT hmis_csv_2026_custom_data_elements_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_2026_custom_enrollment_fy26_deprecations hmis_csv_2026_custom_enrollment_fy26_deprecations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_2026_custom_enrollment_fy26_deprecations
+    ADD CONSTRAINT hmis_csv_2026_custom_enrollment_fy26_deprecations_pkey PRIMARY KEY (id);
 
 
 --
@@ -60438,6 +60561,27 @@ CREATE INDEX idx_custom_data_elements_source ON public.hmis_2026_custom_data_ele
 
 
 --
+-- Name: idx_custom_enrollment_fy26_deprecations_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_enrollment_fy26_deprecations_id_ds ON public.hmis_csv_2026_custom_enrollment_fy26_deprecations USING btree ("EnrollmentID", data_source_id);
+
+
+--
+-- Name: idx_custom_enrollment_fy26_deprecations_imp_id_ds; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_enrollment_fy26_deprecations_imp_id_ds ON public.hmis_2026_custom_enrollment_fy26_deprecations USING btree ("EnrollmentID", data_source_id);
+
+
+--
+-- Name: idx_custom_enrollment_fy26_deprecations_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_enrollment_fy26_deprecations_source ON public.hmis_2026_custom_enrollment_fy26_deprecations USING btree (source_type, source_id);
+
+
+--
 -- Name: idx_custom_genders_id_ds; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60704,10 +60848,24 @@ CREATE INDEX idx_on_data_source_id_641ce0c5a9 ON public.hmis_csv_2026_current_li
 
 
 --
+-- Name: idx_on_data_source_id_7492bcb21d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_7492bcb21d ON public.hmis_2026_custom_enrollment_fy26_deprecations USING btree (data_source_id);
+
+
+--
 -- Name: idx_on_data_source_id_752bcf074b; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_on_data_source_id_752bcf074b ON public.hmis_csv_2026_custom_sexual_orientations USING btree (data_source_id);
+
+
+--
+-- Name: idx_on_data_source_id_8467e6962b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_8467e6962b ON public.hmis_csv_2026_custom_enrollment_fy26_deprecations USING btree (data_source_id);
 
 
 --
@@ -60746,10 +60904,24 @@ CREATE INDEX idx_on_importer_log_id_91e82a0553 ON public.hmis_2026_custom_data_e
 
 
 --
+-- Name: idx_on_importer_log_id_d0253dc096; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_importer_log_id_d0253dc096 ON public.hmis_2026_custom_enrollment_fy26_deprecations USING btree (importer_log_id);
+
+
+--
 -- Name: idx_on_loader_id_083332ec0e; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_on_loader_id_083332ec0e ON public.hmis_csv_2026_custom_data_element_definitions USING btree (loader_id);
+
+
+--
+-- Name: idx_on_loader_id_c062b7be6d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_loader_id_c062b7be6d ON public.hmis_csv_2026_custom_enrollment_fy26_deprecations USING btree (loader_id);
 
 
 --
@@ -75594,11 +75766,13 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict Xdq2hDTEKipPO4QGbBwFfE00gp1hfe1UePFpLKJqUWPRpPkqc7Wnlwa3BVwh3JO
+-- \unrestrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250926075333'),
+('20250923120000'),
 ('20250920182921'),
 ('20250904184751'),
 ('20250904183709'),

@@ -14,13 +14,16 @@
 module Hmis::Ce
   class ClientProxy < GrdaWarehouseBase
     # Bulk-managed, does not log to paper_trail
+    # Soft-deleted to avoid losing historical CE match data
+    acts_as_paranoid
 
     # For now, this is the GrdaWarehouse::Hud::Client representing the *destination* client.
     # In the future, we will add more client types (e.g. VSP)
     belongs_to :client, polymorphic: true, optional: false
     belongs_to :destination_client, -> { where(ClientProxy.arel_table[:client_type].eq('GrdaWarehouse::Hud::Client')) }, foreign_key: 'client_id', class_name: 'GrdaWarehouse::Hud::Client', optional: true
     has_many :ce_match_candidates, class_name: 'Hmis::Ce::Match::Candidate', foreign_key: :client_proxy_id, dependent: :destroy
-    has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :client_proxy_id, dependent: :destroy
+    # avoid dependent destroy/delete to preserve historical data
+    has_many :ce_match_candidate_events, class_name: 'Hmis::Ce::Match::CandidateEvent', foreign_key: :client_proxy_id
 
     validates :client_id, presence: true, uniqueness: { scope: [:client_type] }
     validate :client_is_destination

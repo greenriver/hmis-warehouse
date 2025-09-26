@@ -18,10 +18,18 @@ module Hmis::Ce::Match::Internal
           client_type: client.class.sti_name,
           created_at: timestamp,
           updated_at: timestamp,
+          deleted_at: nil,
         }
       end
 
-      result = Hmis::Ce::ClientProxy.import(values, on_duplicate_key_ignore: true)
+      result = Hmis::Ce::ClientProxy.import(
+        values,
+        on_duplicate_key_update: {
+          conflict_target: [:client_type, :client_id],
+          columns: [:deleted_at, :updated_at],
+          condition: 'ce_client_proxies.deleted_at IS NOT NULL',
+        },
+      )
       raise "failed to import ClientProxies: #{result.inspect}" if result.failed_instances.present?
 
       result.ids
