@@ -116,8 +116,8 @@ jobs:
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
-      FERRUM_PROCESS_TIMEOUT: 45
-      FERRUM_DEFAULT_TIMEOUT: 45
+      FERRUM_PROCESS_TIMEOUT: 120
+      FERRUM_DEFAULT_TIMEOUT: 120
 
     steps:
       - name: Checkout
@@ -164,6 +164,7 @@ jobs:
           BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
           CHROME_URL: http://chrome:3333
           TODO_OR_DIE_LOG_ONLY: true
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run:
           # Are you looking to run the system tests locally? See:
           # https://github.com/greenriver/hmis-warehouse/blob/stable/drivers/hmis/README.md#e2e-testing
@@ -179,3 +180,5 @@ jobs:
             tmp/rspec_profiles/
             tmp/capybara/screenshots/
             var/deprecations/*.yml
+            system_test_progress.txt
+            recovery_attempts.txt

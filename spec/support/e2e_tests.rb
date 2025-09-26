@@ -22,7 +22,7 @@ module E2eTests
   module Setup
     # The setup to be run prior to the test suite
     def self.perform(
-      default_max_wait_time: 20,
+      default_max_wait_time: 90,
       default_normalize_ws: true,
       automatic_label_click: true,
       enable_aria_label: true

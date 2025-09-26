@@ -8,6 +8,7 @@
 
 if ENV['RUN_SYSTEM_TESTS']
   require_relative './e2e_tests'
+  require_relative './test_recovery'
   E2eTests::Setup.perform
   Capybara.default_driver = E2eTests::DRIVER_NAME
 end

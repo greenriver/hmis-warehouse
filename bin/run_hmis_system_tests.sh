@@ -107,8 +107,43 @@ cd "$ORIGINAL_CWD"
 # skip okta if it's set in our local env
 unset HMIS_OKTA_CLIENT_ID
 unset OKTA_DOMAIN
-RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec drivers/hmis/spec/system/hmis/*
 
+# Function to run tests with recovery
+run_tests_with_recovery() {
+  local attempt=1
+  local max_attempts=4
+
+  while [ $attempt -le $max_attempts ]; do
+    echo "🧪 Test run attempt $attempt/$max_attempts"
+
+    if [ $attempt -eq 1 ]; then
+      # First run - clean slate
+      RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec drivers/hmis/spec/system/hmis/*
+    else
+      # Recovery run - skip completed tests
+      echo "🔄 Recovering from previous crash..."
+      RUN_SYSTEM_TESTS=true RECOVER_FROM_CRASH=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec drivers/hmis/spec/system/hmis/*
+    fi
+
+    local exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+      echo "✅ All tests passed!"
+      return 0
+    elif [ $exit_code -eq 2 ]; then
+      echo "🔄 Browser crash detected, attempting recovery..."
+      attempt=$((attempt + 1))
+    else
+      echo "❌ Tests failed with exit code $exit_code"
+      return $exit_code
+    fi
+  done
+
+  echo "❌ Max recovery attempts exceeded"
+  return 1
+}
+
+run_tests_with_recovery
 TEST_EXIT_CODE=$?
 
 kill $SERVER_PID

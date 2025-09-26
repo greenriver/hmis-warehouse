@@ -40,9 +40,11 @@ RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :mode
 
   def compare_test_results
     results = []
-    Dir.glob(File.join(FIXTURES_OUT, '*.csv')).each do |filename|
+    expected_files = Dir.glob(File.join(FIXTURES_OUT, '*.csv'))
+    expected_files.each do |filename|
       basename = File.basename(filename)
-      results << basename unless FileUtils.identical?(filename, File.join(DEST_DIR, basename))
+      dest_file = File.join(DEST_DIR, basename)
+      results << basename unless File.exist?(dest_file) && FileUtils.identical?(filename, dest_file)
     end
     results
   end
