@@ -79,6 +79,7 @@ RSpec.configure do |config|
     # disable rack attack unless we are testing it explicitly
     Rack::Attack.enabled = false
 
+    GrdaWarehouse::Utility.clear!
     example_file_paths = RSpec.world.filtered_examples.values.flatten.map { |e| e.metadata[:file_path] }.uniq
     # load fixpoints if we're running tests that may need them
     if example_file_paths.grep(%r{/drivers/(hud_path_report|hud_spm_report|hud_data_quality_report)/}).any? # rubocop:disable Style/RegexpLiteral
