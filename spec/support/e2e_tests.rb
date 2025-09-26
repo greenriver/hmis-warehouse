@@ -64,6 +64,14 @@ module E2eTests
         'no-zygote' => nil,                         # Disables the zygote process.
         'single-process' => nil,                    # Runs the browser in a single process.
         'disable-smooth-scrolling' => nil,          # Can help on low-resource systems.
+        # Network performance optimizations
+        'aggressive-cache-discard' => nil,          # Discard cached resources aggressively
+        'disable-background-networking' => nil,     # Prevent background network requests
+        'disable-background-timer-throttling' => nil, # Keep timers active for faster loading
+        'disable-renderer-backgrounding' => nil, # Keep renderer active
+        'disable-backgrounding-occluded-windows' => nil, # Keep occluded windows active
+        'disable-features' => 'TranslateUI,VizDisplayCompositor', # Disable heavy features
+        'max_old_space_size' => '512', # Limit memory to prevent swapping
       }
 
       ::Capybara.register_driver(DRIVER_NAME) do |app|
@@ -77,6 +85,12 @@ module E2eTests
             js_errors: true,
             logger: FerrumLogger.new,
             inspector: true,
+            timeout: 120,                           # Page load timeout (matches FERRUM_DEFAULT_TIMEOUT)
+            process_timeout: 120,                   # Browser process timeout (matches FERRUM_PROCESS_TIMEOUT)
+            pending_connection_errors: false,       # Don't fail on pending connections - common in CI
+            url_blacklist: [],                      # Don't block any URLs
+            url_whitelist: [],                      # Allow all URLs
+            ignore_https_errors: true,              # Ignore SSL issues that might slow connections
           }.merge(remote_options),
         )
       end

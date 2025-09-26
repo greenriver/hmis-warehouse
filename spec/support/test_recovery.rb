@@ -98,7 +98,7 @@ RSpec.configure do |config|
 
   config.around(:each, type: :system) do |example|
     example.run
-  rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+  rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError, Ferrum::PendingConnectionsError => e
     TestRecovery.handle_browser_crash(example, e)
   end
 

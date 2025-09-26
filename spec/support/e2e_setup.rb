@@ -174,5 +174,14 @@ RSpec.configure do |config|
 
     # Explicitly reset the browser if using Cuprite driver
     page.driver.browser.reset if page.driver.is_a?(Capybara::Cuprite::Driver)
+  rescue Ferrum::DeadBrowserError, Ferrum::TimeoutError => e
+    # If browser is dead, we can't reset it cleanly - just log and continue
+    puts "⚠️  Browser cleanup failed (browser may be dead): #{e.class}"
+    # Force create a new session for the next test
+    begin
+      Capybara.current_session.driver.quit
+    rescue StandardError
+      nil
+    end
   end
 end
