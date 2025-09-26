@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+require 'shellwords'
+
 # Reduces bloat in tables and indexes
 #
 # Test with this:
@@ -134,10 +136,20 @@ class Dba::DatabaseBloat
         # Get the appropriate pg_repack binary for this database version
         db_version = pg_repack_db_version
         binary = pg_repack_binary(db_version)
-        options = "--no-superuser-check -U #{username} -d #{database} -h #{host} -p #{port} -t #{row['schemaname']}.#{row['tblname']}"
+
+        # Properly escape all parameters to prevent command injection
+        escaped_binary = Shellwords.escape(binary)
+        escaped_username = Shellwords.escape(username)
+        escaped_database = Shellwords.escape(database)
+        escaped_host = Shellwords.escape(host)
+        escaped_port = Shellwords.escape(port)
+        escaped_schema = Shellwords.escape(row['schemaname'])
+        escaped_table = Shellwords.escape(row['tblname'])
+
+        options = "--no-superuser-check -U #{escaped_username} -d #{escaped_database} -h #{escaped_host} -p #{escaped_port} -t #{escaped_schema}.#{escaped_table}"
 
         # In order to support multiple versions of pg_repack, we need to use the version-specific binary
-        cmd = "#{binary} #{options}"
+        cmd = "#{escaped_binary} #{options}"
 
         raise 'version of pg_repack needs to match that in the database'
 
@@ -192,7 +204,8 @@ class Dba::DatabaseBloat
   # @param binary_name [String] The binary name (e.g. 'pg_repack-1.5.2')
   # @return [Boolean] True if the binary is available, false otherwise
   def binary_available_on_container?(binary_name)
-    system("which #{binary_name} > /dev/null 2>&1")
+    escaped_binary = Shellwords.escape(binary_name)
+    system("which #{escaped_binary} > /dev/null 2>&1")
   end
 
   # Get the version of the pg_repack extension in the database
