@@ -1,8 +1,3 @@
--- \restrict a8R2zx0wBdjHa46wYIBiumGoNytUKsDpWfGMR4sxUjy8G5DcHQJKghzvGzlY5ZJ
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -6955,7 +6950,8 @@ CREATE TABLE public.ce_client_proxies (
     client_type character varying NOT NULL,
     client_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -75765,12 +75761,11 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict a8R2zx0wBdjHa46wYIBiumGoNytUKsDpWfGMR4sxUjy8G5DcHQJKghzvGzlY5ZJ
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250926075333'),
+('20250923120000'),
 ('20250920182921'),
 ('20250904184751'),
 ('20250904183709'),
