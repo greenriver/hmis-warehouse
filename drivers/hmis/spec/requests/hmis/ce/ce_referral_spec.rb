@@ -524,11 +524,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             )
             start_event.connect_to!(non_conditional_task)
           end
-
-          referral.workflow_engine.start_workflow!(user: hmis_user)
         end
 
         it 'does not result in n+1 query' do
+          referral.workflow_engine.start_workflow!(user: hmis_user)
+
           expect do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
@@ -541,13 +541,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           before do
             remove_permissions(ds_access_control, :can_perform_any_referral_tasks)
             add_permissions(ds_access_control, :can_perform_own_referral_tasks)
+            referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user)
+
+            referral.workflow_engine.start_workflow!(user: hmis_user)
           end
 
           it 'still does not cause n+1' do
             expect do
               _, result = post_graphql(**variables) { query }
               steps = result.dig('data', 'ceReferral', 'steps')
-              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be false)
+              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be true)
             end.to make_database_queries(count: 30..40)
           end
         end
