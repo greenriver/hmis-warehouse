@@ -186,7 +186,7 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
             referral.participants.create(swimlane: provider_swimlane, user: hmis_user) # Assign the current user as a participant on the next task's swimlane
           end
 
-          it 'submits the step' do
+          it 'resolves the next available step' do
             response, result = post_graphql(**variables) { mutation }
             expect(response.status).to eq(200), result.inspect
             next_step = result.dig('data', 'submitCeReferralStep', 'referral', 'steps', 1)
