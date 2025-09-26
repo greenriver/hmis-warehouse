@@ -53,13 +53,26 @@ module E2eTests
       raise "can't connect to chrome on #{ENV['CHROME_URL']} run `docker-compose up -d chrome`" unless RemoteChrome.connected?
 
       remote_options = RemoteChrome.options
+      # Performance settings
+      browser_options = {
+        'disable-gpu' => nil,                       # Disables GPU hardware acceleration.
+        'disable-software-rasterizer' => nil,       # Prevents fallback to CPU rasterization.
+        'disable-dev-shm-usage' => nil,             # Reduces memory usage on some systems.
+        'no-sandbox' => nil,                        # Necessary for Dockerized environments.
+        'disable-accelerated-2d-canvas' => nil,     # Disables accelerated canvas rendering.
+        'no-first-run' => nil,                      # Skips the first-run browser setup.
+        'no-zygote' => nil,                         # Disables the zygote process.
+        'single-process' => nil,                    # Runs the browser in a single process.
+        'disable-smooth-scrolling' => nil,          # Can help on low-resource systems.
+      }
+
       ::Capybara.register_driver(DRIVER_NAME) do |app|
         ::Capybara::Cuprite::Driver.new(
           app,
           **{
             extensions: ["#{Rails.root}/spec/assets/disable_transitions.js"], # https://github.com/rubycdp/ferrum?tab=readme-ov-file#customization
             window_size: [1200, 1600],
-            browser_options: RemoteChrome.connected? ? { 'no-sandbox' => nil } : {},
+            browser_options: browser_options,
             headless: ENV.fetch('CI', 'true') == 'true',
             js_errors: true,
             logger: FerrumLogger.new,
