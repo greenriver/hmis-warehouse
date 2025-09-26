@@ -172,10 +172,6 @@ RSpec.configure do |config|
     Capybara.reset_sessions!
 
     # Explicitly reset the browser if using Cuprite driver
-    if page.driver.is_a?(Capybara::Cuprite::Driver)
-      page.driver.browser.reset
-      # Clear browser logs to prevent accumulation
-      page.driver.browser.logger.truncate if page.driver.browser.logger.respond_to?(:truncate)
-    end
+    page.driver.browser.reset if page.driver.is_a?(Capybara::Cuprite::Driver)
   end
 end
