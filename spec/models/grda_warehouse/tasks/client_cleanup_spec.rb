@@ -255,6 +255,16 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn1)
     end
 
+    it 'treats nil SSN data quality as data not collected but keeps the value' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: nil)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.SSN).to eq(@ssn1)
+      expect(destination_client.SSNDataQuality).to eq(2)
+    end
+
     it 'chooses the highest quality SSN' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 2)
       source_2.update(SSN: @ssn2, SSNDataQuality: 1)
@@ -264,13 +274,35 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
-    it "chooses the oldest record's SSN if all have equivalent quality" do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
+    it 'ignores partial SSNs that are marked as full when a real full SSN exists' do
+      source_1.update(SSN: '12345', SSNDataQuality: 1, DateCreated: Date.new(2018, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
 
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.SSN).to eq(@ssn2)
+      expect(destination_client.SSNDataQuality).to eq(1)
+    end
+
+    it 'normalizes punctuation from SSNs before persisting them' do
+      source_1.update(SSN: '123-45-6789', SSNDataQuality: 1)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.SSN).to eq('123456789')
+      expect(destination_client.SSNDataQuality).to eq(1)
+    end
+
+    it "chooses the newest record's SSN if all have equivalent quality" do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.
+new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.
+new(2016, 5, 1))
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.SSN).to eq(@ssn1)
     end
 
     it 'overwrites nil veteran status if something is non-blank' do
@@ -812,6 +844,18 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
+    it 'treats nil SSN data quality as data not collected while keeping the SSN' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: nil)
+      source_2.update(SSN: nil, SSNDataQuality: 1)
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@ssn1).to eq(@dest_attr[:SSN])
+      expect(2).to eq(@dest_attr[:SSNDataQuality])
+    end
+
     it 'chooses the highest quality SSN' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 2)
       source_2.update(SSN: @ssn2, SSNDataQuality: 1)
@@ -823,7 +867,31 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
-    it "chooses the oldest record's SSN if all have equivalent quality" do
+    it 'ignores partial SSNs that are marked as full when a real full SSN exists' do
+      source_1.update(SSN: '12345', SSNDataQuality: 1, DateCreated: Date.new(2018, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@ssn2).to eq(@dest_attr[:SSN])
+      expect(1).to eq(@dest_attr[:SSNDataQuality])
+    end
+
+    it 'normalizes punctuation from SSNs before persisting them' do
+      source_1.update(SSN: '123-45-6789', SSNDataQuality: 1)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect('123456789').to eq(@dest_attr[:SSN])
+      expect(1).to eq(@dest_attr[:SSNDataQuality])
+    end
+
+    it "chooses the newest record's SSN if all have equivalent quality" do
       source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
       source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
@@ -831,7 +899,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@ssn2).to eq(@dest_attr[:SSN])
+      expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
     it 'overwrites nil veteran status if something is non-blank' do

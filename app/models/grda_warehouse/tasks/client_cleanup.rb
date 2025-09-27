@@ -464,19 +464,24 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
+    def ssn_dqs
+      @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.to_set.freeze
+    end
+
     # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
     # note, source clients might be just an array of hashes
-    SSN_DQS = [1, 2, 8, 9, 99].to_set.freeze
+
     def choose_best_ssn dest_attr, source_clients
       items = source_clients.
-        filter { |sc| sc[:SSNDataQuality].in?(SSN_DQS) }.
         map do |sc|
           dq = sc[:SSNDataQuality]
+          dq = 99 unless dq&.in?(ssn_dqs)
+
           value = sc[:SSN]&.strip.presence
+          numeric = value&.gsub(/\D/, '').presence
 
           # normalization pass
           if dq.between?(1, 2)
-            numeric = value&.gsub(/\D/, '').presence
             if numeric.nil?
               dq = 99
               value = nil
@@ -485,13 +490,24 @@ module GrdaWarehouse::Tasks
             elsif dq == 1
               value = numeric
             end
-          else
-            value = nil
+          elsif numeric
+            # if there's a numeric value, treat this as "partial" quality
+            dq = 2
           end
 
           [dq, value, sc]
         end.
-        sort_by { |dq, _, sc| [dq, sc[:DateCreated], sc[:id]] } # sort after normalize as dq may change
+        sort_by do |dq, _, sc| # sort after normalize as dq may change
+          # sort order:
+          # ascending dq order
+          # descending DateCreated (allows us to correct old data that can not be updated)
+          # id to ensure deterministic behavior
+          [
+            dq,
+            (sc[:DateCreated].to_i * -1),
+            sc[:id],
+          ]
+        end
 
       values_by_dq = { 99 => nil }
       items.each do |dq, value, _sc|
@@ -500,7 +516,7 @@ module GrdaWarehouse::Tasks
       end
 
       # use the best match
-      SSN_DQS.each do |dq|
+      ssn_dqs.each do |dq|
         next unless values_by_dq.key?(dq)
 
         dest_attr[:SSN] = values_by_dq[dq]
