@@ -468,9 +468,8 @@ module GrdaWarehouse::Tasks
       @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.to_set.freeze
     end
 
-    # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
+    # Get the best SSN (has value and quality is full or partial, newest record breaks the tie)
     # note, source clients might be just an array of hashes
-
     def choose_best_ssn dest_attr, source_clients
       items = source_clients.
         map do |sc|
