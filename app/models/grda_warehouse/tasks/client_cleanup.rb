@@ -465,14 +465,15 @@ module GrdaWarehouse::Tasks
     end
 
     def ssn_dqs
-      @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.freeze
+      # process dqs in order of accuracy (1 is most accurate)
+      @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.sort
     end
 
     # Get the best SSN (has value and quality is full or partial, oldest record breaks the tie by default)
     # note, source clients might be just an array of hashes
     def choose_best_ssn(dest_attr, source_clients, use_oldest: true)
-      time_coefficient = use_oldest ? 1 : -1 # asc / desc
-
+      # sort when source_clients are missing timestamps
+      date_key_default = use_oldest ? Float::INFINITY : -Float::INFINITY
       items = source_clients.
         map do |sc|
           dq = sc[:SSNDataQuality]
@@ -497,20 +498,21 @@ module GrdaWarehouse::Tasks
           [dq, value, sc]
         end.
         sort_by do |dq, _, sc| # sort after normalize as dq may change
-          # sort order:
-          # ascending dq order
-          # DateCreated direction depends on `use_oldest`
-          # id to ensure deterministic behavior
+          date_key = sc[:DateCreated]&.to_i || date_key_default
+          date_key *= -1 unless use_oldest
           [
-            dq,
-            sc[:DateCreated].to_i * time_coefficient,
-            sc[:id],
+            dq, # ascending adjusted dq order
+            sc[:SSNDataQuality] || 99, # tie breaker with original dq order
+            date_key, # date-based tie breaker (oldest/newest)
+            sc[:id].to_i, # include id to ensure deterministic behavior
           ]
         end
 
       values_by_dq = { 99 => nil }
       items.each do |dq, value, _sc|
-        # conditional assignment to take the first ssn (oldest)
+        next unless value
+
+        # conditional assignment to take the first ssn (oldest or newest)
         values_by_dq[dq] ||= value
       end
 
@@ -520,7 +522,7 @@ module GrdaWarehouse::Tasks
 
         dest_attr[:SSN] = values_by_dq[dq]
         dest_attr[:SSNDataQuality] = dq
-        break
+        return dest_attr
       end
       dest_attr
     end
