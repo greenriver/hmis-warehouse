@@ -138,6 +138,7 @@ task :import_ac_hmis_scoring_rules_20250812, [:form_definition_identifier] => [:
         criteria_type: criteria_type,
         criteria_config: criteria_config,
         weight: weight_value,
+        variable_name: variable_name,
       )
       created_count += 1
     rescue StandardError => e

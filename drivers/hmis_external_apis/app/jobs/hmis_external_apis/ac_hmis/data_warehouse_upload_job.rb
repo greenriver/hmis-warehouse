@@ -92,6 +92,59 @@ module HmisExternalApis::AcHmis
       end
     end
 
+    def things
+      require 'csv'
+      output = StringIO.new
+      columns = [
+        'VariableName',
+        'CustomFieldKey',
+        'Algorithm',
+        'CriteriaType',
+        'ExactMatch',
+        'GreaterThan',
+        'GreaterThanOrEqualTo',
+        'LessThan',
+        'LessThanOrEqualTo',
+        'Weight',
+      ]
+      form = Hmis::Form::Definition.published.find_by(identifier: 'hna_2')
+      output << CSV.generate_line(columns)
+      Hmis::Scoring::Rule.all.each do |rule|
+        algorithm = case rule.algorithm
+                    when 'alt_aha_1'
+                      'er'
+                    when 'alt_aha_2'
+                      'mhip'
+                    when 'alt_aha_3'
+                      'jail'
+                    end
+        item = form.link_id_item_hash[rule.link_id]
+        custom_field_key = item ? item['mapping']['custom_field_key'] : rule.link_id
+
+        if custom_field_key == 'housing_needs_monthly_household_income'
+          # if rule.criteria_config['match_value'].nil? && rule.criteria_config['gt'].nil? && rule.criteria_config['gte'].nil? && rule.criteria_config['lt'].nil? && rule.criteria_config['lte'].nil?
+          binding.pry
+        end
+
+        values = [
+          rule.variable_name,
+          custom_field_key,
+          algorithm,
+          rule.criteria_type,
+          rule.criteria_config['match_value'],
+          rule.criteria_config['gt'],
+          rule.criteria_config['gte'],
+          rule.criteria_config['lt'],
+          rule.criteria_config['lte'],
+          rule.weight,
+        ]
+        output << CSV.generate_line(values)
+      end
+      File.open('AltAhaScoringRules.csv', 'w') do |file|
+        file.write(output.string)
+      end
+    end
+
     private
 
     def log(message, exception: nil)
