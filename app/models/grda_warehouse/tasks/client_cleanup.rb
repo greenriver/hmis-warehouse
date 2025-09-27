@@ -465,12 +465,14 @@ module GrdaWarehouse::Tasks
     end
 
     def ssn_dqs
-      @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.to_set.freeze
+      @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.freeze
     end
 
-    # Get the best SSN (has value and quality is full or partial, newest record breaks the tie)
+    # Get the best SSN (has value and quality is full or partial, oldest record breaks the tie by default)
     # note, source clients might be just an array of hashes
-    def choose_best_ssn dest_attr, source_clients
+    def choose_best_ssn(dest_attr, source_clients, use_oldest: true)
+      time_coefficient = use_oldest ? 1 : -1 # asc / desc
+
       items = source_clients.
         map do |sc|
           dq = sc[:SSNDataQuality]
@@ -486,8 +488,6 @@ module GrdaWarehouse::Tasks
               value = nil
             elsif numeric.length != 9
               dq = 2
-            elsif dq == 1
-              value = numeric
             end
           elsif numeric
             # if there's a numeric value, treat this as "partial" quality
@@ -499,11 +499,11 @@ module GrdaWarehouse::Tasks
         sort_by do |dq, _, sc| # sort after normalize as dq may change
           # sort order:
           # ascending dq order
-          # descending DateCreated (allows us to correct old data that can not be updated)
+          # DateCreated direction depends on `use_oldest`
           # id to ensure deterministic behavior
           [
             dq,
-            (sc[:DateCreated].to_i * -1),
+            sc[:DateCreated].to_i * time_coefficient,
             sc[:id],
           ]
         end

@@ -284,25 +284,24 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSNDataQuality).to eq(1)
     end
 
-    it 'normalizes punctuation from SSNs before persisting them' do
-      source_1.update(SSN: '123-45-6789', SSNDataQuality: 1)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
+    it "chooses the oldest record's SSN if all have equivalent quality" do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
 
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
-      expect(destination_client.SSN).to eq('123456789')
-      expect(destination_client.SSNDataQuality).to eq(1)
+      expect(destination_client.SSN).to eq(@ssn2)
     end
 
-    it "chooses the newest record's SSN if all have equivalent quality" do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.
-new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.
-new(2016, 5, 1))
+    it 'supports choosing the newest record when requested' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.SSN).to eq(@ssn1)
+      @dest_attr = @cleanup.send(:choose_best_ssn, @dest_attr, client_sources, use_oldest: false)
+      expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
     it 'overwrites nil veteran status if something is non-blank' do
@@ -879,7 +878,7 @@ new(2016, 5, 1))
       expect(1).to eq(@dest_attr[:SSNDataQuality])
     end
 
-    it 'normalizes punctuation from SSNs before persisting them' do
+    it 'does not normalize punctuation from SSNs before persisting them' do
       source_1.update(SSN: '123-45-6789', SSNDataQuality: 1)
       source_2.update(SSN: nil, SSNDataQuality: 9)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
@@ -887,7 +886,7 @@ new(2016, 5, 1))
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('123456789').to eq(@dest_attr[:SSN])
+      expect('123-45-6789').to eq(@dest_attr[:SSN])
       expect(1).to eq(@dest_attr[:SSNDataQuality])
     end
 
@@ -899,6 +898,17 @@ new(2016, 5, 1))
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@ssn2).to eq(@dest_attr[:SSN])
+    end
+
+    it 'supports choosing the newest record when requested' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
+
+      @dest_attr = @cleanup.send(:choose_best_ssn, @dest_attr, client_sources, use_oldest: false)
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
