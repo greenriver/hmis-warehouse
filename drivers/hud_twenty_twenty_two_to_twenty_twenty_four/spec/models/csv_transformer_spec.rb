@@ -12,7 +12,7 @@ RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :mode
   FIXTURES = 'drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures' unless const_defined?(:FIXTURES)
   FIXTURES_IN = File.join(FIXTURES, 'in') unless const_defined?(:FIXTURES_IN)
   FIXTURES_OUT = File.join(FIXTURES, 'out') unless const_defined?(:FIXTURES_OUT)
-  TEST_DIR = 'tmp/test' unless const_defined?(:TEST_DIR)
+  TEST_DIR = "tmp/test_#{described_class.name.underscore}".freeze unless const_defined?(:TEST_DIR)
   SOURCE_DIR = File.join(TEST_DIR, 'in/merged/source') unless const_defined?(:SOURCE_DIR)
   DEST_DIR = File.join(TEST_DIR, 'out') unless const_defined?(:DEST_DIR)
 
