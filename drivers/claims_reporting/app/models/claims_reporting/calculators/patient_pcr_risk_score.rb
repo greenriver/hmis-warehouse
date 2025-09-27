@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: false
+
 module ClaimsReporting::Calculators
   class PatientPcrRiskScore
     def initialize(medicaid_ids = [], date_range: Date.current.beginning_of_year..Date.current.end_of_year)

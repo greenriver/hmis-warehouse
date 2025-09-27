@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 #!/usr/bin/env ruby
 
 require_relative 'scheduled_task'

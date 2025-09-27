@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'amazing_print'
 require_relative 'deployer'
 require_relative 'aws_sdk_helpers'
