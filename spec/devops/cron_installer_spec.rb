@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 require_relative '../../config/deploy/docker/lib/cron_installer'

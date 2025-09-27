@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   class DataWarehouseApi
     SYSTEM_ID = 'ac_hmis_warehouse_api'.freeze

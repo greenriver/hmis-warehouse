@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GroupedSelectTwoInput < SimpleForm::Inputs::GroupedCollectionSelectInput
   def input_html_classes
     super.push('stimulus-select')

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MaYyaReport
   class Client < GrdaWarehouseBase
     self.table_name = :ma_yya_report_clients

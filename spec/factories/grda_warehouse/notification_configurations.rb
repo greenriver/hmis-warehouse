@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :notification_configuration_import_threshold, class: 'GrdaWarehouse::NotificationConfiguration' do
     association :source, factory: :import_threshold

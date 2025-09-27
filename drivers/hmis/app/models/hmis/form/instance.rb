@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Specifies which polymorphic entity (and/or service type) that a given form is applicable to.
 class Hmis::Form::Instance < ::GrdaWarehouseBase
   include Hmis::Concerns::HmisArelHelper

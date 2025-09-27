@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # DEPRECATED_FY2024 - this will not work until we've updated the source CSVs to the FY2024 format with the new importer

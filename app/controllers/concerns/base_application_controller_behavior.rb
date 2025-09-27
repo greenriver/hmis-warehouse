@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'application_responder'
 
 # ApplicationController that could be shared between WH and HMIS, but is currently only used by HMIS

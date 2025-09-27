@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :theme, class: 'GrdaWarehouse::Theme' do
     client { 'test' }

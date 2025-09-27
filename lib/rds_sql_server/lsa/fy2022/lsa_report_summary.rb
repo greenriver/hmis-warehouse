@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 require_relative 'lsa_sql_server' unless ENV['NO_LSA_RDS'].present?
 module LsaSqlServer

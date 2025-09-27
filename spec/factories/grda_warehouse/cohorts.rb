@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :cohort, class: 'GrdaWarehouse::Cohort' do
     name { 'Cohort 1' }

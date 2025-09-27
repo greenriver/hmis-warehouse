@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SharedLogic
   # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html
   def _placement_strategy

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HealthThriveAssessment
   class Assessment < HealthBase
     include Rails.application.routes.url_helpers

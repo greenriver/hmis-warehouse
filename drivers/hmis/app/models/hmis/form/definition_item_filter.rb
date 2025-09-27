@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Dynamic filter form definition items based on item.rule.
 class Hmis::Form::DefinitionItemFilter
   def self.perform(...)

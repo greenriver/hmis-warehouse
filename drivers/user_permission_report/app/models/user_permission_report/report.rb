@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # frozen_string_literal: false
 
 # This class is used to generate the data for excel exports of the User Permission Report.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-cloudwatch'
 require 'aws-sdk-ecs'
 require 'aws-sdk-dynamodb'

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   # STRMU is one-time service. Expect a new enrollment/household every time service is provided
   StrmuLongevityFilter = Struct.new(:label, :client_ids, keyword_init: true) do

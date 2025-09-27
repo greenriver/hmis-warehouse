@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisErrors
   class Error
     def initialize(attribute, type = :invalid, severity: :error, message: nil, full_message: nil, readable_attribute: nil, **kwargs)

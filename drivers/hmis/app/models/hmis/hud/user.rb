@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # frozen_string_literal: false
 
 # This model represents an HMIS User for the purposes of import/export in the HUD HMIS User.csv file.

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class ReportResult < ApplicationRecord
   acts_as_paranoid
   require 'csv'

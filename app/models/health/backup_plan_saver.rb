@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # A wrapper around Services form changes to ease Qualifying Activities creation
 module Health
   class BackupPlanSaver

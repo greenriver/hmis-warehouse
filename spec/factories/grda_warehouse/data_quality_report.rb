@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :data_quality_report_version_three, class: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree' do
     completed_at { Time.now }

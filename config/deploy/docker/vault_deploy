@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #!/usr/bin/env ruby
 
 # Confirm we've pushed/pulled before we ask for a password

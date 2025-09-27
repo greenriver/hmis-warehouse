@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Contact
   class Project < Base
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :entity_id

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetActiveOnImportConfigs < ActiveRecord::Migration[7.0]
   def up
     Health::ImportConfig.update_all(active: true)

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Validate that for any given importer_log_id there
 # are no entry dates after exit dates. This needs
 # the full data set in-place to check and should happen only once after the import is complete

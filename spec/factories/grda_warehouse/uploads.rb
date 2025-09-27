@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :grda_warehouse_upload, class: 'GrdaWarehouse::Upload' do
     association :data_source, factory: :source_data_source
