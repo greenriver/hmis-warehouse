@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
 # Copyright 2016 - 2025 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class Assessment < Base
@@ -103,8 +103,8 @@ module GrdaWarehouse::Hud
       return matching_question unless answer.present?
 
       assessment_answer = matching_question.AssessmentAnswer&.to_s
-      assessment_answer&.downcase! unless case_sensitive
-      answer&.downcase! unless case_sensitive
+      assessment_answer = assessment_answer&.downcase unless case_sensitive
+      answer = answer&.downcase unless case_sensitive
 
       (assessment_answer || '') == answer
     end
