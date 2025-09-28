@@ -25,6 +25,16 @@ namespace :delayed_job do
     # Use a generous default (~31 hours) to avoid false positives across day boundaries/long jobs
     stale  = 1860 if stale <= 0
 
+    # Validate action early; report to Sentry and exit on invalid input
+    valid_actions = ['fail', 'unlock']
+    unless valid_actions.include?(action)
+      Sentry.capture_message(
+        "[#{task.name}] Unsupported action #{action.inspect}; allowed: #{valid_actions.join(', ')}",
+        level: :error,
+      )
+      exit(1)
+    end
+
     # Extract the pod name from Delayed::Job's locked_by field; tolerate nil/malformed input
     extract_pod_name = ->(locked_by) do
       m = locked_by.to_s.match(/host:\s*([A-Za-z0-9.-]+)/)
@@ -81,10 +91,6 @@ namespace :delayed_job do
         when 'fail'
           msg = "Pruned at #{now.utc.iso8601}: pod '#{pod}' not found; locked_at=#{locked_at&.utc&.iso8601}"
           affected = base.update_all(failed_at: now, last_error: msg)
-        else
-          msg = "Unsupported action #{action.inspect}; aborting"
-          log.call(msg)
-          exit(1)
         end
         acted += affected
       end
@@ -94,8 +100,8 @@ namespace :delayed_job do
 
     unless lock_acquired
       msg = "Execution skipped; advisory lock '#{task.name}' is already held"
-      log.call(msg)
-      abort(msg)
+      Sentry.capture_message(msg, level: :error)
+      exit(1)
     end
   end
 end
