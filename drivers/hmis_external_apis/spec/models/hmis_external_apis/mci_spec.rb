@@ -54,22 +54,24 @@ RSpec.describe 'MCI API', type: :model do
 
     it 'builds route when cred has full base url' do
       create(:ac_hmis_mci_credential, base_url: 'https://example.com/clients-custom/api/clients/')
-      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients-custom/api/clients/clearance')
+      expect(mci.send(:build_route, 'clearance')).to eq('clearance')
+      expect(mci.send(:conn).send(:url_for, 'clearance')).to eq('https://example.com/clients-custom/api/clients/clearance')
     end
 
     it 'builds route when cred has full base url without trailing slash' do
       create(:ac_hmis_mci_credential, base_url: 'https://example.com/clients-custom/api/clients')
-      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients-custom/api/clients/clearance')
+      expect(mci.send(:build_route, 'clearance')).to eq('clearance')
     end
 
     it 'builds default route when cred has partial base url' do
       create(:ac_hmis_mci_credential, base_url: 'https://example.com/')
-      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients/v1/api/clients/clearance')
+      expect(mci.send(:build_route, 'clearance')).to eq('clients/v1/api/clients/clearance')
+      expect(mci.send(:conn).send(:url_for, 'clients/v1/api/clients/clearance')).to eq('https://example.com/clients/v1/api/clients/clearance')
     end
 
     it 'builds default route when cred has partial base url without trailing slash' do
       create(:ac_hmis_mci_credential, base_url: 'https://example.com')
-      expect(mci.send(:build_route, 'clearance')).to eq('https://example.com/clients/v1/api/clients/clearance')
+      expect(mci.send(:build_route, 'clearance')).to eq('clients/v1/api/clients/clearance')
     end
   end
 end

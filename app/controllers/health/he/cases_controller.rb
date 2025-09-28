@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Health::He
   class CasesController < HealthController
     include IndividualContactTracingController
@@ -94,7 +96,7 @@ module Health::He
     end
 
     def races(client)
-      HudUtility2024.races.keys.select { |race| client.public_send(race) == 1 }
+      HudHelper.util.races.keys.select { |race| client.public_send(race) == 1 }
     end
   end
 end

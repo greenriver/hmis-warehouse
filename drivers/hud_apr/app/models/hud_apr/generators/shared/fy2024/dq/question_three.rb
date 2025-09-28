@@ -115,7 +115,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionThree
     def q3_client_location_row(sheet, universe_members)
       hoh_scope = universe_members.where(hoh_clause)
 
-      valid_cocs = HudUtility2024.cocs.keys
+      valid_cocs = HudHelper.util('2024').cocs.keys
       missing_cell = sheet.update_cell_members(cell: 'C5', members: hoh_scope.where(a_t[:enrollment_coc].eq(nil)))
       issue_cell = sheet.update_cell_members(cell: 'D5', members: hoh_scope.where(a_t[:enrollment_coc].not_in(valid_cocs)))
 

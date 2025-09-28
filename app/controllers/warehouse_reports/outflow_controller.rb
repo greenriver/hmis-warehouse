@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module WarehouseReports
   class OutflowController < ApplicationController
     include AjaxModalRails::Controller
@@ -73,7 +75,7 @@ module WarehouseReports
         opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
         opts[:no_recent_service_project_ids] = cleanup_ids(opts[:no_recent_service_project_ids])
         opts[:project_group_ids] = cleanup_ids(opts[:project_group_ids])
-        opts[:races] = opts[:races].select { |r| ::HudUtility2024.races.include?(r) } if opts[:races].present?
+        opts[:races] = opts[:races].select { |r| ::HudHelper.util.races.include?(r) } if opts[:races].present?
         opts[:genders] = opts[:genders].reject(&:blank?).map(&:to_i) if opts[:genders].present?
         opts
       else
@@ -81,7 +83,7 @@ module WarehouseReports
           start: default_start.to_date,
           end: default_end.to_date,
           no_service_after_date: default_no_service_after_date,
-          project_type_numbers: HudUtility2024.homeless_project_types,
+          project_type_numbers: HudHelper.util.homeless_project_types,
           sub_population: :clients,
         }
       end

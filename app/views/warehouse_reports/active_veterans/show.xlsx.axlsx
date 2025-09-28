@@ -1,8 +1,7 @@
-
 wb = xlsx_package.workbook
 
-wb.add_worksheet(name: "Active Veterans") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+wb.add_worksheet(name: 'Active Veterans') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
 
   sheet.add_row(
     [
@@ -37,7 +36,7 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
     client['enrollments'].each do |enrollment|
       row += [
         enrollment['ds_short_name'],
-        HudUtility2024.project_type_brief(enrollment['project_type']),
+        HudHelper.util.project_type_brief(enrollment['project_type']),
         enrollment['project_name'],
         enrollment['first_date_in_program'],
         enrollment['last_date_in_program'],

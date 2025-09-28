@@ -78,7 +78,7 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
   end
 
   def project_types
-    HudUtility2024.performance_reporting[:es]
+    HudHelper.util.performance_reporting[:es]
   end
 
   def self.available_subpopulations

@@ -232,12 +232,6 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q16',
-        skip: [
-          'B2', # expected '79.0000' (79), got '77.0000' (77)
-          'D2', # expected '72.0000' (72), got '69.0000' (69)
-          'B11', # expected '5.0000' (5), got '7.0000' (7)
-          'D11', # expected '4.0000' (4), got '7.0000' (7)
-        ],
       )
     end
 
@@ -245,9 +239,6 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q17',
-        skip: [
-          'D17', # expected '132.0000' (132), got '130.0000' (130)
-        ],
       )
     end
 
@@ -261,13 +252,11 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
           'E5', # expected '0.8400' (0.8421), got '0.8500' (0.8500)
           'B17', # expected '29.0000' (29), got '28.0000' (28)
           'C17', # expected '38.0000' (38), got '36.0000' (36)
-          'D17', # expected '67.0000' (67), got '64.0000' (64)
-          'E17', # expected '0.4300' (0.4328), got '0.4400' (0.4375)
+          'D17', # expected '67.0000' (67), got '66.0000' (66)
+          'E17', # expected '0.4300' (0.4328), got '0.4200' (0.4242)
           'F17', # expected '3.0000' (3), got '1.0000' (1)
           'H17', # expected '5.0000' (5), got '3.0000' (3)
           'I17', # expected '0.6000' (0.6000), got '0.3300' (0.3333)
-          'C18', # expected '56.0000' (56), got '54.0000' (54)
-          'D18', # expected '121.0000' (121), got '119.0000' (119)
         ],
       )
     end
@@ -321,6 +310,7 @@ RSpec.shared_context 'datalab organization v es caper', shared_context: :metadat
       )
     end
 
+    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=5A606727-DCC6-477E-BCAB6FCC078237F2
     it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,

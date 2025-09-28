@@ -1,10 +1,10 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Enrolled Clients") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+wb.add_worksheet(name: 'Enrolled Clients') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row([
-   "Clients enrolled in #{@filter.project_type_codes.join(', ').upcase} between #{@filter.start} and #{@filter.end}"
-  ])
-  sheet.merge_cells("A1:F1")
+                  "Clients enrolled in #{@filter.project_type_codes.join(', ').upcase} between #{@filter.start} and #{@filter.end}",
+                ])
+  sheet.merge_cells('A1:F1')
   sheet.add_row([
     'Warehouse Client ID',
     'First Name',
@@ -13,16 +13,16 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
     'Veteran Status',
     "Cumulative Days Homeless as of #{Date.current}",
     "Days Homeless in The Past Three Years as of #{Date.current}",
-  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility2024.race(m).gsub('None', 'Race None') })
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') })
   @clients.each do |client|
     sheet.add_row([
       client.id,
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
-      HudUtility2024.veteran_status(client.VeteranStatus),
+      HudHelper.util.veteran_status(client.VeteranStatus),
       client.days_homeless,
       client.days_homeless_in_last_three_years,
-    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| HudUtility2024.no_yes_reasons_for_missing_data(m&.to_i) })
+    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| HudHelper.util.no_yes_reasons_for_missing_data(m&.to_i) })
   end
 end

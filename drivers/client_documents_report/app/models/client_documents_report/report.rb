@@ -23,7 +23,7 @@ module ClientDocumentsReport
     end
 
     def self.default_project_type_codes
-      HudUtility2024.performance_reporting.keys
+      HudHelper.util.performance_reporting.keys
     end
 
     # Find the most recent date from the documents of the appropriate type in the chosen group
@@ -158,9 +158,12 @@ module ClientDocumentsReport
           end
           # For the most-recently started enrollment, get the most-recent Income Benefit record
           if enrollment.entry_date == client_data[enrollment.client_id]['Newest Entry Date']
-            income_record = enrollment.enrollment&.income_benefits&.max_by(&:information_date)
+            income_record = enrollment.enrollment&.income_benefits&.
+              to_a&.
+              filter(&:information_date)&.
+              max_by(&:information_date)
 
-            client_data[enrollment.client_id]['Newest Income from Any Source'] = HudUtility2024.no_yes_reasons_for_missing_data(income_record&.income_from_any_source)
+            client_data[enrollment.client_id]['Newest Income from Any Source'] = HudHelper.util.no_yes_reasons_for_missing_data(income_record&.income_from_any_source)
             client_data[enrollment.client_id]['Newest Total Monthly Income'] = income_record&.total_monthly_income
           end
 

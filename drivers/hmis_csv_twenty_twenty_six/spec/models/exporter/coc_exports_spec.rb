@@ -105,7 +105,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.enrollment_class), headers: true)
       csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
       source_ids = involved_enrollments.select do |en|
-        (en.EnrollmentCoC == @coc_code || en.EnrollmentCoC.blank? || ! HudUtility2026.valid_coc?(en.EnrollmentCoC)) && en.project.project_cocs.pluck(:CoCCode).include?(@coc_code)
+        (en.EnrollmentCoC == @coc_code || en.EnrollmentCoC.blank? || ! HudHelper.util('2026').valid_coc?(en.EnrollmentCoC)) && en.project.project_cocs.pluck(:CoCCode).include?(@coc_code)
       end.map(&:id).sort.map(&:to_s)
       expect(csv_ids).to eq source_ids
     end

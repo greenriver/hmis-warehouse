@@ -17,7 +17,7 @@ module DestinationReport
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
+      @project_types = filter.project_type_ids || HudHelper.util.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 
@@ -107,8 +107,8 @@ module DestinationReport
             :Destination,
             pc_t[:CoCCode],
           ).each do |client_id, destination_id, coc_code|
-            destination = HudUtility2024.destination_type(destination_id)
-            detailed_destination = HudUtility2024.destination(destination_id)
+            destination = HudHelper.util.destination_type(destination_id)
+            detailed_destination = HudHelper.util.destination(destination_id)
 
             data[:all][destination] << client_id
             data[:by_coc][coc_code] ||= {}
@@ -126,7 +126,7 @@ module DestinationReport
 
             data[:by_coc][coc_code][:destination_details] ||= destination_buckets.map { |b| [b, {}] }.to_h
             destination_buckets.each do |b|
-              HudUtility2024.valid_destinations.values.uniq.each do |l|
+              HudHelper.util.valid_destinations.values.uniq.each do |l|
                 data[:by_coc][coc_code][:destination_details][b][l] ||= Set.new
               end
               data[:by_coc][coc_code][:destination_details][b]['Unknown'] ||= Set.new
