@@ -105,40 +105,31 @@ RSpec.describe ApplicationHelper, type: :helper do
   end
 
   describe '#checkmark_or_x' do
-    it 'builds CSS class string with concatenation' do
-      # Test the string building logic inside the method
-      symbol_names = { true => 'checkmark', false => 'cross' }
-      wrapper_classes = { true => 'o-color--positive', false => 'o-color--danger' }
-
-      boolean = true
-      symbol_name = symbol_names[boolean]
-      wrapper_class = wrapper_classes[boolean]
-      html_class = "#{symbol_name} #{wrapper_class}" # String interpolation
-
-      expect(html_class).to eq('checkmark o-color--positive')
-
-      # Test string concatenation for size
-      size = :lg
-      case size.to_sym
-      when :md
-        html_class += ' icon-lg'  # String mutation +=
-      when :lg
-        html_class += ' icon-xl'  # String mutation +=
-      end
-
-      expect(html_class).to eq('checkmark o-color--positive icon-xl')
+    it 'renders checkmark with default size' do
+      result = helper.checkmark_or_x(true)
+      expect(result).to include('icon-checkmark')
+      expect(result).to include('o-color--positive')
     end
 
-    it 'handles false boolean value' do
-      symbol_names = { true => 'checkmark', false => 'cross' }
-      wrapper_classes = { true => 'o-color--positive', false => 'o-color--danger' }
+    it 'renders cross for false value' do
+      result = helper.checkmark_or_x(false)
+      expect(result).to include('icon-cross')
+      expect(result).to include('o-color--danger')
+    end
 
-      boolean = false
-      symbol_name = symbol_names[boolean]
-      wrapper_class = wrapper_classes[boolean]
-      html_class = "#{symbol_name} #{wrapper_class}"
+    it 'applies medium size class' do
+      result = helper.checkmark_or_x(true, size: :md)
+      expect(result).to include('icon-lg')
+    end
 
-      expect(html_class).to eq('cross o-color--danger')
+    it 'applies large size class' do
+      result = helper.checkmark_or_x(true, size: :lg)
+      expect(result).to include('icon-xl')
+    end
+
+    it 'includes tooltip when provided' do
+      result = helper.checkmark_or_x(true, 'Test tooltip')
+      expect(result).to include('Test tooltip')
     end
   end
 
@@ -153,34 +144,15 @@ RSpec.describe ApplicationHelper, type: :helper do
       }
     end
 
-    it 'builds HTML options with array concatenation' do
-      # Test the array building logic
-      opts = []
-      grouped_tags.each do |key, group|
-        if group.size == 1
-          item = group.first
-          opts << "<option value=\"#{item.name}\">#{item.name}</option>" # Array << operation
-        else
-          opts << "<optgroup label=\"#{key}\"></optgroup>" # Array << operation
-          group.each do |group_item|
-            opts << "<option value=\"#{group_item.name}\">#{group_item.name}</option>" # Array << operation
-          end
-        end
-      end
+    it 'generates proper HTML options for grouped tags' do
+      result = helper.options_for_available_tags(grouped_tags, 'prompt')
 
-      expect(opts).to be_an(Array)
-      expect(opts.length).to eq(4) # 1 single tag + 1 optgroup + 2 grouped tags
-      expect(opts[0]).to include('Tag 1')
-      expect(opts[1]).to include('Category 2')
-      expect(opts[2]).to include('Tag 2a')
-      expect(opts[3]).to include('Tag 2b')
-
-      # Test join operation
-      joined = opts.join('')
-      expect(joined).to include('Tag 1')
-      expect(joined).to include('Category 2')
-      expect(joined).to include('Tag 2a')
-      expect(joined).to include('Tag 2b')
+      expect(result).to include('Tag 1')
+      expect(result).to include('Category 2')
+      expect(result).to include('Tag 2a')
+      expect(result).to include('Tag 2b')
+      expect(result).to include('<option')
+      expect(result).to include('<optgroup')
     end
   end
 
@@ -219,26 +191,148 @@ RSpec.describe ApplicationHelper, type: :helper do
         expect(result).to include('o-color--positive')
         expect(result).to include('Yes')
       end
+
+      it 'renders yes_no without mocking concat' do
+        result = helper.yes_no(true, include_icon: true, include_content_tag: true)
+
+        expect(result).to include('icon-checkmark')
+        expect(result).to include('Yes')
+      end
     end
 
-    describe '#tagged method array building' do
-      it 'builds arrays with << operations for inner content' do
-        # Test the array building logic similar to what's in the tagged method
-        inner = []
-        title = 'Test Title'
-        label = 'Test Label'
+    describe '#tagged method' do
+      it 'renders tagged element with title and label' do
+        result = helper.tagged(true, 'positive', title: 'Test Title', label: 'Test Label')
 
-        inner << 'title content' if title.present? # Array << operation
-        inner << 'wrapper content' # Array << operation
+        expect(result).to include('c-tag')
+        expect(result).to include('c-tag--positive')
+        expect(result).to include('Test Title')
+        expect(result).to include('Test Label')
+      end
 
-        expect(inner).to eq(['title content', 'wrapper content'])
+      it 'renders tagged element without optional title' do
+        result = helper.tagged(true, 'positive', label: 'Test Label')
 
-        # Test nested array building
-        icon_label = []
-        icon_label << 'icon content' # Array << operation
-        icon_label << 'label content' if label.present? # Array << operation
+        expect(result).to include('Test Label')
+        expect(result).not_to include('c-tag__title')
+      end
+    end
 
-        expect(icon_label).to eq(['icon content', 'label content'])
+    describe '#render_paginated_list_with_explicit_pagy concat operations' do
+      let(:mock_pagy) { double('pagy', count: 5) }
+      let(:mock_list) { ['item1', 'item2', 'item3'] }
+
+      before do
+        allow(helper).to receive(:capture).and_yield
+        allow(helper).to receive(:render).and_return('<div>pagination</div>')
+        allow(helper).to receive(:concat)
+      end
+
+      it 'uses concat to build paginated list HTML' do
+        # Test the concat operations from lines 502-504
+        expect(helper).to receive(:concat).with('<div>pagination</div>').exactly(3).times
+
+        helper.render_paginated_list_with_explicit_pagy(
+          pagy: mock_pagy,
+          list: mock_list,
+          item_name: 'item',
+          list_partial: 'test/list',
+        )
+      end
+    end
+
+    describe '#render_display_title concat operations' do
+      it 'uses concat to build title display HTML' do
+        # Test the concat operations from lines 536-537 by calling the actual method
+        result = helper.render_display_title('Test Title') do
+          content_tag(:div, 'Block content')
+        end
+
+        expect(result).to include('<h1>Test Title</h1>')
+        expect(result).to include('<div>Block content</div>')
+      end
+
+      it 'works without block content' do
+        result = helper.render_display_title('Just Title')
+
+        expect(result).to include('<h1>Just Title</h1>')
+        expect(result).not_to include('Block content')
+      end
+    end
+
+    describe '#hmis_external_link concat operations' do
+      let(:mock_entity) { double('entity') }
+      let(:mock_data_source) { double('data_source') }
+
+      before do
+        allow(mock_entity).to receive(:data_source).and_return(mock_data_source)
+      end
+
+      it 'uses concat to build external link HTML when URL present' do
+        allow(mock_data_source).to receive(:hmis_url_for).and_return('http://example.com')
+
+        result = helper.hmis_external_link(mock_entity)
+
+        expect(result).to include('Open in HMIS')
+        expect(result).to include('icon-link-ext')
+        expect(result).to include('http://example.com')
+      end
+
+      it 'returns nil when no URL available' do
+        allow(mock_data_source).to receive(:hmis_url_for).and_return(nil)
+
+        result = helper.hmis_external_link(mock_entity)
+
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe 'comprehensive string mutation regression tests' do
+    describe '#checkmark_or_x size variations' do
+      it 'applies correct size classes' do
+        result_md = helper.checkmark_or_x(true, size: :md)
+        result_lg = helper.checkmark_or_x(true, size: :lg)
+        result_xs = helper.checkmark_or_x(true, size: :xs)
+
+        expect(result_md).to include('icon-lg')
+        expect(result_lg).to include('icon-xl')
+        expect(result_xs).not_to include('icon-lg')
+        expect(result_xs).not_to include('icon-xl')
+      end
+    end
+
+    describe 'comprehensive array << operations' do
+      describe '#body_classes array building' do
+        before do
+          allow(ENV).to receive(:fetch).with('CLIENT').and_return('test-client')
+          allow(helper).to receive(:params).and_return(ActionController::Parameters.new(controller: 'admin/users', action: 'index'))
+          allow(helper).to receive(:current_user).and_return(nil)
+          helper.instance_variable_set(:@layout__width, 'md')
+        end
+
+        it 'tests all << operations in body_classes method' do
+          # Test all the << operations from lines 234-239
+          result = helper.body_classes
+
+          # Each << operation should add an element
+          expect(result).to include('test-client')          # line 234: result << ENV.fetch('CLIENT')
+          expect(result).to include('admin/users')          # line 235: result << params[:controller]
+          expect(result).to include('admin_users')          # line 236: result << params[:controller].split('/').join('_')
+          expect(result).to include('index')                # line 237: result << params[:action]
+          expect(result).to include('not-signed-in')        # line 238: result << 'not-signed-in' if current_user.blank?
+          expect(result).to include('l-content-width-md')   # line 239: result << conditional layout width
+        end
+      end
+
+      describe '#container_classes array building' do
+        it 'tests << operation in container_classes method' do
+          allow(helper).to receive(:enable_responsive?).and_return(false)
+
+          # Test the << operation from line 254
+          result = helper.container_classes
+          expect(result).to include('non-responsive') # line 254: result << 'non-responsive' unless enable_responsive?
+        end
       end
     end
   end
