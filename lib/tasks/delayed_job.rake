@@ -15,7 +15,7 @@
 #
 namespace :delayed_job do
   desc 'Prune stale Delayed::Job locks held by non-existent pods'
-  task :prune, [:action, :queue, :stale_minutes] => :environment do |_t, args|
+  task :prune, [:action, :queue, :stale_minutes] => :environment do |task, args|
     require 'k8s-ruby'
 
     # Default to "fail" so non-idempotent jobs are not silently re-run; "unlock" must be explicit
@@ -38,55 +38,64 @@ namespace :delayed_job do
     # Evaluate only currently locked, non-failed, stale jobs; optionally narrow by queue
     scope = Delayed::Job.where.not(locked_by: nil).where(failed_at: nil)
     scope = scope.where(queue: queue) if queue.present?
-    scope = scope.where('locked_at < ?', cutoff)
+    scope = scope.where(locked_at: ...cutoff)
 
     candidates = scope.pluck(:id, :locked_by, :locked_at)
 
-    # Reduce Kubernetes API load by fetching live pod names once; autodetect namespace when unset
+    # Fetching live pod names once; autodetect namespace when unset
     client = K8s::Client.in_cluster_config
     ns = ENV['K8S_NAMESPACE']
-    if ns.blank?
-      begin
-        ns = File.read('/var/run/secrets/kubernetes.io/serviceaccount/namespace').to_s.strip
-      rescue StandardError
-        ns = 'default'
-      end
-    end
+    ns ||= File.read('/var/run/secrets/kubernetes.io/serviceaccount/namespace').to_s.strip
     names = client.api('v1').resource('pods', namespace: ns).list.map { |p| p.metadata.name }
 
     # Task-scoped logging; formatting/metadata handled by Rails logger
-    log = ->(msg) { Rails.logger.info("[delayed_job:prune] #{msg}") }
+    log = ->(msg) { Rails.logger.info("[#{task.name}] #{msg}") }
+    log.call("Attempting prune ns=#{ns} action=#{action} queue=#{queue.presence || '*'} stale_minutes=#{stale}")
 
-    log.call("Starting prune ns=#{ns} action=#{action} queue=#{queue.presence || '*'} stale_minutes=#{stale}")
+    lock_acquired = false
+    Delayed::Job.with_advisory_lock(task.name, timeout_seconds: 0) do
+      lock_acquired = true
 
-    acted = 0
-    candidates.each do |id, locked_by, locked_at|
-      pod = extract_pod_name.call(locked_by)
-      next if pod.blank?
+      log.call("Starting prune ns=#{ns} action=#{action} queue=#{queue.presence || '*'} stale_minutes=#{stale}")
 
-      # Skip if the lock belongs to a pod that still exists in the cluster
-      next if names.include?(pod)
+      acted = 0
+      candidates.each do |id, locked_by, locked_at|
+        pod = extract_pod_name.call(locked_by)
+        if pod.blank?
+          log.call("Could not determine pod for #{locked_by.inspect}")
+          next
+        end
 
-      # Concurrency guard: match on locked_by and the exact locked_at we observed, and ensure staleness
-      base = Delayed::Job.where(id: id, failed_at: nil, locked_by: locked_by).
-        where('locked_at = ? AND locked_at < ?', locked_at, cutoff)
+        # Skip if the lock belongs to a pod that still exists in the cluster
+        next if names.include?(pod)
 
-      case action
-      when 'unlock'
-        affected = base.update_all(locked_by: nil, locked_at: nil, run_at: now)
-        acted += 1 if affected == 1
-      when 'fail'
-        msg = "Pruned at #{now.utc.iso8601}: pod '#{pod}' not found; locked_at=#{locked_at&.utc&.iso8601}"
-        affected = base.update_all(failed_at: now, last_error: msg)
-        acted += 1 if affected == 1
-      else
-        raise ArgumentError, "action #{action.inspect} is not supported"
+        # Concurrency guard: match on locked_by and the exact locked_at we observed, and ensure staleness
+        base = Delayed::Job.where(id: id, failed_at: nil, locked_by: locked_by).
+          where(locked_at: locked_at).
+          where(locked_at: ...cutoff)
+
+        affected = 0
+        case action
+        when 'unlock'
+          affected = base.update_all(locked_by: nil, locked_at: nil, run_at: now)
+        when 'fail'
+          msg = "Pruned at #{now.utc.iso8601}: pod '#{pod}' not found; locked_at=#{locked_at&.utc&.iso8601}"
+          affected = base.update_all(failed_at: now, last_error: msg)
+        else
+          msg = "Unsupported action #{action.inspect}; aborting"
+          log.call(msg)
+          exit(1)
+        end
+        acted += affected
       end
+
+      log.call("Pruning complete ns=#{ns} action=#{action} queue=#{queue.presence || '*'} processed_jobs=#{candidates.size} jobs_acted_on=#{acted}")
     end
 
-    log.call("Pruning complete ns=#{ns} action=#{action} queue=#{queue.presence || '*'} processed_jobs=#{candidates.size} jobs_acted_on=#{acted}")
-  rescue StandardError => e
-    Rails.logger.error("[delayed_job:prune] #{e.class}: #{e.message}\n#{Array(e.backtrace).join("\n")}")
-    exit 1
+    unless lock_acquired
+      msg = "Execution skipped; advisory lock '#{task.name}' is already held"
+      log.call(msg)
+      abort(msg)
+    end
   end
 end
