@@ -117,6 +117,12 @@
           "question": "dob",
           "operator": "EXISTS",
           "answer_boolean": false
+        },
+        {
+          "_comment": "show if veteran status response already exists, to support correcting data errors when veteran status is present for minor",
+          "operator": "EXISTS",
+          "question": "veteran_status",
+          "answer_boolean": true
         }
       ]
     },
