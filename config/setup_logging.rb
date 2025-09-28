@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Logging config in one place instead of six
 
 class SetupLogging
@@ -92,24 +94,35 @@ class SetupLogging
     config.lograge.formatter = Lograge::Formatters::Json.new
     config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
+      request = event.payload[:request]
+      headers = request&.headers
+      headers_env = headers&.env || {}
+
+      remote_ip = request&.remote_ip.presence || event.payload[:remote_ip].presence
+      client_ip = headers_env['HTTP_CLIENT_IP'].presence
+      x_forwarded_for = headers_env['HTTP_X_FORWARDED_FOR'].presence || event.payload[:x_forwarded_for].presence
+      # RFC 7239 dictates the first IP in X-Forwarded-For is the client IP
+      forwarded_ip = x_forwarded_for&.split(',')&.first&.strip.presence
+      remote_addr = headers_env['REMOTE_ADDR'].presence || event.payload[:remote_addr].presence
+
       {
         request_time: Time.current,
         # application: Rails.application.class,
-        server_protocol: event.payload[:server_protocol],
-        host: event.payload[:host],
-        remote_ip: event.payload[:remote_ip],
-        ip: event.payload[:ip],
-        remote_addr: event.payload[:remote_addr],
+        server_protocol: request&.protocol || event.payload[:server_protocol],
+        host: request&.host || event.payload[:host],
+        remote_ip: remote_ip || forwarded_ip || client_ip || remote_addr,
+        ip: forwarded_ip || client_ip || remote_ip,
+        remote_addr: remote_addr,
         session_id: event.payload[:session_id],
         user_id: event.payload[:user_id],
         process_id: Process.pid,
         pid: event.payload[:pid],
         request_id: event.payload[:request_id] || event.payload[:headers]['action_dispatch.request_id'],
         request_start: event.payload[:request_start],
-        x_forwarded_for: event.payload[:x_forwarded_for],
+        x_forwarded_for: x_forwarded_for,
         rails_env: Rails.env,
         exception: event.payload[:exception]&.first,
-        x_amzn_trace_id: event.payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID'),
+        x_amzn_trace_id: headers_env['HTTP_X_AMZN_TRACE_ID'],
       }.merge(STANDARD_TAGS)
     end
   end
