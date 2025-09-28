@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 # frozen_string_literal: false
 
 require_relative '../../lib/util/git'
@@ -388,7 +386,7 @@ module ApplicationHelper
   end
 
   def percentage(value, format: '%1.2f')
-    value = 0 if value.to_f&.nan?
+    value = 0 if value.to_f.nan?
 
     format(format, value.round(2))
   end

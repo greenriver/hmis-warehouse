@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # frozen_string_literal: false
 
 FactoryBot.define do

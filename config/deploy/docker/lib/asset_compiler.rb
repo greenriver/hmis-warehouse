@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # frozen_string_literal: false
 
 require 'active_support/core_ext/object/blank'
