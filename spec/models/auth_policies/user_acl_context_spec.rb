@@ -99,4 +99,84 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
       end
     end
   end
+
+  describe 'string mutation operations' do
+    subject(:context) { described_class.new(acl_user) }
+    let(:user_group) { create(:user_group) }
+
+    before do
+      create(:access_control, role: role, collection: collection, user_group: user_group)
+      user_group.add(acl_user)
+    end
+
+    describe '#permissions_for_collection_ids with += mutation' do
+      let(:test_collection_ids) { [collection.id] }
+      let(:system_collection) { create(:collection, name: 'system_data_sources') }
+
+      before do
+        allow(Collection).to receive(:system_collection).with(:data_sources).and_return(system_collection)
+      end
+
+      it 'concatenates system collection IDs using += operator' do
+        # Test the string mutation: collection_ids += system_collection_ids(:data_sources) from line 92
+        permissions = context.send(:permissions_for_collection_ids, test_collection_ids)
+
+        # Verify the method works correctly with the += operation
+        expect(permissions).to be_a(Set)
+        expect(permissions).to include(:can_view_projects)
+      end
+
+      it 'returns empty set when collection_ids becomes empty after += operation' do
+        permissions = context.send(:permissions_for_collection_ids, [])
+
+        expect(permissions).to eq(GrdaWarehouse::AuthPolicies::UserAclContext::EMPTY_SET)
+      end
+    end
+
+    describe '#project_collection_ids with += mutation' do
+      let(:project_coc) { create(:grda_warehouse_hud_project_coc, project: project, coc_code: 'MA-500') }
+      let(:coc_collection) { create(:collection) }
+
+      before do
+        # Create the project_coc association
+        project_coc
+
+        # Mock the coc code collection lookup
+        allow(Collection).to receive(:for_coc_codes).with(['MA-500']).and_return(double(pluck: [coc_collection.id]))
+
+        # Create a project collection member so the method has something to start with
+        create(:grda_warehouse_group_viewable_entity, collection: collection, entity: project)
+      end
+
+      it 'concatenates CoC collection IDs using += operator' do
+        # Test the string mutation: collection_ids += collection_for_coc_codes(coc_codes) from line 115
+        collection_ids = context.send(:project_collection_ids, project.id)
+
+        # Verify that the += operation worked correctly
+        expect(collection_ids).to be_an(Array)
+        expect(collection_ids).to include(coc_collection.id)
+        expect(collection_ids.uniq).to eq(collection_ids) # Should be unique
+        expect(collection_ids).to eq(collection_ids.sort) # Should be sorted
+      end
+
+      it 'handles projects with no CoC codes' do
+        other_project = create(:grda_warehouse_hud_project)
+        create(:grda_warehouse_group_viewable_entity, collection: collection, entity: other_project)
+
+        collection_ids = context.send(:project_collection_ids, other_project.id)
+
+        # Should not include CoC collection IDs since there are no CoC codes
+        expect(collection_ids).not_to include(coc_collection.id)
+      end
+
+      it 'returns empty array for projects with no collections' do
+        other_project = create(:grda_warehouse_hud_project)
+
+        collection_ids = context.send(:project_collection_ids, other_project.id)
+
+        expect(collection_ids).to be_an(Array)
+        expect(collection_ids).to be_empty
+      end
+    end
+  end
 end
