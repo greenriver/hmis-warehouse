@@ -91,10 +91,9 @@ module AcHmis
 
     def update_configs(scope, waitlists:, direct_referrals:, label: nil, dry_run: false)
       ce_project = Hmis::Hud::Project.hmis.where(project_name: 'HMIS Coordinated Entry').sole
-      unless waitlists || direct_referrals
-        warn "[#{label}] Skipped: Must support waitlists or direct referrals."
-        return
-      end
+
+      raise ArgumentError, "[#{label}] Skipped: Must support waitlists or direct referrals." unless waitlists || direct_referrals
+
       # Create or update ProjectCeConfig for the projects in scope
       scope.each do |project|
         record = Hmis::ProjectCeConfig.find_or_initialize_by(project_id: project.id)

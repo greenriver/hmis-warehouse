@@ -104,17 +104,19 @@ module AcHmis
       end
       @project_ids << project.id
 
-      # Skip rows where Unit Group Name is not null
+      # Skip rows where Unit Group is not found
       unit_group = nil
       if row['Unit Group Name'].present?
         group_name = row['Unit Group Name']
-        unit_group = project.unit_groups.find_by(name: group_name)
-        unless unit_group
+
+        unless project.unit_groups.where(name: group_name).exists?
           error_msg = "Unit Group '#{group_name}' not found in project #{project.project_name} (ID: #{project_id})"
           @errors << error_msg
           puts "ERROR: #{error_msg}"
           return
         end
+
+        unit_group = project.unit_groups.where(name: group_name).sole
       end
 
       # Find or initialize rule
