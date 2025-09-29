@@ -5,5 +5,4 @@
 %h1.mb-5= title
 
 = render 'filter'
-
-= render 'table'
+= render_paginated_list(scope: report_scope, item_name: 'report', list_partial: 'table')

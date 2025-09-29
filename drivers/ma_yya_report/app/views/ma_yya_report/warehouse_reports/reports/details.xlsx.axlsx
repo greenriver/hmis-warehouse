@@ -1,0 +1,25 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: @cell.slice(0, 30).gsub(/[^a-zA-Z0-9]/, ' ')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at', 'ethnicity']
+  headers = (['first_name', 'last_name'] + attributes).map(&:humanize)
+  sheet.add_row(headers, style: title)
+  current_user.policy_context.preload_project_dependencies(@members.flat_map { |m| m.universe_membership.service_history_enrollment.project_id }.uniq)
+  @members.each do |member|
+    client = member.universe_membership
+    project = client.service_history_enrollment.project
+    next unless project
+
+    pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :download)
+    row = [
+      client.display_value(header: :first_name, value: member[:first_name], pii_policy: pii_policy),
+      client.display_value(header: :last_name, value: member[:last_name], pii_policy: pii_policy),
+    ]
+
+    attributes.each do |k|
+      row << client.display_value(header: k, value: client[k], pii_policy: pii_policy)
+    end
+    sheet.add_row(row)
+  end
+end

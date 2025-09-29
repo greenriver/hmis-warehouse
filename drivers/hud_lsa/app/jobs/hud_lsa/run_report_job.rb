@@ -15,7 +15,7 @@ module HudLsa
       # Just set attempts to 2 now so we don't try again
       dj = Delayed::Job.jobs_for_class(job_id)&.first
       dj&.update(attempts: 2)
-      report = HudLsa::Generators::Fy2024::Lsa.find(report_id)
+      report = HudLsa::LsasController.new.report_class.find(report_id)
       report.start_report
       report.run!
       report.complete_report
