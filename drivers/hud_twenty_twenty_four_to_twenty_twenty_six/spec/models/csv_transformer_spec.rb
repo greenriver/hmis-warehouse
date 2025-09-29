@@ -51,18 +51,18 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
     expect(records_with_gender.length).to be > 0
   end
 
-  it 'creates CustomSexualOrientation.csv from Enrollment.csv' do
+  it 'creates CustomEnrollmentFY26Deprecations.csv from Enrollment.csv' do
     skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR, 'Export.csv'))
 
     HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR, DEST_DIR)
 
-    custom_sexual_orientation_file = File.join(DEST_DIR, 'CustomSexualOrientation.csv')
-    expect(File.exist?(custom_sexual_orientation_file)).to be true
+    custom_enrollment_fy26_deprecations = File.join(DEST_DIR, 'CustomEnrollmentFY26Deprecations.csv')
+    expect(File.exist?(custom_enrollment_fy26_deprecations)).to be true
 
     # Verify the file has the correct headers
-    csv_content = CSV.read(custom_sexual_orientation_file, headers: true)
+    csv_content = CSV.read(custom_enrollment_fy26_deprecations, headers: true)
     headers = csv_content.headers
-    expect(headers).to include(*HmisCsvTwentyTwentySix::Loader::Custom::CustomSexualOrientation.hud_csv_headers)
+    expect(headers).to include(*HmisCsvTwentyTwentySix::Loader::Custom::CustomEnrollmentFy26Deprecation.hud_csv_headers)
   end
 
   def create_test_dir

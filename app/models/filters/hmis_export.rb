@@ -14,7 +14,7 @@ module Filters
 
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
-    attribute :version, String, default: '2024'
+    attribute :version, String, default: HudHelper.current_version
     attribute :source_type, Integer, default: 3 # data warehouse
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
