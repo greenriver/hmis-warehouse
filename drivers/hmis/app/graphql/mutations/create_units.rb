@@ -56,6 +56,12 @@ module Mutations
       return { errors: errors.errors } if errors.any?
 
       Hmis::Unit.transaction do
+        # If unit group doesn't have a unit type directly associated, add it
+        if unit_group.unit_type.nil?
+          unit_group.unit_type = unit_type
+          unit_group.save!
+        end
+
         units.each(&:save!)
         unit_type.track_availability(project_id: project.id, user_id: current_user.id)
       end
