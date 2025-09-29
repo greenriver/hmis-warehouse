@@ -98,31 +98,40 @@ class SetupLogging
       headers = request&.headers
       headers_env = headers&.env || {}
 
-      remote_ip = request&.remote_ip.presence || event.payload[:remote_ip].presence
+      request_remote_ip = request&.remote_ip.presence
+      payload_remote_ip = event.payload[:remote_ip].presence
       client_ip = headers_env['HTTP_CLIENT_IP'].presence
       x_forwarded_for = headers_env['HTTP_X_FORWARDED_FOR'].presence || event.payload[:x_forwarded_for].presence
       # RFC 7239 dictates the first IP in X-Forwarded-For is the client IP
       forwarded_ip = x_forwarded_for&.split(',')&.first&.strip.presence
       remote_addr = headers_env['REMOTE_ADDR'].presence || event.payload[:remote_addr].presence
 
+      remote_ip = request_remote_ip || payload_remote_ip || remote_addr
+      resolved_remote_ip = remote_ip
+      resolved_client_ip = forwarded_ip || client_ip || remote_ip
+
+      server_protocol = request&.protocol.presence || event.payload[:server_protocol]
+      host = request&.host.presence || event.payload[:host]
+      request_id = event.payload[:request_id] || event.payload[:headers]['action_dispatch.request_id']
+      trace_id = headers_env['HTTP_X_AMZN_TRACE_ID']
+
       {
-        request_time: Time.current,
-        # application: Rails.application.class,
-        server_protocol: request&.protocol || event.payload[:server_protocol],
-        host: request&.host || event.payload[:host],
-        remote_ip: remote_ip || forwarded_ip || client_ip || remote_addr,
-        ip: forwarded_ip || client_ip || remote_ip,
-        remote_addr: remote_addr,
-        session_id: event.payload[:session_id],
-        user_id: event.payload[:user_id],
-        process_id: Process.pid,
-        pid: event.payload[:pid],
-        request_id: event.payload[:request_id] || event.payload[:headers]['action_dispatch.request_id'],
-        request_start: event.payload[:request_start],
-        x_forwarded_for: x_forwarded_for,
-        rails_env: Rails.env,
-        exception: event.payload[:exception]&.first,
-        x_amzn_trace_id: headers_env['HTTP_X_AMZN_TRACE_ID'],
+        request_time: Time.current, # Server timestamp (trusted)
+        server_protocol: server_protocol, # From Rack env; trusted when present
+        host: host, # From Host header; untrusted
+        remote_ip: resolved_remote_ip, # Rails remote_ip / REMOTE_ADDR; trusted
+        ip: resolved_client_ip, # Includes client headers; untrusted
+        remote_addr: remote_addr, # Low-level socket info; trusted
+        session_id: event.payload[:session_id], # Rack session; trusted
+        user_id: event.payload[:user_id], # App assigned; trusted
+        process_id: Process.pid, # Current Ruby PID; trusted
+        pid: event.payload[:pid], # Raw payload PID; trusted if present
+        request_id: request_id, # Rails request UUID; trusted
+        request_start: event.payload[:request_start], # Header supplied; untrusted
+        x_forwarded_for: x_forwarded_for, # Client-provided chain; untrusted
+        rails_env: Rails.env, # Deployment environment; trusted
+        exception: event.payload[:exception]&.first, # Raised error class; trusted
+        x_amzn_trace_id: trace_id, # AWS trace header; untrusted
       }.merge(STANDARD_TAGS)
     end
   end

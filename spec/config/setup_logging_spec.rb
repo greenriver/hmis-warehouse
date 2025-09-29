@@ -77,12 +77,12 @@ RSpec.describe SetupLogging do
 
     context 'when request remote_ip is blank but X-Forwarded-For is present' do
       let(:request_remote_ip) { nil }
-      let(:headers_env) { { 'HTTP_X_FORWARDED_FOR' => '11.22.33.44, 55.66.77.88' } }
+      let(:headers_env) { { 'HTTP_X_FORWARDED_FOR' => '11.22.33.44, 55.66.77.88', 'REMOTE_ADDR' => '203.0.113.5' } }
 
       it 'logs the first X-Forwarded-For value' do
         result = custom_options.call(event)
 
-        expect(result[:remote_ip]).to eq('11.22.33.44')
+        expect(result[:remote_ip]).to eq('203.0.113.5')
         expect(result[:ip]).to eq('11.22.33.44')
         expect(result[:x_forwarded_for]).to eq('11.22.33.44, 55.66.77.88')
       end
@@ -92,11 +92,11 @@ RSpec.describe SetupLogging do
       let(:request_remote_ip) { nil }
       let(:headers_env) { { 'REMOTE_ADDR' => '203.0.113.5' } }
 
-      it 'falls back to remote_addr for remote_ip' do
+      it 'falls back to remote_addr for remote_ip and ip' do
         result = custom_options.call(event)
 
         expect(result[:remote_ip]).to eq('203.0.113.5')
-        expect(result[:ip]).to be_nil
+        expect(result[:ip]).to eq('203.0.113.5')
       end
     end
   end
