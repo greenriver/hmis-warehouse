@@ -29,11 +29,14 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
         DifferentIdentityText: nil,
       )
 
-      # Create some custom sexual orientation data for testing
+      # Create some custom sexual orientation and translation assistance data for testing
       @enrollment = ExportHelper2026.projects.first.enrollments.first
       @enrollment.update(
         SexualOrientation: 1,
         SexualOrientationOther: nil,
+        TranslationNeeded: 1,
+        PreferredLanguage: 179,
+        PreferredLanguageDifferent: nil,
       )
 
       # Get custom data element test data from ExportHelper2026
@@ -116,7 +119,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
           period_type: 3,
           directive: 3,
           user_id: ExportHelper2026.user.id,
-          custom_file_types: ['CustomGender.csv', 'CustomSexualOrientation.csv', 'CustomDataElementDefinition.csv', 'CustomDataElement.csv'],
+          custom_file_types: ['CustomGender.csv', 'CustomSexualOrientation.csv', 'CustomEnrollmentFY26Deprecations.csv', 'CustomDataElementDefinition.csv', 'CustomDataElement.csv'],
         )
         @export = @exporter.export!(cleanup: false, zip: false, upload: false)
       end
@@ -124,6 +127,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
       it 'includes custom files in exportable_files' do
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomGender')
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation')
+        expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomEnrollmentFy26Deprecation')
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElementDefinition')
         expect(@exporter.exportable_files.keys.map(&:name)).to include('HmisCsvTwentyTwentySix::Exporter::Custom::CustomDataElement')
       end
@@ -192,6 +196,42 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Base, type: :model do
           'EnrollmentID', 'PersonalID', 'SexualOrientation', 'SexualOrientationOther', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'
         ]
         expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomSexualOrientation.hmis_csv_headers).to eq(expected_headers)
+      end
+
+      it 'generates CustomEnrollmentFY26Deprecations.csv file' do
+        custom_file = File.join(@exporter.file_path, 'CustomEnrollmentFY26Deprecations.csv')
+        expect(File.exist?(custom_file)).to be_truthy
+      end
+
+      it 'includes custom sexual orientation and translation assistance data in export' do
+        custom_file = File.join(@exporter.file_path, 'CustomEnrollmentFY26Deprecations.csv')
+        csv_content = CSV.read(custom_file, headers: true)
+
+        expect(csv_content.length).to be > 0
+        # Check that our test data is included
+        enrollment_row = csv_content.find { |row| row['EnrollmentID'] == @enrollment.id.to_s }
+        expect(enrollment_row).to be_present
+        expect(enrollment_row['SexualOrientation']).to eq('1')
+        expect(enrollment_row['SexualOrientationOther']).to eq('')
+        expect(enrollment_row['TranslationNeeded']).to eq('1')
+        expect(enrollment_row['PreferredLanguage']).to eq('179')
+        expect(enrollment_row['PreferredLanguageDifferent']).to eq('')
+      end
+
+      it 'sets correct ExportID on custom sexual orientation and translation assistance records' do
+        custom_file = File.join(@exporter.file_path, 'CustomEnrollmentFY26Deprecations.csv')
+        csv_content = CSV.read(custom_file, headers: true)
+
+        csv_content.each do |row|
+          expect(row['ExportID']).to eq(@export.export_id)
+        end
+      end
+
+      it 'returns correct CSV headers for CustomEnrollmentFY26Deprecations' do
+        expected_headers = [
+          'EnrollmentID', 'PersonalID', 'SexualOrientation', 'SexualOrientationOther', 'TranslationNeeded', 'PreferredLanguage', 'PreferredLanguageDifferent', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'
+        ]
+        expect(HmisCsvTwentyTwentySix::Exporter::Custom::CustomEnrollmentFy26Deprecation.hmis_csv_headers).to eq(expected_headers)
       end
 
       it 'generates CustomDataElementDefinition.csv file' do

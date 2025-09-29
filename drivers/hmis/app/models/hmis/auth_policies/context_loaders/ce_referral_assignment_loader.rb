@@ -23,6 +23,11 @@ module Hmis::AuthPolicies::ContextLoaders
       assigned_referral_steps.pluck(:id).to_set
     end
 
+    # Clear memery cache when step assignments may have changed during a request (e.g., after completing a step in a mutation).
+    def clear_cache!
+      clear_memery_cache!
+    end
+
     private
 
     def assigned_referral_steps

@@ -6,10 +6,8 @@
 
 # frozen_string_literal: true
 
-module HudTwentyTwentyFourToTwentyTwentySix
-  module CustomSexualOrientation
-    class Csv < Transforms
-      include HudTwentyTwentyFourToTwentyTwentySix::Kiba::CsvBase
-    end
+class AddDeletedAtToCeClientProxies < ActiveRecord::Migration[7.1]
+  def change
+    add_column :ce_client_proxies, :deleted_at, :datetime
   end
 end

@@ -53,8 +53,10 @@ RSpec.describe 'Create Units Mutation', type: :request do
     expect do
       response, result = post_graphql(input) { mutation }
       expect(response.status).to eq(200), result.inspect
+      unit_group.reload
     end.to change(versions, :count).by(1).
-      and change(units, :count).by(1)
+      and change(units, :count).by(1).
+      and change(unit_group, :unit_type).from(nil).to(unit_type)
   end
 
   context 'when unit type is not provided' do
@@ -81,7 +83,7 @@ RSpec.describe 'Create Units Mutation', type: :request do
     end
   end
 
-  context 'with existing unit type' do
+  context 'when unit group already has a unit type' do
     let(:existing_unit_type) { create(:hmis_unit_type, description: '1 bedroom') }
 
     shared_examples 'returns unit type consistency error' do
@@ -97,13 +99,13 @@ RSpec.describe 'Create Units Mutation', type: :request do
       end
     end
 
-    context 'when unit group already has that unit type directly' do
+    context 'unit type is directly associated with unit group' do
       let(:unit_group) { create(:hmis_unit_group, project: p1, unit_type: existing_unit_type) }
 
       include_examples 'returns unit type consistency error'
     end
 
-    context 'when unit group already has units with that type' do
+    context 'no direct association, but existing units in the group have that type' do
       let!(:existing_unit) { create(:hmis_unit, unit_type: existing_unit_type, unit_group: unit_group) }
 
       include_examples 'returns unit type consistency error'
