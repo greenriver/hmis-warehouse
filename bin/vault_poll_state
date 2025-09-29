@@ -1,6 +1,6 @@
-# frozen_string_literal: true
-
 #!/usr/bin/env ruby
+
+# frozen_string_literal: true
 
 cmd = "aws-vault exec openpath -- bin/poll_state #{ARGV.join(' ')}"
 system(cmd)

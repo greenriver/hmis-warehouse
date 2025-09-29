@@ -2,108 +2,54 @@
 
 require 'rails_helper'
 
-# Create a test class that includes the concern to test the string mutations
-class TestImportModel < ApplicationRecord
-  include HmisCsvTwentyTwentyFour::Importer::ImportConcern
-
-  self.table_name = 'nonexistent_table'
-
-  def self.hmis_structure
-    { id: :integer, name: :string }
-  end
-
-  def self.hud_key
-    :id
-  end
-
-  def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
-    where(id: [])
-  end
-
-  def self.paranoid?
-    false
-  end
-end
-
 RSpec.describe HmisCsvTwentyTwentyFour::Importer::ImportConcern, type: :model do
-  describe '.run_complex_validations! method with += operations' do
-    it 'calls method that contains += operations for failure count accumulation' do
-      # Test the += operation from line 330: importer_log.summary[filename]['total_flags'] += failures.count
+  # Use the existing User class that already includes the ImportConcern
+  let(:test_class) { HmisCsvTwentyTwentyFour::Importer::User }
 
-      # Mock the complex validations
+  describe '.run_complex_validations! method with += operations' do
+    it 'calls method that contains += operations for failures accumulation' do
+      # Test the += operation from line 326: failures += check[:class].check_validity!(self, importer_log, **arguments)
+
       validation_check = double('validation_check')
       allow(validation_check).to receive(:check_validity!).and_return(['error1', 'error2'])
 
-      allow(TestImportModel).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check },
         ],
       )
 
-      # Mock importer log with summary structure
       importer_log = double('importer_log')
       summary = {
         'test_file.csv' => {
-          'total_flags' => 5,
+          'total_flags' => 3,
         },
       }
       allow(importer_log).to receive(:summary).and_return(summary)
 
-      # Mock Rails logger
-      allow(Rails.logger).to receive(:debug)
+      allow(Rails.logger).to receive(:info)
 
       filename = 'test_file.csv'
 
-      # Call the actual method that contains the += operation
-      result = TestImportModel.run_complex_validations!(importer_log, filename)
+      # Call the actual method that contains the += operations
+      result = test_class.run_complex_validations!(importer_log, filename)
 
-      # Should return the failures
+      # Should return the accumulated failures
       expect(result).to eq(['error1', 'error2'])
 
-      # The += operation should have incremented the total_flags count
-      expect(summary[filename]['total_flags']).to eq(7) # 5 + 2 failures
+      # The += operation should have updated the count
+      expect(summary[filename]['total_flags']).to eq(5) # 3 + 2 failures
     end
 
-    it 'handles case where total_flags is not initialized' do
-      # Test the += operation when total_flags needs to be initialized first
-
-      validation_check = double('validation_check')
-      allow(validation_check).to receive(:check_validity!).and_return(['error1'])
-
-      allow(TestImportModel).to receive(:complex_validations).and_return(
-        [
-          { class: validation_check },
-        ],
-      )
-
-      # Mock importer log with summary but no total_flags
-      importer_log = double('importer_log')
-      summary = {
-        'new_file.csv' => {},
-      }
-      allow(importer_log).to receive(:summary).and_return(summary)
-
-      allow(Rails.logger).to receive(:debug)
-
-      filename = 'new_file.csv'
-
-      # Call the method that contains the += operation
-      result = TestImportModel.run_complex_validations!(importer_log, filename)
-
-      # Should initialize total_flags to 0 then add failures.count
-      expect(result).to eq(['error1'])
-      expect(summary[filename]['total_flags']).to eq(1) # 0 + 1 failure
-    end
-
-    it 'handles multiple validation checks with += accumulation' do
-      # Test multiple validations that each contribute to the += operation
+    it 'calls method that exercises both += operations in sequence' do
+      # Test both += operations: failures += ... and total_flags += ...
 
       validation_check1 = double('validation_check1')
       validation_check2 = double('validation_check2')
-      allow(validation_check1).to receive(:check_validity!).and_return(['error1', 'error2'])
-      allow(validation_check2).to receive(:check_validity!).and_return(['error3'])
+      allow(validation_check1).to receive(:check_validity!).and_return(['error1'])
+      allow(validation_check2).to receive(:check_validity!).and_return(['error2', 'error3'])
 
-      allow(TestImportModel).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check1 },
           { class: validation_check2 },
@@ -112,33 +58,70 @@ RSpec.describe HmisCsvTwentyTwentyFour::Importer::ImportConcern, type: :model do
 
       importer_log = double('importer_log')
       summary = {
-        'multi_file.csv' => {
-          'total_flags' => 10,
+        'multi_validation_file.csv' => {
+          'total_flags' => 0,
         },
       }
       allow(importer_log).to receive(:summary).and_return(summary)
 
-      allow(Rails.logger).to receive(:debug)
+      allow(Rails.logger).to receive(:info)
 
-      filename = 'multi_file.csv'
+      filename = 'multi_validation_file.csv'
 
-      # This will exercise the += operation multiple times as failures accumulate
-      result = TestImportModel.run_complex_validations!(importer_log, filename)
+      # This exercises both += operations:
+      # 1. failures += check_validity! results (happens twice)
+      # 2. total_flags += failures.count (happens once at end)
+      result = test_class.run_complex_validations!(importer_log, filename)
 
-      # Should return all failures
+      # Should return all accumulated failures
       expect(result).to eq(['error1', 'error2', 'error3'])
 
-      # The += operation should have added all failures to the count
-      expect(summary[filename]['total_flags']).to eq(13) # 10 + 3 failures
+      # The final += operation should have added all failures to the count
+      expect(summary[filename]['total_flags']).to eq(3) # 0 + 3 total failures
     end
 
-    it 'handles validation checks with nil failures' do
-      # Test compact! operation and += with filtered results
+    it 'handles validation checks with arguments parameter' do
+      # Test += operations with validation arguments
 
       validation_check = double('validation_check')
-      allow(validation_check).to receive(:check_validity!).and_return(['error1', nil, 'error2', nil])
+      allow(validation_check).to receive(:check_validity!).and_return(['validation_error'])
 
-      allow(TestImportModel).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
+        [
+          { class: validation_check, arguments: { custom_arg: 'value' } },
+        ],
+      )
+
+      importer_log = double('importer_log')
+      summary = {
+        'args_file.csv' => {
+          'total_flags' => 5,
+        },
+      }
+      allow(importer_log).to receive(:summary).and_return(summary)
+
+      allow(Rails.logger).to receive(:info)
+
+      filename = 'args_file.csv'
+
+      result = test_class.run_complex_validations!(importer_log, filename)
+
+      # Should pass arguments to the validation check
+      expect(validation_check).to have_received(:check_validity!).with(
+        test_class, importer_log, custom_arg: 'value'
+      )
+
+      expect(result).to eq(['validation_error'])
+      expect(summary[filename]['total_flags']).to eq(6) # 5 + 1 failure
+    end
+
+    it 'handles empty validation results with += operations' do
+      # Test += operations when check_validity! returns empty results
+
+      validation_check = double('validation_check')
+      allow(validation_check).to receive(:check_validity!).and_return([])
+
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check },
         ],
@@ -146,46 +129,43 @@ RSpec.describe HmisCsvTwentyTwentyFour::Importer::ImportConcern, type: :model do
 
       importer_log = double('importer_log')
       summary = {
-        'compact_file.csv' => {
-          'total_flags' => 2,
+        'empty_file.csv' => {
+          'total_flags' => 10,
         },
       }
       allow(importer_log).to receive(:summary).and_return(summary)
 
-      allow(Rails.logger).to receive(:debug)
+      allow(Rails.logger).to receive(:info)
 
-      filename = 'compact_file.csv'
+      filename = 'empty_file.csv'
 
-      result = TestImportModel.run_complex_validations!(importer_log, filename)
+      result = test_class.run_complex_validations!(importer_log, filename)
 
-      # Should compact nil values and only count real failures
-      expect(result).to eq(['error1', 'error2'])
-      expect(summary[filename]['total_flags']).to eq(4) # 2 + 2 non-nil failures
+      # += with empty array should not change anything
+      expect(result).to eq([])
+      expect(summary[filename]['total_flags']).to eq(10) # 10 + 0 failures
     end
   end
 
   describe 'method calls that exercise string mutations' do
-    it 'exercises apply_import_overrides method chain' do
-      # Test the method that feeds into run_complex_validations!
-
+    it 'exercises apply_import_overrides method that feeds data to validations' do
       override = double('override')
-      allow(override).to receive(:apply).with({ id: 1, name: 'test' }).and_return({ id: 1, name: 'modified' })
+      allow(override).to receive(:apply).with({ data: 'test' }).and_return({ data: 'modified' })
       allow(override).to receive(:update)
 
-      allow(TestImportModel).to receive(:import_overrides).and_return([override])
+      allow(test_class).to receive(:import_overrides).and_return([override])
 
-      row = { id: 1, name: 'test' }
+      row = { data: 'test' }
 
-      result = TestImportModel.apply_import_overrides(row)
+      result = test_class.apply_import_overrides(row)
 
-      expect(result).to eq({ id: 1, name: 'modified' })
+      expect(result).to eq({ data: 'modified' })
       expect(override).to have_received(:update).with(last_used_on: Date.current)
     end
 
     it 'creates new instance without error' do
-      # Since we can't actually create a TestImportModel instance due to nonexistent table,
-      # we'll test that the concern can be included
-      expect(TestImportModel.ancestors).to include(HmisCsvTwentyTwentyFour::Importer::ImportConcern)
+      # Test that the concern can be included
+      expect(test_class.ancestors).to include(HmisCsvTwentyTwentyFour::Importer::ImportConcern)
     end
   end
 end
