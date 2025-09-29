@@ -906,19 +906,16 @@ module GrdaWarehouse::Tasks
       return unless @clients.any?
       return unless HmisEnforcement.hmis_enabled? && Hmis::Ce.configuration.enabled?
 
-      # Delete associated ClientProxies and CE Candidates
+      # Soft-delete associated ClientProxies and delete CE Candidates
       client_proxies = Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: @clients)
       ce_candidates = Hmis::Ce::Match::Candidate.where(client_proxy_id: client_proxies.select(:id))
-      ce_candidate_events = Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: client_proxies.select(:id))
 
       log "Deleting CE Match Candidates for #{@clients.size} clients comprising #{ce_candidates.count} records"
       ce_candidates.delete_all unless @dry_run
 
-      log "Deleting CE Match Candidate Events for #{@clients.size} clients comprising #{ce_candidate_events.count} records"
-      ce_candidate_events.delete_all unless @dry_run
-
-      log "Deleting CE Client Proxies for #{@clients.size} clients comprising #{client_proxies.count} records"
-      client_proxies.delete_all unless @dry_run
+      # Soft-delete CE Client Proxies; leave Candidate Events intact for historical purposes
+      log "Soft-deleting CE Client Proxies for #{@clients.size} clients comprising #{client_proxies.count} records"
+      client_proxies.update_all(deleted_at: @soft_delete_date) unless @dry_run
     end
 
     private def add_destination_created_dates

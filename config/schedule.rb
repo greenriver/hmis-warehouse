@@ -175,6 +175,13 @@ tasks = [
     interruptable: true,
   },
   {
+    task: 'dba:unbloat',
+    frequency: :sunday,
+    at: '2:00 am',
+    trigger: ENV['RAILS_ENV'] == 'staging',
+    interruptable: true,
+  },
+  {
     task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
     frequency: 1.day,
     at: import_cleanup_time,
