@@ -104,6 +104,18 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "1174"
+        },
+        {
+          "_comment": "Continue collection for HUD/VASH after requirement removed for FY26",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 20
+        },
+        {
+          "_comment": "Continue collection for VA GPD after requirement removed for FY26",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         }
       ]
     }
@@ -128,6 +140,18 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "1174"
+        },
+        {
+          "_comment": "Continue collection for HUD/VASH after requirement removed for FY26",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 20
+        },
+        {
+          "_comment": "Continue collection for VA GPD after requirement removed for FY26",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         }
       ]
     }
