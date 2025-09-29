@@ -80,8 +80,37 @@ RSpec.describe SetupLogging do
       expect(result[:session_id]).to eq('session-123')
       expect(result[:user_id]).to eq(42)
       expect(result[:pid]).to eq(1234)
-      expect(result[:rails_env]).to eq(Rails.env)
       expect(result[:x_amzn_trace_id]).to be_nil
+    end
+
+    context 'when payload values are blank' do
+      let(:event_payload) do
+        {
+          request: request,
+          headers: { 'action_dispatch.request_id' => 'req-123' },
+          remote_ip: nil,
+          ip: '',
+          x_forwarded_for: nil,
+          remote_addr: '',
+          session_id: nil,
+          user_id: nil,
+          pid: nil,
+          request_start: nil,
+        }
+      end
+
+      it 'drops blank values from the payload' do
+        result = custom_options.call(event)
+
+        expect(result).not_to have_key(:remote_ip)
+        expect(result).not_to have_key(:ip)
+        expect(result).not_to have_key(:remote_addr)
+        expect(result).not_to have_key(:x_forwarded_for)
+        expect(result).not_to have_key(:session_id)
+        expect(result).not_to have_key(:user_id)
+        expect(result).not_to have_key(:pid)
+        expect(result).not_to have_key(:request_start)
+      end
     end
 
     context 'when event payload is missing' do

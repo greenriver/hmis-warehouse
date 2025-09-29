@@ -16,6 +16,7 @@ class SetupLogging
     # Some Green River clients have multiple tenants running the same general
     # code (but with different databases or environment variables)
     tenant: ENV.fetch('CLIENT', 'unknown-client-set-CLIENT-env-var'),
+    rails_env: Rails.env, # Deployment environment; trusted
   }.freeze
 
   def initialize(config)
@@ -105,7 +106,7 @@ class SetupLogging
       request_id = payload[:request_id] || payload.fetch(:headers, {})['action_dispatch.request_id']
       trace_id = headers_env['HTTP_X_AMZN_TRACE_ID']
 
-      {
+      result = {
         request_time: Time.current, # Server timestamp (trusted)
         server_protocol: server_protocol, # From Rack env; trusted when present
         host: host, # From Host header; untrusted
@@ -114,10 +115,11 @@ class SetupLogging
         pid: payload[:pid], # Raw payload PID; trusted if present
         request_id: request_id, # Rails request UUID; trusted
         request_start: payload[:request_start], # Header supplied; untrusted
-        rails_env: Rails.env, # Deployment environment; trusted
         exception: payload[:exception]&.first, # Raised error class; trusted
         x_amzn_trace_id: trace_id, # AWS trace header; untrusted
       }.merge(ip_data).merge(STANDARD_TAGS)
+      result.compact_blank!
+      result
     end
   end
 
