@@ -4,49 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module HmisCsvTwentyTwenty::HmisCsvCleanup
   class ForceValidEnrollmentCoc < Base
     def cleanup!
-      enrollment_coc_batch = []
-
-      enrollment_coc_scope.find_each do |e_coc|
-        raise 'HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc is no longer active'
-
-        # ignore any valid CoC-codes
-        next if ::HudHelper.util('legacy').valid_coc?(e_coc.CoCCode) # rubocop:disable Lint/UnreachableCode
-
-        # add a dash if we have two characters and 3 numbers
-        e_coc.CoCCode = "#{e_coc.CoCCode[0..1]}-#{e_coc.CoCCode[2..4]}" if e_coc.CoCCode.match?(/^[a-z]{2}[0-9]{3}$/i)
-
-        # upcase any that match the format but aren't correctly cased
-        e_coc.CoCCode.upcase! if e_coc.CoCCode.match?(/^[a-z]{2}-[0-9]{3}$/i)
-
-        # double check the resulting code is valid, blank it if not
-        e_coc.CoCCode = nil if e_coc.CoCCode.present? && ! ::HudHelper.util('legacy').valid_coc?(e_coc.CoCCode)
-
-        e_coc.set_source_hash
-        enrollment_coc_batch << e_coc
-      end
-
-      enrollment_coc_source.import(
-        enrollment_coc_batch,
-        on_duplicate_key_update: {
-          conflict_target: [:id],
-          columns: [:CoCCode, :source_hash],
-        },
-      )
+      raise 'HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc is no longer active'
     end
 
     def enrollment_coc_scope
-      enrollment_coc_source.
-        where(importer_log_id: @importer_log.id).
-        where.not(CoCCode: nil)
     end
 
     def enrollment_coc_source
-      HmisCsvTwentyTwenty::Importer::EnrollmentCoc
     end
 
     def self.description
