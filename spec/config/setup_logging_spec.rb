@@ -53,62 +53,40 @@ RSpec.describe SetupLogging do
     let(:event_payload) do
       {
         request: request,
-        remote_ip: event_remote_ip,
-        x_forwarded_for: event_x_forwarded_for,
-        remote_addr: event_remote_addr,
         headers: { 'action_dispatch.request_id' => 'req-123' },
+        remote_ip: 'event-remote-ip',
+        ip: 'event-client-ip',
+        x_forwarded_for: 'event-xff',
+        remote_addr: 'event-remote-addr',
+        session_id: 'session-123',
+        user_id: 42,
+        pid: 1234,
+        request_start: 't=1234',
       }
     end
 
-    let(:event_remote_ip) { nil }
-    let(:event_remote_addr) { nil }
-    let(:event_x_forwarded_for) { nil }
-
     let(:event) { double(payload: event_payload) }
 
-    context 'when request has a remote_ip' do
-      it 'logs the request remote_ip' do
-        result = custom_options.call(event)
+    it 'merges payload IP data with other logging attributes' do
+      result = custom_options.call(event)
 
-        expect(result[:remote_ip]).to eq('10.0.0.1')
-        expect(result[:ip]).to eq('10.0.0.1')
-      end
+      expect(result).to include(remote_ip: 'event-remote-ip')
+      expect(result).to include(ip: 'event-client-ip')
+      expect(result).to include(remote_addr: 'event-remote-addr')
+      expect(result).to include(x_forwarded_for: 'event-xff')
+      expect(result[:host]).to eq('example.org')
+      expect(result[:server_protocol]).to eq('https://')
+      expect(result[:request_id]).to eq('req-123')
+      expect(result[:session_id]).to eq('session-123')
+      expect(result[:user_id]).to eq(42)
+      expect(result[:pid]).to eq(1234)
+      expect(result[:rails_env]).to eq(Rails.env)
+      expect(result[:x_amzn_trace_id]).to be_nil
     end
 
-    context 'when request remote_ip is blank but X-Forwarded-For is present' do
-      let(:request_remote_ip) { nil }
-      let(:headers_env) { { 'HTTP_X_FORWARDED_FOR' => '11.22.33.44, 55.66.77.88', 'REMOTE_ADDR' => '203.0.113.5' } }
-
-      it 'logs the first X-Forwarded-For value' do
-        result = custom_options.call(event)
-
-        expect(result[:remote_ip]).to eq('203.0.113.5')
-        expect(result[:ip]).to eq('11.22.33.44')
-        expect(result[:x_forwarded_for]).to eq('11.22.33.44, 55.66.77.88')
-      end
-    end
-
-    context 'when only remote_addr is available' do
-      let(:request_remote_ip) { nil }
-      let(:headers_env) { { 'REMOTE_ADDR' => '203.0.113.5' } }
-
-      it 'falls back to remote_addr for remote_ip and ip' do
-        result = custom_options.call(event)
-
-        expect(result[:remote_ip]).to eq('203.0.113.5')
-        expect(result[:ip]).to eq('203.0.113.5')
-      end
-    end
-
-    context 'when only HTTP_CLIENT_IP is present' do
-      let(:request_remote_ip) { nil }
-      let(:headers_env) { { 'HTTP_CLIENT_IP' => '77.88.99.11', 'REMOTE_ADDR' => '203.0.113.5' } }
-
-      it 'uses client_ip for the ip field' do
-        result = custom_options.call(event)
-
-        expect(result[:remote_ip]).to eq('203.0.113.5')
-        expect(result[:ip]).to eq('77.88.99.11')
+    context 'when event payload is missing' do
+      it 'raises an error' do
+        expect { custom_options.call(double(payload: nil)) }.to raise_error('Lograge event payload missing')
       end
     end
   end
