@@ -14,8 +14,11 @@ namespace :grda_warehouse do
 
   namespace :ssn do
     desc 'Report SSN changes that would result from the enhanced selector'
-    task audit: [:environment, 'log:info_to_stdout'] do
+    task :audit, [:use_oldest] => [:environment, 'log:info_to_stdout'] do |_task, args|
       require 'progress_bar'
+      use_oldest_arg = args[:use_oldest]
+      use_oldest = use_oldest_arg.nil? || ActiveModel::Type::Boolean.new.cast(use_oldest_arg)
+
       total = GrdaWarehouse::Hud::Client.destination.count
       progress = ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
 
@@ -40,7 +43,7 @@ namespace :grda_warehouse do
             next if source_clients.empty?
 
             dest_attr = destination.attributes.with_indifferent_access.slice(:SSN, :SSNDataQuality)
-            proposed = GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr.dup, source_clients: source_clients)
+            proposed = GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr.dup, source_clients: source_clients, use_oldest: use_oldest)
 
             next if [destination.SSN, destination.SSNDataQuality] == [proposed[:SSN], proposed[:SSNDataQuality]]
 
