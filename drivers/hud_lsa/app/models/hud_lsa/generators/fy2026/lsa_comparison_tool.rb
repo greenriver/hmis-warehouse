@@ -68,6 +68,7 @@ module HudLsa::Generators::Fy2026
         'ProjectCoCID',
         'AffiliationID',
         'HMISParticipationID',
+        'PITCount',
       ]
     end
   end
