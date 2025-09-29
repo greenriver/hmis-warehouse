@@ -2,30 +2,10 @@
 
 require 'rails_helper'
 
-# Create a test class that includes the concern to test the string mutations
-class TestImportModel2026 < ApplicationRecord
-  include HmisCsvTwentyTwentySix::Importer::ImportConcern
-
-  self.table_name = 'nonexistent_table_2026'
-
-  def self.hmis_structure
-    { id: :integer, name: :string }
-  end
-
-  def self.hud_key
-    :id
-  end
-
-  def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
-    where(id: [])
-  end
-
-  def self.paranoid?
-    false
-  end
-end
-
 RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
+  # Use the existing User class that already includes the ImportConcern
+  let(:test_class) { HmisCsvTwentyTwentySix::Importer::User }
+
   describe '.run_complex_validations! method with += operations' do
     it 'calls method that contains += operations for failures accumulation' do
       # Test the += operation from line 326: failures += check[:class].check_validity!(self, importer_log, **arguments)
@@ -33,7 +13,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       validation_check = double('validation_check')
       allow(validation_check).to receive(:check_validity!).and_return(['error1', 'error2'])
 
-      allow(TestImportModel2026).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check },
         ],
@@ -52,7 +32,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       filename = 'test_file.csv'
 
       # Call the actual method that contains the += operations
-      result = TestImportModel2026.run_complex_validations!(importer_log, filename)
+      result = test_class.run_complex_validations!(importer_log, filename)
 
       # Should return the accumulated failures
       expect(result).to eq(['error1', 'error2'])
@@ -69,7 +49,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       allow(validation_check1).to receive(:check_validity!).and_return(['error1'])
       allow(validation_check2).to receive(:check_validity!).and_return(['error2', 'error3'])
 
-      allow(TestImportModel2026).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check1 },
           { class: validation_check2 },
@@ -91,7 +71,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       # This exercises both += operations:
       # 1. failures += check_validity! results (happens twice)
       # 2. total_flags += failures.count (happens once at end)
-      result = TestImportModel2026.run_complex_validations!(importer_log, filename)
+      result = test_class.run_complex_validations!(importer_log, filename)
 
       # Should return all accumulated failures
       expect(result).to eq(['error1', 'error2', 'error3'])
@@ -106,7 +86,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       validation_check = double('validation_check')
       allow(validation_check).to receive(:check_validity!).and_return(['validation_error'])
 
-      allow(TestImportModel2026).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check, arguments: { custom_arg: 'value' } },
         ],
@@ -124,11 +104,11 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
 
       filename = 'args_file.csv'
 
-      result = TestImportModel2026.run_complex_validations!(importer_log, filename)
+      result = test_class.run_complex_validations!(importer_log, filename)
 
       # Should pass arguments to the validation check
       expect(validation_check).to have_received(:check_validity!).with(
-        TestImportModel2026, importer_log, custom_arg: 'value'
+        test_class, importer_log, custom_arg: 'value'
       )
 
       expect(result).to eq(['validation_error'])
@@ -141,7 +121,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       validation_check = double('validation_check')
       allow(validation_check).to receive(:check_validity!).and_return([])
 
-      allow(TestImportModel2026).to receive(:complex_validations).and_return(
+      allow(test_class).to receive(:complex_validations).and_return(
         [
           { class: validation_check },
         ],
@@ -159,7 +139,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
 
       filename = 'empty_file.csv'
 
-      result = TestImportModel2026.run_complex_validations!(importer_log, filename)
+      result = test_class.run_complex_validations!(importer_log, filename)
 
       # += with empty array should not change anything
       expect(result).to eq([])
@@ -173,11 +153,11 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
       allow(override).to receive(:apply).with({ data: 'test' }).and_return({ data: 'modified' })
       allow(override).to receive(:update)
 
-      allow(TestImportModel2026).to receive(:import_overrides).and_return([override])
+      allow(test_class).to receive(:import_overrides).and_return([override])
 
       row = { data: 'test' }
 
-      result = TestImportModel2026.apply_import_overrides(row)
+      result = test_class.apply_import_overrides(row)
 
       expect(result).to eq({ data: 'modified' })
       expect(override).to have_received(:update).with(last_used_on: Date.current)
@@ -185,7 +165,7 @@ RSpec.describe HmisCsvTwentyTwentySix::Importer::ImportConcern, type: :model do
 
     it 'creates new instance without error' do
       # Test that the concern can be included
-      expect(TestImportModel2026.ancestors).to include(HmisCsvTwentyTwentySix::Importer::ImportConcern)
+      expect(test_class.ancestors).to include(HmisCsvTwentyTwentySix::Importer::ImportConcern)
     end
   end
 end
