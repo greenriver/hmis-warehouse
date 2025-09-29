@@ -20,5 +20,6 @@ module LogRagePayloadBehavior
     payload[:pid] = Process.pid
     payload[:request_id] = request.uuid
     payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
+    payload[:user_id] = current_app_user&.id
   end
 end

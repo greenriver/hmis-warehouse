@@ -106,9 +106,8 @@ class SetupLogging
       forwarded_ip = x_forwarded_for&.split(',')&.first&.strip.presence
       remote_addr = headers_env['REMOTE_ADDR'].presence || event.payload[:remote_addr].presence
 
-      remote_ip = request_remote_ip || payload_remote_ip || remote_addr
-      resolved_remote_ip = remote_ip
-      resolved_client_ip = forwarded_ip || client_ip || remote_ip
+      resolved_remote_ip = request_remote_ip || payload_remote_ip || remote_addr
+      resolved_client_ip = forwarded_ip || client_ip || resolved_remote_ip
 
       server_protocol = request&.protocol.presence || event.payload[:server_protocol]
       host = request&.host.presence || event.payload[:host]

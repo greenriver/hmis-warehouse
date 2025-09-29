@@ -99,5 +99,17 @@ RSpec.describe SetupLogging do
         expect(result[:ip]).to eq('203.0.113.5')
       end
     end
+
+    context 'when only HTTP_CLIENT_IP is present' do
+      let(:request_remote_ip) { nil }
+      let(:headers_env) { { 'HTTP_CLIENT_IP' => '77.88.99.11', 'REMOTE_ADDR' => '203.0.113.5' } }
+
+      it 'uses client_ip for the ip field' do
+        result = custom_options.call(event)
+
+        expect(result[:remote_ip]).to eq('203.0.113.5')
+        expect(result[:ip]).to eq('77.88.99.11')
+      end
+    end
   end
 end
