@@ -1094,22 +1094,26 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       cleanup.instance_variable_set(:@clients, [destination_client.id])
     end
 
-    it 'deletes CE ClientProxies for destination clients when HMIS is enabled' do
+    it 'soft-deletes CE ClientProxies for destination clients when HMIS is enabled' do
       expect do
         cleanup.send(:clean_coordinated_entry_records)
       end.to change(
         Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
       ).from(1).to(0)
+
+      # Verify record still exists with deleted_at set
+      deleted = Hmis::Ce::ClientProxy.with_deleted.find(ce_client_proxy.id)
+      expect(deleted.deleted_at).to be_present
     end
 
-    it 'deletes CE Candidates and Candidate Events for destination clients when HMIS is enabled' do
+    it 'deletes CE Candidates but preserves Candidate Events for destination clients when HMIS is enabled' do
       expect do
         cleanup.send(:clean_coordinated_entry_records)
       end.to change(
         Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
-      ).from(1).to(0).and change(
+      ).from(1).to(0).and not_change(
         Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: ce_client_proxy.id), :count
-      ).from(1).to(0)
+      ).from(1)
     end
 
     context 'when dry_run is true' do
@@ -1119,6 +1123,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           cleanup.send(:clean_coordinated_entry_records)
         end.to not_change(
           Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
+        ).from(1).and not_change(
+          Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: ce_client_proxy.id), :count
         ).from(1).and not_change(
           Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
         ).from(1)
