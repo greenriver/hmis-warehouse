@@ -3469,7 +3469,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis/spec/jobs/activity_log_processor_job_spec.rb'
     - 'drivers/hmis/spec/jobs/assessment_questions_job_spec.rb'
     - 'drivers/hmis/spec/jobs/merge_clients_job_perf_spec.rb'
-    - 'drivers/hmis/spec/jobs/merge_clients_job_spec.rb'
     - 'drivers/hmis/spec/models/hmis/client_alert_spec.rb'
     - 'drivers/hmis/spec/models/hmis/file_spec.rb'
     - 'drivers/hmis/spec/models/hmis/form/definition_spec.rb'
