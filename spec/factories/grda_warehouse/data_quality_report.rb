@@ -6,7 +6,7 @@ FactoryBot.define do
   end
 
   trait :single_project do
-    project { GrdaWarehouse::Hud::Project.first }
+    project { GrdaWarehouse::Hud::Project.order(:id).first }
   end
 
   factory :dq_project_group, class: 'GrdaWarehouse::ProjectGroup' do
