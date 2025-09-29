@@ -4,7 +4,9 @@ require 'rails_helper'
 
 RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :model do
   let(:importer_log) { double('importer_log', id: 1) }
-  let(:cleanup) { described_class.new(importer_log) }
+  let(:date_range) { (Date.current - 1.year)..Date.current }
+  let(:version) { '2024' }
+  let(:cleanup) { described_class.new(importer_log: importer_log, date_range: date_range, version: version) }
 
   describe '#cleanup! method with upcase! and << operations' do
     it 'calls method that contains upcase! operations for CoC code fixing' do
@@ -159,8 +161,10 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
       allow(cleanup).to receive(:enrollment_source).and_return(enrollment_source)
 
       scope_chain = double('scope_chain')
+      where_chain = double('where_chain')
       allow(enrollment_source).to receive(:where).with(importer_log_id: 1).and_return(scope_chain)
-      allow(scope_chain).to receive(:where).and_return(scope_chain)
+      allow(scope_chain).to receive(:where).and_return(where_chain)
+      allow(where_chain).to receive(:not).and_return(where_chain)
 
       cleanup.enrollment_scope
 
@@ -168,7 +172,7 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
     end
 
     it 'creates new instance without error' do
-      cleanup_instance = described_class.new(importer_log)
+      cleanup_instance = described_class.new(importer_log: importer_log, date_range: date_range, version: version)
 
       expect(cleanup_instance).to be_a(described_class)
     end

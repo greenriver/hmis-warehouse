@@ -12,21 +12,26 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       household_id = 'HH001'
 
       # Mock the database queries that household method uses
+      she = double('she', age: 25)
+      allow(she).to receive(:age=)
+
       enrollment = double(
         'enrollment',
         HouseholdID: household_id,
         EntryDate: Date.current,
-        service_history_enrollment: double('she', age: 25),
+        service_history_enrollment: she,
         client: double('client', present?: true, age_on: 25),
       )
 
       scope = double('scope')
+      where_scope = double('where_scope')
       allow(GrdaWarehouse::Hud::Enrollment).to receive(:joins).and_return(scope)
       allow(scope).to receive(:preload).and_return(scope)
       allow(scope).to receive(:merge).and_return(scope)
       allow(scope).to receive(:distinct).and_return(scope)
-      allow(scope).to receive(:where).and_return(scope)
-      allow(scope).to receive(:find_each).and_yield(enrollment)
+      allow(scope).to receive(:where).and_return(where_scope)
+      allow(where_scope).to receive(:not).and_return(where_scope)
+      allow(where_scope).to receive(:find_each).and_yield(enrollment)
 
       # Mock report dependencies
       allow(report).to receive(:report_scope).and_return(scope)
@@ -81,28 +86,34 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
     it 'calls run_and_save! method that contains string mutations' do
       # Test the += operations from lines 721-722 and << operation from line 724
 
+      # Use a new report instance
+      persisted_report = HmisDataQualityTool::Report.new
+      persisted_report.id = 1 # Set an ID so the find call works
+
       # Mock all the complex dependencies that run_and_save! uses
-      allow(report).to receive(:start).and_return(true)
-      allow(report).to receive(:complete).and_return(true)
-      allow(report).to receive(:save).and_return(true)
-      allow(report).to receive(:result_cache_as_open_struct).and_return({})
+      allow(persisted_report).to receive(:start).and_return(true)
+      allow(persisted_report).to receive(:complete).and_return(true)
+      allow(persisted_report).to receive(:save).and_return(true)
+      allow(persisted_report).to receive(:result_cache_as_open_struct).and_return({})
+      allow(persisted_report).to receive(:uncache!).and_return(true)
+      allow(persisted_report).to receive(:results).and_return([])
 
-      # Mock the complex report calculation methods
-      allow(report).to receive(:report_clients).and_return([])
-      allow(report).to receive(:client_items_for).and_return([])
-      allow(report).to receive(:report_enrollments).and_return({})
-      allow(report).to receive(:enrollments).and_return([])
-      allow(report).to receive(:inventories).and_return([])
-      allow(report).to receive(:current_living_situations).and_return([])
+      # Mock the class-level find method
+      allow(HmisDataQualityTool::Report).to receive(:find).with(1).and_return(persisted_report)
 
-      # Mock the calculation classes
-      allow(HmisDataQualityTool::Client).to receive(:calculate)
-      allow(HmisDataQualityTool::Enrollment).to receive(:calculate)
-      allow(HmisDataQualityTool::Inventory).to receive(:calculate)
-      allow(HmisDataQualityTool::CurrentLivingSituation).to receive(:calculate)
+      # Mock the filter and result_groups
+      filter_mock = double('filter', effective_projects: [])
+      allow(persisted_report).to receive(:filter).and_return(filter_mock)
+      allow(persisted_report).to receive(:result_groups).and_return({})
+
+      # Mock the calculation classes to return empty results
+      allow(HmisDataQualityTool::Client).to receive(:calculate).and_return({})
+      allow(HmisDataQualityTool::Enrollment).to receive(:calculate).and_return({})
+      allow(HmisDataQualityTool::Inventory).to receive(:calculate).and_return({})
+      allow(HmisDataQualityTool::CurrentLivingSituation).to receive(:calculate).and_return({})
 
       # Call the actual method that contains the string mutations
-      expect { report.run_and_save! }.not_to raise_error
+      expect { persisted_report.run_and_save! }.not_to raise_error
     end
   end
 

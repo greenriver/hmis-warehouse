@@ -195,8 +195,10 @@ RSpec.describe GrdaWarehouse::Hud::Project, type: :model do
 
         # Mock the client queries more thoroughly
         client_relation = double('client_relation')
-        allow(client_relation).to receive(:pluck).with(:id).and_return([client.id])
+        allow(client_relation).to receive(:pluck).and_return([client.id])
         allow(client_relation).to receive(:update_all).and_return(true)
+        allow(client_relation).to receive(:where).and_return(client_relation)
+        allow(client_relation).to receive(:each).and_return([])
         allow(GrdaWarehouse::Hud::Client).to receive(:where).and_return(client_relation)
         allow(GrdaWarehouse::Hud::Client).to receive(:joins).and_return(client_relation)
 

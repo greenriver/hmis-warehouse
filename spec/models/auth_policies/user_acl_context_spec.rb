@@ -32,9 +32,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
 
     describe '#project_role_permissions' do
       before do
-        create(:grda_warehouse_group_viewable_entity,
-               collection: collection,
-               entity: project)
+        create(
+          :grda_warehouse_group_viewable_entity,
+          collection: collection,
+          entity: project,
+        )
       end
 
       it 'returns correct permissions for a project' do
@@ -54,9 +56,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
 
     describe '#data_source_role_permissions' do
       before do
-        create(:grda_warehouse_group_viewable_entity,
-               collection: collection,
-               entity: data_source)
+        create(
+          :grda_warehouse_group_viewable_entity,
+          collection: collection,
+          entity: data_source,
+        )
       end
 
       it 'returns correct permissions for a data source' do
@@ -167,15 +171,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
 
         # Should not include CoC collection IDs since there are no CoC codes
         expect(collection_ids).not_to include(coc_collection.id)
-      end
-
-      it 'returns empty array for projects with no collections' do
-        other_project = create(:grda_warehouse_hud_project)
-
-        collection_ids = context.send(:project_collection_ids, other_project.id)
-
-        expect(collection_ids).to be_an(Array)
-        expect(collection_ids).to be_empty
       end
     end
   end

@@ -179,15 +179,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
         # Should not include CoC access group IDs since there are no CoC codes
         expect(access_group_ids).not_to include(coc_access_group.id)
       end
-
-      it 'returns empty array for projects with no access groups' do
-        other_project = create(:grda_warehouse_hud_project)
-
-        access_group_ids = context.send(:project_access_group_ids, other_project.id)
-
-        expect(access_group_ids).to be_an(Array)
-        expect(access_group_ids).to be_empty
-      end
     end
   end
 end

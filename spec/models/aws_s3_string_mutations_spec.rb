@@ -49,7 +49,7 @@ RSpec.describe AwsS3, type: :model do
 
         # Mock the list_objects_v2 responses
         first_batch = double('first_batch', is_truncated: true, contents: mock_contents_batch_1)
-        first_batch.contents.stub(:last).and_return(mock_contents_batch_1.last)
+        allow(first_batch.contents).to receive(:last).and_return(mock_contents_batch_1.last)
 
         second_batch = double('second_batch', is_truncated: false, contents: mock_contents_batch_2)
 
@@ -79,7 +79,7 @@ RSpec.describe AwsS3, type: :model do
       it 'respects max_keys limit after concatenation' do
         # Test that the concatenation works correctly and respects the max_keys limit
         first_batch = double('first_batch', is_truncated: true, contents: mock_contents_batch_1)
-        first_batch.contents.stub(:last).and_return(mock_contents_batch_1.last)
+        allow(first_batch.contents).to receive(:last).and_return(mock_contents_batch_1.last)
 
         second_batch = double('second_batch', is_truncated: false, contents: mock_contents_batch_2)
 
@@ -104,10 +104,10 @@ RSpec.describe AwsS3, type: :model do
       it 'continues concatenating through multiple truncated batches' do
         # Test multiple += operations across several batches
         batch_1 = double('batch_1', is_truncated: true, contents: [mock_contents_batch_1[0]])
-        batch_1.contents.stub(:last).and_return(mock_contents_batch_1[0])
+        allow(batch_1.contents).to receive(:last).and_return(mock_contents_batch_1[0])
 
         batch_2 = double('batch_2', is_truncated: true, contents: [mock_contents_batch_1[1]])
-        batch_2.contents.stub(:last).and_return(mock_contents_batch_1[1])
+        allow(batch_2.contents).to receive(:last).and_return(mock_contents_batch_1[1])
 
         batch_3 = double('batch_3', is_truncated: false, contents: mock_contents_batch_2)
 

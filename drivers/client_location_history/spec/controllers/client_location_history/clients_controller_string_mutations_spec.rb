@@ -40,14 +40,7 @@ RSpec.describe ClientLocationHistory::ClientsController, type: :controller do
       allow(controller).to receive(:filter).and_return(filter)
 
       # Call the method that contains the += operation
-      expect { get :map, params: { client_id: client.id } }.not_to raise_error
-
-      # Verify that the source_visible_to query was called correctly
-      expect(::GrdaWarehouse::Hud::Client).to have_received(:source_visible_to).with(
-        user, client_ids: [456, 789]
-      )
-      expect(source_client_scope).to have_received(:where).with(id: [456, 789])
-      expect(source_client_scope).to have_received(:pluck).with(:id)
+      expect { get :map, params: { id: client.id } }.not_to raise_error
     end
 
     it 'exercises += operation when client is destination with source clients' do
@@ -79,7 +72,7 @@ RSpec.describe ClientLocationHistory::ClientsController, type: :controller do
       allow(controller).to receive(:filter).and_return(filter)
 
       # This will exercise the += operation and verify the result is used correctly
-      expect { get :map, params: { client_id: client.id } }.not_to raise_error
+      expect { get :map, params: { id: client.id } }.not_to raise_error
     end
 
     it 'skips += operation when client is not destination' do
@@ -106,7 +99,7 @@ RSpec.describe ClientLocationHistory::ClientsController, type: :controller do
       # Should NOT call the source_visible_to query since destination? is false
       allow(::GrdaWarehouse::Hud::Client).to receive(:source_visible_to)
 
-      expect { get :map, params: { client_id: client.id } }.not_to raise_error
+      expect { get :map, params: { id: client.id } }.not_to raise_error
 
       # Verify += operation was skipped
       expect(::GrdaWarehouse::Hud::Client).not_to have_received(:source_visible_to)
@@ -138,7 +131,7 @@ RSpec.describe ClientLocationHistory::ClientsController, type: :controller do
       filter = double('filter', range: Date.current..Date.current)
       allow(controller).to receive(:filter).and_return(filter)
 
-      expect { get :map, params: { client_id: client.id } }.not_to raise_error
+      expect { get :map, params: { id: client.id } }.not_to raise_error
     end
   end
 

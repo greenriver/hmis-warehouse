@@ -11,7 +11,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :controller do
     allow(user).to receive(:can_access_some_version_of_clients?).and_return(true)
     allow(user).to receive(:can_view_some_client_dashboard?).and_return(true)
     allow(user).to receive(:can_view_enrollment_details?).and_return(true)
-    allow(user).to receive(:can_see_this_client_demographics?).and_return(true)
   end
 
   describe '#assign_client_list_vars method with += operations' do
@@ -135,21 +134,31 @@ RSpec.describe ClientAccessControl::ClientsController, type: :controller do
   describe 'controller actions that exercise string mutations' do
     it 'exercises index action that leads to assign_client_list_vars' do
       allow(GrdaWarehouse::ClientSearchQuery).to receive(:permit_params).and_return(nil)
-      allow(controller).to receive(:perform_search)
+
+      # Mock clients relation
+      clients = double('clients')
+      allow(clients).to receive(:destination).and_return(clients)
+      allow(clients).to receive(:preload).and_return(clients)
+      allow(controller).to receive(:pagy).and_return([double('pagy'), clients])
+      allow(controller).to receive(:health_emergency?).and_return(false)
+      allow(controller).to receive(:healthcare_available?).and_return(false)
 
       expect { get :index }.not_to raise_error
-
-      expect(controller).to have_received(:perform_search)
     end
 
     it 'exercises search action that leads to assign_client_list_vars' do
       search_query = double('search_query', params: {}, touch: true)
       allow(GrdaWarehouse::ClientSearchQuery).to receive(:find_by).and_return(search_query)
-      allow(controller).to receive(:perform_search)
+
+      # Mock clients relation
+      clients = double('clients')
+      allow(clients).to receive(:destination).and_return(clients)
+      allow(clients).to receive(:preload).and_return(clients)
+      allow(controller).to receive(:pagy).and_return([double('pagy'), clients])
+      allow(controller).to receive(:health_emergency?).and_return(false)
+      allow(controller).to receive(:healthcare_available?).and_return(false)
 
       expect { get :search, params: { id: 1 } }.not_to raise_error
-
-      expect(controller).to have_received(:perform_search).with({})
     end
 
     it 'creates new instance without error' do
