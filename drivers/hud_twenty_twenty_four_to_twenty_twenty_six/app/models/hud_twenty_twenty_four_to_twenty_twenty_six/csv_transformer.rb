@@ -115,7 +115,7 @@ module HudTwentyTwentyFourToTwentyTwentySix
         action: :copy,
         model: GrdaWarehouse::Hud::YouthEducationStatus,
       },
-      # Custom Files - Create from 2024 gender/sexual orientation fields
+      # Custom Files - Create from 2024 gender/sexual orientation/translation assistance needed fields
       'CustomGender.csv' => {
         action: :create,
         model: HmisCsvTwentyTwentySix::Importer::Custom::CustomGender,
@@ -127,10 +127,10 @@ module HudTwentyTwentyFourToTwentyTwentySix
           },
         },
       },
-      'CustomSexualOrientation.csv' => {
+      'CustomEnrollmentFy26Deprecations.csv' => {
         action: :create,
-        model: HmisCsvTwentyTwentySix::Importer::Custom::CustomSexualOrientation,
-        transformer: HudTwentyTwentyFourToTwentyTwentySix::CustomSexualOrientation::Csv,
+        model: HmisCsvTwentyTwentySix::Importer::Custom::CustomEnrollmentFy26Deprecation,
+        transformer: HudTwentyTwentyFourToTwentyTwentySix::CustomEnrollmentFy26Deprecation::Csv,
         references: {
           enrollment: {
             file: 'Enrollment.csv',

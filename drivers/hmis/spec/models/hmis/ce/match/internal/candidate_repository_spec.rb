@@ -69,4 +69,41 @@ RSpec.describe Hmis::Ce::Match::Internal::CandidateRepository, type: :model do
       end
     end
   end
+
+  describe '#import_proxies' do
+    it 'undeletes a soft-deleted proxy for a warehouse client' do
+      # Ensure proxy exists then soft-delete it
+      proxy # create for destination_client1
+      expect(Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: destination_client1.id)).to be_present
+      proxy.destroy
+      expect(Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: destination_client1.id)).to be_empty
+
+      # Import should undelete the proxy rather than creating a new one
+      expect do
+        repository.import_proxies([destination_client1], timestamp: Time.current)
+      end.to change {
+        Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: destination_client1.id).count
+      }.from(0).to(1)
+
+      revived = Hmis::Ce::ClientProxy.find(proxy.id)
+      expect(revived.deleted_at).to be_nil
+    end
+
+    it 'does not touch an active proxy (no updated_at change)' do
+      proxy # create for destination_client1
+      original_updated_at = proxy.updated_at
+
+      repository.import_proxies([destination_client1], timestamp: Time.current)
+
+      expect(proxy.reload.updated_at).to eq(original_updated_at)
+    end
+
+    it 'creates a new proxy when one does not exist' do
+      expect(Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: destination_client2.id)).to be_empty
+
+      expect do
+        repository.import_proxies([destination_client2], timestamp: Time.current)
+      end.to change { Hmis::Ce::ClientProxy.for_warehouse_clients.where(client_id: destination_client2.id).count }.by(1)
+    end
+  end
 end
