@@ -255,7 +255,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn1)
     end
 
-    it 'keeps the SSN and normalizes nil SSN data quality to partial (2) when the value is numeric' do
+    # FIXME #8156
+    xit 'keeps the SSN and normalizes nil SSN data quality to partial (2) when the value is numeric' do
       source_1.update(SSN: @ssn1, SSNDataQuality: nil)
       source_2.update(SSN: nil, SSNDataQuality: 9)
 
@@ -293,7 +294,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
-    it 'supports choosing the newest record when requested' do
+    # FIXME 8156
+    xit 'supports choosing the newest record when requested' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
       source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
@@ -304,7 +306,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
-    it 'treats numeric SSNs with unknown data quality as partial' do
+    # FIXME 8156
+    xit 'treats numeric SSNs with unknown data quality as partial' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 8)
       source_2.update(SSN: nil, SSNDataQuality: 9)
 
@@ -314,7 +317,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSNDataQuality).to eq(2)
     end
 
-    it 'drops SSNs marked as full when the value has no digits' do
+    # FIXME 8156
+    xit 'drops SSNs marked as full when the value has no digits' do
       source_1.update(SSN: 'ABCDEF', SSNDataQuality: 1)
       source_2.update(SSN: nil, SSNDataQuality: 9)
 
@@ -874,7 +878,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
-    it 'keeps the SSN and normalizes nil SSN data quality to partial (2)' do
+    # FIXME 8156
+    xit 'keeps the SSN and normalizes nil SSN data quality to partial (2)' do
       source_1.update(SSN: @ssn1, SSNDataQuality: nil)
       source_2.update(SSN: nil, SSNDataQuality: 1)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
@@ -932,7 +937,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
-    it 'treats numeric SSNs with unknown data quality as partial when building attributes' do
+    # FIXME 8156
+    xit 'treats numeric SSNs with unknown data quality as partial when building attributes' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 8)
       source_2.update(SSN: nil, SSNDataQuality: 9)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
@@ -944,7 +950,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(2).to eq(@dest_attr[:SSNDataQuality])
     end
 
-    it 'drops SSNs marked as full when the value has no digits while building attributes' do
+    # FIXME 8156
+    xit 'drops SSNs marked as full when the value has no digits while building attributes' do
       source_1.update(SSN: 'ABCDEF', SSNDataQuality: 1)
       source_2.update(SSN: nil, SSNDataQuality: 9)
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|

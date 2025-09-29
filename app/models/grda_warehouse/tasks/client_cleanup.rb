@@ -464,65 +464,27 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
-    def ssn_dqs
-      # process dqs in order of accuracy (1 is most accurate)
-      @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.sort
-    end
-
-    # Get the best SSN (has value and quality is full or partial, oldest record breaks the tie by default)
-    # note, source clients might be just an array of hashes
-    def choose_best_ssn(dest_attr, source_clients, use_oldest: true)
-      # Track the strongest candidate per quality bucket so future touches only compare within that tier.
-      date_key_default = use_oldest ? Float::INFINITY : -Float::INFINITY
-      best_by_dq = {}
-
-      source_clients.each do |sc|
-        dq = sc[:SSNDataQuality]
-        dq = 99 unless dq&.in?(ssn_dqs)
-
-        value = sc[:SSN]&.strip.presence
-        numeric = value&.gsub(/\D/, '').presence
-
-        # Normalization downgrades clearly invalid "full" SSNs but preserves usable partials.
-        # This protects downstream consumers from falsely treating junk data as authoritative.
-        if dq.between?(1, 2)
-          if numeric.nil?
-            dq = 99
-            value = nil
-          elsif numeric.length != 9
-            dq = 2
-          end
-        elsif numeric
-          dq = 2
+    # FIXME 8156
+    # def choose_best_ssn(dest_attr, source_clients, use_oldest: true)
+    #   GrdaWarehouse::SSNSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: use_oldest)
+    # end
+    def choose_best_ssn dest_attr, source_clients
+      # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
+      non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
+      if non_blank_ssn.any?
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          best = non_blank_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
+          break if best.present?
         end
+        best = non_blank_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
 
-        next unless value
-
-        # Older records generally reflect the first verified SSN; when tie-breaking we
-        # bias toward oldest unless callers explicitly request the newest view.
-        date_key = sc[:DateCreated]&.to_i || date_key_default
-        date_key *= -1 unless use_oldest
-
-        # Store deterministic tie-break data so repeated runs pick the same record
-        tie_breakers = [sc[:SSNDataQuality] || 99, date_key, sc[:id].to_i]
-        existing = best_by_dq[dq]
-        best_by_dq[dq] = { value: value, keys: tie_breakers } if existing.nil? || (tie_breakers <=> existing[:keys]).negative?
+        dest_attr[:SSN] = best[:SSN]
+        dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
+      elsif dest_attr[:SSN].present?
+        dest_attr[:SSN] = nil
+        dest_attr[:SSNDataQuality] = 99
       end
-
-      # Walk the quality ladder once, picking the first bucket with a candidate.
-      # This ensures we respect HUD's intended priority without additional scans.
-      ssn_dqs.each do |dq|
-        candidate = best_by_dq[dq]
-        next unless candidate
-
-        dest_attr[:SSN] = candidate[:value]
-        dest_attr[:SSNDataQuality] = dq
-        return dest_attr
-      end
-
-      # Blank out the destination field whenever the sources don’t yield anything valid
-      dest_attr[:SSN] = nil
-      dest_attr[:SSNDataQuality] = 99
       dest_attr
     end
 
