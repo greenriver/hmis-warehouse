@@ -94,7 +94,7 @@ class SetupLogging
     config.lograge.formatter = Lograge::Formatters::Json.new
     config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
-      payload = event.payload || raise('Lograge event payload is nil or missing')
+      payload = event.payload || raise('Lograge event payload missing')
       request = payload[:request]
       headers_env = request&.headers&.env || {}
 
@@ -111,7 +111,6 @@ class SetupLogging
         host: host, # From Host header; untrusted
         session_id: payload[:session_id], # Rack session; trusted
         user_id: payload[:user_id], # App assigned; trusted
-        process_id: Process.pid, # Current Ruby PID; trusted
         pid: payload[:pid], # Raw payload PID; trusted if present
         request_id: request_id, # Rails request UUID; trusted
         request_start: payload[:request_start], # Header supplied; untrusted

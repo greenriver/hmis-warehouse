@@ -9,15 +9,21 @@
 module LogRagePayloadBehavior
   extend ActiveSupport::Concern
 
+  # Enhance Lograge payload with additional request context
   def append_info_to_payload(payload)
     super
+    # The protocol negotiated with Rack (http/https)
     payload[:server_protocol] = request.env['SERVER_PROTOCOL']
+    # Accurate client networking details resolved from trusted sources
     payload.merge!(resolve_request_ip(payload))
+    # Rack session identifier to correlate logs with session state
     payload[:session_id] = request.env['rack.session.record'].try(:session_id)
-    payload[:pid] = Process.pid
+    # Rails request UUID to link logs across systems
     payload[:request_id] = request.uuid
+    # Upstream request start timestamp when provided by load balancers
     payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
-    payload[:user_id] = current_app_user&.id
+    # Authenticated HMIS/Warehouse user (when available)
+    payload[:user_id] = current_app_user&.id if defined?(current_app_user)
   end
 
   private
@@ -29,10 +35,10 @@ module LogRagePayloadBehavior
     forwarded_ip = x_forwarded_for&.split(',')&.first&.strip.presence
 
     remote_addr = headers_env['REMOTE_ADDR'].presence || event_payload[:remote_addr].presence
-    request_remote_ip = request.remote_ip.presence
     payload_remote_ip = event_payload[:remote_ip].presence
-
-    resolved_remote_ip = request_remote_ip || payload_remote_ip || remote_addr
+    resolved_remote_ip = payload_remote_ip
+    resolved_remote_ip ||= request.remote_ip.presence
+    resolved_remote_ip ||= remote_addr
     resolved_client_ip = forwarded_ip || headers_env['HTTP_CLIENT_IP'].presence || resolved_remote_ip
 
     {
