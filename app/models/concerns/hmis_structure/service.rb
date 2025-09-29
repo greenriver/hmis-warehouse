@@ -249,10 +249,6 @@ module HmisStructure::Service
             limit: 32,
             null: false,
           },
-          InformationDate: {
-            type: :date,
-            null: false,
-          },
           DateProvided: {
             type: :date,
             null: false,

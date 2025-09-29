@@ -9,18 +9,18 @@
 require_relative '../../concerns/hud_twenty_twenty_four_to_twenty_twenty_six/references'
 
 module HudTwentyTwentyFourToTwentyTwentySix
-  module CustomSexualOrientation
+  module CustomEnrollmentFy26Deprecation
     class Transforms
       include HudTwentyTwentyFourToTwentyTwentySix::References
 
       def self.transforms(csv: false, db: false, references: {}) # rubocop:disable Lint/UnusedMethodArgument, Naming/MethodParameterName
         [
-          [HudTwentyTwentyFourToTwentyTwentySix::CustomSexualOrientation::CreateCustomSexualOrientation, references],
+          [HudTwentyTwentyFourToTwentyTwentySix::CustomEnrollmentFy26Deprecation::CreateCustomEnrollmentFy26Deprecation, references],
         ]
       end
 
       def self.target_class
-        HmisCsvTwentyTwentySix::Importer::Custom::CustomSexualOrientation
+        HmisCsvTwentyTwentySix::Importer::Custom::CustomEnrollmentFy26Deprecation
       end
     end
   end

@@ -65,6 +65,11 @@ class Hmis::AuthPolicies::UserContext
     ce_referral_source_project_loader.get(referral_id)
   end
 
+  # Clear cached assignment data when step assignments change during mutations
+  def clear_referral_assignment_cache!
+    ce_referral_assignment_loader.clear_cache!
+  end
+
   protected
 
   # Context loaders (memoized for request-level caching)
