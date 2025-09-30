@@ -20,6 +20,7 @@ module GrdaWarehouse
 
     acts_as_paranoid
 
+    belongs_to :user, optional: true
     has_many :recurring_hmis_export_links
     has_many :hmis_exports, through: :recurring_hmis_export_links
 
@@ -223,11 +224,13 @@ module GrdaWarehouse
     end
 
     def filter_hash
-      hash = options
+      hash = options.deep_dup
       hash[:reporting_range] = reporting_range
       hash[:reporting_range_days] = reporting_range_days
       hash[:recurring_hmis_export_id] = id
-      hash[:version] ||= '2024'
+      version = hash[:version].presence || hash['version'].presence || HudHelper.current_version
+      hash[:version] = version
+      hash['version'] = version if hash.key?('version')
       hash[:user_id] = user_id
       return hash
     end
