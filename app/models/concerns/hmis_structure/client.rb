@@ -19,7 +19,8 @@ module HmisStructure::Client
     acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
 
     # HUD removed an e in FY2026, rather than change the column name, we'll alias it
-    alias_attribute :HispanicLatinao, :HispanicLatinaeo
+    # The LSA does not need or want this alias, so we provide a way to skip it
+    alias_attribute :HispanicLatinao, :HispanicLatinaeo unless @skip_hispanic_alias
 
     pii_attr :SSN
     pii_attr :FirstName
