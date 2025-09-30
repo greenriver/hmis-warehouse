@@ -1,4 +1,4 @@
-= cache(['clients', 'genders', @client, controller_path, current_user], expires_in: 1) do #GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+= cache(['clients', 'genders', @client, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   - items = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids).to_a
   - if items.any?
     %div
