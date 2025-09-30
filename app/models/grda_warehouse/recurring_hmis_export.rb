@@ -224,13 +224,12 @@ module GrdaWarehouse
     end
 
     def filter_hash
-      hash = options.deep_dup
+      hash = options.deep_dup.with_indifferent_access
       hash[:reporting_range] = reporting_range
       hash[:reporting_range_days] = reporting_range_days
       hash[:recurring_hmis_export_id] = id
-      version = hash[:version].presence || hash['version'].presence || HudHelper.current_version
+      version = hash[:version].presence || HudHelper.current_version
       hash[:version] = version
-      hash['version'] = version if hash.key?('version')
       hash[:user_id] = user_id
       return hash
     end

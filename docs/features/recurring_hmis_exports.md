@@ -1,6 +1,6 @@
 # Recurring HMIS Exports
 
-This feature automates the delivery of HMIS CSV exports on a rolling schedule. It is designed for partners who need a consistent snapshot of HUD-compliant data without manually triggering exports each time.
+This feature automates the delivery of HMIS CSV exports on a rolling schedule. It is designed for automated data exchange via S3.
 
 ## User Flow
 - Navigate to `Warehouse Reports → HMIS Exports` and configure the export filter as usual.
