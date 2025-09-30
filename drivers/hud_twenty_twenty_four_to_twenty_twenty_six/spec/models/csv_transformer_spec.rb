@@ -52,11 +52,11 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
   end
 
   it 'creates CustomEnrollmentFY26Deprecations.csv from Enrollment.csv' do
-    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR, 'Export.csv'))
+    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR_2024_2026, 'Export.csv'))
 
     HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR_2024_2026, DEST_DIR_2024_2026)
 
-    custom_enrollment_fy26_deprecations = File.join(DEST_DIR, 'CustomEnrollmentFY26Deprecations.csv')
+    custom_enrollment_fy26_deprecations = File.join(DEST_DIR_2024_2026, 'CustomEnrollmentFY26Deprecations.csv')
     expect(File.exist?(custom_enrollment_fy26_deprecations)).to be true
 
     # Verify the file has the correct headers
@@ -95,7 +95,7 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
     FileUtils.cp_r(FIXTURES_IN_2024_2026, TEST_DIR_2024_2026)
   end
 
-  # compare contents fo DEST_DIR to FIXTURES_OUT
+  # compare contents to DEST_DIR to FIXTURES_OUT
   def compare_test_results
     results = []
     expected_files = Dir.glob(File.join(FIXTURES_OUT_2024_2026, '*.csv'))
