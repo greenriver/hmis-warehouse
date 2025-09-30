@@ -20,7 +20,7 @@ end
 
 Rails.application.config.hmis_data_lakes['2026'] = 'HmisCsvTwentyTwentySix'
 
-if (Date.current >= '2025-10-01'.to_date && Rails.env.production?) || (Date.current >= '2025-09-01'.to_date && Rails.env.staging? && ENV['CLIENT'] != 'qa')
+if HudHelper.current_version == '2026'
   Rails.application.config.queued_tasks[:hmis_twenty_twenty_six_upgrade_recurring_exports] = -> do
     HmisCsvTwentyTwentySix::Tasks::UpgradeRecurringExports.upgrade!
   end

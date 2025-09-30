@@ -44,7 +44,7 @@ module GrdaWarehouse
     end
 
     def s3_valid?
-      return aws_s3.present?
+      aws_s3.present?
     end
 
     def store(report)
@@ -224,14 +224,13 @@ module GrdaWarehouse
     end
 
     def filter_hash
-      hash = options.deep_dup.with_indifferent_access
+      hash = options.with_indifferent_access
       hash[:reporting_range] = reporting_range
       hash[:reporting_range_days] = reporting_range_days
       hash[:recurring_hmis_export_id] = id
-      version = hash[:version].presence || HudHelper.current_version
-      hash[:version] = version
-      hash[:user_id] = user_id
-      return hash
+      hash[:version] = hash[:version].presence || HudHelper.current_version
+      hash[:user_id] = user_id if user_id
+      hash
     end
   end
 end
