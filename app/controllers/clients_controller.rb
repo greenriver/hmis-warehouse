@@ -20,6 +20,7 @@ class ClientsController < ApplicationController
 
   before_action :require_can_access_some_client_search!, only: [:simple]
   before_action :require_can_access_some_version_of_clients!, only: [:show, :service_range, :rollup, :image, :assessment]
+  before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
@@ -47,7 +48,7 @@ class ClientsController < ApplicationController
     clean_params[:Gender]&.each do |k|
       next if k.blank?
 
-      gender_column = HudUtility2024.gender_id_to_field_name[k.to_i]
+      gender_column = HudHelper.util.gender_id_to_field_name[k.to_i]
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)

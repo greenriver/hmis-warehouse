@@ -60,7 +60,7 @@ module PerformanceMeasurement
     end
 
     def self.default_project_type_codes
-      HudUtility2026.spm_project_type_codes
+      HudHelper.util('2026').spm_project_type_codes
     end
 
     def run_and_save!
@@ -215,7 +215,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      HudUtility2026.spm_project_type_codes
+      HudHelper.util('2026').spm_project_type_codes
     end
 
     def report_path_array
@@ -492,11 +492,11 @@ module PerformanceMeasurement
       child = ages.any? { |age| age.present? && age.between?(0, 18) }
       unknown = ages.any?(&:blank?)
 
-      return HudUtility2026.household_type('Households with at least one adult and one child', true) if adult && child
+      return HudHelper.util('2026').household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
-      return HudUtility2026.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudHelper.util('2026').household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
 
-      HudUtility2026.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+      HudHelper.util('2026').household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment
@@ -1065,10 +1065,10 @@ module PerformanceMeasurement
       child = ages.any? { |age| age.present? && age.between?(0, 18) }
       unknown = ages.any?(&:blank?)
 
-      return HudUtility2026.household_type('Households with at least one adult and one child', true) if adult && child
+      return HudHelper.util('2026').household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
-      return HudUtility2026.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
-      return HudUtility2026.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+      return HudHelper.util('2026').household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudHelper.util('2026').household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment

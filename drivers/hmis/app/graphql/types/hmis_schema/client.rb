@@ -256,7 +256,7 @@ module Types
     end
 
     def race
-      selected_races = ::HudUtility2024.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
+      selected_races = ::HudHelper.util.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end
@@ -272,7 +272,7 @@ module Types
       load_last_user_from_versions(object)
     end
 
-    def activity_log_field_name(field_name)
+    def activity_log_field_name(field_name, _value = nil)
       case field_name
       when 'ssn', 'dob'
         field_name
@@ -365,13 +365,13 @@ module Types
       # Check if there's an open enrollment at a residential project with a move in date that has occurred
       today = Date.current
       client_is_housed = open_enrollments.any? do |enrollment|
-        enrollment.project.project_type.in?(HudUtility2024.permanent_housing_project_types) && (enrollment.move_in_date&.<= today)
+        enrollment.project.project_type.in?(HudHelper.util.permanent_housing_project_types) && (enrollment.move_in_date&.<= today)
       end
       return false if client_is_housed
 
       # Check chronic status at open enrollments for homeless project types
       open_enrollments.any? do |enrollment|
-        enrollment.project.project_type.in?(HudUtility2024.chronic_project_types) && enrollment.ch_enrollment&.chronically_homeless?
+        enrollment.project.project_type.in?(HudHelper.util.chronic_project_types) && enrollment.ch_enrollment&.chronically_homeless?
       end
     end
 

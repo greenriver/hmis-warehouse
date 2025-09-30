@@ -4,8 +4,16 @@
 %h1.mb-5
   MA YYA Report
 
-.warehouse-reports__completed.d-flex
-  = @report.describe_filter_as_html
+.warehouse-reports__completed
+  .d-flex
+    %h3 Report Options
+    .ml-auto
+      .text-muted.description
+        Run by: #{@report.user&.name}
+        %br
+        = @report.created_at
+  .well.d-flex
+    = @report.describe_filter_as_html
 .card
   %table.table.table-striped
     %tbody

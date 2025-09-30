@@ -320,9 +320,9 @@ module GrdaWarehouse::Hud
       # clearer and composable but less efficient would be to use an exists subquery
 
       if chronic_types_only
-        project_types = HudUtility2024.chronic_project_types
+        project_types = HudHelper.util.chronic_project_types
       else
-        project_types = HudUtility2024.homeless_project_types
+        project_types = HudHelper.util.homeless_project_types
       end
 
       inner_table = sh_t.
@@ -884,7 +884,7 @@ module GrdaWarehouse::Hud
       # To allow preload(:source_exits) do the calculation in memory
       @deceased_on ||= source_exits.
         select do |m|
-          m.Destination == ::HudUtility2024.valid_destinations.invert['Deceased']
+          m.Destination == ::HudHelper.util.valid_destinations.invert['Deceased']
         end&.
         max_by(&:ExitDate)&.ExitDate
     end
@@ -892,7 +892,7 @@ module GrdaWarehouse::Hud
     def moved_in_with_ph?
       enrollments.
         open_on_date.
-        with_project_type(HudUtility2024.residential_project_type_numbers_by_code[:ph]).
+        with_project_type(HudHelper.util.residential_project_type_numbers_by_code[:ph]).
         where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.current)).exists?
     end
 
@@ -1647,7 +1647,7 @@ module GrdaWarehouse::Hud
     end
 
     def last_seen_in_type(type, include_confidential_names: false)
-      return nil unless type.in?(HudUtility2024.residential_project_type_numbers_by_code.keys + [:homeless])
+      return nil unless type.in?(HudHelper.util.residential_project_type_numbers_by_code.keys + [:homeless])
 
       service_history_enrollments.ongoing.
         joins(:service_history_services, :project, :organization).
@@ -1830,7 +1830,7 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      gender_multi.map { |k| ::HudUtility2024.gender(k) }.join(', ')
+      gender_multi.map { |k| ::HudHelper.util.gender(k) }.join(', ')
     end
 
     # while the entire warehouse is updated to accept and use the new gender setup, this will provide
@@ -1916,20 +1916,20 @@ module GrdaWarehouse::Hud
     end
 
     def race_description(include_missing_reason: false)
-      description = race_fields.map { |f| ::HudUtility2024.race f }.join ', '
+      description = race_fields.map { |f| ::HudHelper.util.race f }.join ', '
       return description if description.present?
       return '' unless include_missing_reason
-      return '' unless self.RaceNone.in?(HudUtility2024.race_gender_none_options.keys)
+      return '' unless self.RaceNone.in?(HudHelper.util.race_gender_none_options.keys)
 
-      HudUtility2024.race_none(self.RaceNone)
+      HudHelper.util.race_none(self.RaceNone)
     end
 
     def pit_gender
-      gm = gender_multi.map { |k| ::HudUtility2024.gender(k) }
+      gm = gender_multi.map { |k| ::HudHelper.util.gender(k) }
       return 'GenderNone' if gm.count.zero?
       return 'More Than One Gender' if gm.count > 1
 
-      return HudUtility2024.gender(gm.first)
+      return HudHelper.util.gender(gm.first)
     end
 
     def pit_race
@@ -1946,7 +1946,7 @@ module GrdaWarehouse::Hud
 
       return 'Multi-Racial' + suffix if race_fields_minus_latin.count > 1
 
-      return HudUtility2024.race(race_fields_minus_latin.first) + suffix
+      return HudHelper.util.race(race_fields_minus_latin.first) + suffix
     end
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
@@ -1996,7 +1996,7 @@ module GrdaWarehouse::Hud
     end
 
     # This mirrors `race_string`, but specifically for Hispanic/Latin@.
-    # Since we're starting fresh, using symbol returns to match HudUtility2024.ethnicities instead of strings
+    # Since we're starting fresh, using symbol returns to match HudHelper.util.ethnicities instead of strings
     def ethnicity_slug(destination_id:, include_none_reason: false, scope_limit: self.class.destination)
       @limited_scope ||= self.class.destination.merge(scope_limit)
 

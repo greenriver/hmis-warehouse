@@ -11,14 +11,16 @@ module Importers::HmisAutoMigrate
   # Specifically, it allow us to support import of a newer version, but deployment
   # prior to the release of the new version.
   # NOTE: There is similar logic in spec/support/hmis_csv_fixtures.rb to control test behavior.
-  TodoOrDie('Update stop_version after FY2026 changeover', by: '2025-11-01')
+
   # For now, prevent migrating beyond 2024 version
   def self.current_stop_version
-    return nil if Date.current >= '2025-10-01'.to_date
-    return nil if Date.current >= '2025-09-01'.to_date && Rails.env.staging? && ENV['CLIENT'] != 'qa'
+    # if we're past the production cutoff, allow anything
+    return nil if Date.current >= HudHelper.production_cutoff
+    # if we're on staging and past the staging cutoff, allow anything
+    return nil if Date.current >= HudHelper.staging_cutoff && Rails.env.staging?
 
     # Default to the current version, but allow for override in development
-    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', '2026')
+    ENV.fetch('HMIS_AUTOMIGRATE_STOP_VERSION', HudHelper.hud_csv_version)
   end
 
   # available_migrations is a hash of version strings seen in HUD exports to migration classes
@@ -49,9 +51,9 @@ module Importers::HmisAutoMigrate
 
     # Don't allow migrating to 2026 on production before 10/1/2025
     # Don't allow migrating to 2026 on staging before 9/1/2025
-    TodoOrDie('Remove the next lines to enable migration to 2026', by: '2025-11-01')
-    return version if version.in?(['2024', '2026']) && Date.current < '2025-10-01'.to_date && Rails.env.production?
-    return version if version.in?(['2024', '2026']) && Date.current < '2025-09-01'.to_date && Rails.env.staging? && ENV['CLIENT'] != 'qa'
+    # After the cutoff, allow anything
+    return version if version.in?(['2024', '2026']) && Date.current < HudHelper.production_cutoff && Rails.env.production?
+    return version if version.in?(['2024', '2026']) && Date.current < HudHelper.staging_cutoff && Rails.env.staging?
 
     return version unless available_migrations.keys.include?(version)
 

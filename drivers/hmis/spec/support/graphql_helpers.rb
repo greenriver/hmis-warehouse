@@ -65,7 +65,7 @@ module GraphqlHelpers
   end
 
   def graphql_post_headers(headers = {})
-    headers.merge({ 'CONTENT_TYPE' => 'application/json', 'ORIGIN' => HMIS_ORIGIN })
+    headers.merge({ 'CONTENT_TYPE' => 'application/json', 'ORIGIN' => HMIS_ORIGIN, 'HOST' => HMIS_HOSTNAME })
   end
 
   def transform_graphql_variables(variables)

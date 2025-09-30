@@ -7,7 +7,7 @@
 module HopwaCaper::Generators::Fy2024::EnrollmentFilters
   GenderFilter = Struct.new(:label, :code_names, keyword_init: true) do
     def id_map(name)
-      HudUtility2024.gender_field_name_to_id.fetch(name)
+      HudHelper.util('2024').gender_field_name_to_id.fetch(name)
     end
 
     def apply(scope)

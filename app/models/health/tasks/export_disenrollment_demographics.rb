@@ -20,15 +20,15 @@ module Health::Tasks
       # NOTE: this is not being updated for the 2024 spec changes at this time.
       CSV.open(@filename, 'wb') do |csv|
         csv << ['Race']
-        HudUtility.races(multi_racial: true).keys.each do |key|
+        HudHelper.util('legacy').races(multi_racial: true).keys.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:race] == key }
           total = demographics.values.count { |client| client[:race] == key }
-          csv << [HudUtility.race(key, multi_racial: true), disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
+          csv << [HudHelper.util('legacy').race(key, multi_racial: true), disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
         end
 
         csv << []
         csv << ['Gender']
-        HudUtility.genders.values.each do |key|
+        HudHelper.util('legacy').genders.values.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:gender] == key }
           total = demographics.values.count { |client| client[:gender] == key }
           csv << [key, disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
@@ -79,7 +79,7 @@ module Health::Tasks
     end
 
     private def gender(client)
-      HudUtility.gender(client.gender_binary)
+      HudHelper.util('legacy').gender(client.gender_binary)
     end
 
     private def demographics

@@ -28,6 +28,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             targetEnrollment {
               id
             }
+            sourceEnrollment {
+              id
+              projectName
+              projectType
+              entryDate
+              exitDate
+              householdSize
+              householdMembers {
+                id
+                clientId
+                clientName
+                relationshipToHoH
+                access {
+                  canViewClients
+                }
+              }
+            }
             opportunity {
               id
               name
@@ -103,6 +120,119 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'status' => 'unavailable',
           'formDefinition' => { 'id' => provider_acceptance_task.form_definitions.sole.id.to_s },
         )
+      end
+
+      context 'with source enrollment and household members' do
+        let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1, project_name: 'Source Project') }
+        let!(:household_id) { 'referred_household_id' }
+
+        # Create additional clients for household members
+        let!(:household_client_2) { create(:hmis_hud_client, data_source: ds1, first_name: 'Jane', last_name: 'Doe') }
+
+        # Create source enrollment for the main client (Head of Household)
+        let!(:source_enrollment) do
+          create(
+            :hmis_hud_enrollment,
+            client: client,
+            project: source_project,
+            data_source: ds1,
+            household_id: household_id,
+            relationship_to_hoh: 1, # Head of Household
+          )
+        end
+
+        # Create household member enrollments
+        let!(:household_enrollment_2) do
+          create(
+            :hmis_hud_enrollment,
+            client: household_client_2,
+            project: source_project,
+            data_source: ds1,
+            household_id: household_id,
+            relationship_to_hoh: 2, # Child
+          )
+        end
+
+        # Update referral to have source enrollment
+        before do
+          referral.update!(source_enrollment: source_enrollment)
+        end
+
+        it 'returns source enrollment with correct household members' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          referral_data = result.dig('data', 'ceReferral')
+
+          source_enrollment_data = referral_data['sourceEnrollment']
+          expect(source_enrollment_data).to be_present
+          expect(source_enrollment_data['id']).to eq(source_enrollment.id.to_s)
+          expect(source_enrollment_data['projectName']).to eq('Source Project')
+          expect(source_enrollment_data['householdSize']).to eq(2)
+
+          # Verify household members are returned correctly
+          household_members = source_enrollment_data['householdMembers']
+          expect(household_members).to be_an(Array)
+          expect(household_members.length).to eq(2)
+
+          expect(household_members).to contain_exactly(
+            a_hash_including(
+              'id' => source_enrollment.id.to_s,
+              'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+              'clientName' => client.brief_name,
+              'access' => { 'canViewClients' => true },
+              'clientId' => client.id.to_s,
+            ),
+            a_hash_including(
+              'id' => household_enrollment_2.id.to_s,
+              'relationshipToHoH' => 'CHILD',
+              'clientName' => household_client_2.brief_name,
+              'access' => { 'canViewClients' => true },
+              'clientId' => household_client_2.id.to_s,
+            ),
+          )
+        end
+
+        context 'when user lacks permission to view clients' do
+          before do
+            remove_permissions(ds_access_control, :can_view_clients)
+          end
+
+          it 'returns masked client names for household members' do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            referral_data = result.dig('data', 'ceReferral')
+
+            source_enrollment_data = referral_data['sourceEnrollment']
+            household_members = source_enrollment_data['householdMembers']
+
+            # All household members should have masked names and no client access
+            household_members.each do |member|
+              expect(member['clientName']).to match(/Client \d+/)
+              expect(member['access']['canViewClients']).to eq(false)
+            end
+          end
+        end
+
+        context 'when user lacks permission to view client names' do
+          before do
+            remove_permissions(ds_access_control, :can_view_client_name)
+          end
+
+          it 'returns masked client names but allows viewing clients' do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            referral_data = result.dig('data', 'ceReferral')
+
+            source_enrollment_data = referral_data['sourceEnrollment']
+            household_members = source_enrollment_data['householdMembers']
+
+            # All household members should have masked names but can view clients
+            household_members.each do |member|
+              expect(member['clientName']).to match(/Client \d+/)
+              expect(member['access']['canViewClients']).to eq(true)
+            end
+          end
+        end
       end
 
       it 'returns no referral when user lacks permission' do
@@ -394,11 +524,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             )
             start_event.connect_to!(non_conditional_task)
           end
-
-          referral.workflow_engine.start_workflow!(user: hmis_user)
         end
 
         it 'does not result in n+1 query' do
+          referral.workflow_engine.start_workflow!(user: hmis_user)
+
           expect do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
@@ -411,13 +541,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           before do
             remove_permissions(ds_access_control, :can_perform_any_referral_tasks)
             add_permissions(ds_access_control, :can_perform_own_referral_tasks)
+            referral.participants.create(swimlane: case_manager_swimlane, user: hmis_user)
+
+            referral.workflow_engine.start_workflow!(user: hmis_user)
           end
 
           it 'still does not cause n+1' do
             expect do
               _, result = post_graphql(**variables) { query }
               steps = result.dig('data', 'ceReferral', 'steps')
-              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be false)
+              expect(steps.map { |step| step.dig('access', 'canPerformStep') }).to all(be true)
             end.to make_database_queries(count: 30..40)
           end
         end

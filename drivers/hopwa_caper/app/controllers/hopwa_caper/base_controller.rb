@@ -95,7 +95,7 @@ module HopwaCaper
       @pdf_export = HopwaCaper::DocumentExports::HopwaCaperExport.new
     end
 
-    private def possible_generator_classes
+    def possible_generator_classes
       {
         fy2024: HopwaCaper::Generators::Fy2024::Generator,
       }

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Export::Scopes
   extend ActiveSupport::Concern
 
@@ -48,7 +50,7 @@ module Export::Scopes
         if @coc_codes.present?
           e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
             or(e_scope.where(EnrollmentCoC: nil)).
-            or(e_scope.where.not(EnrollmentCoC: HudUtility2024.cocs.keys))
+            or(e_scope.where.not(EnrollmentCoC: HudHelper.util.cocs.keys))
         end
         e_scope.distinct.preload(:project, :client)
       end
@@ -88,7 +90,7 @@ module Export::Scopes
       if @coc_codes.present?
         e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
           or(e_scope.where(EnrollmentCoC: nil)).
-          or(e_scope.where.not(EnrollmentCoC: HudUtility2024.cocs.keys))
+          or(e_scope.where.not(EnrollmentCoC: HudHelper.util.cocs.keys))
       end
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).

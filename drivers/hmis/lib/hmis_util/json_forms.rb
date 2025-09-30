@@ -15,11 +15,6 @@ module HmisUtil
 
     def initialize(env_key: nil)
       @env_key = env_key if env_key.presence # allow override for testing
-      @version = if Date.current < '2025-10-01'.to_date && Rails.env.production?
-        '2024'
-      else
-        '2026'
-      end
     end
 
     def self.seed_all
@@ -338,18 +333,18 @@ module HmisUtil
       create_system_instances!(
         identifier: 'move_in_date',
         data_collected_about: :HOH,
-        project_types: HudUtility2024.permanent_housing_project_types,
-        funders: @version == '2026' ? HudUtility2026.move_in_date_funders : [],
+        project_types: HudHelper.util.permanent_housing_project_types,
+        funders: HudHelper.util.move_in_date_funders,
       )
       create_system_instances!(
         identifier: 'date_of_engagement',
         data_collected_about: :HOH_AND_ADULTS,
-        project_types: HudUtility2024.doe_project_types,
+        project_types: HudHelper.util.doe_project_types,
       )
       create_system_instances!(
         identifier: 'path_status',
         data_collected_about: :HOH_AND_ADULTS,
-        funders: HudUtility2024.path_funders,
+        funders: HudHelper.util.path_funders,
       )
 
       validate_current_living_situation! unless Rails.env.test? || Rails.env.development?
@@ -417,7 +412,7 @@ module HmisUtil
           create_system_instances!(
             identifier: identifier,
             data_collected_about: :HOH_AND_ADULTS,
-            funders: HudUtility2026.post_exit_aftercare_plans_funders,
+            funders: HudHelper.util.post_exit_aftercare_plans_funders,
           )
         else
           # Ensure default rule exists for other HUD assessments (enabled in all projects)
@@ -515,7 +510,7 @@ module HmisUtil
     # - HoH and Adults in Services Only (if specified by funder)
     # - HoH and Adults in Coordinated Entry (if specified by funder)
     private def validate_current_living_situation!
-      HudUtility2026.cls_project_types.each do |project_type|
+      HudHelper.util.cls_project_types.each do |project_type|
         # For ES, rule must either apply to ALL funders OR have separate rules for funder 53 (ESG RUSH) and 8 (ESG ES).
         # For other project types, rule must apply to all funders. These could be further constrained by funder if needed in the future (for example locally funded SO projects don't technically need to collect CLS).
         funders = project_type == 1 ? [53, 8] : [nil]

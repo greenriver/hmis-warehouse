@@ -65,7 +65,7 @@ module HmisCsvTwentyTwentySix::Exporter
     end
 
     def self.project_type_overridden_as_ph?(row)
-      psh_types = HudUtility2026.residential_project_type_numbers_by_code[:ph]
+      psh_types = HudHelper.util('2026').residential_project_type_numbers_by_code[:ph]
       existing_project_type = row.project.ProjectType
       # Not PH, no need to change
       return false unless existing_project_type.in?(psh_types)
@@ -81,7 +81,7 @@ module HmisCsvTwentyTwentySix::Exporter
     # If the EnrollmentCoC is invalid, and there is only a single CoC associated with the project,
     # use that
     def self.assign_missing_coc(row)
-      return row if row.EnrollmentCoC.in?(HudUtility2026.cocs.keys)
+      return row if row.EnrollmentCoC.in?(HudHelper.util('2026').cocs.keys)
 
       coc_codes = row.project.project_cocs.pluck(:CoCCode).uniq
       row.EnrollmentCoC = coc_codes.first if coc_codes.count == 1
