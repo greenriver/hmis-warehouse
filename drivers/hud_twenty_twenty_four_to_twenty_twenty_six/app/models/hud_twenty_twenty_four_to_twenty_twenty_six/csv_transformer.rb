@@ -127,7 +127,7 @@ module HudTwentyTwentyFourToTwentyTwentySix
           },
         },
       },
-      'CustomEnrollmentFy26Deprecations.csv' => {
+      'CustomEnrollmentFY26Deprecations.csv' => {
         action: :create,
         model: HmisCsvTwentyTwentySix::Importer::Custom::CustomEnrollmentFy26Deprecation,
         transformer: HudTwentyTwentyFourToTwentyTwentySix::CustomEnrollmentFy26Deprecation::Csv,
