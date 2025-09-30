@@ -8,6 +8,8 @@
 
 require 'pty'
 require 'expect'
+
+# See docs/features/recurring_hmis_exports.md for feature overview and operational notes.
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase
     attr_accessor :version
