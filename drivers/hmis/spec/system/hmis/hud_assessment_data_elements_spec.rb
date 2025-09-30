@@ -14,7 +14,7 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
   include_context 'hmis base setup'
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Marlon', last_name: 'Harris' }
-  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true, funders: [20] }
+  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
   let!(:e1) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -274,6 +274,9 @@ RSpec.feature 'Hmis Form behavior for HUD elements', type: :system do
     end
 
     context 'with project that collects granular disability info' do
+      # Rapid Re-Housing project (13) with funder 'HUD: CoC - Rapid Re-Housing' (3)
+      let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 13, funders: [3], with_coc: true }
+
       it 'renders full disability component and processes all rows' do
         assert_text 'Overall Disabling Condition'
         assert_text 'HIV/AIDS'
