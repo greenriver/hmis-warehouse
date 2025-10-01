@@ -65,6 +65,25 @@ RSpec.shared_context 'SystemSpecHelper' do
     find('li[role=option]', text: choice).trigger(:click)
   end
 
+  # Given a label of a MUI select element, get the choices in the list
+  def get_mui_choices(select_label:)
+    label_element = find('label', text: select_label)
+    scroll_to(label_element, align: :center)
+    id = label_element['for']
+    select_element = find("[id='#{id}']")
+
+    # Open the dropdown to make options visible
+    select_element.click
+
+    # Get all the option choices
+    choices = all('li[role=option]').map(&:text)
+
+    # Close the dropdown by pressing escape
+    find('body').send_keys(:escape)
+
+    choices
+  end
+
   def mui_select_value_for(select_label)
     label = find('label', text: select_label)
     id = label['for']
@@ -124,6 +143,31 @@ RSpec.shared_context 'SystemSpecHelper' do
   def mui_click_checkbox(label)
     checkbox_label = find('label', text: label, match: :prefer_exact)
     checkbox_label.find('input[type="checkbox"]', visible: :all).click
+  end
+
+  # Impersonate the given user.
+  # Only works if the current user has impersonation permissions.
+  # Does not handle navigating back to the page the user was on before impersonation.
+  def with_user_impersonated(user_name)
+    visit('/admin/users')
+    expect(page).to have_content('Search Users')
+    find('tr', text: user_name).find(:button, text: 'User Actions').click
+    mui_click_menu_item('Impersonate User')
+    click_button 'Confirm'
+    expect(page).to have_content("Acting as #{user_name}")
+
+    begin
+      yield
+    ensure
+      # Try to exit impersonation after the yield block.
+      begin
+        click_button 'Exit'
+      rescue Capybara::Cuprite::MouseEventFailed, Capybara::ElementNotFound => e
+        # 'ensure' will still run even if there was an exception raised in the yield block,
+        # so rescue and log (instead of raising) since we don't want to mask whatever the original error was.
+        Rails.logger.warn("Failed to exit user impersonation: #{e.message}")
+      end
+    end
   end
 
   def with_hidden

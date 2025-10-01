@@ -13,8 +13,9 @@ module HmisUtil
 
     DATA_DIR = 'drivers/hmis/lib/form_data'
 
-    def initialize(env_key: nil)
+    def initialize(env_key: nil, override_generate_cdeds_in_test: false)
       @env_key = env_key if env_key.presence # allow override for testing
+      @override_generate_cdeds_in_test = override_generate_cdeds_in_test # normally in test, CDEDs are not generated, but some tests override that behavior
     end
 
     def self.seed_all
@@ -33,6 +34,10 @@ module HmisUtil
     end
 
     protected
+
+    def override_generate_cdeds_in_test?
+      @override_generate_cdeds_in_test
+    end
 
     def env_key
       @env_key ||= if Rails.env.test?
@@ -298,7 +303,7 @@ module HmisUtil
       record.set_hud_requirements
 
       # Create/update CDEDs for items that have { mapping: { custom_field_key: '...' } }
-      unless Rails.env.test?
+      if !Rails.env.test? || override_generate_cdeds_in_test?
         cdeds = Hmis::Form::CustomDataElementGenerator.new(
           definition: record,
           create_missing_mappings: false,
