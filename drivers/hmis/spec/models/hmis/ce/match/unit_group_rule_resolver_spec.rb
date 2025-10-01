@@ -131,5 +131,17 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
         expect(result).to eq('(NOT (current_age > 18 OR score > 8)) AND days_since_last_exit < 30')
       end
     end
+
+    context 'when an expression with OR is already parenthesized' do
+      it 'does not add redundant parentheses' do
+        rule1 = double('Rule', expression: '(current_age > 18 OR score > 8)', eligibility_requirement?: true)
+        rule2 = double('Rule', expression: 'current_age < 65', eligibility_requirement?: true)
+        rules = [rule1, rule2]
+
+        result = resolver.send(:compose_requirement_expression, rules)
+
+        expect(result).to eq('(current_age > 18 OR score > 8) AND current_age < 65')
+      end
+    end
   end
 end

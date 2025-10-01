@@ -66,7 +66,7 @@ module Hmis::Ce::Match
 
       ast = calculator.ast(trimmed_expression)
       return expression unless contains_boolean_or?(ast)
-      return expression if grouping_node?(ast)
+      return expression if expression_is_grouped?(trimmed_expression)
 
       "(#{expression})"
     end
@@ -76,11 +76,13 @@ module Hmis::Ce::Match
     end
 
     def contains_boolean_or?(node)
+      return false unless node
       return true if node.is_a?(Dentaku::AST::Or)
-      return contains_boolean_or?(node.left) || contains_boolean_or?(node.right) if node.is_a?(Dentaku::AST::And)
 
       child_nodes =
-        if node.respond_to?(:children)
+        if node.is_a?(Dentaku::AST::And)
+          [node.left, node.right]
+        elsif node.respond_to?(:children)
           Array(node.children)
         elsif node.respond_to?(:args)
           Array(node.args)
@@ -88,13 +90,24 @@ module Hmis::Ce::Match
           []
         end
 
-      return child_nodes.any? { |child| contains_boolean_or?(child) } if child_nodes.any?
-
-      false
+      child_nodes.any? { |child| contains_boolean_or?(child) }
     end
 
-    def grouping_node?(node)
-      node.is_a?(Dentaku::AST::Grouping)
+    def expression_is_grouped?(expression)
+      return false unless expression.start_with?('(') && expression.end_with?(')')
+
+      # This method determines if an expression is fully enclosed by its outer parentheses,
+      # distinguishing between `(a OR b)` and `(a) OR (b)`. It works by parsing the
+      # content *inside* the outer parentheses.
+      #
+      # - For `(a OR b)`, the inner content `a OR b` is a valid expression, so parse succeeds.
+      # - For `(a) OR (b)`, the inner content `a) OR (b` is syntactically invalid, so parse fails.
+      #
+      # A successful parse confirms the parentheses are grouping a single, complete expression.
+      calculator.ast(expression[1..-2])
+      true
+    rescue Dentaku::ParseError, Dentaku::TokenizerError
+      false
     end
   end
 end
