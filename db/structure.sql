@@ -1625,6 +1625,43 @@ ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_sta
 
 
 --
+-- Name: puma_keda_metrics; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.puma_keda_metrics AS
+ WITH current_context AS (
+         SELECT (now() AT TIME ZONE 'UTC'::text) AS "current_time",
+            date_trunc('day'::text, (now() AT TIME ZONE 'UTC'::text)) AS current_day,
+            date_trunc('hour'::text, (now() AT TIME ZONE 'UTC'::text)) AS current_hour,
+            (EXTRACT(dow FROM (now() AT TIME ZONE 'UTC'::text)))::integer AS current_dow
+        ), demand_window AS (
+         SELECT CURRENT_TIME AS "current_time",
+            current_context.current_day,
+            current_context.current_dow,
+            (current_context.current_hour - '01:00:00'::interval) AS window_start,
+            (current_context.current_hour + '02:00:00'::interval) AS window_end,
+            ((current_context.current_hour - '01:00:00'::interval) - current_context.current_day) AS window_start_offset,
+            ((current_context.current_hour + '02:00:00'::interval) - current_context.current_day) AS window_end_offset
+           FROM current_context
+        ), historical_windows AS (
+         SELECT (series_day.series_day)::date AS window_day,
+            (series_day.series_day + demand_window.window_start_offset) AS window_start,
+            (series_day.series_day + demand_window.window_end_offset) AS window_end
+           FROM (demand_window
+             CROSS JOIN LATERAL generate_series((demand_window.current_day - '30 days'::interval), (demand_window.current_day - '1 day'::interval), '1 day'::interval) series_day(series_day))
+          WHERE (EXTRACT(dow FROM series_day.series_day) = (demand_window.current_dow)::numeric)
+        ), historical_window_counts AS (
+         SELECT historical_windows.window_day,
+            count(DISTINCT login_activities.user_id) AS distinct_logins
+           FROM (historical_windows
+             LEFT JOIN public.login_activities ON (((login_activities.success = true) AND (login_activities.created_at >= historical_windows.window_start) AND (login_activities.created_at < historical_windows.window_end))))
+          GROUP BY historical_windows.window_day
+        )
+ SELECT COALESCE(avg(distinct_logins), (0)::numeric) AS average_distinct_logins_last_three_hours
+   FROM historical_window_counts;
+
+
+--
 -- Name: report_results; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4194,6 +4231,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251001174258'),
 ('20250909182836'),
 ('20250727131402'),
 ('20250618150200'),
@@ -4530,3 +4568,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20160628182622'),
 ('20160616140826'),
 ('20160615125048');
+
