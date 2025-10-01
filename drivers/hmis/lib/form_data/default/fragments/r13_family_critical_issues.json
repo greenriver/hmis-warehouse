@@ -6,13 +6,11 @@
   "item": [
     {
       "type": "GROUP",
-      "component": "INPUT_GROUP",
       "link_id": "R13",
       "item": [
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "link_id": "R13_9",
           "required": false,
           "warn_if_empty": false,
@@ -25,8 +23,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "link_id": "R13_11",
           "required": false,
           "warn_if_empty": false,
@@ -39,8 +36,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "link_id": "R13_15",
           "required": false,
           "warn_if_empty": false,
@@ -53,8 +49,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "link_id": "R13_21",
           "required": false,
           "warn_if_empty": false,
@@ -67,8 +62,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "link_id": "R13_22",
           "required": false,
           "warn_if_empty": false,
@@ -81,8 +75,7 @@
         },
         {
           "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "link_id": "R13_24",
           "required": false,
           "warn_if_empty": false,
