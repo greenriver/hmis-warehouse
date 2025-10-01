@@ -55,11 +55,46 @@ module Hmis::Ce::Match
     end
 
     def compose_requirement_expression(rules)
-      # All applicable eligibility requirements are combined with AND.
-      # Parenthesize rules that contain "OR" conditions.
       rules.filter(&:eligibility_requirement?).
-        map { |rule| rule.expression.include?(' OR ') ? "(#{rule.expression})" : rule.expression }.
+        map { |rule| parenthesize_if_needed(rule.expression) }.
         join(' AND ').presence
+    end
+
+    def parenthesize_if_needed(expression)
+      trimmed_expression = expression.strip
+      return expression if trimmed_expression.blank?
+
+      ast = calculator.ast(trimmed_expression)
+      return expression unless contains_boolean_or?(ast)
+      return expression if grouping_node?(ast)
+
+      "(#{expression})"
+    end
+
+    def calculator
+      Hmis::Ce::Match::Expression::CalculatorFactory.build
+    end
+
+    def contains_boolean_or?(node)
+      return true if node.is_a?(Dentaku::AST::Or)
+      return contains_boolean_or?(node.left) || contains_boolean_or?(node.right) if node.is_a?(Dentaku::AST::And)
+
+      child_nodes =
+        if node.respond_to?(:children)
+          Array(node.children)
+        elsif node.respond_to?(:args)
+          Array(node.args)
+        else
+          []
+        end
+
+      return child_nodes.any? { |child| contains_boolean_or?(child) } if child_nodes.any?
+
+      false
+    end
+
+    def grouping_node?(node)
+      node.is_a?(Dentaku::AST::Grouping)
     end
   end
 end
