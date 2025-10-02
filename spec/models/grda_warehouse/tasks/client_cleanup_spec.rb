@@ -255,17 +255,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn1)
     end
 
-    # FIXME #8156
-    xit 'keeps the SSN and normalizes nil SSN data quality to partial (2) when the value is numeric' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: nil)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
-
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.SSN).to eq(@ssn1)
-      expect(destination_client.SSNDataQuality).to eq(2)
-    end
-
     it 'chooses the highest quality SSN' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 99)
       source_2.update(SSN: @ssn2, SSNDataQuality: 9)
@@ -275,17 +264,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
-    # FIXME 8156
-    xit 'ignores partial SSNs that are marked as full when a real full SSN exists' do
-      source_1.update(SSN: '12345', SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2018, 5, 1))
-
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.SSN).to eq(@ssn2)
-      expect(destination_client.SSNDataQuality).to eq(1)
-    end
-
     it "chooses the oldest record's SSN if all have equivalent quality" do
       source_1.update(SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
       source_2.update(SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
@@ -293,40 +271,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.SSN).to eq(@ssn2)
-    end
-
-    # FIXME 8156
-    xit 'supports choosing the newest record when requested' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2016, 5, 1))
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.send(:choose_best_ssn, @dest_attr, client_sources, use_oldest: false)
-      expect(@ssn1).to eq(@dest_attr[:SSN])
-    end
-
-    # FIXME 8156
-    xit 'treats numeric SSNs with unknown data quality as partial' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 8)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
-
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.SSN).to eq(@ssn1)
-      expect(destination_client.SSNDataQuality).to eq(2)
-    end
-
-    # FIXME 8156
-    xit 'drops SSNs marked as full when the value has no digits' do
-      source_1.update(SSN: 'ABCDEF', SSNDataQuality: 1)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
-
-      @cleanup.update_client_demographics_based_on_sources
-      destination_client.reload
-      expect(destination_client.SSN).to be_nil
-      expect(destination_client.SSNDataQuality).to eq(99)
     end
 
     it 'handles SSNs when one source lacks a created date' do
@@ -879,19 +823,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
-    # FIXME 8156
-    xit 'keeps the SSN and normalizes nil SSN data quality to partial (2)' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: nil)
-      source_2.update(SSN: nil, SSNDataQuality: 1)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@ssn1).to eq(@dest_attr[:SSN])
-      expect(2).to eq(@dest_attr[:SSNDataQuality])
-    end
-
     it 'chooses the highest quality SSN' do
       source_1.update(SSN: @ssn1, SSNDataQuality: 99)
       source_2.update(SSN: @ssn2, SSNDataQuality: 9)
@@ -901,19 +832,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
-    end
-
-    # FIXME 8156
-    xit 'ignores partial SSNs that are marked as full when a real full SSN exists' do
-      source_1.update(SSN: '12345', SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
-      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2018, 5, 1))
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@ssn2).to eq(@dest_attr[:SSN])
-      expect(1).to eq(@dest_attr[:SSNDataQuality])
     end
 
     it 'does not normalize punctuation from SSNs before persisting them' do
@@ -937,32 +855,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
-    end
-
-    # FIXME 8156
-    xit 'treats numeric SSNs with unknown data quality as partial when building attributes' do
-      source_1.update(SSN: @ssn1, SSNDataQuality: 8)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@ssn1).to eq(@dest_attr[:SSN])
-      expect(2).to eq(@dest_attr[:SSNDataQuality])
-    end
-
-    # FIXME 8156
-    xit 'drops SSNs marked as full when the value has no digits while building attributes' do
-      source_1.update(SSN: 'ABCDEF', SSNDataQuality: 1)
-      source_2.update(SSN: nil, SSNDataQuality: 9)
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
-        Hash[@cleanup.client_columns.keys.zip(row)]
-      end
-
-      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@dest_attr[:SSN]).to be_nil
-      expect(@dest_attr[:SSNDataQuality]).to eq(99)
     end
 
     it 'handles SSNs when one source lacks a created date while building attributes' do
