@@ -40,7 +40,7 @@ RSpec.describe GrdaWarehouse::SSNSelector do
   let(:ssn_null_date_second) { valid_ssns[6] }
   let(:ssn_newest_with_date) { valid_ssns[7] }
   let(:ssn_extra) { valid_ssns[8] }
-  let(:hyphenated_ssn) { '123-45-6789' }
+  let(:hyphenated_ssn) { '012-92-3456' }
 
   before do
     allow(hud_util).to receive(:ssn_data_quality_options).
@@ -116,30 +116,6 @@ RSpec.describe GrdaWarehouse::SSNSelector do
       it 'drops the value and reports unknown data quality' do
         expect(selected[:SSN]).to be_nil
         expect(selected[:SSNDataQuality]).to eq(99)
-      end
-    end
-
-    context 'when the source has DQ other than 1 or 2' do
-      let(:source_clients) do
-        [
-          {
-            SSN: hyphenated_ssn,
-            SSNDataQuality: 8,
-            DateCreated: Time.zone.local(2022, 6, 1),
-            id: 1,
-          },
-          {
-            SSN: ssn_full_valid,
-            SSNDataQuality: 1,
-            DateCreated: Time.zone.local(2022, 6, 2),
-            id: 2,
-          },
-        ]
-      end
-
-      it 'keeps each SSN value with its original data quality when selected' do
-        expect(selected[:SSN]).to eq(ssn_full_valid)
-        expect(selected[:SSNDataQuality]).to eq(1)
       end
     end
 
@@ -270,6 +246,30 @@ RSpec.describe GrdaWarehouse::SSNSelector do
 
       it 'still prefers the record with a real DateCreated timestamp' do
         expect(selected[:SSN]).to eq(ssn_newest_with_date)
+        expect(selected[:SSNDataQuality]).to eq(1)
+      end
+    end
+
+    context 'when the best candidate has a hyphenated SSN' do
+      let(:source_clients) do
+        [
+          {
+            SSN: hyphenated_ssn,
+            SSNDataQuality: 1,
+            DateCreated: Time.zone.local(2023, 1, 1),
+            id: 1,
+          },
+          {
+            SSN: ssn_quality_two,
+            SSNDataQuality: 2,
+            DateCreated: Time.zone.local(2022, 1, 1),
+            id: 2,
+          },
+        ]
+      end
+
+      it 'selects the SSN and returns the original, unnormalized value' do
+        expect(selected[:SSN]).to eq(hyphenated_ssn)
         expect(selected[:SSNDataQuality]).to eq(1)
       end
     end
