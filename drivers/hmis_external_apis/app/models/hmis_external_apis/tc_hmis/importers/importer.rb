@@ -63,18 +63,20 @@ module HmisExternalApis::TcHmis::Importers
       ]
 
       # disable paper trail to improve importer performance
-      PaperTrail.enabled = false
-      loaders.each do |loader_class|
-        loader = loader_class.new(
-          clobber: clobber,
-          reader: Loaders::FileReader.new(dir),
-          log_file: log_file,
-        )
-        run_loader(loader)
-        GC.start
+      without_paper_trail do
+        loaders.each do |loader_class|
+          loader = loader_class.new(
+            clobber: clobber,
+            reader: Loaders::FileReader.new(dir),
+            log_file: log_file,
+          )
+          run_loader(loader)
+          GC.start
+        end
+
+        analyze_tables
       end
 
-      analyze_tables
       true
     rescue StandardError => e
       # this might be swallowing the exception
