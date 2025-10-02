@@ -131,6 +131,8 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
     # CE Staff completes the Confirm Success step
     visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
+    expect(page).to have_content('Enrolled')
+    expect(page).to have_content('Confirm Success Available Today')
     click_button 'Start step: Confirm Success'
     mui_date_select 'Date', date: Date.current
     fill_in 'Notes', with: 'Direct referral completed successfully'
