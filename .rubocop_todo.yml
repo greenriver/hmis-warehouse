@@ -1882,7 +1882,6 @@ Style/FrozenStringLiteralComment:
     - 'app/models/grda_warehouse/cas_project_client_calculator/mdha.rb'
     - 'app/models/grda_warehouse/cas_project_client_calculator/springfield.rb'
     - 'app/models/grda_warehouse/cas_project_client_calculator/tc_hat.rb'
-    - 'app/models/grda_warehouse/cas_project_client_calculator/tc_hmis_hat.rb'
     - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census.rb'
