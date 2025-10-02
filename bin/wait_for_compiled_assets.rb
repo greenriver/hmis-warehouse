@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
-require_relative '../config/deploy/docker/lib/asset_compiler.rb'
+require_relative '../config/deploy/docker/lib/asset_compiler'
 require 'shellwords'
 
 target_group_name = ENV.fetch('TARGET_GROUP_NAME', false)

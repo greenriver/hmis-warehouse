@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
@@ -15,7 +15,7 @@ module ClientLocationHistory
     # this relation isn't used; use polymorphic `source` above
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
 
-    MARKER_COLOR = '#72A0C1'.freeze
+    MARKER_COLOR = '#72A0C1'
 
     # Locations where both `lat` and `lon` are present
     scope :valid, -> { where.not(lat: nil).and(where.not(lon: nil)) }

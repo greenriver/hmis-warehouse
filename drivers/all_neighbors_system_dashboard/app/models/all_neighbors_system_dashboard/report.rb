@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # Some semi-useful testing notes:
 # reload!; @report = AllNeighborsSystemDashboard::Report.find(244); @report.delete_cached_values!; AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(@report)

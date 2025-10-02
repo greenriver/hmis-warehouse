@@ -1,7 +1,7 @@
 # Provide a mechanism to go from a number to a CSV/Excel column equivalent
 # Thanks to sawa https://stackoverflow.com/questions/14632304/generate-letters-to-represent-number-using-ruby
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 class Numeric
   ALPHABET = ('a'..'z').to_a
