@@ -39,35 +39,21 @@ module GrdaWarehouse
     private
 
     def select_best_candidate
-      candidates = build_candidates
-      best_by_dq = {}
-
-      candidates.each do |candidate|
-        existing = best_by_dq[candidate.quality]
-        best_by_dq[candidate.quality] = candidate if candidate_preferred?(existing, candidate)
-      end
-
-      ssn_dqs.each do |dq|
-        return best_by_dq[dq] if best_by_dq[dq]
-      end
-
-      nil
-    end
-
-    def build_candidates
-      @source_clients.filter_map { |source| build_candidate_from_source(source) }
+      @source_clients.
+        filter_map { |source| build_candidate_from_source(source) }.
+        min_by(&:tie_breakers)
     end
 
     def build_candidate_from_source(source)
       raw_dq = source[:SSNDataQuality]
-      normalized_dq = coerce_dq(raw_dq)
-      dq = normalized_dq
+      initial_dq = coerce_dq(raw_dq)
+      dq = initial_dq
       dq = 99 unless dq&.in?(ssn_dqs)
 
       value = source[:SSN]&.strip.presence
       numeric = value&.gsub(/\D/, '').presence
 
-      if normalized_dq.in?([1, 2])
+      if initial_dq.in?([1, 2])
         if numeric.nil?
           dq = 99
           value = nil
@@ -80,29 +66,24 @@ module GrdaWarehouse
 
       return unless value
 
-      date = timestamp_for(source[:DateCreated])
-      date_key =
-        if date
-          date
-        else
-          use_oldest? ? Float::INFINITY : -Float::INFINITY
-        end
-      date_key *= -1 unless use_oldest?
+      date_key = timestamp_for(source[:DateCreated])
 
-      tie_breakers = [dq, date_key, source[:id].to_i]
+      tie_breakers = [dq, date_key, source_identifier_for(source)]
 
-      byebug
       Candidate.new(value: value, quality: dq, tie_breakers: tie_breakers)
     end
 
     def normalize_source(client)
       base =
-        if client.respond_to?(:with_indifferent_access)
+        case client
+        when ActiveSupport::HashWithIndifferentAccess
+          client
+        when Hash
           client.with_indifferent_access
-        elsif client.respond_to?(:attributes)
+        when ActiveRecord::Base
           client.attributes.with_indifferent_access
         else
-          client.to_h.with_indifferent_access
+          raise ArgumentError, "Unsupported source client: #{client.class.name}"
         end
 
       base[:SSNDataQuality] = base[:SSNDataQuality].presence || 99
@@ -110,10 +91,21 @@ module GrdaWarehouse
     end
 
     def timestamp_for(value)
-      return unless value
+      timestamp =
+        case value
+        when nil, ''
+          nil
+        when Time, DateTime, ActiveSupport::TimeWithZone
+          value.to_i
+        when Date
+          value.to_time.to_i
+        else
+          raise ArgumentError, "invalid timestamp #{value.inspect}"
+        end
 
-      value = value.to_time if value.respond_to?(:to_time)
-      value.to_i if value.respond_to?(:to_i)
+      timestamp ||= default_date_key
+      timestamp *= -1 unless use_oldest?
+      timestamp
     end
 
     def use_oldest?
@@ -124,18 +116,24 @@ module GrdaWarehouse
       use_oldest? ? Float::INFINITY : -Float::INFINITY
     end
 
+    def source_identifier_for(source)
+      raw = source[:id]
+      return Float::INFINITY if raw.blank?
+
+      coerced = Integer(raw, exception: false)
+      coerced || Float::INFINITY
+    end
+
     def ssn_dqs
       @ssn_dqs ||= HudHelper.util.ssn_data_quality_options.keys.sort
     end
 
     def coerce_dq(value)
-      raw = value
-      raw = raw.presence if raw.respond_to?(:presence)
-      return unless raw
+      return if value.blank?
 
-      return raw if raw.is_a?(Integer)
+      return value if value.is_a?(Integer)
 
-      Integer(raw, exception: false)
+      Integer(value, exception: false)
     end
 
     def candidate_preferred?(existing, candidate)

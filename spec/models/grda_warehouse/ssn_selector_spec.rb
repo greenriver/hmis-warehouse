@@ -18,16 +18,16 @@ RSpec.describe GrdaWarehouse::SSNSelector do
   let(:use_oldest) { true }
   let(:hud_util) { instance_double('HudUtil') }
   let(:valid_ssns) do
-    %w[
-      012345678
-      012456789
-      012567890
-      012678901
-      012789012
-      012890123
-      012901234
-      012912345
-      012923456
+    [
+      '012345678',
+      '012456789',
+      '012567890',
+      '012678901',
+      '012789012',
+      '012890123',
+      '012901234',
+      '012912345',
+      '012923456',
     ]
   end
 
@@ -43,8 +43,8 @@ RSpec.describe GrdaWarehouse::SSNSelector do
   let(:hyphenated_ssn) { '123-45-6789' }
 
   before do
-    allow(hud_util).to receive(:ssn_data_quality_options)
-      .and_return({ 1 => 'Full', 2 => 'Partial', 8 => 'Other', 9 => 'DK', 99 => 'Missing' })
+    allow(hud_util).to receive(:ssn_data_quality_options).
+      and_return({ 1 => 'Full', 2 => 'Partial', 8 => 'Other', 9 => 'DK', 99 => 'Missing' })
     allow(hud_util).to receive(:valid_social?) do |ssn|
       ssn.present? && ssn.length == 9 && ssn != '111111111'
     end
@@ -270,6 +270,30 @@ RSpec.describe GrdaWarehouse::SSNSelector do
 
       it 'still prefers the record with a real DateCreated timestamp' do
         expect(selected[:SSN]).to eq(ssn_newest_with_date)
+        expect(selected[:SSNDataQuality]).to eq(1)
+      end
+    end
+
+    context 'when a source client lacks an id' do
+      let(:source_clients) do
+        [
+          {
+            SSN: ssn_full_valid,
+            SSNDataQuality: 1,
+            DateCreated: Time.zone.local(2024, 1, 1),
+            id: nil,
+          },
+          {
+            SSN: ssn_extra,
+            SSNDataQuality: 1,
+            DateCreated: Time.zone.local(2024, 1, 1),
+            id: 2,
+          },
+        ]
+      end
+
+      it 'selects the candidate with a real id when tie-breakers match' do
+        expect(selected[:SSN]).to eq(ssn_extra)
         expect(selected[:SSNDataQuality]).to eq(1)
       end
     end
