@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'CE Unit Management', type: :system do
   include_context 'ce system test helper'
   it 'admin creates units, provider creates opportunities' do
-    visit "/projects/#{p1.id}/units"
+    visit "/projects/#{target_project.id}/units"
     click_link 'Manage Unit Group SROs'
     expect(page).to have_content('No units.')
 
@@ -34,7 +34,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     expect(units.map(&:unit_group)).to all(eq(unit_group))
 
     with_user_impersonated('Paul Provider') do
-      visit "/projects/#{p1.id}/units"
+      visit "/projects/#{target_project.id}/units"
       click_link 'Manage Unit Group SROs'
       expect(page).not_to have_button('Add Units') # Can view, but not add units
 
@@ -50,7 +50,7 @@ RSpec.feature 'CE Unit Management', type: :system do
       expect(Hmis::Ce::Opportunity.count).to eq(2)
       opportunities = Hmis::Ce::Opportunity.all.preload(:project)
       expect(opportunities.map(&:status)).to all(eq('open'))
-      expect(opportunities.map(&:project)).to all(eq(p1))
+      expect(opportunities.map(&:project)).to all(eq(target_project))
 
       click_button "Action menu for SRO - #{units.first.id}"
       mui_click_menu_item('View Unit')
@@ -64,7 +64,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     end
 
     # Admin can see the waitlist
-    visit "/projects/#{p1.id}/unit/#{units.first.id}"
+    visit "/projects/#{target_project.id}/unit/#{units.first.id}"
     click_link 'Eligible Clients'
     expect(page).to have_content('The eligible client list for this unit has not been generated yet.')
   end

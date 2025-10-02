@@ -13,8 +13,8 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'CE Waitlist Referrals', type: :system do
   include_context 'ce system test helper'
 
-  let!(:unit) { create(:hmis_unit, project: p1, unit_type: sro_type, unit_group: unit_group) }
-  let!(:opportunity) { create(:hmis_ce_opportunity, project: p1, workflow_template: workflow_template, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
+  let!(:unit) { create(:hmis_unit, project: target_project, unit_type: sro_type, unit_group: unit_group) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: workflow_template, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
 
   # Create clients that fulfill the pool requirements (score > 5)
   let!(:client1) do
@@ -70,7 +70,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   # Shared method for progressing the referral through the initial steps and assigning the provider
   def complete_ce_staff_initial_steps
     # Navigate to unit group and verify eligible clients appear
-    visit "/projects/#{p1.id}/unit/#{unit.id}"
+    visit "/projects/#{target_project.id}/unit/#{unit.id}"
     click_link 'Eligible Clients'
 
     # Verify eligible clients are shown (ordered by priority score descending)
@@ -126,7 +126,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
     event = referral.source_enrollment.events.sole
     expect(event.event).to eq(14) # referral to PSH event type
-    expect(event.location_crisis_or_ph_housing).to eq(p1.id.to_s)
+    expect(event.location_crisis_or_ph_housing).to eq(target_project.id.to_s)
     expect(event.referral_result).to be_nil
 
     # Provider Outcome step is now available but unassigned.
@@ -138,7 +138,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
       expect(page).not_to have_content('Alice A')
     end
 
-    visit("/projects/#{p1.id}/ce/referrals/#{referral.id}") # Navigate back to the referral
+    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}") # Navigate back to the referral
     # Assign the Paul Provider user to the Provider Outcome step
     expect(page).to have_content('Provider Outcome Available Today Project Staff No assigned users')
     click_button 'Contacts'
@@ -162,7 +162,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   # Shared method for the CE staff completing final steps to approve the referral
   def complete_ce_staff_final_steps
     referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{p1.id}/ce/referrals/#{referral.id}")
+    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Confirm Success'
     mui_date_select 'Date', date: Date.current
     fill_in 'Notes', with: 'Everything is good'
@@ -254,7 +254,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     end
 
     referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{p1.id}/ce/referrals/#{referral.id}")
+    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Denial Review'
     mui_date_select 'Date', date: Date.current
     fill_in 'Notes', with: 'No, send back!'
@@ -264,7 +264,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
     with_user_impersonated('Paul Provider') do
       # This time, provider approves
-      visit("/projects/#{p1.id}/ce/referrals/#{referral.id}")
+      visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
       expect(page).to have_content('Provider Outcome (Second Attempt) Available Today Assigned to you')
       click_button 'Start step: Provider Outcome (Second Attempt)'
       mui_date_select 'Date', date: Date.current
@@ -306,7 +306,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     end
 
     referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{p1.id}/ce/referrals/#{referral.id}")
+    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Denial Review'
     mui_date_select 'Date', date: Date.current
     mui_radio_choose 'Approve Denial', from: 'Decision'
