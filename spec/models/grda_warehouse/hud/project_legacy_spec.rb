@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -146,6 +152,24 @@ RSpec.describe model, type: :model do
         it 'sees p1 but not p2' do
           expect(u[user]).to eq p[p1]
           expect(u[user]).to_not include p2
+        end
+      end
+
+      describe 'user assigned via shared and private groups' do
+        let!(:shared_group) { create(:access_group) }
+
+        before do
+          user.add_viewable(p1)
+          shared_group.add_viewable(p5)
+          user.access_groups = [shared_group]
+        end
+
+        it 'sees p1 and p5' do
+          expect(u[user]).to eq p[p1, p5]
+        end
+
+        after do
+          user.access_groups = []
         end
       end
     end

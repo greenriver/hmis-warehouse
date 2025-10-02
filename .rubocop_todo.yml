@@ -1007,6 +1007,7 @@ Naming/PredicatePrefix:
     - "app/models/reports/system_performance/fy2017/base.rb"
     - "app/models/reports/system_performance/fy2018/base.rb"
     - "app/models/reports/system_performance/fy2019/base.rb"
+    - "app/models/grda_warehouse/hud/organization.rb"
 
 # Offense count: 2
 # Configuration parameters: EnforcedStyle, AllowedIdentifiers, AllowedPatterns, ForbiddenIdentifiers, ForbiddenPatterns.

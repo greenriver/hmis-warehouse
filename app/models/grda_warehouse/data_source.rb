@@ -316,7 +316,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
+    group_ids = user.all_access_group_ids
     group_id_query = if group_ids.empty?
       '0=1'
     else
@@ -348,7 +348,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
+    group_ids = user.all_access_group_ids
     group_id_query = if group_ids.empty?
       '0=1'
     else
@@ -384,7 +384,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
+    group_ids = user.all_access_group_ids
     group_id_query = if group_ids.empty?
       '0=1'
     else
