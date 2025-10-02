@@ -14,17 +14,10 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
 
       # Create test enrollment with lowercase CoC code
       enrollment = double('enrollment')
-      allow(enrollment).to receive(:EnrollmentCoC).and_return('ca-501')
-      allow(enrollment).to receive(:EnrollmentCoC=)
-      allow(enrollment).to receive(:set_source_hash)
-
-      # Mock the upcase! method to track calls
       coc_code = 'ca-501'
-      allow(enrollment).to receive(:EnrollmentCoC).and_return(coc_code)
-      allow(coc_code).to receive(:upcase!).and_return('CA-501')
-      allow(coc_code).to receive(:match?).with(/^[a-z]{2}[0-9]{3}$/i).and_return(false)
-      allow(coc_code).to receive(:match?).with(/^[a-z]{2}-[0-9]{3}$/i).and_return(true)
-      allow(coc_code).to receive(:present?).and_return(true)
+      allow(enrollment).to receive(:EnrollmentCoC) { coc_code }
+      allow(enrollment).to receive(:EnrollmentCoC=) { |value| coc_code = value }
+      allow(enrollment).to receive(:set_source_hash)
 
       # Mock valid_coc? to trigger processing
       allow(::HudHelper.util).to receive(:valid_coc?).with('ca-501').and_return(false)
@@ -44,8 +37,7 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
       # Call the actual method that contains the upcase! operation
       expect { cleanup.cleanup! }.not_to raise_error
 
-      # Should have called upcase! on the EnrollmentCoC string
-      expect(coc_code).to have_received(:upcase!)
+      expect(coc_code).to eq('CA-501')
     end
 
     it 'calls method that contains << operations for batch building' do
@@ -89,15 +81,9 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
       # Create enrollment with lowercase CoC that matches pattern
       enrollment = double('enrollment')
       coc_code = 'ny-600'
-      allow(enrollment).to receive(:EnrollmentCoC).and_return(coc_code)
-      allow(enrollment).to receive(:EnrollmentCoC=)
+      allow(enrollment).to receive(:EnrollmentCoC) { coc_code }
+      allow(enrollment).to receive(:EnrollmentCoC=) { |value| coc_code = value }
       allow(enrollment).to receive(:set_source_hash)
-
-      # Mock the string operations
-      allow(coc_code).to receive(:match?).with(/^[a-z]{2}[0-9]{3}$/i).and_return(false)
-      allow(coc_code).to receive(:match?).with(/^[a-z]{2}-[0-9]{3}$/i).and_return(true)
-      allow(coc_code).to receive(:upcase!).and_return('NY-600')
-      allow(coc_code).to receive(:present?).and_return(true)
 
       # Mock valid_coc? to trigger upcase! operation
       allow(::HudHelper.util).to receive(:valid_coc?).with('ny-600').and_return(false)
@@ -119,7 +105,7 @@ RSpec.describe HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc, type: :
       # This exercises both upcase! and << operations
       expect { cleanup.cleanup! }.not_to raise_error
 
-      expect(coc_code).to have_received(:upcase!)
+      expect(coc_code).to eq('NY-600')
     end
 
     it 'exercises << operation with multiple enrollment processing scenarios' do

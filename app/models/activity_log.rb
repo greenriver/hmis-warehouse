@@ -80,8 +80,8 @@ class ActivityLog < ApplicationRecord
     report_replacements = GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:id, :name)
     data.map do |row|
       # Strip anything after the ?
-      row[:path]&.gsub!(/\?.*/, '')
-      row[:referrer]&.gsub!(/\?.*/, '')
+      row[:path] = row[:path]&.gsub(/\?.*/, '')
+      row[:referrer] = row[:referrer]&.gsub(/\?.*/, '')
       row[:created_at] = row[:created_at].to_fs(:db)
       cleanup_report_paths(row, report_replacements)
     end
@@ -97,7 +97,7 @@ class ActivityLog < ApplicationRecord
     return row unless row[:path].starts_with?('/reports/')
 
     report_replacements.each do |id, name|
-      row[:path].sub!("/reports/#{id}/", "/reports/#{name.parameterize}/")
+      row[:path] = row[:path].sub("/reports/#{id}/", "/reports/#{name.parameterize}/")
     end
     row
   end

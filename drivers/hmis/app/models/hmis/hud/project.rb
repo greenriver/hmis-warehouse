@@ -132,7 +132,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   scope :matching_search_term, ->(search_term) do
     return none unless search_term.present?
 
-    search_term.strip!
+    search_term = search_term.strip
     query = "%#{search_term.split(/\W+/).join('%')}%"
 
     where(

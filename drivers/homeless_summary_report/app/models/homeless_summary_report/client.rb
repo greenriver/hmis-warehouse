@@ -48,7 +48,7 @@ module HomelessSummaryReport
         adults_with_children_where_parenting_adult_18_to_24: :wc_18_to_24,
         returned_to_homelessness_from_permanent_destination: :returned,
       }.each do |raw, abbrev|
-        name.gsub!(raw.to_s, abbrev.to_s)
+        name = name.gsub(raw.to_s, abbrev.to_s)
         return name.to_sym if name.length <= 63
       end
 
