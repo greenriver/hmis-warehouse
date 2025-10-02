@@ -70,5 +70,5 @@ historical_window_counts AS (
   GROUP BY window_day
 )
 SELECT
-  COALESCE(AVG(distinct_logins)::numeric, 0) AS average_distinct_logins_last_three_hours
+  COALESCE(AVG(distinct_logins)::numeric, 0) AS projected_unique_users
 FROM historical_window_counts;

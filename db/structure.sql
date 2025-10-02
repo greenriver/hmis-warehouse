@@ -1625,10 +1625,10 @@ ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_sta
 
 
 --
--- Name: puma_keda_metrics; Type: VIEW; Schema: public; Owner: -
+-- Name: puma_scaling_login_demand; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE VIEW public.puma_keda_metrics AS
+CREATE VIEW public.puma_scaling_login_demand AS
  WITH current_context AS (
          SELECT (now() AT TIME ZONE 'UTC'::text) AS "current_time",
             date_trunc('day'::text, (now() AT TIME ZONE 'UTC'::text)) AS current_day,
@@ -1657,7 +1657,7 @@ CREATE VIEW public.puma_keda_metrics AS
              LEFT JOIN public.login_activities ON (((login_activities.success = true) AND (login_activities.created_at >= historical_windows.window_start) AND (login_activities.created_at < historical_windows.window_end))))
           GROUP BY historical_windows.window_day
         )
- SELECT COALESCE(avg(distinct_logins), (0)::numeric) AS average_distinct_logins_last_three_hours
+ SELECT COALESCE(avg(distinct_logins), (0)::numeric) AS projected_unique_users
    FROM historical_window_counts;
 
 
