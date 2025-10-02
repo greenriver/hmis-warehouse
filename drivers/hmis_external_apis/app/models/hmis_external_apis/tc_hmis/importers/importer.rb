@@ -63,7 +63,7 @@ module HmisExternalApis::TcHmis::Importers
       ]
 
       # disable paper trail to improve importer performance
-      without_paper_trail do
+      PaperTrailHelper.without_paper_trail do
         loaders.each do |loader_class|
           loader = loader_class.new(
             clobber: clobber,

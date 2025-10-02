@@ -70,12 +70,10 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
 end
 
 RSpec.shared_context 'with paper trail', shared_context: :metadata do
-  before(:all) do
-    @paper_trail_was = PaperTrail.enabled?
-    PaperTrail.enabled = true
-  end
-  after(:all) do
-    PaperTrail.enabled = @paper_trail_was
+  around(:all) do |ex|
+    PaperTrailHelper.with_paper_trail do
+      ex.run
+    end
   end
 end
 

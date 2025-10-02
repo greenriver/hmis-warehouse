@@ -3,13 +3,13 @@
 require 'rails_helper'
 
 RSpec.describe Health::PatientReferral, type: :model do
-  before(:all) do
-    PaperTrail.enabled = true
-    PaperTrail.request.enabled = true
-  end
-  after(:all) do
-    PaperTrail.enabled = false
-    PaperTrail.request.enabled = false
+  around(:all) do |ex|
+    PaperTrailHelper.with_paper_trail do
+      PaperTrail.request.enabled = true
+      ex.run
+    ensure
+      PaperTrail.request.enabled = false
+    end
   end
 
   describe 'derive referrals' do
