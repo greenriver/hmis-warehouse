@@ -17,7 +17,6 @@ module WarehouseReports
     def index
       @filter = ::Filters::HmisExport.new(user_id: current_user.id)
       @filter.update(report_params.merge(user_id: current_user.id)) if params[:filter].present?
-      @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
       @per_page_js = ['custom_file_exports']
     end
 
@@ -94,12 +93,28 @@ module WarehouseReports
 
     def edit
       @recurrence = @export.recurring_hmis_export
+      @filter = ::Filters::HmisExport.new(@recurrence.options.merge(user_id: current_user.id))
+      @per_page_js = ['custom_file_exports']
     end
 
     def update
-      @export.recurring_hmis_export.update(recurrence_params.merge(user_id: current_user.id))
-      flash[:notice] = 'Recurrence options updated'
-      redirect_to warehouse_reports_hmis_exports_path
+      @recurrence = @export.recurring_hmis_export
+
+      # Update filter options (excluding recurrence-specific params)
+      filter_options = report_params.except(*recurrence_param_keys)
+      updated_options = @recurrence.options.merge(filter_options)
+
+      # Update recurrence-specific options
+      recurrence_options = recurrence_params.merge(user_id: current_user.id, options: updated_options)
+
+      if @recurrence.update(recurrence_options)
+        flash[:notice] = 'Recurring export options updated'
+        redirect_to warehouse_reports_hmis_exports_path
+      else
+        @filter = ::Filters::HmisExport.new(@recurrence.options.merge(user_id: current_user.id))
+        @per_page_js = ['custom_file_exports']
+        render :edit
+      end
     end
 
     def cancel
