@@ -13,7 +13,8 @@
 #
 # Examples:
 #   PaperTrailHelper.without_paper_trail { perform_import }
-#   PaperTrailHelper.with_paper_trail { PaperTrail.request.enabled = true }
+#   PaperTrailHelper.enable
+#   PaperTrailHelper.restore(previous)
 module PaperTrailHelper
   class << self
     def without_paper_trail(&block)
@@ -24,6 +25,22 @@ module PaperTrailHelper
       around_paper_trail(true, &block)
     end
 
+    def enable
+      adjust_enabled(true)
+    end
+
+    def disable
+      adjust_enabled(false)
+    end
+
+    def enabled?
+      PaperTrail.enabled?
+    end
+
+    def restore(state)
+      PaperTrail.enabled = state
+    end
+
     private
 
     def around_paper_trail(enable)
@@ -32,6 +49,12 @@ module PaperTrailHelper
       yield
     ensure
       PaperTrail.enabled = previous
+    end
+
+    def adjust_enabled(value)
+      previous = PaperTrail.enabled?
+      PaperTrail.enabled = value
+      previous
     end
   end
 end

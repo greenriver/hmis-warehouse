@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Health::PatientReferral, type: :model do
-  around(:all) do |ex|
+  around(:example) do |ex|
     PaperTrailHelper.with_paper_trail do
       PaperTrail.request.enabled = true
       ex.run

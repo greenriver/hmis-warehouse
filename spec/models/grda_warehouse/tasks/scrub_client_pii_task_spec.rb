@@ -6,7 +6,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source, project_type: 0 }
 
-  around(:all) do |ex|
+  around(:example) do |ex|
     PaperTrailHelper.with_paper_trail do
       PaperTrail.request.enabled = true
       ex.run
