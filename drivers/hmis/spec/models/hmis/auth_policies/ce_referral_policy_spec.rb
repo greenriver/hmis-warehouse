@@ -169,4 +169,66 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
       end
     end
   end
+
+  describe '#can_create_note?' do
+    let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
+    let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
+
+    context 'when step is provided' do
+      context 'when user has :can_perform_any_referral_tasks permission' do
+        it 'returns true' do
+          create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
+          expect(policy.can_create_note?(step: step)).to be true
+        end
+      end
+
+      context 'when user has :can_perform_own_referral_tasks permission' do
+        before { create_access_control(user, project, with_permission: [:can_perform_own_referral_tasks]) }
+
+        it 'returns true if user is assigned to the step' do
+          step.assignments.create!(user: user)
+          expect(policy.can_create_note?(step: step)).to be true
+        end
+
+        it 'returns false if user is not assigned to the step' do
+          expect(policy.can_create_note?(step: step)).to be false
+        end
+      end
+
+      context 'when user has no relevant permissions' do
+        it 'returns false' do
+          expect(policy.can_create_note?(step: step)).to be false
+        end
+      end
+    end
+
+    context 'when step is not provided (top-level referral note)' do
+      context 'when user has :can_perform_any_referral_tasks permission' do
+        it 'returns true' do
+          create_access_control(user, project, with_permission: [:can_perform_any_referral_tasks])
+          expect(policy.can_create_note?).to be true
+        end
+      end
+
+      context 'when user has :can_perform_own_referral_tasks permission' do
+        before { create_access_control(user, project, with_permission: [:can_perform_own_referral_tasks]) }
+
+        it 'returns true if user is assigned to the referral' do
+          step.assignments.create!(user: user)
+          expect(policy.can_create_note?).to be true
+        end
+
+        it 'returns false if user is not assigned to the referral' do
+          expect(policy.can_create_note?).to be false
+        end
+      end
+
+      context 'when user can view referrals but not perform tasks' do
+        it 'returns false' do
+          create_access_control(user, project, with_permission: [:can_view_referrals])
+          expect(policy.can_create_note?).to be false
+        end
+      end
+    end
+  end
 end
