@@ -8,9 +8,20 @@
 
 module GrdaWarehouse
   # Determines the preferred SSN and SSN data quality from a set of source
-  # client records. This extraction allows consumers beyond the client cleanup
-  # task to evaluate the impact of the enhanced selection algorithm without
-  # mutating persisted records.
+  # client records. This service object encapsulates the business rules for
+  # selecting the best available SSN based on a multi-level sorting algorithm.
+  #
+  # The selection process prioritizes candidates based on the following criteria
+  # in order:
+  #   1. SSNDataQuality (lower is better)
+  #   2. Record timestamp (DateCreated), configurable to prefer oldest or newest
+  #   3. Record ID (lower is better)
+  #
+  # This class also handles data cleansing, such as demoting the data quality
+  # for invalid or partial SSNs and normalizing various source data formats
+  # (e.g., Hashes, ActiveRecord objects). The goal is to provide a consistent
+  # and reliable way to determine the most trustworthy SSN from potentially
+  # conflicting source data.
   class SSNSelector
     Candidate = Struct.new(:value, :quality, :tie_breakers, keyword_init: true)
 
