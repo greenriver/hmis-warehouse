@@ -142,7 +142,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     # Assign the Paul Provider user to the Provider Outcome step
     expect(page).to have_content('Provider Outcome Available Today Project Staff No assigned users')
     click_button 'Contacts'
-    project_staff_choices = get_mui_choices(select_label: 'Project Staff')
+    project_staff_choices = get_mui_select_choices(select_label: 'Project Staff')
     expect(project_staff_choices).to include('Paul Provider')
     expect(project_staff_choices).not_to include('Oliver Other')
     mui_select('Paul Provider', from: 'Project Staff')
