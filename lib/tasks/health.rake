@@ -208,27 +208,6 @@ namespace :health do
     end
   end
 
-  # DB related, provides health:db:migrate etc.
-  namespace :db do |_ns|
-    namespace :schema do
-      desc 'Conditionally load the database schema'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        HealthBase.load_db_if_empty do
-          Rake::Task['db:schema:load:health'].invoke
-        end
-      end
-    end
-
-    namespace :structure do
-      desc 'Conditionally load the database structure'
-      task :conditional_load, [] => [:environment] do |_t, _args|
-        HealthBase.load_db_if_empty do
-          Rake::Task['db:structure:load:health'].invoke
-        end
-      end
-    end
-  end
-
   desc 'Generate data dictionary of health database'
   task generate_data_dict: [:environment] do
     # loading namespace info

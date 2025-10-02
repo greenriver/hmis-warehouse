@@ -27,7 +27,7 @@ class SeedMaker
 
     seed_roles
 
-    developer.find_by(name: 'Open Path Developer')
+    developer = Role.find_by(name: 'Open Path Developer')
     agency = Agency.where(name: 'Green River').first_or_create
 
     # Setup an initial user

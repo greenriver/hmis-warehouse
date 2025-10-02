@@ -115,6 +115,29 @@ module HudTwentyTwentyFourToTwentyTwentySix
         action: :copy,
         model: GrdaWarehouse::Hud::YouthEducationStatus,
       },
+      # Custom Files - Create from 2024 gender/sexual orientation fields
+      'CustomGender.csv' => {
+        action: :create,
+        model: HmisCsvTwentyTwentySix::Importer::Custom::CustomGender,
+        transformer: HudTwentyTwentyFourToTwentyTwentySix::CustomGender::Csv,
+        references: {
+          client: {
+            file: 'Client.csv',
+            model: GrdaWarehouse::Hud::Client,
+          },
+        },
+      },
+      'CustomSexualOrientation.csv' => {
+        action: :create,
+        model: HmisCsvTwentyTwentySix::Importer::Custom::CustomSexualOrientation,
+        transformer: HudTwentyTwentyFourToTwentyTwentySix::CustomSexualOrientation::Csv,
+        references: {
+          enrollment: {
+            file: 'Enrollment.csv',
+            model: GrdaWarehouse::Hud::Enrollment,
+          },
+        },
+      },
     }.freeze
 
     def self.up(source_directory, destination_directory)

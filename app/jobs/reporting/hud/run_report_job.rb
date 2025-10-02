@@ -22,7 +22,26 @@ module Reporting::Hud
       # advisory lock to check the number of jobs running for this generator so we don't
       # all check at exactly the same time and get the same result
       @generator = class_name.constantize.new(report)
-      HudReports::ReportInstance.with_advisory_lock(@generator.class.name, timeout_seconds: 20) do
+
+      # this report was called directly as opposed to being called through an automated process (e.g. to back a different report)
+      # so we'll make sure there isn't another similar report running before we start
+      if report.manual
+        requeued = check_and_requeue_for_running(report, @generator.class.name)
+        # a similar report is already running, this report has been adding back to the queue so it will be tried again in a bit
+        return if requeued
+      end
+
+      # puts "Running: #{@generator.class.name} Report ID: #{report_id}"
+      run_report(report, @generator, email: email)
+    end
+
+    # Check if a similar report is already running and requeue this report if it is
+    #
+    # @param report [HudReports::ReportInstance] the report to check
+    # @param generator_class_name [String] the class name of the generator
+    # @return [Boolean] true if the report was requeued, false otherwise
+    protected def check_and_requeue_for_running(report, generator_class_name)
+      HudReports::ReportInstance.with_advisory_lock(generator_class_name, timeout_seconds: 20) do
         # We can't only count the running delayed jobs because we start a DJ every time we check
         # So, we'll check the report class for running reports instead.
         running_reports_count = HudReports::ReportInstance.
@@ -33,23 +52,24 @@ module Reporting::Hud
           count
 
         if running_reports_count > 1
-          puts "Found #{running_reports_count} running reports, for #{@generator.class.name} (#{report.report_name}), postponing run of #{report_id}"
-          requeue_job(class_name)
-          return
+          puts "Found #{running_reports_count} running reports, for #{generator_class_name} (#{report.report_name}), postponing run of #{report.id}"
+          requeue_job(generator_class_name)
+          return true
         end
       end
+      false
+    end
 
-      # puts "Running: #{@generator.class.name} Report ID: #{report_id}"
-
+    protected def run_report(report, generator, email:)
       capture_failure(report) do
-        @generator.prepare_report
-        @generator.class.questions.each do |q, klass|
-          klass.new(@generator, report).run! if report.build_for_questions.include?(q)
+        generator.prepare_report
+        generator.class.questions.each do |q, klass|
+          klass.new(generator, report).run! if report.build_for_questions.include?(q)
         end
       end
 
       report_completed = report.complete_report
-      NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
+      NotifyUser.driver_hud_report_finished(generator).deliver_now if report.user_id && email
       report_completed
     end
 

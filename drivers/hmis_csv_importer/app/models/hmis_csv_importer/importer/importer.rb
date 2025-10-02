@@ -1011,7 +1011,13 @@ module HmisCsvImporter::Importer
       update_cols = columns - conflict_keys + [:data_source_id]
       value_rows = batch.map do |record|
         values = update_cols.map do |col|
-          klass.connection.quote(record.public_send(col.to_sym))
+          value = record.public_send(col.to_sym)
+          if value.nil?
+            # Cast NULL to the appropriate type based on the database column type
+            cast_null_for_column_type(klass, col)
+          else
+            klass.connection.quote(value)
+          end
         end
         "(#{values.join(', ')})"
       end
@@ -1035,6 +1041,28 @@ module HmisCsvImporter::Importer
         WHERE #{where_conditions}
       SQL
       klass.connection.execute(sql)
+    end
+
+    private def cast_null_for_column_type(klass, column_name)
+      column = klass.columns_hash[column_name.to_s]
+      return 'NULL' unless column
+
+      case column.type
+      when :integer, :bigint, :smallint
+        'NULL::integer'
+      when :decimal, :float, :numeric
+        'NULL::numeric'
+      when :boolean
+        'NULL::boolean'
+      when :date
+        'NULL::date'
+      when :datetime, :timestamp
+        'NULL::timestamp'
+      when :text, :string
+        'NULL::text'
+      else
+        'NULL'
+      end
     end
 
     private def source_data_scope_for(file_name)
