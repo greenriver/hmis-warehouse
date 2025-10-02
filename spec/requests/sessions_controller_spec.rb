@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'support/shared_contexts/post_login_hooks_context'
+require 'support/shared_contexts/login_activity_context'
 
 RSpec.describe Users::SessionsController, type: :request do
   let(:user) { create :user }
@@ -14,12 +16,22 @@ RSpec.describe Users::SessionsController, type: :request do
   let(:email) { ActionMailer::Base.deliveries.last }
 
   describe 'Successful login' do
-    before(:each) do
+    def do_login
       post user_session_path(user: { email: user.email, password: user.password })
     end
 
-    it 'user failed_attempts should not increment' do
-      expect(user.reload.failed_attempts).to eq 0
+    context 'with standard behavior' do
+      before(:each) do
+        do_login
+      end
+
+      it 'user failed_attempts should not increment' do
+        expect(user.reload.failed_attempts).to eq 0
+      end
+    end
+
+    context 'with post-authentication hooks' do
+      include_context 'with post-authentication hooks'
     end
   end
 
@@ -48,6 +60,19 @@ RSpec.describe Users::SessionsController, type: :request do
         expect(user.reload.failed_attempts).to eq 0
       end
     end
+  end
+
+  context 'with login activity' do
+    let(:scope) { 'user' }
+    let(:activity_user) { user }
+    def do_login
+      post user_session_path(user: { email: user.email, password: user.password })
+    end
+
+    def do_failed_login
+      post user_session_path(user: { email: user.email, password: 'incorrect' })
+    end
+    include_context 'with login activity tracking'
   end
 
   describe 'Account locked after 9 un-successful logins' do

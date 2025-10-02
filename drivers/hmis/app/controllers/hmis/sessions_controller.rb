@@ -25,13 +25,15 @@ class Hmis::SessionsController < Devise::SessionsController
     return failure_response(:locked) if locked_account?
 
     self.resource = warden.authenticate(auth_options)
-    return handle_failed_authentication unless resource
-
-    sign_in(:hmis_user, resource)
-    record_login_activity_for(resource, success: true)
-    set_csrf_cookie
-    response.headers['X-app-user-id'] = resource&.id
-    render json: resource.current_user_api_values
+    if resource
+      sign_in(:hmis_user, resource)
+      clear_reset_password_state(resource)
+      set_csrf_cookie
+      response.headers['X-app-user-id'] = resource&.id
+      render json: resource.current_user_api_values
+    else
+      handle_failed_authentication
+    end
   end
 
   # DELETE /hmis/logout
@@ -125,6 +127,12 @@ class Hmis::SessionsController < Devise::SessionsController
   private def handle_failed_authentication
     record_login_activity_for(find_user, success: false)
     render status: 401, json: { error: { type: :invalid, message: I18n.t('devise.failure.invalid') } }
+  end
+
+  private def clear_reset_password_state(user)
+    return unless user&.reset_password_token.present?
+
+    user.update(reset_password_token: nil, reset_password_sent_at: nil)
   end
 
   # If the account has been locked, show an appropriate message. We choose to show this message even if the password was
