@@ -34,7 +34,7 @@ module GrdaWarehouse::Hud
     # NOTE: you need to add a distinct to this or group it to keep from getting repeats
     scope :residential, -> do
       joins(:projects).where(
-        Project.arel_table[:ProjectType].in(HudUtility2024.residential_project_type_ids),
+        Project.arel_table[:ProjectType].in(HudHelper.util.residential_project_type_ids),
       )
     end
 
@@ -127,7 +127,7 @@ module GrdaWarehouse::Hud
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = user.all_access_group_ids
       group_id_query = if group_ids.empty?
         '0=1'
       else
@@ -158,7 +158,7 @@ module GrdaWarehouse::Hud
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = user.all_access_group_ids
       group_id_query = if group_ids.empty?
         '0=1'
       else
@@ -194,7 +194,7 @@ module GrdaWarehouse::Hud
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = user.access_groups.pluck(:id)
+      group_ids = user.all_access_group_ids
       group_id_query = if group_ids.empty?
         '0=1'
       else

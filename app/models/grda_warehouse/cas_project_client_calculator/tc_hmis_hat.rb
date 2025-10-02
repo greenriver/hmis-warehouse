@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'memery'
 module GrdaWarehouse::CasProjectClientCalculator
   class TcHmisHat < Default
@@ -30,6 +32,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       current_value
     end
 
+    # These fields get calculated regardless of if the client has a TC HAT
     private def local_calculators
       [
         :ssvf_eligible,
@@ -37,6 +40,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :default_shelter_agency_contacts,
         :days_homeless_in_last_three_years_cached,
         :literally_homeless_last_three_years_cached,
+        :va_eligible,
+        :vash_eligible,
       ].freeze
     end
 
@@ -159,8 +164,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         :ongoing_case_management_required,
         :currently_fleeing,
         :dv_date,
-        :va_eligible,
-        :vash_eligible,
         :rrh_desired,
         :required_minimum_occupancy,
         :required_number_of_bedrooms,
@@ -203,7 +206,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # Pregnant clients are always considered a family
       return true if pregnant
       # There is a child, but the parent doesn't, and won't have custody
-      return false if single_parent && (!custody_now && !custody_later)
+      return false if single_parent && !custody_now && !custody_later
       # Client indicated the household is adult only
       return false unless family || youth
       return true if household_size(client) > 1
@@ -316,7 +319,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def child_in_household(client)
       # Any open enrollment in SO, ES, SH, TH or PH, with a child under age 18
-      project_types = HudUtility2024.residential_project_type_numbers_by_codes(:so, :es, :sh, :th, :ph)
+      project_types = HudHelper.util.residential_project_type_numbers_by_codes(:so, :es, :sh, :th, :ph)
       client.service_history_enrollments.ongoing.in_project_type(project_types).
         where(she_t[:age].lt(18).or(she_t[:other_clients_under_18].eq(true))).exists?
     end

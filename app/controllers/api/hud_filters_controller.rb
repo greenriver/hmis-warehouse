@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Provides a list of projects that belong to to the selected
 # data sources and organizations
 # optionally, limits the list to only those a user can see
@@ -34,7 +36,7 @@ module Api
           o_t[:confidential],
         ).each do |id, p_name, p_confidential, type, o_name, o_id, o_confidential|
           project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, p_name, p_confidential || o_confidential)
-          project_name += " (#{HudUtility2024.project_type_brief(type)})" if HudUtility2024.project_type_brief(type).present?
+          project_name += " (#{HudHelper.util.project_type_brief(type)})" if HudHelper.util.project_type_brief(type).present?
 
           organization_name = o_confidential ? GrdaWarehouse::Hud::Organization.confidential_organization_name : o_name
           @data[[o_id, organization_name]] ||= []

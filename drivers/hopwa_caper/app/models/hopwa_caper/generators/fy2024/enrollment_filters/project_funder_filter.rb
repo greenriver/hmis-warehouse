@@ -13,7 +13,7 @@ module HopwaCaper::Generators::Fy2024::EnrollmentFilters
 
     def funders
       types.map do |type|
-        HudUtility2024.funding_sources.invert.fetch(type)
+        HudHelper.util('2024').funding_sources.invert.fetch(type)
       end
     end
 

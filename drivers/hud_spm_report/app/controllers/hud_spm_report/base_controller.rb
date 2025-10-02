@@ -11,7 +11,7 @@ module HudSpmReport
     before_action :filter
 
     private def relevant_project_types
-      HudUtility2026.spm_project_type_numbers
+      HudHelper.util('2026').spm_project_type_numbers
     end
 
     def cell_value(cell, path)
@@ -88,7 +88,7 @@ module HudSpmReport
     end
     helper_method :available_report_versions
 
-    private def possible_generator_classes
+    def possible_generator_classes
       {
         fy2020: HudSpmReport::Generators::Fy2020::Generator,
         fy2023: HudSpmReport::Generators::Fy2023::Generator,

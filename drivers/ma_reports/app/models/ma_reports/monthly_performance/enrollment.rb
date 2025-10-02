@@ -28,8 +28,8 @@ module MaReports::MonthlyPerformance
     def self.detail_headers
       # On the details page, only show the race columns stored in the database record
       headers.
-        reject { |k| HudUtility2024.race_ethnicity_combinations.include?(k) }.
-        merge(HudUtility2024.races.except('RaceNone').map { |k, v| [k.underscore.to_sym, v] }.to_h)
+        reject { |k| HudHelper.util.race_ethnicity_combinations.include?(k) }.
+        merge(HudHelper.util.races.except('RaceNone').map { |k, v| [k.underscore.to_sym, v] }.to_h)
     end
 
     def self.headers
@@ -45,22 +45,22 @@ module MaReports::MonthlyPerformance
         latest_for_client: 'Most-Recent Enrollment for Client',
         chronically_homeless_at_entry: 'Chronically Homeless at Entry',
         stay_length_in_days: 'Stay Length in Days',
-        am_ind_ak_native: HudUtility2024.race_ethnicity_combinations[:am_ind_ak_native],
-        am_ind_ak_native_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:am_ind_ak_native_hispanic_latinaeo],
-        asian: HudUtility2024.race_ethnicity_combinations[:asian],
-        asian_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:asian_hispanic_latinae],
-        black_af_american: HudUtility2024.race_ethnicity_combinations[:black_af_american],
-        black_af_american_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:black_af_american_hispanic_latinaeo],
-        hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:hispanic_latinaeo],
-        mid_east_n_african: HudUtility2024.race_ethnicity_combinations[:mid_east_n_african],
-        mid_east_n_african_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:mid_east_n_african_hispanic_latinaeo],
-        native_hi_pacific: HudUtility2024.race_ethnicity_combinations[:native_hi_pacific],
-        native_hi_pacific_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:native_hi_pacific_hispanic_latinaeo],
-        white: HudUtility2024.race_ethnicity_combinations[:white],
-        white_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:white_hispanic_latinaeo],
-        multi_racial: HudUtility2024.race_ethnicity_combinations[:multi_racial],
-        multi_racial_hispanic_latinaeo: HudUtility2024.race_ethnicity_combinations[:multi_racial_hispanic_latinaeo],
-        race_none: HudUtility2024.race_ethnicity_combinations[:race_none],
+        am_ind_ak_native: HudHelper.util.race_ethnicity_combinations[:am_ind_ak_native],
+        am_ind_ak_native_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:am_ind_ak_native_hispanic_latinaeo],
+        asian: HudHelper.util.race_ethnicity_combinations[:asian],
+        asian_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:asian_hispanic_latinae],
+        black_af_american: HudHelper.util.race_ethnicity_combinations[:black_af_american],
+        black_af_american_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:black_af_american_hispanic_latinaeo],
+        hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:hispanic_latinaeo],
+        mid_east_n_african: HudHelper.util.race_ethnicity_combinations[:mid_east_n_african],
+        mid_east_n_african_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:mid_east_n_african_hispanic_latinaeo],
+        native_hi_pacific: HudHelper.util.race_ethnicity_combinations[:native_hi_pacific],
+        native_hi_pacific_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:native_hi_pacific_hispanic_latinaeo],
+        white: HudHelper.util.race_ethnicity_combinations[:white],
+        white_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:white_hispanic_latinaeo],
+        multi_racial: HudHelper.util.race_ethnicity_combinations[:multi_racial],
+        multi_racial_hispanic_latinaeo: HudHelper.util.race_ethnicity_combinations[:multi_racial_hispanic_latinaeo],
+        race_none: HudHelper.util.race_ethnicity_combinations[:race_none],
         man: 'Man',
         woman: 'Woman',
         culturally_specific: 'Culturally Specific Identity (e.g., Two-Spirit)',

@@ -9,7 +9,7 @@
       "type": "CHOICE",
       "link_id": "R3_1",
       "required": false,
-      "warn_if_empty": true,
+      "warn_if_empty": false,
       "text": "Sexual Orientation",
       "pick_list_reference": "SexualOrientation",
       "mapping": {

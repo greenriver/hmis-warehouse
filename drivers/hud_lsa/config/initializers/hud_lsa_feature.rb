@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # The core app (or other drivers) can check the presence of the
 # HudLsa driver with the following code snippet
 #
@@ -18,6 +20,11 @@ Rails.application.config.hud_reports['HudLsa::Generators::Fy2023::Lsa'] = {
 }
 
 Rails.application.config.hud_reports['HudLsa::Generators::Fy2024::Lsa'] = {
+  title: 'Longitudinal System Analysis',
+  helper: 'hud_reports_lsas_path',
+}
+
+Rails.application.config.hud_reports['HudLsa::Generators::Fy2026::Lsa'] = {
   title: 'Longitudinal System Analysis',
   helper: 'hud_reports_lsas_path',
 }

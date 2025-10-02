@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::DocumentExports
   class HopwaCaperExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
@@ -18,9 +20,7 @@ module HopwaCaper::DocumentExports
     end
 
     private def possible_generator_classes
-      [
-        HopwaCaper::Generators::Fy2024::Generator,
-      ]
+      HopwaCaper::BaseController.new.possible_generator_classes.values
     end
   end
 end

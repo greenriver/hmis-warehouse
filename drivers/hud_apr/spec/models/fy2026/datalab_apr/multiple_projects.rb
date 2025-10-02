@@ -223,6 +223,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=70DA947B-96BA-4C6F-98333FEC149D4ABC
     it 'Q13c2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -371,6 +372,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=5A606727-DCC6-477E-BCAB6FCC078237F2
     it 'Q22g' do
       compare_results(
         file_path: result_file_prefix + results_dir,

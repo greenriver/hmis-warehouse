@@ -12,10 +12,15 @@ module HmisCsvTwentyTwentySix
       include NotifierConfig
 
       def self.upgrade!
-        count = ::GrdaWarehouse::RecurringHmisExport.where(version: '2024').count
-        ::GrdaWarehouse::RecurringHmisExport.where(version: '2024').update_all(version: '2026')
+        exports = ::GrdaWarehouse::RecurringHmisExport.all.filter { |e| e.options['version'] == '2024' }
 
-        send_single_notification("Updated #{count} recurring HMIS exports from 2024 to 2026", 'UpgradeRecurringExports') if count.positive?
+        exports.each do |export|
+          updated_options = export.options.deep_dup
+          updated_options['version'] = '2026'
+          export.update!(options: updated_options)
+        end
+
+        send_single_notification("Updated #{exports.count} recurring HMIS exports from 2024 to 2026", 'UpgradeRecurringExports') if exports.any?
       end
     end
   end
