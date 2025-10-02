@@ -17,7 +17,7 @@ RSpec.shared_context 'ce system test helper' do
   before(:all) do
     # Run workflow initialization once, instead of once per test
     ds1 = create(:hmis_data_source, hmis: 'localhost')
-    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
+    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     CeWorkflows::Ac::WorkflowBuilder.new(ds1).build_housing_workflow
   end

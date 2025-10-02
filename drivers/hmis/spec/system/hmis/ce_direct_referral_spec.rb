@@ -27,7 +27,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
   let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already in before_all
   let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template) }
-  let!(:unit) { create(:hmis_unit, project: target_project, unit_type: sro_type, unit_group: unit_group) }
+  let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
   let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: workflow_template, unit: unit, name: unit.name) }
 
   # Create client with enrollment in source project
@@ -38,9 +38,8 @@ RSpec.feature 'CE Direct Referrals', type: :system do
   let!(:household_member) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Jane', last_name: 'D') }
   let!(:household_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: household_member, entry_date: 30.days.ago, household_id: source_enrollment.household_id, relationship_to_ho_h: 2) }
 
-  # Shared method for creating a direct referral
-  def create_direct_referral
-    # Navigate to source project and find the enrollment
+  it 'completes the direct referral happy path' do
+    # Navigate to source project and create the direct referral
     visit "/projects/#{source_project.id}/referrals"
     click_link 'Send Referral'
     mui_select('Dan D and 1 other', from: 'HoH Enrollment')
@@ -50,13 +49,14 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     click_button 'Refer Household'
     expect(page).to have_content('Displaying 1 of 1 outgoing referral')
 
-    Hmis::Ce::Referral.last
-  end
+    referral = Hmis::Ce::Referral.sole
+    expect(referral.status).to eq('in_progress')
+    expect(referral.client).to eq(client1)
+    expect(referral.referred_by).to eq(admin)
+    expect(referral.referral_origin).to eq('direct_send')
+    expect(referral.source_enrollment).to eq(source_enrollment)
 
-  # Shared method for assigning provider to referral
-  def assign_provider_to_referral(referral)
     visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
-
     expect(page).to have_content('Referral for Dan D')
 
     # Assign provider to the Provider Outcome step
@@ -66,34 +66,26 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     click_button 'Submit'
     expect(page).not_to have_content('No assigned users')
     expect(page).to have_content('Assigned to Paul Provider')
-  end
 
-  it 'completes the direct referral happy path' do
-    # Create the direct referral
-    referral = create_direct_referral
-    expect(referral.status).to eq('in_progress')
-    expect(referral.client).to eq(client1)
-    expect(referral.referred_by).to eq(admin)
-    expect(referral.referral_origin).to eq('direct_send')
-    expect(referral.source_enrollment).to eq(source_enrollment)
-    # Assign provider to the referral
-    assign_provider_to_referral(referral)
     # Provider opens referral and completes the Provider Outcome task
     with_user_impersonated('Paul Provider') do
       # Provider can view the referral from their dashboard
       click_link 'Dashboard'
       expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
       expect(page).to have_content('Dan D')
+
       # Provider can view the referral from the project referrals table
       visit "/projects/#{target_project.id}/ce#referrals"
       expect(page).to have_content('Displaying 1 of 1 referral')
       expect(page).to have_content('Dan D')
       expect(page).to have_content('Assigned')
       click_link 'Dan D'
+
       # Provider can see the previously completed Admin Assign task
       click_link 'View step: Admin Assign'
       expect(page).to have_content('Direct referral for Dan D to Family Shelter')
       click_link 'Back to All Tasks'
+
       # Provider can see Details panel
       click_button 'Details'
       find("[role='button']", text: 'Source Enrollment Details').click # Can view enrollment details
@@ -101,6 +93,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       expect(page).to have_content('Dan D (HoH)') # Head of household
       expect(page).to have_content('Jane D (Child)') # Household member
       click_button 'close'
+
       # Provider accepts the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
       click_button 'Start step: Provider Outcome'
@@ -109,16 +102,18 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       mui_radio_choose 'Accept - Add to Project', from: 'Decision'
       expect(page).to have_content('The client will be added to the project as Incomplete.')
       click_button 'Submit'
+
       # Confirm Success task is available but provider can't access it
       expect(page).to have_content('Confirm Success Available Today')
       expect(page).not_to have_button('Start step: Confirm Success')
+
       # Target enrollment was created
       target_enrollment = referral.reload.target_enrollment
       expect(target_enrollment).to be_present
       expect(target_enrollment.project).to eq(target_project)
       expect(target_enrollment.current_unit).to eq(unit)
 
-      # CE Staff can add household members to the target enrollment
+      # Provider can add household members to the target enrollment
       visit "/client/#{client1.id}/enrollments/#{target_enrollment.id}/household"
       find("[role='button']", text: 'Add Household Member').click
       # todo @martha - associated household members are not visible due to provider permissions, if I have that configured correctly
@@ -128,8 +123,12 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       mui_select 'Child', from: 'Relationship to HoH'
       click_button 'Enroll'
       expect(page).to have_content('Jane D')
-      # todo @martha - added household member is not assigned to the unit. but in real life it would be due to form configs
+
+      # Household member was enrolled into the same unit
+      expect(target_enrollment.reload.household_members.count).to eq(2)
+      expect(target_enrollment.household_members.all.map(&:current_unit)).to eq([unit, unit])
     end
+
     # CE Staff completes the Confirm Success step
     visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Confirm Success'
@@ -139,6 +138,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
     expect(page).to have_content('Referral Complete')
     expect(page).to have_content("Dan D has been accepted to #{unit.name}")
     expect(referral.reload.status).to eq('accepted')
+
     # CE event was created on source enrollment
     event = referral.source_enrollment.events.sole
     expect(event.event).to eq(10) # referral to ES event type
