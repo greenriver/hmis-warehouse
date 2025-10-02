@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'CE Unit Management', type: :system do
   include_context 'ce system test helper'
+
   it 'admin creates units, provider creates opportunities' do
     visit "/projects/#{target_project.id}/units"
     click_link 'Manage Unit Group SROs'

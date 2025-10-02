@@ -179,7 +179,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
   end
 
   # Shared method for navigating around the referral as a provider and validating functionality
-  def confirm_provider_view
+  def confirm_provider_functionality
     click_link 'Dashboard'
     expect(page).to have_content('PAUL PROVIDER HMIS Dashboard')
     expect(page).to have_content('Provider Outcome Assigned Today')
@@ -213,7 +213,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
     # Impersonate Paul Provider and verify they can see the referral
     with_user_impersonated('Paul Provider') do
-      confirm_provider_view
+      confirm_provider_functionality
 
       # Provider approves the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
@@ -237,7 +237,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
     # Impersonate Paul Provider and verify they can see the referral
     with_user_impersonated('Paul Provider') do
-      confirm_provider_view
+      confirm_provider_functionality
 
       # Provider denies the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
@@ -283,7 +283,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
 
     # Impersonate Paul Provider and verify they can see the referral
     with_user_impersonated('Paul Provider') do
-      confirm_provider_view
+      confirm_provider_functionality
 
       # Provider denies the referral
       expect(page).to have_content('Provider Outcome Available Today Assigned to you')
@@ -306,7 +306,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     end
 
     referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
+    visit("/projects/#{p1.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Denial Review'
     mui_date_select 'Date', date: Date.current
     mui_radio_choose 'Approve Denial', from: 'Decision'
