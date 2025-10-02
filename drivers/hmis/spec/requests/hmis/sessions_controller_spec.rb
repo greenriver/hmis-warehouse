@@ -12,6 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::SessionsController, type: :request do
   let(:user) { create :user }
+  let(:hmis_user) { user.as_hmis_user.tap(&:reload) }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
   let!(:ds1) { create :hmis_primary_data_source }
@@ -39,6 +40,13 @@ RSpec.describe Hmis::SessionsController, type: :request do
       expect(api_query_response.status).to eq 200
     end
 
+    it 'creates a successful login activity' do
+      activity = LoginActivity.where(user: hmis_user, scope: 'hmis_user', success: true).order(:created_at).last
+
+      expect(activity).to be_present
+      expect(activity).to have_attributes(user: hmis_user, success: true, scope: 'hmis_user')
+    end
+
     it 'logs out' do
       delete destroy_hmis_user_session_path
       expect(response.status).to eq 204
@@ -60,6 +68,13 @@ RSpec.describe Hmis::SessionsController, type: :request do
     # https://github.com/tinfoil/devise-two-factor/pull/130
     it 'user failed_attempts should increment' do
       expect(user.reload.failed_attempts).to eq 2
+    end
+
+    it 'creates a failed login activity' do
+      activity = LoginActivity.where(user: hmis_user, scope: 'hmis_user', success: false).order(:created_at).last
+
+      expect(activity).to be_present
+      expect(activity).to have_attributes(user: hmis_user, success: false, scope: 'hmis_user')
     end
 
     describe 'followed by a successful login' do

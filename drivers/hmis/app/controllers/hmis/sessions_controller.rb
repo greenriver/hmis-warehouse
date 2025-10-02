@@ -24,8 +24,11 @@ class Hmis::SessionsController < Devise::SessionsController
   def create
     return failure_response(:locked) if locked_account?
 
-    self.resource = warden.authenticate!(auth_options)
+    self.resource = warden.authenticate(auth_options)
+    return handle_failed_authentication unless resource
+
     sign_in(:hmis_user, resource)
+    record_login_activity_for(resource, success: true)
     set_csrf_cookie
     response.headers['X-app-user-id'] = resource&.id
     render json: resource.current_user_api_values
@@ -48,6 +51,19 @@ class Hmis::SessionsController < Devise::SessionsController
   private def authenticate_with_2fa
     set_csrf_cookie
     authenticate_with_two_factor
+  end
+
+  private def record_login_activity_for(user, success: false)
+    return unless user
+
+    LoginActivity.create!(
+      user: user,
+      scope: :hmis_user,
+      success: success,
+      ip: request.remote_ip,
+      user_agent: request.user_agent,
+      strategy: authentication_strategy,
+    )
   end
 
   def find_user
@@ -98,6 +114,17 @@ class Hmis::SessionsController < Devise::SessionsController
 
   private def failure_response(type)
     render status: 401, json: { error: { type: type, message: I18n.t("devise.failure.#{type}") } }
+  end
+
+  private def authentication_strategy
+    return :otp if user_params[:otp_attempt].present?
+
+    :password
+  end
+
+  private def handle_failed_authentication
+    record_login_activity_for(find_user, success: false)
+    render status: 401, json: { error: { type: :invalid, message: I18n.t('devise.failure.invalid') } }
   end
 
   # If the account has been locked, show an appropriate message. We choose to show this message even if the password was
