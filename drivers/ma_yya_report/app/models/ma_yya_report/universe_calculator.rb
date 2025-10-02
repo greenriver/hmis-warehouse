@@ -187,7 +187,7 @@ module MaYyaReport
     private def enrollment_scope_without_date_range
       scope = ::GrdaWarehouse::ServiceHistoryEnrollment.
         entry
-      filter.apply_criteria(scope, tags: [:warehouse], except: [:filter_for_range])
+      filter.apply_criteria(scope, tags: [:warehouse], except: [:filter_for_range], all_project_types: true, chronic_at_entry: false)
     end
 
     private def enrollment_scope_with_preloads
