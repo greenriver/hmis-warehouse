@@ -7,7 +7,7 @@ class Numeric
   ALPHABET = ('a'..'z').to_a
 
   def to_csv_column
-    column_name = ''
+    column_name = String.new
     number = self
     while number.positive?
       number, remainder = (number - 1).divmod(26)
