@@ -116,7 +116,6 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       # Provider can add household members to the target enrollment
       visit "/client/#{client1.id}/enrollments/#{target_enrollment.id}/household"
       find("[role='button']", text: 'Add Household Member').click
-      # todo @martha - associated household members are not visible due to provider permissions, if I have that configured correctly
       fill_in 'Search for Client', with: 'Jane D'
       click_button 'Search'
       click_button 'Add to Household'
