@@ -53,7 +53,11 @@ class Hmis::Filter::CeOpportunityFilter < Hmis::Filter::BaseFilter
 
   def with_workflow_template_identifiers(scope)
     with_filter(scope, :workflow_template) do
-      scope.where(workflow_template_identifier: input.workflow_template)
+      # Join through unit -> unit_group to get workflow template
+      scope.joins(unit: :unit_group).where(
+        Hmis::UnitGroup.arel_table[:workflow_template_identifier].in(input.workflow_template),
+        # todo @martha - need to test this
+      )
     end
   end
 end

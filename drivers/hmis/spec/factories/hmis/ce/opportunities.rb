@@ -2,6 +2,7 @@
 
 FactoryBot.define do
   factory :hmis_ce_opportunity, class: 'Hmis::Ce::Opportunity' do
+    # todo @martha - can remove this?
     # Rules for using this factory in order to ensure consistency:
     # - If you don't provide anything, the factory will create an internally consistent opportunity.
     #   - The project's data source == the template's data source
@@ -10,11 +11,15 @@ FactoryBot.define do
 
     transient do
       data_source { build :hmis_data_source }
+      workflow_template { association :hmis_workflow_definition_template, data_source: data_source }
     end
 
     sequence(:name) { |n| "Opportunity #{n}" }
     project { association :hmis_hud_project, data_source: data_source }
-    workflow_template { association :hmis_workflow_definition_template, data_source: data_source }
-    unit { association :hmis_unit, project: project }
+
+    unit do
+      unit_group = association :hmis_unit_group, project: project, workflow_template_identifier: workflow_template.identifier
+      association :hmis_unit, project: project, unit_group: unit_group
+    end
   end
 end
