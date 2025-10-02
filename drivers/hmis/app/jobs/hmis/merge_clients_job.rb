@@ -59,6 +59,7 @@ module Hmis
         dedup(client_to_retain.custom_data_elements)
         client_to_retain.reload
         destroy_merged_clients
+        mark_clients_as_dirty_after_merge
       end
     end
 
@@ -320,12 +321,33 @@ module Hmis
     def destroy_merged_clients
       Rails.logger.info 'soft-deleting merged clients'
       ids = clients_needing_reference_updates.map(&:id)
-      scope = Hmis::Hud::Client.where(id: ids)
-      # preload associations to reduce n+1 when destroying a batch
-      preloads = Hmis::Hud::Client.reflect_on_all_associations.
-        filter { |a| a.options[:dependent] == :destroy }.
-        map(&:name)
-      scope.preload(*preloads).each(&:destroy!)
+
+      # Temporarily skip the mark_destination_client_dirty callback to avoid excessive queries during bulk destroy
+      Hmis::Hud::Client.skip_callback(:destroy, :after, :mark_destination_client_dirty)
+
+      begin
+        scope = Hmis::Hud::Client.where(id: ids)
+        # preload associations to reduce n+1 when destroying a batch
+        preloads = Hmis::Hud::Client.reflect_on_all_associations.
+          filter { |a| a.options[:dependent] == :destroy }.
+          map(&:name)
+        scope.preload(*preloads).each(&:destroy!)
+      ensure
+        # Restore the callback
+        Hmis::Hud::Client.set_callback(:destroy, :after, :mark_destination_client_dirty)
+      end
+    end
+
+    def mark_clients_as_dirty_after_merge
+      return unless Hmis::Ce.configuration.enabled?
+
+      # Find destination client for the retained client
+      destination_client_id = client_to_retain.destination_client&.id
+      return unless destination_client_id
+
+      # Mark the destination client as dirty
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: [destination_client_id])
+      Rails.logger.info "Marked destination client #{destination_client_id} as dirty after merge for retained client #{client_to_retain.id}"
     end
   end
 end
