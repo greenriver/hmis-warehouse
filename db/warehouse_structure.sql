@@ -1,4 +1,4 @@
--- \restrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
+-- \restrict zc5RRINzB6zDzt6qm4nfjmv1bGNObHlJlKTbYYnx5ju7SC6trkz2eXZckLsFwWN
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -27671,7 +27671,10 @@ CREATE TABLE public.ma_yya_report_clients (
     first_prevention_date_in_last_year date,
     first_homeless_date date,
     first_homeless_date_in_last_year date,
-    latest_homeless_entry_date date
+    latest_homeless_entry_date date,
+    report_id bigint,
+    project_id bigint,
+    enrollment_id bigint
 );
 
 
@@ -75766,11 +75769,12 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
+-- \unrestrict zc5RRINzB6zDzt6qm4nfjmv1bGNObHlJlKTbYYnx5ju7SC6trkz2eXZckLsFwWN
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251002195913'),
 ('20250926075333'),
 ('20250923120000'),
 ('20250920182921'),

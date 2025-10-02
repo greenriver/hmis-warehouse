@@ -39,14 +39,14 @@ module MaYyaReport
       previous_period_filter.end = filter.start - 1.day
       previous_period_filter.start = filter.start - 1.year
 
-      previous_period_calculator = UniverseCalculator.new(previous_period_filter)
+      previous_period_calculator = UniverseCalculator.new(previous_period_filter, self)
       previous_period_clients = []
       previous_period_calculator.calculate { |clients| previous_period_clients += clients.values }
 
       previous_period_client_ids = previous_period_clients.map { |client| client[:client_id] }
       previous_period_followup_clients_ids = find_previous_period_followup_client_ids(previous_period_clients)
 
-      universe_calculator = UniverseCalculator.new(filter)
+      universe_calculator = UniverseCalculator.new(filter, self)
       universe_calculator.calculate do |clients|
         clients.transform_values do |client|
           client[:reported_previous_period] = previous_period_client_ids.include?(client[:client_id])
