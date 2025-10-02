@@ -8,11 +8,21 @@ require_relative '../requests/hmis/login_and_permissions'
 RSpec.shared_context 'ce system test helper' do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  before(:all) do
+    # Run workflow initialization once, instead of once per test
+    ds1 = create(:hmis_data_source, hmis: 'localhost')
+    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
+    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+    CeWorkflows::Ac::WorkflowBuilder.new(ds1).build_housing_workflow
+  end
+
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.order(:id).first } # created already in before_all
   let!(:p1) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3) } # PSH
   let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
   let!(:project_ce_config) { create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true) }
+  let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already in before_all
 
+  # User setup - an admin (CE Staff), a provider, and another random user
   let!(:admin) { create(:hmis_user, data_source: ds1, first_name: 'Alexandra', last_name: 'Admin') }
   let!(:provider) { create(:hmis_user, data_source: ds1, first_name: 'Paul', last_name: 'Provider') }
   let!(:other_user) { create(:hmis_user, data_source: ds1, first_name: 'Oliver', last_name: 'Other') } # user without permissions
@@ -48,15 +58,6 @@ RSpec.shared_context 'ce system test helper' do
     )
   end
 
-  before do
-    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
-    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
-    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
-    sign_in(admin) # sign in as admin, impersonate provider
-  end
-
-  let!(:workflow_template) { CeWorkflows::Ac::WorkflowBuilder.new(ds1).build_housing_workflow }
-
   # Eligibility and prioritization fixtures. Note that rules are not actually used to generate the pool in these tests
   # (that's tested elsewhere, outside of system tests).
   # Rules are present anyway so the waitlist appears correctly in the UI.
@@ -68,6 +69,11 @@ RSpec.shared_context 'ce system test helper' do
 
   let!(:sro_type) { create(:hmis_unit_type, description: 'SRO') }
   let!(:unit_group) { create(:hmis_unit_group, project: p1, name: 'SROs', workflow_template: workflow_template, candidate_pool: score_pool) }
+
+  before do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    sign_in(admin) # sign in as admin; use impersonation in tests to complete provider steps
+  end
 end
 
 RSpec.configure do |rspec|
