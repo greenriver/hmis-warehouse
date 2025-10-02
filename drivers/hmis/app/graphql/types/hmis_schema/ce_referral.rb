@@ -61,7 +61,7 @@ module Types
       field :can_view_target_project, Boolean, null: false
       field :can_view_source_enrollment_details, Boolean, null: false
       field :can_assign_referral_tasks, Boolean, null: false
-      field :can_create_referral_global_note, Boolean, null: false, description: 'Whether or not the user can create a note on this referral at the global level, i.e., not tied to a specific task.'
+      field :can_create_referral_note, Boolean, null: false, description: 'Whether or not the user can create a note on this referral at the top level, i.e., not tied to a specific task.'
     end
 
     # Detailed fields that only those with full view access should see. Must be nullable
@@ -259,7 +259,7 @@ module Types
         can_view_target_project: project.present? && policy_for(project, policy_type: :hmis_project).can_view?,
         can_assign_referral_tasks: referral_policy.can_assign_referral_tasks?,
         can_view_source_enrollment_details: source_enrollment.present?,
-        can_create_referral_global_note: referral_policy.can_create_note?,
+        can_create_referral_note: referral_policy.can_create_note?,
       }
     end
 

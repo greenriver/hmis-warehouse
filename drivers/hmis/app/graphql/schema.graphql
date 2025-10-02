@@ -1092,9 +1092,9 @@ type CeReferralAccess {
   canAssignReferralTasks: Boolean!
 
   """
-  Whether or not the user can create a note on this referral at the global level, i.e., not tied to a specific task.
+  Whether or not the user can create a note on this referral at the top level, i.e., not tied to a specific task.
   """
-  canCreateReferralGlobalNote: Boolean!
+  canCreateReferralNote: Boolean!
   canViewReferralDetails: Boolean!
   canViewSourceEnrollmentDetails: Boolean!
   canViewTargetProject: Boolean!

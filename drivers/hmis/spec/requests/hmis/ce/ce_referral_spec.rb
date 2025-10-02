@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             targetProjectName
             access {
               canViewTargetProject
-              canCreateReferralGlobalNote
+              canCreateReferralNote
             }
             targetEnrollment {
               id
@@ -373,27 +373,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       describe 'note creation permission' do
-        shared_examples 'checks canCreateReferralGlobalNote permission' do |expected_value|
-          it "returns #{expected_value} for canCreateReferralGlobalNote" do
+        shared_examples 'checks canCreateReferralNote permission' do |expected_value|
+          it "returns #{expected_value} for canCreateReferralNote" do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
 
             access = result.dig('data', 'ceReferral', 'access')
-            expect(access['canCreateReferralGlobalNote']).to eq(expected_value)
+            expect(access['canCreateReferralNote']).to eq(expected_value)
           end
         end
 
         context 'when user can perform any referral tasks' do
           let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks, :can_view_project]) }
 
-          include_examples 'checks canCreateReferralGlobalNote permission', true
+          include_examples 'checks canCreateReferralNote permission', true
         end
 
         context 'when user can perform own referral tasks' do
           let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_own_referral_tasks, :can_view_project]) }
 
           context 'and user is not assigned' do
-            include_examples 'checks canCreateReferralGlobalNote permission', false
+            include_examples 'checks canCreateReferralNote permission', false
           end
 
           context 'and user is assigned' do
@@ -402,14 +402,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               referral.workflow_engine.assign_task!(referral.workflow_engine.active_steps.first)
             end
 
-            include_examples 'checks canCreateReferralGlobalNote permission', true
+            include_examples 'checks canCreateReferralNote permission', true
           end
         end
 
         context 'when user can only view referrals but cannot perform tasks' do
           let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_view_project]) }
 
-          include_examples 'checks canCreateReferralGlobalNote permission', false
+          include_examples 'checks canCreateReferralNote permission', false
         end
       end
     end
