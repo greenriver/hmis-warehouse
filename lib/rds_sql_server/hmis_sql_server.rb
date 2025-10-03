@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'sql_server_base'
 module HmisSqlServer
   # a Hash mapping hud filenames to GrdaWarehouse::Hud models

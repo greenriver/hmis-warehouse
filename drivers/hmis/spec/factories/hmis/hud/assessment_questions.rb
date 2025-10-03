@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_assessment_question, class: 'Hmis::Hud::AssessmentQuestion', parent: :hmis_base_factory do
     sequence(:AssessmentQuestionID, 500)

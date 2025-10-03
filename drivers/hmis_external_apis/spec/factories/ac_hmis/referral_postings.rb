@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :hmis_external_api_ac_hmis_referral_posting, class: 'HmisExternalApis::AcHmis::ReferralPosting' do
     sequence :identifier, Zlib.crc32('HmisExternalApis::AcHmis::ReferralPosting')

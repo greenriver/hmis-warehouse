@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :default_course, class: 'Talentlms::Course' do
     default { true }

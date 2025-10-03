@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 module HmisSqlServer
   # a Hash mapping hud filenames to GrdaWarehouse::Hud models

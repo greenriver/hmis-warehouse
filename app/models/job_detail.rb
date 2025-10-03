@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # TODO: Maybe move other items from DelayedJob initializer code into here?
 class JobDetail
   attr_reader :job

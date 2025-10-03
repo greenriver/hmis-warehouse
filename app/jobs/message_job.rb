@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 MessageJob = Struct.new(:schedule) do
   def perform
     messages = Message.unsent.unseen.joins(:user).order(created_at: :desc).preload(:user)

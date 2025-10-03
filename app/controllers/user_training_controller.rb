@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class UserTrainingController < ApplicationController
   def set_lms_info
     @courses = current_user.required_training_courses

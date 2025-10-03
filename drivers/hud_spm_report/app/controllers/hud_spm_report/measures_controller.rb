@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudSpmReport
   class MeasuresController < BaseController
     before_action :set_report, only: [:show, :destroy, :running, :result]

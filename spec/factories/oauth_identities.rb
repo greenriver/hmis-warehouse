@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :oauth_identity do
     provider { 'wh_okta' }

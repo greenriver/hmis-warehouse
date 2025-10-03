@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class NonHmisUploadsController < ApplicationController
   before_action :require_can_upload_dashboard_extras!
   before_action :set_data_source

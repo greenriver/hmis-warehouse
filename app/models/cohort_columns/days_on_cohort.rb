@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module CohortColumns
   class DaysOnCohort < ReadOnly
     attribute :column, String, lazy: true, default: :days_on_cohort

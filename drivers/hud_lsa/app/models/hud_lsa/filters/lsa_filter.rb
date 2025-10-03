@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HudLsa::Filters
   class LsaFilter < ::Filters::HudFilterBase
     validates_presence_of :coc_code

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # munged out of https://gist.github.com/d11wtq/1176236
 module Mail
   class DatabaseDelivery

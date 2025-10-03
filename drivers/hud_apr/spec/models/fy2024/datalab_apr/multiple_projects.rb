@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata do
   describe 'Datalab 2024 APR - Multiple Projects' do
     let(:results_dir) { 'apr/multiple_projects' }
