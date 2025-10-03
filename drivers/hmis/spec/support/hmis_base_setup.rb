@@ -7,8 +7,6 @@
 # frozen_string_literal: true
 
 RSpec.shared_context 'hmis base setup', shared_context: :metadata do
-  include_context 'with paper trail'
-
   let!(:ds1) { create :hmis_primary_data_source }
   let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }

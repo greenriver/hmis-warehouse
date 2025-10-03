@@ -44,11 +44,10 @@ module PaperTrailHelper
     private
 
     def around_paper_trail(enable)
-      previous = PaperTrail.enabled?
-      PaperTrail.enabled = enable
+      previous = adjust_enabled(enable)
       yield
     ensure
-      PaperTrail.enabled = previous
+      restore(previous)
     end
 
     def adjust_enabled(value)

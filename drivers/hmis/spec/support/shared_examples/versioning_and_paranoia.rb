@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.shared_examples 'paranoid model' do
+  include_context 'with paper trail'
+
   it 'soft deletes and restores' do
     record = defined?(build_record) ? instance_exec(&build_record) : raise('define let(:build_record) to use paranoid model shared examples')
     record_id = record.id
