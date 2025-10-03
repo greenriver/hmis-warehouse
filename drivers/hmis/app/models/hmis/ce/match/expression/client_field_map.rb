@@ -107,7 +107,7 @@ module Hmis::Ce::Match::Expression
           legacy_referrals_result = project_types_query(clients, legacy_referrals_scope, postings: :project)
 
           # Merge results from both referral types
-          ce_referrals_result.merge(legacy_referrals_result) { |_key, values1, values2| (values1 + values2).uniq }
+          ce_referrals_result.merge(legacy_referrals_result) { |_key, values1, values2| (values1 + values2).uniq.sort }
         end,
         format_for_display: method(:format_project_types),
       }
