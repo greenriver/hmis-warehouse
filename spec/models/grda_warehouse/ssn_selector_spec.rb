@@ -345,5 +345,23 @@ RSpec.describe GrdaWarehouse::SSNSelector do
         expect(selected[:SSNDataQuality]).to eq(99)
       end
     end
+
+    context 'when a candidate has a partial SSN with X-padding' do
+      let(:source_clients) do
+        [
+          {
+            SSN: 'XXXXX1234',
+            SSNDataQuality: 2,
+            DateCreated: Time.zone.local(2023, 1, 1),
+            id: 1,
+          },
+        ]
+      end
+
+      it 'preserves the partial SSN value and data quality' do
+        expect(selected[:SSN]).to eq('XXXXX1234')
+        expect(selected[:SSNDataQuality]).to eq(2)
+      end
+    end
   end
 end
