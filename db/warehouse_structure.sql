@@ -1,4 +1,4 @@
--- \restrict eQeaE2FL53ZHU23aYIKmsuP85U4v5MKg6HXTX27pDQefQP5wsTgRpfQcwC8keNH
+-- \restrict oNYIkodgyx3A5yFymIOI2LMe1UX2eZwkEKXtU2dJNmIaYtGsNjZ9KNPeL8oAOIx
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -3803,6 +3803,40 @@ CREATE VIEW analytics.hmis_staff_assignments AS
     hmis_staff_assignments.deleted_at
    FROM (public.hmis_staff_assignments
      LEFT JOIN public.hmis_staff_assignment_relationships ON ((hmis_staff_assignment_relationships.id = hmis_staff_assignments.hmis_staff_assignment_relationship_id)));
+
+
+--
+-- Name: hud_list_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_list_items (
+    id bigint NOT NULL,
+    list_name character varying NOT NULL,
+    method_name character varying NOT NULL,
+    list_number character varying NOT NULL,
+    label character varying NOT NULL,
+    code integer NOT NULL,
+    fiscal_year integer NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hud_list_items; Type: VIEW; Schema: analytics; Owner: -
+--
+
+CREATE VIEW analytics.hud_list_items AS
+ SELECT id,
+    list_name,
+    method_name,
+    list_number,
+    label,
+    code,
+    fiscal_year
+   FROM public.hud_list_items
+  WHERE (active = true);
 
 
 --
@@ -25334,6 +25368,25 @@ ALTER SEQUENCE public.hud_create_logs_id_seq OWNED BY public.hud_create_logs.id;
 
 
 --
+-- Name: hud_list_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_list_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_list_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_list_items_id_seq OWNED BY public.hud_list_items.id;
+
+
+--
 -- Name: hud_lsa_summary_results; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -36889,6 +36942,13 @@ ALTER TABLE ONLY public.hud_create_logs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: hud_list_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_list_items ALTER COLUMN id SET DEFAULT nextval('public.hud_list_items_id_seq'::regclass);
+
+
+--
 -- Name: hud_lsa_summary_results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -41409,6 +41469,14 @@ ALTER TABLE ONLY public.hud_chronics
 
 ALTER TABLE ONLY public.hud_create_logs
     ADD CONSTRAINT hud_create_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_list_items hud_list_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_list_items
+    ADD CONSTRAINT hud_list_items_pkey PRIMARY KEY (id);
 
 
 --
@@ -75768,11 +75836,13 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict eQeaE2FL53ZHU23aYIKmsuP85U4v5MKg6HXTX27pDQefQP5wsTgRpfQcwC8keNH
+-- \unrestrict oNYIkodgyx3A5yFymIOI2LMe1UX2eZwkEKXtU2dJNmIaYtGsNjZ9KNPeL8oAOIx
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251003200049'),
+('20251003192404'),
 ('20251003190848'),
 ('20251003190528'),
 ('20251002195913'),

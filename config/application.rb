@@ -174,5 +174,10 @@ module BostonHmis
     config.queued_tasks[:migrate_collection_coc_codes] = -> do
       ::Collection.migrate_from_local_coc_codes
     end
+
+    # Initial setup of HUD item lists
+    config.queued_tasks[:initialize_hud_list_items_table] = -> do
+      GrdaWarehouse::HudListItem.maintain!
+    end
   end
 end
