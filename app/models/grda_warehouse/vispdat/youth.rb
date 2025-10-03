@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Vispdat
   class Youth < Base
 
@@ -15,7 +17,7 @@ module GrdaWarehouse::Vispdat
       homeless_due_to_gender_identity
       incarcerated_before_18
     ).each do |field|
-      enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
+      enum "#{field}_answer".to_sym, { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
     end
 
     # different for youth

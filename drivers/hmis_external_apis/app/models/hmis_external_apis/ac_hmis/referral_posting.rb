@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   # A proposed fulfillment of a referral request
   class ReferralPosting < ::HmisExternalApis::HmisExternalApisBase
@@ -37,7 +39,7 @@ module HmisExternalApis::AcHmis
     alias_attribute :household_id, :HouseholdID
     # https://docs.google.com/spreadsheets/d/12wRLTjNdcs7A_1lHwkLUoKz1YWYkfaQs/edit#gid=26094550
     enum(
-      status: {
+      :status, {
         assigned_status: 12,
         closed_status: 13,
         accepted_pending_status: 18,
@@ -52,7 +54,7 @@ module HmisExternalApis::AcHmis
         # assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudHelper.util.hud_list_map_as_enumerable(:referral_results),
+      referral_result: ::HudHelper.util.hud_list_map_as_enumerable(:referral_results)
     )
 
     # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)

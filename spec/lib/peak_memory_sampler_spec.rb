@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -19,7 +19,7 @@ RSpec.describe PeakMemorySampler do
       peak_mem = profiled[:peak_memory_bytes]
       relative_mem = profiled[:relative_peak_memory_bytes]
 
-      expect(peak_mem).to be >= (base_mem)
+      expect(peak_mem).to be >= base_mem
       # Assert that the recorded peak memory is at least the size of the
       # baseline memory plus some fraction of the array
       expect(relative_mem).to be >= array_size * 0.9

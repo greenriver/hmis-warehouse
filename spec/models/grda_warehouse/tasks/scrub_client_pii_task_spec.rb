@@ -1,16 +1,18 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source, project_type: 0 }
 
-  before(:all) do
-    PaperTrail.enabled = true
-    PaperTrail.request.enabled = true
-  end
-  after(:all) do
-    PaperTrail.enabled = false
-    PaperTrail.request.enabled = false
+  around(:example) do |ex|
+    PaperTrailHelper.with_paper_trail do
+      PaperTrail.request.enabled = true
+      ex.run
+    ensure
+      PaperTrail.request.enabled = false
+    end
   end
 
   # Create test clients with PII
