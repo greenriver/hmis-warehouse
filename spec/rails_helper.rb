@@ -9,7 +9,6 @@ require 'spec_helper'
 require 'rspec/rails'
 require 'deprecation_helper'
 require './db/seed_maker'
-require_relative 'support/paper_trail_helper'
 # require 'simplecov'
 # require 'simplecov-console'
 # SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
