@@ -124,5 +124,20 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       general_access_group.add(test_user)
       expect(test_user.cohorts.pluck(:id)).to include(cohort.id)
     end
+
+    it 'user.cohorts should include cohorts from both private and shared access_groups' do
+      # Create a second cohort for the shared access group
+      cohort_2 = create(:cohort)
+
+      # Add cohort to user's private access group
+      test_user.access_group.add_viewable(cohort)
+
+      # Add cohort_2 to shared access group and add user to it
+      general_access_group.add_viewable(cohort_2)
+      general_access_group.add(test_user)
+
+      # User should have access to both cohorts
+      expect(test_user.cohorts.pluck(:id)).to include(cohort.id, cohort_2.id)
+    end
   end
 end

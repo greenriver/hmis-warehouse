@@ -1,3 +1,4 @@
+- object = local_assigns[:recurrence].presence || f.object
 .row
   .col-sm-12
     %h4 Notes About Choices
@@ -6,12 +7,12 @@
       generated on the specified schedule. A recurring report can be configured to always cover the same date range,
       or a sliding range based on the date the report is run.
 .d-flex
-  = f.input :every_n_days, collection: (0..31), label: 'Run every (n) days', input_html: { class: 'jRecurringDays ' }, as: :select_two
+  = f.input :every_n_days, collection: (0..31), label: 'Run every (n) days', input_html: { class: 'jRecurringDays ' }, selected: object.every_n_days, as: :select_two
   .jDependentRecurringFields.ml-4
-    = f.input :reporting_range, collection: GrdaWarehouse::RecurringHmisExport.available_reporting_ranges, label: 'For period', selected: @recurrence&.reporting_range || 'fixed', input_html: { class: 'jReportingRange ', style: 'width: 250px;'}, as: :select_two
+    = f.input :reporting_range, collection: GrdaWarehouse::RecurringHmisExport.available_reporting_ranges, label: 'For period', selected: object.reporting_range || 'fixed', input_html: { class: 'jReportingRange ', style: 'width: 250px;'}, as: :select_two
   .jDependentRecurringFields.ml-4
     .jReportingRangeDays
-      = f.input :reporting_range_days, as: :numeric, disabled: true, label: 'days report should cover'.html_safe
+      = f.input :reporting_range_days, as: :numeric, disabled: true, label: 'days report should cover'.html_safe, input_html: { value: object.reporting_range_days }
 
 .jDependentRecurringFields
   .row
@@ -21,20 +22,20 @@
         If these fields are completed, the report will be uploaded to Amazon S3.
   .row
     .col-sm-4
-      = f.input :s3_access_key_id, as: :password, label: 'S3 Access Key', input_html: { value: @recurrence&.s3_access_key_id}
+      = f.input :s3_access_key_id, as: :password, label: 'S3 Access Key', input_html: { value: object.s3_access_key_id}
     .col-sm-4
-      = f.input :s3_secret_access_key, as: :password, label: 'S3 Secret Key', input_html: { value: @recurrence&.s3_secret_access_key}
+      = f.input :s3_secret_access_key, as: :password, label: 'S3 Secret Key', input_html: { value: object.s3_secret_access_key}
     .col-sm-4
-      = f.input :s3_region, collection: AwsS3.available_s3_regions, label: 'Region', input_html: { style: 'width: 200px;' }, as: :select_two
+      = f.input :s3_region, collection: AwsS3.available_s3_regions, label: 'Region', input_html: { style: 'width: 200px;' }, selected: object.s3_region, as: :select_two
   .row
     .col-sm-3
-      = f.input :s3_bucket, label: 'Bucket'
+      = f.input :s3_bucket, label: 'Bucket', input_html: { value: object.s3_bucket }
     .col-sm-3
-      = f.input :s3_prefix, label: "Optional prefix"
+      = f.input :s3_prefix, label: "Optional prefix", input_html: { value: object.s3_prefix }
     .col-sm-3
-      = f.input :zip_password, label: 'Optional Zip Password', input_html: { autocomplete: :off,  value: @recurrence&.zip_password}
+      = f.input :zip_password, label: 'Optional Zip Password', input_html: { autocomplete: :off, value: object.zip_password}
     .col-sm-3
-      = f.input :encryption_type, label: 'Encryption Wrapper', hint: 'Only relevant if a password is provided', collection: GrdaWarehouse::RecurringHmisExport.available_encryption_types, as: :select_two, include_blank: false
+      = f.input :encryption_type, label: 'Encryption Wrapper', hint: 'Only relevant if a password is provided', collection: GrdaWarehouse::RecurringHmisExport.available_encryption_types, as: :select_two, include_blank: false, selected: object.encryption_type
   .row
     .col-sm-4
       = f.button :submit, value: save_language, data: { disable_with: 'running...' }

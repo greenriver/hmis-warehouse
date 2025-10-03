@@ -11,6 +11,7 @@ module Hmis::MarkClientAsDirtyBehavior
 
   included do
     after_save :mark_destination_client_dirty
+    after_destroy :mark_destination_client_dirty
   end
 
   protected

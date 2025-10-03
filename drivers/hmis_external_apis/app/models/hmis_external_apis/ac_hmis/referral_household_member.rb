@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   # A member of a household that is referred for services
   class ReferralHouseholdMember < ::HmisExternalApis::HmisExternalApisBase
@@ -11,6 +13,7 @@ module HmisExternalApis::AcHmis
     has_paper_trail(meta: { client_id: :client_id })
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
+    has_many :postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', through: :referral
 
     enum(
       relationship_to_hoh: ::HudHelper.util.hud_list_map_as_enumerable(:relationships_to_hoh),
