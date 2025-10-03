@@ -166,6 +166,23 @@ module HmisExternalApis::AcHmis
       end
     end
 
+    after_save :mark_household_members_dirty
+    def mark_household_members_dirty
+      return unless Hmis::Ce.configuration.enabled?
+
+      source_client_ids = referral.household_members.pluck(:client_id)
+      source_client_scope = Hmis::Hud::Client.where(id: source_client_ids)
+
+      # Join to destination clients
+      client_ids = GrdaWarehouse::WarehouseClient.
+        joins(:source).
+        merge(source_client_scope).
+        pluck(:destination_id)
+
+      # enqueue
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
+    end
+
     # If a household has been referred out from a project (e.g. the HMIS Coordinated Entry Project) and the referral has
     # been accepted or denied, and there are no active referrals for the household, exit the household.
     def exit_origin_household(user:)
