@@ -13,22 +13,16 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'CE Direct Referrals', type: :system do
   include_context 'ce system test helper'
 
-  # Run workflow initialization once, instead of once per test
-  before(:all) do
-    ds1 = GrdaWarehouse::DataSource.hmis.order(:id).first
-    CeWorkflows::Ac::WorkflowBuilder.new(ds1).build_admin_assign_workflow
-  end
-
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 14) } # Coordinated Entry
   let!(:source_project_ce_config) { create(:hmis_project_sends_direct_ce_referrals_config, project: source_project) }
 
   let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 1) } # Emergency Shelter
   let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: target_project, coc_code: 'CO-500' }
 
-  let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already in before_all
-  let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: workflow_template) }
+  let!(:admin_assign_workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already in shared context
+  let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
   let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
-  let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: workflow_template, unit: unit, name: unit.name) }
+  let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit, name: unit.name) }
 
   # Create client with enrollment in source project
   let!(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Dan', last_name: 'D') }
@@ -36,7 +30,7 @@ RSpec.feature 'CE Direct Referrals', type: :system do
 
   # Create household member for testing household referrals
   let!(:household_member) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Jane', last_name: 'D') }
-  let!(:household_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: household_member, entry_date: 30.days.ago, household_id: source_enrollment.household_id, relationship_to_ho_h: 2) }
+  let!(:household_enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: source_project, client: household_member, entry_date: 30.days.ago, household_id: source_enrollment.household_id, relationship_to_ho_h: 2) }
 
   it 'completes the direct referral happy path' do
     # Navigate to source project and create the direct referral
@@ -121,7 +115,10 @@ RSpec.feature 'CE Direct Referrals', type: :system do
       click_button 'Add to Household'
       mui_select 'Child', from: 'Relationship to HoH'
       click_button 'Enroll'
-      expect(page).to have_content('Jane D')
+      table = find("table[aria-label='Manage Household']")
+      expect(page).not_to have_content('Enroll Jane D') # Confirm the modal has exited before proceeding
+      mui_table_expect('Dan D', row_index: 0, column_header: 'Name', from: table)
+      mui_table_expect('Jane D', row_index: 1, column_header: 'Name', from: table)
 
       # Household member was enrolled into the same unit
       expect(target_enrollment.reload.household_members.count).to eq(2)

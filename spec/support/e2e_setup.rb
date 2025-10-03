@@ -159,14 +159,8 @@ RSpec.shared_context 'SystemSpecHelper' do
     begin
       yield
     ensure
-      # Try to exit impersonation after the yield block.
-      begin
-        click_button 'Exit'
-      rescue Capybara::Cuprite::MouseEventFailed, Capybara::ElementNotFound => e
-        # 'ensure' will still run even if there was an exception raised in the yield block,
-        # so rescue and log (instead of raising) since we don't want to mask whatever the original error was.
-        Rails.logger.warn("Failed to exit user impersonation: #{e.message}")
-      end
+      click_button 'Exit'
+      expect(page).not_to have_content("Acting as #{user_name}")
     end
   end
 

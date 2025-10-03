@@ -306,7 +306,7 @@ RSpec.feature 'CE Waitlist Referrals', type: :system do
     end
 
     referral = Hmis::Ce::Referral.sole
-    visit("/projects/#{p1.id}/ce/referrals/#{referral.id}")
+    visit("/projects/#{target_project.id}/ce/referrals/#{referral.id}")
     click_button 'Start step: Denial Review'
     mui_date_select 'Date', date: Date.current
     mui_radio_choose 'Approve Denial', from: 'Decision'

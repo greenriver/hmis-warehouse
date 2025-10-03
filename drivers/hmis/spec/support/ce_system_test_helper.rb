@@ -15,12 +15,18 @@ RSpec.shared_context 'ce system test helper' do
   include_context 'hmis base setup'
 
   before(:all) do
-    # Run workflow initialization once, instead of once per test
-    ds1 = create(:hmis_data_source, hmis: 'localhost')
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
     HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
-    CeWorkflows::Ac::WorkflowBuilder.new(ds1).build_housing_workflow
+    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
+    workflow_builder.build_housing_workflow
+    workflow_builder.build_admin_assign_workflow
   end
+
+  # after(:all) do
+  #   Hmis::Hud::CustomDataElementDefinition.destroy_all
+  #   # todo @martha - what else to clean up here?
+  # end
 
   let!(:ds1) { GrdaWarehouse::DataSource.hmis.order(:id).first } # created already in before_all
   let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3) } # PSH
