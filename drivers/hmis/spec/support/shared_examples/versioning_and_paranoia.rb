@@ -4,7 +4,6 @@ RSpec.shared_examples 'paranoid model' do
   # include_context 'with paper trail'
 
   it 'soft deletes and restores' do
-    puts "PaperTrail enabled: #{PaperTrail.enabled?} - soft deletes and restores"
     record = defined?(build_record) ? instance_exec(&build_record) : raise('define let(:build_record) to use paranoid model shared examples')
     record_id = record.id
 
@@ -30,7 +29,6 @@ RSpec.shared_examples 'versioned model' do
     PaperTrailHelper.with_paper_trail do
       PaperTrail.request.enabled = true
 
-      puts "PaperTrail enabled: #{PaperTrail.enabled?} - creates versions on update and destroy"
       record = instance_exec(&build_record)
       updater = update_attributes_for_versioning if defined?(update_attributes_for_versioning)
       raise('define let(:update_attributes_for_versioning) to specify an attribute change for versioning') unless updater.respond_to?(:call)
