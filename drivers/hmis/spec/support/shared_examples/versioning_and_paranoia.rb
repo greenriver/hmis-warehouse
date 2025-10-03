@@ -27,13 +27,17 @@ RSpec.shared_examples 'versioned model' do
   it 'creates versions on update and destroy' do
     raise('define let(:build_record) to use versioned model shared examples') unless defined?(build_record)
 
-    puts "PaperTrail enabled: #{PaperTrail.enabled?} - creates versions on update and destroy"
-    record = instance_exec(&build_record)
-    updater = update_attributes_for_versioning if defined?(update_attributes_for_versioning)
-    raise('define let(:update_attributes_for_versioning) to specify an attribute change for versioning') unless updater.respond_to?(:call)
+    PaperTrailHelper.with_paper_trail do
+      PaperTrail.request.enabled = true
 
-    expect { updater.call(record) }.to change { record.versions.size }.by(1)
-    # Use the association to avoid STI/base-class item_type mismatches
-    expect { record.destroy }.to change { record.versions.size }.by(1)
+      puts "PaperTrail enabled: #{PaperTrail.enabled?} - creates versions on update and destroy"
+      record = instance_exec(&build_record)
+      updater = update_attributes_for_versioning if defined?(update_attributes_for_versioning)
+      raise('define let(:update_attributes_for_versioning) to specify an attribute change for versioning') unless updater.respond_to?(:call)
+
+      expect { updater.call(record) }.to change { record.versions.size }.by(1)
+      # Use the association to avoid STI/base-class item_type mismatches
+      expect { record.destroy }.to change { record.versions.size }.by(1)
+    end
   end
 end
