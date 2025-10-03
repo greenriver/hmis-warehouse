@@ -3905,7 +3905,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/program_involvement.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral_household_member.rb'
-    - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral_posting.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral_request.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/unit_availability_sync.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms.rb'
