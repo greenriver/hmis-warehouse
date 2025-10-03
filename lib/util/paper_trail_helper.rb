@@ -29,14 +29,6 @@ module PaperTrailHelper
       adjust_enabled(true)
     end
 
-    def disable
-      adjust_enabled(false)
-    end
-
-    def enabled?
-      PaperTrail.enabled?
-    end
-
     def restore(state)
       PaperTrail.enabled = state
     end

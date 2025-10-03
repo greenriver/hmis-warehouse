@@ -6,12 +6,6 @@
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 # HmisExternalApis::TcHmis::Importers::Importer.perform(dir: '/host/tc', clobber: true, log_file: '/app/log/tc.log')
 module HmisExternalApis::TcHmis::Importers
   class Importer
