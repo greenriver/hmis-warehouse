@@ -63,9 +63,12 @@ module Hmis::Ce
       # Fall back to determining the event type based on the referral target project
       project = referral.target_project
       event_type = HudHelper.util('2026').project_to_ce_event_type(project)
-      if capture_to_sentry && !event_type
-        # Log to Sentry without raising. This is expected for projects that reuse a workflow from another project, but don't need to generate a CE event.
-        Sentry.capture_message("Unable to determine CE Event Type for project type #{project.project_type} on project #{project.id} for referral #{referral.id}")
+
+      expected_project_types = [12] # If the project is one of these expected types, don't log to sentry
+      if capture_to_sentry && !event_type && !expected_project_types.include?(project.project_type)
+        # Log to Sentry without raising.
+        # This may indicate a misconfigured workflow, but may just indicate a project that's reusing a workflow template but doesn't need to generate CE events.
+        Sentry.capture_message("Unable to determine CE Event Type for project type #{project.project_type} on project #{project.id} for referral #{referral.id}. Not a user-facing error.")
       end
       event_type
     end
