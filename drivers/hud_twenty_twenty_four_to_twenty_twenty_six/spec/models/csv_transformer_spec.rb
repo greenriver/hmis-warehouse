@@ -63,6 +63,26 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
     csv_content = CSV.read(custom_enrollment_fy26_deprecations, headers: true)
     headers = csv_content.headers
     expect(headers).to include(*HmisCsvTwentyTwentySix::Loader::Custom::CustomEnrollmentFy26Deprecation.hud_csv_headers)
+
+    # Verify at least some records have sexual orientation or translation assistance data
+    records_with_data = csv_content.select do |row|
+      [
+        row['SexualOrientation'],
+        row['SexualOrientationOther'],
+        row['TranslationNeeded'],
+        row['PreferredLanguage'],
+        row['PreferredLanguageDifferent'],
+      ].any? { |val| val.strip.present? }
+    end
+    expect(records_with_data.length).to be > 0
+
+    # Confirm one known record
+    records_with_data = csv_content.select do |row|
+      [
+        row['PreferredLanguageDifferent'],
+      ].any? { |val| val == 'British English' }
+    end
+    expect(records_with_data.length).to be > 0
   end
 
   def create_test_dir

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -92,6 +98,24 @@ RSpec.describe model, type: :model do
           user.add_viewable(ds1)
           user.add_viewable(ds2)
           expect(user_ids[user]).to eq ids[ds1, ds2]
+        end
+      end
+
+      describe 'user assigned via shared and private groups' do
+        let!(:shared_group) { create(:access_group) }
+
+        before do
+          user.add_viewable(ds1)
+          shared_group.add_viewable(ds2)
+          user.access_groups = [shared_group]
+        end
+
+        it 'sees ds1 and ds2' do
+          expect(user_ids[user]).to eq ids[ds1, ds2]
+        end
+
+        after do
+          user.access_groups = []
         end
       end
     end

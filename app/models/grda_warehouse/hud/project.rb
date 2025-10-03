@@ -413,7 +413,7 @@ module GrdaWarehouse::Hud
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id)
+        user.all_access_group_ids
       end
       group_id_query = if group_ids.empty?
         '0=1'
@@ -449,7 +449,7 @@ module GrdaWarehouse::Hud
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id) || []
+        user.all_access_group_ids || []
       end
       group_id_query = if group_ids.empty?
         '0=1'
@@ -491,7 +491,7 @@ module GrdaWarehouse::Hud
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id)
+        user.all_access_group_ids
       end
       group_id_query = if group_ids.empty?
         '0=1'

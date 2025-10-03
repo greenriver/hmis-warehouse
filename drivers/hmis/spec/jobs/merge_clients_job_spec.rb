@@ -148,6 +148,25 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  context 'with CE enabled' do
+    let(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
+    let(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
+
+    before do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    it 'marks the merged clients as dirty' do
+      expect(Hmis::Ce::ChangeMarker.dirty.count).to eq(0)
+
+      expect do
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      end.to change { Hmis::Ce::ChangeMarker.dirty.count }.by(1)
+
+      expect(Hmis::Ce::ChangeMarker.sole.trackable).to eq(client1.destination_client.as_warehouse)
+    end
+  end
+
   context 'when merged client has enrollment' do
     let!(:o1) { create :hmis_hud_organization, data_source: data_source, user: user }
     let!(:p1) { create(:hmis_hud_project, data_source: data_source, organization: o1) }

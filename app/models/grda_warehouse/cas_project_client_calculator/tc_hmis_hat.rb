@@ -32,6 +32,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       current_value
     end
 
+    # These fields get calculated regardless of if the client has a TC HAT
     private def local_calculators
       [
         :ssvf_eligible,
@@ -39,6 +40,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :default_shelter_agency_contacts,
         :days_homeless_in_last_three_years_cached,
         :literally_homeless_last_three_years_cached,
+        :va_eligible,
+        :vash_eligible,
       ].freeze
     end
 
@@ -161,8 +164,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         :ongoing_case_management_required,
         :currently_fleeing,
         :dv_date,
-        :va_eligible,
-        :vash_eligible,
         :rrh_desired,
         :required_minimum_occupancy,
         :required_number_of_bedrooms,
