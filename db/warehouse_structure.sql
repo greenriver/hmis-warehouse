@@ -1,4 +1,4 @@
--- \restrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
+-- \restrict eQeaE2FL53ZHU23aYIKmsuP85U4v5MKg6HXTX27pDQefQP5wsTgRpfQcwC8keNH
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -1312,6 +1312,7 @@ CREATE VIEW analytics.clients AS
     "NameDataQuality",
     "SSNDataQuality",
     "DOBDataQuality",
+    "Sex",
     "AmIndAKNative",
     "Asian",
     "BlackAfAmerican",
@@ -2861,7 +2862,9 @@ CREATE TABLE public."Enrollment" (
 --
 
 CREATE VIEW analytics.enrollments AS
- SELECT "EnrollmentID",
+ SELECT id,
+    data_source_id,
+    "EnrollmentID",
     "PersonalID",
     "ProjectID",
     "EntryDate",
@@ -2939,14 +2942,6 @@ CREATE VIEW analytics.enrollments AS
     "CoercedToContinueWork",
     "LaborExploitPastThreeMonths",
     "HPScreeningScore",
-    "VAMCStation_deleted",
-    "DateCreated",
-    "DateUpdated",
-    "UserID",
-    "DateDeleted",
-    "ExportID",
-    data_source_id,
-    id,
     "LOSUnderThreshold",
     "PreviousStreetESSH",
     "UrgentReferral",
@@ -2977,7 +2972,6 @@ CREATE VIEW analytics.enrollments AS
     last_locality,
     last_zipcode,
     source_hash,
-    pending_date_deleted,
     "SexualOrientationOther",
     history_generated_on,
     original_household_id,
@@ -2998,8 +2992,13 @@ CREATE VIEW analytics.enrollments AS
     "PreferredLanguage",
     "PreferredLanguageDifferent",
     "VAMCStation",
-    lock_version,
-    project_pk
+    project_pk,
+    "MentalHealthConsultation",
+    "DateCreated",
+    "DateUpdated",
+    "UserID",
+    "DateDeleted",
+    "ExportID"
    FROM public."Enrollment"
   WHERE ("DateDeleted" IS NULL);
 
@@ -27671,7 +27670,10 @@ CREATE TABLE public.ma_yya_report_clients (
     first_prevention_date_in_last_year date,
     first_homeless_date date,
     first_homeless_date_in_last_year date,
-    latest_homeless_entry_date date
+    latest_homeless_entry_date date,
+    report_id bigint,
+    project_id bigint,
+    enrollment_id bigint
 );
 
 
@@ -75766,11 +75768,14 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict ZPyivsF9GkB5u1d92hyhLiECryKCguZg8wNjwmDGHkUG0SKkvKgQm18KVDEDhI9
+-- \unrestrict eQeaE2FL53ZHU23aYIKmsuP85U4v5MKg6HXTX27pDQefQP5wsTgRpfQcwC8keNH
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251003190848'),
+('20251003190528'),
+('20251002195913'),
 ('20250926075333'),
 ('20250923120000'),
 ('20250920182921'),
