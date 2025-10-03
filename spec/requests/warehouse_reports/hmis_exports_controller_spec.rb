@@ -173,4 +173,152 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
       end
     end
   end
+
+  describe 'GET #edit' do
+    let!(:recurring_export) do
+      create(
+        :recurring_hmis_export,
+        user: user,
+        options: {
+          'version' => '2026',
+          'source_type' => 3,
+          'hash_status' => 4,
+          'period_type' => 1,
+          'include_deleted' => true,
+          'faked_pii' => true,
+          'confidential' => true,
+          'enforce_project_date_scope' => true,
+          'start_date' => 2.weeks.ago.to_date.iso8601,
+          'end_date' => 1.week.ago.to_date.iso8601,
+        },
+      )
+    end
+    let!(:hmis_export) { create(:grda_warehouse_hmis_export) }
+    let!(:export_link) { create(:recurring_hmis_export_link, recurring_hmis_export: recurring_export, hmis_export: hmis_export) }
+
+    it 'loads the edit form with filter options' do
+      get edit_warehouse_reports_hmis_export_path(hmis_export)
+
+      expect(response).to have_http_status(:success)
+      expect(assigns(:recurrence)).to eq(recurring_export)
+      expect(assigns(:filter)).to be_a(Filters::HmisExport)
+
+      # Verify that the filter has the same values as the recurring export options
+      filter = assigns(:filter)
+      expect(filter.version).to eq(recurring_export.options['version'])
+      expect(filter.source_type).to eq(recurring_export.options['source_type'])
+      expect(filter.hash_status).to eq(recurring_export.options['hash_status'])
+      expect(filter.period_type).to eq(recurring_export.options['period_type'])
+      expect(filter.include_deleted).to eq(recurring_export.options['include_deleted'])
+      expect(filter.faked_pii).to eq(recurring_export.options['faked_pii'])
+      expect(filter.confidential).to eq(recurring_export.options['confidential'])
+      expect(filter.enforce_project_date_scope).to eq(recurring_export.options['enforce_project_date_scope'])
+    end
+  end
+
+  describe 'PATCH #update' do
+    let!(:recurring_export) { create(:recurring_hmis_export, user: user) }
+    let!(:hmis_export) { create(:grda_warehouse_hmis_export) }
+    let!(:export_link) { create(:recurring_hmis_export_link, recurring_hmis_export: recurring_export, hmis_export: hmis_export) }
+
+    context 'with valid parameters' do
+      let(:update_params) do
+        {
+          filter: {
+            # Filter options
+            version: '2026',
+            source_type: 3,
+            hash_status: 4,
+            period_type: 1,
+            include_deleted: true,
+            faked_pii: true,
+            confidential: true,
+            enforce_project_date_scope: true,
+            project_ids: [1, 2, 3],
+            project_group_ids: [4, 5],
+            organization_ids: [6, 7],
+            data_source_ids: [8, 9],
+            coc_codes: ['XX-500'],
+            custom_file_types: ['CustomGender', 'CustomSexualOrientation'],
+            # Recurrence options
+            every_n_days: 7,
+            reporting_range: 'n_days',
+            reporting_range_days: 30,
+            s3_access_key_id: 'test_key',
+            s3_secret_access_key: 'test_secret',
+            s3_region: 'us-east-1',
+            s3_bucket: 'test-bucket',
+            s3_prefix: 'test-prefix',
+            zip_password: 'test_password',
+            encryption_type: 'zip',
+          },
+        }
+      end
+
+      it 'updates both filter and recurrence options' do
+        patch warehouse_reports_hmis_export_path(hmis_export), params: update_params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(flash[:notice]).to eq('Recurring export options updated')
+
+        recurring_export.reload
+        expect(recurring_export.options['version']).to eq('2026')
+        expect(recurring_export.options['source_type']).to eq('3')
+        expect(recurring_export.options['hash_status']).to eq('4')
+        expect(recurring_export.options['period_type']).to eq('1')
+        expect(recurring_export.options['include_deleted']).to eq(true)
+        expect(recurring_export.options['faked_pii']).to eq('true')
+        expect(recurring_export.options['confidential']).to eq('true')
+        expect(recurring_export.options['enforce_project_date_scope']).to eq('true')
+        expect(recurring_export.options['project_ids']).to eq(['1', '2', '3'])
+        expect(recurring_export.options['project_group_ids']).to eq(['4', '5'])
+        expect(recurring_export.options['organization_ids']).to eq(['6', '7'])
+        expect(recurring_export.options['data_source_ids']).to eq(['8', '9'])
+        expect(recurring_export.options['coc_codes']).to eq(['XX-500'])
+        expect(recurring_export.options['custom_file_types']).to eq(['CustomGender', 'CustomSexualOrientation'])
+
+        expect(recurring_export.every_n_days).to eq(7)
+        expect(recurring_export.reporting_range).to eq('n_days')
+        expect(recurring_export.reporting_range_days).to eq(30)
+        expect(recurring_export.s3_access_key_id).to eq('test_key')
+        expect(recurring_export.s3_secret_access_key).to eq('test_secret')
+        expect(recurring_export.s3_region).to eq('us-east-1')
+        expect(recurring_export.s3_bucket).to eq('test-bucket')
+        expect(recurring_export.s3_prefix).to eq('test-prefix')
+        expect(recurring_export.zip_password).to eq('test_password')
+        expect(recurring_export.encryption_type).to eq('zip')
+      end
+
+      it 'preserves start_date and end_date in options' do
+        original_start_date = recurring_export.options['start_date']
+        original_end_date = recurring_export.options['end_date']
+
+        patch warehouse_reports_hmis_export_path(hmis_export), params: update_params
+
+        recurring_export.reload
+        expect(recurring_export.options['start_date']).to eq(original_start_date)
+        expect(recurring_export.options['end_date']).to eq(original_end_date)
+      end
+    end
+
+    context 'with invalid parameters' do
+      let(:invalid_params) do
+        {
+          filter: {
+            every_n_days: -1, # Invalid value
+            reporting_range: 'invalid_range', # Invalid value
+          },
+        }
+      end
+
+      it 'renders edit form with errors' do
+        patch warehouse_reports_hmis_export_path(hmis_export), params: invalid_params
+
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:edit)
+        expect(assigns(:recurrence)).to eq(recurring_export)
+        expect(assigns(:filter)).to be_a(Filters::HmisExport)
+      end
+    end
+  end
 end
