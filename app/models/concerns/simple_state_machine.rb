@@ -35,6 +35,7 @@ module SimpleStateMachine
       validates ssm_column, inclusion: {
         in: state_machine_states.map(&:to_s),
         message: "must be one of: #{state_machine_states.map(&:to_s).join(', ')}",
+        allow_nil: true,
       }
 
       # Define event methods
