@@ -231,18 +231,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       log_info("Extrapolation matched #{matched} of #{missing.values.map(&:size).sum} missing enrollment ids")
     end
 
-    # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when
-    # we have to fallback to individual inserts
-    def without_paper_trail
-      enabled = PaperTrail.enabled?
-      begin
-        PaperTrail.enabled = false
-        yield
-      ensure
-        PaperTrail.enabled = enabled
-      end
-    end
-
     def log_skipped_row(row, field:, prefix: nil)
       value = row.field_value(field)
       log_info "#{row.context} #{prefix} could not resolve \"#{field}\":\"#{value}\""
