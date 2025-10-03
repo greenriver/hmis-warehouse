@@ -352,7 +352,7 @@ RSpec.describe GrdaWarehouse::SSNSelector do
           {
             SSN: 'XXXXX1234',
             SSNDataQuality: 2,
-            DateCreated: Time.zone.local(2023, 1, 1),
+            DateCreated: Time.zone.local(2023, 1, 2),
             id: 1,
           },
         ]
