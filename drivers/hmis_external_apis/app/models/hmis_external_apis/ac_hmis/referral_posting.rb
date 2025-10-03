@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HmisExternalApis::AcHmis
   # A proposed fulfillment of a referral request
   class ReferralPosting < ::HmisExternalApis::HmisExternalApisBase
@@ -162,6 +164,23 @@ module HmisExternalApis::AcHmis
         self.status_updated_at = Time.current unless status_updated_at_changed?
         self.status_updated_by_id = user.id unless status_updated_by_id_changed?
       end
+    end
+
+    after_save :mark_household_members_dirty
+    def mark_household_members_dirty
+      return unless Hmis::Ce.configuration.enabled?
+
+      source_client_ids = referral.household_members.pluck(:client_id)
+      source_client_scope = Hmis::Hud::Client.where(id: source_client_ids)
+
+      # Join to destination clients
+      client_ids = GrdaWarehouse::WarehouseClient.
+        joins(:source).
+        merge(source_client_scope).
+        pluck(:destination_id)
+
+      # enqueue
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
     # If a household has been referred out from a project (e.g. the HMIS Coordinated Entry Project) and the referral has
