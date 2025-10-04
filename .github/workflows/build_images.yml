@@ -100,6 +100,12 @@ jobs:
         id: container-setup
         uses: ./.github/workflows/container_setup
 
+      - name: Prepare app assets
+        run: |
+          cp config/secrets.yml.sample config/secrets.yml
+          mkdir -p app/assets/stylesheets/theme/styles
+          touch app/assets/stylesheets/theme/styles/_variables.scss
+
       - name: Precompile assets
         shell: bash
         env:
