@@ -158,8 +158,8 @@ runs:
         # Install pg gem with correct configuration
         # gem install pg -- --with-pg-config=/usr/bin/pg_config
         run_as_root gem install bundler --version=2.6.3
-        bundle config set --local without 'production staging'
-        bundle install --jobs 10 --retry 3
+        run_as_root bundle config set --local without 'production staging'
+        run_as_root bundle install --jobs 10 --retry 3
 
     - name: Cache Node.js modules
       uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
@@ -169,4 +169,13 @@ runs:
 
     - name: Install Node.js modules
       shell: bash
-      run: yarn install --frozen-lockfile
+      run: |
+        run_as_root() {
+          if [ "$(id -u)" -eq 0 ]
+          then
+            "$@"
+          else
+            sudo "$@"
+          fi
+        }
+        run_as_rootyarn install --frozen-lockfile
