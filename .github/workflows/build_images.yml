@@ -102,6 +102,7 @@ jobs:
 
       - name: Precompile assets
         env:
+          RAILS_ENV: production
           DEPLOY_PROTECT_SECRETS: true
           EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE: gr-op-gha-except
           DATABASE_ADAPTER: postgresql
