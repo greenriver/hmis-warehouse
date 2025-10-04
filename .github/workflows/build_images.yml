@@ -107,6 +107,7 @@ jobs:
           CACHE_HOST: redis
           CACHE_PORT: "6379"
           CACHE_DB: "0"
+          CLIENT: warehouse
           DEPLOY_PROTECT_SECRETS: true
           EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE: gr-op-gha-except
           DATABASE_ADAPTER: postgresql
