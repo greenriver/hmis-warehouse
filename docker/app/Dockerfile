@@ -203,7 +203,7 @@ COPY --chown=app-user:app-user Gemfile Gemfile.lock ./
 RUN bundle config without development test doc \
   && bundle install \
   && find /bundle -name "*.o" -exec rm {} \; \
-  && find /bundle -name "*.c" -exec rm {} \;
+  && find /bundle -name "*.c" -exec rm {} \; \
   && mkdir -p public/assets var
 
 RUN bundle exec rails assets:precompile
