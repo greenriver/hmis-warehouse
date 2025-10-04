@@ -95,6 +95,38 @@ jobs:
           echo $BRANCH > docker/app/GIT_BRANCH
           bin/error_if_githash_is_latest.rb base
 
+      # Required for asset compilation
+      - name: Container Setup
+        id: container-setup
+        uses: ./.github/workflows/container_setup
+
+      - name: Precompile assets
+        env:
+          DEPLOY_PROTECT_SECRETS: true
+          EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE: gr-op-gha-except
+          DATABASE_ADAPTER: postgresql
+          DATABASE_HOST: postgres
+          DATABASE_PASS: postgres
+          DATABASE_USER: postgres
+          DEFAULT_FROM: greenriver.testing@mailinator.com
+          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+          HEALTH_DATABASE_ADAPTER: postgresql
+          HEALTH_DATABASE_HOST: postgres
+          HEALTH_DATABASE_PASS: postgres
+          HEALTH_DATABASE_USER: postgres
+          REPORTING_DATABASE_ADAPTER: postgresql
+          REPORTING_DATABASE_HOST: postgres
+          REPORTING_DATABASE_PASS: postgres
+          REPORTING_DATABASE_USER: postgres
+          WAREHOUSE_DATABASE_ADAPTER: postgis
+          WAREHOUSE_DATABASE_HOST: postgres
+          WAREHOUSE_DATABASE_PASS: postgres
+          WAREHOUSE_DATABASE_USER: postgres
+          WAREHOUSE_DATABASE_DB: warehouse_db
+          HEALTH_DATABASE_DB: health_db
+          REPORTING_DATABASE_DB: reporting_db
+        run: bundle exec rails assets:precompile
+
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
         id: meta
@@ -176,10 +208,10 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"
         with:
           image-ref: ${{ secrets.ECR_REPOSITORY_URI }}
-          format: 'table'
-          exit-code: '1'
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          severity: "CRITICAL,HIGH"
           cache-dir: .trivy
           skip-files: ${{ matrix.trivy_skip_files }}
 
