@@ -131,6 +131,7 @@ jobs:
           WAREHOUSE_DATABASE_DB: warehouse_db
           HEALTH_DATABASE_DB: health_db
           REPORTING_DATABASE_DB: reporting_db
+          SECRET_KEY_BASE: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
         run: |
           echo "RAILS_ENV=$RAILS_ENV"
           bundle exec rails assets:precompile
