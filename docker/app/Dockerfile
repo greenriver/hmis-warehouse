@@ -204,6 +204,9 @@ RUN bundle config without development test doc \
   && bundle install \
   && find /bundle -name "*.o" -exec rm {} \; \
   && find /bundle -name "*.c" -exec rm {} \;
+  && mkdir -p public/assets var
+
+RUN bundle exec rails assets:precompile
 
 COPY --chown=app-user:app-user package.json yarn.lock ./
 RUN yarn install --frozen-lockfile \
@@ -216,4 +219,4 @@ COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
 RUN rm -rf tmp/* \
-  && mkdir -p tmp/pids public/assets var
+  && mkdir -p tmp/pids
