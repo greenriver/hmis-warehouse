@@ -101,6 +101,7 @@ jobs:
         uses: ./.github/workflows/container_setup
 
       - name: Precompile assets
+        shell: bash
         env:
           RAILS_ENV: production
           CACHE_HOST: redis
@@ -129,7 +130,9 @@ jobs:
           WAREHOUSE_DATABASE_DB: warehouse_db
           HEALTH_DATABASE_DB: health_db
           REPORTING_DATABASE_DB: reporting_db
-        run: bundle exec rails assets:precompile
+        run: |
+          echo "RAILS_ENV=$RAILS_ENV"
+          bundle exec rails assets:precompile
 
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
