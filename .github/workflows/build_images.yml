@@ -101,6 +101,9 @@ jobs:
         uses: ./.github/workflows/container_setup
 
       - name: Prepare app assets
+        env:
+          RAILS_ENV: production
+          SECRET_KEY_BASE: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
         run: |
           cp config/secrets.yml.sample config/secrets.yml
           ruby -e "require 'yaml'; env = ENV.fetch('RAILS_ENV', 'production'); secrets = YAML.load_file('config/secrets.yml'); secrets[env] ||= {}; secrets[env]['secret_key_base'] ||= ENV.fetch('SECRET_KEY_BASE'); File.write('config/secrets.yml', secrets.to_yaml)"
