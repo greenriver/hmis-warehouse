@@ -206,9 +206,9 @@ RUN bundle config without development test doc \
   && find /bundle -name "*.c" -exec rm {} \; \
   && mkdir -p public/assets var
 
-RUN bundle exec rails assets:precompile
+RUN bundle exec rake assets:precompile
 
-COPY --chown=app-user:app-user package.json yarn.lock ./
+  COPY --chown=app-user:app-user package.json yarn.lock ./
 RUN yarn install --frozen-lockfile \
   && yarn cache clean
 
