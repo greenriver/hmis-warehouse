@@ -103,6 +103,9 @@ jobs:
       - name: Precompile assets
         env:
           RAILS_ENV: production
+          CACHE_HOST: redis
+          CACHE_PORT: "6379"
+          CACHE_DB: "0"
           DEPLOY_PROTECT_SECRETS: true
           EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE: gr-op-gha-except
           DATABASE_ADAPTER: postgresql
