@@ -178,4 +178,4 @@ runs:
             sudo "$@"
           fi
         }
-        run_as_rootyarn install --frozen-lockfile
+        run_as_root yarn install --frozen-lockfile
