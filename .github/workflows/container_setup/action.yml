@@ -5,14 +5,14 @@
 #   id: container-setup
 #   uses: ./.github/workflows/container_setup
 
-name: 'Container Setup'
-description: 'Sets up the container for running tests'
+name: "Container Setup"
+description: "Sets up the container for running tests"
 
 inputs:
   additional_packages:
-    description: 'Additional packages to install'
+    description: "Additional packages to install"
     required: false
-    default: ''
+    default: ""
 
 runs:
   using: "composite"
@@ -45,24 +45,36 @@ runs:
           return $exitcode
         }
 
+        run_as_root() {
+          if [ "$(id -u)" -eq 0 ]
+          then
+            "$@"
+          else
+            sudo "$@"
+          fi
+        }
+
         # Add PostgreSQL repository
-        retry apt-get update
-        retry apt-get install -y software-properties-common curl ca-certificates lsb-release gnupg
+        retry run_as_root apt-get update
+        retry run_as_root apt-get install -y software-properties-common curl ca-certificates lsb-release gnupg
         # From https://www.postgresql.org/download/linux/debian/
-        install -d /usr/share/postgresql-common/pgdg
-        retry curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        run_as_root install -d /usr/share/postgresql-common/pgdg
+        retry curl -o /tmp/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        run_as_root mv /tmp/apt.postgresql.org.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
         . /etc/os-release
-        sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+        run_as_root bash -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
         # Install NodeJS and Yarn repositories
-        retry curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y
-        retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+        retry run_as_root bash -c "curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y"
+        retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /tmp/yarn-pubkey.gpg
+        run_as_root gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg /tmp/yarn-pubkey.gpg
+        rm /tmp/yarn-pubkey.gpg
+        run_as_root bash -c "echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list"
 
-        retry apt-get update
+        retry run_as_root apt-get update
 
         # Install packages with retry
-        retry apt-get install -y --no-install-recommends \
+        retry run_as_root apt-get install -y --no-install-recommends \
           build-essential \
           dbus \
           packagekit \
@@ -93,20 +105,20 @@ runs:
           unzip \
           zlib1g-dev \
           ${{ inputs.additional_packages }}
-        apt-get clean
+        run_as_root apt-get clean
 
     - name: Install AWS CLI
       shell: bash
       run: |
         curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
-        ./aws/install --update
+        run_as_root ./aws/install --update
         rm -rf aws awscliv2.zip
 
     - name: Install Node.js dependencies
       shell: bash
       run: |
-        npm install -g yarn
+        run_as_root npm install -g yarn
 
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
