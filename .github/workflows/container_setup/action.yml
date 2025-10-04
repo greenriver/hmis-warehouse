@@ -110,6 +110,15 @@ runs:
     - name: Install AWS CLI
       shell: bash
       run: |
+        run_as_root() {
+          if [ "$(id -u)" -eq 0 ]
+          then
+            "$@"
+          else
+            sudo "$@"
+          fi
+        }
+
         curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
         run_as_root ./aws/install --update
@@ -118,6 +127,15 @@ runs:
     - name: Install Node.js dependencies
       shell: bash
       run: |
+        run_as_root() {
+          if [ "$(id -u)" -eq 0 ]
+          then
+            "$@"
+          else
+            sudo "$@"
+          fi
+        }
+
         run_as_root npm install -g yarn
 
     # ensure changed-files can read repo files from git
