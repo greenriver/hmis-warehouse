@@ -222,6 +222,24 @@ jobs:
 
           docker push --all-tags ${image}
 
+      - name: Prune Docker cache
+        run: |
+          docker image prune -af || true
+          docker container prune -f || true
+          docker volume prune -f || true
+          docker builder prune -af || true
+
+      - name: Report disk usage before scan
+        run: |
+          echo "=== df -h ==="
+          df -h
+          echo "=== du -sh . ==="
+          du -sh .
+          echo "=== du -sh /tmp/.buildx-cache ==="
+          du -sh /tmp/.buildx-cache || true
+          echo "=== docker system df ==="
+          docker system df
+
       - name: Check trivy db sha
         id: trivy-db
         env:
