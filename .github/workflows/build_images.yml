@@ -157,8 +157,22 @@ jobs:
             fi
           }
 
-          run_as_root rm -rf vendor/bundle node_modules tmp log public/packs public/packs-test app/assets/builds/.cache
+          echo "=== Disk usage (df -h) ==="
+          df -h
+          echo "=== Workspace size (du -sh .) ==="
+          du -sh .
+          echo "=== Workspace contents (top 20) ==="
+          du -sh * | sort -hr | head -n 20
+
+          run_as_root rm -rf vendor/bundle node_modules tmp log public/packs public/packs-test app/assets/builds/.cache ~/.cache ~/.npm ~/.yarn ~/.bundle .bundle vendor/cache
           run_as_root rm -f config/secrets.yml
+
+          echo "=== Disk usage (df -h) ==="
+          df -h
+          echo "=== Workspace size (du -sh .) ==="
+          du -sh .
+          echo "=== Workspace contents (top 20) ==="
+          du -sh * | sort -hr | head -n 20
 
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
