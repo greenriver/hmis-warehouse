@@ -146,17 +146,6 @@ jobs:
           echo "RAILS_ENV=$RAILS_ENV"
           bundle exec rails assets:precompile
 
-      - name: Report disk usage before scan
-        run: |
-          echo "=== df -h ==="
-          df -h
-          echo "=== du -sh . ==="
-          du -sh .
-          echo "=== du -sh /tmp/.buildx-cache ==="
-          du -sh /tmp/.buildx-cache || true
-          echo "=== docker system df ==="
-          docker system df
-
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
         id: meta
@@ -196,17 +185,6 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
           cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
 
-      - name: Report disk usage before scan
-        run: |
-          echo "=== df -h ==="
-          df -h
-          echo "=== du -sh . ==="
-          du -sh .
-          echo "=== du -sh /tmp/.buildx-cache ==="
-          du -sh /tmp/.buildx-cache || true
-          echo "=== docker system df ==="
-          docker system df
-
       - name: Push image with tags
         env:
           image: ${{ secrets.ECR_REPOSITORY_URI }}
@@ -222,6 +200,8 @@ jobs:
 
           docker push --all-tags ${image}
 
+      # Adding the asset compilation above caused CI to run out of disk space during the trivy scan
+      # This removes intermediate products of the build process and creates more space for the trivy scan
       - name: Prune Docker cache
         run: |
           docker image prune -af || true

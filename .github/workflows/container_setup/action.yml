@@ -17,6 +17,19 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Determine sudo helper
+      shell: bash
+      run: |
+        # Some workflows execute as root (container jobs) while others run as an unprivileged
+        # user on the hosted runner. Export a SUDO so later steps can prefix privileged commands
+        # without re-evaluating the current user but run as root as necessary.
+        if [ "$(id -u)" -eq 0 ]
+        then
+          echo "SUDO=" >> "$GITHUB_ENV"
+        else
+          echo "SUDO=sudo " >> "$GITHUB_ENV"
+        fi
+
     - name: Install dependencies
       shell: bash
       run: |
@@ -45,36 +58,27 @@ runs:
           return $exitcode
         }
 
-        run_as_root() {
-          if [ "$(id -u)" -eq 0 ]
-          then
-            "$@"
-          else
-            sudo "$@"
-          fi
-        }
-
         # Add PostgreSQL repository
-        retry run_as_root apt-get update
-        retry run_as_root apt-get install -y software-properties-common curl ca-certificates lsb-release gnupg
+        retry ${SUDO}apt-get update
+        retry ${SUDO}apt-get install -y software-properties-common curl ca-certificates lsb-release gnupg
         # From https://www.postgresql.org/download/linux/debian/
-        run_as_root install -d /usr/share/postgresql-common/pgdg
+        ${SUDO}install -d /usr/share/postgresql-common/pgdg
         retry curl -o /tmp/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
-        run_as_root mv /tmp/apt.postgresql.org.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+        ${SUDO}mv /tmp/apt.postgresql.org.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
         . /etc/os-release
-        run_as_root bash -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+        ${SUDO}bash -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
         # Install NodeJS and Yarn repositories
-        retry run_as_root bash -c "curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y"
+        retry ${SUDO}bash -c "curl -fsSL https://deb.nodesource.com/setup_18.x | bash -s -- -y"
         retry curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg -o /tmp/yarn-pubkey.gpg
-        run_as_root gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg /tmp/yarn-pubkey.gpg
+        ${SUDO}gpg --dearmor -o /etc/apt/trusted.gpg.d/yarn.gpg /tmp/yarn-pubkey.gpg
         rm /tmp/yarn-pubkey.gpg
-        run_as_root bash -c "echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list"
+        ${SUDO}bash -c "echo 'deb https://dl.yarnpkg.com/debian/ stable main' > /etc/apt/sources.list.d/yarn.list"
 
-        retry run_as_root apt-get update
+        retry ${SUDO}apt-get update
 
         # Install packages with retry
-        retry run_as_root apt-get install -y --no-install-recommends \
+        retry ${SUDO}apt-get install -y --no-install-recommends \
           build-essential \
           dbus \
           packagekit \
@@ -105,38 +109,20 @@ runs:
           unzip \
           zlib1g-dev \
           ${{ inputs.additional_packages }}
-        run_as_root apt-get clean
+        ${SUDO}apt-get clean
 
     - name: Install AWS CLI
       shell: bash
       run: |
-        run_as_root() {
-          if [ "$(id -u)" -eq 0 ]
-          then
-            "$@"
-          else
-            sudo "$@"
-          fi
-        }
-
         curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
-        run_as_root ./aws/install --update
+        ${SUDO}./aws/install --update
         rm -rf aws awscliv2.zip
 
     - name: Install Node.js dependencies
       shell: bash
       run: |
-        run_as_root() {
-          if [ "$(id -u)" -eq 0 ]
-          then
-            "$@"
-          else
-            sudo "$@"
-          fi
-        }
-
-        run_as_root npm install -g yarn
+        ${SUDO}npm install -g yarn
 
     # ensure changed-files can read repo files from git
     - name: Configure Git Safe Directory
@@ -146,20 +132,11 @@ runs:
     - name: Install gems
       shell: bash
       run: |
-        run_as_root() {
-          if [ "$(id -u)" -eq 0 ]
-          then
-            "$@"
-          else
-            sudo "$@"
-          fi
-        }
-
         # Install pg gem with correct configuration
         # gem install pg -- --with-pg-config=/usr/bin/pg_config
-        run_as_root gem install bundler --version=2.6.3
-        run_as_root bundle config set --local without 'production staging'
-        run_as_root bundle install --jobs 10 --retry 3
+        ${SUDO}gem install bundler --version=2.6.3
+        ${SUDO}bundle config set --local without 'production staging'
+        ${SUDO}bundle install --jobs 10 --retry 3
 
     - name: Cache Node.js modules
       uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
@@ -170,12 +147,4 @@ runs:
     - name: Install Node.js modules
       shell: bash
       run: |
-        run_as_root() {
-          if [ "$(id -u)" -eq 0 ]
-          then
-            "$@"
-          else
-            sudo "$@"
-          fi
-        }
-        run_as_root yarn install --frozen-lockfile
+        ${SUDO}yarn install --frozen-lockfile
