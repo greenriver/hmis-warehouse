@@ -31,10 +31,12 @@ module BostonHmis
     # encrypted credentials, it's not appropriate for an open-source project
     if File.exist?(Rails.root.join('config', 'secrets.yml'))
       config.secrets = config_for(:secrets) # loads from config/secrets.yml
-      config.secret_key_base = config.secrets[:secret_key_base]
+      if config.secrets.present?
+        config.secret_key_base = config.secrets[:secret_key_base]
 
-      def secrets
-        config.secrets
+        def secrets
+          config.secrets
+        end
       end
     end
 
