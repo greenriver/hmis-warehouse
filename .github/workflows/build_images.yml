@@ -146,33 +146,16 @@ jobs:
           echo "RAILS_ENV=$RAILS_ENV"
           bundle exec rails assets:precompile
 
-      - name: Cleanup build artifacts
+      - name: Report disk usage before scan
         run: |
-          run_as_root() {
-            if [ "$(id -u)" -eq 0 ]
-            then
-              "$@"
-            else
-              sudo "$@"
-            fi
-          }
-
-          echo "=== Disk usage (df -h) ==="
+          echo "=== df -h ==="
           df -h
-          echo "=== Workspace size (du -sh .) ==="
+          echo "=== du -sh . ==="
           du -sh .
-          echo "=== Workspace contents (top 20) ==="
-          du -sh * | sort -hr | head -n 20
-
-          run_as_root rm -rf vendor/bundle node_modules tmp log public/packs public/packs-test app/assets/builds/.cache ~/.cache ~/.npm ~/.yarn ~/.bundle .bundle vendor/cache
-          run_as_root rm -f config/secrets.yml
-
-          echo "=== Disk usage (df -h) ==="
-          df -h
-          echo "=== Workspace size (du -sh .) ==="
-          du -sh .
-          echo "=== Workspace contents (top 20) ==="
-          du -sh * | sort -hr | head -n 20
+          echo "=== du -sh /tmp/.buildx-cache ==="
+          du -sh /tmp/.buildx-cache || true
+          echo "=== docker system df ==="
+          docker system df
 
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
@@ -212,6 +195,17 @@ jobs:
           build-args: ${{ matrix.build-args }}
           cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
           cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
+
+      - name: Report disk usage before scan
+        run: |
+          echo "=== df -h ==="
+          df -h
+          echo "=== du -sh . ==="
+          du -sh .
+          echo "=== du -sh /tmp/.buildx-cache ==="
+          du -sh /tmp/.buildx-cache || true
+          echo "=== docker system df ==="
+          docker system df
 
       - name: Push image with tags
         env:
