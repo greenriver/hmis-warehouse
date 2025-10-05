@@ -148,13 +148,17 @@ jobs:
 
       - name: Cleanup build artifacts
         run: |
-          rm -rf vendor/bundle
-          rm -rf node_modules
-          rm -rf tmp
-          rm -rf log
-          rm -rf public/packs public/packs-test
-          rm -rf app/assets/builds/.cache
-          rm -f config/secrets.yml
+          run_as_root() {
+            if [ "$(id -u)" -eq 0 ]
+            then
+              "$@"
+            else
+              sudo "$@"
+            fi
+          }
+
+          run_as_root rm -rf vendor/bundle node_modules tmp log public/packs public/packs-test app/assets/builds/.cache
+          run_as_root rm -f config/secrets.yml
 
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
