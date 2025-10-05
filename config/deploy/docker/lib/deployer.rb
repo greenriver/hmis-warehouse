@@ -5,7 +5,6 @@ require 'byebug'
 require 'English'
 require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
-require_relative 'asset_compiler'
 require_relative 'blue_green'
 require 'shellwords'
 
