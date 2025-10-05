@@ -146,6 +146,16 @@ jobs:
           echo "RAILS_ENV=$RAILS_ENV"
           bundle exec rails assets:precompile
 
+      - name: Cleanup build artifacts
+        run: |
+          rm -rf vendor/bundle
+          rm -rf node_modules
+          rm -rf tmp
+          rm -rf log
+          rm -rf public/packs public/packs-test
+          rm -rf app/assets/builds/.cache
+          rm -f config/secrets.yml
+
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
         id: meta
