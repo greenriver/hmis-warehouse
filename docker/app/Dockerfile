@@ -214,7 +214,7 @@ COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./con
 
 # NOTE: RAILS_ENV and CLIENT are required for assets compilation to run, but not actually used
 # to change the assets in any way
-RUN RAILS_ENV=production CLIENT=warehouse RAILS_SKIP_DATABASE_ENVIRONMENT_CHECK=1 DISABLE_SPRING=1 bundle exec rails assets:precompile
+RUN RAILS_ENV=production CLIENT=warehouse DATABASE_ADAPTER=postgresql DATABASE_HOST=postgres DATABASE_PASS=postgres DATABASE_USER=postgres DEFAULT_FROM=greenriver.testing@mailinator.com ENCRYPTION_KEY=strongEncryptionstrongEncryptionstrongEncryption HEALTH_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_HOST=postgres HEALTH_DATABASE_PASS=postgres HEALTH_DATABASE_USER=postgres REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_HOST=postgres REPORTING_DATABASE_PASS=postgres REPORTING_DATABASE_USER=postgres WAREHOUSE_DATABASE_ADAPTER=postgis WAREHOUSE_DATABASE_HOST=postgres WAREHOUSE_DATABASE_PASS=postgres WAREHOUSE_DATABASE_USER=postgres WAREHOUSE_DATABASE_DB=warehouse_db HEALTH_DATABASE_DB=health_db REPORTING_DATABASE_DB=reporting_db DISABLE_SPRING=1 bundle exec rails assets:precompile
 
 RUN rm -rf tmp/* \
   && mkdir -p tmp/pids
