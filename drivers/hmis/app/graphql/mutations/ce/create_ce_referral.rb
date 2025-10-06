@@ -40,7 +40,7 @@ module Mutations
           return { errors: errors }
         end
 
-        workflow_template = opportunity.unit.unit_group.workflow_template
+        workflow_template = opportunity.workflow_template
         raise 'No workflow template configured for this unit group' unless workflow_template
 
         instance = workflow_template.instances.create!
