@@ -1,4 +1,4 @@
--- \restrict oNYIkodgyx3A5yFymIOI2LMe1UX2eZwkEKXtU2dJNmIaYtGsNjZ9KNPeL8oAOIx
+-- \restrict O4MnQZ7Yok2YWtV6JpGLfdDkeoJ1c1XrNALRa2DfeY20AbHuMB2XxkEex5Y7VnE
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -3815,7 +3815,7 @@ CREATE TABLE public.hud_list_items (
     method_name character varying NOT NULL,
     list_number character varying NOT NULL,
     label character varying NOT NULL,
-    code integer NOT NULL,
+    code character varying NOT NULL,
     fiscal_year integer NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
@@ -75836,7 +75836,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict oNYIkodgyx3A5yFymIOI2LMe1UX2eZwkEKXtU2dJNmIaYtGsNjZ9KNPeL8oAOIx
+-- \unrestrict O4MnQZ7Yok2YWtV6JpGLfdDkeoJ1c1XrNALRa2DfeY20AbHuMB2XxkEex5Y7VnE
 
 SET search_path TO "$user", public;
 
