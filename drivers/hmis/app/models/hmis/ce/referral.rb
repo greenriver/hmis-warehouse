@@ -228,8 +228,7 @@ module Hmis::Ce
     def consistent_data_source
       msg = 'must be in same data source as opportunity'
 
-      # Opportunity takes the workflow template data source as the "source of truth", so do the same here
-      data_source = opportunity.workflow_template.data_source
+      data_source = opportunity.data_source
 
       errors.add(:client, msg) unless data_source == client.data_source
       errors.add(:target_enrollment, msg) if target_enrollment && data_source != target_enrollment.data_source
