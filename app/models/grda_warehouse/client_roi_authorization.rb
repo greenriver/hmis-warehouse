@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 # Currently this is 1:1 with client records; it is automatically generated from canonical ROIs attrs the client
 # However in the future we plan to support multiple ROIs and this will likely become the canonical source for ROI
@@ -12,9 +12,9 @@ module GrdaWarehouse
   class ClientRoiAuthorization < GrdaWarehouseBase
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
 
-    REVOKED_STATUS = 'revoked'.freeze
-    PARTIAL_STATUS = 'partial'.freeze
-    FULL_STATUS = 'full'.freeze
+    REVOKED_STATUS = 'revoked'
+    PARTIAL_STATUS = 'partial'
+    FULL_STATUS = 'full'
 
     scope :with_invalid_client, -> { left_outer_joins(:destination_client).where(c_t[:id].eq(nil)) }
 

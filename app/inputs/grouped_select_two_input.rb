@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 class GroupedSelectTwoInput < SimpleForm::Inputs::GroupedCollectionSelectInput
   def input_html_classes
     super.push('stimulus-select')
@@ -15,7 +17,7 @@ class GroupedSelectTwoInput < SimpleForm::Inputs::GroupedCollectionSelectInput
     options = input_html_options
     options[:data] ||= {}
     options[:data]['stimulus-select-target'] ||= ''
-    options[:data]['stimulus-select-target'] << ' element '
+    options[:data]['stimulus-select-target'] += ' element '
 
     merged_input_options = merge_wrapper_options(options, wrapper_options)
     @builder.grouped_collection_select(

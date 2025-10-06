@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'date'
 require 'byebug'
@@ -18,7 +18,7 @@ class Deployer
   ROOT_PATH   = File.realpath(File.join(__dir__, '..', '..', '..', '..'))
 
   ASSETS_PATH = File.join(ROOT_PATH, 'config', 'deploy', 'docker', 'assets')
-  TEST_HOST   = 'deploy.warehouse.dev.test'.freeze
+  TEST_HOST   = 'deploy.warehouse.dev.test'
   TEST_PORT   = 9999
   WAIT_TIME   = 2
 

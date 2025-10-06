@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'active_support/core_ext/object/blank'
 require_relative 'aws_sdk_helpers'
@@ -8,8 +8,8 @@ require 'shellwords'
 class AssetCompiler
   include AwsSdkHelpers::Helpers
 
-  THEME_ASSETS_BUCKET = 'openpath-ecs-assets'.freeze
-  COMPILED_ASSETS_BUCKET = 'openpath-precompiled-assets'.freeze
+  THEME_ASSETS_BUCKET = 'openpath-ecs-assets'
+  COMPILED_ASSETS_BUCKET = 'openpath-precompiled-assets'
 
   def initialize(target_group_name:, secret_arn: nil)
     @target_group_name = target_group_name

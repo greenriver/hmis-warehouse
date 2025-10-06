@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Reports::Pit::Fy2018
   class Base < Report
     def self.report_name
@@ -22,19 +24,19 @@ module Reports::Pit::Fy2018
       nil
     end
 
-    def has_options? # rubocop:disable Naming/PredicateName
+    def has_options? # rubocop:disable Naming/PredicatePrefix
       true
     end
 
-    def has_custom_form? # rubocop:disable Naming/PredicateName
+    def has_custom_form? # rubocop:disable Naming/PredicatePrefix
       true
     end
 
-    def has_pit_options? # rubocop:disable Naming/PredicateName
+    def has_pit_options? # rubocop:disable Naming/PredicatePrefix
       true
     end
 
-    def has_coc_codes_option? # rubocop:disable Naming/PredicateName
+    def has_coc_codes_option? # rubocop:disable Naming/PredicatePrefix
       true
     end
 
