@@ -53,13 +53,7 @@ module HudCodeGen
   def generate_hud_lists(year)
     raise ArgumentError, 'Year is required' unless year
 
-    source = File.read("lib/data/#{year}_hud_lists.json")
-    all_lists = JSON.parse(source)
-
-    all_lists = merge_deprecations(all_lists, year)
-    validate_lists(all_lists)
-
-    all_lists = all_lists.sort_by { |hash| hash['code'] }
+    all_lists = list_array(year)
     skipped = []
     filename = "lib/util/concerns/hud_lists_#{year}.rb"
     arr = []
@@ -105,14 +99,8 @@ module HudCodeGen
   def generate_graphql_enums(year)
     raise ArgumentError, 'Year is required' unless year
 
-    source = File.read("lib/data/#{year}_hud_lists.json")
-    all_lists = JSON.parse(source)
-
-    all_lists = merge_deprecations(all_lists, year)
-    validate_lists(all_lists)
-
     # ideally we would sort by code, but this causes a lot of churn
-    # all_lists = all_lists.sort_by { |hash| hash['code'] }
+    all_lists = list_array(year, sorted: false)
 
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
@@ -166,6 +154,27 @@ module HudCodeGen
       f.write(contents)
     end
     filename
+  end
+
+  def lists_with_method_names(year)
+    list_array(year).map do |list|
+      list['method_name'] = get_function_names(list['name'])[0]
+      list
+    end
+  end
+
+  private def list_array(year, sorted: true)
+    raise ArgumentError, 'Year is required' unless year
+
+    source = File.read("lib/data/#{year}_hud_lists.json")
+    all_lists = JSON.parse(source)
+
+    all_lists = merge_deprecations(all_lists, year)
+    validate_lists(all_lists)
+
+    return all_lists unless sorted
+
+    all_lists.sort_by { |hash| hash['code'] }
   end
 
   private def validate_lists(all_lists)
