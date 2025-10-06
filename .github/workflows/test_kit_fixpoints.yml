@@ -48,7 +48,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         ports:
-          - '2222:22'
+          - "2222:22"
 
       minio:
         image: ghcr.io/greenriver/openpath-minio:1.0
@@ -59,7 +59,7 @@ jobs:
           MINIO_ACCESS_KEY: local_access_key
           MINIO_SECRET_KEY: local_secret_key
         ports:
-          - '9000:9000'
+          - "9000:9000"
 
     env:
       CLIENT: test
@@ -106,11 +106,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: 'Container Setup'
+      - name: "Container Setup"
         id: container-setup
         uses: ./.github/workflows/container_setup
 
-      - name: 'App setup'
+      - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
           mkdir app/assets/stylesheets/theme/styles
@@ -119,6 +119,8 @@ jobs:
           cp config/database.yml.ci config/database.yml
 
       - name: Prepare test db
+        env:
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
           bin/db_prep
@@ -127,7 +129,7 @@ jobs:
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
       # fetch some closed source files
-      - name: 'Fetch testkit source files'
+      - name: "Fetch testkit source files"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
@@ -145,12 +147,13 @@ jobs:
           CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "drivers/datalab_testkit/spec/empty_spec.rb"
       - name: Get current date
         id: date
         run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-      - name: 'Copy old fixpoints to previous folder'
+      - name: "Copy old fixpoints to previous folder"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
@@ -160,7 +163,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
-      - name: 'Copy new fixpoint files to current folder'
+      - name: "Copy new fixpoint files to current folder"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
