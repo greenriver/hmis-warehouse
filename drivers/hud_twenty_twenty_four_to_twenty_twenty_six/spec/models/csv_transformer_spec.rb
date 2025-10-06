@@ -9,31 +9,31 @@
 require 'rails_helper'
 
 RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :model do
-  FIXTURES = 'drivers/hud_twenty_twenty_four_to_twenty_twenty_six/spec/fixtures'
-  FIXTURES_IN = File.join(FIXTURES, 'in').freeze
-  FIXTURES_OUT = File.join(FIXTURES, 'out').freeze
-  TEST_DIR = 'tmp/test'
-  SOURCE_DIR = File.join(TEST_DIR, 'in/merged/source').freeze
-  DEST_DIR = File.join(TEST_DIR, 'out').freeze
+  FIXTURES_2024_2026 = 'drivers/hud_twenty_twenty_four_to_twenty_twenty_six/spec/fixtures'
+  FIXTURES_IN_2024_2026 = File.join(FIXTURES_2024_2026, 'in').freeze
+  FIXTURES_OUT_2024_2026 = File.join(FIXTURES_2024_2026, 'out').freeze
+  TEST_DIR_2024_2026 = "tmp/test_#{described_class.name.underscore}".freeze
+  SOURCE_DIR_2024_2026 = File.join(TEST_DIR_2024_2026, 'in/merged/source').freeze
+  DEST_DIR_2024_2026 = File.join(TEST_DIR_2024_2026, 'out').freeze
 
   before(:each) do
     create_test_dir
   end
 
   it 'generates an output' do
-    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR, 'Export.csv'))
+    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR_2024_2026, 'Export.csv'))
 
-    HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR, DEST_DIR)
+    HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR_2024_2026, DEST_DIR_2024_2026)
 
     expect(compare_test_results).to eq([])
   end
 
   it 'creates CustomGender.csv with gender data from Client.csv' do
-    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR, 'Export.csv'))
+    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR_2024_2026, 'Export.csv'))
 
-    HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR, DEST_DIR)
+    HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR_2024_2026, DEST_DIR_2024_2026)
 
-    custom_gender_file = File.join(DEST_DIR, 'CustomGender.csv')
+    custom_gender_file = File.join(DEST_DIR_2024_2026, 'CustomGender.csv')
     expect(File.exist?(custom_gender_file)).to be true
 
     # Verify the file has content (header + data rows)
@@ -52,11 +52,11 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
   end
 
   it 'creates CustomEnrollmentFY26Deprecations.csv from Enrollment.csv' do
-    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR, 'Export.csv'))
+    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR_2024_2026, 'Export.csv'))
 
-    HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR, DEST_DIR)
+    HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer.up(SOURCE_DIR_2024_2026, DEST_DIR_2024_2026)
 
-    custom_enrollment_fy26_deprecations = File.join(DEST_DIR, 'CustomEnrollmentFY26Deprecations.csv')
+    custom_enrollment_fy26_deprecations = File.join(DEST_DIR_2024_2026, 'CustomEnrollmentFY26Deprecations.csv')
     expect(File.exist?(custom_enrollment_fy26_deprecations)).to be true
 
     # Verify the file has the correct headers
@@ -87,20 +87,21 @@ RSpec.describe HudTwentyTwentyFourToTwentyTwentySix::CsvTransformer, type: :mode
 
   def create_test_dir
     # Clean up any old test data
-    FileUtils.rm_rf(TEST_DIR)
+    FileUtils.rm_rf(TEST_DIR_2024_2026)
 
     # Create/populate the test directories
-    FileUtils.mkdir_p(File.join(TEST_DIR, 'in'))
-    FileUtils.mkdir_p(DEST_DIR)
-    FileUtils.cp_r(FIXTURES_IN, TEST_DIR)
+    FileUtils.mkdir_p(File.join(TEST_DIR_2024_2026, 'in'))
+    FileUtils.mkdir_p(DEST_DIR_2024_2026)
+    FileUtils.cp_r(FIXTURES_IN_2024_2026, TEST_DIR_2024_2026)
   end
 
+  # compare contents to DEST_DIR to FIXTURES_OUT
   def compare_test_results
     results = []
-    expected_files = Dir.glob(File.join(FIXTURES_OUT, '*.csv'))
+    expected_files = Dir.glob(File.join(FIXTURES_OUT_2024_2026, '*.csv'))
     expected_files.each do |filename|
       basename = File.basename(filename)
-      dest_file = File.join(DEST_DIR, basename)
+      dest_file = File.join(DEST_DIR_2024_2026, basename)
       results << basename unless File.exist?(dest_file) && FileUtils.identical?(filename, dest_file)
     end
     results
