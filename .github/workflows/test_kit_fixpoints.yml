@@ -119,9 +119,11 @@ jobs:
           cp config/database.yml.ci config/database.yml
 
       - name: Prepare test db
+        env:
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
-          TODO_OR_DIE_LOG_ONLY=true bin/db_prep
+          bin/db_prep
 
           echo "Setting up .pgpass"
           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
@@ -145,6 +147,7 @@ jobs:
           CHROMIUM_PATH: /usr/bin/chromium
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "drivers/datalab_testkit/spec/empty_spec.rb"
       - name: Get current date

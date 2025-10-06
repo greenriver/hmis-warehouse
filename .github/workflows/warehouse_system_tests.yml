@@ -148,7 +148,9 @@ jobs:
           chmod 600 ~/.pgpass
 
       - name: Precompile assets
-        run: TODO_OR_DIE_LOG_ONLY=true bundle exec rails assets:precompile
+        env:
+          TODO_OR_DIE_LOG_ONLY: true
+        run: bundle exec rails assets:precompile
 
       - name: Run warehouse system tests
         env:
