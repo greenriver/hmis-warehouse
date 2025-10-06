@@ -23,10 +23,3 @@ Rails.application.config.queued_tasks[:hmis_disabling_condition_and_race_cleanup
   HmisDataCleanup::Util.fix_disabling_condition_nils!
   HmisDataCleanup::Util.fix_race_gender_99s!
 end
-
-TodoOrDie('Remove one-time job', by: '2025-10-06')
-if Rails.env.staging? && ENV['ENABLE_HMIS_API'] == 'true'
-  Rails.application.config.queued_tasks[:hmis_migrate_unit_groups] = -> do
-    HmisDataCleanup::MigrateUnitsToUnitGroups20250828.new.perform
-  end
-end
