@@ -41,8 +41,9 @@ module MaYyaReport
 
     attr_reader :filter
 
-    def initialize(filter)
+    def initialize(filter, report)
       @filter = filter
+      @report = report
     end
 
     def calculate(&post_processor)
@@ -95,8 +96,11 @@ module MaYyaReport
           enrollments_one_year_prior = all_enrollments.select { |en| en.entry_date.between?(filter.start_date - 1.year, filter.start_date) }
 
           clients[client] = ::MaYyaReport::Client.new(
+            report_id: @report.id,
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
+            project_id: enrollment.project_id,
+            enrollment_id: enrollment.enrollment.id,
             entry_date: enrollment.entry_date,
             referral_source: enrollment.enrollment.ReferralSource,
             currently_homeless: currently_homeless?(ongoing_enrollments), # represents YYA experiencing homelessness
