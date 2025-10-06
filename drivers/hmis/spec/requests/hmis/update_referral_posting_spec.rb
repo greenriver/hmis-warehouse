@@ -20,16 +20,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create(:ac_hmis_link_credential)
   end
   let!(:coc) { create :hud_project_coc, data_source: ds1, project_id: destination_project.project_id, state: 'MA' }
+  let!(:c1) { create :hmis_hud_client_with_warehouse_client, data_source: ds1, user: u1 }
+  let!(:c2) { create :hmis_hud_client_with_warehouse_client, data_source: ds1, user: u1 }
   let!(:source_enrollment) do
     create :hmis_hud_enrollment, data_source: ds1, project: source_project, client: c1, user: u1
+  end
+  let!(:source_enrollment2) do
+    create :hmis_hud_enrollment, data_source: ds1, project: source_project, client: c2, user: u1, relationship_to_hoh: 2
   end
   let!(:referral) do
     create(:hmis_external_api_ac_hmis_referral, enrollment: source_enrollment)
   end
   let!(:household_member) { create :hmis_external_api_ac_hmis_referral_household_member, client: c1, referral: referral }
+  let!(:household_member2) { create :hmis_external_api_ac_hmis_referral_household_member, client: c2, referral: referral }
 
   before(:each) do
     hmis_login(user)
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
   end
 
   let(:mutation) do
@@ -57,12 +64,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         statusNote: 'test',
         referralResult: 'UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED',
       }
+      Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
       expect do
         response, result = post_graphql(id: posting.id, input: input) { mutation }
         expect(response.status).to eq 200
         errors = result.dig('data', 'updateReferralPosting', 'errors')
         expect(errors).to be_empty
-      end.to change(Hmis::Hud::Enrollment.where(id: source_enrollment.id).exited, :count).by(1)
+      end.to change(Hmis::Hud::Enrollment.where(id: source_enrollment.id).exited, :count).by(1).
+        and change(Hmis::Ce::ChangeMarker.dirty, :count).from(0).to(2) # 1 for the hoh, 1 for the other household member
     end
   end
 
