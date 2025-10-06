@@ -200,14 +200,14 @@ jobs:
 
           docker push --all-tags ${image}
 
-      # # Adding the asset compilation above caused CI to run out of disk space during the trivy scan
-      # # This removes intermediate products of the build process and creates more space for the trivy scan
-      # - name: Prune Docker cache
-      #   run: |
-      #     docker image prune -af || true
-      #     docker container prune -f || true
-      #     docker volume prune -f || true
-      #     docker builder prune -af || true
+      # Adding the asset compilation above caused CI to run out of disk space during the trivy scan
+      # This removes intermediate products of the build process and creates more space for the trivy scan
+      - name: Prune Docker cache
+        run: |
+          docker image prune -af || true
+          docker container prune -f || true
+          docker volume prune -f || true
+          docker builder prune -af || true
 
       # - name: Report disk usage before scan
       #   run: |
