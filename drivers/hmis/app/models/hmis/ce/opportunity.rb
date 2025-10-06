@@ -20,6 +20,7 @@ module Hmis::Ce
     belongs_to :unit, -> { with_deleted }, class_name: 'Hmis::Unit', foreign_key: :unit_id
     has_one :unit_group, through: :unit, class_name: 'Hmis::UnitGroup'
     has_one :workflow_template, through: :unit_group, class_name: 'Hmis::WorkflowDefinition::Template'
+    has_one :direct_referral_workflow_template, through: :unit_group, class_name: 'Hmis::WorkflowDefinition::Template'
     has_one :active_referral, -> { active }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
     has_one :active_or_accepted_referral, -> { active_or_accepted }, class_name: 'Hmis::Ce::Referral', foreign_key: :opportunity_id
 
@@ -148,6 +149,6 @@ module Hmis::Ce
 
       errors.add(:unit, 'can only have one open or locked opportunity')
     end
-    # todo @martha - this was removed, but I think it's still needed - opportunity has project and template through unit. do units have data source?
+    # todo @martha - this was removed, but maybe it's still needed - opportunity has project, and template through unit. do units have data source? - yes through project
   end
 end

@@ -71,13 +71,6 @@ module Hmis
       units.receiving_referrals.count
     end
 
-    # Returns the workflow template to use for direct referrals.
-    # If direct_referral_workflow_template is specified, use that.
-    # Otherwise, fall back to the regular workflow_template.
-    def workflow_template_for_direct_referrals
-      direct_referral_workflow_template || workflow_template
-    end
-
     private
 
     def project_is_not_changed
