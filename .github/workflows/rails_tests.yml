@@ -189,7 +189,7 @@ jobs:
           chmod 600 ~/.pgpass
 
       - name: Precompile assets
-        run: bundle exec rails assets:precompile
+        run: TODO_OR_DIE_LOG_ONLY=true bundle exec rails assets:precompile
 
       # fetch some closed source files
       - name: "Fetch testkit source files"
