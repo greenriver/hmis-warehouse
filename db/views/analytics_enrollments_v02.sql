@@ -128,7 +128,6 @@ SELECT "id",
   "PreferredLanguage",
   "PreferredLanguageDifferent",
   "VAMCStation",
-  "project_pk",
   "MentalHealthConsultation",
   "DateCreated",
   "DateUpdated",
@@ -137,3 +136,4 @@ SELECT "id",
   "ExportID"
 FROM "Enrollment"
 WHERE "DateDeleted" is NULL
+  AND "ProjectID" is not NULL

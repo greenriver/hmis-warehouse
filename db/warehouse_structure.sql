@@ -1,4 +1,4 @@
--- \restrict O4MnQZ7Yok2YWtV6JpGLfdDkeoJ1c1XrNALRa2DfeY20AbHuMB2XxkEex5Y7VnE
+-- \restrict JVQ6fCU0XfWLGLPLdzCwdhF2yfxpV8xTbSAeLZdzOGfxv49K1cCQuTTPQCDVapb
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
@@ -2992,7 +2992,6 @@ CREATE VIEW analytics.enrollments AS
     "PreferredLanguage",
     "PreferredLanguageDifferent",
     "VAMCStation",
-    project_pk,
     "MentalHealthConsultation",
     "DateCreated",
     "DateUpdated",
@@ -3000,7 +2999,7 @@ CREATE VIEW analytics.enrollments AS
     "DateDeleted",
     "ExportID"
    FROM public."Enrollment"
-  WHERE ("DateDeleted" IS NULL);
+  WHERE (("DateDeleted" IS NULL) AND ("ProjectID" IS NOT NULL));
 
 
 --
@@ -67015,6 +67014,13 @@ CREATE INDEX index_hud_dq_client_liv_sit ON public.hud_report_dq_living_situatio
 
 
 --
+-- Name: index_hud_list_items_on_year_list_and_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hud_list_items_on_year_list_and_code ON public.hud_list_items USING btree (fiscal_year, list_number, code);
+
+
+--
 -- Name: index_hud_lsa_summary_results_on_hud_report_instance_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75836,7 +75842,7 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict O4MnQZ7Yok2YWtV6JpGLfdDkeoJ1c1XrNALRa2DfeY20AbHuMB2XxkEex5Y7VnE
+-- \unrestrict JVQ6fCU0XfWLGLPLdzCwdhF2yfxpV8xTbSAeLZdzOGfxv49K1cCQuTTPQCDVapb
 
 SET search_path TO "$user", public;
 

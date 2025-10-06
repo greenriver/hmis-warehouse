@@ -8,6 +8,13 @@
 
 module GrdaWarehouse
   class HudListItem < GrdaWarehouseBase
+    # Maintains a warehouse copy of HUD reference lists for SQL consumers, including
+    # analytics views. Records are refreshed from HudCodeGen JSON by fiscal year to
+    # support future HUD releases while keeping historical snapshots.
+    # At this time, only 2026 is supported, and it is maintained via a TaskQueue job that only
+    # runs once.  In the future, we may want to maintain the list on some cadence, though it
+    # should only need to be updated when new HMIS specifications are released.
+
     KNOWN_YEARS = ['2026'].freeze
 
     def self.maintain!
