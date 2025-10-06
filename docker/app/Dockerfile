@@ -212,7 +212,9 @@ COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
-RUN RAILS_ENV=production DISABLE_SPRING=1 bundle exec rails assets:precompile
+# NOTE: RAILS_ENV and CLIENT are required for assets compilation to run, but not actually used
+# to change the assets in any way
+RUN RAILS_ENV=production CLIENT=warehouse DISABLE_SPRING=1 bundle exec rails assets:precompile
 
 RUN rm -rf tmp/* \
   && mkdir -p tmp/pids
