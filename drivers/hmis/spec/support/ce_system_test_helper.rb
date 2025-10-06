@@ -14,21 +14,20 @@ require_relative '../requests/hmis/login_and_permissions'
 RSpec.shared_context 'ce system test helper' do
   include_context 'hmis base setup'
 
-  before(:all) do
+  let!(:ds1) do
     ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
+
+    # This is slow because it creates the entire workflow for every test.
+    # However, because of test cleanup, it's easier to do this here than in a before_all block.
     HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
     CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
     workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
     workflow_builder.build_housing_workflow
     workflow_builder.build_admin_assign_workflow
+
+    ds1
   end
 
-  # after(:all) do
-  #   Hmis::Hud::CustomDataElementDefinition.destroy_all
-  #   # todo @martha - what else to clean up here?
-  # end
-
-  let!(:ds1) { GrdaWarehouse::DataSource.hmis.order(:id).first } # created already in before_all
   let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3) } # PSH
   let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: target_project, coc_code: 'CO-500' }
   let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, supports_waitlist_referrals: true, receives_direct_referrals: true) }
