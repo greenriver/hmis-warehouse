@@ -26,6 +26,7 @@ module Hmis::Ce
 
     validates :name, presence: true
     validate :unique_opportunity_per_unit
+    validate :validate_consistent_project
     validate :validate_candidate_pool_is_stable, on: :update
 
     state_machine_config column: 'status' do
@@ -149,6 +150,11 @@ module Hmis::Ce
 
       errors.add(:unit, 'can only have one open or locked opportunity')
     end
-    # todo @martha - this was removed, but maybe it's still needed - opportunity has project, and template through unit. do units have data source? - yes through project
+
+    def validate_consistent_project # todo @martha - test this
+      return if project == unit.project
+
+      errors.add(:project, "must be same as unit's project")
+    end
   end
 end
