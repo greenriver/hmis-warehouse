@@ -3,8 +3,8 @@ name: Rails Tests
 on:
   push:
     branches:
-      - '*'
-      - '**/*'
+      - "*"
+      - "**/*"
 
 concurrency:
   group: ${{ github.ref }}-tests
@@ -92,7 +92,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         ports:
-          - '2222:22'
+          - "2222:22"
 
       minio:
         image: ghcr.io/greenriver/openpath-minio:1.0
@@ -103,7 +103,7 @@ jobs:
           MINIO_ACCESS_KEY: local_access_key
           MINIO_SECRET_KEY: local_secret_key
         ports:
-          - '9000:9000'
+          - "9000:9000"
       chrome:
         image: index.docker.io/browserless/chrome@sha256:efac47cfff3830d9a50b27d29f8bbb61949058ae336c823fbe9bd3c0d1debcc8 # 1-chrome-stable
         ports:
@@ -115,7 +115,7 @@ jobs:
 
     env:
       CLIENT: test
-      ENABLE_HMIS_API: 'true'
+      ENABLE_HMIS_API: "true"
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
       DATABASE_DB_TEST: warehouse_test
@@ -165,13 +165,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: 'Container Setup'
+      - name: "Container Setup"
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
           additional_packages: libpq-dev chromium chromium-common
 
-      - name: 'App setup'
+      - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
           mkdir app/assets/stylesheets/theme/styles
@@ -180,6 +180,8 @@ jobs:
           cp config/database.yml.ci config/database.yml
 
       - name: Prepare test db
+        env:
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
           bin/db_prep
@@ -189,10 +191,12 @@ jobs:
           chmod 600 ~/.pgpass
 
       - name: Precompile assets
+        env:
+          TODO_OR_DIE_LOG_ONLY: true
         run: bundle exec rails assets:precompile
 
       # fetch some closed source files
-      - name: 'Fetch testkit source files'
+      - name: "Fetch testkit source files"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
@@ -208,7 +212,7 @@ jobs:
       # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
       # 4. Update the fixpoint in S3 from the newly generated file
-      - name: 'Fetch testkit fixpoint files'
+      - name: "Fetch testkit fixpoint files"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
@@ -219,7 +223,7 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
-      - name: 'Fetch result files'
+      - name: "Fetch result files"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
@@ -230,7 +234,7 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
-      - name: 'Fetch 2022 -> 2024 source files'
+      - name: "Fetch 2022 -> 2024 source files"
         uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
         with:
           command: cp
