@@ -154,11 +154,12 @@ RSpec.describe SimpleStateMachine do
       expect(record.errors[:workflow_state]).to include('must be one of: draft, review')
     end
 
-    it 'allows nil values' do
+    it 'disallows nil values' do
       record = SimpleStateMachineTestRecord.new
       record.status = nil
 
-      expect(record).to be_valid
+      expect(record).not_to be_valid
+      expect(record.errors[:status]).to include('must be one of: open, locked, closed')
     end
   end
 
