@@ -526,9 +526,7 @@ Style/FrozenStringLiteralComment:
     - 'bin/deploy'
     - 'bin/only_web_deploy'
     - 'bin/poll_state'
-    - 'bin/update'
     - 'bin/vault_deploy'
-    - 'bin/yarn'
     - 'config/deploy/docker/lib/cron_installer.rb'
     - 'config/deploy/docker/lib/ecs_tools.rb'
     - 'drivers/cas_access/app/models/cas_access/activity_log.rb'
@@ -556,10 +554,6 @@ Style/FrozenStringLiteralComment:
     - 'drivers/hud_lsa/app/models/hud_lsa/fy2023/report.rb'
     - 'drivers/hud_lsa/app/models/hud_lsa/fy2024/report.rb'
     - 'drivers/hud_twenty_twenty_two_to_twenty_twenty_four/app/models/concerns/hud_twenty_twenty_two_to_twenty_twenty_four/references.rb'
-    - 'drivers/public_reports/app/models/public_reports/pit_by_month.rb'
-    - 'drivers/public_reports/app/models/public_reports/point_in_time.rb'
-    - 'drivers/public_reports/app/models/public_reports/report.rb'
-    - 'drivers/public_reports/app/models/public_reports/setting.rb'
     - 'spec/devops/cron_installer_spec.rb'
     - 'spec/models/grda_warehouse/tasks/scrub_client_pii_task_spec.rb'
     - 'spec/models/grda_warehouse/warehouse_reports/project/data_quality/version_four_spec.rb'
@@ -686,7 +680,6 @@ Style/PercentLiteralDelimiters:
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantBegin:
   Exclude:
-    - 'bin/yarn'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
@@ -761,7 +754,6 @@ Style/Semicolon:
 # This cop supports safe autocorrection (--autocorrect).
 Style/StderrPuts:
   Exclude:
-    - 'bin/yarn'
 
 # Offense count: 260
 # This cop supports safe autocorrection (--autocorrect).
@@ -772,7 +764,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'bin/rspec'
-    - 'bin/yarn'
 
 # Offense count: 13
 # This cop supports unsafe autocorrection (--autocorrect-all).
