@@ -139,6 +139,8 @@ jobs:
           cp config/database.yml.ci config/database.yml
 
       - name: Prepare test db
+        env:
+          TODO_OR_DIE_LOG_ONLY: true
         run: |
           pg_isready -h postgres -U postgres
           bin/db_prep
