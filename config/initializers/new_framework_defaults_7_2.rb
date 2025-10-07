@@ -64,6 +64,7 @@
 # This query used to return a `String`.
 #++
 # Rails.application.config.active_record.postgresql_adapter_decode_dates = true
+Rails.application.config.active_record.postgresql_adapter_decode_dates = false
 
 ###
 # Enables YJIT as of Ruby 3.3, to bring sizeable performance improvements. If you are

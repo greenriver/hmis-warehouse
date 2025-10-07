@@ -134,6 +134,7 @@ RUN apt-get update && apt-get upgrade -y \
   poppler-utils \
   postgresql-client \
   postgresql-server-dev-all \
+  ripgrep \
   shared-mime-info \
   software-properties-common \
   tar \
