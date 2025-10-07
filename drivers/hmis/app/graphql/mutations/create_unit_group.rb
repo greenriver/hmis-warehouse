@@ -32,7 +32,6 @@ module Mutations
       unit_group = Hmis::UnitGroup.new(
         project_id: project.id,
         workflow_template_identifier: input.workflow_template_identifier,
-        # todo @martha - support this on frontend
         direct_referral_workflow_template_identifier: input.direct_referral_workflow_template_identifier,
         name: input.name,
         ce_event_type: input.ce_event_type,
