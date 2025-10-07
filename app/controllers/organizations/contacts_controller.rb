@@ -22,5 +22,9 @@ module Organizations
     def organization_scope
       GrdaWarehouse::Hud::Organization
     end
+
+    def contact_path_base
+      :organization
+    end
   end
 end
