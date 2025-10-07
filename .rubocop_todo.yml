@@ -1201,7 +1201,6 @@ Style/FrozenStringLiteralComment:
     - 'app/controllers/concerns/chronic.rb'
     - 'app/controllers/concerns/client_dependent_controllers.rb'
     - 'app/controllers/concerns/client_path_generator.rb'
-    - 'app/controllers/concerns/client_show_pages.rb'
     - 'app/controllers/concerns/cohort_authorization.rb'
     - 'app/controllers/concerns/cohort_clients.rb'
     - 'app/controllers/concerns/combined_client_paths_generator.rb'
