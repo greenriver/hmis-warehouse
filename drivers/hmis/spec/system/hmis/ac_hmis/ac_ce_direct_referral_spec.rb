@@ -7,19 +7,36 @@
 # frozen_string_literal: false
 
 require 'rails_helper'
-require_relative '../../requests/hmis/login_and_permissions'
-require_relative '../../support/hmis_base_setup'
+require_relative '../ce/ce_system_test_helper'
 
 RSpec.feature 'CE Direct Referrals', type: :system do
   include_context 'ce system test helper'
 
+  before(:all) do
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
+
+    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
+    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
+    workflow_builder.build_admin_assign_workflow
+  end
+
+  after(:all) do
+    # HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT]) # Re-seed enrollment form back to normal
+    GrdaWarehouse::DataSource.hmis.delete_all
+    Hmis::Form::Definition.delete_all
+    Hmis::Hud::CustomDataElementDefinition.delete_all
+    Hmis::Hud::CustomDataElement.delete_all
+  end
+
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
+  let!(:admin_assign_workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already
+
   let!(:source_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 14) } # Coordinated Entry
   let!(:source_project_ce_config) { create(:hmis_project_sends_direct_ce_referrals_config, project: source_project) }
 
-  let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 1) } # Emergency Shelter
-  let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: target_project, coc_code: 'CO-500' }
+  let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 1, with_coc: true) } # Emergency Shelter
 
-  let!(:admin_assign_workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'admin_assign_workflow') } # created already in shared context
   let!(:unit_group) { create(:hmis_unit_group, project: target_project, workflow_template: admin_assign_workflow_template) }
   let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group) }
   let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: admin_assign_workflow_template, unit: unit, name: unit.name) }

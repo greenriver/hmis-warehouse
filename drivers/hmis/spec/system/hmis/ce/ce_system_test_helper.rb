@@ -7,31 +7,18 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../requests/hmis/login_and_permissions'
+# todo @martha - consider where to move this
 
 # Shared context for CE system tests.
-# These tests are tightly coupled to the workflows defined in CeWorkflows::Ac::WorkflowBuilder.
+# Sets up a correctly configured target project and admin/provider users with example permissions.
 RSpec.shared_context 'ce system test helper' do
   include_context 'hmis base setup'
 
-  let!(:ds1) do
-    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
+  let!(:ds1) { GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS') }
+  let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1) }
 
-    # This is slow because it creates the entire workflow for every test.
-    # However, because of test cleanup, it's easier to do this here than in a before_all block.
-    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
-    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
-    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
-    workflow_builder.build_housing_workflow
-    workflow_builder.build_admin_assign_workflow
-
-    ds1
-  end
-
-  let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3) } # PSH
-  let!(:coc1) { create :hmis_hud_project_coc, data_source: ds1, project: target_project, coc_code: 'CO-500' }
+  let!(:target_project) { create(:hmis_hud_project, data_source: ds1, ProjectType: 3, with_coc: true) } # PSH
   let!(:project_ce_config) { create(:hmis_project_ce_config, project: target_project, supports_waitlist_referrals: true, receives_direct_referrals: true) }
-  let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already in before_all
 
   # User setup
   let!(:admin) { create(:hmis_user, data_source: ds1, first_name: 'Alexandra', last_name: 'Admin') }
@@ -39,10 +26,10 @@ RSpec.shared_context 'ce system test helper' do
   let!(:other_user) { create(:hmis_user, data_source: ds1, first_name: 'Oliver', last_name: 'Other') } # user without permissions
 
   # Simplified permission scenario where admin has all permissions
-  let!(:admin_ac) { create_access_control(admin, ds1) }
+  let!(:admin_access_control) { create_access_control(admin, ds1) }
 
   # Provider can see all clients in the data source, but not enrollments
-  let!(:provider_datasource_ac) do
+  let!(:provider_datasource_access_control) do
     create_access_control(
       provider,
       ds1,
@@ -54,7 +41,7 @@ RSpec.shared_context 'ce system test helper' do
   end
 
   # Provider has limited permissions in the project
-  let!(:provider_project_ac) do
+  let!(:provider_project_access_control) do
     create_access_control(
       provider,
       target_project,

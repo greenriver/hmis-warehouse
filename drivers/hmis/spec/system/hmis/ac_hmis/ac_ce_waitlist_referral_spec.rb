@@ -7,11 +7,29 @@
 # frozen_string_literal: false
 
 require 'rails_helper'
-require_relative '../../requests/hmis/login_and_permissions'
-require_relative '../../support/hmis_base_setup'
+require_relative '../ce/ce_system_test_helper'
 
 RSpec.feature 'CE Waitlist Referrals', type: :system do
   include_context 'ce system test helper'
+
+  before(:all) do
+    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', source_type: :sftp, name: 'HMIS', short_name: 'HMIS')
+
+    HmisUtil::JsonForms.new(env_key: 'allegheny', override_generate_cdeds_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
+    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
+    workflow_builder.build_housing_workflow
+  end
+
+  after(:all) do
+    GrdaWarehouse::DataSource.hmis.delete_all
+    # Hmis::Form::Definition.delete_all
+    # Hmis::Hud::CustomDataElementDefinition.delete_all
+    # Hmis::Hud::CustomDataElement.destroy_all
+  end
+
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') } # created already
+  let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
   let!(:unit) { create(:hmis_unit, project: target_project, unit_type: sro_type, unit_group: unit_group) }
   let!(:opportunity) { create(:hmis_ce_opportunity, project: target_project, workflow_template: workflow_template, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
