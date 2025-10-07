@@ -175,7 +175,8 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   def validate_consistent_project
-    return if project == unit_group&.project
+    return if unit_group.nil? # TODO(#8157) remove
+    return if project == unit_group.project
 
     errors.add(:project, "must be same as unit group's project")
   end

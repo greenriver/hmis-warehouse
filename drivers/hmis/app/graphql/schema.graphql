@@ -12845,6 +12845,8 @@ type UnitGroup {
   """
   capacity: Int!
   ceEventType: EventType
+  directReferralWorkflowTemplateIdentifier: String
+  directReferralWorkflowTemplateName: String
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
   name: String!
@@ -12859,6 +12861,7 @@ type UnitGroup {
 
 input UnitGroupInput {
   ceEventType: EventType
+  directReferralWorkflowTemplateIdentifier: String
   name: String
   projectId: ID
   workflowTemplateIdentifier: String

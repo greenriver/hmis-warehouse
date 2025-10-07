@@ -85,6 +85,8 @@ module CeWorkflows::Shared
 
       templates = Hmis::WorkflowDefinition::Template.where(identifier: template_identifier)
       # Find opportunities through unit groups that use this template
+      # todo @martha - what about unit group direct template?
+      # need to think about that more - all usages of opportunity.workflow_template, maybe it's misleading
       unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier)
       opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
       instances = Hmis::WorkflowExecution::Instance.where(template: templates)

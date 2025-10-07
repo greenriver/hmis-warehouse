@@ -99,7 +99,7 @@ module Hmis::WorkflowDefinition
       entrypoint_ids = nodes.entrypoints.pluck(:id)
       walk = graph.walk(entrypoint_ids: entrypoint_ids, stop_when: lambda(&:user_task?))
 
-      # Expect that exactly one user task is returned. (Multiple entrypoints is invalid for direct referrals)
+      # Expect that exactly one user task is returned. (Multiple is invalid for direct referrals)
       return nil unless walk.count == 1
 
       # Expect that task to have a form definition
