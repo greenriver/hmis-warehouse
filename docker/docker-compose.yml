@@ -6,7 +6,7 @@ x-app: &app
     target: dev-build
     args:
       RUBY_VERSION: 3.4.5
-      BUNDLER_VERSION: '2.7.2'
+      BUNDLER_VERSION: "2.7.2"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
       BUILD_TAG: 3.4.5-slim-bookworm
@@ -24,12 +24,11 @@ x-app: &app
     PSQL_HISTFILE: /app/log/.psql_history
     EDITOR: vi
     CHROMEDRIVER_VERSION: 79.0.3945.36
-    GROVER_NO_SANDBOX: 'true'
-    BUNDLE_FORCE_RUBY_PLATFORM: 'true'
+    GROVER_NO_SANDBOX: "true"
+    BUNDLE_FORCE_RUBY_PLATFORM: "true"
     CHROME_URL: http://chrome:3333
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
-    RUBYOPT: "--disable-frozen-string-literal"
 
   env_file:
     - .env.development.local
@@ -65,7 +64,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: '/usr/bin/entrypoint.spec.sh'
+    entrypoint: "/usr/bin/entrypoint.spec.sh"
     depends_on:
       db:
         condition: service_healthy
@@ -96,7 +95,7 @@ services:
   dj:
     <<: *backend
     command: ./bin/rake jobs:work
-    entrypoint: ''
+    entrypoint: ""
     depends_on:
       db:
         condition: service_healthy
@@ -110,7 +109,7 @@ services:
     <<: *backend
     profiles:
       - eks
-    entrypoint: 'tini -- /usr/bin/entrypoint.dj-eks-test.sh'
+    entrypoint: "tini -- /usr/bin/entrypoint.dj-eks-test.sh"
     command: "delayed_job run --pool=*:1"
     ports:
       # visit localhost:34533/metrics
