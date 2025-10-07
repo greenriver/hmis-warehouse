@@ -41,7 +41,7 @@ module Mutations
         end
 
         workflow_template = opportunity.workflow_template
-        raise 'No workflow template configured for this unit group' unless workflow_template
+        raise "No workflow template configured for this unit group. Opportunity: #{opportunity.id}" unless workflow_template
 
         instance = workflow_template.instances.create!
         referral = opportunity.referrals.originated_from_waitlist.create!(

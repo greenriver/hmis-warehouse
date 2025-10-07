@@ -49,7 +49,7 @@ module Mutations
         end
 
         workflow_template = opportunity.direct_referral_workflow_template
-        raise 'No workflow template for direct referrals configured' unless workflow_template
+        raise "No workflow template for direct referrals configured. Opportunity: #{opportunity.id}" unless workflow_template
 
         instance = workflow_template.instances.create!
         referral = opportunity.referrals.originated_from_direct_send.create!(
