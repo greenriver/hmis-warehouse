@@ -18,10 +18,10 @@ require_relative '../../support/hmis_base_setup'
 # VETERAN STATUS FIELD VISIBILITY:
 # - Shown for adult clients (18+ years old)
 # - Shown for clients with unknown DOB (age cannot be determined)
-# - Hidden for minor clients (under 18) UNLESS they have existing veteran status data
+# - Hidden for minor clients (under 18) UNLESS they are already marked as Veteran Status = 'Yes'
 #   (allows data correction for previously entered incorrect information)
 #
-# MILITARY SERVICE INFORMATION VISIBILITY:(
+# MILITARY SERVICE INFORMATION VISIBILITY:
 # - Shown when veteran status is "Yes" AND client form is rendered in "global" context (created/edit client)
 # - Shown when veteran status is "Yes" AND client form is rendered in the context of a VA-funded project (creating client in enrollment form)
 # - Hidden for all other veteran status responses (No, Client prefers not to answer, etc.)
@@ -107,6 +107,7 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
         click_button 'Save Changes'
         assert_current_path("/client/#{c1.id}/profile")
 
+        c1.reload
         expect(c1.veteran_status).to eq(1)
         expect(c1.military_branch).to eq(1) # Army
         expect(c1.year_entered_service).to eq(2000)
@@ -115,14 +116,14 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
     end
 
     context 'where client is a minor' do
-      let(:c1) { create :hmis_hud_client, data_source: ds1, dob: 15.years.ago, veteran_status: nil }
+      let(:c1) { create :hmis_hud_client, data_source: ds1, dob: 15.years.ago, veteran_status: 99 }
 
       it 'hides veteran status field' do
         expect(page).not_to have_field('Veteran Status')
       end
     end
 
-    context 'where client is a minor with existing veteran status data' do
+    context 'where client is a minor with existing Veteran Status = \'Yes\'' do
       let(:c1) { create :hmis_hud_client, data_source: ds1, dob: 15.years.ago, veteran_status: 1 }
 
       it 'shows veteran status field for data correction' do
@@ -130,11 +131,11 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
       end
 
       it 'allows changing veteran status response' do
-        mui_select 'Data not collected', from: 'Veteran Status'
+        mui_select 'No', from: 'Veteran Status'
         expect do
           click_button 'Save Changes'
           assert_current_path("/client/#{c1.id}/profile")
-        end.to change { c1.reload.VeteranStatus }.from(1).to(99)
+        end.to change { c1.reload.VeteranStatus }.from(1).to(0)
       end
 
       it 'allows clearing veteran status response' do
@@ -143,7 +144,16 @@ RSpec.feature 'Client form Veteran Status logic', type: :system do
         expect do
           click_button 'Save Changes'
           assert_current_path("/client/#{c1.id}/profile")
-        end.to change { c1.reload.VeteranStatus }.from(1).to(nil)
+          # Note: ClientProcessor processes nil into 99 because veteran status is non-nullable in HUD CSV
+        end.to change { c1.reload.VeteranStatus }.from(1).to(99)
+      end
+    end
+
+    context 'where client is a minor with existing Veteran Status = \'No\'' do
+      let(:c1) { create :hmis_hud_client, data_source: ds1, dob: 15.years.ago, veteran_status: 0 }
+
+      it 'does not show veteran status field' do
+        expect(page).not_to have_field('Veteran Status')
       end
     end
 

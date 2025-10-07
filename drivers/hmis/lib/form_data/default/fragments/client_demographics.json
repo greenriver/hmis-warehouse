@@ -120,10 +120,28 @@
           "answer_boolean": false
         },
         {
-          "_comment": "show if veteran status response already exists, to support correcting data errors when veteran status is present for minor",
-          "operator": "EXISTS",
+          "_comment": "show if veteran status response is YES/NO/DK/R, to support changing existing response when veteran status is present for minor",
+          "operator": "EQUAL",
           "question": "veteran_status",
-          "answer_boolean": true
+          "answer_code": "YES"
+        },
+        {
+          "_comment": "show if veteran status response is YES/NO/DK/R, to support changing existing response when veteran status is present for minor",
+          "operator": "EQUAL",
+          "question": "veteran_status",
+          "answer_code": "NO"
+        },
+        {
+          "_comment": "show if veteran status response is YES/NO/DK/R, to support changing existing response when veteran status is present for minor",
+          "operator": "EQUAL",
+          "question": "veteran_status",
+          "answer_code": "CLIENT_DOESN_T_KNOW"
+        },
+        {
+          "_comment": "show if veteran status response is YES/NO/DK/R, to support changing existing response when veteran status is present for minor",
+          "operator": "EQUAL",
+          "question": "veteran_status",
+          "answer_code": "CLIENT_PREFERS_NOT_TO_ANSWER"
         }
       ]
     },
