@@ -99,7 +99,7 @@ module MaYyaReport
             report_id: @report.id,
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
-            project_id: enrollment.project_id,
+            project_id: enrollment.project.id,
             enrollment_id: enrollment.enrollment.id,
             entry_date: enrollment.entry_date,
             referral_source: enrollment.enrollment.ReferralSource,
@@ -197,6 +197,7 @@ module MaYyaReport
     private def enrollment_scope_with_preloads
       enrollment_scope_without_date_range.
         preload(
+          :project,
           client: [:custom_client_addresses],
           enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry, custom_services: [:custom_data_elements]],
           household_enrollments: [:client, :exit],
@@ -341,9 +342,8 @@ module MaYyaReport
           pluck(:client_id, :InformationDate).
           each do |client_id, information_date|
             homeless_start_date = start_of_most_recent_homelessness(client_id)
-            # Ignore any permanent locations that occurred after the start of homelessness.
-            # We'll pick those up in next year's report
-            next if homeless_start_date && information_date > homeless_start_date
+            # Ignore any permanent locations that occurred before the start of the most recent period of homelessness
+            next if homeless_start_date && homeless_start_date > information_date
 
             h[client_id] = information_date if h[client_id].blank? || information_date > h[client_id]
           end
