@@ -15,6 +15,7 @@ FactoryBot.define do
     end
 
     sequence(:name) { |n| "Opportunity #{n}" }
+    status { 'open' }
     project { association :hmis_hud_project, data_source: data_source }
 
     unit do

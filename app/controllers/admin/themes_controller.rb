@@ -6,8 +6,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require_relative '../../../config/deploy/docker/lib/asset_compiler'
-
 module Admin
   class ThemesController < ApplicationController
     before_action :require_can_edit_theme!
