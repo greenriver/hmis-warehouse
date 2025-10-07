@@ -1,7 +1,7 @@
--- \restrict JVQ6fCU0XfWLGLPLdzCwdhF2yfxpV8xTbSAeLZdzOGfxv49K1cCQuTTPQCDVapb
+-- \restrict faNGdHeo2FWvVIu8nBR0k7ZNHB9PZcMe1xNYJya6DJYezf8eXgCN03u4tBE7ulL
 
 -- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.6 (Debian 17.6-1.pgdg12+1)
+-- Dumped by pg_dump version 17.6 (Debian 17.6-2.pgdg12+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -8820,12 +8820,13 @@ CREATE TABLE public.contacts (
     id integer NOT NULL,
     type character varying NOT NULL,
     entity_id integer NOT NULL,
-    email character varying NOT NULL,
+    email character varying,
     first_name character varying,
     last_name character varying,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    user_id bigint
 );
 
 
@@ -63017,6 +63018,13 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
+-- Name: index_contacts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_contacts_on_user_id ON public.contacts USING btree (user_id);
+
+
+--
 -- Name: index_csg_engage_program_mappings_on_program_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -75842,11 +75850,13 @@ ALTER TABLE ONLY public.import_logs
 -- PostgreSQL database dump complete
 --
 
--- \unrestrict JVQ6fCU0XfWLGLPLdzCwdhF2yfxpV8xTbSAeLZdzOGfxv49K1cCQuTTPQCDVapb
+-- \unrestrict faNGdHeo2FWvVIu8nBR0k7ZNHB9PZcMe1xNYJya6DJYezf8eXgCN03u4tBE7ulL
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251007133153'),
+('20251007130048'),
 ('20251003200049'),
 ('20251003192404'),
 ('20251003190848'),
