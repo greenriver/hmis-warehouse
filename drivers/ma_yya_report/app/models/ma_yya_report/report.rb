@@ -97,7 +97,11 @@ module MaYyaReport
     # This is the value for F2a and the universe for H
     private def became_housed_clause
       homeless_clause.
-        and(a_t[:latest_homeless_entry_date].lt(a_t[:permanent_exit_date]))
+        and(
+          a_t[:latest_homeless_entry_date].eq(nil).
+          and(a_t[:permanent_exit_date].not_eq(nil)).
+          or(a_t[:latest_homeless_entry_date].lt(a_t[:permanent_exit_date])),
+        )
     end
 
     private def nested_cell_definitions
