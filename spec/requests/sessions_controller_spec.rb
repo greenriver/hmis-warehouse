@@ -31,6 +31,15 @@ RSpec.describe Users::SessionsController, type: :request do
     end
 
     context 'with post-authentication hooks' do
+      def do_login
+        post user_session_path(user: { email: user.email, password: user.password })
+      end
+
+      def do_failed_login
+        post user_session_path(user: { email: user.email, password: 'incorrect' })
+      end
+
+      let(:post_auth_user) { user }
       include_context 'with post-authentication hooks'
     end
   end

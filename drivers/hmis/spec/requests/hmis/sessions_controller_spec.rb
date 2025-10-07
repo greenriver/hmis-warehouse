@@ -55,6 +55,15 @@ RSpec.describe Hmis::SessionsController, type: :request do
     end
 
     context 'with post-authentication hooks' do
+      def do_login
+        hmis_login(user)
+      end
+
+      def do_failed_login
+        post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+      end
+
+      let(:post_auth_user) { hmis_user }
       include_context 'with post-authentication hooks'
     end
   end
