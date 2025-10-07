@@ -99,7 +99,7 @@ module MaYyaReport
             report_id: @report.id,
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
-            project_id: enrollment.project_id,
+            project_id: enrollment.project.id,
             enrollment_id: enrollment.enrollment.id,
             entry_date: enrollment.entry_date,
             referral_source: enrollment.enrollment.ReferralSource,
@@ -197,6 +197,7 @@ module MaYyaReport
     private def enrollment_scope_with_preloads
       enrollment_scope_without_date_range.
         preload(
+          :project,
           client: [:custom_client_addresses],
           enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry, custom_services: [:custom_data_elements]],
           household_enrollments: [:client, :exit],
