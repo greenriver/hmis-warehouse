@@ -11,7 +11,7 @@
       %tbody
         - @entity.contacts.each do |contact|
           %tr
-            %td= "#{contact.first_name} #{contact.last_name}"
+            %td= contact.full_name
             %td= mail_to contact.email
             %td.text-right= link_to 'Remove', project_contact_path(@entity, contact), method: :delete, remote: remote_submit, class: 'btn btn-sm btn-danger', data: {confirm: "Do you really want to delete contact #{contact.full_name}"}
         - if @entity.contacts.empty?
@@ -22,11 +22,6 @@
     .row.modal-container--full-bleed
       .col-sm-8
         = simple_form_for(@contact, as: :contact, url: project_contacts_path(@entity), remote: remote_submit) do |f|
-          = render 'form', f: f
+          = render 'form', f: f, include_current: false
           .form-actions
             = f.button :submit, value: 'Add Contact'
-
-- content_for :modal_footer do
-  .form__actions.form__actions--right.mt-2
-    = link_to "Manage Organization Contacts (#{@entity.organization.OrganizationName})", new_organization_contact_path(@entity.organization, remote_submit: remote_submit), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary'
-    %button.btn.btn-primary(aria-label="Close" pjax-modal-close type="button") Done

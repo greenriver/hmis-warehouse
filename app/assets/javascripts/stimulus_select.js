@@ -99,7 +99,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       const original_placeholder = $select.attr('placeholder') || 'Please choose';
       const loading_placeholder = 'Loading...';
       $select.data('placeholder', loading_placeholder);
-      if($select.data('select2').selection.placeholder != undefined) {
+      if ($select.data('select2').selection.placeholder != undefined) {
         $select.data('select2').selection.placeholder.text = loading_placeholder;
       }
       $select.trigger('change');
@@ -117,8 +117,9 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
 
   enableFancySelect() {
     let $select = $(this.elementTarget);
+    let $modalParent = $(this.element).closest('.modal');
     let options = {
-      dropdownParent: $(this.element)
+      dropdownParent: $modalParent.length ? $modalParent : $(this.element)
     };
 
     // Add options based on use-case
@@ -191,7 +192,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
           $(drop_down_class).each((i, drop_down_span) => {
             $(drop_down_span).find('ul.select2-results__options--nested .select2-results__option:first-of-type').each((i, el) => {
               // trigger an update on the first option in each group to keep the select all/none text in sync
-              this.updateSelectAllState({target: el});
+              this.updateSelectAllState({ target: el });
             });
           });
         }
