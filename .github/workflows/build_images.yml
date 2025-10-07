@@ -149,6 +149,15 @@ jobs:
 
           docker push --all-tags ${image}
 
+      # Adding the asset compilation above caused CI to run out of disk space during the trivy scan
+      # This removes intermediate products of the build process and creates more space for the trivy scan
+      - name: Prune Docker cache
+        run: |
+          docker image prune -af || true
+          docker container prune -f || true
+          docker volume prune -f || true
+          docker builder prune -af || true
+
       - name: Check trivy db sha
         id: trivy-db
         env:
@@ -176,20 +185,12 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"
         with:
           image-ref: ${{ secrets.ECR_REPOSITORY_URI }}
-          format: 'table'
-          exit-code: '1'
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          severity: "CRITICAL,HIGH"
           cache-dir: .trivy
           skip-files: ${{ matrix.trivy_skip_files }}
 
       - name: Fix .trivy permissions
         run: sudo chown -R $(stat . -c %u:%g) .trivy
-
-      # Not completely sure this remains private
-      # - name: Report
-      #   shell: bash
-      #   run: |
-      #     echo "### Tags" >> $GITHUB_STEP_SUMMARY
-      #     echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-      #     echo '' >> $GITHUB_STEP_SUMMARY

@@ -9,8 +9,8 @@
 .row
   .col-sm-12
     - if @contacts.present?
-      .table-responsive
-        %table.table.table-sm.table-striped
+      .card.c-card-overflow-inherit
+        %table.table.table-striped
           %thead
             %tr
               %th
@@ -27,8 +27,10 @@
                 %td
                   = contact.email
                 %td
-                  = link_to project_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-secondary', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
-                    %span.icon-cross
-                    Delete
+                  :ruby
+                    items = []
+                    items << { link_to: { path: edit_project_contact_path(@entity, contact)}, icon: 'pencil', label: 'Edit Contact' }
+                    items << { link_to: { path: project_contact_path(@entity, contact), method: :delete, data: {confirm: "Do you really want to delete contact #{contact.full_name}"}}, icon: 'cross', label: 'Delete' }
+                  = action_menu_or_button(items: items)
     - else
       .none-found No project contacts on file.

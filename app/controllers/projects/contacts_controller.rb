@@ -22,5 +22,9 @@ module Projects
     def set_entity
       @entity = project_source.find(params[:project_id].to_i)
     end
+
+    def contact_path_base
+      :project
+    end
   end
 end
