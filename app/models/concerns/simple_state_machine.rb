@@ -31,6 +31,12 @@ module SimpleStateMachine
         scope state_name, -> { where(ssm_column => state_name.to_s) }
       end
 
+      # Add validation for state column
+      validates ssm_column, inclusion: {
+        in: state_machine_states.map(&:to_s),
+        message: "must be one of: #{state_machine_states.map(&:to_s).join(', ')}",
+      }
+
       # Define event methods
       ssm_events.each do |event_name, transition_map|
         # Define bang method that performs the transition

@@ -1,0 +1,40 @@
+= cache(['clients', 'genders', @client, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+  - items = @client.source_enrollments.visible_to(current_user).to_a
+  - if items.any?
+    %div
+      %table.table
+        %thead
+          %tr
+            %th
+            %th Project
+            %th Entry Date
+            %th SexualOrientation
+            %th SexualOrientationOther
+            %th TranslationNeeded
+            %th PreferredLanguage
+            %th PreferredLanguageDifferent
+            %th
+        %tbody
+          - displayed = Set.new
+          - items.each do |enrollment|
+            - project = enrollment.project
+            %tr
+              %td
+                .ds{class: "ds-color-#{enrollment.data_source_id}"}= ds_short_name_for(enrollment.client.id)
+              %td= project&.name(current_user)
+              %td= enrollment.EntryDate
+              %td= HudHelper.util.sexual_orientation enrollment.SexualOrientation
+              %td= enrollment.SexualOrientationOther
+              %td= HudHelper.util.no_yes_reasons_for_missing_data enrollment.TranslationNeeded
+              %td= HudHelper.util.preferred_language enrollment.PreferredLanguage
+              %td= enrollment.PreferredLanguageDifferent
+              %td
+                .text-teeny.font-weight-light
+                  .text-nowrap
+                    Created: #{enrollment.DateCreated}
+                  .text-nowrap
+                    Updated: #{enrollment.DateUpdated}
+
+  - else
+    .no-data
+      No enrollment records found

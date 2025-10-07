@@ -17,6 +17,11 @@
   },
   {
     "link_id": "gender",
+    "required": false,
+    "warn_if_empty": true
+  },
+  {
+    "link_id": "q_4_21_1",
     "required": true
   },
   {
