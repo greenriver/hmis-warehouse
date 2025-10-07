@@ -151,7 +151,7 @@ module Hmis::Ce
       errors.add(:unit, 'can only have one open or locked opportunity')
     end
 
-    def validate_consistent_project # todo @martha - test this
+    def validate_consistent_project
       return if project == unit.project
 
       errors.add(:project, "must be same as unit's project")
