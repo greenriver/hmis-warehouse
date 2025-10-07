@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module ClientShowPages
   extend ActiveSupport::Concern
   include ActionView::Helpers::TagHelper
@@ -59,6 +61,8 @@ module ClientShowPages
         '/clients/rollup/employment_education',
         '/clients/rollup/hmis_clients',
         '/clients/rollup/va/service_summary',
+        '/clients/rollup/gender',
+        '/clients/rollup/fy_24_enrollment_details',
       ]
       rollup = allowed_rollups.detect do |m|
         m == '/clients/rollup/' + params.require(:partial).underscore

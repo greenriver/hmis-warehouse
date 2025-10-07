@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module Contacts
   extend ActiveSupport::Concern
 
@@ -25,67 +27,33 @@ module Contacts
     end
 
     def create
-      @contact = contact_source.new(contact_params)
-      @contact.entity_id = @entity.id
-      begin
-        @contact.save!
-      rescue Exception => e
-        @error = e
-        flash[:error] = e
-        render action: :new
-        return
-      end
-      respond_to do |format|
-        format.html do
-          if @error.present?
-            flash[:error] = e
-            render action: :new
-            return
-          end
-          redirect_to action: :index
-        end
-        format.js do
-        end
-      end
+      @contact = contact_source.new(contact_params.merge(entity_id: @entity.id))
+      @contact.save
+      respond_with(@contact, location: contacts_location)
     end
 
     def update
       @contact.assign_attributes(contact_params)
-      begin
-        @contact.save!
-      rescue Exception => e
-        flash[:error] = e
-        @contact.validate
-        render action: :edit
-        return
-      end
-      redirect_to action: :index
+      @contact.save
+      respond_with(@contact, location: contacts_location)
     end
 
     def destroy
-      begin
-        @contact.destroy!
-      rescue Exception => e
-        @error = e
-        flash[:error] = e
-      end
-      respond_to do |format|
-        format.html do
-          flash[:error] = e if @error.present?
-          redirect_to action: :index
-        end
-        format.js do
-        end
-      end
+      @contact.destroy
+      respond_with(@contact, location: contacts_location)
     end
 
     def contact_params
       params.require(:contact).
-        permit(:email, :first_name, :last_name)
+        permit(:user_id)
     end
 
     def set_contact
       @contact = contact_source.where(entity_id: @entity.id).find(params[:id].to_i)
+    end
+
+    def contacts_location
+      polymorphic_path([contact_path_base, :contacts])
     end
   end
 end
