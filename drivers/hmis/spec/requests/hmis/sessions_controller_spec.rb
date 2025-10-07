@@ -11,6 +11,7 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require 'support/shared_contexts/post_login_hooks_context'
 require 'support/shared_contexts/login_activity_context'
+require 'support/shared_contexts/timing_attack_mitigation_context'
 
 RSpec.describe Hmis::SessionsController, type: :request do
   let(:user) { create :user }
@@ -51,6 +52,10 @@ RSpec.describe Hmis::SessionsController, type: :request do
         delete destroy_hmis_user_session_path
         expect(response.status).to eq 204
         expect(api_query_response.status).to eq 401
+      end
+
+      it 'sets CSRF cookie on successful login' do
+        expect(cookies['CSRF-Token']).to be_present
       end
     end
 
@@ -93,6 +98,32 @@ RSpec.describe Hmis::SessionsController, type: :request do
         expect(user.reload.failed_attempts).to eq 0
       end
     end
+  end
+
+  context 'with timing attack mitigation' do
+    let(:controller_class) { Hmis::SessionsController }
+
+    def do_login
+      hmis_login(user)
+    end
+
+    def do_failed_login
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+    end
+
+    def do_nonexistent_user_login
+      post hmis_user_session_path(hmis_user: { email: 'nonexistent@example.com', password: 'password' })
+    end
+
+    def assert_success
+      expect(response.status).to eq 200
+    end
+
+    def assert_failure
+      expect(response.status).to eq 401
+    end
+
+    include_context 'with timing attack mitigation'
   end
 
   context 'with login activity' do
@@ -191,6 +222,10 @@ RSpec.describe Hmis::SessionsController, type: :request do
         expect(response.status).to eq 403
         expect(response.body).to include 'mfa_required'
       end
+    end
+
+    it 'sets CSRF cookie when prompting for 2FA' do
+      expect(cookies['CSRF-Token']).to be_present
     end
 
     it 'user logs in when correct 2fa entered' do
