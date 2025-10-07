@@ -372,12 +372,11 @@ module Talentlms
 
       return false unless value.present?
 
-      # Parse date string using Rails' flexible date parsing
+      # Validate that the date is within a reasonable range
       date_string = value.to_s.strip
+      date_value = Date.parse(date_string)
+      return false unless date_value.between?(Date.new(2010, 1, 1), Date.tomorrow)
 
-      # Use Rails' built-in Date.parse which handles multiple formats automatically
-      # This is more robust than manually trying multiple strptime formats
-      Date.parse(date_string)
       true
     rescue ArgumentError, TypeError
       false
