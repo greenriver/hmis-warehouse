@@ -42,9 +42,9 @@ module Hmis
                optional: true
 
     validates :name, presence: true, uniqueness: { scope: :project_id, case_sensitive: false, message: 'must be unique in the project' }
-    validate :workflow_template_is_valid
+    validate :validate_workflow_templates
     validate :workflow_template_is_stable
-    validate :direct_referral_workflow_template_is_valid
+    validate :direct_referral_workflow_template_structure
     validate :direct_referral_workflow_template_is_stable
     validate :project_is_not_changed, on: :update
     validate :unit_type_is_stable, on: :update
@@ -83,56 +83,46 @@ module Hmis
       end
     end
 
-    def workflow_template_is_valid
-      return unless workflow_template
+    def validate_workflow_templates
+      validate_template(workflow_template, :workflow_template_identifier)
+      validate_template(direct_referral_workflow_template, :direct_referral_workflow_template_identifier)
+    end
 
-      errors.add(:workflow_template_identifier, 'must be published') unless workflow_template.published?
-      errors.add(:workflow_template_identifier, 'must belong to the same data source') if workflow_template.data_source_id != project.data_source_id
-      errors.add(:workflow_template_identifier, 'must have a template type of ce_referral') unless workflow_template.template_type&.to_s == 'ce_referral'
+    def validate_template(template, field_name)
+      return unless template
+
+      errors.add(field_name, 'must be published') unless template.published?
+      errors.add(field_name, 'must belong to the same data source') if template.data_source_id != project.data_source_id
+      errors.add(field_name, 'must have a template type of ce_referral') unless template.template_type&.to_s == 'ce_referral'
+    end
+
+    def direct_referral_workflow_template_structure
+      return unless direct_referral_workflow_template
+      return if direct_referral_workflow_template.direct_referral_form_definition.present?
+
+      errors.add(:direct_referral_workflow_template_identifier, 'workflow template structure is not valid for direct referrals')
+    end
+
+    def validate_field_stable_once_set(field_name, error_field_name = field_name)
+      changed_method = "#{field_name}_changed?"
+      was_method = "#{field_name}_was"
+
+      return unless send(changed_method)
+      return if send(was_method).nil?
+
+      errors.add(error_field_name, 'cannot be changed once set')
     end
 
     def workflow_template_is_stable
-      return unless workflow_template_identifier_changed?
-      return if workflow_template_identifier_was.nil?
-
-      errors.add(:workflow_template_identifier, 'cannot be changed once set')
-    end
-
-    def direct_referral_workflow_template_is_valid # todo @martha - can these be combined?
-      return unless direct_referral_workflow_template
-
-      errors.add(:direct_referral_workflow_template_identifier, 'must be published') unless direct_referral_workflow_template.published?
-      errors.add(:direct_referral_workflow_template_identifier, 'must belong to the same data source') if direct_referral_workflow_template.data_source_id != project.data_source_id
-      errors.add(:direct_referral_workflow_template_identifier, 'must have a template type of ce_referral') unless direct_referral_workflow_template.template_type&.to_s == 'ce_referral'
-
-      # Validate that the workflow has the correct structure for direct referrals
-      validate_direct_referral_workflow_structure
+      validate_field_stable_once_set(:workflow_template_identifier)
     end
 
     def direct_referral_workflow_template_is_stable
-      return unless direct_referral_workflow_template_identifier_changed?
-      return if direct_referral_workflow_template_identifier_was.nil?
-
-      errors.add(:direct_referral_workflow_template_identifier, 'cannot be changed once set')
+      validate_field_stable_once_set(:direct_referral_workflow_template_identifier)
     end
 
     def unit_type_is_stable
-      return unless unit_type_id_changed?
-      return if unit_type_id_was.nil?
-
-      errors.add(:unit_type_id, 'cannot be changed once set')
-    end
-
-    def validate_direct_referral_workflow_structure # todo @Martha - where was this generated from, who was validating it before?
-      return unless direct_referral_workflow_template
-
-      entrypoint_ids = direct_referral_workflow_template.nodes.entrypoints.pluck(:id)
-      # Walk the graph, passing the entrypoints as starting points so they aren't included in the results
-      walk = direct_referral_workflow_template.graph.walk(entrypoint_ids: entrypoint_ids, stop_when: lambda(&:user_task?))
-      # Expect that exactly one user task is returned
-      return if walk.count == 1
-
-      errors.add(:direct_referral_workflow_template_identifier, 'workflow template structure is not valid for direct referrals')
+      validate_field_stable_once_set(:unit_type_id, :unit_type)
     end
   end
 end

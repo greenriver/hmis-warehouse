@@ -569,17 +569,8 @@ module Types
       access_denied! unless target_project.receives_direct_ce_referrals?
 
       workflow_template = unit_group.workflow_template
-      raise "Workflow template invalid or not found. unit group id: #{target_unit_group_id}" unless workflow_template&.published? && workflow_template.template_type.to_s == 'ce_referral'
-
-      entrypoint_ids = workflow_template.nodes.entrypoints.pluck(:id)
-      # Walk the graph, passing the entrypoints as starting points so they aren't included in the results
-      walk = workflow_template.graph.walk(entrypoint_ids: entrypoint_ids, stop_when: lambda(&:user_task?))
-      # Expect that exactly one user task is returned
-      raise "Direct referral workflow template not valid. unit group id: #{target_unit_group_id}" unless walk.count == 1
-
-      # Expect that user task to have a form definition
-      definition = walk.sole.form_definition
-      raise "Direct referral initiation node has no form definition. unit group id: #{target_unit_group_id}" unless definition.present?
+      definition = workflow_template&.direct_referral_form_definition
+      raise "Workflow template invalid or not found. unit group id: #{target_unit_group_id}" unless definition
 
       definition
     end

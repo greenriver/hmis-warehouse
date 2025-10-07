@@ -89,5 +89,21 @@ module Hmis::WorkflowDefinition
       validate
       raise ActiveRecord::RecordInvalid, self if errors.any?
     end
+
+    # Returns the form definition that should be used for initiating a direct referral using this workflow.
+    # Returns nil if the workflow is not valid for direct referrals. Caller is responsible for error handling (raise or AR validation error)
+    def direct_referral_form_definition
+      return nil unless published? && template_type&.to_s == 'ce_referral'
+
+      # Walk the graph, passing the entrypoints as starting points so they aren't included in the results
+      entrypoint_ids = nodes.entrypoints.pluck(:id)
+      walk = graph.walk(entrypoint_ids: entrypoint_ids, stop_when: lambda(&:user_task?))
+
+      # Expect that exactly one user task is returned. (Multiple entrypoints is invalid for direct referrals)
+      return nil unless walk.count == 1
+
+      # Expect that task to have a form definition
+      walk.sole.form_definition
+    end
   end
 end
