@@ -74,6 +74,20 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
             referral {
               id
               status
+              steps {
+                id
+                stepId
+                name
+                status
+                swimlane
+                assignees {
+                  id
+                  name
+                }
+                access {
+                  canPerformStep
+                }
+              }
             }
             #{error_fields}
           }
@@ -163,6 +177,25 @@ RSpec.describe Mutations::Ce::SubmitCeReferralStep, type: :request do
               expect(response.status).to eq(200), result.inspect
               step.reload
             end.to change(step, :status).to('completed')
+          end
+        end
+
+        context 'when submitting this step enables another step that the user is participating in' do
+          before do
+            step.assignments.create!(user: hmis_user) # Assign the user to the current task so they have permission
+            referral.participants.create(swimlane: provider_swimlane, user: hmis_user) # Assign the current user as a participant on the next task's swimlane
+          end
+
+          it 'resolves the next available step' do
+            response, result = post_graphql(**variables) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            steps = result.dig('data', 'submitCeReferralStep', 'referral', 'steps')
+            expect(steps.count).to eq(2) # The previously completed step + the newly available step
+            next_step = steps[1]
+            expect(next_step.dig('status')).to eq('available')
+            expect(next_step.dig('swimlane')).to eq('Providers')
+            expect(next_step.dig('assignees', 0, 'id')).to eq(hmis_user.id.to_s)
+            expect(next_step.dig('access', 'canPerformStep')).to eq(true)
           end
         end
       end

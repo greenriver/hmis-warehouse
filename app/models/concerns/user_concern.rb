@@ -544,10 +544,6 @@ module UserConcern
     end
 
     # TODO: START_ACL remove when ACL transition complete
-    def data_sources
-      viewable GrdaWarehouse::DataSource
-    end
-
     def organizations
       viewable GrdaWarehouse::Hud::Organization
     end
@@ -558,18 +554,6 @@ module UserConcern
 
     def project_access_groups
       viewable GrdaWarehouse::ProjectAccessGroup
-    end
-
-    def reports
-      viewable GrdaWarehouse::WarehouseReports::ReportDefinition
-    end
-
-    def cohorts
-      viewable GrdaWarehouse::Cohort
-    end
-
-    def project_groups
-      viewable GrdaWarehouse::ProjectGroup
     end
 
     def associated_by(associations:)
@@ -817,10 +801,14 @@ module UserConcern
       UserEditHistory::UserVersionChangeSummary.new.perform(...)
     end
 
+    def all_access_group_ids
+      (access_groups.pluck(:id) + [access_group.id]).compact
+    end
+
     private def viewable(model)
       model.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
-          access_group_id: access_groups.pluck(:id),
+          access_group_id: all_access_group_ids,
           entity_type: model.sti_name,
         ).select(:entity_id),
       )

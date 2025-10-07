@@ -1,13 +1,15 @@
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
 
+# frozen_string_literal: true
+
 require 'aws-sdk-glacier'
 
 class Rds
   attr_accessor :client
 
-  REGION             ||= 'us-east-1'.freeze
-  AVAILABILITY_ZONE  ||= 'us-east-1a'.freeze
+  REGION             ||= 'us-east-1'
+  AVAILABILITY_ZONE  ||= 'us-east-1a'
   USERNAME           ||= ENV.fetch('RDS_USERNAME')
   PASSWORD           ||= ENV.fetch('RDS_PASSWORD')
   DB_INSTANCE_CLASS  ||= ENV.fetch('RDS_DB_INSTANCE_CLASS')
@@ -179,7 +181,7 @@ class Rds
       backup_retention_period: 0,
       availability_zone: AVAILABILITY_ZONE,
       storage_type: 'gp2', # SSD, the cheapest choice available
-      auto_minor_version_upgrade: false,
+      auto_minor_version_upgrade: true,
       preferred_backup_window: '06:14-06:44',
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
       publicly_accessible: true,

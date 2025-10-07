@@ -273,6 +273,17 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
+    it 'handles SSNs when one source lacks a created date' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1)
+      source_1.update_columns(DateCreated: nil)
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.SSN).to eq(@ssn1)
+      expect(destination_client.SSNDataQuality).to eq(1)
+    end
+
     it 'overwrites nil veteran status if something is non-blank' do
       source_1.update(VeteranStatus: nil, DateUpdated: 3.days.ago)
       source_2.update(VeteranStatus: 99, DateUpdated: 2.days.ago)
@@ -823,6 +834,18 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
+    it 'does not normalize punctuation from SSNs before persisting them' do
+      source_1.update(SSN: '123-45-6789', SSNDataQuality: 1)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect('123-45-6789').to eq(@dest_attr[:SSN])
+      expect(1).to eq(@dest_attr[:SSNDataQuality])
+    end
+
     it "chooses the oldest record's SSN if all have equivalent quality" do
       source_1.update(SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
       source_2.update(SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
@@ -832,6 +855,19 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
+    end
+
+    it 'handles SSNs when one source lacks a created date while building attributes' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 1)
+      source_1.update_columns(DateCreated: nil)
+      source_2.update(SSN: @ssn2, SSNDataQuality: 1, DateCreated: Date.new(2017, 5, 1))
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*cleanup_columns).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@ssn1).to eq(@dest_attr[:SSN])
+      expect(1).to eq(@dest_attr[:SSNDataQuality])
     end
 
     it 'overwrites nil veteran status if something is non-blank' do
@@ -1094,22 +1130,26 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       cleanup.instance_variable_set(:@clients, [destination_client.id])
     end
 
-    it 'deletes CE ClientProxies for destination clients when HMIS is enabled' do
+    it 'soft-deletes CE ClientProxies for destination clients when HMIS is enabled' do
       expect do
         cleanup.send(:clean_coordinated_entry_records)
       end.to change(
         Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
       ).from(1).to(0)
+
+      # Verify record still exists with deleted_at set
+      deleted = Hmis::Ce::ClientProxy.with_deleted.find(ce_client_proxy.id)
+      expect(deleted.deleted_at).to be_present
     end
 
-    it 'deletes CE Candidates and Candidate Events for destination clients when HMIS is enabled' do
+    it 'deletes CE Candidates but preserves Candidate Events for destination clients when HMIS is enabled' do
       expect do
         cleanup.send(:clean_coordinated_entry_records)
       end.to change(
         Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
-      ).from(1).to(0).and change(
+      ).from(1).to(0).and not_change(
         Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: ce_client_proxy.id), :count
-      ).from(1).to(0)
+      ).from(1)
     end
 
     context 'when dry_run is true' do
@@ -1119,6 +1159,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           cleanup.send(:clean_coordinated_entry_records)
         end.to not_change(
           Hmis::Ce::Match::Candidate.where(client_proxy_id: ce_client_proxy.id), :count
+        ).from(1).and not_change(
+          Hmis::Ce::Match::CandidateEvent.where(client_proxy_id: ce_client_proxy.id), :count
         ).from(1).and not_change(
           Hmis::Ce::ClientProxy.where(destination_client: destination_client), :count
         ).from(1)

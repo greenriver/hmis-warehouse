@@ -109,5 +109,39 @@ RSpec.describe Hmis::Ce::Match::UnitGroupRuleResolver do
 
       expect(result).to eq('(current_age > 18 OR score > 8) AND current_age < 65')
     end
+
+    context 'with lower-case boolean operators' do
+      it 'wraps rules that use lower-case or to preserve precedence' do
+        rule_with_lowercase_or = double('Rule', expression: 'current_age > 18 or veteran_status = 1', eligibility_requirement?: true)
+        second_rule = double('Rule', expression: 'days_since_last_exit < 30', eligibility_requirement?: true)
+
+        result = resolver.send(:compose_requirement_expression, [rule_with_lowercase_or, second_rule])
+
+        expect(result).to eq('(current_age > 18 or veteran_status = 1) AND days_since_last_exit < 30')
+      end
+    end
+
+    context 'with nested OR expressions' do
+      it 'wraps expressions containing OR within other nodes' do
+        nested_rule = double('Rule', expression: 'NOT (current_age > 18 OR score > 8)', eligibility_requirement?: true)
+        second_rule = double('Rule', expression: 'days_since_last_exit < 30', eligibility_requirement?: true)
+
+        result = resolver.send(:compose_requirement_expression, [nested_rule, second_rule])
+
+        expect(result).to eq('(NOT (current_age > 18 OR score > 8)) AND days_since_last_exit < 30')
+      end
+    end
+
+    context 'when an expression with OR is already parenthesized' do
+      it 'does not add redundant parentheses' do
+        rule1 = double('Rule', expression: '(current_age > 18 OR score > 8)', eligibility_requirement?: true)
+        rule2 = double('Rule', expression: 'current_age < 65', eligibility_requirement?: true)
+        rules = [rule1, rule2]
+
+        result = resolver.send(:compose_requirement_expression, rules)
+
+        expect(result).to eq('(current_age > 18 OR score > 8) AND current_age < 65')
+      end
+    end
   end
 end

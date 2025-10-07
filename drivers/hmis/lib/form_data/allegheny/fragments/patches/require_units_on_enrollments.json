@@ -78,12 +78,17 @@
         ],
         "custom_rule": {
           "operator": "ALL",
-          "_comment": "Hide for the internal CE project, which doesnt have units. Hide for special projects that support multi-unit households",
+          "_comment": "Hide for project types Coordinated Entry (14) and Other (7), because the CE and Link projects do not use Units. Also hide for special projects that support multi-unit households, those will use the above item instead.",
           "parts": [
             {
               "variable": "projectType",
               "operator": "NOT_EQUAL",
               "value": 14
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 7
             },
             {
               "variable": "projectId",
